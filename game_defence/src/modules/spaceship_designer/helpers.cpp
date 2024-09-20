@@ -1,13 +1,12 @@
 #include "helpers.hpp"
 
-#include "engine/algorithm_astar_pathfinding/components.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/maths/grid.hpp"
 #include "generation/components.hpp"
 #include "generation/rooms_random.hpp"
 #include "modules/components/raws.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
-
 
 namespace game2d {
 

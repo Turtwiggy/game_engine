@@ -1,9 +1,10 @@
 #include "helpers.hpp"
 
 #include "components.hpp"
-#include "engine/algorithm_astar_pathfinding/helpers.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/grid.hpp"
 #include "modules/actor_lootbag/components.hpp"
 
 #include <fmt/core.h>
@@ -113,7 +114,10 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 std::vector<glm::ivec2>
 generate_path(entt::registry& r, int src_idx, int dst_idx, const size_t limit)
 {
-  auto path = generate_direct(r, src_idx, dst_idx);
+  const auto& map = get_first_component<MapComponent>(r);
+  const auto a = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
+  const auto b = engine::grid::index_to_grid_position(dst_idx, map.xmax, map.ymax);
+  const auto path = generate_direct(r, { a.x, a.y }, { b.x, b.y });
 
   // make sure path.size() < limit
   // return +1, as usually the first path[0] is the element the entity is currently standing on

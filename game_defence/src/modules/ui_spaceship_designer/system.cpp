@@ -57,9 +57,9 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     c.max_rooms = 10;
     c.room_size_min = 4;
     c.room_size_max = glm::min(8, map.xmax);
-    auto results = generate_rooms(r, c, rnd);
+    DungeonGenerationResults results = generate_rooms(r, c, rnd);
     connect_rooms_via_nearest_neighbour(r, results);
-    update_map_with_pathfinding(r, map, results);
+    // update_map_with_pathfinding(r, map, results);
     generate_edges(r, map, results);
     instantiate_edges(r, map);
     generate_floors(r, map, results);

@@ -1,8 +1,7 @@
 #include "rooms_random.hpp"
 
 #include "components.hpp"
-#include "engine/algorithm_astar_pathfinding/components.hpp"
-#include "engine/algorithm_astar_pathfinding/helpers.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/priority_queue.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
@@ -144,8 +143,8 @@ convert_floor_islands_to_room(entt::registry& r,
                               const int from_idx,
                               const DungeonGenerationResults& dresults)
 {
-  std::vector<astar_cell> map = generate_map_view(r, map_c);
-  map[from_idx].distance = 0;
+  std::map<int, int> pos_to_distance;
+  pos_to_distance[from_idx] = 0;
 
   const auto from_glm = engine::grid::index_to_grid_position(from_idx, map_c.xmax, map_c.ymax);
   const vec2i from{ from_glm.x, from_glm.y };
@@ -156,38 +155,36 @@ convert_floor_islands_to_room(entt::registry& r,
   std::vector<int> results;
 
   while (frontier.size() > 0) {
-    const auto current = frontier.dequeue();
+    const vec2i current = frontier.dequeue();
     const auto current_idx = engine::grid::grid_position_to_index({ current.x, current.y }, map_c.xmax);
 
-    const bool is_floor = dresults.wall_or_floors[current_idx] == 0;
-    if (!is_floor)
+    if (dresults.wall_or_floors[current_idx] != 0)
       continue; // starting tile isnt floor
-    const auto rooms = inside_room(r, { current.x, current.y });
-    if (rooms.size() > 0)
+    if (inside_room(r, { current.x, current.y }).size() > 0)
       continue; // gone to a different room
-
     results.push_back(current_idx);
 
     // check neighbours
     const auto neighbours_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, map_c.xmax, map_c.ymax);
 
-    for (const auto& [dir, idx] : neighbours_idxs) {
-      astar_cell& neighbour = map[idx];
+    for (const auto& [dir, nidx] : neighbours_idxs) {
+      const auto neighbour_pos = engine::grid::index_to_grid_position(nidx, map_c.xmax, map_c.ymax);
 
-      const bool n_is_floor = dresults.wall_or_floors[idx] == 0;
-      if (!n_is_floor)
-        continue;
-      const auto rooms = inside_room(r, { current.x, current.y });
-      if (rooms.size() > 0)
+      if (dresults.wall_or_floors[nidx] != 0)
+        continue; // neighbour tile isnt floor
+      if (inside_room(r, { current.x, current.y }).size() > 0)
         continue; // gone to a different room
 
-      int distance = map[current_idx].distance + 1;
+      int distance = pos_to_distance[current_idx] + 1;
 
-      if (neighbour.distance == INT_MAX) {
-        neighbour.distance = distance;
-        frontier.enqueue(neighbour.pos, 0);
-      } else if (distance < neighbour.distance) {
-        neighbour.distance = distance;
+      // if a distance value already existed, take the smaller distance
+      if (pos_to_distance.contains(current_idx))
+        pos_to_distance[current_idx] = glm::min(distance, pos_to_distance[current_idx]);
+
+      // no distance value: insert a new one
+      else {
+        pos_to_distance[current_idx] = distance;
+        frontier.enqueue(neighbour_pos, 0);
       }
     }
   }

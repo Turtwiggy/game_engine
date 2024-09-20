@@ -20,10 +20,10 @@ struct vec2i
   vec2i() = default;
   vec2i(const int& ox, const int& oy)
     : x(ox)
-    , y(oy) {};
+    , y(oy){};
   vec2i(const glm::ivec2& xy)
     : x(xy.x)
-    , y(xy.y) {};
+    , y(xy.y){};
 
   // spaceship operator
   auto operator<=>(const vec2i&) const = default;
@@ -31,8 +31,7 @@ struct vec2i
 
 struct astar_cell
 {
-  int idx = 0;
-  vec2i pos;
+  vec2i grid_pos{ 0, 0 }; // can be negative. e.g. {-1, -1} is valid
   int distance = INT_MAX;
   int cost = 1;
 };

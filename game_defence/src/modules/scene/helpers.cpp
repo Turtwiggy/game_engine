@@ -2,6 +2,7 @@
 
 #include "actors/helpers.hpp"
 #include "components.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -18,6 +19,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/ui_inventory/components.hpp"
+#include "modules/ui_lootbag/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 
 namespace game2d {
@@ -145,6 +147,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   create_empty<SINGLE_GameStateComponent>(r);
   create_empty<SINGLE_InputComponent>(r);
   create_empty<SINGLE_UIInventoryState>(r);
+  create_empty<SINGLE_UI_Lootbag>(r);
 
   // The first and only transform should be the camera
   const auto camera_e = get_first<TransformComponent>(r);
@@ -167,8 +170,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
-    // destroy_first_and_create<Effect_GridComponent>(r);
-    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
 
     // create a player controlled spaceship
     {
@@ -192,7 +194,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<Effect_GridComponent>(r);
     // destroy_first_and_create<SINGLE_CombatState>(r);
     // destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
-    // destroy_first_and_create<SINGLE_UI_Lootbag>(r);
 
     // TEMP: add info in the event console on how to play.
     // auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);

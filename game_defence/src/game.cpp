@@ -34,6 +34,7 @@
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
+#include "modules/ui_lootbag/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -179,6 +180,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_raws_system(r);
   update_ui_pause_menu_system(app, r);
   update_ui_inventory_system(r);
+  update_ui_lootbag_system(r);
 
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
@@ -194,7 +196,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_ui_combat_endturn_system(r);
   // update_ui_combat_ended_system(r);
   // update_ui_combat_info_in_worldspace_system(r);
-  // update_ui_lootbag_system(r);
   // update_ui_launch_crew_system(r);
   // update_ui_overworld_shiplabel_system(r);
 

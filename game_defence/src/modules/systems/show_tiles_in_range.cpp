@@ -1,11 +1,12 @@
 #include "modules/systems/show_tiles_in_range.hpp"
 #include "actors/helpers.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/entity_pool.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "imgui.h"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
 
@@ -25,8 +26,13 @@ update_show_tiles_in_range_system(entt::registry& r)
   const auto& view = r.view<PlayerComponent>();
   for (const auto& [e, player_c] : view.each()) {
     const auto grid_pos = get_grid_position(r, e);
-    const auto neighbours = engine::grid::get_neighbour_gridpos(grid_pos, map_c.xmax, map_c.ymax);
-    for (int i = 0; const auto& [dir, gpos] : neighbours) {
+    // ImGui::Text("you: %i %i", grid_pos.x, grid_pos.y);
+
+    const std::vector<glm::ivec2> tiles = generate_accessible_areas(r, map_c, grid_pos, 1);
+
+    for (int i = 0; const auto& tile_gp : tiles) {
+      // ImGui::Text("accessible: %i %i", tile_gp.x, tile_gp.y);
+
       const auto debug_e = pool.instances[i];
 
       // add a transform, if needed
@@ -39,7 +45,7 @@ update_show_tiles_in_range_system(entt::registry& r)
       }
 
       const auto offset = glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-      const auto anypos = glm::vec2(gpos * map_c.tilesize) + offset;
+      const auto anypos = glm::vec2(tile_gp * map_c.tilesize) + offset;
       set_position(r, debug_e, anypos);
 
       i++;

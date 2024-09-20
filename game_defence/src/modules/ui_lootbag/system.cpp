@@ -6,14 +6,13 @@
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/grid.hpp"
-#include "imgui.h"
 #include "modules/actor_player/components.hpp"
-#include "modules/grid/components.hpp"
+#include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/ui_combat_turnbased/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
-#include "modules/ui_inventory/helpers.hpp"
 
+#include "imgui.h"
+#include "modules/ui_inventory/helpers.hpp"
 
 namespace game2d {
 
@@ -77,12 +76,11 @@ update_ui_lootbag_system(entt::registry& r)
   const auto content_size = ImGui::GetContentRegionAvail();
 
   for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {
-
-    if (!inside_ship(r, e))
-      continue;
-
     const auto gp = get_grid_position(r, e);
+
     const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
+    if (idx < 0 || idx > map_c.xmax * map_c.ymax)
+      continue; // unlikely to be loot out of bounds?
 
     // remove the player from the grid cell index,
     // and assume that every other entity is an inventory.
@@ -142,8 +140,6 @@ update_ui_lootbag_system(entt::registry& r)
                 update_item_parent(r, item_e, player_inv_slot_e);
             }
           }
-
-          // fmt::println("item was clicked...");
         }
 
         ImGui::PopID();

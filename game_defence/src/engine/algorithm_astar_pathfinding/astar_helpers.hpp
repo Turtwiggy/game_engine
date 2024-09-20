@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components.hpp"
+#include "astar_components.hpp"
 #include "modules/map/components.hpp"
 
 #include <glm/glm.hpp>
@@ -32,17 +32,14 @@ heuristic(const T& a, const T& b)
   return distance<T>(a, b);
 };
 
-std::vector<astar_cell>
-generate_map_view(entt::registry& r, const MapComponent& map);
+[[nodiscard]] std::vector<glm::ivec2>
+generate_direct(entt::registry& r, const vec2i from, const vec2i to);
+
+// [[nodiscard]] std::vector<glm::ivec2>
+// generate_direct_with_diagonals(entt::registry& r, const MapComponent& grid, const int from_idx, const int to_idx);
 
 [[nodiscard]] std::vector<glm::ivec2>
-generate_direct(entt::registry& r, const int from_idx, const int to_idx);
-
-[[nodiscard]] std::vector<glm::ivec2>
-generate_direct_with_diagonals(entt::registry& r, const MapComponent& grid, const int from_idx, const int to_idx);
-
-[[nodiscard]] std::vector<glm::ivec2>
-generate_accessible_areas(entt::registry& r, const MapComponent& grid, const int from_idx, const int range);
+generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const vec2i from_pos, const int range);
 
 // [[nodiscard]] std::vector<astar_cell>
 // generate_flow_field(entt::registry& r, const MapComponent& grid, const int from_idx);
