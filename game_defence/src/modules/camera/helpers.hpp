@@ -6,7 +6,7 @@
 
 namespace game2d {
 
-[[nodiscard]] glm::ivec2
+[[nodiscard]] glm::vec2
 mouse_position_in_worldspace(entt::registry& r);
 
 [[nodiscard]] glm::ivec2

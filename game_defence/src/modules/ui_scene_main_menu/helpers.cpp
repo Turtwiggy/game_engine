@@ -1,12 +1,12 @@
 #include "helpers.hpp"
 
-#include "audio/components.hpp"
-#include "audio/helpers/sdl_mixer.hpp"
-#include "entt/helpers.hpp"
-#include "io/settings.hpp"
+#include "engine/audio/audio_components.hpp"
+#include "engine/audio/helpers/sdl_mixer.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/io/settings.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/ui_inventory/helpers.hpp"
 
 #include "imgui.h"
 
@@ -39,7 +39,7 @@ play_sound_if_hovered(entt::registry& r, std::vector<std::string>& hovered_butto
 void
 ui_mute_sound_icon(entt::registry& r)
 {
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   // show a sound icon
   ImGuiWindowFlags icon_flags = 0;
@@ -97,7 +97,7 @@ ui_mute_sound_icon(entt::registry& r)
   }
   ImGui::PopStyleVar();
 
-  auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+  auto& audio = get_first_component<SINGLE_AudioComponent>(r);
   audio.mute_all = mute;
   audio.mute_sfx = mute;
 

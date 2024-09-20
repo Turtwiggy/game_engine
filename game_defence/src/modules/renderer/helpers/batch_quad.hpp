@@ -1,8 +1,8 @@
 #pragma once
 
 // engine headers
-#include "colour/colour.hpp"
-#include "opengl/shader.hpp"
+#include "engine/colour/colour.hpp"
+#include "engine/opengl/shader.hpp"
 
 // other project headers
 #include <glm/glm.hpp>

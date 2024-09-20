@@ -2,12 +2,9 @@
 // header
 #include "batch_quad.hpp"
 
-// my libs
-#include "modules/vfx_circle/components.hpp"
-
-// other project headers
-#include "deps/opengl.hpp"
-#include "opengl/util.hpp"
+#include "engine/deps/opengl.hpp"
+#include "engine/opengl/util.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <fmt/core.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,7 +12,6 @@
 namespace engine {
 
 namespace quad_renderer {
-using game2d::CircleComponent;
 
 void
 QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
@@ -156,7 +152,7 @@ QuadRenderer::init()
   GLuint& tex = data.TEX;
   glGenBuffers(1, &tbo);
   glBindBuffer(GL_TEXTURE_BUFFER, tbo);
-  glBufferData(GL_TEXTURE_BUFFER, N_MAX_CIRCLES * sizeof(CircleComponent), nullptr, GL_DYNAMIC_DRAW);
+  glBufferData(GL_TEXTURE_BUFFER, N_MAX_CIRCLES * sizeof(game2d::CircleComponent), nullptr, GL_DYNAMIC_DRAW);
 
   // bind the tbo to a texture unit for shaders
   glGenTextures(1, &tex);

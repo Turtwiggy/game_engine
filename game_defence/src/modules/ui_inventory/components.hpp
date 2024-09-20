@@ -1,28 +1,9 @@
 #pragma once
 
-#include "entt/helpers.hpp"
-#include "modules/combat_damage/components.hpp"
+#include "engine/entt/helpers.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {
-
-enum class ItemType
-{
-  gun,
-  armour,
-  bomb,
-  medkit,
-  scrap,
-  bullet_default,
-  bullet_bouncy
-};
-
-// ItemTypeComponent exists to that
-// the item knows which instance of an object to spawn
-struct ItemTypeComponent
-{
-  ItemType type = ItemType::armour;
-};
 
 struct ShowInventoryRequest
 {
@@ -53,15 +34,16 @@ struct InventorySlotComponent
   auto operator<=>(const InventorySlotComponent&) const = default;
 };
 
-struct ItemComponent
+struct UI_ItemComponent
 {
   std::string display_icon = "EMPTY";
-  std::string display_name = "DISPLAY_NAME";
+  std::string display_name = "PLACHOLDER_DISPLAY_NAME";
+  std::string display_desc = "PLACHOLDER_DISPLAY_DESC";
 
   // parent <=> child
   entt::entity parent_slot = entt::null;
 
-  auto operator<=>(const ItemComponent&) const = default;
+  auto operator<=>(const UI_ItemComponent&) const = default;
 };
 
 // where is item allowed to go?
@@ -110,6 +92,7 @@ struct DefaultInventory
     inv.resize(size);
     for (int i = 0; i < size; i++)
       inv[i] = create_empty<InventorySlotComponent>(r, InventorySlotComponent{ InventorySlotType::backpack });
+    fmt::println("created inventory... size: {}", size);
   }
 };
 

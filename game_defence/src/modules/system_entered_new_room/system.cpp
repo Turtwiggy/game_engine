@@ -3,15 +3,14 @@
 #include "components.hpp"
 
 #include "actors/helpers.hpp"
-#include "entt/helpers.hpp"
-#include "maths/grid.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/gen_dungeons/components.hpp"
-#include "modules/gen_dungeons/helpers.hpp"
-#include "modules/grid/components.hpp"
+#include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/spaceship_designer/generation/components.hpp"
+#include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_entered_new_room/components.hpp"
-#include "modules/ui_event_console/components.hpp"
 
 #include "imgui.h"
 
@@ -26,8 +25,6 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   if (get_first<MapComponent>(r) == entt::null)
     return;
   if (get_first<DungeonGenerationResults>(r) == entt::null)
-    return;
-  if (get_first<SINGLE_EventConsoleLogComponent>(r) == entt::null)
     return;
   const auto& map = get_first_component<MapComponent>(r);
   const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
@@ -77,8 +74,6 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   // TEMPORARY
   // Display imgui popup if an entered new room popup is fired.
   //
-  auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
-
   const float time_to_display_room_name = 6.0f;
   static float time_displaying_room_name = 0.0f;
   static std::optional<std::string> room_name = std::nullopt;
@@ -90,7 +85,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     room_name = std::to_string(static_cast<uint32_t>(req.room_e));
 
     const std::string label = "Entered room "s + room_name.value();
-    evts.events.push_back(label);
+    // evts.events.push_back(label);
 
     break; // only first event
   }
@@ -110,7 +105,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
 
   const bool show_room_ui = time_displaying_room_name <= time_to_display_room_name && time_displaying_room_name != 0.0f;
   if (show_room_ui) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const ImVec2 viewport_pos = { (float)ri.viewport_pos.x, (float)ri.viewport_pos.y };
     const ImVec2 viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
 

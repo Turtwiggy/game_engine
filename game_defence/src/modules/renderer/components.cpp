@@ -1,6 +1,6 @@
 #include "components.hpp"
 
-#include "opengl/texture.hpp"
+#include "engine/opengl/texture.hpp"
 
 #include <fmt/core.h>
 #include <magic_enum.hpp>

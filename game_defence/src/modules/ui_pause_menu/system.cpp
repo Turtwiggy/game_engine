@@ -1,18 +1,18 @@
 #include "system.hpp"
 
-#include "audio/components.hpp"
-#include "audio/helpers/sdl_mixer.hpp"
-#include "entt/helpers.hpp"
-#include "events/helpers/keyboard.hpp"
-#include "events/helpers/mouse.hpp"
+#include "engine/audio/audio_components.hpp"
+#include "engine/audio/helpers/sdl_mixer.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "engine/events/helpers/mouse.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "game_state.hpp"
-#include "imgui/helpers.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 
-#include <SDL_mixer.h>
+#include <SDL2/SDL_mixer.h>
 #include <imgui.h>
 
 #include <algorithm>
@@ -23,7 +23,7 @@
 namespace game2d {
 
 void
-update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& r)
+update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
 {
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
@@ -32,13 +32,13 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
   flags |= ImGuiDockNodeFlags_NoResize;
   flags |= ImGuiDockNodeFlags_PassthruCentralNode;
 
-  auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
+  auto& input = get_first_component<SINGLE_InputComponent>(r);
+  auto& state = get_first_component<SINGLE_GameStateComponent>(r);
 
   static bool open = false;
 
   // dont open pause menu in the main menu
-  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   if (scene.s == Scene::menu) {
     open = false;
     return;
@@ -70,7 +70,7 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
 
     const bool show_mousepos = false;
     if (show_mousepos) {
-      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+      const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
       ImGui::Text("imgui: %f, %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
       const glm::ivec2 mouse_pos = get_mouse_pos() - ri.viewport_pos;
       ImGui::Text("mouse_pos: %i, %i", mouse_pos.x, mouse_pos.y);
@@ -140,9 +140,9 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
       app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
     }
 
-    const auto audio_e = get_first<SINGLETON_AudioComponent>(r);
+    const auto audio_e = get_first<SINGLE_AudioComponent>(r);
     if (audio_e != entt::null) {
-      auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+      auto& audio = get_first_component<SINGLE_AudioComponent>(r);
 
       if (audio.loaded) {
         ImGui::SeparatorText("Audio");
@@ -163,7 +163,7 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
             // how to resume correct scene background music?
             // a better solution would be to fade the music back in
             // below is BAD.
-            // const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
+            // const auto& s = get_first_component<SINGLE_CurrentScene>(r);
             // if (s.s == Scene::overworld)
             //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
             // if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
@@ -179,7 +179,7 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
 
     ImGui::SeparatorText("Quit");
 
-    // const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+    // const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
     // const bool is_saveable_scene = scene.s == Scene::overworld;
     // if (is_saveable_scene && ImGui::Button("Save to Menu")) {
     //   save(r, "save-overworld.json");

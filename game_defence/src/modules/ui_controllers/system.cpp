@@ -1,11 +1,8 @@
 #include "system.hpp"
 
-#include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/controller.hpp"
-#include "events/helpers/mouse.hpp"
-#include "modules/camera/helpers.hpp"
-#include "modules/renderer/components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/controller.hpp"
 
 #include <SDL2/SDL_gamecontroller.h>
 #include <imgui.h>
@@ -18,10 +15,7 @@ namespace game2d {
 void
 update_ui_controller_system(entt::registry& r)
 {
-  auto& input = get_first_component<SINGLETON_InputComponent>(r);
-
-  // ImGuiWindowFlags flags = 0;
-  // flags |= ImGuiDockNodeFlags_AutoHideTabBar;
+  auto& input = get_first_component<SINGLE_InputComponent>(r);
 
   ImGui::Begin("Controller");
 

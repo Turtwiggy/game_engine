@@ -1,18 +1,19 @@
 #include "system.hpp"
 
-#include "actors/actors.hpp"
 #include "components.hpp"
 
 #include "actors/helpers.hpp"
-#include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
-#include "maths/grid.hpp"
-#include "maths/maths.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
+#include "imgui.h"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/animation/components.hpp"
-#include "modules/gen_dungeons/components.hpp"
-#include "modules/gen_dungeons/helpers.hpp"
-#include "modules/grid/components.hpp"
+#include "modules/animations/wiggle/components.hpp"
+#include "modules/map/components.hpp"
+#include "modules/raws/raws_components.hpp"
+#include "modules/spaceship_designer/generation/components.hpp"
+#include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
@@ -25,16 +26,24 @@ void
 create_imgui_quip(entt::registry& r, const entt::entity actor, const RequestQuip& req, const std::string& quip)
 {
   // forward the quip text on to the worldspace text system
-  const auto e = create_transform(r);
+  const auto e = create_transform(r, "QUIP");
   r.get<TagComponent>(e).tag = "empty_with_transform:Quip:BEGIN_ENCOUNTER";
   set_position(r, e, get_position(r, actor));
   set_size(r, e, { 0, 0 });
 
   auto& ui = r.emplace<WorldspaceTextComponent>(e);
-  ui.text = quip;
-  ui.offset.y = (-get_size(r, actor).y) / 2.0f;
-  ui.split_text_into_lines = true;
-  ui.line_length = 20;
+  ui.flags = ImGuiWindowFlags_NoDecoration;
+  ui.flags |= ImGuiWindowFlags_NoBackground;
+
+  ui.layout = [quip]() {
+    //
+    // ui.text = quip;
+    // ui.offset.y = (-get_size(r, actor).y) / 2.0f;
+    // ui.split_text_into_lines = true;
+    // ui.line_length = 20;
+    ImGui::Text("%s", quip.c_str());
+  };
+
   WiggleUpAndDown wig;
   wig.base_position = get_position(r, actor);
   wig.amplitude = 1.0;

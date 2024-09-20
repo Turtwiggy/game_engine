@@ -4,14 +4,14 @@
 // components/systems
 #include "actors/helpers.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "engine/renderer/transform.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "orthographic.hpp"
-#include "renderer/transform.hpp"
 
 #include <glm/glm.hpp>
 
@@ -20,8 +20,8 @@ namespace game2d {
 void
 update_camera_system(entt::registry& r, const float dt)
 {
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
   const auto camera_ent = get_first<OrthographicCamera>(r);
 
   const float screen_x = -ri.viewport_size_render_at.x / 2.0f;
@@ -43,11 +43,6 @@ update_camera_system(entt::registry& r, const float dt)
     camera_transform.position.x = pos.x;
     camera_transform.position.y = pos.y;
   }
-
-  // if (targets_view.size_hint() > 0) {
-  //   target_position.x /= targets_view.size_hint();
-  //   target_position.y /= targets_view.size_hint();
-  // }
 
   // update lerp
   auto target_e = get_first<CameraLerpToTarget>(r);
@@ -88,6 +83,27 @@ update_camera_system(entt::registry& r, const float dt)
   screen_offset.position.x = screen_x + screen_offset.position.x;
   screen_offset.position.y = screen_y + screen_offset.position.y;
   camera.view = calculate_ortho_view(screen_offset, dt);
+
+  // no zooming unless on the viewport
+  if (!ri.viewport_hovered)
+    return;
+
+  static float zoom = 0.0f;
+  static float zoom_nonlinear = 0.0f;
+  if (ImGui::GetIO().MouseWheel > 0.0f)
+    zoom -= 100.0f * dt;
+  if (ImGui::GetIO().MouseWheel < 0.0f)
+    zoom += 100.0f * dt;
+
+  // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
+  // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
+  // If zoom = -1, then 2^(-1 / 2) gives a zoom factor of ~0.707 (zooming out by 29%).
+  zoom_nonlinear = glm::pow(2.0f, (zoom / 2.0f));
+  // ImGui::Text("zoom_linear: %f", zoom);
+  // ImGui::Text("zoom_nonlinear: %f", zoom_nonlinear);
+
+  camera.projection_zoomed =
+    calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, zoom_nonlinear);
 };
 
 } // namespace game2d

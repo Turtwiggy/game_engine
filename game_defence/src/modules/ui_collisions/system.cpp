@@ -1,7 +1,7 @@
 #include "system.hpp"
 
-#include "entt/helpers.hpp"
-#include "physics/components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/physics/components.hpp"
 
 #include "imgui.h"
 

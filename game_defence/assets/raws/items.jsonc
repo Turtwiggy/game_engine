@@ -1,0 +1,156 @@
+{
+  "items": [
+    // header: items & resources
+    //
+    {
+      "name": "medkit",
+      "display_name": "Basic MedKit.",
+      "display_desc": "DRABC. RICE. Oh, your arm's missing?",
+      "renderable": { "sprite": "ICON_HEART_FULL", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "use": { "name": "heal", "select": "actor", "amount": 25 }
+    },
+    {
+      "name": "duck",
+      "display_name": "Basic Duck",
+      "display_desc": "Quuack. Quack. QUACK >:(",
+      "renderable": { "sprite": "DUCK", "colour": { "r": 255, "g": 255, "b": 255 } }
+    },
+    {
+      "name": "seed (plant)",
+      "display_name": "Seed. (Unknown plant)",
+      "display_desc": "It wishes it was home.",
+      "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
+    },
+    {
+      "name": "scrap",
+      "display_name": "sCrap",
+      "display_desc": "A wrench through a toaster. A useful resource.",
+      "renderable": { "sprite": "SCRAP", "colour": { "r": 255, "g": 255, "b": 255 } }
+    },
+    {
+      "name": "breach charge",
+      "display_name": "C4",
+      "display_desc": "Apply carefully to spaceship, then run.",
+      "renderable": { "sprite": "WEAPON_GRENADE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "use": { "name": "explode", "select": "point" }
+    },
+    // header: weapons
+    //
+    {
+      "name": "scrap_knife",
+      "display_name": "[sCrap] Knife",
+      "display_desc": "Knife to see you.",
+      "renderable": { "sprite": "WEAPON_DAGGER_4", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "melee": { "damage": 12, "range": 1 }
+    },
+    {
+      "name": "power_hammer",
+      "display_name": "[Powered] Hammer",
+      "display_desc": "Bigger IS better. Don't let anyone tell you otherwise.",
+      "renderable": { "sprite": "HAMMER_38_7", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "melee": { "damage": 10, "range": 1 }
+    },
+    {
+      "name": "power_sword",
+      "display_name": "[Powered] Sword",
+      "display_desc": "Electrity in a sword. The hilt is insulated. Probably.",
+      "renderable": { "sprite": "WEAPON_QUIVER", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "melee": { "damage": 10, "range": 2 }
+    },
+    {
+      "name": "chainsaw",
+      "display_name": "Chainy Mc' Chainsaw",
+      "display_desc": "Nice to chainsaw you too.",
+      "renderable": { "sprite": "WEAPON_SWORD_33_7", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "melee": { "damage": 20, "range": 1 }
+    },
+    {
+      "name": "pistol",
+      "display_name": "Pistol",
+      "display_desc": "Probably wasn't originally yours.",
+      "renderable": { "sprite": "WEAPON_PISTOL", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "ranged": { "type": "line", "range": 3 }
+    },
+    {
+      "name": "shotgun",
+      "display_name": "Shotgun",
+      "display_desc": "More gun is better gun.",
+      "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "ranged": { "type": "cone", "range": 3 }
+    },
+    {
+      "name": "bullet_default",
+      "display_name": "Bullet (Default)",
+      "display_desc": "Pointy end away.",
+      "renderable": { "sprite": "AMMO_BOX", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "bullet": { "damage": 12 }
+    },
+    {
+      "name": "bullet_bouncy",
+      "display_name": "Bullet (Bouncy)",
+      "display_desc": "Shooting round corners seems like cheating.",
+      "renderable": { "sprite": "AMMO_BOX", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "bullet": { "damage": 12 }
+    },
+    // header: scrap tier items
+    //
+    {
+      "name": "scrap_helmet",
+      "display_name": "[sCrap] Helmet",
+      "display_desc": "This hat seems like a liability.",
+      "renderable": { "sprite": "HELMET_5", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 3, "worn_on": "HEAD" }
+    },
+    {
+      "name": "scrap_core",
+      "display_name": "[sCrap] Core",
+      "display_desc": "Protects your jiggly bits.",
+      "renderable": { "sprite": "CHESTPIECE_5", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 5, "worn_on": "CORE" }
+    },
+    {
+      "name": "scrap_gloves",
+      "display_name": "[sCrap] Gloves",
+      "display_desc": "Gloves. Gloves! Gloves?",
+      "renderable": { "sprite": "GLOVES_4", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 2, "worn_on": "ARM" }
+    },
+    {
+      "name": "scrap_legs",
+      "display_name": "[sCrap] Legs",
+      "display_desc": "No captain would wear these underpants.",
+      "renderable": { "sprite": "BOOTS_1", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 4, "worn_on": "LEG" },
+      "commerce": { "value": 10 }
+    }
+  ],
+  "environment": [
+    {
+      "name": "cover",
+      "renderable": { "sprite": "WALL_19_1_NONE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 5 }
+    }
+  ],
+  "mobs": [
+    {
+      "name": "spaceship_player",
+      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": { "r": 162, "g": 255, "b": 134 } },
+      "stats": { "max_hp": 100, "hp": 100 }
+    },
+    {
+      "name": "spaceship_enemy",
+      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": { "r": 162, "g": 255, "b": 134 } },
+      "stats": { "max_hp": 100, "hp": 100 }
+    },
+    {
+      "name": "dungeon_actor_hero",
+      "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "stats": { "max_hp": 100, "hp": 100 }
+    },
+    {
+      "name": "dungeon_actor_enemy_default",
+      "renderable": { "sprite": "WALL_19_1_NONE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "stats": { "max_hp": 50, "hp": 50 }
+    }
+  ]
+}

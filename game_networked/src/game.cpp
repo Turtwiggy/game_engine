@@ -1,7 +1,7 @@
 #include "game.hpp"
 #include "cli.hpp"
 
-#include "audio/components.hpp"
+#include "audio/audio_components.hpp"
 #include "audio/system.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"

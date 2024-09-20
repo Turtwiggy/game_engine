@@ -6,15 +6,14 @@ enum class Scene
 {
   splashscreen,
   menu,
-  overworld_revamped,
+  overworld,
   dungeon_designer,
-  minigame_bamboo,
 
   test, // used by tests
   count
 };
 
-struct SINGLETON_CurrentScene
+struct SINGLE_CurrentScene
 {
   Scene s = Scene::menu;
 };

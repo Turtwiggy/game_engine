@@ -1,11 +1,30 @@
 #pragma once
 
-#include "actors/actors.hpp"
-
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
 namespace game2d {
+
+struct Particle
+{
+  int time_to_live_ms = 3 * 1000;
+  float start_size = 10;
+  float end_size = 10;
+  glm::vec2 position{ 0, 0 }; // seems wrong
+  glm::vec2 velocity{ 0, 0 };
+  // not implemented
+  // engine::SRGBColour start_colour;
+  // engine::SRGBColour end_colour;
+};
+
+struct ParticleEmitter
+{
+  entt::entity parent = entt::null;
+  glm::vec2 velocity{ 0.0f, 0.0f };
+
+  float start_size = 6.0f;
+  float end_size = 2.0f;
+};
 
 // related components:
 // ScaleOverTimeComponent
@@ -15,7 +34,7 @@ namespace game2d {
 // CooldownComponent
 
 // used by non-physics body components
-struct VelocityTemporaryComponent
+struct VelocityComponent
 {
   float x = 0;
   float y = 0;
@@ -32,7 +51,7 @@ struct ScaleOverTimeComponent
 // the emitter that spawns the particle
 struct ParticleEmitterComponent
 {
-  DataParticle particle_to_emit;
+  Particle particle_to_emit;
   bool spawn_all_particles_at_once = false;
 
   bool expires = false;

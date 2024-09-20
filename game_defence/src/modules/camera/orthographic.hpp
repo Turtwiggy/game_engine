@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/renderer/components.hpp"
+#include "engine/renderer/transform.hpp"
 
 #include <glm/glm.hpp>
 
@@ -10,10 +10,11 @@ struct OrthographicCamera
 {
   glm::mat4 view = glm::mat4(1.0f);
   glm::mat4 projection = glm::mat4(1.0f);
+  glm::mat4 projection_zoomed = glm::mat4(1.0f);
 };
 
 glm::mat4
-calculate_ortho_projection(int w, int h, const float dt);
+calculate_ortho_projection(int w, int h, float zoom);
 
 glm::mat4
 calculate_ortho_view(const TransformComponent& transform, const float dt);

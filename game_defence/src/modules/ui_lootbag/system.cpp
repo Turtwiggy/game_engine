@@ -2,16 +2,16 @@
 
 #include "actors/helpers.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
-#include "imgui.h"
-#include "maths/grid.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "engine/maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/grid/components.hpp"
+#include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/ui_combat_turnbased/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
+
+#include "imgui.h"
 #include "modules/ui_inventory/helpers.hpp"
 
 namespace game2d {
@@ -19,7 +19,7 @@ namespace game2d {
 void
 toggle_lootbag_display(entt::registry& r)
 {
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
 
   if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_R)) {
     // not showing => showing
@@ -38,7 +38,7 @@ update_ui_lootbag_system(entt::registry& r)
   if (map_e == entt::null)
     return;
   const auto& map_c = get_first_component<MapComponent>(r);
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   toggle_lootbag_display(r);
 
@@ -76,12 +76,11 @@ update_ui_lootbag_system(entt::registry& r)
   const auto content_size = ImGui::GetContentRegionAvail();
 
   for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {
-
-    if (!inside_ship(r, e))
-      continue;
-
     const auto gp = get_grid_position(r, e);
+
     const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
+    if (idx < 0 || idx > map_c.xmax * map_c.ymax)
+      continue; // unlikely to be loot out of bounds?
 
     // remove the player from the grid cell index,
     // and assume that every other entity is an inventory.
@@ -141,8 +140,6 @@ update_ui_lootbag_system(entt::registry& r)
                 update_item_parent(r, item_e, player_inv_slot_e);
             }
           }
-
-          // fmt::println("item was clicked...");
         }
 
         ImGui::PopID();

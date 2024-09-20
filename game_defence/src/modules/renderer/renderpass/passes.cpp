@@ -1,30 +1,29 @@
 #include "passes.hpp"
 
 #include "actors/helpers.hpp"
-#include "colour/colour.hpp"
-#include "entt/helpers.hpp"
-#include "events/helpers/mouse.hpp"
-#include "imgui/helpers.hpp"
+#include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/helpers/mouse.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/gen_dungeons/components.hpp"
-#include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/vfx_circle/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
+#include "modules/renderer/lights/components.hpp"
 
-#include "deps/opengl.hpp"
-#include "opengl/framebuffer.hpp"
-#include "opengl/render_command.hpp"
+
+#include "engine/deps/opengl.hpp"
+#include "engine/opengl/framebuffer.hpp"
+#include "engine/opengl/render_command.hpp"
 
 namespace game2d {
 using namespace engine;
 using namespace std::literals;
 
 int
-get_tex_unit(const SINGLETON_RendererInfo& ri, const PassName& p)
+get_tex_unit(const SINGLE_RendererInfo& ri, const PassName& p)
 {
   const auto linear_pass_idx = search_for_renderpass_by_name(ri, p);
   const auto& linear_pass = ri.passes[linear_pass_idx];
@@ -32,7 +31,7 @@ get_tex_unit(const SINGLETON_RendererInfo& ri, const PassName& p)
 };
 
 const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& shader, const glm::ivec2& size) {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   ri.renderer.reset_quad_vert_count();
   ri.renderer.begin_batch();
@@ -50,12 +49,12 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
 void
 setup_stars_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::stars);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -87,12 +86,12 @@ setup_stars_update(entt::registry& r)
 void
 setup_debris_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::debris);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
@@ -121,11 +120,11 @@ setup_debris_update(entt::registry& r)
 void
 setup_floor_mask_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::floor_mask);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r) {
-    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto& camera_c = get_first_component<OrthographicCamera>(r);
 
     ri.instanced.bind();
@@ -164,12 +163,12 @@ setup_floor_mask_update(entt::registry& r)
 void
 setup_linear_main_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::linear_main);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
@@ -180,6 +179,7 @@ setup_linear_main_update(entt::registry& r)
 
     ri.instanced.bind();
     ri.instanced.set_mat4("view", camera_c.view);
+    ri.instanced.set_mat4("projection", camera_c.projection_zoomed);
 
     // set the positions of the units with circles units & update TBO
     {
@@ -233,12 +233,12 @@ setup_linear_main_update(entt::registry& r)
 void
 setup_lighting_emitters_and_occluders_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_emitters_and_occluders);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -256,6 +256,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
 
+      /*
       {
         const auto& emitters = r.view<const LightEmitterComponent, const TransformComponent, const SpriteComponent>();
         for (const auto& [entity, emitter, transform, sc] : emitters.each()) {
@@ -273,6 +274,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
           ri.renderer.draw_sprite(desc, ri.lighting_emitters_and_occluders);
         }
       }
+      */
 
       // draw occluders
       {
@@ -304,7 +306,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
 void
 setup_voronoi_seed_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::voronoi_seed);
   auto& pass = ri.passes[pass_idx];
 
@@ -323,12 +325,12 @@ setup_voronoi_seed_update(entt::registry& r)
 void
 setup_jump_flood_pass(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::jump_flood);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [&pass](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -365,7 +367,7 @@ setup_jump_flood_pass(entt::registry& r)
 void
 setup_voronoi_distance_field_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::voronoi_distance);
   auto& pass = ri.passes[pass_idx];
 
@@ -373,7 +375,7 @@ setup_voronoi_distance_field_update(entt::registry& r)
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto jflood_pass_idx = search_for_renderpass_by_name(ri, PassName::jump_flood);
     const auto& jflood_pass = ri.passes[jflood_pass_idx];
     const auto& jflood_texs = jflood_pass.texs;
@@ -391,12 +393,12 @@ setup_voronoi_distance_field_update(entt::registry& r)
 void
 setup_mix_lighting_and_scene_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::mix_lighting_and_scene);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     static float brightness_threshold = 0.80f;
 
 #if defined(_DEBUG)
@@ -421,14 +423,14 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 void
 setup_gaussian_blur_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass0_idx = search_for_renderpass_by_name(ri, PassName::blur_pingpong_0);
   const auto pass1_idx = search_for_renderpass_by_name(ri, PassName::blur_pingpong_1);
   auto& pass0 = ri.passes[pass0_idx];
   auto& pass1 = ri.passes[pass1_idx];
 
   pass0.update = [&pass0, &pass1](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -469,10 +471,10 @@ setup_gaussian_blur_update(entt::registry& r)
       horizontal = !horizontal;
 
       // Pass data from this render stage onwards
-      const auto& blur_data_e = get_first<EffectBlurInfo>(r);
+      const auto& blur_data_e = get_first<Effect_BlurInfo>(r);
       if (blur_data_e == entt::null)
-        create_empty<EffectBlurInfo>(r);
-      EffectBlurInfo& blur_data_c = get_first_component<EffectBlurInfo>(r);
+        create_empty<Effect_BlurInfo>(r);
+      Effect_BlurInfo& blur_data_c = get_first_component<Effect_BlurInfo>(r);
       blur_data_c.last_blur_texunit = last_blur_texunit;
 
       engine::RenderCommand::set_viewport(0, 0, ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
@@ -489,12 +491,12 @@ setup_gaussian_blur_update(entt::registry& r)
 void
 setup_bloom_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::bloom);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
     static float exposure = 1.5f;
 #if defined(_DEBUG)
@@ -509,7 +511,7 @@ setup_bloom_update(entt::registry& r)
     ri.bloom.set_float("exposure", exposure);
     ri.bloom.set_bool("do_bloom", do_bloom);
 
-    const auto& blur_data = get_first_component<EffectBlurInfo>(r);
+    const auto& blur_data = get_first_component<Effect_BlurInfo>(r);
     ri.bloom.set_int("blur_texture", blur_data.last_blur_texunit);
 
     // render_fullscreen_quad(r, ri.bloom, ri.viewport_size_render_at);

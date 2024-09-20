@@ -9,6 +9,7 @@
       // "--headless"
     ]
   },
+
   "cmake.parallelJobs": 32, // boom boom
 
   "editor.formatOnSave": true,

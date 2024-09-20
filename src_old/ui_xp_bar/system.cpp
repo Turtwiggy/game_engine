@@ -1,12 +1,11 @@
 #include "system.hpp"
 
 #include "actors.hpp"
-#include "lifecycle/components.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/renderer/components.hpp"
-
 
 #include "imgui.h"
 #include "magic_enum.hpp"

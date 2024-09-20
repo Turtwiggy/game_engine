@@ -1,13 +1,9 @@
 #pragma once
 
+#include "engine/opengl/framebuffer.hpp"
+#include "engine/opengl/shader.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "renderer/transform.hpp"
 
-// engine headers
-#include "opengl/framebuffer.hpp"
-#include "opengl/shader.hpp"
-
-// other
 #include "imgui.h"
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -27,28 +23,6 @@ struct ViewportInfo
   bool hovered = false;
 };
 
-inline void
-to_json(nlohmann::json& j, const TransformComponent& t)
-{
-  j["transform"]["x"] = t.position.x;
-  j["transform"]["y"] = t.position.y;
-  j["transform"]["z"] = t.position.z;
-  j["transform"]["r"] = t.rotation_radians.z;
-  j["transform"]["sx"] = t.scale.x;
-  j["transform"]["sy"] = t.scale.y;
-};
-
-inline void
-from_json(const nlohmann::json& j, TransformComponent& t)
-{
-  j.at("transform").at("x").get_to(t.position.x);
-  j.at("transform").at("y").get_to(t.position.y);
-  j.at("transform").at("z").get_to(t.position.z);
-  j.at("transform").at("r").get_to(t.rotation_radians.z);
-  j.at("transform").at("sx").get_to(t.scale.x);
-  j.at("transform").at("sy").get_to(t.scale.y);
-};
-
 // known before bind
 // i.e. chosen by user
 struct TextureUnit
@@ -57,7 +31,7 @@ struct TextureUnit
 
   TextureUnit() = default;
   TextureUnit(int unit)
-    : unit(unit) {};
+    : unit(unit){};
 };
 
 // known after bind
@@ -77,7 +51,7 @@ struct Texture
   Texture() = default;
   Texture(const std::string& p, const std::string& sp)
     : path(p)
-    , spritesheet_path(sp) {};
+    , spritesheet_path(sp){};
 };
 
 enum class PassName
@@ -118,7 +92,7 @@ public:
 };
 
 // Attributes only updated by renderer system, read by anything.
-struct SINGLETON_RendererInfo
+struct SINGLE_RendererInfo
 {
   std::vector<RenderPass> passes;
 
@@ -154,9 +128,14 @@ struct Effect_DoBloom
   bool placeholder = true;
 };
 
-struct EffectBlurInfo
+struct Effect_BlurInfo
 {
   int last_blur_texunit = 0;
+};
+
+struct Effect_GridComponent
+{
+  int gridsize = 50;
 };
 
 enum class ZLayer : int
@@ -168,6 +147,19 @@ enum class ZLayer : int
   PLAYER_HELMET,
   PLAYER_GUN_ABOVE_PLAYER,
   FOREGROUND,
+};
+
+struct CircleComponent
+{
+  glm::vec2 shader_pos{ 0, 0 };
+
+  // a radius of 1 will be the tilesize set in the shader e.g. 50
+  float radius = 1.0f;
+};
+
+struct FloorComponent
+{
+  bool placeholder = true;
 };
 
 } // namespace game2d

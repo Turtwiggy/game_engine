@@ -1,13 +1,13 @@
 #include "helpers.hpp"
 
-#include "colour/colour.hpp"
-#include "entt/helpers.hpp"
-#include "maths/grid.hpp"
-#include "modules/grid/components.hpp"
-#include "modules/ui_colours/helpers.hpp"
-#include "physics/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
+#include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "modules/map/components.hpp"
+
 
 namespace game2d {
 
@@ -108,13 +108,6 @@ set_colour(entt::registry& r, const entt::entity e, const engine::SRGBColour& co
 {
   auto& sc = r.get<SpriteComponent>(e);
   sc.colour = engine::SRGBToLinear(col);
-};
-
-void
-set_colour_by_tag(entt::registry& r, const entt::entity e, const std::string& tag)
-{
-  const engine::SRGBColour col = get_srgb_colour_by_tag(r, tag);
-  set_colour(r, e, col);
 };
 
 } // namespace game2d

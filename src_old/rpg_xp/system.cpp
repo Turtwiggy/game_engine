@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "entt/helpers.hpp"
+#include "engine/entt/helpers.hpp"
 #include "helpers.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 
@@ -10,7 +10,7 @@
 namespace game2d {
 
 void
-update_rpg_xp_system(entt::registry& r){
+update_rpg_xp_system(entt::registry& r) {
   //
   // what do I want this system to do?
 

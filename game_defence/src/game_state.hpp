@@ -8,7 +8,7 @@ enum class GameState
   PAUSED,
 };
 
-struct SINGLETON_GameStateComponent
+struct SINGLE_GameStateComponent
 {
   GameState state = GameState::RUNNING;
 };

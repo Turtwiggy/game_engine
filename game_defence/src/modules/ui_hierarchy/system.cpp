@@ -1,12 +1,11 @@
 #include "system.hpp"
 
-// components
 #include "actors/helpers.hpp"
-#include "imgui/helpers.hpp"
-#include "physics/components.hpp"
-#include "renderer/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
@@ -73,13 +72,13 @@ update_ui_hierarchy_system(entt::registry& r)
 
       // preset filters...
 
-      if (tag->tag.find("AudioSource") != std::string::npos) {
+      if (tag->tag.find("InventorySlot") != std::string::npos) {
         categories.push_back({ tag->tag, false });
         continue;
       }
 
       // note: also filters out DataParticleEmitter
-      if (tag->tag.find("DataParticle") != std::string::npos) {
+      if (tag->tag.find("particle") != std::string::npos) {
         categories.push_back({ tag->tag, false });
         continue;
       }
@@ -186,89 +185,75 @@ update_ui_hierarchy_system(entt::registry& r)
     // If select anywhere in the window, make entity unselected
     if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
       selected_entity = entt::null;
-
-    // Right click on menu
-    // ImGuiPopupFlags popup_flags = ImGuiPopupFlags_None;
-    // if (ImGui::BeginPopupContextWindow("##hierarchycontext", popup_flags)) {
-    //   if (ImGui::MenuItem("A wild uselss menu item appeared...!")) {
-    //     // do nothing
-    //   }
-    //   ImGui::EndPopup();
-    // }
   }
 
   ImGui::End();
 
-  //
   // If an entity is selected draw it's properties
   //
-
   ImGui::Begin("Properties", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  if (selected_entity != entt::null) {
-
-    if (!r.valid(selected_entity)) {
-      ImGui::End();
-      return; // make sure selected entity is valid
-    }
-
-    const auto& eid = selected_entity;
-    ImGui::Text("%u", static_cast<uint32_t>(eid));
-
-    if (r.all_of<TagComponent>(eid)) {
-      TagComponent& t = r.get<TagComponent>(eid);
-      imgui_draw_string("Tag: ", t.tag);
-    }
-
-    if (r.all_of<TransformComponent>(eid)) {
-      auto& transform = r.get<TransformComponent>(eid);
-      imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
-      imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
-      imgui_draw_vec3(
-        "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);
-    }
-
-    if (auto* pb = r.try_get<PhysicsBodyComponent>(eid)) {
-      const auto& pos = pb->body->GetPosition();
-      float tmp_x = pos.x;
-      float tmp_y = pos.y;
-      imgui_draw_vec2("Physics Pos: ", tmp_x, tmp_y);
-
-      const glm::vec2 size = get_size(r, eid);
-      tmp_x = size.x;
-      tmp_y = size.y;
-      imgui_draw_vec2("Physics Size: ", tmp_x, tmp_y);
-
-      const auto& vel = pb->body->GetLinearVelocity();
-      tmp_x = vel.x;
-      tmp_y = vel.y;
-      imgui_draw_vec2("Physics LinearVelocity", tmp_x, tmp_y);
-
-      tmp_x = pb->body->GetAngle();
-      imgui_draw_float("Physics Angle", tmp_x);
-    }
-
-    if (auto* sc = r.try_get<SpriteComponent>(eid)) {
-      // select sprite
-      imgui_draw_ivec2("Sprite: ", sc->tex_pos.x, sc->tex_pos.y);
-    }
-
-    // Add component
-    // if (ImGui::Button("Add component")) {
-    //   ImGui::OpenPopup("AddComponent");
-    // }
-
-    // if (ImGui::BeginPopup("AddComponent")) {
-    //   if (ImGui::MenuItem("PhysicsSizeComponent")) {
-    //     r.emplace<PhysicsSizeComponent>(eid);
-    //     ImGui::CloseCurrentPopup();
-    //   }
-    //   if (ImGui::MenuItem("ColourComponent")) {
-    //     r.emplace<ColourComponent>(eid);
-    //     ImGui::CloseCurrentPopup();
-    //   }
-    //   ImGui::EndPopup();
-    // }
+  if (selected_entity == entt::null) {
+    ImGui::End();
+    return; // make sure selected entity is valid
   }
+  if (!r.valid(selected_entity)) {
+    ImGui::End();
+    return; // make sure selected entity is valid
+  }
+
+  const auto& eid = selected_entity;
+  ImGui::Text("%u", static_cast<uint32_t>(eid));
+
+  if (r.all_of<TagComponent>(eid)) {
+    TagComponent& t = r.get<TagComponent>(eid);
+    imgui_draw_string("Tag: ", t.tag);
+  }
+
+  if (r.all_of<TransformComponent>(eid)) {
+    auto& transform = r.get<TransformComponent>(eid);
+    imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
+    imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
+    imgui_draw_vec3(
+      "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);
+  }
+
+  if (auto* pb = r.try_get<PhysicsBodyComponent>(eid)) {
+    const auto& pos = pb->body->GetPosition();
+    float tmp_x = pos.x;
+    float tmp_y = pos.y;
+    imgui_draw_vec2("Physics Pos: ", tmp_x, tmp_y);
+
+    const glm::vec2 size = get_size(r, eid);
+    tmp_x = size.x;
+    tmp_y = size.y;
+    imgui_draw_vec2("Physics Size: ", tmp_x, tmp_y);
+
+    const auto& vel = pb->body->GetLinearVelocity();
+    tmp_x = vel.x;
+    tmp_y = vel.y;
+    imgui_draw_vec2("Physics LinearVelocity", tmp_x, tmp_y);
+
+    tmp_x = pb->body->GetAngle();
+    imgui_draw_float("Physics Angle", tmp_x);
+  }
+
+  if (auto* sc = r.try_get<SpriteComponent>(eid)) {
+    // select sprite
+    imgui_draw_ivec2("Sprite: ", sc->tex_pos.x, sc->tex_pos.y);
+  }
+
+  // if (ImGui::BeginPopup("AddComponent")) {
+  //   if (ImGui::MenuItem("PhysicsSizeComponent")) {
+  //     r.emplace<PhysicsSizeComponent>(eid);
+  //     ImGui::CloseCurrentPopup();
+  //   }
+  //   if (ImGui::MenuItem("ColourComponent")) {
+  //     r.emplace<ColourComponent>(eid);
+  //     ImGui::CloseCurrentPopup();
+  //   }
+  //   ImGui::EndPopup();
+  // }
+
   ImGui::End();
 };
 

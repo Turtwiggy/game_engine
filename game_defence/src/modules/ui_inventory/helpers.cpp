@@ -1,45 +1,38 @@
 #include "helpers.hpp"
 
-#include "actors/bags/items.hpp"
-#include "actors/bags/weapons.hpp"
-#include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
-#include "imgui.h"
-#include "modules/actor_armour/components.hpp"
-#include "modules/combat_damage/components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "engine/sprites/helpers.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_scene_main_menu/helpers.hpp"
-#include "sprites/components.hpp"
-#include "sprites/helpers.hpp"
 
+#include "imgui.h"
 #include "magic_enum.hpp"
 
 namespace game2d {
 
-std::pair<ImVec2, ImVec2>
-convert_sprite_to_uv(entt::registry& r, const std::string& sprite)
+entt::entity
+spawn_inv_item(entt::registry& r, std::vector<entt::entity>& v, int idx, std::string key)
 {
-  // convert to imgui representation
-  const auto [ss, frames] = find_animation(get_first_component<SINGLE_Animations>(r), sprite);
-  const int size_x = ss.px_total;
-  const int size_y = ss.py_total;
-  const int cols_x = ss.nx;
-  const int cols_y = ss.ny;
-  const float pixels_x = size_x / float(cols_x);
-  const float pixels_y = size_y / float(cols_y);
-  const glm::ivec2 offset = { frames.animation_frames[0].x, frames.animation_frames[0].y };
-  const ImVec2 tl = ImVec2(((offset.x * pixels_x + 0.0f) / size_x), ((offset.y * pixels_y + 0.0f) / size_y));
-  const ImVec2 br = ImVec2(((offset.x * pixels_x + pixels_x) / size_x), ((offset.y * pixels_y + pixels_y) / size_y));
-  return { tl, br };
+  const auto e = spawn_item(r, key);
+
+  // set child's parent
+  r.get<UI_ItemComponent>(e).parent_slot = v[idx];
+
+  // set parent's child
+  r.get<InventorySlotComponent>(v[idx]).item_e = e;
+
+  return e;
 };
 
 void
 toggle_inventory_display(entt::registry& r)
 {
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
 
   if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_E)) {
     // not showing => showing
@@ -51,50 +44,27 @@ toggle_inventory_display(entt::registry& r)
   }
 };
 
-std::vector<entt::entity>
-get_slots(entt::registry& r, const entt::entity e, const InventorySlotType& type)
-{
-  const auto& inv = r.get<DefaultInventory>(e);
-  const auto& body = r.get<DefaultBody>(e);
-
-  std::vector<entt::entity> slots;
-
-  for (const entt::entity& e : body.body) {
-    const auto& slot_c = r.get<InventorySlotComponent>(e);
-    if (slot_c.type == type)
-      slots.push_back(e);
-  }
-
-  for (const entt::entity& e : inv.inv) {
-    const auto& slot_c = r.get<InventorySlotComponent>(e);
-    if (slot_c.type == type)
-      slots.push_back(e);
-  }
-
-  return slots;
-};
-
 void
 update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent_slot)
 {
-  auto& item_c = r.get<ItemComponent>(item);
+  auto& item_c = r.get<UI_ItemComponent>(item);
 
   // move out of old parent
   r.get<InventorySlotComponent>(item_c.parent_slot).item_e = entt::null;
 
   // set item to new parent
-  r.get<ItemComponent>(item).parent_slot = parent_slot;
+  r.get<UI_ItemComponent>(item).parent_slot = parent_slot;
 
   // set parent to new child
   r.get<InventorySlotComponent>(parent_slot).item_e = item;
 };
 
 void
-handle_dragdrop_target(entt::registry& r, const entt::entity payload_e, const entt::entity slot_e)
+handle_dragdrop_target(entt::registry& r, const entt::entity item_e, const entt::entity dst_slot_e)
 {
-  auto& slot_c = r.get<InventorySlotComponent>(slot_e);
-  const bool slot_is_full = slot_c.item_e != entt::null;
-  const bool item_exists = payload_e != entt::null;
+  auto& dst_slot_c = r.get<InventorySlotComponent>(dst_slot_e);
+  const bool slot_is_full = dst_slot_c.item_e != entt::null;
+  const bool item_exists = item_e != entt::null;
 
   // 4 cases:
   // yes item, full slot
@@ -104,14 +74,14 @@ handle_dragdrop_target(entt::registry& r, const entt::entity payload_e, const en
 
   // yes item, free slot
   if (item_exists && !slot_is_full)
-    update_item_parent(r, payload_e, slot_e);
+    update_item_parent(r, item_e, dst_slot_e);
 
   // yes item, full slot (i.e. inventory swapping items)
   if (item_exists && slot_is_full) {
-    auto item_0_e = payload_e;
-    auto item_1_e = slot_c.item_e;
-    auto& item_0_c = r.get<ItemComponent>(item_0_e);
-    auto& item_1_c = r.get<ItemComponent>(item_1_e);
+    auto item_0_e = item_e;
+    auto item_1_e = dst_slot_c.item_e;
+    auto& item_0_c = r.get<UI_ItemComponent>(item_0_e);
+    auto& item_1_c = r.get<UI_ItemComponent>(item_1_e);
     const auto slot_0_e = item_0_c.parent_slot;
     const auto slot_1_e = item_1_c.parent_slot;
 
@@ -180,7 +150,7 @@ display_empty_item(entt::registry& r, entt::entity slot_e, const InventorySlotTy
 void
 display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const ImVec2& size)
 {
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
   const auto& item_tag = r.get<TagComponent>(item_e);
@@ -189,7 +159,7 @@ display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const 
   ImVec2 tl{ 0.0f, 0.0f };
   ImVec2 br{ 1.0f, 1.0f };
 
-  const auto& item_c = r.get<ItemComponent>(item_e);
+  const auto& item_c = r.get<UI_ItemComponent>(item_e);
   const auto result = convert_sprite_to_uv(r, item_c.display_icon);
   std::tie(tl, br) = result;
 
@@ -204,7 +174,23 @@ display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const 
   play_sound_if_hovered(r, ui.hovered_buttons, label);
 
   // tooltip
-  ImGui::SetItemTooltip("%s", item_c.display_name.c_str());
+  if (ImGui::BeginItemTooltip()) {
+
+    // note: could be fun to set the colour here,
+    // to represent the rarity of the item
+
+    const auto item_name_str = item_c.display_name.c_str();
+    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", item_name_str);
+
+    const auto item_desc_str = item_c.display_desc.c_str();
+    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", item_desc_str);
+
+    auto& core_item_c = r.get<Item>(item_e);
+    if (core_item_c.use.has_value())
+      ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "(usable)");
+
+    ImGui::EndTooltip();
+  }
 };
 
 void
@@ -231,97 +217,31 @@ display_inventory_slot(entt::registry& r, const entt::entity inventory_slot_e, c
   become_dragdrop_target(r, inventory_slot_e);
 };
 
-//
-//
-//
-
-entt::entity
-create_inv_scrap(entt::registry& r, const entt::entity slot_e)
+void
+update_initialize_inventory(entt::registry& r, entt::entity e)
 {
-  DataScrap data;
+  auto& body_c = r.get<DefaultBody>(e);
+  auto& inv_c = r.get<DefaultInventory>(e);
 
-  ItemComponent item_c;
-  item_c.display_icon = data.icon;
-  item_c.display_name = "sCrap";
-  item_c.parent_slot = slot_e;
-  auto item_e = create_empty<ItemComponent>(r, item_c);
-  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::scrap });
+  if (auto* init = r.try_get<InitBodyAndInventory>(e)) {
+    r.remove<InitBodyAndInventory>(e);
 
-  update_item_parent(r, item_e, slot_e);
+    // init body with items
+    spawn_inv_item(r, body_c.body, 0, "scrap_helmet");
+    spawn_inv_item(r, body_c.body, 1, "scrap_core");
+    spawn_inv_item(r, body_c.body, 2, "scrap_gloves");
+    spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
+    spawn_inv_item(r, body_c.body, 4, "scrap_legs");
+    spawn_inv_item(r, body_c.body, 5, "scrap_legs");
+    spawn_inv_item(r, body_c.body, 6, "breach charge");
 
-  return item_e;
-};
-
-entt::entity
-create_inv_armour(entt::registry& r, const entt::entity slot_e, const ArmourType& type)
-{
-  DataArmour data(type);
-
-  ItemComponent item_c;
-  item_c.display_icon = data.icon;
-  item_c.display_name = std::string(magic_enum ::enum_name(type));
-  item_c.parent_slot = slot_e;
-  auto item_e = create_empty<ItemComponent>(r, item_c);
-  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::armour });
-  r.emplace<DefenceComponent>(item_e, DefenceComponent{ data.armour_amount });
-  r.emplace<ArmourComponent>(item_e, ArmourComponent{ data });
-
-  update_item_parent(r, item_e, slot_e);
-  return item_e;
-};
-
-entt::entity
-create_inv_breachcharge(entt::registry& r, const entt::entity slot_e)
-{
-  DataBreachCharge data;
-
-  ItemComponent item_c;
-  item_c.display_icon = data.icon;
-  item_c.display_name = "Breach Charge";
-  item_c.parent_slot = slot_e;
-  auto item_e = create_empty<ItemComponent>(r, item_c);
-  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::bomb });
-
-  update_item_parent(r, item_e, slot_e);
-  return item_e;
-};
-
-entt::entity
-create_inv_shotgun(entt::registry& r, const entt::entity slot_e)
-{
-  DataWeaponShotgun data;
-
-  ItemComponent item_c;
-  item_c.display_icon = data.icon;
-  item_c.display_name = "Shotgun";
-  item_c.parent_slot = slot_e;
-  auto item_e = create_empty<ItemComponent>(r, item_c);
-  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::gun });
-
-  update_item_parent(r, item_e, slot_e);
-  return item_e;
-};
-
-entt::entity
-create_inv_bullets(entt::registry& r, const entt::entity slot_e, const BulletType& type)
-{
-  DataBullet data(type);
-
-  ItemComponent item_c;
-  item_c.display_icon = data.icon;
-  item_c.display_name = std::string(magic_enum::enum_name(type));
-  item_c.parent_slot = slot_e;
-  auto item_e = create_empty<ItemComponent>(r, item_c);
-
-  std::optional<ItemType> t = std::nullopt;
-  if (type == BulletType::BOUNCY)
-    t = ItemType::bullet_bouncy;
-  if (type == BulletType::DEFAULT)
-    t = ItemType::bullet_default;
-  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ t.value() });
-
-  update_item_parent(r, item_e, slot_e);
-  return item_e;
+    // init inventory with items
+    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 1, "scrap");
+    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 2, "shotgun");
+    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 3, "bullet_default");
+    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 4, "bullet_bouncy");
+    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 5, "breach charge");
+  }
 };
 
 } // namespace game2d
