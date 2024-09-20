@@ -14,4 +14,9 @@ struct RequestSpawnCargoboxes
   int amount = 0;
 };
 
+struct SINGLE_UIBoardShip
+{
+  bool show = false;
+};
+
 } // namespace game2d

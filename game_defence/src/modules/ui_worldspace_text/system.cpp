@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "imgui.h"
 #include "modules/camera/helpers.hpp"
 #include "modules/renderer/components.hpp"
 
@@ -33,7 +34,11 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 
     std::string beginlabel = "WorldspaceText##"s + std::to_string(eid);
-    ImGui::Begin(beginlabel.c_str(), NULL, wst_c.flags);
+
+    ImGuiWindowFlags flags = 0;
+    flags |= wst_c.flags;
+
+    ImGui::Begin(beginlabel.c_str(), NULL, flags);
     ImGui::PushID(eid);
 
     wst_c.layout(); // layout set via regular imgui commands

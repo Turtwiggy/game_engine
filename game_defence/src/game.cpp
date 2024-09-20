@@ -12,6 +12,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actor_player/system.hpp"
+#include "modules/animations/wiggle/wiggle_up_and_down.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
@@ -23,9 +24,12 @@
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/system_cooldown/system.hpp"
 #include "modules/system_distance_check/system.hpp"
+#include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
+#include "modules/system_quips/components.hpp"
+#include "modules/system_quips/system.hpp"
 #include "modules/systems/show_tiles_in_range.hpp"
 #include "modules/systems/swap_active_player.hpp"
 #include "modules/ui_audio/system.hpp"
@@ -35,10 +39,13 @@
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
 #include "modules/ui_lootbag/system.hpp"
+#include "modules/ui_overworld_boardship/system.hpp"
+#include "modules/ui_overworld_shiplabel/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_spaceship_designer/system.hpp"
+#include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
 #include <fmt/core.h>
@@ -61,7 +68,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     init_render_system(app, r);
   }
 
-  // load_quips();
+  create_persistent<SINGLE_QuipsComponent>(r, get_default_quips());
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
 
   {
@@ -148,19 +155,20 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_move_to_target_via_lerp(r, dt);
     update_particle_system(r, dt);
     update_distance_check_system(r);
-    update_swap_active_player_system(r);
     update_show_tiles_in_range_system(r);
+    //
+    update_entered_new_room_system(r, dt);
+    update_wiggle_up_and_down_system(r, dt);
+    update_quips_system(r);
+    // combat...
     // update_change_gun_colour_system(r);
     // update_change_gun_z_index_system(r);
-    // update_quips_system(r);
     // update_spawn_particles_on_death_system(r);
     // update_weapon_shotgun_system(r, milliseconds_dt);
-    // update_wiggle_up_and_down_system(r, dt);
     // update_flash_sprite_system(r, milliseconds_dt);
     // update_combat_scale_on_hit_system(r, dt);
     // update_actor_cover_system(r);
     // update_combat_defence_system(r);
-    // update_entered_new_room_system(r, dt);
     // update_gen_dungeons_system(r, mouse_pos);
     // update_turnbased_endturn_system(r);
     // update_turnbased_enemy_system(r);
@@ -175,8 +183,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // update_hide_sprites_when_outside_ship_system(r);
     // update_breached_room_system(r);
 
-    if (scene.s == Scene::splashscreen)
+    if (scene.s == Scene::splashscreen) {
       update_scene_splashscreen_move_to_menu_system(r, dt);
+    }
+
+    if (scene.s == Scene::dungeon_designer) {
+      update_swap_active_player_system(r);
+    }
   }
 
   // update_animator_system(r, dt);
@@ -187,6 +200,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_pause_menu_system(app, r);
   update_ui_inventory_system(r);
   update_ui_lootbag_system(r);
+  update_ui_overworld_shiplabel_system(r);
+  update_ui_overworld_boardship_system(r);
+  update_ui_worldspace_text_system(r);
 
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
@@ -194,8 +210,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::dungeon_designer)
     update_ui_spaceship_designer_system(r, mouse_pos, dt);
 
-  // update_ui_worldspace_text_system(r);
-  // update_ui_worldspace_sprite_system(r);
   // update_ui_gameover_system(r);
   // update_ui_event_console_system(r);
   // update_ui_combat_turnbased_system(r, mouse_pos);
@@ -203,7 +217,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_ui_combat_ended_system(r);
   // update_ui_combat_info_in_worldspace_system(r);
   // update_ui_launch_crew_system(r);
-  // update_ui_overworld_shiplabel_system(r);
 
   static bool show_settings_ui = true;
   if (show_settings_ui) {

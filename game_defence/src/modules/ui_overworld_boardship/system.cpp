@@ -1,23 +1,14 @@
 #include "system.hpp"
 
-#include "actors/actors.hpp"
-#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/gen_dungeons/components.hpp"
+#include "engine/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/spaceship_designer/generation/components.hpp"
 
-#include "engine/physics/components.hpp"
-#include "imgui.h"
-#include "modules/system_overworld_change_direction/components.hpp"
-#include "modules/system_physics_apply_force/components.hpp"
-#include "modules/ui_overworld_ship_label/components.hpp"
 #include <box2d/b2_joint.h>
 #include <box2d/b2_math.h>
-
 
 namespace game2d {
 
@@ -51,19 +42,21 @@ create_distance_joint(entt::registry& r, entt::entity a, entt::entity b)
 };
 
 void
-update_ui_launch_crew_system(entt::registry& r)
+update_ui_overworld_boardship_system(entt::registry& r)
 {
-  // bug: static: here is wrong
-  static bool show_boardship_ui = false;
+  auto ui_e = get_first<SINGLE_UIBoardShip>(r);
+  if (ui_e == entt::null)
+    return;
+  auto& ui_c = get_first_component<SINGLE_UIBoardShip>(r);
 
   const auto& view_reqs = r.view<RequestShowBoardShipButton>();
   for (const auto& [e, req_c] : view_reqs.each())
-    show_boardship_ui = req_c.request;
+    ui_c.show = req_c.request;
   r.destroy(view_reqs.begin(), view_reqs.end());
 
   // ui: board ship button
   //
-  if (show_boardship_ui) {
+  if (ui_c.show) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
     const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
@@ -91,7 +84,7 @@ update_ui_launch_crew_system(entt::registry& r)
     ImGui::Begin("Board Ship", NULL, flags);
 
     if (ImGui::Button("Board Ship", size)) {
-      show_boardship_ui = false;
+      ui_c.show = false;
       move_to_scene_start(r, Scene::dungeon_designer);
       create_empty<RequestGenerateDungeonComponent>(r);
     }
@@ -105,7 +98,7 @@ update_ui_launch_crew_system(entt::registry& r)
   //
   // Add a button to add a cargo box trailing behind player
   //
-
+  /*
   const auto& view_cargobox_reqs = r.view<RequestSpawnCargoboxes>();
   int amount_to_spawn = 0;
   for (const auto& [e, req_c] : view_cargobox_reqs.each())
@@ -159,6 +152,7 @@ update_ui_launch_crew_system(entt::registry& r)
     const auto label = std::format("Your Drone. Cargo x{} ", amount_to_spawn);
     r.emplace<SpaceLabelComponent>(capsule_e, SpaceLabelComponent{ label });
   }
+  */
 }
 
 } // namespace game2d

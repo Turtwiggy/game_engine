@@ -121,7 +121,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   const auto it = std::find_if(rs.mobs.begin(), rs.mobs.end(), [&key](const Mob& item) { return item.name == key; });
   if (it == rs.mobs.end()) {
     fmt::println("unable to find item in raw file: {}", key);
-    return entt::null;
+    exit(1); // crash
   };
 
   const auto idx = static_cast<int>(it - rs.mobs.begin());

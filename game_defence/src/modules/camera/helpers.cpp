@@ -33,9 +33,6 @@ mouse_position_in_worldspace(entt::registry& r)
     camera_pos.y + mouse_pos.y - xy.y,
   };
 
-  ImGui::Text("mouse_pos %f %f", mouse_pos.x, mouse_pos.y);
-  ImGui::Text("camera_pos %f %f", camera_pos.x, camera_pos.y);
-
   return pos_in_worldspace;
 };
 

@@ -4,8 +4,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/camera/helpers.hpp"
-#include "modules/ui_overworld_ship_label/components.hpp"
-
+#include "modules/ui_overworld_shiplabel/components.hpp"
 
 #include "imgui.h"
 

@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_launch_crew_system(entt::registry& r);
+update_ui_overworld_boardship_system(entt::registry& r);
 
 } // namespace game2d

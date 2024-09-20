@@ -36,6 +36,10 @@ namespace game2d {
 void
 update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_pos, const float dt)
 {
+  const auto& reqs = r.view<RequestGenerateDungeonComponent>();
+  const bool generate = reqs.size() > 0;
+  r.destroy(reqs.begin(), reqs.end()); // done requests
+
   ImGui::Begin("Spaceship Designer");
 
   static engine::RandomState rnd(0);
@@ -47,7 +51,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
   imgui_draw_int("tilesize", tilesize);
 
   // Generate Rooms Randomly
-  if (ImGui::Button("Generate Rooms (Random)")) {
+  if (ImGui::Button("Generate Rooms (Random)") || generate) {
     move_to_scene_start(r, Scene::dungeon_designer);
 
     destroy_first_and_create<MapComponent>(r);
