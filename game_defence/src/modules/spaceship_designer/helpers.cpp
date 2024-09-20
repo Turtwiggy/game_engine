@@ -4,9 +4,10 @@
 #include "engine/maths/grid.hpp"
 #include "generation/components.hpp"
 #include "generation/rooms_random.hpp"
-#include "modules/components/raws.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
+#include "modules/raws/raws_components.hpp"
+
 
 namespace game2d {
 

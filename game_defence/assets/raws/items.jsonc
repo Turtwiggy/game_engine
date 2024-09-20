@@ -134,7 +134,7 @@
   "mobs": [
     {
       "name": "spaceship_player",
-      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": { "r": 162, "g": 255, "b": 134 } },
       "stats": { "max_hp": 100, "hp": 100 }
     },
     {

@@ -1,4 +1,4 @@
-#include "raws.hpp"
+#include "modules/raws/raws_components.hpp"
 
 #include "actors/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -131,7 +131,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<TagComponent>(e, item_template.name);
   r.emplace<WaitForInitComponent>(e);
 
-  float size = 16;
+  float size = 32;
 
   // create_transform()
   {
@@ -143,6 +143,8 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
     tf.position = { pos.x, pos.y, 0.0f };
     tf.scale = { size, size, 0.0f };
     r.emplace<TransformComponent>(e, tf);
+
+    set_z_index(r, e, ZLayer::DEFAULT);
   }
 
   // create_physics()

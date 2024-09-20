@@ -21,7 +21,22 @@ mouse_position_in_worldspace(entt::registry& r)
   const glm::vec2 mouse_pos = get_mouse_pos() - ri.viewport_pos;
   const glm::vec2 camera_pos = { camera_t.position.x, camera_t.position.y };
 
-  return mouse_pos - camera_pos;
+  const glm::ivec2 xy{
+    //
+    ri.viewport_size_render_at.x / 2.0f,
+    ri.viewport_size_render_at.y / 2.0f
+    //
+  };
+
+  const glm::vec2 pos_in_worldspace = {
+    camera_pos.x + mouse_pos.x - xy.x,
+    camera_pos.y + mouse_pos.y - xy.y,
+  };
+
+  ImGui::Text("mouse_pos %f %f", mouse_pos.x, mouse_pos.y);
+  ImGui::Text("camera_pos %f %f", camera_pos.x, camera_pos.y);
+
+  return pos_in_worldspace;
 };
 
 glm::ivec2

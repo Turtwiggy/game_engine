@@ -31,7 +31,7 @@ struct TextureUnit
 
   TextureUnit() = default;
   TextureUnit(int unit)
-    : unit(unit) {};
+    : unit(unit){};
 };
 
 // known after bind
@@ -51,7 +51,7 @@ struct Texture
   Texture() = default;
   Texture(const std::string& p, const std::string& sp)
     : path(p)
-    , spritesheet_path(sp) {};
+    , spritesheet_path(sp){};
 };
 
 enum class PassName

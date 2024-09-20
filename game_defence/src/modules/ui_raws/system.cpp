@@ -2,7 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/components/raws.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
 

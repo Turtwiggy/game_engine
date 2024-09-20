@@ -4,7 +4,7 @@
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "modules/components/raws.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"

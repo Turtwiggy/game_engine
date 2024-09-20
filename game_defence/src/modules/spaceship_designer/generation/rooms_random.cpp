@@ -146,19 +146,16 @@ convert_floor_islands_to_room(entt::registry& r,
   std::map<int, int> pos_to_distance;
   pos_to_distance[from_idx] = 0;
 
-  const auto from_glm = engine::grid::index_to_grid_position(from_idx, map_c.xmax, map_c.ymax);
-  const vec2i from{ from_glm.x, from_glm.y };
-
-  PriorityQueue<vec2i> frontier;
-  frontier.enqueue(from, 0);
+  PriorityQueue<int> frontier;
+  frontier.enqueue(from_idx, 0);
 
   std::vector<int> results;
 
   while (frontier.size() > 0) {
-    const vec2i current = frontier.dequeue();
-    const auto current_idx = engine::grid::grid_position_to_index({ current.x, current.y }, map_c.xmax);
+    const int current_idx = frontier.dequeue();
+    const auto current = engine::grid::index_to_grid_position(current_idx, map_c.xmax, map_c.ymax);
 
-    if (dresults.wall_or_floors[current_idx] != 0)
+    if (!(dresults.wall_or_floors[current_idx] == 0))
       continue; // starting tile isnt floor
     if (inside_room(r, { current.x, current.y }).size() > 0)
       continue; // gone to a different room
@@ -170,21 +167,21 @@ convert_floor_islands_to_room(entt::registry& r,
     for (const auto& [dir, nidx] : neighbours_idxs) {
       const auto neighbour_pos = engine::grid::index_to_grid_position(nidx, map_c.xmax, map_c.ymax);
 
-      if (dresults.wall_or_floors[nidx] != 0)
-        continue; // neighbour tile isnt floor
+      if (!(dresults.wall_or_floors[nidx] == 0))
+        continue; // starting tile isnt floor
       if (inside_room(r, { current.x, current.y }).size() > 0)
         continue; // gone to a different room
 
       int distance = pos_to_distance[current_idx] + 1;
 
       // if a distance value already existed, take the smaller distance
-      if (pos_to_distance.contains(current_idx))
-        pos_to_distance[current_idx] = glm::min(distance, pos_to_distance[current_idx]);
+      if (pos_to_distance.contains(nidx))
+        pos_to_distance[nidx] = glm::min(distance, pos_to_distance[nidx]);
 
       // no distance value: insert a new one
       else {
-        pos_to_distance[current_idx] = distance;
-        frontier.enqueue(neighbour_pos, 0);
+        pos_to_distance[nidx] = distance;
+        frontier.enqueue(nidx, 0);
       }
     }
   }

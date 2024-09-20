@@ -1,22 +1,28 @@
 #include "system.hpp"
 
+#include "actors/helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/components/raws.hpp"
 #include "modules/map/components.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/helpers.hpp"
 
 #include "imgui.h"
 #include "modules/scene/helpers.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_inventory/components.hpp"
 
 namespace game2d {
@@ -89,62 +95,54 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     spawn_particle_emitter(r, "anything", { 0, 0 }, e);
 
     // give helmet to breathe
-    // const auto helmet_e = create_transform(r);
-    // set_sprite(r, helmet_e, "HELMET_5");
-    // set_size(r, helmet_e, get_size(r, e));
-    // set_z_index(r, helmet_e, ZLayer::PLAYER_HELMET);
-    // set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
-    // r.emplace<DynamicTargetComponent>(helmet_e).target = e;
-    // r.emplace<SetRotationAsDynamicTarget>(helmet_e, SetRotationAsDynamicTarget{ 6.0f });
-    // r.remove<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
+    const auto helmet_e = create_transform(r, "player helmet");
+    r.emplace<SpriteComponent>(helmet_e);
+    set_sprite(r, helmet_e, "HELMET_5");
+    set_size(r, helmet_e, get_size(r, e));
+    set_z_index(r, helmet_e, ZLayer::PLAYER_HELMET);
+    set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+    r.emplace<DynamicTargetComponent>(helmet_e).target = e;
+    r.emplace<SetRotationAsDynamicTarget>(helmet_e, SetRotationAsDynamicTarget{ 6.0f });
+    r.emplace<TeamComponent>(helmet_e, r.get<TeamComponent>(e));
   }
 
-  if (ImGui::Button("Populate room...")) {
+  if (ImGui::Button("Populate rooms...")) {
+    const auto map_e = get_first<MapComponent>(r);
+    if (map_e != entt::null) {
+      const auto& map_c = r.get<MapComponent>(map_e);
+      const auto& view = r.view<Room>();
+      for (const auto& [e, room_c] : view.each()) {
 
-    /*
-    void spawn_cover_in_free_slots(entt::registry & r, FreeSlots & free_slots, int amount)
-    {
-      for (int i = amount; i > 0; i--) {
-        const int n_free_slots = static_cast<int>(free_slots.size());
+        auto idxs = get_free_slots_idxs(map_c, room_c);
+        const int n_free_slots = static_cast<int>(idxs.size());
         if (n_free_slots == 0)
           return;
-
-        // choose a random free slot
         const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
-        const int slot_idx = free_slots[slot_i];
+        const int slot_idx = idxs[slot_i];
 
-        spawn_cover(r, slot_idx);
+        // spawn_environment(r, slot_idx);
 
-        // remove slot from free slot
-        free_slots.erase(free_slots.begin() + slot_i);
+        idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
       }
-    };
-    */
+    }
+  }
 
-    /*
-    void
-    set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& results, engine::RandomState& rnd)
-    {
-      const auto& map_c = get_first_component<MapComponent>(r);
+  const auto map_e = get_first<MapComponent>(r);
+  if (map_e != entt::null) {
+    const auto& map_c = r.get<MapComponent>(map_e);
+    const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
+    ImGui::Text("mouse_pos: %f %f", mouse_pos.x, mouse_pos.y);
+    ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
+    ImGui::Text("grid_idx: %i", engine::grid::grid_position_to_index(grid_pos, map_c.xmax));
 
-      std::vector<std::pair<Room, FreeSlots>> room_to_free_slots;
+    const auto in_rooms = inside_room(r, grid_pos);
+    ImGui::Text("In rooms: %i", in_rooms.size() > 0);
+    for (const entt::entity room_e : in_rooms)
+      ImGui::Text("in_room_e: %i", static_cast<uint32_t>(room_e));
 
-      // i = 0 is the player room
-      for (size_t i = 1; i < results.rooms.size(); i++) {
-        const Room& room = results.rooms[i];
-        const auto free_slots = get_free_slots_idxs(map_c, room);
-        room_to_free_slots.push_back({ room, free_slots });
-      }
-
-      // Generate some things
-      for (auto& [room, free_slots] : room_to_free_slots) {
-        spawn_enemy_in_free_slots(r, free_slots, 3);
-        spawn_cover_in_free_slots(r, free_slots, 1);
-      }
-
-      //
-    };
-    */
+    ImGui::SeparatorText("Map");
+    const auto mouse_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map_c.xmax, map_c.ymax);
+    ImGui::Text("Map at %i is size: %zu", mouse_idx, map_c.map[mouse_idx].size());
   }
 
   ImGui::End();

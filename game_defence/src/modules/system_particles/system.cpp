@@ -5,7 +5,8 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/components/raws.hpp"
+#include "modules/raws/raws_components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
@@ -36,7 +37,8 @@ update_particle_system(entt::registry& r, const float dt)
     p.start_size = particle_description.start_size;
     p.end_size = particle_description.end_size;
     p.time_to_live_ms = particle_description.time_to_live_ms;
-    spawn_particle(r, "default_particle", p);
+    const entt::entity particle_e = spawn_particle(r, "default_particle", p);
+    set_z_index(r, particle_e, ZLayer::BEHIND_PLAYER);
   };
 
   // spawn the particles

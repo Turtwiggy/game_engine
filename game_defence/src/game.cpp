@@ -15,7 +15,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
-#include "modules/components/raws.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/scene/components.hpp"
@@ -40,6 +40,8 @@
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_spaceship_designer/system.hpp"
 #include "resources/resources.hpp"
+
+#include <fmt/core.h>
 
 namespace game2d {
 using namespace std::literals;
@@ -134,44 +136,48 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 {
   const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   const float dt = milliseconds_dt / 1000.0f;
-
   const auto mouse_pos = mouse_position_in_worldspace(r);
+
   update_input_system(app, r); // sets update_since_last_fixed_update
   update_camera_system(r, dt);
   update_audio_system(r);
-  update_cooldown_system(r, milliseconds_dt);
-  update_move_to_target_via_lerp(r, dt);
-  update_particle_system(r, dt);
-  update_distance_check_system(r);
-  update_swap_active_player_system(r);
-  update_show_tiles_in_range_system(r);
-  // update_change_gun_colour_system(r);
-  // update_change_gun_z_index_system(r);
-  // update_quips_system(r);
-  // update_spawn_particles_on_death_system(r);
-  // update_weapon_shotgun_system(r, milliseconds_dt);
-  // update_wiggle_up_and_down_system(r, dt);
-  // update_flash_sprite_system(r, milliseconds_dt);
-  // update_combat_scale_on_hit_system(r, dt);
-  // update_actor_cover_system(r);
-  // update_combat_defence_system(r);
-  // update_entered_new_room_system(r, dt);
-  // update_gen_dungeons_system(r, mouse_pos);
-  // update_turnbased_endturn_system(r);
-  // update_turnbased_enemy_system(r);
-  // update_ux_hoverable(r, mouse_pos);
-  // update_ux_selectable_by_keyboard_system(r);
-  // update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
-  // update_fov_system(r, mouse_pos);
-  // update_combat_heal_system(r);
-  // update_breach_charge_system(r, mouse_pos, dt);
-  // update_go_from_jetpack_to_dungeon_system(r);
-  // update_dungeon_helmet_system(r);
-  // update_hide_sprites_when_outside_ship_system(r);
-  // update_breached_room_system(r);
 
-  if (scene.s == Scene::splashscreen)
-    update_scene_splashscreen_move_to_menu_system(r, dt);
+  auto& state = get_first_component<SINGLE_GameStateComponent>(r);
+  if (state.state != GameState::PAUSED) {
+    update_cooldown_system(r, milliseconds_dt);
+    update_move_to_target_via_lerp(r, dt);
+    update_particle_system(r, dt);
+    update_distance_check_system(r);
+    update_swap_active_player_system(r);
+    update_show_tiles_in_range_system(r);
+    // update_change_gun_colour_system(r);
+    // update_change_gun_z_index_system(r);
+    // update_quips_system(r);
+    // update_spawn_particles_on_death_system(r);
+    // update_weapon_shotgun_system(r, milliseconds_dt);
+    // update_wiggle_up_and_down_system(r, dt);
+    // update_flash_sprite_system(r, milliseconds_dt);
+    // update_combat_scale_on_hit_system(r, dt);
+    // update_actor_cover_system(r);
+    // update_combat_defence_system(r);
+    // update_entered_new_room_system(r, dt);
+    // update_gen_dungeons_system(r, mouse_pos);
+    // update_turnbased_endturn_system(r);
+    // update_turnbased_enemy_system(r);
+    // update_ux_hoverable(r, mouse_pos);
+    // update_ux_selectable_by_keyboard_system(r);
+    // update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
+    // update_fov_system(r, mouse_pos);
+    // update_combat_heal_system(r);
+    // update_breach_charge_system(r, mouse_pos, dt);
+    // update_go_from_jetpack_to_dungeon_system(r);
+    // update_dungeon_helmet_system(r);
+    // update_hide_sprites_when_outside_ship_system(r);
+    // update_breached_room_system(r);
+
+    if (scene.s == Scene::splashscreen)
+      update_scene_splashscreen_move_to_menu_system(r, dt);
+  }
 
   // update_animator_system(r, dt);
   update_render_system(r, dt, mouse_pos);
