@@ -16,6 +16,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
+#include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
@@ -37,7 +38,7 @@
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
-#include "modules/ui_inventory/system.hpp"
+#include "modules/ui_inventory/ui_inventory_system.hpp"
 #include "modules/ui_lootbag/system.hpp"
 #include "modules/ui_overworld_boardship/system.hpp"
 #include "modules/ui_overworld_shiplabel/system.hpp"
@@ -156,19 +157,21 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_particle_system(r, dt);
     update_distance_check_system(r);
     update_show_tiles_in_range_system(r);
-    //
     update_entered_new_room_system(r, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_quips_system(r);
-    // combat...
+
+    // combat systems
+    //
+    update_gun_follow_player_system(r, mouse_pos, dt);
     // update_change_gun_colour_system(r);
     // update_change_gun_z_index_system(r);
     // update_spawn_particles_on_death_system(r);
-    // update_weapon_shotgun_system(r, milliseconds_dt);
     // update_flash_sprite_system(r, milliseconds_dt);
     // update_combat_scale_on_hit_system(r, dt);
-    // update_actor_cover_system(r);
+    // update_combat_heal_system(r);
     // update_combat_defence_system(r);
+    // update_actor_cover_system(r);
     // update_gen_dungeons_system(r, mouse_pos);
     // update_turnbased_endturn_system(r);
     // update_turnbased_enemy_system(r);
@@ -176,12 +179,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // update_ux_selectable_by_keyboard_system(r);
     // update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     // update_fov_system(r, mouse_pos);
-    // update_combat_heal_system(r);
     // update_breach_charge_system(r, mouse_pos, dt);
     // update_go_from_jetpack_to_dungeon_system(r);
     // update_dungeon_helmet_system(r);
     // update_hide_sprites_when_outside_ship_system(r);
     // update_breached_room_system(r);
+    //
 
     if (scene.s == Scene::splashscreen) {
       update_scene_splashscreen_move_to_menu_system(r, dt);
@@ -203,13 +206,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
-
-  if (scene.s == Scene::menu)
-    update_ui_scene_main_menu(app, r);
-
-  if (scene.s == Scene::dungeon_designer)
-    update_ui_spaceship_designer_system(r, mouse_pos, dt);
-
   // update_ui_gameover_system(r);
   // update_ui_event_console_system(r);
   // update_ui_combat_turnbased_system(r, mouse_pos);
@@ -217,6 +213,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_ui_combat_ended_system(r);
   // update_ui_combat_info_in_worldspace_system(r);
   // update_ui_launch_crew_system(r);
+
+  if (scene.s == Scene::menu)
+    update_ui_scene_main_menu(app, r);
+
+  if (scene.s == Scene::dungeon_designer)
+    update_ui_spaceship_designer_system(r, mouse_pos, dt);
 
   static bool show_settings_ui = true;
   if (show_settings_ui) {

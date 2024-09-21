@@ -58,10 +58,6 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     }
     return false;
   };
-
-  //
-  //
-  //
   const auto& non_physics_view =
     r.view<const DynamicTargetComponent, const SetPositionAtDynamicTarget>(entt::exclude<PhysicsBodyComponent>);
   for (const auto& [e, target_c, req_c] : non_physics_view.each()) {
@@ -71,7 +67,6 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     set_position(r, e, pos);
   }
 
-  //
   //
   //
   const auto& rotation_view = r.view<const DynamicTargetComponent, const SetRotationAsDynamicTarget, TransformComponent>(

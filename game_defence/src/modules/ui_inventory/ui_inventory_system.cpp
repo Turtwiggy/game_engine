@@ -1,19 +1,16 @@
-#include "system.hpp"
+#include "ui_inventory_system.hpp"
 
-#include "actors/helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "engine/sprites/components.hpp"
-#include "engine/sprites/helpers.hpp"
 #include "helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
+#include "modules/ui_spaceship_designer/helpers.hpp"
 
 #include "imgui.h"
 #include <magic_enum.hpp>
@@ -76,17 +73,13 @@ update_ui_inventory_system(entt::registry& r)
     if (ui_has_gun && !gun_has_instance) {
       // create weapon
       // create the correct weapon spawn from inventory item type
-      const auto wep_e = spawn_item(r, "shotgun");
-      r.emplace<SpriteComponent>(wep_e);
-      r.emplace<TransformComponent>(wep_e);
-      r.emplace<HasWeaponComponent>(e, HasWeaponComponent{ wep_e }); // parent <=> child
-      r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
-      r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-      set_size(r, wep_e, { 32, 32 }); // shotgun sprite
-      set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-      set_sprite(r, wep_e, r.get<Item>(wep_e).renderable.sprite);
-      // r.emplace<AbleToShoot>(e);
-      // r.emplace<ShotgunComponent>()
+
+      auto& tag = r.get<TagComponent>(ui_gun_slot_c.item_e);
+      if (tag.tag.find("shotgun") != std::string::npos)
+        create_shotgun(r, e);
+      else {
+        // unknown item?
+      }
     }
 
     // destroy
