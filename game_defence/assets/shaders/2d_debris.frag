@@ -15,27 +15,29 @@ uniform vec2 viewport_wh;
 uniform vec2 camera_pos;
 uniform sampler2D tex;
 uniform float iTime;
+uniform float zoom;
 
 void
 main()
 {
+  // fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis,
+  // where 640 is width and 360 is height.
   vec2 fragCoord = v_uv * viewport_wh * 2.0f;
   fragCoord.x *= -1.0f;
   fragCoord.y *= -1.0f;
-  
-  // https://www.shadertoy.com/view/7lyyzd
-  vec2 I = fragCoord;
 
-  vec2 zoom = I/4000;
+	vec2 half_wh = viewport_wh / 2.0;
+	vec2 screen_min = camera_pos - half_wh; // e.g. -960
+
+  // based on: https://www.shadertoy.com/view/7lyyzd
+  vec2 I = fragCoord + viewport_wh;
+  vec2 fzoom = (I/4000);
   vec2 scroll = vec2(iTime/1000);
   vec2 pos = (camera_pos + vec2(1000, -1000)) / 1000; // offset so never aligns
 
   vec4 O = v_colour;
+  for(O-=O; O.r < texture(tex, fzoom*zoom - pos/O.r/100 - scroll).r; O+=0.02f);
 
-  // Clear the fragcolor, texture sample with parallax, iterate 
-  for(O-=O; O.r < texture(tex, zoom - pos/O.r/100 - scroll).r; O+=0.02f);
-
-  // out_colour = vec4(1.0f) - O;
   out_colour.rgb = O.rgb;
   out_colour.a = 1.0f;
 }

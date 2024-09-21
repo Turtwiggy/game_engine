@@ -10,6 +10,7 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/map/components.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/helpers.hpp"
 
@@ -73,7 +74,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 
   if (ImGui::Button("Add jetpack player")) {
     destroy_first<CameraFreeMove>(r);
-    create_jetpack_player(r);
+
+    auto player_e = create_jetpack_player(r);
+
+    auto results_e = get_first<DungeonGenerationResults>(r);
+    if (results_e != entt::null) {
+      const auto& results_c = r.get<DungeonGenerationResults>(results_e);
+
+      // todo: set player_e inside spaceship
+      // results_c.rooms[0].
+    }
   }
 
   if (ImGui::Button("Populate rooms...")) {

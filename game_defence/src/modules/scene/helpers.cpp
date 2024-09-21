@@ -85,7 +85,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   r.get<TransformComponent>(camera_e).position = { 0, 0, 0 };
   r.get<TransformComponent>(camera_e).scale = { 0, 0, 0 };
 
-  // stop_all_audio(r);
+  audio::sdl_mixer::stop_all_audio(r);
 
   if (s == Scene::splashscreen) {
     create_empty<SINGLE_SplashScreen>(r);

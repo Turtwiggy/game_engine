@@ -13,6 +13,7 @@
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "orthographic.hpp"
 
+#include <cmath>
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -99,8 +100,28 @@ update_camera_system(entt::registry& r, const float dt)
   // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
   // If zoom = -1, then 2^(-1 / 2) gives a zoom factor of ~0.707 (zooming out by 29%).
   zoom_nonlinear = glm::pow(2.0f, (zoom / 2.0f));
-  // ImGui::Text("zoom_linear: %f", zoom);
-  // ImGui::Text("zoom_nonlinear: %f", zoom_nonlinear);
+
+  // only allow zoomout by 2x factor
+  if (zoom_nonlinear > 2.0f) {
+    zoom_nonlinear = 2.0f;
+
+    // clamp zoom as well, using the opposite formula
+    constexpr float x = 2.0f;
+    constexpr float max = (2.0f * std::log(x)) / std::log(2.0f);
+    zoom = max;
+  };
+
+  // only allow zoomin by 0.25x factor
+  if (zoom_nonlinear < 0.25f) {
+    zoom_nonlinear = 0.25f;
+
+    constexpr float x = 0.25f;
+    constexpr float min = (2.0f * std::log(x)) / std::log(2.0f);
+    zoom = min;
+  }
+
+  camera.zoom_linear = zoom;
+  camera.zoom_nonlinear = zoom_nonlinear;
 
   camera.projection_zoomed =
     calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, zoom_nonlinear);

@@ -15,7 +15,6 @@
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_inventory/components.hpp"
 
-
 namespace game2d {
 
 entt::entity

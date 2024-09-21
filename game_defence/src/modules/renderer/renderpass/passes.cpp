@@ -8,11 +8,11 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/renderer/lights/components.hpp"
-
 
 #include "engine/deps/opengl.hpp"
 #include "engine/opengl/framebuffer.hpp"
@@ -99,6 +99,12 @@ setup_debris_update(entt::registry& r)
     ri.debris.bind();
     ri.debris.set_mat4("view", camera_c.view);
     ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+    ri.debris.set_float("zoom", camera_c.zoom_nonlinear);
+
+    ImGui::Text("zoom l %f", camera_c.zoom_linear);
+    ImGui::Text("zoom nl %f", camera_c.zoom_nonlinear);
+
+    // ri.debris.set_mat4("projection", camera_c.projection_zoomed);
 
     {
       ri.renderer.reset_quad_vert_count();
@@ -415,6 +421,15 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     const glm::vec2 mouse_raw = get_mouse_pos() - ri.viewport_pos;
     ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
     // ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
+
+    if (camera_c.zoom_nonlinear != 0.0f)
+      ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
+
+    float tilesize = 50;
+    const auto map_e = get_first<MapComponent>(r);
+    if (map_e != entt::null)
+      tilesize = r.get<MapComponent>(map_e).tilesize;
+    ri.mix_lighting_and_scene.set_float("tilesize", tilesize);
 
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };

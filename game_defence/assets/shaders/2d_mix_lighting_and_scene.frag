@@ -23,6 +23,8 @@ uniform bool put_starshader_behind;
 uniform bool add_grid;
 uniform vec2 uv_offset;
 uniform bool inside_spaceship;
+uniform float tilesize;
+uniform float zoom;
 
 #define NR_MAX_CIRCLES 100
 uniform samplerBuffer circleBuffer;  // a texture buffer
@@ -320,7 +322,6 @@ void main()
 			vec2 p = vec2(uv.x + ss_x, uv.y + ss_y);
 
 			// radius 
-			float tilesize = 50;
 			float circle_size = tilesize * radius;
 			float rad = (circle_size / viewport_wh.y);	
 			float d0 = sdCircle(p, rad);
@@ -355,9 +356,9 @@ void main()
 	if(add_grid) {
 		vec3 grid_col = vec3(0.0f);
 		{
-			float gridsize = 50.0; // pixels
+			float gridsize = tilesize / zoom; // pixels
 			vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
-			vec2 camera_uv = camera_uv_screen; 
+			vec2 camera_uv = camera_uv_screen / zoom; 
 			float aspect_y = viewport_wh.y / viewport_wh.x;
 			
 			vec2 grid_uv = (2.0 * v_uv - 1.0);
