@@ -3,6 +3,9 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
@@ -19,6 +22,14 @@ entt::entity
 spawn_inv_item(entt::registry& r, std::vector<entt::entity>& v, int idx, std::string key)
 {
   const auto e = spawn_item(r, key);
+
+  r.remove<TransformComponent>(e);
+  r.remove<SpriteComponent>(e);
+  if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
+    auto& physics_c = get_first_component<SINGLE_Physics>(r);
+    physics_c.world->DestroyBody(pb->body);
+    r.remove<PhysicsBodyComponent>(e);
+  }
 
   // set child's parent
   r.get<UI_ItemComponent>(e).parent_slot = v[idx];

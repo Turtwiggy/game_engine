@@ -156,10 +156,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_move_to_target_via_lerp(r, dt);
     update_particle_system(r, dt);
     update_distance_check_system(r);
-    update_show_tiles_in_range_system(r);
     update_entered_new_room_system(r, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_quips_system(r);
+    // update_show_tiles_in_range_system(r);
 
     // combat systems
     //

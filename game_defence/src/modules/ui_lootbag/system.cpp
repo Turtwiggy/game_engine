@@ -76,6 +76,8 @@ update_ui_lootbag_system(entt::registry& r)
   const auto content_size = ImGui::GetContentRegionAvail();
 
   for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {
+    ImGui::SeparatorText("player...");
+
     const auto gp = get_grid_position(r, e);
 
     const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);

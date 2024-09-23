@@ -26,9 +26,6 @@ main()
   fragCoord.x *= -1.0f;
   fragCoord.y *= -1.0f;
 
-	vec2 half_wh = viewport_wh / 2.0;
-	vec2 screen_min = camera_pos - half_wh; // e.g. -960
-
   // based on: https://www.shadertoy.com/view/7lyyzd
   vec2 I = fragCoord + viewport_wh;
   vec2 fzoom = (I/4000);

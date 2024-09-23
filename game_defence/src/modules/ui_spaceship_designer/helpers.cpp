@@ -21,8 +21,6 @@ entt::entity
 create_shotgun(entt::registry& r, entt::entity parent)
 {
   const auto wep_e = spawn_item(r, "shotgun");
-  r.emplace<SpriteComponent>(wep_e);
-  r.emplace<TransformComponent>(wep_e);
   r.emplace<HasWeaponComponent>(parent, HasWeaponComponent{ wep_e }); // parent <=> child
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ parent }); // child <=> parent
   r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
@@ -31,7 +29,6 @@ create_shotgun(entt::registry& r, entt::entity parent)
   // r.emplace<ShotgunComponent>(e)
   set_size(r, wep_e, { 32, 32 }); // shotgun sprite
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-  set_sprite(r, wep_e, r.get<Item>(wep_e).renderable.sprite);
   return wep_e;
 }
 

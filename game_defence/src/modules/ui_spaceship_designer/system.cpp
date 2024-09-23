@@ -41,7 +41,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
   static int tilesize = 50;
   imgui_draw_int("tilesize", tilesize);
 
-  // Generate Rooms Randomly
   if (ImGui::Button("Generate Rooms (Random)") || generate) {
     move_to_scene_start(r, Scene::dungeon_designer);
 
@@ -107,6 +106,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     }
   }
 
+  ImGui::SeparatorText("info: mouse/grid");
   const auto map_e = get_first<MapComponent>(r);
   if (map_e != entt::null) {
     const auto& map_c = r.get<MapComponent>(map_e);

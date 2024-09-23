@@ -100,7 +100,6 @@ setup_debris_update(entt::registry& r)
     ri.debris.set_mat4("view", camera_c.view);
     ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
     ri.debris.set_float("zoom", camera_c.zoom_nonlinear);
-
     ImGui::Text("zoom l %f", camera_c.zoom_linear);
     ImGui::Text("zoom nl %f", camera_c.zoom_nonlinear);
 

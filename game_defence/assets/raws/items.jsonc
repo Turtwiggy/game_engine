@@ -11,26 +11,26 @@
     },
     {
       "name": "duck",
-      "display_name": "Basic Duck",
-      "display_desc": "Quuack. Quack. QUACK >:(",
+      "display_name": "Angry Duck",
+      "display_desc": "Quuack Quack QUACK >:(",
       "renderable": { "sprite": "DUCK", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
       "name": "seed (plant)",
       "display_name": "Seed. (Unknown plant)",
-      "display_desc": "It wishes it was home.",
+      "display_desc": "It wants to go home.",
       "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
       "name": "scrap",
       "display_name": "sCrap",
-      "display_desc": "A wrench through a toaster. A useful resource.",
+      "display_desc": "A wrench through a toaster. A resource.",
       "renderable": { "sprite": "SCRAP", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
       "name": "breach charge",
       "display_name": "C4",
-      "display_desc": "Apply carefully to spaceship, then run.",
+      "display_desc": "Apply to spaceship, then run.",
       "renderable": { "sprite": "WEAPON_GRENADE", "colour": { "r": 255, "g": 255, "b": 255 } },
       "use": { "name": "explode", "select": "point" }
     },
@@ -39,35 +39,28 @@
     {
       "name": "scrap_knife",
       "display_name": "[sCrap] Knife",
-      "display_desc": "Knife to see you.",
+      "display_desc": "Oi, mate! Hand over your creds!",
       "renderable": { "sprite": "WEAPON_DAGGER_4", "colour": { "r": 255, "g": 255, "b": 255 } },
       "melee": { "damage": 12, "range": 1 }
     },
     {
       "name": "power_hammer",
       "display_name": "[Powered] Hammer",
-      "display_desc": "Bigger IS better. Don't let anyone tell you otherwise.",
-      "renderable": { "sprite": "HAMMER_38_7", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "display_desc": "Originally a construction tool.",
+      "renderable": { "sprite": "WEAPON_HAMMER_38_7", "colour": { "r": 255, "g": 255, "b": 255 } },
       "melee": { "damage": 10, "range": 1 }
     },
     {
       "name": "power_sword",
       "display_name": "[Powered] Sword",
-      "display_desc": "Electrity in a sword. The hilt is insulated. Probably.",
+      "display_desc": "The handle is insulated. Probably",
       "renderable": { "sprite": "WEAPON_QUIVER", "colour": { "r": 255, "g": 255, "b": 255 } },
       "melee": { "damage": 10, "range": 2 }
     },
     {
-      "name": "chainsaw",
-      "display_name": "Chainy Mc' Chainsaw",
-      "display_desc": "Nice to chainsaw you too.",
-      "renderable": { "sprite": "WEAPON_SWORD_33_7", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "melee": { "damage": 20, "range": 1 }
-    },
-    {
       "name": "pistol",
       "display_name": "Pistol",
-      "display_desc": "Probably wasn't originally yours.",
+      "display_desc": "Probably not yours. Klepto.",
       "renderable": { "sprite": "WEAPON_PISTOL", "colour": { "r": 255, "g": 255, "b": 255 } },
       "ranged": { "type": "line", "range": 3 }
     },
@@ -80,15 +73,15 @@
     },
     {
       "name": "bullet_default",
-      "display_name": "Bullet (Default)",
-      "display_desc": "Pointy end away.",
+      "display_name": "Bullet",
+      "display_desc": "Ballistic material",
       "renderable": { "sprite": "AMMO_BOX", "colour": { "r": 255, "g": 255, "b": 255 } },
       "bullet": { "damage": 12 }
     },
     {
       "name": "bullet_bouncy",
-      "display_name": "Bullet (Bouncy)",
-      "display_desc": "Shooting round corners seems like cheating.",
+      "display_name": "[Bouncy] Bullet)",
+      "display_desc": "Bouncy ballistic material.",
       "renderable": { "sprite": "AMMO_BOX", "colour": { "r": 255, "g": 255, "b": 255 } },
       "bullet": { "damage": 12 }
     },
@@ -97,14 +90,14 @@
     {
       "name": "scrap_helmet",
       "display_name": "[sCrap] Helmet",
-      "display_desc": "This hat seems like a liability.",
+      "display_desc": "A shoddy hat.",
       "renderable": { "sprite": "HELMET_5", "colour": { "r": 255, "g": 255, "b": 255 } },
       "defence": { "block": 3, "worn_on": "HEAD" }
     },
     {
       "name": "scrap_core",
       "display_name": "[sCrap] Core",
-      "display_desc": "Protects your jiggly bits.",
+      "display_desc": "Poorly constructed armour.",
       "renderable": { "sprite": "CHESTPIECE_5", "colour": { "r": 255, "g": 255, "b": 255 } },
       "defence": { "block": 5, "worn_on": "CORE" }
     },
@@ -144,7 +137,7 @@
     },
     {
       "name": "dungeon_actor_hero",
-      "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 153 } },
       "stats": { "max_hp": 100, "hp": 100 }
     },
     {

@@ -89,8 +89,9 @@ update_camera_system(entt::registry& r, const float dt)
   if (!ri.viewport_hovered)
     return;
 
-  static float zoom = 0.0f;
-  static float zoom_nonlinear = 0.0f;
+  auto& zoom = camera.zoom_linear;
+  auto& zoom_nonlinear = camera.zoom_nonlinear;
+
   if (ImGui::GetIO().MouseWheel > 0.0f)
     zoom -= 100.0f * dt;
   if (ImGui::GetIO().MouseWheel < 0.0f)
@@ -99,29 +100,23 @@ update_camera_system(entt::registry& r, const float dt)
   // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
   // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
   // If zoom = -1, then 2^(-1 / 2) gives a zoom factor of ~0.707 (zooming out by 29%).
-  zoom_nonlinear = glm::pow(2.0f, (zoom / 2.0f));
+  float new_zoom_nonlinear = glm::pow(2.0f, (zoom / 2.0f));
+  const float speed = 7.5;
+  const float zoom_in = 0.25f;
+  const float zoom_out = 2.0f;
+  zoom_nonlinear = lerp(zoom_nonlinear, new_zoom_nonlinear, dt * speed);
 
-  // only allow zoomout by 2x factor
-  if (zoom_nonlinear > 2.0f) {
-    zoom_nonlinear = 2.0f;
-
-    // clamp zoom as well, using the opposite formula
-    constexpr float x = 2.0f;
-    constexpr float max = (2.0f * std::log(x)) / std::log(2.0f);
-    zoom = max;
+  // clamp zoomout
+  if (zoom_nonlinear > zoom_out) {
+    zoom_nonlinear = zoom_out;
+    zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
   };
 
-  // only allow zoomin by 0.25x factor
-  if (zoom_nonlinear < 0.25f) {
-    zoom_nonlinear = 0.25f;
-
-    constexpr float x = 0.25f;
-    constexpr float min = (2.0f * std::log(x)) / std::log(2.0f);
-    zoom = min;
+  // clamp zoomin
+  if (zoom_nonlinear < zoom_in) {
+    zoom_nonlinear = zoom_in;
+    zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
   }
-
-  camera.zoom_linear = zoom;
-  camera.zoom_nonlinear = zoom_nonlinear;
 
   camera.projection_zoomed =
     calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, zoom_nonlinear);

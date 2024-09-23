@@ -1,6 +1,8 @@
 #include "system.hpp"
 
+#include "actors/helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -23,17 +25,21 @@ update_ui_raws_system(entt::registry& r)
   std::string items_header = fmt::format("items: {}", raws.items.size());
   ImGui::SeparatorText(items_header.c_str());
 
+  static glm::vec2 spaceitem_pos{ 0, 0 };
+  imgui_draw_vec2("item pos", spaceitem_pos);
+
   for (const auto& item : raws.items) {
     ImGui::Text("Item: %s", item.name.c_str());
     ImGui::SameLine();
 
-    const std::string label = "spawn##" + item.name;
+    const std::string label = "world##" + item.name;
     if (ImGui::Button(label.c_str())) {
       auto e = spawn_item(r, item.name.c_str());
+      set_position(r, e, spaceitem_pos);
     }
 
     ImGui::SameLine();
-    const std::string label_player = "spawn to player##" + item.name;
+    const std::string label_player = "player##" + item.name;
     if (ImGui::Button(label_player.c_str())) {
       auto player_e = get_first<PlayerComponent>(r);
 
