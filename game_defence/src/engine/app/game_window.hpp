@@ -15,9 +15,11 @@ namespace engine {
 enum class DisplayMode
 {
   windowed = 0,
-  borderless = 1,
-  fullscreen = 2,
-  fullscreen_borderless = 3,
+  windowed_borderless,
+  fullscreen,
+  fullscreen_borderless,
+
+  count,
 };
 
 class GameWindow
@@ -58,10 +60,9 @@ public:
   void set_size(const glm::ivec2& size);
   void set_min_size(int width, int height);
   void set_max_size(int width, int height);
-  void set_bordered(const bool b);
-  void set_fullscreen(const bool f);
   void set_brightness(const float bright);
   void set_icon(const std::string& path);
+  void set_displaymode(const DisplayMode mode);
 
   [[nodiscard]] std::string get_title() const;
   [[nodiscard]] glm::ivec2 get_position() const;
@@ -70,8 +71,6 @@ public:
   [[nodiscard]] glm::ivec2 get_max_size() const;
   [[nodiscard]] bool get_fullscreen() const;
   [[nodiscard]] float get_brightness() const;
-
-  void toggle_fullscreen();
 
   // ---- mouse
 

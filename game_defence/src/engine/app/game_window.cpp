@@ -105,7 +105,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
   flags |= SDL_WINDOW_RESIZABLE;
-  if (displaymode == DisplayMode::borderless)
+  if (displaymode == DisplayMode::windowed_borderless)
     flags |= SDL_WINDOW_BORDERLESS;
   else if (displaymode == DisplayMode::fullscreen)
     flags |= SDL_WINDOW_FULLSCREEN;
@@ -285,31 +285,48 @@ GameWindow::get_max_size() const
 }
 
 void
-GameWindow::set_bordered(const bool b)
+GameWindow::set_displaymode(const DisplayMode mode)
 {
-  SDL_SetWindowBordered(window_.get(), b ? SDL_TRUE : SDL_FALSE);
-}
 
-void
-GameWindow::set_fullscreen(const bool b)
-{
-  // todo: use DisplayMode
-  if (SDL_SetWindowFullscreen(window_.get(), b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)) {
-    throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
+  // set state
+  switch (mode) {
+
+    case DisplayMode::fullscreen: {
+      if (SDL_SetWindowFullscreen(window_.get(), SDL_WINDOW_FULLSCREEN))
+        throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
+      break;
+    }
+    case DisplayMode::fullscreen_borderless: {
+      SDL_SetWindowBordered(window_.get(), SDL_FALSE); // Ensure the window is borderless
+      // This makes the window fullscreen but keeps the desktop resolution and runs the window in a
+      // borderless, fullscreen mode.
+      if (SDL_SetWindowFullscreen(window_.get(), SDL_WINDOW_FULLSCREEN_DESKTOP))
+        throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
+      SDL_SetWindowPosition(window_.get(), 0, 0);
+      break;
+    }
+    case DisplayMode::windowed_borderless: {
+      if (SDL_SetWindowFullscreen(window_.get(), 0))
+        throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
+      SDL_SetWindowBordered(window_.get(), SDL_FALSE);
+      break;
+    }
+    case DisplayMode::windowed: {
+      if (SDL_SetWindowFullscreen(window_.get(), 0))
+        throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
+      SDL_SetWindowBordered(window_.get(), SDL_TRUE);
+      break;
+    }
+    default:
+      break;
   }
-}
+};
 
 bool
 GameWindow::get_fullscreen() const
 {
   Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
   return SDL_GetWindowFlags(window_.get()) & FullscreenFlag;
-}
-
-void
-GameWindow::toggle_fullscreen()
-{
-  set_fullscreen(!get_fullscreen());
 }
 
 float

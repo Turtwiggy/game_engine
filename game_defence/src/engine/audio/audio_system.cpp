@@ -18,9 +18,6 @@
 
 namespace game2d {
 
-// todo: fix audio source being created every request -- ring buffer?
-// todo: a request is only processed when the audio source has finished playing the sound
-
 void
 init_audio_system(entt::registry& r)
 {

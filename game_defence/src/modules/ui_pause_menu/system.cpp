@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "engine/app/game_window.hpp"
 #include "engine/audio/audio_components.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
@@ -18,6 +19,7 @@
 #include <algorithm>
 #include <fmt/core.h>
 #include <iterator>
+#include <magic_enum.hpp>
 #include <vector>
 
 namespace game2d {
@@ -83,13 +85,28 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
 
     ImGui::SeparatorText("Settings");
 
-    // static bool value = false;
-    // if (ImGui::Checkbox("Fullscreen", &value))
-    //   app.window.toggle_fullscreen();
-
-    static bool borderless = false;
-    if (ImGui::Checkbox("Borderless", &borderless))
-      app.window.set_bordered(!borderless);
+    static engine::DisplayMode mode = engine::DisplayMode::windowed;
+    static std::vector<std::string> modes;
+    const auto convert_mode_to_string = [](const engine::DisplayMode& dm) -> std::string {
+      return std::string(magic_enum::enum_name(dm));
+    };
+    static bool displaymode_first_time = true;
+    if (displaymode_first_time) {
+      displaymode_first_time = false;
+      for (int i = 0; i < static_cast<int>(engine::DisplayMode::count); i++) {
+        engine::DisplayMode mode = static_cast<engine::DisplayMode>(i);
+        modes.push_back(convert_mode_to_string(mode));
+      }
+    };
+    ImGui::Text("Current mode: %s", convert_mode_to_string(mode).c_str());
+    WomboComboIn combo_in(modes);
+    combo_in.label = "Display Mode";
+    combo_in.current_index = static_cast<int>(mode);
+    WomboComboOut combo_out = draw_wombo_combo(combo_in);
+    if (combo_in.current_index != combo_out.selected) {
+      mode = static_cast<engine::DisplayMode>(combo_out.selected);
+      app.window.set_displaymode(mode);
+    }
 
     static bool vsync = app.vsync;
     if (ImGui::Checkbox("VSync", &vsync))

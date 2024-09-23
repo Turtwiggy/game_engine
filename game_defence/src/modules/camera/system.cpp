@@ -7,6 +7,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
@@ -104,7 +105,7 @@ update_camera_system(entt::registry& r, const float dt)
   const float speed = 7.5;
   const float zoom_in = 0.25f;
   const float zoom_out = 2.0f;
-  zoom_nonlinear = lerp(zoom_nonlinear, new_zoom_nonlinear, dt * speed);
+  zoom_nonlinear = engine::lerp(zoom_nonlinear, new_zoom_nonlinear, dt * speed);
 
   // clamp zoomout
   if (zoom_nonlinear > zoom_out) {
