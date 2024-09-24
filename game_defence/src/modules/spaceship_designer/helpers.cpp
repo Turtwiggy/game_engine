@@ -8,7 +8,6 @@
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 
-
 namespace game2d {
 
 void
@@ -109,9 +108,9 @@ instantiate_edges(entt::registry& r, MapComponent& map)
 
     auto new_size = glm::vec2{ size.y, size.x };
     if (new_size.x == 0)
-      new_size.x = 2;
+      new_size.x = 4;
     if (new_size.y == 0)
-      new_size.y = 2;
+      new_size.y = 4;
 
     spawn_wall(r, "default", center, new_size);
   }

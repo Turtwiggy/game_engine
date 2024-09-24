@@ -103,8 +103,6 @@ setup_debris_update(entt::registry& r)
     ImGui::Text("zoom l %f", camera_c.zoom_linear);
     ImGui::Text("zoom nl %f", camera_c.zoom_nonlinear);
 
-    // ri.debris.set_mat4("projection", camera_c.projection_zoomed);
-
     {
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
@@ -245,14 +243,15 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
   pass.update = [](entt::registry& r) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera = r.get<OrthographicCamera>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     // emitters should be anything but black (i.e. scene lighting)
     const engine::LinearColour emitter_col = engine::SRGBToLinear({ 255, 0, 0, 1.0f });
     const engine::LinearColour occluder_col(0.0f, 0.0f, 0.0f, 1.0f);
 
     ri.lighting_emitters_and_occluders.bind();
-    ri.lighting_emitters_and_occluders.set_mat4("view", camera.view);
+    ri.lighting_emitters_and_occluders.set_mat4("view", camera_c.view);
+    ri.lighting_emitters_and_occluders.set_mat4("projection", camera_c.projection_zoomed);
 
     {
       engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
@@ -335,7 +334,7 @@ setup_jump_flood_pass(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [&pass](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -346,8 +345,15 @@ setup_jump_flood_pass(entt::registry& r)
     const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
 
     for (int i = 0; i < n_jumpflood_passes; i++) {
+      int last_tex_idx = -1;
+      int this_tex_idx = 0;
+      if (i > 0) {
+        last_tex_idx = (i + 1) & 1;
+        this_tex_idx = last_tex_idx == 1 ? 0 : 1;
+      }
+      ImGui::Text("jflood pass: %i. last: %i, this: %i", i, last_tex_idx, this_tex_idx);
 
-      engine::Framebuffer::bind_fbo(pass.fbos[i]);
+      engine::Framebuffer::bind_fbo(pass.fbos[this_tex_idx]);
       engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
       engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
       engine::RenderCommand::clear();
@@ -358,14 +364,18 @@ setup_jump_flood_pass(entt::registry& r)
       const float offset = (float)std::pow(2, n_jumpflood_passes - i - 1);
 
       int tex_unit = get_tex_unit(ri, PassName::voronoi_seed);
-      if (i > 0)
-        tex_unit = pass.texs[i - 1].tex_unit.unit;
+      if (i > 0) {
+        tex_unit = pass.texs[last_tex_idx].tex_unit.unit;
+        ri.final_jflood_texunit = pass.texs[this_tex_idx].tex_unit.unit;
+      }
 
       ri.jump_flood.set_int("tex", tex_unit);
       ri.jump_flood.set_float("u_offset", offset);
 
       render_fullscreen_quad(r, ri.jump_flood, ri.viewport_size_render_at);
     }
+
+    ImGui::Text("final unit: %i", ri.final_jflood_texunit);
   };
 };
 
@@ -377,18 +387,18 @@ setup_voronoi_distance_field_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto jflood_pass_idx = search_for_renderpass_by_name(ri, PassName::jump_flood);
     const auto& jflood_pass = ri.passes[jflood_pass_idx];
     const auto& jflood_texs = jflood_pass.texs;
-    const auto last_jflood_texunit = jflood_texs[jflood_texs.size() - 1].tex_unit.unit;
+    const auto final_jflood_texunit = ri.final_jflood_texunit;
     const auto tex_unit = get_tex_unit(ri, PassName::lighting_emitters_and_occluders);
 
     ri.voronoi_distance.bind();
-    ri.voronoi_distance.set_int("tex_jflood", last_jflood_texunit);
+    ri.voronoi_distance.set_int("tex_jflood", final_jflood_texunit);
     ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit);
 
     render_fullscreen_quad(r, ri.voronoi_distance, ri.viewport_size_render_at);
@@ -433,6 +443,8 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };
 };
+
+/*
 
 void
 setup_gaussian_blur_update(entt::registry& r)
@@ -547,5 +559,7 @@ setup_bloom_update(entt::registry& r)
     ri.renderer.flush(ri.bloom);
   };
 };
+
+*/
 
 } // namespace game2d

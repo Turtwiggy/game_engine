@@ -31,7 +31,7 @@ struct TextureUnit
 
   TextureUnit() = default;
   TextureUnit(int unit)
-    : unit(unit){};
+    : unit(unit) {};
 };
 
 // known after bind
@@ -51,7 +51,7 @@ struct Texture
   Texture() = default;
   Texture(const std::string& p, const std::string& sp)
     : path(p)
-    , spritesheet_path(sp){};
+    , spritesheet_path(sp) {};
 };
 
 enum class PassName
@@ -65,9 +65,9 @@ enum class PassName
   jump_flood,
   voronoi_distance,
   mix_lighting_and_scene,
-  blur_pingpong_0,
-  blur_pingpong_1,
-  bloom,
+  // blur_pingpong_0,
+  // blur_pingpong_1,
+  // bloom,
 };
 
 struct RenderPass
@@ -76,7 +76,7 @@ struct RenderPass
   std::vector<engine::FramebufferID> fbos;
 
   // one framebuffer can have multiple attachments,
-  // in the form of multiple multiple tex_ids.
+  // in the form of multiple tex_ids.
   std::vector<Texture> texs;
 
   // the function that gets called during the render
@@ -97,6 +97,7 @@ struct SINGLE_RendererInfo
   std::vector<RenderPass> passes;
 
   std::vector<Texture> user_textures;
+  int final_jflood_texunit = 0;
 
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;
@@ -110,8 +111,8 @@ struct SINGLE_RendererInfo
   engine::Shader jump_flood;
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
-  engine::Shader blur;
-  engine::Shader bloom;
+  // engine::Shader blur;
+  // engine::Shader bloom;
 
   // viewport
   // note: values are updated in render

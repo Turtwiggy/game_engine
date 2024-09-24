@@ -71,7 +71,7 @@ imgui_draw_int(const std::string& label, int& v)
   int v_temp = v;
   ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragInt((std::string("##") + label).c_str(), &v_temp)) {
+  if (ImGui::DragInt((std::string("##") + label).c_str(), &v_temp, 0.1f)) {
     v = v_temp;
     return true;
   }

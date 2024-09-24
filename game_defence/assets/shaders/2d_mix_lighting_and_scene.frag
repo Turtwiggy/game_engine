@@ -234,9 +234,9 @@ void main()
 
 	// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
   // iResolution : is a vec2 with an X value of 640 and a Y value of 360
-  vec2 fragCoord = v_uv * viewport_wh;
+  vec2 fragCoord = (v_uv * viewport_wh);
   vec2 iResolution = viewport_wh;
-  vec2 p = fragCoord.xy + vec2(0.5);
+	vec2 p = (fragCoord + vec2(0.5));
 	vec2 c = iResolution.xy / 2.0;
 	
 	vec2 half_wh = viewport_wh / 2.0;
@@ -362,7 +362,6 @@ void main()
 			float aspect_y = viewport_wh.y / viewport_wh.x;
 			
 			vec2 grid_uv = (2.0 * v_uv - 1.0);
-			grid_uv.y = -grid_uv.y;
 			grid_uv += camera_uv;
 			grid_uv.y *= aspect_y;
 
@@ -383,7 +382,7 @@ void main()
 
 	// lighting
 	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
-	// final_lin *= lighting_lin;
+	final_lin *= lighting_lin;
 
 	vec3 srgb_final = lin_to_srgb(final_lin);
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);

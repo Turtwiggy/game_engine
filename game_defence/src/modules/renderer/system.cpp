@@ -101,7 +101,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
-  const int tex_unit_blur_pingpong_1 = get_tex_unit(PassName::blur_pingpong_1);
   const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
 
   auto& camera = get_first_component<OrthographicCamera>(r);
@@ -167,17 +166,17 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
   ri.mix_lighting_and_scene.set_int("circleBuffer", ri.renderer.data.tex_unit);
 
-  ri.blur.reload();
-  ri.blur.bind();
-  ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.blur.set_mat4("projection", camera.projection);
+  // ri.blur.reload();
+  // ri.blur.bind();
+  // ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  // ri.blur.set_mat4("projection", camera.projection);
 
-  ri.bloom.reload();
-  ri.bloom.bind();
-  ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.bloom.set_mat4("projection", camera.projection);
-  ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
-  ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
+  // ri.bloom.reload();
+  // ri.bloom.bind();
+  // ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  // ri.bloom.set_mat4("projection", camera.projection);
+  // ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
+  // ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
 };
 
 void
@@ -211,13 +210,13 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::jump_flood));
   ri.passes.push_back(RenderPass(PassName::voronoi_distance));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
-  ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
-  ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
-  ri.passes.push_back(RenderPass(PassName::bloom));
+  // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
+  // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
+  // ri.passes.push_back(RenderPass(PassName::bloom));
 
   for (auto& rp : ri.passes) {
     if (rp.pass == PassName::jump_flood)
-      rp.setup(fbo_size / 100, n_jumpflood_passes);
+      rp.setup(fbo_size, 2);
     else
       rp.setup(fbo_size);
   }
@@ -250,8 +249,8 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.jump_flood = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
-  ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
-  ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
+  // ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
+  // ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
   // initialize renderer
 #if !defined(__EMSCRIPTEN__)
@@ -279,8 +278,8 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   setup_jump_flood_pass(r);
   setup_voronoi_distance_field_update(r);
   setup_mix_lighting_and_scene_update(r);
-  setup_gaussian_blur_update(r);
-  setup_bloom_update(r);
+  // setup_gaussian_blur_update(r);
+  // setup_bloom_update(r);
 
   // validate that update() been set...
   for (const auto& pass : ri.passes) {
@@ -337,7 +336,12 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto s_jumpflood = std::vector<Scene>{ Scene::dungeon_designer };
   const bool in_jumpflood_scene = std::find(s_jumpflood.begin(), s_jumpflood.end(), scene.s) != s_jumpflood.end();
 
-  const auto jflood_pass = std::vector<PassName>{ PassName::voronoi_seed, PassName::jump_flood, PassName::voronoi_distance };
+  const auto jflood_pass = std::vector<PassName>{
+    PassName::voronoi_seed,
+    PassName::jump_flood,
+    PassName::voronoi_distance,
+    PassName::debris,
+  };
   const auto in_jumpflood_pass = [&jflood_pass](const PassName& p) {
     return std::find(jflood_pass.begin(), jflood_pass.end(), p) != jflood_pass.end();
   };
@@ -432,8 +436,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         const std::string label = fmt::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
         ImGui::Begin(label.c_str());
         const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-        const ImTextureID id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex.tex_id.id));
-        ImGui::Image(id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        const uint64_t id = tex.tex_id.id;
+        ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
         ImGui::End();
       }
     }
@@ -443,8 +447,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       const std::string label = std::string("Debug") + std::to_string(i++);
       ImGui::Begin(label.c_str());
       ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-      const ImTextureID id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex.tex_id.id));
-      ImGui::Image(id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      const uint64_t id = tex.tex_id.id;
+      ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
       ImGui::End();
     }
   }

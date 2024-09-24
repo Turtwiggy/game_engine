@@ -32,10 +32,9 @@ void
 setup_mix_lighting_and_scene_update(entt::registry& r);
 
 // FBO: gaussian blur.
-void
-setup_gaussian_blur_update(entt::registry& r);
-
-void
-setup_bloom_update(entt::registry& r);
+// void
+// setup_gaussian_blur_update(entt::registry& r);
+// void
+// setup_bloom_update(entt::registry& r);
 
 } // namespace game2d

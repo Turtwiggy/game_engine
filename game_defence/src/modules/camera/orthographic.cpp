@@ -16,14 +16,12 @@ calculate_ortho_projection(int w, int h, float zoom)
   float top = static_cast<float>(h);
   float bottom = 0.0f;
 
-  // Apply zoom by scaling the view
-  float center_x = (right - left) / 2.0f;
-  float center_y = (top - bottom) / 2.0f;
-
+  float center_x = right / 2.0f;
+  float center_y = top / 2.0f;
   left = center_x - (center_x * zoom);
   right = center_x + (center_x * zoom);
-  top = center_y - (center_y * zoom);
-  bottom = center_y + (center_y * zoom);
+  top = center_y + (center_y * zoom);
+  bottom = center_y - (center_y * zoom);
 
   return glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 };

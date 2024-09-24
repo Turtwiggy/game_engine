@@ -222,7 +222,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   if (scene.s == Scene::dungeon_designer) {
     update_ui_spaceship_designer_system(r, mouse_pos, dt);
-    update_ui_players_system(r);
+    // update_ui_players_system(r);
   }
 
   static bool show_settings_ui = true;
