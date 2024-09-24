@@ -48,13 +48,6 @@ struct TeamComponent
   AvailableTeams team = AvailableTeams::neutral;
 };
 
-// When attacking, create a DealDamageRequest
-struct DealDamageRequest
-{
-  entt::entity from;
-  entt::entity to;
-};
-
 struct HasWeaponComponent
 {
   entt::entity instance = entt::null;

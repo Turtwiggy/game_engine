@@ -8,6 +8,7 @@
 #include <format>
 #include <optional>
 #include <string>
+#include <typeinfo>
 
 namespace game2d {
 
@@ -35,8 +36,7 @@ create_empty(entt::registry& r, const std::optional<T>& val = std::nullopt)
 {
   // val passed in. could be useful for debugging
 
-  const T t{};
-  const std::string name = typeid(t).name();
+  const std::string name = typeid(T).name();
   const std::string tag = cleanup_tag_str(name);
 
   const auto e = r.create();
@@ -73,8 +73,7 @@ get_first_component(entt::registry& r)
   const auto e = get_first<T>(r);
 
   if (e == entt::null) {
-    const T t{};
-    const std::string name = typeid(t).name();
+    const std::string name = typeid(T).name();
     const std::string err = std::format("get_first_component<{}>() missing", name);
     fmt::println("Error: {}", err);
     throw std::runtime_error(err);

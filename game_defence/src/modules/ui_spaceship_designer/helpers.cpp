@@ -162,20 +162,6 @@ create_dungeon_breach_charge(entt::registry& r)
 }
 
 entt::entity
-create_dungeon_lootbag(entt::registry& r)
-{
-  // auto e = spawn_item(r, "lootbag");
-  // r.emplace<LootbagComponent>(e);
-  // r.emplace<DefaultInventory>(e, desc.inventory);
-  // r.emplace<PathfindComponent>(e, PathfindComponent{ 0 }); // free to move through
-  // set_z_index(r, e, ZLayer::BEHIND_PLAYER);
-  // const auto& map_c = get_first_component<MapComponent>(r);
-  // add_entity_to_map(r, e, engine::grid::worldspace_to_index(desc.pos, map_c.tilesize, map_c.xmax, map_c.ymax));
-
-  return entt::null;
-}
-
-entt::entity
 create_overworld_cargo(entt::registry& r)
 {
   // auto e = spawn_item(r, "cargo");

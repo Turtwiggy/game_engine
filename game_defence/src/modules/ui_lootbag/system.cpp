@@ -1,12 +1,12 @@
 #include "system.hpp"
 
-#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
-#include "engine/maths/grid.hpp"
+#include "helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
 #include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -73,83 +73,75 @@ update_ui_lootbag_system(entt::registry& r)
   ImGui::SeparatorText("Loot (Press R to toggle)");
   ImGui::Text("Right click to take loot");
 
-  const auto content_size = ImGui::GetContentRegionAvail();
+  const auto& view_players = r.view<PlayerComponent>();
+  // ImGui::Text("players: %zu", view_players.size());
 
-  for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {
-    ImGui::SeparatorText("player...");
+  for (const auto& [e, player_c] : view_players.each()) {
+    const auto player_eid = static_cast<uint32_t>(e);
+    ImGui::PushID(player_eid);
 
-    const auto gp = get_grid_position(r, e);
+    auto* coll_info = r.try_get<CollInfo>(e);
+    if (coll_info == nullptr) {
+      ImGui::PopID(); // player eid
+      continue;
+    }
+    // ImGui::Text("colls: %zu", coll_info->other.size());
 
-    const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
-    if (idx < 0 || idx > map_c.xmax * map_c.ymax)
-      continue; // unlikely to be loot out of bounds?
+    for (const auto other_e : coll_info->other) {
+      if (e == other_e)
+        continue; // player collided with self?
 
-    // remove the player from the grid cell index,
-    // and assume that every other entity is an inventory.
-    auto es = map_c.map[idx]; // take a copy
-    auto it = std::remove(es.begin(), es.end(), e);
-    if (it != es.end())
-      es.erase(it, es.end());
+      const auto* inv_c = r.try_get<DefaultInventory>(other_e);
+      if (inv_c == nullptr)
+        continue;
 
-    const std::string info_str = std::format("Standing on {} lootbags...", es.size());
-    ImGui::Text("%s", info_str.c_str());
-
-    // should be all inventories
-    for (const auto lootbag_e : es) {
-
-      const auto& inv_c = r.get<DefaultInventory>(lootbag_e);
-
-      bool all_items_empty = true;
-
-      for (const auto& inv_e : inv_c.inv) {
-        const auto& slot_c = r.get<InventorySlotComponent>(inv_e);
-        const auto item_e = slot_c.item_e;
-        if (item_e != entt::null)
-          all_items_empty = false;
-      }
-
-      if (all_items_empty) {
+      if (inv_is_empty(r, *inv_c)) {
         ImGui::SeparatorText("Lootbag... (empty)");
         continue;
       }
+
       ImGui::SeparatorText("Lootbag...");
 
       const int columns = inv_x;
       ImGuiTableFlags table_flags = ImGuiTableFlags_SizingStretchSame;
-      ImGui::BeginTable("backpack", columns, table_flags);
 
-      for (const auto& inv_e : inv_c.inv) {
+      std::string label = "backpack##" + std::to_string(player_eid);
+      ImGui::BeginTable(label.c_str(), columns, table_flags);
+
+      for (const auto& inv_e : inv_c->inv) {
         const auto eid = static_cast<uint32_t>(inv_e);
         ImGui::PushID(eid);
         ImGui::TableNextColumn();
-
         display_inventory_slot(r, inv_e, button_size);
 
-        // warning: approach does not work with multiple players
-        bool clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
-        // clicked |= ImGui::IsItemClicked();
+        // // warning: approach does not work with multiple players
+        // bool clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+        // // clicked |= ImGui::IsItemClicked();
 
-        if (clicked) {
-          const auto& slot_c = r.get<InventorySlotComponent>(inv_e);
-          const auto item_e = slot_c.item_e;
+        // if (clicked) {
+        //   const auto& slot_c = r.get<InventorySlotComponent>(inv_e);
+        //   const auto item_e = slot_c.item_e;
 
-          // move item to player inventory
-          if (item_e != entt::null) {
-            auto& player_inv = r.get<DefaultInventory>(e);
-            for (const auto& player_inv_slot_e : player_inv.inv) {
-              auto& player_slot_c = r.get<InventorySlotComponent>(player_inv_slot_e);
-              if (player_slot_c.item_e == entt::null) // free slot
-                update_item_parent(r, item_e, player_inv_slot_e);
-            }
-          }
-        }
+        //   // move item to player inventory
+        //   if (item_e != entt::null) {
+        //     auto& player_inv = r.get<DefaultInventory>(e);
+        //     for (const auto& player_inv_slot_e : player_inv.inv) {
+        //       auto& player_slot_c = r.get<InventorySlotComponent>(player_inv_slot_e);
+        //       if (player_slot_c.item_e == entt::null) // free slot
+        //         update_item_parent(r, item_e, player_inv_slot_e);
+        //     }
+        //   }
+        // }
 
-        ImGui::PopID();
+        ImGui::PopID(); // inventory eid
       }
 
       ImGui::EndTable();
     }
+
+    ImGui::PopID(); // player eid
   }
+
   ImGui::End();
   ImGui::PopStyleVar();
 }

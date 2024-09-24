@@ -15,6 +15,12 @@ std::vector<entt::entity>
 inside_room(entt::registry& r, const glm::ivec2& gridpos)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
+
+  if (gridpos.x < 0 || gridpos.x > map_c.xmax)
+    return {};
+  if (gridpos.y < 0 || gridpos.y > map_c.ymax)
+    return {};
+
   const int idx = engine::grid::grid_position_to_index(gridpos, map_c.xmax);
 
   std::set<entt::entity> rooms;

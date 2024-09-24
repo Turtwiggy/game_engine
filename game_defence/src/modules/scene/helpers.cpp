@@ -21,7 +21,6 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/system_distance_check/components.hpp"
-#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -29,6 +28,7 @@
 #include "modules/ui_overworld_boardship/components.hpp"
 #include "modules/ui_overworld_shiplabel/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+#include <magic_enum.hpp>
 
 namespace game2d {
 
@@ -65,9 +65,9 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   };
 
   // box2d to handle it's own cleanup
-  emplace_or_replace_physics_world(r);
-  auto physics_e = get_first<SINGLE_Physics>(r);
-  r.emplace<Persistent>(physics_e);
+  {
+    emplace_or_replace_physics_world(r);
+  }
 
   // do not use create_persistent here. anything created
   // here should be expected to be removed between scenes
@@ -116,6 +116,9 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // evts.events.push_back("Press R to open/close loot");
     // evts.events.push_back("Left click to perform item action.");
   }
+
+  const auto scene_name = std::string(magic_enum::enum_name(s));
+  fmt::println("scene set to: {}", scene_name);
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   scene.s = s; // done
@@ -207,10 +210,8 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
     create_empty<DistanceCheckComponent>(r, distance_c);
   };
 
-  //
-
-  // const auto scene_name = std::string(magic_enum::enum_name(s));
-  // fmt::println("additive scene. scene set to: {}", scene_name);
+  const auto scene_name = std::string(magic_enum::enum_name(s));
+  fmt::println("additive scene. scene set to: {}", scene_name);
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   scene.s = s; // done

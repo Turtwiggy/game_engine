@@ -5,7 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/actor_lootbag/components.hpp"
+#include "modules/ui_inventory/components.hpp"
 
 #include <fmt/core.h>
 
@@ -90,7 +90,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   //
   bool contains_all_inventories = true;
   for (const auto dst_e : dst_es) {
-    if (const auto* lootbag = r.try_get<LootbagComponent>(dst_e))
+    if (const auto* lootbag = r.try_get<DefaultInventory>(dst_e))
       contains_all_inventories = true;
     else
       contains_all_inventories = false;

@@ -17,14 +17,14 @@
     },
     {
       "name": "seed (plant)",
-      "display_name": "Seed. (Unknown plant)",
+      "display_name": "Seed. (Unknown)",
       "display_desc": "It wants to go home.",
       "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
       "name": "scrap",
       "display_name": "sCrap",
-      "display_desc": "A wrench through a toaster. A resource.",
+      "display_desc": "A wrench through a toaster. (Resource.)",
       "renderable": { "sprite": "SCRAP", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
@@ -45,14 +45,14 @@
     },
     {
       "name": "power_hammer",
-      "display_name": "[Powered] Hammer",
+      "display_name": "[P0W3R] Hammer",
       "display_desc": "Originally a construction tool.",
       "renderable": { "sprite": "WEAPON_HAMMER_38_7", "colour": { "r": 255, "g": 255, "b": 255 } },
       "melee": { "damage": 10, "range": 1 }
     },
     {
       "name": "power_sword",
-      "display_name": "[Powered] Sword",
+      "display_name": "[P0W3R] Sword",
       "display_desc": "The handle is insulated. Probably",
       "renderable": { "sprite": "WEAPON_QUIVER", "colour": { "r": 255, "g": 255, "b": 255 } },
       "melee": { "damage": 10, "range": 2 }
@@ -84,6 +84,13 @@
       "display_desc": "Bouncy ballistic material.",
       "renderable": { "sprite": "AMMO_BOX", "colour": { "r": 255, "g": 255, "b": 255 } },
       "bullet": { "damage": 12 }
+    },
+    {
+      "name": "lootbag",
+      "display_name": "Lootbag",
+      "display_desc": "A default bag of loot",
+      "renderable": { "sprite": "GEM", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "inventory": { "size": 30 }
     },
     // header: scrap tier items
     //

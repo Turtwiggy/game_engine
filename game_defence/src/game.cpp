@@ -17,12 +17,15 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
+#include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
+#include "modules/events/events_system.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
+#include "modules/system_camera_to_player/camera_to_player.hpp"
 #include "modules/system_cooldown/system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
@@ -31,8 +34,6 @@
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_quips/system.hpp"
-#include "modules/systems/show_tiles_in_range.hpp"
-#include "modules/systems/swap_active_player.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_controllers/system.hpp"
@@ -43,6 +44,7 @@
 #include "modules/ui_overworld_boardship/system.hpp"
 #include "modules/ui_overworld_shiplabel/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
+#include "modules/ui_players/ui_players_system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_spaceship_designer/system.hpp"
@@ -57,6 +59,8 @@ using namespace std::literals;
 void
 init(engine::SINGLE_Application& app, entt::registry& r)
 {
+  init_events_system(r);
+
   {
     SINGLE_RendererInfo ri = get_default_textures();
     SINGLE_Animations anims;
@@ -132,9 +136,8 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   update_lifecycle_system(r, milliseconds_dt);
   update_physics_apply_force_system(r);
   update_physics_system(r, milliseconds_dt);
-  // update_resolve_collisions_system(game);
-  // update_take_damage_system(game);                        // after colls
   update_player_controller_system(r, milliseconds_dt); // input => actions
+  update_events_system(r);                             // dispatch events
 
   fixed_input.fixed_tick += 1;
 };
@@ -149,6 +152,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_input_system(app, r); // sets update_since_last_fixed_update
   update_camera_system(r, dt);
   update_audio_system(r);
+  update_events_system(r); // dispatch events
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED) {
@@ -159,8 +163,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_entered_new_room_system(r, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_quips_system(r);
-    // update_show_tiles_in_range_system(r);
-
+    update_show_tiles_in_range_system(r);
     // combat systems
     //
     update_gun_follow_player_system(r, mouse_pos, dt);
@@ -191,7 +194,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     }
 
     if (scene.s == Scene::dungeon_designer) {
-      update_swap_active_player_system(r);
+      update_swap_camera_to_player_system(r);
     }
   }
 
@@ -217,8 +220,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
 
-  if (scene.s == Scene::dungeon_designer)
+  if (scene.s == Scene::dungeon_designer) {
     update_ui_spaceship_designer_system(r, mouse_pos, dt);
+    update_ui_players_system(r);
+  }
 
   static bool show_settings_ui = true;
   if (show_settings_ui) {
@@ -232,12 +237,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #if defined(_DEBUG)
   // hack: reload RAWS
   // note: this doesnt update anything already spawned from raws data
-  const auto& input = get_first_component<SINGLE_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_9)) {
-    fmt::println("reloading raws...");
-    destroy_first<Raws>(r);
-    create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
-  }
+  // const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  // if (get_key_down(input, SDL_SCANCODE_9)) {
+  //   fmt::println("reloading raws...");
+  //   destroy_first<Raws>(r);
+  //   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
+  // }
 #endif
 
   end_frame_render_system(r);

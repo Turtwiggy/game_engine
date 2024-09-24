@@ -81,11 +81,11 @@ spawn_item(entt::registry& r, const std::string& key)
   set_z_index(r, e, ZLayer::DEFAULT);
   set_size(r, e, { size, size });
 
-  // Add to physics system?
+  // Add items to physics system?
   PhysicsDescription pdesc;
   pdesc.type = b2_dynamicBody;
   pdesc.size = { size, size };
-  pdesc.is_sensor = false;
+  pdesc.is_sensor = true;
   create_physics_actor(r, e, pdesc);
 
   // item is use across the game to represent any item
@@ -102,6 +102,9 @@ spawn_item(entt::registry& r, const std::string& key)
   if (item_template.use.has_value())
     r.emplace<Use>(e, item_template.use.value());
 
+  if (item_template.inventory.has_value())
+    r.emplace<DefaultInventory>(e, DefaultInventory(r, item_template.inventory.value().size));
+
   return e;
 };
 
@@ -117,20 +120,22 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   };
 
   const auto idx = static_cast<int>(it - rs.mobs.begin());
-  const Mob& item_template = rs.mobs[idx];
+  const Mob& mob_template = rs.mobs[idx];
 
   const auto e = r.create();
-  r.emplace<TagComponent>(e, item_template.name);
+  r.emplace<TagComponent>(e, mob_template.name);
   r.emplace<WaitForInitComponent>(e);
+
+  r.emplace<Mob>(e, mob_template);
 
   float size = 32;
 
   // create_transform()
   {
     r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, item_template.renderable.sprite);
-    set_colour(r, e, item_template.renderable.colour);
-    r.emplace<DefaultColour>(e, item_template.renderable.colour);
+    set_sprite(r, e, mob_template.renderable.sprite);
+    set_colour(r, e, mob_template.renderable.colour);
+    r.emplace<DefaultColour>(e, mob_template.renderable.colour);
     TransformComponent tf;
     tf.position = { pos.x, pos.y, 0.0f };
     tf.scale = { size, size, 0.0f };

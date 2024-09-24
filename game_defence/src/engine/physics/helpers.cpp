@@ -3,8 +3,11 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
 
 #include <box2d/b2_circle_shape.h>
+#include <box2d/b2_contact.h>
+#include <box2d/b2_world_callbacks.h>
 #include <fmt/core.h>
 
 namespace game2d {
@@ -14,28 +17,34 @@ emplace_or_replace_physics_world(entt::registry& r)
 {
   // store one physics world...
   static b2World* world = new b2World(b2Vec2(0.0f, 0.0f));
+  static PhysicsEvents* listener = new PhysicsEvents(r);
+  world->SetContactListener(listener);
 
   // cleanup physics world...
-  {
-    static bool needs_deleting = false;
-    if (needs_deleting) {
-      b2Joint* joint = world->GetJointList();
-      while (joint) {
-        b2Joint* j = joint;
-        joint = joint->GetNext();
-        world->DestroyJoint(j);
-      }
-      b2Body* body = world->GetBodyList();
-      while (body) {
-        b2Body* b = body;
-        body = body->GetNext();
-        world->DestroyBody(b);
-      }
+  static bool needs_deleting = false;
+  if (needs_deleting) {
+    fmt::println("cleaning up physics world..");
+
+    b2Joint* joint = world->GetJointList();
+    while (joint) {
+      b2Joint* j = joint;
+      joint = joint->GetNext();
+      world->DestroyJoint(j);
     }
+
+    b2Body* body = world->GetBodyList();
+    while (body) {
+      b2Body* b = body;
+      body = body->GetNext();
+      world->DestroyBody(b);
+    }
+
     needs_deleting = true;
   }
 
   destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
+  destroy_first_and_create<SINGLE_PhysicsEvents>(r, SINGLE_PhysicsEvents{ listener });
+  r.emplace<Persistent>(get_first<SINGLE_Physics>(r));
 };
 
 void

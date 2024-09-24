@@ -91,12 +91,6 @@ struct Renderable
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Renderable, sprite, colour);
 };
 
-// struct Consumable
-// {
-//   std::unordered_map<std::string, std::string> effects;
-//   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Consumable, effects);
-// };
-
 struct Use
 {
   std::string name;
@@ -129,6 +123,13 @@ struct Stats
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Stats, max_hp, hp);
 };
 
+struct Inventory
+{
+  int size = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Inventory, size);
+};
+
 //
 // categories in the raw files...
 //
@@ -144,6 +145,7 @@ struct Item
   std::optional<Ranged> ranged = std::nullopt;
   std::optional<Bullet> bullet = std::nullopt;
   std::optional<Defence> defence = std::nullopt;
+  std::optional<Inventory> inventory = std::nullopt;
 
   friend void to_json(json& j, const Item& val)
   {
@@ -161,6 +163,8 @@ struct Item
       j["bullet"] = val.bullet.value();
     if (val.defence.has_value())
       j["defence"] = val.defence.value();
+    if (val.inventory.has_value())
+      j["inventory"] = val.inventory.value();
   }
   friend void from_json(const json& j, Item& val)
   {
@@ -180,6 +184,8 @@ struct Item
       j.at("bullet").get_to(val.bullet);
     if (j.contains("defence"))
       j.at("defence").get_to(val.defence);
+    if (j.contains("inventory"))
+      j.at("inventory").get_to(val.inventory);
   };
 };
 

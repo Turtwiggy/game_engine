@@ -1,4 +1,5 @@
-#include "modules/systems/show_tiles_in_range.hpp"
+#include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
+
 #include "actors/helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/entity_pool.hpp"
@@ -6,7 +7,6 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "imgui.h"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
 

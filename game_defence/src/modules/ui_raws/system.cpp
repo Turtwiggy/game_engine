@@ -36,6 +36,12 @@ update_ui_raws_system(entt::registry& r)
     if (ImGui::Button(label.c_str())) {
       auto e = spawn_item(r, item.name.c_str());
       set_position(r, e, spaceitem_pos);
+
+      // hack: add a piece of scrap to a lootbag
+      if (item.name.find("lootbag") != std::string::npos) {
+        auto& inv_c = r.get<DefaultInventory>(e);
+        spawn_inv_item(r, inv_c.inv, 0, "scrap");
+      }
     }
 
     ImGui::SameLine();

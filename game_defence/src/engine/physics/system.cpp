@@ -16,9 +16,10 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
 
   // update world
   {
+    const auto dt = ms_dt / 1000.0f;
     const int vel_iterations = 8;
     const int pos_iterations = 3;
-    physics.world->Step(ms_dt / 1000.0f, vel_iterations, pos_iterations);
+    physics.world->Step(dt, vel_iterations, pos_iterations);
   }
 
   // update renderer

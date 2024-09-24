@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_resolve_collisions_system(entt::registry& r);
+update_swap_camera_to_player_system(entt::registry& r);
 
 } // namespace game2d
