@@ -2,7 +2,7 @@
 #include "system.hpp"
 
 // components/systems
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"

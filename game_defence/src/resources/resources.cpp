@@ -21,10 +21,11 @@ get_default_textures()
   };
 
   add_tex("kennynl_1bit_pack/monochrome_transparent_packed.png", "spritemap_kennynl.json");
-  add_tex("kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png", "spritemap_kennynl_icons.json");
-  add_tex("blueberry-dark.png", "spritemap_studio_logo.json");
+  add_tex("kennynl_gameicons/gameicons.png", "spritemap_kennynl_icons.json");
+  add_tex("blueberry_dark.png", "spritemap_studio_logo.json");
   add_tex("custom.png", "spritemap_custom.json");
   add_tex("organic2.jpg", "spritemap_default_1024.json");
+  add_tex("logo.png", "spritemap_text_logo.json");
 
   return ri;
 };

@@ -1,6 +1,6 @@
 #include "helpers.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/sprites/components.hpp"

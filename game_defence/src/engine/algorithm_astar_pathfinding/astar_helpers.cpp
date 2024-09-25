@@ -1,7 +1,7 @@
 
 #include "astar_helpers.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/priority_queue.hpp"

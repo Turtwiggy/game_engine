@@ -7,7 +7,7 @@
 #include "helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
-#include "modules/scene/helpers.hpp"
+#include "modules/scene/scene_helpers.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>

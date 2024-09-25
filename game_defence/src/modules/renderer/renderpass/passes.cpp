@@ -1,6 +1,6 @@
 #include "passes.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/helpers/mouse.hpp"

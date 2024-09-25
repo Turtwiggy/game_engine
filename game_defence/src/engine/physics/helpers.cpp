@@ -38,9 +38,10 @@ emplace_or_replace_physics_world(entt::registry& r)
       body = body->GetNext();
       world->DestroyBody(b);
     }
-
-    needs_deleting = true;
   }
+
+  needs_deleting = true;
+  fmt::println("physics world set to clean up...");
 
   destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
   destroy_first_and_create<SINGLE_PhysicsEvents>(r, SINGLE_PhysicsEvents{ listener });

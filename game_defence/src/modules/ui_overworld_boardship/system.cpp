@@ -4,7 +4,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/scene/helpers.hpp"
+#include "modules/scene/scene_helpers.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 
 #include <box2d/b2_joint.h>

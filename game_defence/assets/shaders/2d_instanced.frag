@@ -10,10 +10,13 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform sampler2D tex_kenny;
+uniform sampler2D tex_monochrome_transparent_packed;
 uniform sampler2D tex_gameicons;
-uniform sampler2D tex_unit_studio_logo;
-uniform sampler2D tex_unit_custom;
+uniform sampler2D tex_blueberry_dark;
+uniform sampler2D tex_custom;
+uniform sampler2D tex_organic2;
+uniform sampler2D tex_logo;
+
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
 
@@ -22,6 +25,7 @@ uniform int RENDERER_TEX_UNIT_COUNT;
 // https://discussions.unity.com/t/how-to-keep-sprites-sharp-and-crisp-even-while-rotating-solved/737314/6
 vec4 tex2dss(sampler2D tex, vec2 uv, float bias, float aascale)
 {
+
     vec4 col = vec4(0.0);
 
     // get uv derivatives
@@ -86,10 +90,7 @@ vec4 tex2dss(sampler2D tex, vec2 uv, float bias, float aascale)
   // no super sampling, just bias
   // col = tex2Dbias(tex, vec4(uv, 0, bias));
 #endif
-  
     return col;
-
-  //
 }
 
 void
@@ -117,7 +118,7 @@ main()
     // WARNING: seems bad
 
     if(index == RENDERER_TEX_UNIT_COUNT){
-      out_colour *= tex2dss(tex_kenny, sprite_uv, bias, aa_scale);
+      out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
       // out_colour *= texture(tex_kenny, sprite_uv);
     }
     else if(index == (RENDERER_TEX_UNIT_COUNT+1)){
@@ -125,11 +126,19 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+2){
-      out_colour *= texture(tex_unit_studio_logo, sprite_uv);
+      out_colour *= texture(tex_blueberry_dark, sprite_uv);
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+3){
-      out_colour *= texture(tex_unit_custom, sprite_uv);
+      out_colour *= texture(tex_custom, sprite_uv);
+      return; // texture uses 0, 0
+    }
+    else if(index == RENDERER_TEX_UNIT_COUNT+4){
+      out_colour *= texture(tex_organic2, sprite_uv);
+      return; // texture uses 0, 0
+    }
+    else if(index == RENDERER_TEX_UNIT_COUNT+5){
+      out_colour *= texture(tex_logo, sprite_uv);
       return; // texture uses 0, 0
     }
 

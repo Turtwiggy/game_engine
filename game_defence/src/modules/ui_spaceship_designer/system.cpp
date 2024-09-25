@@ -9,7 +9,7 @@
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/map/components.hpp"
-#include "modules/scene/helpers.hpp"
+#include "modules/scene/scene_helpers.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/helpers.hpp"

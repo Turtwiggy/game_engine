@@ -4,6 +4,7 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/enum/enum_helpers.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/imgui/helpers.hpp"
@@ -11,7 +12,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
-#include "modules/scene/helpers.hpp"
+#include "modules/scene/scene_helpers.hpp"
 
 #include <SDL2/SDL_mixer.h>
 #include <imgui.h>
@@ -85,20 +86,10 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
 
     ImGui::SeparatorText("Settings");
 
-    static engine::DisplayMode mode = engine::DisplayMode::windowed;
-    static std::vector<std::string> modes;
-    const auto convert_mode_to_string = [](const engine::DisplayMode& dm) -> std::string {
-      return std::string(magic_enum::enum_name(dm));
-    };
-    static bool displaymode_first_time = true;
-    if (displaymode_first_time) {
-      displaymode_first_time = false;
-      for (int i = 0; i < static_cast<int>(engine::DisplayMode::count); i++) {
-        engine::DisplayMode mode = static_cast<engine::DisplayMode>(i);
-        modes.push_back(convert_mode_to_string(mode));
-      }
-    };
-    ImGui::Text("Current mode: %s", convert_mode_to_string(mode).c_str());
+    static auto mode = engine::DisplayMode::windowed;
+    static auto modes = engine::enum_class_to_vec_str<engine::DisplayMode>();
+    ImGui::Text("Current mode: %s", convert_enum_to_string<engine::DisplayMode>(mode).c_str());
+
     WomboComboIn combo_in(modes);
     combo_in.label = "Display Mode";
     combo_in.current_index = static_cast<int>(mode);

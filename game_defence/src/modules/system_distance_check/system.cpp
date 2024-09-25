@@ -1,8 +1,7 @@
 #include "system.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "components.hpp"
-
 
 namespace game2d {
 

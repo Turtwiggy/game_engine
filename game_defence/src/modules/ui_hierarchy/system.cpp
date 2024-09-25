@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"

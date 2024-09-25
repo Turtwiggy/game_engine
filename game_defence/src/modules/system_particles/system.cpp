@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "components.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"

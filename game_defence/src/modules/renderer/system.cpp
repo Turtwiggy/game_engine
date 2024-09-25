@@ -78,15 +78,17 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
   glBindTexture(GL_TEXTURE_BUFFER, ri.renderer.data.TEX);
   ri.renderer.data.tex_unit = tex_buffer_unit;
-  fmt::println("tbo unit... {}", ri.renderer.data.tex_unit);
-
+  fmt::println("tbo (circles) tex_unit... {}", ri.renderer.data.tex_unit);
   fmt::println("bound textures: {}", i);
 
-  const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
-  const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
-  const int tex_unit_organic2 = search_for_texture_unit_by_texture_path(ri, "organic2")->unit;
-  const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
-  const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "custom")->unit;
+  {
+    const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
+    const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
+    const int tex_unit_organic2 = search_for_texture_unit_by_texture_path(ri, "organic2")->unit;
+    const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
+    const int tex_unit_text_logo = search_for_texture_unit_by_texture_path(ri, "text_logo")->unit;
+    const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "custom")->unit;
+  }
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
@@ -113,6 +115,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.stars.set_mat4("projection", camera.projection);
   ri.stars.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
+  const int tex_unit_organic2 = search_for_texture_unit_by_texture_path(ri, "organic2")->unit;
   ri.debris.reload();
   ri.debris.bind();
   ri.debris.set_int("tex", tex_unit_organic2);
@@ -122,10 +125,20 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.reload();
   ri.instanced.bind();
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
-  ri.instanced.set_int("tex_kenny", tex_unit_kenny);
-  ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
-  ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
-  ri.instanced.set_int("tex_unit_custom", tex_unit_custom);
+
+  // set user textures in ri.instanced
+  const auto clean_path = [](const std::string& path) -> std::string {
+    const auto last_slash = path.find_last_of("/\\");
+    const auto file_name = path.substr(last_slash + 1);
+    const auto last_dot = file_name.find_last_of('.');
+    return (last_dot == std::string::npos) ? file_name : file_name.substr(0, last_dot);
+  };
+  for (const auto& tex : ri.user_textures) {
+    const auto key = "tex_" + clean_path(tex.path);
+    fmt::println("renderer user tex key: {}", key);
+    ri.instanced.set_int(key, tex.tex_unit.unit);
+  }
+
   ri.instanced.set_mat4("projection", camera.projection);
   ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
