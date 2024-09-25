@@ -11,6 +11,7 @@
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_mouse.h>
+#include <SDL_scancode.h>
 #include <box2d/b2_math.h>
 #include <box2d/box2d.h>
 #include <fmt/core.h>
@@ -205,6 +206,12 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       input.ly += fixed_input_keyboard_held(inputs, keyboard->S) ? 1 : 0;
       input.lx += fixed_input_keyboard_held(inputs, keyboard->A) ? -1 : 0;
       input.lx += fixed_input_keyboard_held(inputs, keyboard->D) ? 1 : 0;
+
+      input.ry += fixed_input_keyboard_held(inputs, SDL_SCANCODE_UP) ? -1 : 0;
+      input.ry += fixed_input_keyboard_held(inputs, SDL_SCANCODE_DOWN) ? 1 : 0;
+      input.rx += fixed_input_keyboard_held(inputs, SDL_SCANCODE_LEFT) ? -1 : 0;
+      input.rx += fixed_input_keyboard_held(inputs, SDL_SCANCODE_RIGHT) ? 1 : 0;
+
       input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_LEFT);
       input.pickup |= fixed_input_keyboard_press(inputs, keyboard->pickup);
       input.drop |= fixed_input_keyboard_press(inputs, keyboard->drop);

@@ -80,15 +80,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.renderer.data.tex_unit = tex_buffer_unit;
   fmt::println("tbo (circles) tex_unit... {}", ri.renderer.data.tex_unit);
   fmt::println("bound textures: {}", i);
-
-  {
-    const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
-    const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
-    const int tex_unit_organic2 = search_for_texture_unit_by_texture_path(ri, "organic2")->unit;
-    const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
-    const int tex_unit_text_logo = search_for_texture_unit_by_texture_path(ri, "text_logo")->unit;
-    const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "custom")->unit;
-  }
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
@@ -131,14 +122,13 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     const auto last_slash = path.find_last_of("/\\");
     const auto file_name = path.substr(last_slash + 1);
     const auto last_dot = file_name.find_last_of('.');
-    return (last_dot == std::string::npos) ? file_name : file_name.substr(0, last_dot);
+    return file_name.substr(0, last_dot);
   };
   for (const auto& tex : ri.user_textures) {
     const auto key = "tex_" + clean_path(tex.path);
-    fmt::println("renderer user tex key: {}", key);
+    fmt::println("user tex key: {}", key);
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
-
   ri.instanced.set_mat4("projection", camera.projection);
   ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
@@ -446,7 +436,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
 
       for (const auto& tex : rp.texs) {
-        const std::string label = fmt::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
+        const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
         ImGui::Begin(label.c_str());
         const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         const uint64_t id = tex.tex_id.id;

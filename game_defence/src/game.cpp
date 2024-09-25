@@ -39,6 +39,7 @@
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_input/ui_input_system.hpp"
 #include "modules/ui_inventory/ui_inventory_system.hpp"
 #include "modules/ui_lootbag/system.hpp"
 #include "modules/ui_overworld_boardship/system.hpp"
@@ -230,8 +231,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     ImGui::ShowDemoWindow(NULL);
     update_ui_hierarchy_system(r);
     update_ui_audio_system(r);
-    update_ui_controller_system(r);
     update_ui_collisions_system(r);
+    update_ui_controller_system(r);
+    update_ui_input_system(r);
   }
 
 #if defined(_DEBUG)

@@ -6,16 +6,16 @@
 namespace game2d {
 
 void
-EntityPool::update(entt::registry& r, const size_t desired)
+EntityPool::update(entt::registry& r, const int desired)
 {
-  const size_t new_size = desired;
-  const size_t old_size = instances.size();
+  const int new_size = desired;
+  const int old_size = (int)instances.size();
   if (new_size == old_size)
     return;
 
   // create
-  const size_t to_create = new_size - old_size;
-  for (size_t i = 0; i < to_create; i++) {
+  const int to_create = new_size - old_size;
+  for (int i = 0; i < to_create; i++) {
     const auto e = r.create();
     r.emplace<TagComponent>(e, "entity-pool-entity");
     instances.push_back(e);
@@ -23,7 +23,7 @@ EntityPool::update(entt::registry& r, const size_t desired)
 
   // destroy
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  for (auto i = old_size; i > new_size; i--) {
+  for (int i = old_size; i > new_size; i--) {
     const auto idx = i - 1;
     const auto entity = instances[idx];
     dead.dead.emplace(entity);

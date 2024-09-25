@@ -130,8 +130,8 @@ lerp_a_to_b_clamped_between_0_and_1(const glm::vec2 a, const glm::vec2 b, float 
 glm::vec2
 quadratic_curve(const glm::vec2 a, const glm::vec2 b, const glm::vec2 c, const float t)
 {
-  glm::vec2 p0 = lerp_a_to_b_clamped_between_0_and_1(a, b, t);
-  glm::vec2 p1 = lerp_a_to_b_clamped_between_0_and_1(b, c, t);
+  const auto p0 = lerp_a_to_b_clamped_between_0_and_1(a, b, t);
+  const auto p1 = lerp_a_to_b_clamped_between_0_and_1(b, c, t);
   return lerp_a_to_b_clamped_between_0_and_1(p0, p1, t);
 }
 

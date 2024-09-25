@@ -11,7 +11,7 @@ class EntityPool
 public:
   std::vector<entt::entity> instances;
 
-  void update(entt::registry& r, const size_t desired);
+  void update(entt::registry& r, const int desired);
 };
 
 } // namespace game2d

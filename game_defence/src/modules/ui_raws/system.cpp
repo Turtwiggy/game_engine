@@ -22,7 +22,7 @@ update_ui_raws_system(entt::registry& r)
 
   ImGui::Begin("raws", NULL, flags);
 
-  std::string items_header = fmt::format("items: {}", raws.items.size());
+  std::string items_header = std::format("items: {}", raws.items.size());
   ImGui::SeparatorText(items_header.c_str());
 
   static glm::vec2 spaceitem_pos{ 0, 0 };
