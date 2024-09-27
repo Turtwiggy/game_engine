@@ -1,9 +1,12 @@
 #include "system.hpp"
 
 #include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/camera/helpers.hpp"
+#include "modules/camera/orthographic.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/ui_overworld_shiplabel/components.hpp"
 
 #include "imgui.h"
@@ -28,10 +31,10 @@ draw_dashed_line(ImDrawList* draw_list, const ImVec2 p0, const ImVec2 p1, int n_
   }
 
   // calculate the length of the canvas
-  float length = glm::length(raw_dir);
-  float total_dash_length = length / n_dashes;
-  float dash_length = total_dash_length * 0.5f; // half gaps, half dash
-  float gap_length = total_dash_length - dash_length;
+  const float length = glm::length(raw_dir);
+  const float total_dash_length = length / n_dashes;
+  const float dash_length = total_dash_length * 0.5f; // 0.5 = half gaps, half dash
+  const float gap_length = total_dash_length - dash_length;
 
   // draw each dash
   glm::vec2 start = { p0.x, p0.y };
@@ -50,10 +53,18 @@ draw_dashed_line(ImDrawList* draw_list, const ImVec2 p0, const ImVec2 p1, int n_
 void
 update_ui_overworld_shiplabel_system(entt::registry& r)
 {
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+  const auto& camera_t = r.get<TransformComponent>(camera_e);
+  const auto zoom = camera_c.zoom_nonlinear;
+  const ImVec2 zoom_vec = { zoom, zoom };
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  ImGui::Text("zoom: %f", zoom);
+
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoTitleBar;
-  flags |= ImGuiWindowFlags_NoBackground;
+  // flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiDockNodeFlags_AutoHideTabBar;
   flags |= ImGuiDockNodeFlags_NoResize;
 
@@ -67,14 +78,15 @@ update_ui_overworld_shiplabel_system(entt::registry& r)
     const ImVec2 text_pos = { window_size.x - text_size.x, 0 };
     float extra_underline_separation = 4;
 
-    // position in worldspace
-    const auto t_pos = glm::ivec2(t_c.position.x, t_c.position.y);
-    const auto worldspace = position_in_worldspace(r, t_pos);
-    const ImVec2 pos = { static_cast<float>(worldspace.x), static_cast<float>(worldspace.y) };
+    const auto screen_center = ImVec2{ ri.viewport_size_render_at.x / 2.0f, ri.viewport_size_render_at.y / 2.0f };
+    const auto target_pos = glm::vec2{ t_c.position.x, t_c.position.y };
+    const auto camera_pos = glm::vec2{ camera_t.position.x, camera_t.position.y };
+    const auto dir = (target_pos - camera_pos) / zoom;
+    const auto pos = ImVec2{ screen_center.x + dir.x, screen_center.y + dir.y };
 
     // set window position
-    const ImVec2 final_offset = { pos.x, pos.y - window_size.y };
-    ImGui::SetNextWindowPos(final_offset);
+    const ImVec2 final_offset = { pos.x, pos.y };
+    ImGui::SetNextWindowPos(final_offset, ImGuiCond_Always, { 0, 1 });
     ImGui::SetNextWindowSizeConstraints(window_size, window_size);
     ImGui::SetNextWindowSize(window_size);
 

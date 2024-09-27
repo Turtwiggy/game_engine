@@ -38,7 +38,7 @@ mouse_position_in_worldspace(entt::registry& r)
   return pos_in_worldspace;
 };
 
-glm::ivec2
+glm::vec2
 position_in_worldspace(entt::registry& r, const glm::ivec2& game_pos)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
@@ -57,7 +57,7 @@ position_in_worldspace(entt::registry& r, const glm::ivec2& game_pos)
     //
   };
 
-  const glm::ivec2 pos_in_worldspace = {
+  const glm::vec2 pos_in_worldspace = {
     screen_pos.x + xy.x - camera_position.x,
     screen_pos.y + xy.y - camera_position.y,
   };

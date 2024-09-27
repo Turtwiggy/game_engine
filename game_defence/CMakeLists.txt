@@ -98,9 +98,9 @@ if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
     message("creating symlink... (unix)")
     add_custom_command(
       TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src_sym} ${dst_sym}
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
       DEPENDS ${dst_sym}
-      COMMENT "symbolic link resources folder from ${src_sym} => ${dst_sym}"
+      COMMENT "symbolic link resources folder from ${src} => ${dst}"
     )
   else()
     message("creating symlink... (windows)")
