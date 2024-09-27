@@ -1,7 +1,7 @@
 #include "event_player_coll_item_helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
-#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
 

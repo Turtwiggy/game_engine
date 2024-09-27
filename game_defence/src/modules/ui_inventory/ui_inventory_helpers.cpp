@@ -1,8 +1,9 @@
-#include "helpers.hpp"
+#include "ui_inventory_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
@@ -10,7 +11,7 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_scene_main_menu/helpers.hpp"
 
 #include "imgui.h"
@@ -25,6 +26,10 @@ spawn_inv_item(entt::registry& r, std::vector<entt::entity>& v, int idx, std::st
 
   r.remove<TransformComponent>(e);
   r.remove<SpriteComponent>(e);
+  if (auto* timer_c = r.try_get<EntityTimedLifecycle>(e))
+    r.remove<EntityTimedLifecycle>(e);
+  if (auto* callback_c = r.try_get<OnDeathCallback>(e))
+    r.remove<OnDeathCallback>(e);
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
     auto& physics_c = get_first_component<SINGLE_Physics>(r);
     physics_c.world->DestroyBody(pb->body);
@@ -244,14 +249,14 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
     spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
     spawn_inv_item(r, body_c.body, 4, "scrap_legs");
     spawn_inv_item(r, body_c.body, 5, "scrap_legs");
-    spawn_inv_item(r, body_c.body, 6, "breach charge");
+    spawn_inv_item(r, body_c.body, 6, "breach_charge");
 
     // init inventory with items
     spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 1, "scrap");
     spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 2, "shotgun");
     spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 3, "bullet_default");
     spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 4, "bullet_bouncy");
-    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 5, "breach charge");
+    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 5, "breach_charge");
   }
 };
 

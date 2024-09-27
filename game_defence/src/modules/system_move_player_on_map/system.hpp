@@ -4,7 +4,7 @@
 
 namespace game2d {
 
-bool
-inside_ship(entt::registry& r, const entt::entity e);
+void
+update_move_player_on_map_system(entt::registry& r);
 
 } // namespace game2d

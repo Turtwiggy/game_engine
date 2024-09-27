@@ -3,7 +3,7 @@
 #include "modules/actor_cover/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
-#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
 

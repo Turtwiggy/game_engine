@@ -1,14 +1,10 @@
 #include "helpers.hpp"
 
-#include "actors/actors.hpp"
-#include "actors/helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
-#include "engine/sprites/helpers.hpp"
-#include "modules/grid/components.hpp"
-#include "modules/grid/helpers.hpp"
-#include "modules/ui_inventory/components.hpp"
-
+#include "modules/map/components.hpp"
+#include "modules/map/helpers.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
 
@@ -34,9 +30,11 @@ drop_inventory_on_death_callback(entt::registry& r, const entt::entity e)
   remove_entity_from_map(r, info);
 
   // add inv to floor
-  DataDungeonLootbag loot_desc(inv);
-  loot_desc.pos = pos;
-  Factory_DataDungeonLootbag::create(r, loot_desc);
+  fmt::println("todo: add drop inv logic");
+
+  // DataDungeonLootbag loot_desc(inv);
+  // loot_desc.pos = pos;
+  // Factory_DataDungeonLootbag::create(r, loot_desc);
 
   fmt::println("item add to map_idx: {} pos: {}", info.idx_in_map, info.idx_in_map_tile);
 };

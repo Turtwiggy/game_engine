@@ -1,12 +1,17 @@
 #include "helpers.hpp"
 
+#include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/physics/helpers.hpp"
+#include "engine/sprites/components.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "generation/components.hpp"
 #include "generation/rooms_random.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
+#include "modules/renderer/lights/components.hpp"
 
 namespace game2d {
 
@@ -112,7 +117,16 @@ instantiate_edges(entt::registry& r, MapComponent& map)
     if (new_size.y == 0)
       new_size.y = 4;
 
-    spawn_wall(r, "default", center, new_size);
+    // spawn_wall()
+    // convert Edge to Wall (i.e. add physics and stuff)
+    r.emplace<SpriteComponent>(e);
+    set_sprite(r, e, "EMPTY");
+    set_size(r, e, new_size);
+    create_physics_actor_static(r, e, center, new_size);
+    set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+    r.emplace<LightOccluderComponent>(e);
+    // r.emplace<DestroyBulletOnCollison>(e);
+    // r.emplace<RequestParticleOnCollision>(e);
   }
 };
 

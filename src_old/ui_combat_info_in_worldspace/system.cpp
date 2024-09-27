@@ -6,7 +6,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_fov/components.hpp"
-#include "modules/ui_inventory/helpers.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
 #include "imgui.h"

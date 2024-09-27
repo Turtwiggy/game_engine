@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_change_gun_z_index_system(entt::registry& r);
+update_gun_z_index_system(entt::registry& r);
 
 } // namespace game2d

@@ -209,7 +209,11 @@ convert_tunnels_to_rooms(entt::registry& r, const DungeonGenerationResults& resu
 
     Room room;
     room.tiles_idx = room_idxs;
-    create_empty<Room>(r, room);
+    auto room_e = create_empty<Room>(r, room);
+
+    RoomName room_name_c;
+    room_name_c.name = "Tunnel";
+    r.emplace<RoomName>(room_e, room_name_c);
   }
 };
 

@@ -23,7 +23,7 @@
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
-#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_lootbag/components.hpp"
 #include "modules/ui_overworld_boardship/components.hpp"
 #include "modules/ui_overworld_shiplabel/components.hpp"
@@ -35,7 +35,7 @@ namespace game2d {
 void
 create_player_if_not_in_scene(entt::registry& r)
 {
-  auto player_e = get_first<PlayerComponent>(r);
+  const auto player_e = get_first<PlayerComponent>(r);
   if (player_e != entt::null)
     return;
 

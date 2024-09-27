@@ -203,8 +203,9 @@ struct Mob
   std::string name;
   Renderable renderable;
   Stats stats;
+  bool is_sensor;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Mob, name, renderable, stats);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Mob, name, renderable, stats, is_sensor);
 };
 
 //
@@ -237,13 +238,10 @@ entt::entity
 spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos);
 
 entt::entity
-spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, entt::entity& parent);
+spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, const entt::entity parent);
 
 entt::entity
 spawn_particle(entt::registry& r, const std::string& key, const Particle& desc);
-
-entt::entity
-spawn_wall(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size);
 
 entt::entity
 spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size);

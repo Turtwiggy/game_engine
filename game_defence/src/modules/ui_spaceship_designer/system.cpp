@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/grid.hpp"
@@ -9,6 +10,8 @@
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/map/components.hpp"
+#include "modules/map/helpers.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
@@ -74,14 +77,22 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
   if (ImGui::Button("Add jetpack player")) {
     destroy_first<CameraFreeMove>(r);
 
-    auto player_e = create_jetpack_player(r);
+    const auto player_e = create_jetpack_player(r);
 
     auto results_e = get_first<DungeonGenerationResults>(r);
     if (results_e != entt::null) {
       const auto& results_c = r.get<DungeonGenerationResults>(results_e);
 
-      // todo: set player_e inside spaceship
-      // results_c.rooms[0].
+      const auto map_e = get_first<MapComponent>(r);
+      if (map_e != entt::null) {
+        const auto& map_c = r.get<MapComponent>(map_e);
+        // set player_e inside spaceship... in room 0...
+        const auto grid_tl = results_c.rooms[0].tl.value();
+        const auto pos = engine::grid::grid_space_to_world_space_center(grid_tl, map_c.tilesize);
+        set_position(r, player_e, pos);
+
+        add_entity_to_map(r, player_e, engine::grid::grid_position_to_index(grid_tl, map_c.xmax));
+      }
     }
   }
 
@@ -94,14 +105,47 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 
         auto idxs = get_free_slots_idxs(map_c, room_c);
         const int n_free_slots = static_cast<int>(idxs.size());
-        if (n_free_slots == 0)
-          return;
-        const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
-        const int slot_idx = idxs[slot_i];
+        if (n_free_slots != 0) {
+          // choose a random slot...
+          const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
+          const int slot_idx = idxs[slot_i];
+          const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
-        // spawn_environment(r, slot_idx);
+          {
+            // const auto mob_e = create_dungeon_actor_enemy(r);
+            const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
 
-        idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
+            // r.emplace<TeamComponnent>(enemylymyymly);
+            // give the enemy a piece of scrap in their inventory
+            // create_inv_scrap(r, r.get<DefaultInventory>(dungeon_e).inv[0]);
+            // give the enemy a 5% chance to have a medkit in their inventory...
+            // TODO: medkits
+            // r.emplace<DropItemsOnDeathComponent>(dungeon_e);
+            // give enemies a shotgun
+            // DataWeaponShotgun wdesc;
+            // wdesc.able_to_shoot = true;
+            // wdesc.parent = dungeon_e;
+            // wdesc.team = desc.team;
+            // const auto weapon_e = Factory_DataWeaponShotgun::create(r, wdesc);
+            // link entity&weapon
+            // HasWeaponComponent has_weapon_c;
+            // has_weapon_c.instance = weapon_e;
+            // r.emplace<HasWeaponComponent>(dungeon_e, has_weapon_c);
+            // r.emplace<SpawnParticlesOnDeath>(e);
+            // r.emplace<HealthComponent>(e, desc.hp, desc.max_hp);
+            // r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
+            // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+            // r.emplace<TeamComponent>(e, desc.team);
+            // r.emplace<DestroyBulletOnCollison>(e);
+            // r.emplace<DefaultColour>(e, desc.colour);
+
+            add_entity_to_map(r, mob_e, slot_idx);
+          }
+
+          // spawn_environment(r, slot_idx);
+
+          idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
+        }
       }
     }
   }

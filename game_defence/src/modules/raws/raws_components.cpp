@@ -8,14 +8,18 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/actor_breach_charge/breach_charge_helpers.hpp"
 #include "modules/colour/components.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/lights/components.hpp"
 #include "modules/system_cooldown/components.hpp"
+#include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 
+#include <box2d/b2_body.h>
 #include <fstream>
 #include <sstream>
 
@@ -83,7 +87,7 @@ spawn_item(entt::registry& r, const std::string& key)
 
   // Add items to physics system?
   PhysicsDescription pdesc;
-  pdesc.type = b2_dynamicBody;
+  pdesc.type = b2_kinematicBody;
   pdesc.size = { size, size };
   pdesc.is_sensor = true;
   create_physics_actor(r, e, pdesc);
@@ -105,6 +109,12 @@ spawn_item(entt::registry& r, const std::string& key)
   if (item_template.inventory.has_value())
     r.emplace<DefaultInventory>(e, DefaultInventory(r, item_template.inventory.value().size));
 
+  // todo: replace with item traits
+  if (key == "breach_charge") {
+    add_bomb_callback(r, e);
+    r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
+  }
+
   return e;
 };
 
@@ -125,7 +135,6 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   const auto e = r.create();
   r.emplace<TagComponent>(e, mob_template.name);
   r.emplace<WaitForInitComponent>(e);
-
   r.emplace<Mob>(e, mob_template);
 
   float size = 32;
@@ -150,9 +159,26 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
     pdesc.type = b2_dynamicBody;
     pdesc.position = pos;
     pdesc.size = { size, size };
-    pdesc.is_sensor = false;
+    pdesc.is_sensor = mob_template.is_sensor;
     create_physics_actor(r, e, pdesc);
   }
+
+  // all mobs: drop_inventory_on_death()
+  {
+    OnDeathCallback callback;
+    callback.callback = [](entt::registry& r, const entt::entity e) {
+      //
+      drop_inventory_on_death_callback(r, e);
+    };
+    r.emplace<OnDeathCallback>(e, callback);
+  }
+
+  // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+  // r.emplace<DestroyBulletOnCollison>(e);
+  // r.emplace<MoveLimitComponent>(e, 1);
+  // r.emplace<SpawnParticlesOnDeath>(e);
+  r.emplace<HealthComponent>(e, 100, 100);
+  r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
 
   // if (item_template.stats.){
   // }
@@ -161,7 +187,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
 };
 
 entt::entity
-spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, entt::entity& parent)
+spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, const entt::entity parent)
 {
   const auto e = create_transform(r, "particle_emitter");
 
@@ -169,13 +195,23 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec
   r.emplace<DynamicTargetComponent>(e, parent);
 
   Particle pdesc;
+  pdesc.time_to_live_ms = 1 * 1000;
   pdesc.start_size = 6;
   pdesc.end_size = 2;
-  pdesc.time_to_live_ms = 1 * 1000;
+  if (key.find("default_explode") != std::string::npos) {
+    pdesc.start_size = 16;
+    pdesc.end_size = 4;
+  }
 
   // which particle to spawn?
   ParticleEmitterComponent pedesc;
   pedesc.particle_to_emit = pdesc;
+  if (key.find("default_explode") != std::string::npos) {
+    pedesc.expires = true;
+    pedesc.particles_to_spawn_before_emitter_expires = 10;
+    pedesc.random_velocity = true;
+    pedesc.spawn_all_particles_at_once = true;
+  }
   r.emplace<ParticleEmitterComponent>(e, pedesc);
 
   // emit: particles
@@ -214,23 +250,6 @@ spawn_particle(entt::registry& r, const std::string& key, const Particle& desc)
     set_colour(r, e, col->colour);
 
   set_position(r, e, desc.position);
-  return e;
-};
-
-entt::entity
-spawn_wall(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size)
-{
-  auto e = create_transform(r, "wall");
-  r.emplace<SpriteComponent>(e);
-  set_sprite(r, e, "EMPTY");
-  set_size(r, e, size);
-
-  create_physics_actor_static(r, e, pos, size);
-  r.emplace<LightOccluderComponent>(e);
-  // r.emplace<DestroyBulletOnCollison>(e);
-  // r.emplace<RequestParticleOnCollision>(e);
-
-  set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
   return e;
 };
 

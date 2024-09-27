@@ -1,7 +1,10 @@
 #include "entity_pool.hpp"
 
+#include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "engine/sprites/helpers.hpp"
 
 namespace game2d {
 
@@ -18,6 +21,10 @@ EntityPool::update(entt::registry& r, const int desired)
   for (int i = 0; i < to_create; i++) {
     const auto e = r.create();
     r.emplace<TagComponent>(e, "entity-pool-entity");
+    r.emplace<TransformComponent>(e);
+    r.emplace<SpriteComponent>(e);
+    set_sprite(r, e, "EMPTY");
+    set_size(r, e, { 8, 8 });
     instances.push_back(e);
   }
 

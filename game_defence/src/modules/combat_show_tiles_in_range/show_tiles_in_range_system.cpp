@@ -12,6 +12,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
+#include "modules/system_select_unit/select_unit_components.hpp"
 #include <glm/fwd.hpp>
 
 namespace game2d {
@@ -183,8 +184,13 @@ update_show_tiles_in_range_system(entt::registry& r)
 
   static EntityPool pool;
 
-  const auto& view = r.view<PlayerComponent, InputComponent>();
-  for (const auto& [e, player_c, input_c] : view.each()) {
+  const auto& view = r.view<PlayerComponent, const SelectedComponent>();
+  for (const auto& [e, player_c, selected_c] : view.each()) {
+
+    const auto* input_c = r.try_get<InputComponent>(e);
+    if (input_c == nullptr)
+      continue;
+
     const auto grid_pos = get_grid_position(r, e);
     // ImGui::Text("you: %i %i", grid_pos.x, grid_pos.y);
 
@@ -192,28 +198,19 @@ update_show_tiles_in_range_system(entt::registry& r)
     if (show_range_type == RangeType::knife)
       tiles = get_tiles_for_knife(r, map_c, grid_pos);
     if (show_range_type == RangeType::pistol)
-      tiles = get_tiles_in_line(r, map_c, grid_pos, { input_c.rx, input_c.ry }, 1);
+      tiles = get_tiles_in_line(r, map_c, grid_pos, { input_c->rx, input_c->ry }, 1);
     if (show_range_type == RangeType::plunger)
-      tiles = get_tiles_in_line(r, map_c, grid_pos, { input_c.rx, input_c.ry }, 4);
+      tiles = get_tiles_in_line(r, map_c, grid_pos, { input_c->rx, input_c->ry }, 4);
     if (show_range_type == RangeType::shotgun)
-      tiles = get_tiles_for_shotgun(r, map_c, grid_pos, { input_c.rx, input_c.ry });
+      tiles = get_tiles_for_shotgun(r, map_c, grid_pos, { input_c->rx, input_c->ry });
 
-    // note: this is bad for multiple players
-    pool.update(r, tiles.size());
-
+    // debug tiles with squares
+    //
+    pool.update(r, tiles.size()); // note: bad for multiple players
     for (int i = 0; const auto& tile_gp : tiles) {
       // ImGui::Text("accessible: %i %i", tile_gp.x, tile_gp.y);
 
-      // add a transform, if needed
       const auto debug_e = pool.instances[i];
-      if (r.try_get<TransformComponent>(debug_e) == nullptr) {
-        TransformComponent t_c;
-        t_c.scale = { 8, 8, 8 };
-        r.emplace<TransformComponent>(debug_e, t_c);
-        r.emplace<SpriteComponent>(debug_e);
-        set_sprite(r, debug_e, "EMPTY");
-      }
-
       const auto offset = glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
       const auto anypos = glm::vec2(tile_gp * map_c.tilesize) + offset;
       set_position(r, debug_e, anypos);

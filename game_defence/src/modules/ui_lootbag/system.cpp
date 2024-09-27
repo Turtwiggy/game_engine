@@ -9,10 +9,10 @@
 #include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
 #include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 
 #include "imgui.h"
-#include "modules/ui_inventory/helpers.hpp"
 
 namespace game2d {
 

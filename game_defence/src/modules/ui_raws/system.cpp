@@ -5,8 +5,8 @@
 #include "engine/imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/raws/raws_components.hpp"
-#include "modules/ui_inventory/components.hpp"
-#include "modules/ui_inventory/helpers.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 
 #include "imgui.h"
 

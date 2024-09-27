@@ -4,7 +4,7 @@
 
 namespace game2d {
 
-struct BreachChargeComponent
+struct SelectedComponent
 {
   bool placeholder = true;
 };

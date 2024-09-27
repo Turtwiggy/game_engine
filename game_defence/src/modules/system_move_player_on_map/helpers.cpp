@@ -1,12 +1,11 @@
 #include "helpers.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/grid/components.hpp"
-#include "modules/grid/helpers.hpp"
+#include "modules/map/components.hpp"
+#include "modules/map/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/system_turnbased/components.hpp"
 
 namespace game2d {
 
@@ -17,21 +16,11 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
 
   const auto info = get_entity_mapinfo(r, e);
   const auto src_idx = info->idx_in_map;
+  const auto dst_idx = engine::grid::worldspace_to_index(dst_wp, map.tilesize, map.xmax, map.ymax);
 
-  // pathfinding...
   // note: use pathfinding here instead of direct movement
   // so that edges are taken in to account and you cant go through walls
-
-  const auto dst_idx = engine::grid::worldspace_to_index(dst_wp, map.tilesize, map.xmax, map.ymax);
-  const auto path = generate_path(r, src_idx, dst_idx, limit);
-
-  /*
-  fmt::print("path generated. ");
-  for (const auto& p : path)
-    fmt::print(" {},{}", p.x, p.y);
-  fmt::println("");
-  */
-
+  const auto path = generate_path(r, src_idx, dst_idx, 1);
   if (path.size() < 2)
     return;
   const auto next_dst = path[1];

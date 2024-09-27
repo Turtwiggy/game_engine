@@ -46,7 +46,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     if (in_room && !player_in_room) {
       const auto& room_c = r.get<Room>(rooms[0]);
 
-      fmt::println("player {} entered new room (a)", eid);
+      // fmt::println("player {} entered new room (a)", eid);
       PlayerEnteredNewRoom data;
       data.player = e;
       data.room_e = rooms[0];
@@ -59,7 +59,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
       const auto& room_c = r.get<Room>(player_in_room_c.room_e);
 
       if (player_in_room_c.room_e != rooms[0]) {
-        fmt::println("player {} entered new room (b)", eid);
+        // fmt::println("player {} entered new room (b)", eid);
         PlayerEnteredNewRoom data;
         data.player = e;
         data.room_e = rooms[0];
@@ -84,7 +84,11 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     // get the eid of the room sent in req...
     room_name = std::to_string(static_cast<uint32_t>(req.room_e));
 
-    const std::string label = "Entered room "s + room_name.value();
+    // Override with an actual name?
+    if (auto* room_name_c = r.try_get<RoomName>(req.room_e))
+      room_name = room_name_c->name;
+
+    // const std::string label = "Entered: "s + room_name.value();
     // evts.events.push_back(label);
 
     break; // only first event
@@ -112,7 +116,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     // text size
     std::string label = "N/A";
     if (room_name.has_value())
-      label = "Entered Room "s + room_name.value();
+      label = "Entered: "s + room_name.value();
     ImGuiStyle& style = ImGui::GetStyle();
     const float alignment = 0.5f;
     const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;

@@ -3,13 +3,13 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/ui_inventory/components.hpp"
-#include "modules/ui_inventory/helpers.hpp"
+#include "modules/system_select_unit/select_unit_components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 #include "modules/ui_spaceship_designer/helpers.hpp"
 
 #include "imgui.h"
@@ -50,73 +50,48 @@ update_ui_inventory_system(entt::registry& r)
   for (const auto& [e, player_c, body_c, inv_c] : view.each()) {
     //
     update_initialize_inventory(r, e);
-    auto& body_slots = body_c.body;
-    auto& inventory_slots = inv_c.inv;
 
     // Four cases to handle here.
     // UI: yes. Instance: yes. all good.
-    // UI: no. Instance: no. all good.
     // UI: yes. Instance: no. spawn.
+    // UI: no. Instance: no. all good.
     // UI: no. Instance: yes. destroy.
 
-    const auto ui_gun_slot_e = get_slot_type(r, body_slots, InventorySlotType::gun);
-    const auto& ui_gun_slot_c = r.get<InventorySlotComponent>(ui_gun_slot_e);
-    const bool ui_has_gun = ui_gun_slot_c.item_e != entt::null;
-    const auto* has_weapon = r.try_get<HasWeaponComponent>(e);
-    const bool gun_has_instance = has_weapon && has_weapon->instance != entt::null;
+    const auto gun_slot_e = get_slot_type(r, body_c.body, InventorySlotType::gun);
+    const auto& gun_slot_c = r.get<InventorySlotComponent>(gun_slot_e);
+    const auto* weapon_c = r.try_get<HasWeaponComponent>(e);
 
-    const auto ui_ammo_slot_e = get_slot_type(r, body_slots, InventorySlotType::bullet);
-    const auto ui_ammo_slot_c = r.get<InventorySlotComponent>(ui_ammo_slot_e);
-    const bool ui_has_ammo = ui_ammo_slot_c.item_e != entt::null;
+    // There's an item in the gunslot... but no weapon...
+    if (gun_slot_c.item_e != entt::null && !weapon_c) {
+      auto& ui_gun = r.get<UI_ItemComponent>(gun_slot_c.item_e);
 
-    // spawn
-    if (ui_has_gun && !gun_has_instance) {
-      // create weapon
-      // create the correct weapon spawn from inventory item type
-
-      auto& tag = r.get<TagComponent>(ui_gun_slot_c.item_e);
-      if (tag.tag.find("shotgun") != std::string::npos)
-        create_shotgun(r, e);
-      else {
-        // unknown item?
+      auto& tag = r.get<TagComponent>(gun_slot_c.item_e);
+      if (tag.tag.find("shotgun") != std::string::npos) {
+        const auto shotgun_e = create_shotgun(r, e); // adds an HasWeaponComponent to the player_e
       }
+
+      continue; // spawn gun
     }
 
-    // destroy
-    if (!ui_has_gun && gun_has_instance) {
+    // There's no item in the gunslot..
+    if (gun_slot_c.item_e == entt::null && weapon_c) {
       auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-      dead.dead.emplace(has_weapon->instance);
+      dead.dead.emplace(weapon_c->instance);
       r.remove<HasWeaponComponent>(e);
+      continue; // delete gun
     }
 
-    // Ammo. Two cases.
-    // UI: gun in slot.
-    // Instance: must exist.
-    // Ammo: must exist in slot.
-    // Add/remove abletoshoot component.
-
-    // if (ui_has_gun && gun_has_instance && ui_has_ammo)
-    //   r.emplace_or_replace<AbleToShoot>(has_weapon->instance);
-    // if (ui_has_gun && gun_has_instance && !ui_has_ammo)
-    //   remove_if_exists<AbleToShoot>(r, has_weapon->instance);
-
-    // Ammo. Set bullet type.
-    if (ui_has_gun && gun_has_instance && ui_has_ammo) {
-
-      bool is_bouncy = r.get<Item>(ui_ammo_slot_c.item_e).name == "bullet_bouncy";
-
-      //   std::optional<BulletType>
-      //     bullet_type = std::nullopt;
-      // if (type.type == ItemType::bullet_default)
-      //   bullet_type = BulletType::DEFAULT;
-      // if (type.type == ItemType::bullet_bouncy)
-      //   bullet_type = BulletType::BOUNCY;
-
-      // set the bullet type for shotgun.
-      // if (auto* shotgun_c = r.try_get<ShotgunComponent>(has_weapon->instance)) {
-      //   if (bullet_type.has_value())
-      //     shotgun_c->bullet_type = bullet_type.value();
-      // }
+    // there's an item in the gunslot and an instance is spawned...
+    if (gun_slot_c.item_e != entt::null && weapon_c) {
+      const auto& a_tag = r.get<TagComponent>(gun_slot_c.item_e).tag;
+      const auto& b_tag = r.get<TagComponent>(weapon_c->instance).tag;
+      // ImGui::Text("a_tag: %s, b_tag: %s", a_tag.c_str(), b_tag.c_str());
+      if (a_tag != b_tag) {
+        // destroy the instance
+        auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+        dead.dead.emplace(weapon_c->instance);
+        r.remove<HasWeaponComponent>(e);
+      }
     }
   }
 
@@ -147,8 +122,8 @@ update_ui_inventory_system(entt::registry& r)
     ImGui::Begin("Inventory-Equipment", NULL, flags);
     ImGui::SeparatorText("Equipment");
 
-    const auto& body_view = r.view<PlayerComponent, DefaultBody>();
-    for (const auto& [e, player_c, body_c] : body_view.each()) {
+    const auto& body_view = r.view<PlayerComponent, DefaultBody, const SelectedComponent>();
+    for (const auto& [e, player_c, body_c, selected_c] : body_view.each()) {
       for (size_t i = 0; i < body_c.body.size(); i++) {
 
         if (i > 0)

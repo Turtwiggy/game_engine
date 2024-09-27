@@ -13,7 +13,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
 
@@ -108,7 +108,6 @@ create_dungeon_actor_enemy(entt::registry& r)
   // HasWeaponComponent has_weapon_c;
   // has_weapon_c.instance = weapon_e;
   // r.emplace<HasWeaponComponent>(dungeon_e, has_weapon_c);
-  // r.emplace<TurnBasedUnitComponent>(e);
   // r.emplace<SpawnParticlesOnDeath>(e);
   // r.emplace<HealthComponent>(e, desc.hp, desc.max_hp);
   // r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
@@ -116,14 +115,6 @@ create_dungeon_actor_enemy(entt::registry& r)
   // r.emplace<TeamComponent>(e, desc.team);
   // r.emplace<DestroyBulletOnCollison>(e);
   // r.emplace<DefaultColour>(e, desc.colour);
-  // add_entity_to_map(r, e, idx);
-  // OnDeathCallback callback;
-  // callback.callback = [](entt::registry& r, const entt::entity e) {
-  //   //
-  //   drop_inventory_on_death_callback(r, e);
-  // };
-  // r.emplace<OnDeathCallback>(e, callback);
-
   return entt::null;
 }
 
@@ -151,21 +142,9 @@ create_dungeon_actor_cover(entt::registry& r)
 }
 
 entt::entity
-create_dungeon_breach_charge(entt::registry& r)
-{
-  // auto e = spawn_item("breach charge");
-  // spawn_item_in_world(e);
-  // r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
-  // r.emplace<BreachChargeComponent>(e);
-  // add_bomb_callback(r, e);
-  return entt::null;
-}
-
-entt::entity
 create_overworld_cargo(entt::registry& r)
 {
   // auto e = spawn_item(r, "cargo");
-  // add_item_to_world(e);r
   return entt::null;
 }
 

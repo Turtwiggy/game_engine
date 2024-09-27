@@ -16,7 +16,7 @@
       "renderable": { "sprite": "DUCK", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
-      "name": "seed (plant)",
+      "name": "seed_plant",
       "display_name": "Seed. (Unknown)",
       "display_desc": "It wants to go home.",
       "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
@@ -28,7 +28,7 @@
       "renderable": { "sprite": "SCRAP", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
-      "name": "breach charge",
+      "name": "breach_charge",
       "display_name": "C4",
       "display_desc": "Apply to spaceship, then run.",
       "renderable": { "sprite": "WEAPON_GRENADE", "colour": { "r": 255, "g": 255, "b": 255 } },
@@ -135,22 +135,26 @@
     {
       "name": "spaceship_player",
       "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": { "r": 162, "g": 255, "b": 134 } },
-      "stats": { "max_hp": 100, "hp": 100 }
+      "stats": { "max_hp": 100, "hp": 100 },
+      "is_sensor": false
     },
     {
       "name": "spaceship_enemy",
       "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": { "r": 162, "g": 255, "b": 134 } },
-      "stats": { "max_hp": 100, "hp": 100 }
+      "stats": { "max_hp": 100, "hp": 100 },
+      "is_sensor": false
     },
     {
       "name": "dungeon_actor_hero",
       "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 153 } },
-      "stats": { "max_hp": 100, "hp": 100 }
+      "stats": { "max_hp": 100, "hp": 100 },
+      "is_sensor": false
     },
     {
       "name": "dungeon_actor_enemy_default",
-      "renderable": { "sprite": "WALL_19_1_NONE", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "stats": { "max_hp": 50, "hp": 50 }
+      "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "stats": { "max_hp": 50, "hp": 50 },
+      "is_sensor": true
     }
   ]
 }

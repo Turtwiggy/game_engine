@@ -23,6 +23,11 @@ struct Room
   std::vector<int> tiles_idx;
 };
 
+struct RoomName
+{
+  std::string name = "Unknown";
+};
+
 inline bool
 operator==(const Room& a, const Room& b)
 {
