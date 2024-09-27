@@ -5,14 +5,22 @@
 #include "engine/entt/entity_pool.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/enum/enum_helpers.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat/components.hpp"
+#include "modules/event_damage/event_damage_helpers.hpp"
+#include "modules/events/events_components.hpp"
 #include "modules/map/components.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
+
 #include <glm/fwd.hpp>
 
 namespace game2d {
@@ -163,6 +171,25 @@ static bool show_distance_check = false;
 static auto show_range_type = RangeType::knife;
 static auto range_types_str = engine::enum_class_to_vec_str<RangeType>();
 
+int
+get_damage_for_equipped_item(entt::registry& r, const entt::entity e)
+{
+  const auto& body = r.get<DefaultBody>(e);
+  const auto gun_e = get_slot_type(r, body.body, InventorySlotType::gun);
+  const auto gun_c = r.get<InventorySlotComponent>(gun_e);
+  if (gun_c.item_e != entt::null) {
+    const auto& item = r.get<Item>(gun_c.item_e);
+
+    if (item.melee.has_value())
+      return item.melee.value().damage;
+
+    if (item.ranged.has_value())
+      return item.ranged.value().damage; // or could be bullet in gun...
+  }
+
+  return 0;
+}
+
 void
 update_show_tiles_in_range_system(entt::registry& r)
 {
@@ -217,6 +244,35 @@ update_show_tiles_in_range_system(entt::registry& r)
 
       i++;
     }
+
+// HACK: trial dealing damage to entities on the tiles
+#if defined(_DEBUG)
+
+    const auto& input = get_first_component<SINGLE_InputComponent>(r);
+    const auto& evts = get_first_component<SINGLE_Events>(r);
+
+    if (get_key_down(input, SDL_SCANCODE_SPACE)) {
+      fmt::println("sending damage event...");
+
+      for (const auto& tile : tiles) {
+        if (tile.x < 0 || tile.x > map_c.xmax)
+          continue;
+        if (tile.y < 0 || tile.y > map_c.ymax)
+          continue;
+
+        const auto idx = engine::grid::grid_position_to_index(tile, map_c.xmax);
+        for (const auto map_e : map_c.map[idx]) {
+          DamageEvent evt;
+          evt.from = e;
+          evt.to = map_e;
+          evt.amount = get_damage_for_equipped_item(r, e);
+          evts.dispatcher->trigger(evt);
+          evts.dispatcher->update();
+        }
+      }
+    }
+
+#endif
 
     break; // only first player
   }

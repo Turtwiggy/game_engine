@@ -62,14 +62,14 @@
       "display_name": "Pistol",
       "display_desc": "Probably not yours. Klepto.",
       "renderable": { "sprite": "WEAPON_PISTOL", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "ranged": { "type": "line", "range": 3 }
+      "ranged": { "damage": 1, "type": "line", "range": 3 }
     },
     {
       "name": "shotgun",
       "display_name": "Shotgun",
       "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "ranged": { "type": "cone", "range": 3 }
+      "ranged": { "damage": 1, "type": "cone", "range": 3 }
     },
     {
       "name": "bullet_default",

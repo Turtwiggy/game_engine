@@ -3,10 +3,15 @@
 #include "entt/entt.hpp"
 #include "imgui.h"
 
+#include "modules/ui_inventory/ui_inventory_components.hpp"
+
 namespace game2d {
 
 void
 toggle_inventory_display(entt::registry& r);
+
+entt::entity
+get_slot_type(entt::registry& r, const std::vector<entt::entity>& slots, const InventorySlotType& type);
 
 void
 update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent_slot);

@@ -70,10 +70,11 @@ struct Melee
 
 struct Ranged
 {
+  int damage = 0;
   std::string type;
   int range = 0;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ranged, type, range);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ranged, damage, type, range);
 };
 
 struct Bullet

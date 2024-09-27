@@ -59,12 +59,11 @@ update_ui_overworld_shiplabel_system(entt::registry& r)
   const auto zoom = camera_c.zoom_nonlinear;
   const ImVec2 zoom_vec = { zoom, zoom };
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  ImGui::Text("zoom: %f", zoom);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoTitleBar;
-  // flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiDockNodeFlags_AutoHideTabBar;
   flags |= ImGuiDockNodeFlags_NoResize;
 

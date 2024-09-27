@@ -45,6 +45,19 @@ spawn_inv_item(entt::registry& r, std::vector<entt::entity>& v, int idx, std::st
   return e;
 };
 
+entt::entity
+get_slot_type(entt::registry& r, const std::vector<entt::entity>& slots, const InventorySlotType& type)
+{
+  entt::entity ui_gun_slot_e = entt::null;
+  for (const entt::entity slot_e : slots) {
+    auto& slot_c = r.get<InventorySlotComponent>(slot_e);
+    if (slot_c.type == InventorySlotType::gun) {
+      ui_gun_slot_e = slot_e;
+    }
+  }
+  return ui_gun_slot_e;
+};
+
 void
 toggle_inventory_display(entt::registry& r)
 {

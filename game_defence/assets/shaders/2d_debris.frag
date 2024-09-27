@@ -28,12 +28,12 @@ main()
 
   // based on: https://www.shadertoy.com/view/7lyyzd
   vec2 I = fragCoord + viewport_wh;
-  vec2 fzoom = (I/4000);
-  vec2 scroll = vec2(iTime/1000);
-  vec2 pos = (camera_pos + vec2(1000, -1000)) / 1000; // offset so never aligns
+  vec2 fzoom = (I/4000.0f);
+  vec2 scroll = vec2(iTime/1000.0f);
+  vec2 pos = (camera_pos + vec2(1000.0f, -1000.0f)) / 1000.0f; // offset so never aligns
 
-  vec4 O = v_colour;
-  for(O-=O; O.r < texture(tex, fzoom*zoom - pos/O.r/100 - scroll).r; O+=0.02f);
+  vec4 O = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+  for(; O.r < texture(tex, fzoom*zoom - pos/O.r/100.0f - scroll).r; O+=0.02f);
 
   out_colour.rgb = O.rgb;
   out_colour.a = 1.0f;

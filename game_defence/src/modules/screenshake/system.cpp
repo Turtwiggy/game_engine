@@ -21,9 +21,8 @@ update_screenshake_system(entt::registry& r, const float timer, const float dt)
   // process requests
   //
   const auto& view = r.view<const RequestScreenshakeComponent>();
-  for (const auto& [e, req] : view.each()) {
+  for (const auto& [e, req] : view.each())
     screenshake.time_left += 0.025f;
-  }
   r.destroy(view.begin(), view.end()); // done requests
 
   //
@@ -43,7 +42,6 @@ update_screenshake_system(entt::registry& r, const float timer, const float dt)
     ri.instanced.set_bool("shake", do_screenshake);
     ri.instanced.set_float("strength", 0.002f);
   }
-
   ri.instanced.set_float("time", timer);
 };
 

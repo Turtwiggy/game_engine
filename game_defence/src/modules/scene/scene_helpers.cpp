@@ -16,10 +16,12 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
+#include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
+#include "modules/screenshake/components.hpp"
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
@@ -76,11 +78,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   create_empty<SINGLE_EntityBinComponent>(r);
   create_empty<SINGLE_GameStateComponent>(r);
   create_empty<SINGLE_InputComponent>(r);
+  create_empty<SINGLE_ScreenshakeComponent>(r);
   create_empty<SINGLE_UIInventoryState>(r);
   create_empty<SINGLE_UI_Lootbag>(r);
 
   // The first and only transform should be the camera
-  const auto camera_e = get_first<TransformComponent>(r);
+  const auto camera_e = get_first<OrthographicCamera>(r);
   if (auto* can_move = r.try_get<CameraFreeMove>(camera_e))
     r.remove<CameraFreeMove>(camera_e); // reset to default
   r.get<TransformComponent>(camera_e).position = { 0, 0, 0 };
