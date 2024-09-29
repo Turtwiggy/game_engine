@@ -40,6 +40,7 @@
 #include "modules/system_quips/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
+#include "modules/ui_combat_damage_numbers/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -216,6 +217,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
+  update_ui_combat_damage_numbers_system(r, dt);
   // update_ui_gameover_system(r);
   // update_ui_event_console_system(r);
   // update_ui_combat_turnbased_system(r, mouse_pos);

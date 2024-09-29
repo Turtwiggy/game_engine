@@ -165,6 +165,9 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
 
   // all mobs: drop_inventory_on_death()
   {
+    r.emplace<DefaultBody>(e, DefaultBody(r));
+    r.emplace<DefaultInventory>(e, DefaultInventory{ r, 6 * 5 });
+
     OnDeathCallback callback;
     callback.callback = [](entt::registry& r, const entt::entity e) {
       //

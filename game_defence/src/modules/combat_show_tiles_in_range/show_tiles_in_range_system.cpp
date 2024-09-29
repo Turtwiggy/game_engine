@@ -8,6 +8,7 @@
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -255,9 +256,7 @@ update_show_tiles_in_range_system(entt::registry& r)
       fmt::println("sending damage event...");
 
       for (const auto& tile : tiles) {
-        if (tile.x < 0 || tile.x > map_c.xmax)
-          continue;
-        if (tile.y < 0 || tile.y > map_c.ymax)
+        if (tile.x < 0 || tile.x > map_c.xmax || tile.y < 0 || tile.y > map_c.ymax)
           continue;
 
         const auto idx = engine::grid::grid_position_to_index(tile, map_c.xmax);
@@ -265,7 +264,9 @@ update_show_tiles_in_range_system(entt::registry& r)
           DamageEvent evt;
           evt.from = e;
           evt.to = map_e;
-          evt.amount = get_damage_for_equipped_item(r, e);
+          // evt.amount = get_damage_for_equipped_item(r, e);
+          static engine::RandomState rnd(0);
+          evt.amount = engine::rand_det_s(rnd.rng, 0, 10);
           evts.dispatcher->trigger(evt);
           evts.dispatcher->update();
         }

@@ -69,8 +69,6 @@ create_jetpack_player(entt::registry& r)
   r.emplace<TeamComponent>(e, AvailableTeams::player);
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   r.emplace<MovementJetpackComponent>(e);
-  r.emplace<DefaultBody>(e, DefaultBody(r));
-  r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
   r.emplace<InitBodyAndInventory>(e);
   spawn_particle_emitter(r, "anything", { 0, 0 }, e);
 

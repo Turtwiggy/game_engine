@@ -24,14 +24,15 @@ update_ui_worldspace_text_system(entt::registry& r)
   for (const auto& [e, t, wst_c] : view.each()) {
     const auto eid = static_cast<uint32_t>(e);
 
-    const auto t_pos = glm::ivec2(t.position.x, t.position.y);
+    const auto t_pos = glm::vec2(t.position.x, t.position.y);
     const auto worldspace = position_in_worldspace(r, t_pos);
-    const ImVec2 pos = { static_cast<float>(worldspace.x), static_cast<float>(worldspace.y) };
+    const ImVec2 pos = { static_cast<float>(worldspace.x) + wst_c.offset.x,
+                         static_cast<float>(worldspace.y) + wst_c.offset.y };
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-    const auto& style = ImGui::GetStyle();
-    auto size = ImVec2{ t.scale.x, t.scale.y };
-    ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+    // const auto& style = ImGui::GetStyle();
+    // auto size = ImVec2{ t.scale.x, t.scale.y };
+    // ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 
     std::string beginlabel = "WorldspaceText##"s + std::to_string(eid);
 
