@@ -123,7 +123,7 @@ instantiate_edges(entt::registry& r, MapComponent& map)
     set_sprite(r, e, "EMPTY");
     set_size(r, e, new_size);
     create_physics_actor_static(r, e, center, new_size);
-    set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
     r.emplace<LightOccluderComponent>(e);
     // r.emplace<DestroyBulletOnCollison>(e);
     // r.emplace<RequestParticleOnCollision>(e);

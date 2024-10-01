@@ -73,7 +73,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
     return false;
   }
 
-  const std::vector<entt::entity>& dst_es = map.map[dst_idx];
+  const auto& dst_es = map.map[dst_idx];
 
   // easy case: dst is clear.
   if (dst_es.size() == 0) {
@@ -86,14 +86,15 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   // and contain anything,
   // and any number of it.
 
-  // gamerule: allow move on to (any number) an inventory
   //
+  // gamerule: allow move on to (any number) an inventory
+  // note: all enemies contain inventories, so make sure not a mob
+  //
+
   bool contains_all_inventories = true;
   for (const auto dst_e : dst_es) {
-    if (const auto* lootbag = r.try_get<DefaultInventory>(dst_e))
-      contains_all_inventories = true;
-    else
-      contains_all_inventories = false;
+    bool has_body = r.try_get<DefaultBody>(dst_e) != nullptr;
+    contains_all_inventories &= (!has_body);
   }
 
   if (contains_all_inventories) {

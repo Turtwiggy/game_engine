@@ -20,6 +20,7 @@
 #include "modules/combat_gun_z_index/system.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
 #include "modules/events/events_system.hpp"
+#include "modules/map_debug/system.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
@@ -40,7 +41,7 @@
 #include "modules/system_quips/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
-#include "modules/ui_combat_damage_numbers/system.hpp"
+#include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -180,7 +181,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_move_player_on_map_system(r);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 #if defined(_DEBUG)
-    // update_debug_map_system(r);
+    update_debug_map_system(r);
 #endif
     // update_change_gun_colour_system(r);
     // update_flash_sprite_system(r, milliseconds_dt);

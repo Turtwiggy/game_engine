@@ -6,7 +6,7 @@ namespace game2d {
 
 struct TimedEntry
 {
-  std::string data;
+  float damage = 0.0f;
   float time_left = 0.0f;
   float time_left_max = 2.0f;
 };

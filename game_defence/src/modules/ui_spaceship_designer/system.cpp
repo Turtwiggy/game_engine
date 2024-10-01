@@ -9,6 +9,7 @@
 #include "helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
@@ -16,8 +17,10 @@
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/helpers.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 
 #include "imgui.h"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
 
@@ -111,33 +114,22 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
           const int slot_idx = idxs[slot_i];
           const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
+          // spawn_mob()
           {
-            // const auto mob_e = create_dungeon_actor_enemy(r);
             const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
+            r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
 
-            // r.emplace<TeamComponnent>(enemylymyymly);
+            auto& inv = r.get<DefaultInventory>(mob_e).inv;
+            auto& body = r.get<DefaultBody>(mob_e).body;
+
             // give the enemy a piece of scrap in their inventory
-            // create_inv_scrap(r, r.get<DefaultInventory>(dungeon_e).inv[0]);
+            spawn_inv_item(r, inv, 0, "scrap");
+
             // give the enemy a 5% chance to have a medkit in their inventory...
             // TODO: medkits
-            // r.emplace<DropItemsOnDeathComponent>(dungeon_e);
-            // give enemies a shotgun
-            // DataWeaponShotgun wdesc;
-            // wdesc.able_to_shoot = true;
-            // wdesc.parent = dungeon_e;
-            // wdesc.team = desc.team;
-            // const auto weapon_e = Factory_DataWeaponShotgun::create(r, wdesc);
-            // link entity&weapon
-            // HasWeaponComponent has_weapon_c;
-            // has_weapon_c.instance = weapon_e;
-            // r.emplace<HasWeaponComponent>(dungeon_e, has_weapon_c);
-            // r.emplace<SpawnParticlesOnDeath>(e);
-            // r.emplace<HealthComponent>(e, desc.hp, desc.max_hp);
-            // r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
-            // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-            // r.emplace<TeamComponent>(e, desc.team);
-            // r.emplace<DestroyBulletOnCollison>(e);
-            // r.emplace<DefaultColour>(e, desc.colour);
+
+            // give enemy a weapon
+            auto weapon_e = spawn_inv_item(r, body, 6, "shotgun");
 
             add_entity_to_map(r, mob_e, slot_idx);
           }

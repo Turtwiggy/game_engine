@@ -87,36 +87,6 @@ create_jetpack_player(entt::registry& r)
 }
 
 entt::entity
-create_dungeon_actor_enemy(entt::registry& r)
-{
-  // auto enemy_e = spawn_mob(r, "dungeon_actor_enemy_default");
-  // r.emplace<TeamComponnent>(enemylymyymly);
-  // give the enemy a piece of scrap in their inventory
-  // create_inv_scrap(r, r.get<DefaultInventory>(dungeon_e).inv[0]);
-  // give the enemy a 5% chance to have a medkit in their inventory...
-  // TODO: medkits
-  // r.emplace<DropItemsOnDeathComponent>(dungeon_e);
-  // give enemies a shotgun
-  // DataWeaponShotgun wdesc;
-  // wdesc.able_to_shoot = true;
-  // wdesc.parent = dungeon_e;
-  // wdesc.team = desc.team;
-  // const auto weapon_e = Factory_DataWeaponShotgun::create(r, wdesc);
-  // link entity&weapon
-  // HasWeaponComponent has_weapon_c;
-  // has_weapon_c.instance = weapon_e;
-  // r.emplace<HasWeaponComponent>(dungeon_e, has_weapon_c);
-  // r.emplace<SpawnParticlesOnDeath>(e);
-  // r.emplace<HealthComponent>(e, desc.hp, desc.max_hp);
-  // r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
-  // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-  // r.emplace<TeamComponent>(e, desc.team);
-  // r.emplace<DestroyBulletOnCollison>(e);
-  // r.emplace<DefaultColour>(e, desc.colour);
-  return entt::null;
-}
-
-entt::entity
 create_dungeon_actor_cover(entt::registry& r)
 {
   // const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());

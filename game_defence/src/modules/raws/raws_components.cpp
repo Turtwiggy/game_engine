@@ -1,6 +1,7 @@
 #include "modules/raws/raws_components.hpp"
 
 #include "actors/actor_helpers.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
@@ -143,8 +144,10 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   {
     r.emplace<SpriteComponent>(e);
     set_sprite(r, e, mob_template.renderable.sprite);
-    set_colour(r, e, mob_template.renderable.colour);
+
     r.emplace<DefaultColour>(e, mob_template.renderable.colour);
+    set_colour(r, e, mob_template.renderable.colour);
+
     TransformComponent tf;
     tf.position = { pos.x, pos.y, 0.0f };
     tf.scale = { size, size, 0.0f };
@@ -179,9 +182,10 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
   // r.emplace<DestroyBulletOnCollison>(e);
   // r.emplace<MoveLimitComponent>(e, 1);
-  // r.emplace<SpawnParticlesOnDeath>(e);
+  r.emplace<SpawnParticlesOnDeath>(e);
   r.emplace<HealthComponent>(e, 100, 100);
-  r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
+  r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
+  r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
 
   // if (item_template.stats.){
   // }

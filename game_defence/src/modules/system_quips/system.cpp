@@ -32,13 +32,40 @@ create_imgui_quip(entt::registry& r, const entt::entity actor, const RequestQuip
   set_size(r, e, { 0, 0 });
 
   auto& ui = r.emplace<WorldspaceTextComponent>(e);
+
+  // ui.flags |= ImGuiWindowFlags_NoBackground;
   ui.flags = ImGuiWindowFlags_NoDecoration;
-  ui.flags |= ImGuiWindowFlags_NoBackground;
+  ui.flags |= ImGuiWindowFlags_NoDocking;
+  ui.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  ui.flags |= ImGuiWindowFlags_NoInputs;
+
+  ui.offset.y = (-get_size(r, actor).y);
+  // ui.alpha = 0.5f;
 
   ui.layout = [quip]() {
-    //
-    // ui.text = quip;
-    // ui.offset.y = (-get_size(r, actor).y) / 2.0f;
+    std::string label = quip;
+
+    const auto& style = ImGui::GetStyle();
+    const auto alignment = 0.5f;
+
+    // imgui center x
+    {
+      const auto avail_x = ImGui::GetContentRegionAvail().x;
+      const auto size_x = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
+      const auto off_x = (avail_x - size_x) * alignment;
+      if (off_x > 0.0f)
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off_x);
+    }
+
+    // imgui center y
+    {
+      const auto avail_y = ImGui::GetContentRegionAvail().y;
+      const auto size_y = ImGui::CalcTextSize(label.c_str()).y + style.FramePadding.y * 2.0f;
+      const auto off_y = (avail_y - size_y) * alignment;
+      if (off_y > 0.0f)
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + off_y);
+    }
+
     // ui.split_text_into_lines = true;
     // ui.line_length = 20;
     ImGui::Text("%s", quip.c_str());
