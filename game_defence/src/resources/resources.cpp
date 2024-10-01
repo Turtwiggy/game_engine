@@ -84,4 +84,10 @@ get_default_quips()
   return quips_c;
 };
 
+SINGLE_NamesComponent
+get_default_names()
+{
+  return { load_file_into_lines("assets/writing/names.txt") };
+}
+
 } // namespace game2d

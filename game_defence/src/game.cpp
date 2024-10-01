@@ -31,6 +31,7 @@
 #include "modules/system_cooldown/system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
+#include "modules/system_go_from_dungeon_to_jetpack/system.hpp"
 #include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
 #include "modules/system_move_player_on_map/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
@@ -81,6 +82,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   }
 
   create_persistent<SINGLE_QuipsComponent>(r, get_default_quips());
+  create_persistent<SINGLE_NamesComponent>(r, get_default_names());
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
 
   {
@@ -175,13 +177,14 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_gun_follow_player_system(r, mouse_pos, dt);
     update_gun_z_index_system(r);
     update_go_from_jetpack_to_dungeon_system(r);
+    update_go_from_dungeon_to_jetpack_system(r);
     update_spawn_particles_on_death_system(r);
     update_breach_charge_system(r, mouse_pos, dt);
     // movement systems
     update_move_player_on_map_system(r);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 #if defined(_DEBUG)
-    update_debug_map_system(r);
+    // update_debug_map_system(r);
 #endif
     // update_change_gun_colour_system(r);
     // update_flash_sprite_system(r, milliseconds_dt);
@@ -218,7 +221,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
-  update_ui_combat_damage_numbers_system(r, dt);
   // update_ui_gameover_system(r);
   // update_ui_event_console_system(r);
   // update_ui_combat_turnbased_system(r, mouse_pos);
@@ -231,6 +233,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_scene_main_menu(app, r);
 
   if (scene.s == Scene::dungeon_designer) {
+    update_ui_combat_damage_numbers_system(r, dt);
     update_ui_spaceship_designer_system(r, mouse_pos, dt);
     update_ui_players_system(r);
   }

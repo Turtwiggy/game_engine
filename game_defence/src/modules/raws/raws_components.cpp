@@ -2,6 +2,7 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
@@ -18,6 +19,7 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/system_names/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
 #include <box2d/b2_body.h>
@@ -186,6 +188,15 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<HealthComponent>(e, 100, 100);
   r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+
+  // Give each mob a random name
+  static engine::RandomState rnd(0);
+  const auto& names = get_first_component<SINGLE_NamesComponent>(r);
+  NameComponent name_c;
+  name_c.full_name = names.name[engine::rand_det_s(rnd.rng, 0, int(names.name.size()))];
+  name_c.first_name = name_c.full_name.substr(0, name_c.full_name.find(' '));
+  name_c.last_name = name_c.full_name.substr(name_c.full_name.find(' '), name_c.full_name.length());
+  r.emplace<NameComponent>(e, name_c);
 
   // if (item_template.stats.){
   // }

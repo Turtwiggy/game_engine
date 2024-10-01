@@ -22,6 +22,12 @@
       "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
+      "name": "seed_stun",
+      "display_name": "Stun Seed.",
+      "display_desc": "A backward, stunning seed.",
+      "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
+    },
+    {
       "name": "scrap",
       "display_name": "sCrap",
       "display_desc": "A wrench through a toaster. (Resource.)",

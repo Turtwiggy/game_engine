@@ -1,4 +1,5 @@
 #include "ui_combat_damage_numbers_system.hpp"
+#include "modules/system_names/components.hpp"
 #include "ui_combat_damage_numbers_components.hpp"
 
 #include "actors/actor_helpers.hpp"
@@ -33,8 +34,8 @@ handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
 void
 update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 {
-  const auto& view = r.view<HealthComponent>();
-  for (const auto& [e, hp_c] : view.each()) {
+  const auto& view = r.view<HealthComponent, NameComponent>();
+  for (const auto& [e, hp_c, name_c] : view.each()) {
     auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
     auto& ui = r.get_or_emplace<UI_BufferComponent>(e);
 
@@ -49,15 +50,9 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
     worldspace_ui.flags |= ImGuiWindowFlags_NoDocking;
     worldspace_ui.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
     worldspace_ui.flags |= ImGuiWindowFlags_NoInputs;
+    worldspace_ui.flags |= ImGuiWindowFlags_AlwaysAutoResize;
     // worldspace_ui.flags |= ImGuiWindowFlags_NoBackground;
-    worldspace_ui.alpha = 0.3f;
-
-    const auto& style = ImGui::GetStyle();
-    const float ui_padding = style.FramePadding.x;
-    const int blocks = 4;
-    const float size_x = 8.0f;
-    const float size_y = 4.0f;
-    const float spacing = 2.0f;
+    worldspace_ui.alpha = 0.6f;
 
     // Calculate the width of the text e.g. "1 3 5 "
     float total_text_width = 0.0f;
@@ -84,15 +79,22 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
       label += text;
     }
 
-    const auto text_size = ImGui::CalcTextSize(label.c_str());
-    const auto blocks_width = (blocks * size_x) + ((blocks - 1) * spacing) + ui_padding * 2.0f;
-    worldspace_ui.size = { glm::max(text_size.x, blocks_width), size_y + text_size.y + ui_padding * 2.0f };
+    const auto& style = ImGui::GetStyle();
+    const float pad_x = style.WindowPadding.x;
+    const float pad_y = style.WindowPadding.y;
+    const float both_pad_x = pad_x * 2.0f;
+    const float both_pad_y = pad_y * 2.0f;
 
-    const auto size = get_size(r, e);
-    // worldspace_ui.offset.x = worldspace_ui.size.x / 2.0f;
-    worldspace_ui.offset.y = -(size.y / 2.0f) - worldspace_ui.size.y / 2.0f; // place ui above entity
+    float width = 0;
+    float damagenum_width = ImGui::CalcTextSize(label.c_str()).x;
+    float name_width = ImGui::CalcTextSize(name_c.first_name.c_str()).x;
+    float name_height = ImGui::CalcTextSize(name_c.first_name.c_str()).y;
+    width = glm::max(width, damagenum_width); // damage numbers, e.g. "0 15 2"
+    width = glm::max(width, name_width);      // the name e.g. "Steve"
 
-    worldspace_ui.layout = [&ui, &hp_c, label, start_idx, size_x, size_y, spacing, blocks_width]() {
+    worldspace_ui.offset.y = -(get_size(r, e).y); // place ui above entity
+
+    worldspace_ui.layout = [&ui, &hp_c, &name_c, label, start_idx]() {
       // Draw ui damage numbers
       const size_t n_entries = ui.entries.size();
       if (n_entries > 0) {
@@ -101,7 +103,6 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 
         for (size_t i = start_idx; i < n_entries; i++) {
           const auto& entry = ui.entries[i];
-
           if (i != start_idx)
             ImGui::SameLine();
 
@@ -113,31 +114,18 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
       }
 
       // Pad the ui, so that the health bar doesnt jump...
-      if (n_entries == 0) {
-        const std::string idle_label = "Idle";
-
-        // centered
-        const auto avail = ImGui::GetContentRegionAvail().x;
-        const auto& style = ImGui::GetStyle();
-        const auto alignment = 0.5f;
-        const auto size = ImGui::CalcTextSize(idle_label.c_str()).x + style.FramePadding.x * 2.0f;
-        const auto off = (avail - size) * alignment;
-        if (off > 0.0f)
-          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-
-        ImGui::Text("%s", idle_label.c_str());
-      }
+      if (n_entries == 0)
+        ImGui::Text("%s", name_c.first_name.c_str());
 
       // Draw health blocks
       {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-        // center the healthbar...
-        float available_width = ImGui::GetContentRegionAvail().x;
-        float offset_x = (available_width - blocks_width) / 2.0f;
-        if (offset_x < 0.0f)
-          offset_x = 0.0f;
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset_x);
+        const float blocks = 5;
+        const float size_x = 4.0f;
+        const float size_y = 4.0f;
+        const float spacing = 2.0f;
+
         const ImVec2 pos = ImGui::GetCursorScreenPos(); // Starting position for the first square
 
         // health variables
@@ -183,14 +171,13 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
           ImVec2 tl{ 0.0f, 0.0f };
           ImVec2 br{ 0.0f, 0.0f };
         };
-        const auto generate_blocks =
-          [&health_per_block, &size_x, &size_y, &spacing, &pos](int cur_hp, int damage) -> std::vector<Block> {
+        const auto generate_blocks = [&](int cur_hp, int damage) -> std::vector<Block> {
           std::vector<Block> flash_blocks;
 
           int hp = cur_hp + damage; // already taken the damage
           int damage_remaining = damage;
 
-          for (int i = 0; i < blocks && damage_remaining > 0 && hp > 0; ++i) {
+          for (int i = 0; i < int(blocks) && damage_remaining > 0 && hp > 0; ++i) {
             int cur_block_idx = (hp - 1) / health_per_block;
             int block_start_hp = (cur_block_idx + 0) * health_per_block;
             int block_end_hp = (cur_block_idx + 1) * health_per_block;
@@ -222,8 +209,8 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
         for (const auto& block : gend_blocks)
           draw_list->AddRectFilled(block.tl, block.br, white_color);
 
-        // advance the cursor to avoid overlap with other elements
-        // ImGui::Dummy(ImVec2(blocks * (size_x + spacing), size_y));
+        // fill out the line with the correct size
+        ImGui::Dummy(ImVec2(blocks * (size_x + spacing), size_y));
       }
 
       //

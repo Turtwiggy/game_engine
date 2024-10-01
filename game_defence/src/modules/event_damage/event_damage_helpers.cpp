@@ -25,7 +25,7 @@ additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
 
   // roll_to_quip()
   static engine::RandomState rnd;
-  const bool should_quip = engine::rand_01(rnd.rng) < 0.05f;
+  const bool should_quip = engine::rand_01(rnd.rng) < 0.08f;
   if (should_quip) {
     RequestQuip quip_req;
     quip_req.type = QuipType::TOOK_DAMAGE;

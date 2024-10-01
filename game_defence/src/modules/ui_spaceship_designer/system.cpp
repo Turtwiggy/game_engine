@@ -94,7 +94,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
         const auto pos = engine::grid::grid_space_to_world_space_center(grid_tl, map_c.tilesize);
         set_position(r, player_e, pos);
 
-        add_entity_to_map(r, player_e, engine::grid::grid_position_to_index(grid_tl, map_c.xmax));
+        // addded to map via jetpack_to_dungeon system
       }
     }
   }
@@ -149,16 +149,25 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
     ImGui::Text("mouse_pos: %f %f", mouse_pos.x, mouse_pos.y);
     ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
-    ImGui::Text("grid_idx: %i", engine::grid::grid_position_to_index(grid_pos, map_c.xmax));
+
+    int idx = engine::grid::grid_position_to_index(grid_pos, map_c.xmax);
+    ImGui::Text("grid_idx: %i", idx);
 
     const auto in_rooms = inside_room(r, grid_pos);
     ImGui::Text("In rooms: %i", in_rooms.size() > 0);
     for (const entt::entity room_e : in_rooms)
       ImGui::Text("in_room_e: %i", static_cast<uint32_t>(room_e));
 
+    // if(grid_pos.x > 0 && grid_pos.x < map_c.xmax && grid_pos.y > 0 && grid_pos.y < map_c.ymax)
+    //   ImGui::Text("es_at_idx: %i")
+
     ImGui::SeparatorText("Map");
     const auto mouse_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map_c.xmax, map_c.ymax);
     ImGui::Text("Map at %i is size: %zu", mouse_idx, map_c.map[mouse_idx].size());
+    for (const auto map_e : map_c.map[mouse_idx]) {
+      const auto& tag_c = r.get<TagComponent>(map_e);
+      ImGui::Text("map_e: %s", tag_c.tag.c_str());
+    }
   }
 
   ImGui::End();

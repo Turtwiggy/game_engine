@@ -8,62 +8,61 @@
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-
 #include <box2d/b2_body.h>
-#include <box2d/b2_math.h>
 
 namespace game2d {
 
 void
-update_go_from_jetpack_to_dungeon_system(entt::registry& r)
+update_go_from_dungeon_to_jetpack_system(entt::registry& r)
 {
   const auto map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
     return;
-  const auto& map_c = r.get<MapComponent>(map_e);
+  auto& map_c = r.get<MapComponent>(map_e);
 
   const auto dungeon_e = get_first<DungeonGenerationResults>(r);
   if (dungeon_e == entt::null)
     return;
   const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
 
-  const auto& view = r.view<const PlayerComponent, const MovementJetpackComponent>();
-  for (const auto& [e, req_c, jetpack_c] : view.each()) {
+  const auto& view = r.view<const PlayerComponent>(entt::exclude<MovementJetpackComponent>);
+  for (const auto& [e, player_e] : view.each()) {
     const auto pos = get_position(r, e);
     const auto gp = engine::grid::worldspace_to_grid_space(pos, map_c.tilesize);
 
     const auto rooms = inside_room(r, gp);
     const bool in_room = rooms.size() > 0;
-    if (!in_room)
-      continue; // should be: inside ship
+    if (in_room)
+      continue; // should be: outside ship
 
-    r.remove<MovementJetpackComponent>(e);
+    // Remove from the map_c when leaving the dungeon
+    const auto& lerp_info = r.get<LerpToFixedTarget>(e);
+    int to_idx = engine::grid::worldspace_to_index(lerp_info.b, map_c.tilesize, map_c.xmax, map_c.ymax);
+    fmt::println("wants to leave (dungeon) at {}", to_idx);
+    auto& map_es = map_c.map[to_idx];
+    const auto to_remove = [e](const entt::entity& other_e) { return other_e == e; };
+    map_es.erase(std::remove_if(map_es.begin(), map_es.end(), to_remove), map_es.end());
+    r.remove<LerpToFixedTarget>(e);
 
-    // Add entity to map_c when entering the dungeon
-    const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
-    fmt::println("wants to join (dungeon) at {}", idx);
-    add_entity_to_map(r, e, idx);
+    r.emplace<MovementJetpackComponent>(e);
 
-    // change from dynamic to kinematic
-    fmt::println("(jetpack => dungeon) setting bodytype to kinematic");
-    r.get<PhysicsBodyComponent>(e).body->SetType(b2_kinematicBody);
-    r.get<PhysicsBodyComponent>(e).body->SetLinearVelocity({ 0.0f, 0.0f });
-    r.get<PhysicsBodyComponent>(e).body->SetAngularVelocity(0.0f);
+    // change from kinematic to dynamic
+    fmt::println("(dungeon => jetpack) setting bodytype to dynamic");
+    r.get<PhysicsBodyComponent>(e).body->SetType(b2_dynamicBody);
 
     const auto final_pos = engine::grid::grid_space_to_world_space_center(gp, map_c.tilesize);
     set_position(r, e, final_pos);
 
     // change camera
-    remove_if_exists<CameraFollow>(r, e);
-    r.emplace_or_replace<CameraLerpToTarget>(e);
+    // remove_if_exists<CameraLerpToTarget>(r, e);
+    // r.emplace<CameraFollow>(e);
     auto camera_e = get_first<OrthographicCamera>(r);
     set_position(r, camera_e, final_pos);
 
-    // create_empty<RequestUpdateFOV>(r);
+    //
   }
 }
 

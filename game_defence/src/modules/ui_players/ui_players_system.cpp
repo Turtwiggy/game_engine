@@ -11,6 +11,7 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_names/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
 
 namespace game2d {
@@ -42,6 +43,7 @@ update_ui_players_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
   // flags |= ImGuiWindowFlags_NoDecoration;
+  flags |= ImGuiWindowFlags_NoTitleBar;
 
   // Top-Left of the screen
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
@@ -91,10 +93,15 @@ update_ui_players_system(entt::registry& r)
       r.emplace<KeyboardComponent>(e);
     }
 
+    const auto* name_c = r.try_get<NameComponent>(e);
+    if (name_c) {
+      ImGui::SameLine();
+      ImGui::Text("%s", name_c->full_name.c_str());
+    }
+
     const auto* selected_c = r.try_get<SelectedComponent>(e);
     if (selected_c) {
-      ImGui::SameLine();
-      ImGui::Text("Selected");
+      ImGui::Text("(Selected)");
     }
 
     i++;

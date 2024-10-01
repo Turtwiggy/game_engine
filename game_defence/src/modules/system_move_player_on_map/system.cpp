@@ -34,8 +34,11 @@ update_move_player_on_map_system(entt::registry& r)
 
   const auto& view = r.view<const PlayerComponent, InputComponent, TransformComponent>();
   for (const auto& [e, player_c, inp_c, transform_c] : view.each()) {
-    if (!inside_ship(r, e))
+
+    if (!inside_ship(r, e)) {
+      inp_c.unprocessed_move_down = false;
       continue; // only move if onboard
+    }
 
     if (!inp_c.unprocessed_move_down)
       continue; // no input pressed

@@ -32,43 +32,45 @@ create_imgui_quip(entt::registry& r, const entt::entity actor, const RequestQuip
   set_size(r, e, { 0, 0 });
 
   auto& ui = r.emplace<WorldspaceTextComponent>(e);
-
-  // ui.flags |= ImGuiWindowFlags_NoBackground;
   ui.flags = ImGuiWindowFlags_NoDecoration;
   ui.flags |= ImGuiWindowFlags_NoDocking;
   ui.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   ui.flags |= ImGuiWindowFlags_NoInputs;
+  ui.flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  // ui.flags |= ImGuiWindowFlags_NoBackground;
+  ui.alpha = 0.65f;
 
-  ui.offset.y = (-get_size(r, actor).y);
-  // ui.alpha = 0.5f;
+  const auto& style = ImGui::GetStyle();
+  const auto size_x = ImGui::CalcTextSize(quip.c_str()).x;
+  const auto size_y = ImGui::CalcTextSize(quip.c_str()).y;
+
+  ui.offset.y = (-get_size(r, actor).y - size_y);
+  // ui.size = { size_x, size_y };
 
   ui.layout = [quip]() {
     std::string label = quip;
 
+    // center x
     const auto& style = ImGui::GetStyle();
-    const auto alignment = 0.5f;
+    const float alignment = 0.5f;
+    const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
+    float avail = ImGui::GetContentRegionAvail().x;
+    float off = (avail - size) * alignment;
+    if (off > 0.0f)
+      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
-    // imgui center x
-    {
-      const auto avail_x = ImGui::GetContentRegionAvail().x;
-      const auto size_x = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
-      const auto off_x = (avail_x - size_x) * alignment;
-      if (off_x > 0.0f)
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off_x);
-    }
-
-    // imgui center y
-    {
-      const auto avail_y = ImGui::GetContentRegionAvail().y;
-      const auto size_y = ImGui::CalcTextSize(label.c_str()).y + style.FramePadding.y * 2.0f;
-      const auto off_y = (avail_y - size_y) * alignment;
-      if (off_y > 0.0f)
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + off_y);
-    }
+    // center y
+    const float size_y = ImGui::CalcTextSize(label.c_str()).y + style.FramePadding.y * 2.0f;
+    float avail_y = ImGui::GetContentRegionAvail().y;
+    float off_y = (avail_y - size_y) * alignment;
+    if (off_y > 0.0f)
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY() + off_y);
 
     // ui.split_text_into_lines = true;
     // ui.line_length = 20;
-    ImGui::Text("%s", quip.c_str());
+
+    auto quip_col = ImVec4(1.0f, 0.5f, 0.5f, 1.0f);
+    ImGui::TextColored(quip_col, "%s", quip.c_str());
   };
 
   WiggleUpAndDown wig;
