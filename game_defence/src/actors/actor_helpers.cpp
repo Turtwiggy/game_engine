@@ -3,6 +3,7 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
@@ -43,6 +44,18 @@ set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 grid
   const auto& map_c = get_first_component<MapComponent>(r);
   const glm::ivec2 pos = engine::grid::grid_space_to_world_space_center(gridpos, map_c.tilesize);
   set_position(r, e, pos);
+}
+
+void
+set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir)
+{
+  const auto angle = engine::dir_to_angle_radians(dir) - engine::HALF_PI;
+
+  auto& t = r.get<TransformComponent>(e);
+  t.rotation_radians.z = angle;
+
+  if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
+    pb->body->SetTransform(pb->body->GetPosition(), angle);
 }
 
 glm::vec2

@@ -210,7 +210,7 @@ update_show_tiles_in_range_system(entt::registry& r)
   ImGui::End();
 #endif
 
-  static EntityPool pool;
+  std::vector<glm::vec2> tiles_to_add;
 
   const auto& view = r.view<PlayerComponent, const SelectedComponent>();
   for (const auto& [e, player_c, selected_c] : view.each()) {
@@ -234,16 +234,12 @@ update_show_tiles_in_range_system(entt::registry& r)
 
     // debug tiles with squares
     //
-    pool.update(r, tiles.size()); // note: bad for multiple players
-    for (int i = 0; const auto& tile_gp : tiles) {
+    for (const auto& tile_gp : tiles) {
       // ImGui::Text("accessible: %i %i", tile_gp.x, tile_gp.y);
 
-      const auto debug_e = pool.instances[i];
       const auto offset = glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
       const auto anypos = glm::vec2(tile_gp * map_c.tilesize) + offset;
-      set_position(r, debug_e, anypos);
-
-      i++;
+      tiles_to_add.push_back(anypos);
     }
 
 // HACK: trial dealing damage to entities on the tiles
@@ -256,17 +252,22 @@ update_show_tiles_in_range_system(entt::registry& r)
       fmt::println("sending damage event...");
 
       for (const auto& tile : tiles) {
-        if (tile.x < 0 || tile.x > map_c.xmax || tile.y < 0 || tile.y > map_c.ymax)
+        if (gp_out_of_bounds(tile, map_c.xmax, map_c.ymax))
           continue;
-
         const auto idx = engine::grid::grid_position_to_index(tile, map_c.xmax);
+
+        // damage all entities
+        //
         for (const auto map_e : map_c.map[idx]) {
+
           DamageEvent evt;
           evt.from = e;
           evt.to = map_e;
+
           // evt.amount = get_damage_for_equipped_item(r, e);
           static engine::RandomState rnd(0);
           evt.amount = engine::rand_det_s(rnd.rng, 0, 10);
+
           evts.dispatcher->trigger(evt);
           evts.dispatcher->update();
         }
@@ -276,6 +277,13 @@ update_show_tiles_in_range_system(entt::registry& r)
 #endif
 
     break; // only first player
+  }
+
+  static EntityPool pool;
+  pool.update(r, tiles_to_add.size()); // note: bad for multiple playersS
+  for (int i = 0; const auto& tile : tiles_to_add) {
+    const auto debug_e = pool.instances[i++];
+    set_position(r, debug_e, tile);
   }
 }
 

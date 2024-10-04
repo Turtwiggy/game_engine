@@ -3,6 +3,7 @@
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
@@ -23,11 +24,6 @@ update_go_from_dungeon_to_jetpack_system(entt::registry& r)
     return;
   auto& map_c = r.get<MapComponent>(map_e);
 
-  const auto dungeon_e = get_first<DungeonGenerationResults>(r);
-  if (dungeon_e == entt::null)
-    return;
-  const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
-
   const auto& view = r.view<const PlayerComponent>(entt::exclude<MovementJetpackComponent>);
   for (const auto& [e, player_e] : view.each()) {
     const auto pos = get_position(r, e);
@@ -39,7 +35,9 @@ update_go_from_dungeon_to_jetpack_system(entt::registry& r)
       continue; // should be: outside ship
 
     // Remove from the map_c when leaving the dungeon
-    const auto& lerp_info = r.get<LerpToFixedTarget>(e);
+    // Note: the reason it's to_idx, is that when the movement occurs,
+    // it immediately updates in the map_c if it's valid. The entity is in the next cell.
+    const auto lerp_info = r.get<LerpToFixedTarget>(e);
     int to_idx = engine::grid::worldspace_to_index(lerp_info.b, map_c.tilesize, map_c.xmax, map_c.ymax);
     fmt::println("wants to leave (dungeon) at {}", to_idx);
     auto& map_es = map_c.map[to_idx];
@@ -52,15 +50,16 @@ update_go_from_dungeon_to_jetpack_system(entt::registry& r)
     // change from kinematic to dynamic
     fmt::println("(dungeon => jetpack) setting bodytype to dynamic");
     r.get<PhysicsBodyComponent>(e).body->SetType(b2_dynamicBody);
+    r.get<PhysicsBodyComponent>(e).body->SetAngularVelocity(0.0f);
+    r.get<PhysicsBodyComponent>(e).body->SetLinearVelocity({ 0.0f, 0.0f });
 
     const auto final_pos = engine::grid::grid_space_to_world_space_center(gp, map_c.tilesize);
     set_position(r, e, final_pos);
 
-    // change camera
-    // remove_if_exists<CameraLerpToTarget>(r, e);
-    // r.emplace<CameraFollow>(e);
-    auto camera_e = get_first<OrthographicCamera>(r);
-    set_position(r, camera_e, final_pos);
+    // Set the angle of the player away from the exit they left,
+    // to avoid accidentally immediately going back on to the ship
+    const auto dir = lerp_info.b - lerp_info.a;
+    set_dir(r, e, dir);
 
     //
   }

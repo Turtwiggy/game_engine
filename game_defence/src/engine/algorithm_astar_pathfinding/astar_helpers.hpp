@@ -59,4 +59,7 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos);
 entt::entity
 edge_between_gps(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b);
 
+bool
+gp_out_of_bounds(const glm::ivec2& gp, const int xmax, const int ymax);
+
 } // namespace game2d

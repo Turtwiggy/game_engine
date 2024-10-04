@@ -1,10 +1,12 @@
 #include "ui_combat_damage_numbers_system.hpp"
+#include "engine/renderer/transform.hpp"
 #include "modules/system_names/components.hpp"
 #include "ui_combat_damage_numbers_components.hpp"
 
 #include "actors/actor_helpers.hpp"
 #include "imgui.h"
 #include "modules/combat/components.hpp"
+#include "modules/combat_scale_on_hit/helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
 #include <algorithm>
@@ -34,8 +36,8 @@ handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
 void
 update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 {
-  const auto& view = r.view<HealthComponent, NameComponent>();
-  for (const auto& [e, hp_c, name_c] : view.each()) {
+  const auto& view = r.view<HealthComponent, NameComponent, const TransformComponent>();
+  for (const auto& [e, hp_c, name_c, transform_c] : view.each()) {
     auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
     auto& ui = r.get_or_emplace<UI_BufferComponent>(e);
 
@@ -92,7 +94,7 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
     width = glm::max(width, damagenum_width); // damage numbers, e.g. "0 15 2"
     width = glm::max(width, name_width);      // the name e.g. "Steve"
 
-    worldspace_ui.offset.y = -(get_size(r, e).y); // place ui above entity
+    worldspace_ui.offset.y = -(transform_c.scale.y); // place ui above entity
 
     worldspace_ui.layout = [&ui, &hp_c, &name_c, label, start_idx]() {
       // Draw ui damage numbers
@@ -107,7 +109,11 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
             ImGui::SameLine();
 
           // todo: make colour (of all text) flash if crit
-          const float percent = entry.time_left / entry.time_left_max;
+
+          // goes from 1.0 to 0.0
+          const float percent_linear = entry.time_left / entry.time_left_max;
+          const float percent = ease_out(percent_linear);
+
           const auto entry_label = std::to_string((int)entry.damage);
           ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, percent), "%s", entry_label.c_str());
         }
@@ -125,6 +131,15 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
         const float size_x = 4.0f;
         const float size_y = 4.0f;
         const float spacing = 2.0f;
+
+        // Center healthbar
+        const auto& style = ImGui::GetStyle();
+        const float avail = ImGui::GetContentRegionAvail().x;
+        const float alignment = 0.5f;
+        const float size = blocks * (size_x + spacing) + style.FramePadding.x * 2.0f;
+        float off = (avail - size) * alignment;
+        if (off > 0.0f)
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
         const ImVec2 pos = ImGui::GetCursorScreenPos(); // Starting position for the first square
 
@@ -210,7 +225,7 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
           draw_list->AddRectFilled(block.tl, block.br, white_color);
 
         // fill out the line with the correct size
-        ImGui::Dummy(ImVec2(blocks * (size_x + spacing), size_y));
+        ImGui::Dummy(ImVec2(size, size_y));
       }
 
       //

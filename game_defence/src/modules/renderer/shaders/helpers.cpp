@@ -84,11 +84,9 @@ update_lights(entt::registry& r, SINGLE_RendererInfo& ri)
   // HACK: try adding lights to interesting map features
   /*
   const auto& map_e = get_first<MapComponent>(r);
-  const auto& results_e = get_first<DungeonGenerationResults>(r);
   {
     if (map_e != entt::null && first_player != entt::null) {
       const auto& map = r.get<MapComponent>(map_e);
-      const auto& results = r.get<DungeonGenerationResults>(results_e);
 
       // if player is in the room, light it up
       const auto player_pos = get_position(r, first_player);

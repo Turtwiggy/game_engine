@@ -209,6 +209,13 @@ struct Mob
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Mob, name, renderable, stats, is_sensor);
 };
 
+struct ShipParts
+{
+  std::string name;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShipParts, name);
+};
+
 //
 //
 //
@@ -218,8 +225,9 @@ struct Raws
   std::vector<Item> items;
   std::vector<Environment> environment;
   std::vector<Mob> mobs;
+  std::vector<ShipParts> ship_parts;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, items, environment, mobs);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, items, environment, mobs, ship_parts);
 };
 
 //

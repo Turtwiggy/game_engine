@@ -26,11 +26,6 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     return;
   const auto& map_c = r.get<MapComponent>(map_e);
 
-  const auto dungeon_e = get_first<DungeonGenerationResults>(r);
-  if (dungeon_e == entt::null)
-    return;
-  const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
-
   const auto& view = r.view<const PlayerComponent, const MovementJetpackComponent>();
   for (const auto& [e, req_c, jetpack_c] : view.each()) {
     const auto pos = get_position(r, e);
@@ -56,12 +51,6 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
 
     const auto final_pos = engine::grid::grid_space_to_world_space_center(gp, map_c.tilesize);
     set_position(r, e, final_pos);
-
-    // change camera
-    remove_if_exists<CameraFollow>(r, e);
-    r.emplace_or_replace<CameraLerpToTarget>(e);
-    auto camera_e = get_first<OrthographicCamera>(r);
-    set_position(r, camera_e, final_pos);
 
     // create_empty<RequestUpdateFOV>(r);
   }

@@ -1,54 +1,20 @@
 #include "system.hpp"
 
-#include "actors/helpers.hpp"
+#include "actors/actor_helpers.hpp"
 #include "components.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/ui_colours/helpers.hpp"
-#include "modules/ux_hoverable/components.hpp"
+#include "modules/colour/components.hpp"
+#include "modules/combat_scale_on_hit/helpers.hpp"
 
 namespace game2d {
-
-float
-flip(float x)
-{
-  return 1.0f - x;
-};
-
-float
-ease_in(float t)
-{
-  return t * t;
-};
-
-float
-ease_out(float t)
-{
-  return flip(flip(t) * flip(t)); // not sure this is correct
-};
-
-float
-ease_in_out(float t)
-{
-  return engine::lerp(ease_in(t), ease_out(t), t);
-}
-
-// spike is a lerp that returns to it's original position
-float
-spike(float t)
-{
-  if (t <= .5f)
-    return ease_in(t / 0.5f);
-
-  return ease_in(flip(t) / 0.5f);
-};
 
 void
 enable_flash(entt::registry& r, entt::entity e)
 {
-  set_colour(r, e, get_srgb_colour_by_tag(r, "enemy_flash"));
+  // set_colour(r, e, get_srgb_colour_by_tag(r, "enemy_flash"));
+  set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
 };
 
 void

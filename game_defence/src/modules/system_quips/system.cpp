@@ -94,10 +94,8 @@ update_quips_system(entt::registry& r)
   // Damage request for QUIPs are in the resolve_collisions()
   //
   const auto map_e = get_first<MapComponent>(r);
-  const auto dungeon_e = get_first<DungeonGenerationResults>(r);
-  if (map_e != entt::null && dungeon_e != entt::null) {
+  if (map_e != entt::null) {
     const auto& map = get_first_component<MapComponent>(r);
-    const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
     {
       const auto& reqs = r.view<PlayerEnteredNewRoom>();
       for (const auto& [req_e, req_c] : reqs.each()) {

@@ -5,6 +5,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_quips/components.hpp"
@@ -17,8 +18,9 @@ namespace game2d {
 void
 additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
 {
-  // .. show as flashing
-  // r.emplace_or_replace<RequestFlashComponent>(request.to);
+  // .. pop & flash
+  if (r.try_get<RequestHitScaleComponent>(to_e) == nullptr)
+    r.emplace<RequestHitScaleComponent>(to_e);
 
   // .. screenshake
   create_empty<RequestScreenshakeComponent>(r);
@@ -52,7 +54,7 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
 
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
-    fmt::println("handle_damage_event(): to_e has no HealthComponent");
+    // fmt::println("handle_damage_event(): to_e has no HealthComponent");
     return;
   }
 

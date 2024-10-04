@@ -19,6 +19,6 @@ std::vector<entt::entity>
 inside_room(entt::registry& r, const glm::ivec2& gridpos);
 
 std::vector<int>
-get_free_slots_idxs(const MapComponent& map_c, const Room& room);
+get_free_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& room);
 
 } // namespace game2d

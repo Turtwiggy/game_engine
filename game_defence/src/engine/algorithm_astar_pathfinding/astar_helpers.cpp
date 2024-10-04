@@ -8,6 +8,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/map/components.hpp"
+#include "modules/spaceship_designer/generation/rooms_random.hpp"
 
 #include <fmt/core.h>
 #include <map>
@@ -41,9 +42,7 @@ reconstruct_path(std::map<vec2i, vec2i> came_from, vec2i from, vec2i to)
 int
 get_cost_at_gridpos(entt::registry& r, const glm::ivec2 gp, const MapComponent& map_c)
 {
-  if (gp.x < 0 || gp.x > map_c.xmax)
-    return 1;
-  if (gp.y < 0 || gp.y > map_c.ymax)
+  if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
     return 1;
 
   const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
@@ -59,10 +58,7 @@ get_cost_at_gridpos(entt::registry& r, const glm::ivec2 gp, const MapComponent& 
 bool
 gridpos_blocked_by_map(entt::registry& r, const glm::ivec2& gp, const MapComponent& map_c)
 {
-  if (gp.x < 0 || gp.x > map_c.xmax)
-    return false; // out of map
-
-  if (gp.y < 0 || gp.y > map_c.ymax)
+  if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
     return false;
 
   return get_cost_at_gridpos(r, gp, map_c) == -1;
@@ -86,6 +82,12 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
   cost_so_far[from] = 0;
 
   while (frontier.size() > 0) {
+
+    // if ((int)frontier.size() > (map_c.xmax * map_c.ymax)) {
+    //   fmt::println("highly likly pathfinding broke... ");
+    //   break;
+    // }
+
     const vec2i current = frontier.dequeue();
     const int current_idx = map_c.xmax * current.y + current.x;
 
@@ -96,11 +98,19 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
 
     for (const auto& [dir, gp] : neighbour_gps) {
 
+      if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
+        continue; // out of map
+
       if (gridpos_blocked_by_map(r, gp, map_c))
         continue; // impassable
 
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
+
+      // auto cur_in_room = inside_room(r, { current.x, current.y }).size() > 0;
+      // auto nxt_in_room = inside_room(r, { gp.x, gp.y }).size() > 0;
+      // if (cur_in_room && !nxt_in_room)
+      //   continue; // dont search outside the ship
 
       const auto neighbour = gp;
       int neighbour_cost = get_cost_at_gridpos(r, gp, map_c);
@@ -223,8 +233,8 @@ edge_between_gps(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b)
   const auto& view = r.view<Edge>();
 
   Edge tgt_edge;
-  tgt_edge.gp_a = a;
-  tgt_edge.gp_b = b;
+  tgt_edge.a = a;
+  tgt_edge.b = b;
 
   const auto it = std::find_if(view.begin(), view.end(), [&](entt::entity e) {
     const auto& edge = view.get<Edge>(e);
@@ -235,6 +245,17 @@ edge_between_gps(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b)
     return (*it);
   return entt::null;
 };
+
+bool
+gp_out_of_bounds(const glm::ivec2& gp, const int xmax, const int ymax)
+{
+  if (gp.x < 0 || gp.x > xmax - 1)
+    return true;
+  if (gp.y < 0 || gp.y > ymax - 1)
+    return true;
+
+  return false;
+}
 
 } // namespace game2d
 

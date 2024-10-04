@@ -33,7 +33,10 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       physics_c.world->DestroyBody(pb->body);
   }
 
-  r.destroy(dead.dead.begin(), dead.dead.end());
+  for (const auto e : dead.dead) {
+    if (r.valid(e))
+      r.destroy(e);
+  }
   dead.dead.clear();
 
   // process create requests

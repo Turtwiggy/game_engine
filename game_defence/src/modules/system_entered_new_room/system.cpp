@@ -24,10 +24,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
 {
   if (get_first<MapComponent>(r) == entt::null)
     return;
-  if (get_first<DungeonGenerationResults>(r) == entt::null)
-    return;
   const auto& map = get_first_component<MapComponent>(r);
-  const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
 
   const auto& view = r.view<const PlayerComponent>();
   for (const auto& [e, player] : view.each()) {

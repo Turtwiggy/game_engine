@@ -70,8 +70,6 @@ add_bomb_callback(entt::registry& r, const entt::entity add_to_e)
 {
   OnDeathCallback callback;
   callback.callback = [](entt::registry& r, const entt::entity e) {
-    const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
-
     // create a boom effect
     const glm::vec2 pos = get_position(r, e);
     create_empty<RequestToSpawnParticles>(r, RequestToSpawnParticles{ pos });

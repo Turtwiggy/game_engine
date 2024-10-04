@@ -45,7 +45,7 @@ struct DungeonGenerationResults
 {
   std::vector<Room> rooms;
   std::vector<int> wall_or_floors;
-  std::vector<entt::entity> floor_tiles;
+  // std::vector<entt::entity> floor_tiles;
 };
 
 struct RequestGenerateDungeonComponent

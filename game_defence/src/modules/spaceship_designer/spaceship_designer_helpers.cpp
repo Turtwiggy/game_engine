@@ -1,13 +1,15 @@
-#include "helpers.hpp"
+#include "spaceship_designer_helpers.hpp"
 
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/physics/helpers.hpp"
+#include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "generation/components.hpp"
 #include "generation/rooms_random.hpp"
+#include "modules/actor_door/components.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
@@ -18,9 +20,8 @@ namespace game2d {
 void
 generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result)
 {
-  const auto& rooms = result.rooms;
-
   std::vector<Edge> edges;
+  std::vector<Edge> doors;
 
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
     const auto xy = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
@@ -35,8 +36,10 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
       // you're in a room and on the edge of the grid
 
       Edge edge;
-      edge.gp_a = grid_a;
-      edge.gp_b = grid_b;
+      edge.a = grid_a;
+      edge.b = grid_b;
+      if (ivec2_less(edge.b, edge.a))
+        std::swap(edge.a, edge.b);
 
       const auto rooms_a = inside_room(r, grid_a);
       const auto rooms_b = inside_room(r, grid_b);
@@ -61,36 +64,46 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
       const bool nidx_is_floor = result.wall_or_floors[neighbour_idx] == 0;
       const bool from_wall_to_floor = idx_is_wall && nidx_is_floor;
 
-      if (from_wall_to_floor)
+      if (from_wall_to_floor) {
         edges.push_back(edge);
+        continue;
+      }
 
-      // doors...
-      // if (from_room_to_room)
-      //   edges.push_back(edge);
+      if (from_room_to_room) {
+        edges.push_back(edge);
+        doors.push_back(edge);
+      }
     }
   }
 
   // std::sort for std::unique
-  const auto p = [&map](const Edge& a, const Edge& b) {
-    int a_idx_a = engine::grid::grid_position_to_index(a.gp_a, map.xmax);
-    int a_idx_b = engine::grid::grid_position_to_index(a.gp_b, map.xmax);
-    int b_idx_a = engine::grid::grid_position_to_index(b.gp_a, map.xmax);
-    int b_idx_b = engine::grid::grid_position_to_index(b.gp_b, map.xmax);
-
-    // either:
-    // sort by the first gridpoint in the edge,
-    // or if they're equal sort by the second grid point
-    return (a_idx_a < b_idx_a) || (a_idx_a == b_idx_a && a_idx_b < b_idx_b);
+  const auto p = [](const Edge& a, const Edge& b) {
+    if (a.a != b.a)
+      return ivec2_less(a.a, b.a);
+    return ivec2_less(a.b, b.b);
   };
   std::sort(edges.begin(), edges.end(), p);
 
   const auto pred = [](const Edge& a, const Edge& b) { return a == b; };
   edges.erase(std::unique(edges.begin(), edges.end(), pred), edges.end());
 
+  // Check for duplicates
+  std::vector<Edge> processed;
+
   // Once they're sorted and unqiue... create entt representation
   for (const auto& edge : edges) {
-    auto e = create_transform(r, "edge");
-    r.emplace<Edge>(e, edge);
+    auto e = create_empty<Edge>(r, edge);
+
+    // some of the edges were filtered as doors...
+    auto it = std::find_if(doors.begin(), doors.end(), [&edge](const Edge& other) { return other == edge; });
+    if (it != doors.end())
+      r.emplace<DoorComponent>(e);
+
+    auto dupl_it = std::find(processed.begin(), processed.end(), edge);
+    if (dupl_it != processed.end())
+      fmt::println("gen error: duplicate edge...");
+
+    processed.push_back(edge);
   }
 };
 
@@ -98,8 +111,8 @@ void
 instantiate_edges(entt::registry& r, MapComponent& map)
 {
   for (const auto& [e, edge_c] : r.view<Edge>().each()) {
-    const glm::vec2 ga = engine::grid::grid_space_to_world_space_center(edge_c.gp_a, map.tilesize);
-    const glm::vec2 gb = engine::grid::grid_space_to_world_space_center(edge_c.gp_b, map.tilesize);
+    const glm::vec2 ga = engine::grid::grid_space_to_world_space_center(edge_c.a, map.tilesize);
+    const glm::vec2 gb = engine::grid::grid_space_to_world_space_center(edge_c.b, map.tilesize);
 
     // debug edge
     // const auto l0 = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 4);
@@ -119,11 +132,17 @@ instantiate_edges(entt::registry& r, MapComponent& map)
 
     // spawn_wall()
     // convert Edge to Wall (i.e. add physics and stuff)
+    r.emplace<TransformComponent>(e);
     r.emplace<SpriteComponent>(e);
     set_sprite(r, e, "EMPTY");
     set_size(r, e, new_size);
     create_physics_actor_static(r, e, center, new_size);
-    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    if (auto* door_c = r.try_get<DoorComponent>(e))
+      set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+    else
+      set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+
     r.emplace<LightOccluderComponent>(e);
     // r.emplace<DestroyBulletOnCollison>(e);
     // r.emplace<RequestParticleOnCollision>(e);
@@ -149,16 +168,15 @@ update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerat
 };
 
 void
-generate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
+instantiate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
 {
-  result.floor_tiles.resize(result.wall_or_floors.size(), entt::null);
   for (size_t xy = 0; xy < result.wall_or_floors.size(); xy++) {
     if (result.wall_or_floors[xy] == 0) {
       const auto pos = engine::grid::index_to_world_position_center((int)xy, map.xmax, map.ymax, map.tilesize);
       const auto gp = engine::grid::index_to_grid_position((int)xy, map.xmax, map.ymax);
       const auto floor_e = spawn_floor(r, "default", pos, { map.tilesize, map.tilesize });
       const auto floor_idx = engine::grid::grid_position_to_index(gp, map.xmax);
-      result.floor_tiles[floor_idx] = floor_e;
+      map.map[floor_idx].push_back(floor_e);
     }
   }
 };

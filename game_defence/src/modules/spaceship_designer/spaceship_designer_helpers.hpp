@@ -21,6 +21,6 @@ void
 update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
 
 void
-generate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
+instantiate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
 
 } // namespace game2d

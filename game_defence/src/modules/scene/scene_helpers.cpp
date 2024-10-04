@@ -43,7 +43,7 @@ create_player_if_not_in_scene(entt::registry& r)
 
   const auto pos = glm::vec2{ 0, 0 };
   auto e = spawn_mob(r, "spaceship_player", pos);
-  r.emplace<CameraFollow>(e);
+  r.emplace<CameraLerpToTarget>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<PlayerComponent>(e);
   r.emplace<InputComponent>(e);

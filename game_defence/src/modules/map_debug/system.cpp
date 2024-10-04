@@ -2,11 +2,21 @@
 
 #include "actors/actor_helpers.hpp"
 #include "components.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/map/components.hpp"
+#include "modules/renderer/helpers/batch_quad.hpp"
+#include "modules/spaceship_designer/generation/components.hpp"
 
 namespace game2d {
+
+struct Descriptor
+{
+  glm::vec2 worldspace_pos = { 0, 0 };
+  glm::vec2 size = { 8, 8 };
+  engine::SRGBColour colour{ 1.0f, 1.0f, 1.0f, 1.0f };
+};
 
 void
 update_debug_map_system(entt::registry& r)
@@ -22,25 +32,47 @@ update_debug_map_system(entt::registry& r)
   auto& map_debug = get_first_component<DebugMapComponent>(r);
   auto& map_debug_pool = map_debug.pool;
 
-  size_t amount = 0;
-  for (size_t i = 0; i < map.map.size(); i++)
-    amount += map.map[i].size();
-  map_debug_pool.update(r, amount);
+  std::vector<Descriptor> request_to_draw_at_position;
 
-  if (amount == 0)
-    return;
+  // draw all the wall & floor cells...
+  //
+
+  const auto dungeon_e = get_first<DungeonGenerationResults>(r);
+  if (dungeon_e != entt::null) {
+    const auto& dungeon_c = r.get<DungeonGenerationResults>(dungeon_e);
+
+    for (size_t i = 0; i < map.map.size(); i++) {
+      Descriptor d;
+      d.size = { map.tilesize, map.tilesize };
+      d.worldspace_pos = engine::grid::index_to_world_position_center((int)i, map.xmax, map.ymax, map.tilesize);
+      if (dungeon_c.wall_or_floors[i] == 0)
+        d.colour = { 1.0f, 1.0f, 1.0f, 0.3f };
+      if (dungeon_c.wall_or_floors[i] == 1)
+        d.colour = { 1.0f, 0.3f, 0.3f, 0.3f };
+
+      request_to_draw_at_position.push_back(d);
+    }
+  }
 
   // debug all grid cells that contain something
+  //
   size_t amount_idx = 0;
   for (size_t i = 0; i < map.map.size(); i++) {
     for (const auto e : map.map[i]) {
-      const auto instance_e = map_debug_pool.instances[amount_idx++];
-      const auto wp = engine::grid::index_to_world_position_center((int)i, map.xmax, map.ymax, map.tilesize);
-      set_position(r, instance_e, wp);
-      set_size(r, instance_e, { 8, 8 });
-      set_colour(r, instance_e, { 0.75f, 0.25f, 0.25f, 1.0f });
-      // set_z_index(r, instance_e, ZLayer::FOREGROUND);
+      Descriptor d;
+      d.worldspace_pos = engine::grid::index_to_world_position_center((int)i, map.xmax, map.ymax, map.tilesize);
+      d.size = { 8, 8 };
+      d.colour = { 1.0f, 0.0f, 0.0f, 0.5f };
+      request_to_draw_at_position.push_back(d);
     }
+  }
+
+  map_debug_pool.update(r, request_to_draw_at_position.size());
+  for (int i = 0; const auto& req : request_to_draw_at_position) {
+    const auto instance_e = map_debug_pool.instances[i++];
+    set_position(r, instance_e, req.worldspace_pos);
+    set_size(r, instance_e, req.size);
+    set_colour(r, instance_e, req.colour);
   }
 }
 

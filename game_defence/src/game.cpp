@@ -18,6 +18,7 @@
 #include "modules/camera/system.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat_gun_z_index/system.hpp"
+#include "modules/combat_scale_on_hit/system.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
 #include "modules/events/events_system.hpp"
 #include "modules/map_debug/system.hpp"
@@ -55,7 +56,7 @@
 #include "modules/ui_players/ui_players_system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
-#include "modules/ui_spaceship_designer/system.hpp"
+#include "modules/ui_spaceship_designer/ui_spaceship_designer_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
@@ -173,6 +174,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_wiggle_up_and_down_system(r, dt);
     update_quips_system(r);
     // combat systems
+    update_combat_scale_on_hit_system(r, dt);
     update_show_tiles_in_range_system(r);
     update_gun_follow_player_system(r, mouse_pos, dt);
     update_gun_z_index_system(r);
@@ -184,15 +186,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_move_player_on_map_system(r);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 #if defined(_DEBUG)
-    // update_debug_map_system(r);
+    update_debug_map_system(r);
 #endif
     // update_change_gun_colour_system(r);
-    // update_flash_sprite_system(r, milliseconds_dt);
-    // update_combat_scale_on_hit_system(r, dt);
     // update_combat_heal_system(r);
     // update_combat_defence_system(r);
     // update_actor_cover_system(r);
-    // update_gen_dungeons_system(r, mouse_pos);
     // update_turnbased_endturn_system(r);
     // update_turnbased_enemy_system(r);
     // update_ux_hoverable(r, mouse_pos);

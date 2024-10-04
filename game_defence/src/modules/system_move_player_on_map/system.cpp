@@ -5,9 +5,8 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
-#include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
-#include "modules/system_move_player_on_map/helpers.hpp"
+#include "modules/system_move_player_on_map/move_player_on_map_helpers.hpp"
 
 namespace game2d {
 
@@ -16,8 +15,6 @@ inside_ship(entt::registry& r, const entt::entity e)
 {
   const auto& map_e = get_first<MapComponent>(r);
   const auto& map = get_first_component<MapComponent>(r);
-  const auto& results_e = get_first<DungeonGenerationResults>(r);
-  const auto& results = r.get<DungeonGenerationResults>(results_e);
   const auto gp = get_grid_position(r, e);
   const auto rooms = inside_room(r, gp);
   const bool inside_spaceship = rooms.size() > 0;

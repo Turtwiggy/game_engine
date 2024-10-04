@@ -1,13 +1,14 @@
 #include "rooms_random.hpp"
 
 #include "components.hpp"
-#include "engine/algorithm_astar_pathfinding/astar_components.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/priority_queue.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/map/components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
 
@@ -16,11 +17,8 @@ inside_room(entt::registry& r, const glm::ivec2& gridpos)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
 
-  if (gridpos.x < 0 || gridpos.x > map_c.xmax)
+  if (gp_out_of_bounds(gridpos, map_c.xmax, map_c.ymax))
     return {};
-  if (gridpos.y < 0 || gridpos.y > map_c.ymax)
-    return {};
-
   const int idx = engine::grid::grid_position_to_index(gridpos, map_c.xmax);
 
   std::set<entt::entity> rooms;
@@ -309,19 +307,25 @@ connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults&
 };
 
 std::vector<int>
-get_free_slots_idxs(const MapComponent& map_c, const Room& room)
+get_free_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& room)
 {
   std::vector<int> results;
 
   for (const auto idx : room.tiles_idx) {
 
-    // TODO: investigate this. stuff now contains loot on the floor,
-    // which means that this cell WOULD technically be "free"
+    bool free = true;
 
-    if (map_c.map[idx].size() != 0)
-      continue; // not free...
+    for (const auto& e : map_c.map[idx]) {
 
-    results.push_back(idx);
+      // not free if someone is there...
+      if (auto* body_c = r.try_get<DefaultBody>(e))
+        free = false;
+
+      //
+    }
+
+    if (free)
+      results.push_back(idx);
   }
 
   return results;

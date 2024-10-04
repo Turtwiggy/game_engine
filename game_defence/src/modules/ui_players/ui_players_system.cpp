@@ -31,9 +31,9 @@ update_ui_players_system(entt::registry& r)
     const auto* selected_c = r.try_get<SelectedComponent>(player_e);
     if (!selected_c) {
       r.emplace<SelectedComponent>(player_e);
-      r.emplace_or_replace<CameraFollow>(player_e);
       r.emplace_or_replace<InputComponent>(player_e);
       r.emplace_or_replace<KeyboardComponent>(player_e);
+      // r.emplace_or_replace<CameraFollow>(player_e);
     }
 
     r.emplace_or_replace<SelectedComponent>(player_e);
@@ -80,9 +80,9 @@ update_ui_players_system(entt::registry& r)
       r.remove<SelectedComponent>(selected_view.begin(), selected_view.end());
       r.emplace<SelectedComponent>(e);
 
-      const auto& follow_view = r.view<CameraFollow>();
-      r.remove<CameraFollow>(follow_view.begin(), follow_view.end());
-      r.emplace<CameraFollow>(e);
+      const auto& follow_view = r.view<CameraLerpToTarget>();
+      r.remove<CameraLerpToTarget>(follow_view.begin(), follow_view.end());
+      r.emplace<CameraLerpToTarget>(e);
 
       const auto& input_view = r.view<InputComponent>();
       r.remove<InputComponent>(input_view.begin(), input_view.end());
@@ -101,6 +101,7 @@ update_ui_players_system(entt::registry& r)
 
     const auto* selected_c = r.try_get<SelectedComponent>(e);
     if (selected_c) {
+      ImGui::SameLine();
       ImGui::Text("(Selected)");
     }
 

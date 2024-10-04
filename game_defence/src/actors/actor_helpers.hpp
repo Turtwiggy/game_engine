@@ -19,6 +19,9 @@ set_position(entt::registry& r, const entt::entity e, const glm::vec2& pos);
 void
 set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 grid_pos);
 
+void
+set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir);
+
 [[nodiscard]] glm::vec2
 get_size(entt::registry& r, const entt::entity e);
 
