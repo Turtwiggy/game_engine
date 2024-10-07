@@ -65,7 +65,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     map.map.resize(map.xmax * map.ymax);
 
     DungeonGenerationResults results;
-    results.wall_or_floors.resize(map.xmax * map.ymax, 1); // all walls
+    results.floor_types.resize(map.xmax * map.ymax, FloorType::WALL); // all walls
     create_empty<DungeonGenerationResults>(r, results);
   }
 
@@ -96,9 +96,12 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     auto& map_c = r.get<MapComponent>(map_e);
     auto& results_c = get_first_component<DungeonGenerationResults>(r);
     {
+      convert_tunnels_to_rooms(r, results_c);
       generate_edges(r, map_c, results_c);
+      generate_edges_airlock(r, map_c, results_c);
       instantiate_edges(r, map_c);
       instantiate_floors(r, map_c, results_c);
+      instantiate_airlocks(r, map_c, results_c);
     }
     destroy_first<DungeonGenerationResults>(r); // consider it "processed"
   }
@@ -115,7 +118,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       // const auto grid_tl = results_c.rooms[0].tl.value();
       // const auto pos = engine::grid::grid_space_to_world_space_center(grid_tl, map_c.tilesize);
       // set_position(r, player_e, pos);
-
       // added to map via jetpack_to_dungeon system
     }
   }
@@ -170,9 +172,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
     ImGui::Text("mouse_pos: %f %f", mouse_pos.x, mouse_pos.y);
     ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
-
-    int idx = engine::grid::grid_position_to_index(grid_pos, map_c.xmax);
-    ImGui::Text("grid_idx: %i", idx);
+    ImGui::Text("grid_idx: %i", engine::grid::grid_position_to_index(grid_pos, map_c.xmax));
 
     ImGui::SeparatorText("Map");
     const auto mouse_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map_c.xmax, map_c.ymax);
@@ -186,15 +186,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
         ImGui::Text("cost: %i", pathfinding_c->cost);
       }
     }
+
+    const auto in_rooms = inside_room(r, grid_pos);
+    for (const auto& room : in_rooms)
+      ImGui::Text("Inside room: %i", static_cast<uint32_t>(room));
   }
 
-  // create a room
+  ImGui::SeparatorText("Rooms");
+  ImGui::Text("Rooms: %zu", r.view<Room>().size());
   if (ImGui::Button("Create Room"))
     create_empty<Room>(r);
-
-  // debug rooms...
-  const auto& rooms = r.view<Room>();
-  ImGui::Text("Rooms: %zu", rooms.size());
   // for (const auto& [e, room_c] : rooms.each()) {
   //   ImGui::Text("room...");
   //   for (const auto& idx : room_c.tiles_idx)
@@ -226,14 +227,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 
     const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
     const auto mouse_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map_c.xmax, map_c.ymax);
-    ImGui::Text("wall_or_floor: %i", dungeon_c.wall_or_floors[mouse_idx]);
+    ImGui::Text("wall_or_floor: %i", static_cast<int>(dungeon_c.floor_types[mouse_idx]));
 
     const auto& input = get_first_component<SINGLE_InputComponent>(r);
 
     if (get_key_down(input, SDL_SCANCODE_1))
-      dungeon_c.wall_or_floors[mouse_idx] = 0;
+      dungeon_c.floor_types[mouse_idx] = FloorType::WALL;
     if (get_key_down(input, SDL_SCANCODE_2))
-      dungeon_c.wall_or_floors[mouse_idx] = 1;
+      dungeon_c.floor_types[mouse_idx] = FloorType::FLOOR;
+    if (get_key_down(input, SDL_SCANCODE_3))
+      dungeon_c.floor_types[mouse_idx] = FloorType::AIRLOCK;
 
     if (get_mouse_lmb_press() && ri.viewport_hovered)
       selected_tile_idx = mouse_idx;
@@ -251,9 +254,11 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       const auto gp = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
       const auto in_rooms = inside_room(r, gp);
       ImGui::Text("%i in_rooms: %zu", idx, in_rooms.size());
+      for (const auto room_e : in_rooms)
+        ImGui::Text("in_room_eid: %i", static_cast<int>(room_e));
 
       // Adds the tile to a room... note: not currently doing any validation
-      for (const auto& [e, room_c] : rooms.each()) {
+      for (const auto& [e, room_c] : r.view<Room>().each()) {
         const uint32_t eid = static_cast<uint32_t>(e);
         ImGui::PushID(eid);
         const std::string label = std::format("Add");

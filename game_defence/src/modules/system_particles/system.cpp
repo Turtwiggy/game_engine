@@ -45,7 +45,7 @@ update_particle_system(entt::registry& r, const float dt)
   const auto& view = r.view<ParticleEmitterComponent, CooldownComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, emitter, cooldown] : view.each()) {
 
-    if (!cooldown.on_cooldown) {
+    if (cooldown.time <= 0.0f) {
 
       if (emitter.spawn_all_particles_at_once) {
         for (int i = 0; i < emitter.particles_to_spawn_before_emitter_expires; i++) {

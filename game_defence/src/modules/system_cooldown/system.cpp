@@ -12,9 +12,11 @@ update_cooldown_system(entt::registry& r, const uint64_t milliseconds_dt)
 
   const auto& view = r.view<CooldownComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, cd] : view.each()) {
-    if (cd.time_left > 0.0f)
-      cd.time_left -= dt;
-    cd.on_cooldown = cd.time_left > 0.0f;
+
+    if (cd.time > 0.0f)
+      cd.time -= dt;
+
+    cd.time = std::max(0.0f, cd.time);
   }
 };
 

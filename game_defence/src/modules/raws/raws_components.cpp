@@ -234,8 +234,8 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec
 
   // emit: particles
   CooldownComponent cooldown;
-  cooldown.time = 0.1f;
-  cooldown.time_left = cooldown.time;
+  cooldown.time_max = 0.1f;
+  cooldown.time = cooldown.time_max;
   r.emplace<CooldownComponent>(e, cooldown);
 
   set_size(r, e, { 0, 0 }); // no size for particle emitter

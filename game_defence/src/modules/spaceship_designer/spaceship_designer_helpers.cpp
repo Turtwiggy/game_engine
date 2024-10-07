@@ -9,13 +9,59 @@
 #include "engine/sprites/helpers.hpp"
 #include "generation/components.hpp"
 #include "generation/rooms_random.hpp"
+#include "modules/actor_airlock/components.hpp"
 #include "modules/actor_door/components.hpp"
+#include "modules/colour/components.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/renderer/lights/components.hpp"
+#include "modules/system_cooldown/components.hpp"
 
 namespace game2d {
+
+const auto remove_duplicates = [](std::vector<Edge>& edges) {
+  // std::sort for std::unique
+  const auto p = [](const Edge& a, const Edge& b) {
+    if (a.a != b.a)
+      return ivec2_less(a.a, b.a);
+    return ivec2_less(a.b, b.b);
+  };
+  std::sort(edges.begin(), edges.end(), p);
+
+  const auto pred = [](const Edge& a, const Edge& b) { return a == b; };
+  edges.erase(std::unique(edges.begin(), edges.end(), pred), edges.end());
+};
+
+const auto check_for_duplicates = [](entt::registry& r) {
+  const auto& view = r.view<Edge>();
+
+  std::vector<Edge> processed;
+
+  // Once they're sorted and unqiue... create entt representation
+  for (const auto& [e, edge] : view.each()) {
+
+    auto dupl_it = std::find(processed.begin(), processed.end(), edge);
+    if (dupl_it != processed.end())
+      fmt::println("gen error: duplicate edge...");
+
+    processed.push_back(edge);
+  }
+};
+
+const auto give_edges_to_entt = [](entt::registry& r, const std::vector<Edge>& edges, const std::vector<Edge>& doors) {
+  for (const auto& edge : edges) {
+    // create the edge in entt
+    auto e = create_empty<Edge>(r, edge);
+
+    // some edges are doors...
+    auto it = std::find_if(doors.begin(), doors.end(), [&edge](const Edge& other) { return other == edge; });
+    if (it != doors.end())
+      r.emplace<DoorComponent>(e);
+  }
+};
 
 void
 generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result)
@@ -55,13 +101,12 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
         edges.push_back(edge);
         continue;
       }
-
       if (!in_bounds)
         continue;
       const auto neighbour_idx = engine::grid::grid_position_to_index(neighbour_gp, map.xmax);
 
-      const bool idx_is_wall = result.wall_or_floors[idx] == 1;
-      const bool nidx_is_floor = result.wall_or_floors[neighbour_idx] == 0;
+      const bool idx_is_wall = result.floor_types[idx] == FloorType::WALL;
+      const bool nidx_is_floor = result.floor_types[neighbour_idx] == FloorType::FLOOR;
       const bool from_wall_to_floor = idx_is_wall && nidx_is_floor;
 
       if (from_wall_to_floor) {
@@ -76,41 +121,59 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
     }
   }
 
-  // std::sort for std::unique
-  const auto p = [](const Edge& a, const Edge& b) {
-    if (a.a != b.a)
-      return ivec2_less(a.a, b.a);
-    return ivec2_less(a.b, b.b);
-  };
-  std::sort(edges.begin(), edges.end(), p);
-
-  const auto pred = [](const Edge& a, const Edge& b) { return a == b; };
-  edges.erase(std::unique(edges.begin(), edges.end(), pred), edges.end());
-
-  // Check for duplicates
-  std::vector<Edge> processed;
-
-  // Once they're sorted and unqiue... create entt representation
-  for (const auto& edge : edges) {
-    auto e = create_empty<Edge>(r, edge);
-
-    // some of the edges were filtered as doors...
-    auto it = std::find_if(doors.begin(), doors.end(), [&edge](const Edge& other) { return other == edge; });
-    if (it != doors.end())
-      r.emplace<DoorComponent>(e);
-
-    auto dupl_it = std::find(processed.begin(), processed.end(), edge);
-    if (dupl_it != processed.end())
-      fmt::println("gen error: duplicate edge...");
-
-    processed.push_back(edge);
-  }
+  remove_duplicates(edges);
+  give_edges_to_entt(r, edges, doors);
+  check_for_duplicates(r);
 };
 
 void
-instantiate_edges(entt::registry& r, MapComponent& map)
+generate_edges_airlock(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result)
 {
-  for (const auto& [e, edge_c] : r.view<Edge>().each()) {
+  std::vector<Edge> edges;
+  std::vector<Edge> doors;
+
+  for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
+    const auto xy = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
+    const auto neighbours = engine::grid::get_neighbour_gridpos(xy, map.xmax, map.ymax);
+    for (const auto& [dir, neighbour_gp] : neighbours) {
+      const auto grid_a = xy;
+      const auto grid_b = neighbour_gp;
+
+      Edge edge;
+      edge.a = grid_a;
+      edge.b = grid_b;
+      if (ivec2_less(edge.b, edge.a))
+        std::swap(edge.a, edge.b);
+
+      const bool idx_is_airlock = result.floor_types[idx] == FloorType::AIRLOCK;
+      const auto neighbour_idx = engine::grid::grid_position_to_index(neighbour_gp, map.xmax);
+
+      // set the airlock to have 2 doors: north and south
+      //
+      if (idx_is_airlock && dir == engine::grid::GridDirection::north) {
+        edges.push_back(edge);
+        doors.push_back(edge);
+      } else if (idx_is_airlock && dir == engine::grid::GridDirection::south) {
+        edges.push_back(edge);
+        doors.push_back(edge);
+      }
+      //
+      else if (idx_is_airlock && dir == engine::grid::GridDirection::east)
+        edges.push_back(edge);
+      else if (idx_is_airlock && dir == engine::grid::GridDirection::west)
+        edges.push_back(edge);
+    }
+  }
+
+  remove_duplicates(edges);
+  give_edges_to_entt(r, edges, doors);
+  check_for_duplicates(r);
+};
+
+void
+instantiate_edges(entt::registry& r, const MapComponent& map)
+{
+  for (const auto& [e, edge_c] : r.view<const Edge>(entt::exclude<TransformComponent>).each()) {
     const glm::vec2 ga = engine::grid::grid_space_to_world_space_center(edge_c.a, map.tilesize);
     const glm::vec2 gb = engine::grid::grid_space_to_world_space_center(edge_c.b, map.tilesize);
 
@@ -153,7 +216,7 @@ void
 update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
 {
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
-    if (result.wall_or_floors[idx] == 1) {
+    if (result.floor_types[idx] == FloorType::WALL) {
 
       const auto e = create_empty<PathfindComponent>(r, { PathfindComponent{ -1 } });
 
@@ -170,15 +233,44 @@ update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerat
 void
 instantiate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
 {
-  for (size_t xy = 0; xy < result.wall_or_floors.size(); xy++) {
-    if (result.wall_or_floors[xy] == 0) {
+  for (size_t xy = 0; xy < result.floor_types.size(); xy++) {
+    if (result.floor_types[xy] == FloorType::FLOOR) {
       const auto pos = engine::grid::index_to_world_position_center((int)xy, map.xmax, map.ymax, map.tilesize);
       const auto gp = engine::grid::index_to_grid_position((int)xy, map.xmax, map.ymax);
       const auto floor_e = spawn_floor(r, "default", pos, { map.tilesize, map.tilesize });
-      const auto floor_idx = engine::grid::grid_position_to_index(gp, map.xmax);
-      map.map[floor_idx].push_back(floor_e);
+
+      map.map[engine::grid::grid_position_to_index(gp, map.xmax)].push_back(floor_e);
     }
   }
 };
+
+void
+instantiate_airlocks(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
+{
+  for (size_t xy = 0; xy < result.floor_types.size(); xy++) {
+    if (result.floor_types[xy] == FloorType::AIRLOCK) {
+      const auto pos = engine::grid::index_to_world_position_center((int)xy, map.xmax, map.ymax, map.tilesize);
+      const auto gp = engine::grid::index_to_grid_position((int)xy, map.xmax, map.ymax);
+
+      const auto e = create_transform(r, "airlock");
+      r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
+      r.emplace<SpriteComponent>(e);
+      set_sprite(r, e, "EMPTY");
+      set_position(r, e, pos);
+      set_size(r, e, { map.tilesize, map.tilesize });
+      set_colour(r, e, r.get<DefaultColour>(e).colour);
+      set_z_index(r, e, ZLayer::BACKGROUND);
+      r.emplace<AirlockComponent>(e);
+
+      map.map[engine::grid::grid_position_to_index(gp, map.xmax)].push_back(e);
+
+      // Make it it's own room?
+      Room room;
+      room.tiles_idx = { engine::grid::grid_position_to_index(gp, map.xmax) };
+      r.emplace<Room>(e, room);
+      r.emplace<RoomName>(e, RoomName{ "Airlock" });
+    }
+  }
+}
 
 } // namespace game2d

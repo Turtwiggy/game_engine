@@ -5,8 +5,7 @@ namespace game2d {
 void
 reset_cooldown(CooldownComponent& c)
 {
-  c.on_cooldown = true;
-  c.time_left = c.time;
+  c.time = c.time_max;
 };
 
 } // namespace game2d

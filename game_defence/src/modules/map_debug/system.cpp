@@ -6,7 +6,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/map/components.hpp"
-#include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 
 namespace game2d {
@@ -45,10 +44,12 @@ update_debug_map_system(entt::registry& r)
       Descriptor d;
       d.size = { map.tilesize, map.tilesize };
       d.worldspace_pos = engine::grid::index_to_world_position_center((int)i, map.xmax, map.ymax, map.tilesize);
-      if (dungeon_c.wall_or_floors[i] == 0)
+      if (dungeon_c.floor_types[i] == FloorType::FLOOR)
         d.colour = { 1.0f, 1.0f, 1.0f, 0.3f };
-      if (dungeon_c.wall_or_floors[i] == 1)
+      if (dungeon_c.floor_types[i] == FloorType::WALL)
         d.colour = { 1.0f, 0.3f, 0.3f, 0.3f };
+      if (dungeon_c.floor_types[i] == FloorType::AIRLOCK)
+        d.colour = { 1.0f, 1.0f, 0.3f, 0.3f };
 
       request_to_draw_at_position.push_back(d);
     }

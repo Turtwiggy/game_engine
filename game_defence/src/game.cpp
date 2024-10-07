@@ -10,6 +10,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
+#include "modules/actor_airlock/airlock_system.hpp"
 #include "modules/actor_breach_charge/breach_charge_system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
@@ -188,6 +189,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #if defined(_DEBUG)
     update_debug_map_system(r);
 #endif
+    // space systems
+    update_airlock_system(r);
     // update_change_gun_colour_system(r);
     // update_combat_heal_system(r);
     // update_combat_defence_system(r);
@@ -199,7 +202,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // update_dungeon_helmet_system(r);
     // update_hide_sprites_when_outside_ship_system(r);
     // update_breached_room_system(r);
-    //
 
     if (scene.s == Scene::splashscreen) {
       update_scene_splashscreen_move_to_menu_system(r, dt);

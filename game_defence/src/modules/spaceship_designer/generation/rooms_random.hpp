@@ -15,6 +15,9 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 void
 connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults& result);
 
+void
+convert_tunnels_to_rooms(entt::registry& r, const DungeonGenerationResults& results);
+
 std::vector<entt::entity>
 inside_room(entt::registry& r, const glm::ivec2& gridpos);
 

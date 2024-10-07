@@ -41,11 +41,17 @@ struct DungeonGenerationCriteria
   int room_size_max = 10;
 };
 
+enum class FloorType
+{
+  FLOOR = 0,
+  WALL = 1,
+  AIRLOCK = 2,
+};
+
 struct DungeonGenerationResults
 {
   std::vector<Room> rooms;
-  std::vector<int> wall_or_floors;
-  // std::vector<entt::entity> floor_tiles;
+  std::vector<FloorType> floor_types;
 };
 
 struct RequestGenerateDungeonComponent

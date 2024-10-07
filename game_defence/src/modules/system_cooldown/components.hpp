@@ -4,9 +4,8 @@ namespace game2d {
 
 struct CooldownComponent
 {
-  float time = 1.0f;
-  float time_left = 0.0f;
-  bool on_cooldown = true;
+  float time_max = 1.0f;
+  float time = 0.0f;
 };
 
 } // namespace game2d

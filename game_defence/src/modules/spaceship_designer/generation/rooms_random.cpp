@@ -69,7 +69,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 {
   const auto& map = get_first_component<MapComponent>(r);
 
-  std::vector<int> wall_or_floors(map.xmax * map.ymax, 1); // 1: everything as wall
+  std::vector<FloorType> floor_types(map.xmax * map.ymax, FloorType::WALL);
 
   const int max_rooms = data.max_rooms;
   const int room_size_min = data.room_size_min;
@@ -110,7 +110,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
     fmt::println("gen room. size: {}, {} at {}, {}", w, h, room.tl.value().x, room.tl.value().y);
 
     // update_wall_of_floors_bitmap
-    auto create_room = [](const Room& room, std::vector<int>& wall_or_floors, const int xmax) {
+    auto create_room = [](const Room& room, std::vector<FloorType>& wall_or_floors, const int xmax) {
       const auto& w = room.aabb.value().size.x;
       const auto& h = room.aabb.value().size.y;
 
@@ -120,18 +120,18 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
           // set the entire generated room to "floor"
           const auto grid_pos = glm::ivec2{ room.tl.value().x + x, room.tl.value().y + y };
           const auto global_idx = engine::grid::grid_position_to_index(grid_pos, xmax);
-          wall_or_floors[global_idx] = 0;
+          wall_or_floors[global_idx] = FloorType::FLOOR;
         }
       }
     };
-    create_room(room, wall_or_floors, xmax);
+    create_room(room, floor_types, xmax);
     rooms.push_back(room);
 
   } // end iterating rooms
 
   DungeonGenerationResults results;
   results.rooms = rooms;
-  results.wall_or_floors = wall_or_floors;
+  results.floor_types = floor_types;
 
   // give to entt
   for (const Room& room : results.rooms)
@@ -159,7 +159,7 @@ convert_floor_islands_to_room(entt::registry& r,
     const int current_idx = frontier.dequeue();
     const auto current = engine::grid::index_to_grid_position(current_idx, map_c.xmax, map_c.ymax);
 
-    if (!(dresults.wall_or_floors[current_idx] == 0))
+    if (!(dresults.floor_types[current_idx] == FloorType::FLOOR))
       continue; // starting tile isnt floor
     if (inside_room(r, { current.x, current.y }).size() > 0)
       continue; // gone to a different room
@@ -171,7 +171,7 @@ convert_floor_islands_to_room(entt::registry& r,
     for (const auto& [dir, nidx] : neighbours_idxs) {
       const auto neighbour_pos = engine::grid::index_to_grid_position(nidx, map_c.xmax, map_c.ymax);
 
-      if (!(dresults.wall_or_floors[nidx] == 0))
+      if (!(dresults.floor_types[nidx] == FloorType::FLOOR))
         continue; // starting tile isnt floor
       if (inside_room(r, { current.x, current.y }).size() > 0)
         continue; // gone to a different room
@@ -244,12 +244,14 @@ generate_tunnel(entt::registry& r, const Room a, const Room b, DungeonGeneration
 
   // a) x1, y1 to corner_x, corner_y
   for (const auto& [x, y] : line_0) {
-    result.wall_or_floors[engine::grid::grid_position_to_index({ x, y }, map_c.xmax)] = 0; // set as floor
+    auto idx = engine::grid::grid_position_to_index({ x, y }, map_c.xmax);
+    result.floor_types[idx] = FloorType::FLOOR;
   }
 
   // b) corner_x, corner_y to x2, y2
   for (const auto& [x, y] : line_1) {
-    result.wall_or_floors[engine::grid::grid_position_to_index({ x, y }, map_c.xmax)] = 0; // set as floor
+    auto idx = engine::grid::grid_position_to_index({ x, y }, map_c.xmax);
+    result.floor_types[idx] = FloorType::FLOOR;
   }
   //
 };
@@ -302,8 +304,6 @@ connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults&
 
     connected.emplace(i);
   }
-
-  convert_tunnels_to_rooms(r, result);
 };
 
 std::vector<int>

@@ -10,7 +10,10 @@ void
 generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result);
 
 void
-instantiate_edges(entt::registry& r, MapComponent& map);
+generate_edges_airlock(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result);
+
+void
+instantiate_edges(entt::registry& r, const MapComponent& map);
 
 //
 // Update pathfinding so that every "wall" that was generated
@@ -22,5 +25,8 @@ update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerat
 
 void
 instantiate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
+
+void
+instantiate_airlocks(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
 
 } // namespace game2d

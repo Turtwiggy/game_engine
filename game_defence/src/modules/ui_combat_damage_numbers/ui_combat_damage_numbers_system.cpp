@@ -94,7 +94,7 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
     width = glm::max(width, damagenum_width); // damage numbers, e.g. "0 15 2"
     width = glm::max(width, name_width);      // the name e.g. "Steve"
 
-    worldspace_ui.offset.y = -(transform_c.scale.y); // place ui above entity
+    worldspace_ui.offset.y = -(get_size(r, e).y); // place ui above entity
 
     worldspace_ui.layout = [&ui, &hp_c, &name_c, label, start_idx]() {
       // Draw ui damage numbers
