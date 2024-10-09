@@ -166,11 +166,13 @@
   "ship_parts": [
    {
     "name": "engine",
-    "repair_by": [ {"item_key": "scrap", "quantity": 10} ]
+    "repair_by": [ {"item_key": "scrap", "quantity": 10} ],
+    "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
    },
    {
     "name": "seat_pilot",
-    "repair_by": [ {"item_key": "scrap", "quantity": 2} ]
+    "repair_by": [ {"item_key": "scrap", "quantity": 2} ],
+    "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
    },
    {
     "name": "airlock",

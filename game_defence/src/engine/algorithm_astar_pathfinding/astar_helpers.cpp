@@ -230,11 +230,9 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
 entt::entity
 edge_between_gps(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b)
 {
-  const auto& view = r.view<Edge>();
+  const auto& view = r.view<const Edge>();
 
-  Edge tgt_edge;
-  tgt_edge.a = a;
-  tgt_edge.b = b;
+  const Edge tgt_edge(a, b);
 
   const auto it = std::find_if(view.begin(), view.end(), [&](entt::entity e) {
     const auto& edge = view.get<Edge>(e);

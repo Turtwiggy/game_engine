@@ -12,6 +12,7 @@
 #include "game_state.hpp"
 #include "modules/actor_airlock/airlock_system.hpp"
 #include "modules/actor_breach_charge/breach_charge_system.hpp"
+#include "modules/actor_door/door_system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
 #include "modules/camera/helpers.hpp"
@@ -190,8 +191,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_debug_map_system(r);
 #endif
     // space systems
+    update_door_system(r);
     update_airlock_system(r);
-    // update_change_gun_colour_system(r);
+
     // update_combat_heal_system(r);
     // update_combat_defence_system(r);
     // update_actor_cover_system(r);
@@ -222,23 +224,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
-  // update_ui_gameover_system(r);
-  // update_ui_event_console_system(r);
-  // update_ui_combat_turnbased_system(r, mouse_pos);
-  // update_ui_combat_endturn_system(r);
-  // update_ui_combat_ended_system(r);
-  // update_ui_combat_info_in_worldspace_system(r);
-  // update_ui_launch_crew_system(r);
-
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
-
   if (scene.s == Scene::dungeon_designer) {
     update_ui_combat_damage_numbers_system(r, dt);
     update_ui_spaceship_designer_system(r, mouse_pos, dt);
     update_ui_players_system(r);
   }
-
   static bool show_settings_ui = true;
   if (show_settings_ui) {
     ImGui::ShowDemoWindow(NULL);

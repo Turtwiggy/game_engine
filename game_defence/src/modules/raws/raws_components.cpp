@@ -28,6 +28,18 @@
 
 namespace game2d {
 
+template<class T>
+auto
+find_key_or_crash(const std::vector<T>& stuff, const std::string& key)
+{
+  const auto it = std::find_if(stuff.begin(), stuff.end(), [&key](const T& item) { return item.name == key; });
+  if (it == stuff.end()) {
+    fmt::println("unable to find key in std::vector<T>: {}", key);
+    exit(1); // crash
+  };
+  return it;
+};
+
 Raws
 load_raws(std::string path)
 {
@@ -66,13 +78,7 @@ entt::entity
 spawn_item(entt::registry& r, const std::string& key)
 {
   const auto& rs = get_first_component<Raws>(r);
-
-  const auto it = std::find_if(rs.items.begin(), rs.items.end(), [&key](const Item& item) { return item.name == key; });
-  if (it == rs.items.end()) {
-    fmt::println("unable to find item in raw file: {}", key);
-    return entt::null;
-  };
-
+  const auto it = find_key_or_crash(rs.items, key);
   const auto idx = static_cast<int>(it - rs.items.begin());
   const Item& item_template = rs.items[idx];
   float size = 32;
@@ -125,13 +131,7 @@ entt::entity
 spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
 {
   const auto& rs = get_first_component<Raws>(r);
-
-  const auto it = std::find_if(rs.mobs.begin(), rs.mobs.end(), [&key](const Mob& item) { return item.name == key; });
-  if (it == rs.mobs.end()) {
-    fmt::println("unable to find item in raw file: {}", key);
-    exit(1); // crash
-  };
-
+  const auto it = find_key_or_crash<Mob>(rs.mobs, key);
   const auto idx = static_cast<int>(it - rs.mobs.begin());
   const Mob& mob_template = rs.mobs[idx];
 
@@ -285,5 +285,45 @@ spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, con
   r.emplace<FloorComponent>(floor_e);
   return floor_e;
 };
+
+entt::entity
+spawn_ship_part(entt::registry& r, const std::string& key)
+{
+  const auto& rs = get_first_component<Raws>(r);
+  const auto it = find_key_or_crash(rs.ship_parts, key);
+  const int idx = static_cast<int>(it - rs.ship_parts.begin());
+  const ShipParts& part_template = rs.ship_parts[idx];
+  float size = 32;
+
+  auto e = r.create();
+  r.emplace<TagComponent>(e, part_template.name);
+  r.emplace<WaitForInitComponent>(e);
+  r.emplace<ShipParts>(e, part_template);
+
+  if (part_template.renderable.has_value()) {
+    r.emplace<TransformComponent>(e);
+    r.emplace<SpriteComponent>(e);
+    r.emplace<DefaultColour>(e, part_template.renderable->colour);
+    set_colour(r, e, part_template.renderable->colour);
+    set_sprite(r, e, part_template.renderable->sprite);
+    set_size(r, e, { size, size });
+    set_z_index(r, e, ZLayer::DEFAULT);
+  }
+
+  // Add items to physics system?
+  PhysicsDescription pdesc;
+  pdesc.type = b2_staticBody;
+  pdesc.size = { size, size };
+  pdesc.is_sensor = true;
+  create_physics_actor(r, e, pdesc);
+
+  r.emplace<SpawnParticlesOnDeath>(e);
+  r.emplace<HealthComponent>(e, 100, 100);
+  r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
+  r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+  r.emplace<NameComponent>(e, NameComponent{ part_template.name, part_template.name, part_template.name });
+
+  return e;
+}
 
 } // namespace game2d

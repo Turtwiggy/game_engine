@@ -7,10 +7,13 @@
 namespace game2d {
 
 void
-generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result);
+generate_edges(entt::registry& r, MapComponent& map, const DungeonIntermediate& result);
 
 void
-generate_edges_airlock(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result);
+generate_airlocks(entt::registry& r, MapComponent& map, const DungeonIntermediate& result);
+
+void
+instantiate_edge(entt::registry& r, entt::entity e, const MapComponent& map);
 
 void
 instantiate_edges(entt::registry& r, const MapComponent& map);
@@ -21,12 +24,9 @@ instantiate_edges(entt::registry& r, const MapComponent& map);
 // that blocks off that cell witha value of -1 so it cant pathfind
 //
 void
-update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
+update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonIntermediate& result);
 
 void
-instantiate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
-
-void
-instantiate_airlocks(entt::registry& r, MapComponent& map, DungeonGenerationResults& result);
+instantiate_floors(entt::registry& r, MapComponent& map, DungeonIntermediate& result);
 
 } // namespace game2d

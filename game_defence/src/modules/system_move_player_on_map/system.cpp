@@ -5,6 +5,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_helpers.hpp"
 
@@ -28,6 +29,10 @@ update_move_player_on_map_system(entt::registry& r)
   if (map_e == entt::null)
     return;
   const auto& map_c = r.get<MapComponent>(map_e);
+
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  if (!ri.viewport_hovered)
+    return; // no move if hovering ui
 
   const auto& view = r.view<const PlayerComponent, InputComponent, TransformComponent>();
   for (const auto& [e, player_c, inp_c, transform_c] : view.each()) {

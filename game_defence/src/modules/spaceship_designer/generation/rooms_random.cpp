@@ -64,7 +64,7 @@ convert_square_room_to_idx(Room& room, const MapComponent& map_c)
   return results;
 };
 
-DungeonGenerationResults
+DungeonIntermediate
 generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine::RandomState& rnd)
 {
   const auto& map = get_first_component<MapComponent>(r);
@@ -129,7 +129,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 
   } // end iterating rooms
 
-  DungeonGenerationResults results;
+  DungeonIntermediate results;
   results.rooms = rooms;
   results.floor_types = floor_types;
 
@@ -145,7 +145,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 convert_floor_islands_to_room(entt::registry& r,
                               const MapComponent& map_c,
                               const int from_idx,
-                              const DungeonGenerationResults& dresults)
+                              const DungeonIntermediate& dresults)
 {
   std::map<int, int> pos_to_distance;
   pos_to_distance[from_idx] = 0;
@@ -194,7 +194,7 @@ convert_floor_islands_to_room(entt::registry& r,
 };
 
 void
-convert_tunnels_to_rooms(entt::registry& r, const DungeonGenerationResults& results)
+convert_tunnels_to_rooms(entt::registry& r, const DungeonIntermediate& results)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
 
@@ -216,7 +216,7 @@ convert_tunnels_to_rooms(entt::registry& r, const DungeonGenerationResults& resu
 };
 
 void
-generate_tunnel(entt::registry& r, const Room a, const Room b, DungeonGenerationResults& result)
+generate_tunnel(entt::registry& r, const Room a, const Room b, DungeonIntermediate& result)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
 
@@ -260,7 +260,7 @@ generate_tunnel(entt::registry& r, const Room a, const Room b, DungeonGeneration
 // 1) set the tiles in the results to "floor"
 // 2) create the sections outside the room as a new "room" and add to entt
 void
-connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults& result)
+connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonIntermediate& result)
 {
   // start by obtaining the rooms list.
   std::vector<Room> rooms;
@@ -307,7 +307,7 @@ connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults&
 };
 
 std::vector<int>
-get_free_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& room)
+get_empty_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& room)
 {
   std::vector<int> results;
 
@@ -320,6 +320,9 @@ get_free_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& ro
       // not free if someone is there...
       if (auto* body_c = r.try_get<DefaultBody>(e))
         free = false;
+
+      // not free if anything is there...
+      free = false;
 
       //
     }

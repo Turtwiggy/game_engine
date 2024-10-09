@@ -39,22 +39,15 @@ void
 update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_pos, const float dt)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto generate = cleanup_requests<RequestGenerateDungeonComponent>(r);
 
-  const auto& reqs = r.view<RequestGenerateDungeonComponent>();
-  const bool generate = reqs.size() > 0;
-  r.destroy(reqs.begin(), reqs.end()); // done requests
+  static auto seed = 0;
+  static auto rnd = engine::RandomState(seed);
+  static auto tilesize = 50.0f;
 
   ImGui::Begin("Spaceship Designer");
 
-  static engine::RandomState rnd(0);
-  static int seed = 0;
-  if (imgui_draw_int("seed", seed))
-    rnd = engine::RandomState(seed);
-
-  static int tilesize = 50;
-  imgui_draw_int("tilesize", tilesize);
-
-  if (ImGui::Button("(new) Spaceship")) {
+  if (ImGui::Button("(new) empty spaceship")) {
     move_to_scene_start(r, Scene::dungeon_designer);
 
     destroy_first_and_create<MapComponent>(r);
@@ -64,62 +57,49 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     map.ymax = 24;
     map.map.resize(map.xmax * map.ymax);
 
-    DungeonGenerationResults results;
+    DungeonIntermediate results;
     results.floor_types.resize(map.xmax * map.ymax, FloorType::WALL); // all walls
-    create_empty<DungeonGenerationResults>(r, results);
+    create_empty<DungeonIntermediate>(r, results);
   }
 
-#define GENERATE_RANDOM_MAP_ENABLED
-#if defined(GENERATE_RANDOM_MAP_ENABLED)
-  if (ImGui::Button("Generate Map (Random)") || generate) {
+  if (ImGui::Button("(new) random spaceship") || generate) {
+    move_to_scene_start(r, Scene::dungeon_designer);
+
+    destroy_first_and_create<MapComponent>(r);
     auto& map = get_first_component<MapComponent>(r);
+    map.tilesize = tilesize;
+    map.xmax = 24;
+    map.ymax = 24;
+    map.map.resize(map.xmax * map.ymax);
 
-    DungeonGenerationCriteria c;
-    c.max_rooms = 10;
-    c.room_size_min = 4;
-    c.room_size_max = glm::min(8, map.xmax);
+    DungeonGenerationCriteria spec;
+    spec.max_rooms = 10;
+    spec.room_size_min = 4;
+    spec.room_size_max = glm::min(8, map.xmax);
 
-    DungeonGenerationResults results = generate_rooms(r, c, rnd);
+    auto results = generate_rooms(r, spec, rnd);
     connect_rooms_via_nearest_neighbour(r, results);
     // update_map_with_pathfinding(r, map, results);
-    create_empty<DungeonGenerationResults>(r, results);
-
-    // set the camera in the center of the newly generated dungeon
-    auto camera_e = get_first<OrthographicCamera>(r);
-    auto& camera_t = r.get<TransformComponent>(camera_e);
-    // camera_t.position = { map_width / 2.0f, map_height / 2.0f, 0.0f };
+    create_empty<DungeonIntermediate>(r, results);
   }
-#endif
 
   auto map_e = get_first<MapComponent>(r);
   if (map_e != entt::null && ImGui::Button("Instantiate map")) {
     auto& map_c = r.get<MapComponent>(map_e);
-    auto& results_c = get_first_component<DungeonGenerationResults>(r);
+    auto& results_c = get_first_component<DungeonIntermediate>(r);
     {
       convert_tunnels_to_rooms(r, results_c);
       generate_edges(r, map_c, results_c);
-      generate_edges_airlock(r, map_c, results_c);
+      generate_airlocks(r, map_c, results_c);
       instantiate_edges(r, map_c);
       instantiate_floors(r, map_c, results_c);
-      instantiate_airlocks(r, map_c, results_c);
     }
-    destroy_first<DungeonGenerationResults>(r); // consider it "processed"
+    destroy_first<DungeonIntermediate>(r); // consider it "processed"
   }
 
   if (ImGui::Button("Add jetpack player")) {
     destroy_first<CameraFreeMove>(r);
-
-    const auto player_e = create_jetpack_player(r);
-
-    const auto map_e = get_first<MapComponent>(r);
-    if (map_e != entt::null) {
-      const auto& map_c = r.get<MapComponent>(map_e);
-      // set player_e inside spaceship... in room 0...
-      // const auto grid_tl = results_c.rooms[0].tl.value();
-      // const auto pos = engine::grid::grid_space_to_world_space_center(grid_tl, map_c.tilesize);
-      // set_position(r, player_e, pos);
-      // added to map via jetpack_to_dungeon system
-    }
+    create_jetpack_player(r);
   }
 
   if (ImGui::Button("Populate rooms...")) {
@@ -129,7 +109,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       const auto& view = r.view<Room>();
       for (const auto& [e, room_c] : view.each()) {
 
-        auto idxs = get_free_slots_idxs(r, map_c, room_c);
+        auto idxs = get_empty_slots_idxs(r, map_c, room_c);
         const int n_free_slots = static_cast<int>(idxs.size());
         if (n_free_slots != 0) {
           // choose a random slot...
@@ -178,8 +158,10 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     const auto mouse_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map_c.xmax, map_c.ymax);
     ImGui::Text("Map at %i is size: %zu", mouse_idx, map_c.map[mouse_idx].size());
     for (const auto map_e : map_c.map[mouse_idx]) {
-      const auto& tag_c = r.get<TagComponent>(map_e);
-      ImGui::Text("map_e: %s", tag_c.tag.c_str());
+      if (const auto* tag_c = r.try_get<TagComponent>(map_e))
+        ImGui::Text("map_e: %s", tag_c->tag.c_str());
+      else
+        ImGui::Text("map_e: no tag component?");
 
       if (const auto* pathfinding_c = r.try_get<PathfindComponent>(map_e)) {
         ImGui::SameLine();
@@ -203,25 +185,25 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
   // }
 
   // debug edges...
-  // static std::string filter;
-  // imgui_draw_string("edge_filter", filter);
-  // ImGui::Text("edges...");
-  // std::vector<Edge> processed;
-  // for (const auto& [e, edge_c] : r.view<Edge>().each()) {
-  //   std::string label = std::format("edg: a.x{},a.y{} b.x{},b.y{}", edge_c.a.x, edge_c.a.y, edge_c.b.x, edge_c.b.y);
-  //   auto it = std::find(processed.begin(), processed.end(), edge_c);
-  //   if (it != processed.end())
-  //     label += "[DUPLICATE]";
-  //   processed.push_back(edge_c);
-  //   if (label.find(filter) != std::string::npos)
-  //     ImGui::Text("%s", label.c_str());
-  // }
+  static std::string filter;
+  imgui_draw_string("edge_filter", filter);
+  ImGui::Text("edges...");
+  std::vector<Edge> processed;
+  for (const auto& [e, edge_c] : r.view<Edge>().each()) {
+    std::string label = std::format("edg: a.x{},a.y{} b.x{},b.y{}", edge_c.a.x, edge_c.a.y, edge_c.b.x, edge_c.b.y);
+    auto it = std::find(processed.begin(), processed.end(), edge_c);
+    if (it != processed.end())
+      label += "[DUPLICATE]";
+    processed.push_back(edge_c);
+    if (label.find(filter) != std::string::npos)
+      ImGui::Text("%s", label.c_str());
+  }
 
   static std::optional<int> selected_tile_idx = std::nullopt;
 
-  auto dungeon_e = get_first<DungeonGenerationResults>(r);
+  auto dungeon_e = get_first<DungeonIntermediate>(r);
   if (dungeon_e != entt::null) {
-    auto& dungeon_c = r.get<DungeonGenerationResults>(dungeon_e);
+    auto& dungeon_c = r.get<DungeonIntermediate>(dungeon_e);
     const auto& map_c = r.get<MapComponent>(map_e);
     ImGui::SeparatorText("WIP dungeon...");
 
@@ -235,8 +217,20 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       dungeon_c.floor_types[mouse_idx] = FloorType::WALL;
     if (get_key_down(input, SDL_SCANCODE_2))
       dungeon_c.floor_types[mouse_idx] = FloorType::FLOOR;
-    if (get_key_down(input, SDL_SCANCODE_3))
+
+    if (get_key_down(input, SDL_SCANCODE_3)) {
       dungeon_c.floor_types[mouse_idx] = FloorType::AIRLOCK;
+      // const auto part_e = spawn_ship_part(r, "airlock");
+      // const auto pos = engine::grid::index_to_world_position_center(mouse_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+      // set_position(r, part_e, pos);
+      // add_entity_to_map(r, part_e, mouse_idx);
+    }
+    if (get_key_down(input, SDL_SCANCODE_4)) {
+      const auto part_e = spawn_ship_part(r, "engine");
+      const auto pos = engine::grid::index_to_world_position_center(mouse_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+      set_position(r, part_e, pos);
+      add_entity_to_map(r, part_e, mouse_idx);
+    }
 
     if (get_mouse_lmb_press() && ri.viewport_hovered)
       selected_tile_idx = mouse_idx;

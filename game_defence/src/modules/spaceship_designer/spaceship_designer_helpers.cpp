@@ -18,7 +18,6 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/lights/components.hpp"
-#include "modules/system_cooldown/components.hpp"
 
 namespace game2d {
 
@@ -59,12 +58,12 @@ const auto give_edges_to_entt = [](entt::registry& r, const std::vector<Edge>& e
     // some edges are doors...
     auto it = std::find_if(doors.begin(), doors.end(), [&edge](const Edge& other) { return other == edge; });
     if (it != doors.end())
-      r.emplace<DoorComponent>(e);
+      r.emplace<DoorComponent>(e, DoorComponent{ edge });
   }
 };
 
 void
-generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result)
+generate_edges(entt::registry& r, MapComponent& map, const DungeonIntermediate& result)
 {
   std::vector<Edge> edges;
   std::vector<Edge> doors;
@@ -81,12 +80,7 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
       // transition from room to room
       // you're in a room and on the edge of the grid
 
-      Edge edge;
-      edge.a = grid_a;
-      edge.b = grid_b;
-      if (ivec2_less(edge.b, edge.a))
-        std::swap(edge.a, edge.b);
-
+      const Edge edge = Edge(grid_a, grid_b);
       const auto rooms_a = inside_room(r, grid_a);
       const auto rooms_b = inside_room(r, grid_b);
       const bool in_room_a = rooms_a.size() > 0;
@@ -127,93 +121,112 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
 };
 
 void
-generate_edges_airlock(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result)
+generate_airlocks(entt::registry& r, MapComponent& map, const DungeonIntermediate& result)
 {
-  std::vector<Edge> edges;
-  std::vector<Edge> doors;
-
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
     const auto xy = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
     const auto neighbours = engine::grid::get_neighbour_gridpos(xy, map.xmax, map.ymax);
+
+    const bool idx_is_airlock = result.floor_types[idx] == FloorType::AIRLOCK;
+    if (!idx_is_airlock)
+      continue;
+
+    AirlockComponent airlock_c;
+
     for (const auto& [dir, neighbour_gp] : neighbours) {
-      const auto grid_a = xy;
-      const auto grid_b = neighbour_gp;
+      const auto edge = Edge(xy, neighbour_gp);
+      const auto nidx = engine::grid::grid_position_to_index(neighbour_gp, map.xmax);
 
-      Edge edge;
-      edge.a = grid_a;
-      edge.b = grid_b;
-      if (ivec2_less(edge.b, edge.a))
-        std::swap(edge.a, edge.b);
-
-      const bool idx_is_airlock = result.floor_types[idx] == FloorType::AIRLOCK;
-      const auto neighbour_idx = engine::grid::grid_position_to_index(neighbour_gp, map.xmax);
+      // create edge in all 4 directions
+      const auto e = create_empty<Edge>(r, edge);
 
       // set the airlock to have 2 doors: north and south
-      //
-      if (idx_is_airlock && dir == engine::grid::GridDirection::north) {
-        edges.push_back(edge);
-        doors.push_back(edge);
-      } else if (idx_is_airlock && dir == engine::grid::GridDirection::south) {
-        edges.push_back(edge);
-        doors.push_back(edge);
+      if (dir == engine::grid::GridDirection::north) {
+        r.emplace<DoorComponent>(e, DoorComponent{ edge });
+        airlock_c.north_edge_copy = edge;
+        airlock_c.door_north = e;
+      } else if (dir == engine::grid::GridDirection::south) {
+        r.emplace<DoorComponent>(e, DoorComponent{ edge });
+        airlock_c.south_edge_copy = edge;
+        airlock_c.door_south = e;
       }
-      //
-      else if (idx_is_airlock && dir == engine::grid::GridDirection::east)
-        edges.push_back(edge);
-      else if (idx_is_airlock && dir == engine::grid::GridDirection::west)
-        edges.push_back(edge);
     }
+
+    //
+    const auto pos = engine::grid::index_to_world_position_center((int)idx, map.xmax, map.ymax, map.tilesize);
+    const auto gp = engine::grid::index_to_grid_position((int)idx, map.xmax, map.ymax);
+    const auto e = create_transform(r, "airlock");
+    r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
+    r.emplace<SpriteComponent>(e);
+    set_sprite(r, e, "EMPTY");
+    set_position(r, e, pos);
+    set_size(r, e, { map.tilesize, map.tilesize });
+    set_colour(r, e, r.get<DefaultColour>(e).colour);
+    set_z_index(r, e, ZLayer::BACKGROUND);
+    r.emplace<AirlockComponent>(e, airlock_c);
+    map.map[engine::grid::grid_position_to_index(gp, map.xmax)].push_back(e);
+
+    // Make it it's own room?
+    Room room;
+    room.tiles_idx = { engine::grid::grid_position_to_index(gp, map.xmax) };
+    r.emplace<Room>(e, room);
+    r.emplace<RoomName>(e, RoomName{ "Airlock" });
   }
 
-  remove_duplicates(edges);
-  give_edges_to_entt(r, edges, doors);
+  instantiate_edges(r, map);
   check_for_duplicates(r);
+};
+
+void
+instantiate_edge(entt::registry& r, entt::entity e, const MapComponent& map_c)
+{
+  const auto& edge_c = r.get<Edge>(e);
+  const glm::vec2 ga = engine::grid::grid_space_to_world_space_center(edge_c.a, map_c.tilesize);
+  const glm::vec2 gb = engine::grid::grid_space_to_world_space_center(edge_c.b, map_c.tilesize);
+
+  // debug edge
+  // const auto l0 = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 4);
+  // const entt::entity e0 = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
+  // set_position_and_size_with_line(r, e0, l0);
+  // set_colour(r, e0, { 1.0f, 0.0, 0.0, 0.5f });
+
+  const auto center = (gb + ga) / 2.0f;
+  const auto size = glm::abs(gb - ga);
+  const bool was_horizontal = size.x > size.y;
+
+  auto new_size = glm::vec2{ size.y, size.x };
+  if (new_size.x == 0)
+    new_size.x = 4;
+  if (new_size.y == 0)
+    new_size.y = 4;
+
+  // spawn_wall()
+  // convert Edge to Wall (i.e. add physics and stuff)
+  r.emplace<TransformComponent>(e);
+  r.emplace<SpriteComponent>(e);
+  set_sprite(r, e, "EMPTY");
+  set_size(r, e, new_size);
+  create_physics_actor_static(r, e, center, new_size);
+
+  if (auto* door_c = r.try_get<DoorComponent>(e))
+    set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+  else
+    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+  r.emplace_or_replace<LightOccluderComponent>(e);
+  // r.emplace<DestroyBulletOnCollison>(e);
+  // r.emplace<RequestParticleOnCollision>(e);
 };
 
 void
 instantiate_edges(entt::registry& r, const MapComponent& map)
 {
-  for (const auto& [e, edge_c] : r.view<const Edge>(entt::exclude<TransformComponent>).each()) {
-    const glm::vec2 ga = engine::grid::grid_space_to_world_space_center(edge_c.a, map.tilesize);
-    const glm::vec2 gb = engine::grid::grid_space_to_world_space_center(edge_c.b, map.tilesize);
-
-    // debug edge
-    // const auto l0 = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 4);
-    // const entt::entity e0 = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
-    // set_position_and_size_with_line(r, e0, l0);
-    // set_colour(r, e0, { 1.0f, 0.0, 0.0, 0.5f });
-
-    const auto center = (gb + ga) / 2.0f;
-    const auto size = glm::abs(gb - ga);
-    const bool was_horizontal = size.x > size.y;
-
-    auto new_size = glm::vec2{ size.y, size.x };
-    if (new_size.x == 0)
-      new_size.x = 4;
-    if (new_size.y == 0)
-      new_size.y = 4;
-
-    // spawn_wall()
-    // convert Edge to Wall (i.e. add physics and stuff)
-    r.emplace<TransformComponent>(e);
-    r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, "EMPTY");
-    set_size(r, e, new_size);
-    create_physics_actor_static(r, e, center, new_size);
-
-    if (auto* door_c = r.try_get<DoorComponent>(e))
-      set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
-    else
-      set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
-
-    r.emplace<LightOccluderComponent>(e);
-    // r.emplace<DestroyBulletOnCollison>(e);
-    // r.emplace<RequestParticleOnCollision>(e);
-  }
+  for (const auto& [e, edge_c] : r.view<const Edge>(entt::exclude<TransformComponent>).each())
+    instantiate_edge(r, e, map);
 };
 
 void
-update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
+update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonIntermediate& result)
 {
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
     if (result.floor_types[idx] == FloorType::WALL) {
@@ -231,7 +244,7 @@ update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonGenerat
 };
 
 void
-instantiate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
+instantiate_floors(entt::registry& r, MapComponent& map, DungeonIntermediate& result)
 {
   for (size_t xy = 0; xy < result.floor_types.size(); xy++) {
     if (result.floor_types[xy] == FloorType::FLOOR) {
@@ -243,34 +256,5 @@ instantiate_floors(entt::registry& r, MapComponent& map, DungeonGenerationResult
     }
   }
 };
-
-void
-instantiate_airlocks(entt::registry& r, MapComponent& map, DungeonGenerationResults& result)
-{
-  for (size_t xy = 0; xy < result.floor_types.size(); xy++) {
-    if (result.floor_types[xy] == FloorType::AIRLOCK) {
-      const auto pos = engine::grid::index_to_world_position_center((int)xy, map.xmax, map.ymax, map.tilesize);
-      const auto gp = engine::grid::index_to_grid_position((int)xy, map.xmax, map.ymax);
-
-      const auto e = create_transform(r, "airlock");
-      r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
-      r.emplace<SpriteComponent>(e);
-      set_sprite(r, e, "EMPTY");
-      set_position(r, e, pos);
-      set_size(r, e, { map.tilesize, map.tilesize });
-      set_colour(r, e, r.get<DefaultColour>(e).colour);
-      set_z_index(r, e, ZLayer::BACKGROUND);
-      r.emplace<AirlockComponent>(e);
-
-      map.map[engine::grid::grid_position_to_index(gp, map.xmax)].push_back(e);
-
-      // Make it it's own room?
-      Room room;
-      room.tiles_idx = { engine::grid::grid_position_to_index(gp, map.xmax) };
-      r.emplace<Room>(e, room);
-      r.emplace<RoomName>(e, RoomName{ "Airlock" });
-    }
-  }
-}
 
 } // namespace game2d

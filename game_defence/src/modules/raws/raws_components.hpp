@@ -212,8 +212,20 @@ struct Mob
 struct ShipParts
 {
   std::string name;
+  std::optional<Renderable> renderable;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShipParts, name);
+  friend void to_json(nlohmann ::json& j, const ShipParts& val)
+  {
+    j["name"] = val.name;
+    if (val.renderable.has_value())
+      j["renderable"] = val.renderable.value();
+  }
+  friend void from_json(const nlohmann ::json& j, ShipParts& val)
+  {
+    j.at("name").get_to(val.name);
+    if (j.contains("renderable"))
+      j.at("renderable").get_to(val.renderable);
+  };
 };
 
 //
@@ -254,5 +266,8 @@ spawn_particle(entt::registry& r, const std::string& key, const Particle& desc);
 
 entt::entity
 spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size);
+
+entt::entity
+spawn_ship_part(entt::registry& r, const std::string& key);
 
 } // namespace game2d

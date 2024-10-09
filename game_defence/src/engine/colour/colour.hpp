@@ -23,7 +23,7 @@ struct SRGBColour
   {
   }
 
-  // assumes 0-255 as input
+  // assumes 0-255 as input (except alpha, 0-1)
   constexpr SRGBColour(int r, int g, int b, float a)
     : r(r)
     , g(g)

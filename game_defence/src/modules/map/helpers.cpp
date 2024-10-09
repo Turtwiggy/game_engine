@@ -87,22 +87,16 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   // and any number of it.
 
   //
-  // gamerule: allow move on to (any number) an inventory
-  // note: all enemies contain inventories, so make sure not a mob
+  // gamerule: allow move if no mob
   //
 
-  bool contains_all_inventories = true;
+  bool contains_mob = false;
   for (const auto dst_e : dst_es) {
-    bool has_body = r.try_get<DefaultBody>(dst_e) != nullptr;
-    contains_all_inventories &= (!has_body);
+    const bool has_body = r.try_get<DefaultBody>(dst_e) != nullptr;
+    contains_mob |= has_body;
   }
 
-  if (contains_all_inventories) {
-    // fmt::println("dst_es contains all inventories.");
-
-    // situation: there's an inventory on the floor,
-    // and you might have an inventory on you.
-    // dont process the pickup rules, just allow the move.
+  if (!contains_mob) {
     remove_entity_from_map(r, mapinfo_opt.value());
     add_entity_to_map(r, src_e, dst_idx);
 

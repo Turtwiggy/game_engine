@@ -39,11 +39,10 @@ update_camera_system(entt::registry& r, const float dt)
   // camera_offset_due_to_mouse.y = dir.y * 10.0f;
 
   // Set position as first position of target
-  const auto& targets_view = r.view<const CameraFollow>();
-  for (const auto& [e, follow] : targets_view.each()) {
-    const auto pos = get_position(r, e);
-    camera_transform.position.x = pos.x;
-    camera_transform.position.y = pos.y;
+  const auto& targets_view = r.view<const CameraFollow, const TransformComponent>();
+  for (const auto& [e, follow, t_c] : targets_view.each()) {
+    camera_transform.position.x = t_c.position.x;
+    camera_transform.position.y = t_c.position.y;
   }
 
   // update lerp

@@ -9,19 +9,19 @@
 
 namespace game2d {
 
-DungeonGenerationResults
+DungeonIntermediate
 generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine::RandomState& rnd);
 
 void
-connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults& result);
+connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonIntermediate& result);
 
 void
-convert_tunnels_to_rooms(entt::registry& r, const DungeonGenerationResults& results);
+convert_tunnels_to_rooms(entt::registry& r, const DungeonIntermediate& results);
 
 std::vector<entt::entity>
 inside_room(entt::registry& r, const glm::ivec2& gridpos);
 
 std::vector<int>
-get_free_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& room);
+get_empty_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& room);
 
 } // namespace game2d

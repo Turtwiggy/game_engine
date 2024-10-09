@@ -48,7 +48,7 @@ enum class FloorType
   AIRLOCK = 2,
 };
 
-struct DungeonGenerationResults
+struct DungeonIntermediate
 {
   std::vector<Room> rooms;
   std::vector<FloorType> floor_types;

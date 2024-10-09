@@ -1,12 +1,12 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include "modules/map/components.hpp"
 
 namespace game2d {
 
 struct DoorComponent
 {
-  bool placeholder = true;
+  Edge edge_copy;
 };
 
 } // namespace game2d

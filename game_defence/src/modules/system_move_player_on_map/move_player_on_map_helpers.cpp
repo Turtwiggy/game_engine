@@ -1,10 +1,12 @@
 #include "move_player_on_map_helpers.hpp"
 
 #include "actors/actor_helpers.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
+#include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
 namespace game2d {

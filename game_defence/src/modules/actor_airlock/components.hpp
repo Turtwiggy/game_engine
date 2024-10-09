@@ -12,8 +12,8 @@ struct AirlockComponent
   Edge north_edge_copy;
   Edge south_edge_copy;
 
-  bool entered_north = false;
-  bool entered_south = false;
+  entt::entity door_north;
+  entt::entity door_south;
 };
 
 } // namespace game2d

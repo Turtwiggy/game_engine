@@ -36,14 +36,18 @@ update_debug_map_system(entt::registry& r)
   // draw all the wall & floor cells...
   //
 
-  const auto dungeon_e = get_first<DungeonGenerationResults>(r);
+  const auto dungeon_e = get_first<DungeonIntermediate>(r);
   if (dungeon_e != entt::null) {
-    const auto& dungeon_c = r.get<DungeonGenerationResults>(dungeon_e);
+    const auto& dungeon_c = r.get<DungeonIntermediate>(dungeon_e);
 
     for (size_t i = 0; i < map.map.size(); i++) {
       Descriptor d;
       d.size = { map.tilesize, map.tilesize };
       d.worldspace_pos = engine::grid::index_to_world_position_center((int)i, map.xmax, map.ymax, map.tilesize);
+
+      // Debug colours for different components...
+      //
+
       if (dungeon_c.floor_types[i] == FloorType::FLOOR)
         d.colour = { 1.0f, 1.0f, 1.0f, 0.3f };
       if (dungeon_c.floor_types[i] == FloorType::WALL)
