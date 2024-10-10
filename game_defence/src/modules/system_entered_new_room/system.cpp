@@ -14,7 +14,8 @@
 
 #include "imgui.h"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 
 namespace game2d {
 using namespace std::literals;
@@ -43,7 +44,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     if (in_room && !player_in_room) {
       const auto& room_c = r.get<Room>(rooms[0]);
 
-      // fmt::println("player {} entered new room (a)", eid);
+      // SDL_Log("%s", std::format("player {} entered new room (a)", eid).c_str());
       PlayerEnteredNewRoom data;
       data.player = e;
       data.room_e = rooms[0];
@@ -56,7 +57,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
       const auto& room_c = r.get<Room>(player_in_room_c.room_e);
 
       if (player_in_room_c.room_e != rooms[0]) {
-        // fmt::println("player {} entered new room (b)", eid);
+        // SDL_Log("%s", std::format("player {} entered new room (b)", eid).c_str());
         PlayerEnteredNewRoom data;
         data.player = e;
         data.room_e = rooms[0];

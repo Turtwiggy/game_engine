@@ -5,10 +5,11 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
 
+#include <SDL2/SDL_log.h>
 #include <box2d/b2_circle_shape.h>
 #include <box2d/b2_contact.h>
 #include <box2d/b2_world_callbacks.h>
-#include <fmt/core.h>
+#include <format>
 
 namespace game2d {
 
@@ -23,7 +24,7 @@ emplace_or_replace_physics_world(entt::registry& r)
   // cleanup physics world...
   static bool needs_deleting = false;
   if (needs_deleting) {
-    fmt::println("cleaning up physics world..");
+    SDL_Log("%s", std::format("cleaning up physics world..").c_str());
 
     b2Joint* joint = world->GetJointList();
     while (joint) {
@@ -41,7 +42,7 @@ emplace_or_replace_physics_world(entt::registry& r)
   }
 
   needs_deleting = true;
-  fmt::println("physics world set to clean up...");
+  SDL_Log("%s", std::format("physics world set to clean up...").c_str());
 
   destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
   destroy_first_and_create<SINGLE_PhysicsEvents>(r, SINGLE_PhysicsEvents{ listener });
@@ -140,7 +141,7 @@ set_collision_filters(entt::registry& r, entt::entity e)
         filter.maskBits = ENEMY_BULLET_MASK;
         fixture->SetFilterData(filter);
       } else {
-        fmt::println("warning; no team set on bullet. not setting physics masks");
+        SDL_Log("%s", std::format("warning; no team set on bullet. not setting physics masks");
       }
     }
 
@@ -154,7 +155,7 @@ set_collision_filters(entt::registry& r, entt::entity e)
         filter.maskBits = ENEMY_UNIT_MASK;
         fixture->SetFilterData(filter);
       } else
-        fmt::println("warning; no team set on actor_dungeon. not setting physics masks");
+        SDL_Log("%s", std::format("warning; no team set on actor_dungeon. not setting physics masks");
     }
   }
 }

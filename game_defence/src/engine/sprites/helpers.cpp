@@ -11,7 +11,8 @@
 #include <nlohmann/json.hpp>
 
 // std libs
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -29,7 +30,7 @@ void
 load_sprites(SINGLE_Animations& anims, const std::string& path)
 {
 #if defined(_RELEASE)
-  fmt::println("loading sprite config: {}", path);
+  SDL_Log("%s", std::format("loading sprite config: {}", path).c_str());
 #endif
   std::ifstream f(path);
 
@@ -91,7 +92,7 @@ find_animation(const SINGLE_Animations& anims, const std::string& name)
       return { spritesheet, *s };
   }
 
-  fmt::println("CONFIG ERROR: sprite not found: {}", name);
+  SDL_Log("%s", std::format("CONFIG ERROR: sprite not found: {}", name).c_str());
   exit(1); // explode!
 }
 

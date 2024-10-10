@@ -12,7 +12,8 @@
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 
 namespace game2d {
 
@@ -61,7 +62,7 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
   DrawZeldaCursorWindow(r, mouse_pos, angle);
 
   if (cursor_complete_so_place_bomb) {
-    fmt::println("spawning bomb!");
+    SDL_Log("%s", std::format("spawning bomb!").c_str());
 
     // spawn the bomb!
     const auto world_bomb_e = spawn_item(r, "breach_charge");

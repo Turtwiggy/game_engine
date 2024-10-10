@@ -52,8 +52,10 @@ update_debug_map_system(entt::registry& r)
         d.colour = { 1.0f, 1.0f, 1.0f, 0.3f };
       if (dungeon_c.floor_types[i] == FloorType::WALL)
         d.colour = { 1.0f, 0.3f, 0.3f, 0.3f };
-      if (dungeon_c.floor_types[i] == FloorType::AIRLOCK)
+      if (dungeon_c.floor_types[i] == FloorType::AIRLOCK) {
         d.colour = { 1.0f, 1.0f, 0.3f, 0.3f };
+        continue;
+      }
 
       request_to_draw_at_position.push_back(d);
     }

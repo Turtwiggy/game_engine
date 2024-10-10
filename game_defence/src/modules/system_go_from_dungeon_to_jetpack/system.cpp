@@ -39,7 +39,7 @@ update_go_from_dungeon_to_jetpack_system(entt::registry& r)
     // it immediately updates in the map_c if it's valid. The entity is in the next cell.
     const auto lerp_info = r.get<LerpToFixedTarget>(e);
     int to_idx = engine::grid::worldspace_to_index(lerp_info.b, map_c.tilesize, map_c.xmax, map_c.ymax);
-    fmt::println("wants to leave (dungeon) at {}", to_idx);
+    SDL_Log("%s", std::format("wants to leave (dungeon) at {}", to_idx).c_str());
     auto& map_es = map_c.map[to_idx];
     const auto to_remove = [e](const entt::entity& other_e) { return other_e == e; };
     map_es.erase(std::remove_if(map_es.begin(), map_es.end(), to_remove), map_es.end());
@@ -48,7 +48,7 @@ update_go_from_dungeon_to_jetpack_system(entt::registry& r)
     r.emplace<MovementJetpackComponent>(e);
 
     // change from kinematic to dynamic
-    fmt::println("(dungeon => jetpack) setting bodytype to dynamic");
+    SDL_Log("%s", std::format("(dungeon => jetpack) setting bodytype to dynamic").c_str());
     r.get<PhysicsBodyComponent>(e).body->SetType(b2_dynamicBody);
     r.get<PhysicsBodyComponent>(e).body->SetAngularVelocity(0.0f);
     r.get<PhysicsBodyComponent>(e).body->SetLinearVelocity({ 0.0f, 0.0f });

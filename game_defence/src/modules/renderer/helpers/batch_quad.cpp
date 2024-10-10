@@ -6,7 +6,8 @@
 #include "engine/opengl/util.hpp"
 #include "modules/renderer/components.hpp"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace engine {
@@ -160,7 +161,7 @@ QuadRenderer::init()
   glBindTexture(GL_TEXTURE_BUFFER, tex);
   glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, tbo);
 
-  fmt::println("created texture object...");
+  SDL_Log("%s", std::format("created texture object...").c_str());
 };
 
 void

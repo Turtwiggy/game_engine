@@ -249,7 +249,7 @@ update_show_tiles_in_range_system(entt::registry& r)
     const auto& evts = get_first_component<SINGLE_Events>(r);
 
     if (get_key_down(input, SDL_SCANCODE_SPACE)) {
-      fmt::println("sending damage event...");
+      SDL_Log("%s", std::format("sending damage event...").c_str());
 
       for (const auto& tile : tiles) {
         if (gp_out_of_bounds(tile, map_c.xmax, map_c.ymax))

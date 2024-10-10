@@ -34,7 +34,7 @@ find_key_or_crash(const std::vector<T>& stuff, const std::string& key)
 {
   const auto it = std::find_if(stuff.begin(), stuff.end(), [&key](const T& item) { return item.name == key; });
   if (it == stuff.end()) {
-    fmt::println("unable to find key in std::vector<T>: {}", key);
+    SDL_Log("%s", std::format("unable to find key in std::vector<T>: {}", key).c_str());
     exit(1); // crash
   };
   return it;
@@ -281,7 +281,7 @@ spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, con
   set_position(r, floor_e, pos);
   set_size(r, floor_e, size);
   set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
-  set_z_index(r, floor_e, ZLayer::BACKGROUND);
+  set_z_index(r, floor_e, ZLayer::FLOOR);
   r.emplace<FloorComponent>(floor_e);
   return floor_e;
 };

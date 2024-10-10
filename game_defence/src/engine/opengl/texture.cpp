@@ -12,8 +12,9 @@ using namespace engine; // used for macro
 #include <thread>
 
 // std lib
+#include <SDL2/SDL_log.h>
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 #include <string>
 #include <utility>
 
@@ -42,7 +43,7 @@ load_texture_srgb(const int tex_unit, const std::string& path)
 
   // Check Stb texture loaded correctly
   if (!data) {
-    fmt::println("(error) failed to load texture: {}\n reason: {}", path, stbi_failure_reason());
+    SDL_Log("%s", std::format("(error) failed to load texture: {}\n reason: {}", path, stbi_failure_reason()).c_str());
     stbi_image_free(data);
     exit(1); // if a texture fails to load, explode!
   }
@@ -158,7 +159,7 @@ void
 engine::update_bound_texture_size(const glm::ivec2 size)
 {
   if (size.x <= 0 || size.y <= 0) {
-    fmt::println("(update_bound_texture_size) ERROR: Invalid resize for texture");
+    SDL_Log("%s", std::format("(update_bound_texture_size) ERROR: Invalid resize for texture").c_str());
     return;
   }
 
@@ -217,7 +218,7 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
   const auto tex_ids = add_textures_to_fbo(size, n_colour_buffers);
   CHECK_OPENGL_ERROR(1);
   if (opengl_error1) {
-    fmt::println("Error: failed tex_unit: {}", tex_unit);
+    SDL_Log("%s", std::format("Error: failed tex_unit: {}", tex_unit).c_str());
     exit(1); // explode
   }
 
@@ -229,7 +230,7 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
   delete[] attachments;
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    fmt::println("(FBO: {}) ERROR: Framebuffer not complete!", tex_unit);
+    SDL_Log("%s", std::format("(FBO: {}) ERROR: Framebuffer not complete!", tex_unit).c_str());
     CHECK_OPENGL_ERROR(2);
     exit(1); // explode
   }

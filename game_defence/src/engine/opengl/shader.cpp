@@ -6,13 +6,13 @@
 #include "engine/io/path.hpp"
 #include "engine/opengl/util.hpp"
 
-
 // other library headers
 #include "engine/deps/opengl.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 // c++ standard library headers
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 #include <fstream>
 #include <sstream>
 
@@ -28,13 +28,15 @@ check_compile_errors(unsigned int shader, std::string type, std::string path)
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-      fmt::println("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog);
+      SDL_Log("%s",
+              std::format("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog).c_str());
     }
   } else {
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
       glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-      fmt::println("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog);
+      SDL_Log("%s",
+              std::format("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog).c_str());
     }
   }
 }
@@ -44,10 +46,10 @@ reload_shader_program(unsigned int* id, const std::string& vert_path, const std:
 {
   // Create a new shader program from the given file names. Halt on failure.
   auto new_id = create_opengl_shader(vert_path, frag_path);
-  // fmt::println("reloading shader, new_id: {}", new_id);
+  // SDL_Log("%s", std::format("reloading shader, new_id: {}", new_id).c_str());
 
   if (new_id) {
-    // fmt::println("deleting old shader program");
+    // SDL_Log("%s", std::format("deleting old shader program").c_str());
     glDeleteProgram(*id);
     *id = new_id;
   }
@@ -104,7 +106,8 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
       codeFile.close();
 
     } catch (const std::ifstream::failure& e) {
-      fmt::println("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}, info: ", path, e.what());
+      SDL_Log("%s", std::format("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}, info: ", path, e.what()).c_str());
+
       exit(1);
     }
   }
@@ -157,7 +160,7 @@ void
 Shader::reload()
 {
   reload_shader_program(&ID, vert_path, frag_path);
-  // fmt::println("shader new id: {}", ID);
+  // SDL_Log("%s", std::format("shader new id: {}", ID).c_str());
 }
 
 void
@@ -239,7 +242,8 @@ Shader::get_uniform_binding_location(const std::string& name) const
   int loc = glGetUniformLocation(ID, name.c_str());
 
   if (loc == -1) {
-    fmt::println("ERROR: Location of uniform not found: {}", name.c_str());
+    SDL_Log("%s", std::format("ERROR: Location of uniform not found: {}", name).c_str());
+
     return -1;
   }
 

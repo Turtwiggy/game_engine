@@ -19,6 +19,14 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
   const auto info = get_entity_mapinfo(r, e);
   const auto src_idx = info->idx_in_map;
   const auto dst_idx = engine::grid::worldspace_to_index(dst_wp, map.tilesize, map.xmax, map.ymax);
+  const auto src_gp = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
+  const auto dst_gp = engine::grid::index_to_grid_position(dst_idx, map.xmax, map.ymax);
+
+  const auto area = generate_accessible_areas(r, map, { src_gp.x, src_gp.y }, 1);
+  const auto it = std::find(area.begin(), area.end(), dst_gp);
+  if (it != area.end()) {
+    // todo: finish
+  }
 
   // note: use pathfinding here instead of direct movement
   // so that edges are taken in to account and you cant go through walls
@@ -31,7 +39,7 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
   // move action...
   const bool moved = move_entity_on_map(r, e, next_idx);
   if (!moved) {
-    fmt::println("move_action_common(): entity didnt move...");
+    SDL_Log("%s", std::format("move_action_common(): entity didnt move...").c_str());
     return;
   }
 

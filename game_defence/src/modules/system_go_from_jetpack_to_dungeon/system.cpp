@@ -40,11 +40,11 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
 
     // Add entity to map_c when entering the dungeon
     const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
-    fmt::println("wants to join (dungeon) at {}", idx);
+    SDL_Log("%s", std::format("wants to join (dungeon) at {}", idx).c_str());
     add_entity_to_map(r, e, idx);
 
     // change from dynamic to kinematic
-    fmt::println("(jetpack => dungeon) setting bodytype to kinematic");
+    SDL_Log("%s", std::format("(jetpack => dungeon) setting bodytype to kinematic").c_str());
     r.get<PhysicsBodyComponent>(e).body->SetType(b2_kinematicBody);
     r.get<PhysicsBodyComponent>(e).body->SetLinearVelocity({ 0.0f, 0.0f });
     r.get<PhysicsBodyComponent>(e).body->SetAngularVelocity(0.0f);

@@ -4,9 +4,10 @@
 #include "engine/deps/opengl.hpp"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_log.h>
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_video.h>
-#include <fmt/core.h>
+#include <format>
 
 #include <stdexcept>
 #include <string>
@@ -30,9 +31,12 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   setvbuf(stdout, nullptr, _IONBF, 0); // dont buffer fmt::println
 #endif
 
-  fmt::println("Initializing SDL...");
-  fmt::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);
-  fmt::println("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch);
+  SDL_Log("%s", std::format("Initializing SDL...").c_str());
+  SDL_Log("%s",
+          std::format("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch)
+            .c_str());
+  SDL_Log("%s",
+          std::format("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch).c_str());
 
   // Initialize SDL -----------------------
 
@@ -40,19 +44,19 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
     SDL_SetMainReady();
 
     if (SDL_Init(0) != 0)
-      fmt::println("could not initialize SDL: ", SDL_GetError());
+      SDL_Log("%s", std::format("could not initialize SDL: %s", SDL_GetError()).c_str());
 
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
-      fmt::println("Could not initialize SDL Audio Subsystem: ", SDL_GetError());
+      SDL_Log("%s", std::format("Could not initialize SDL Audio Subsystem: %s", SDL_GetError()).c_str());
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
-      fmt::println("Could not initialize SDL Video Subsystem: ", SDL_GetError());
+      SDL_Log("%s", std::format("Could not initialize SDL Video Subsystem: %s", SDL_GetError()).c_str());
 
     if (SDL_InitSubSystem(SDL_INIT_TIMER) != 0)
-      fmt::println("Could not initialize SDL Timer Subsystem: ", SDL_GetError());
+      SDL_Log("%s", std::format("Could not initialize SDL Timer Subsystem: %s", SDL_GetError()).c_str());
 
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
-      fmt::println("Could not initialize SDL JoyStick Subsystem: ", SDL_GetError());
+      SDL_Log("%s", std::format("Could not initialize SDL JoyStick Subsystem: %s", SDL_GetError()).c_str());
   }
 
   // Get SDL Window requirements from Renderer
@@ -114,13 +118,14 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, tmp_w, tmp_h, flags);
   if (window == nullptr)
-    fmt::println("Failed to create SDL2 window: {}", SDL_GetError());
+    SDL_Log("%s", std::format("Failed to create SDL2 window: {}", SDL_GetError()).c_str());
 
   gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
 
   if (gl_context == NULL) {
-    fmt::println("OpenGL context could not be created! SDL Error: {}", SDL_GetError());
+    SDL_Log("%s", std::format("OpenGL context could not be created! SDL Error: {}", SDL_GetError()).c_str());
+
   } else {
 #if !defined(__EMSCRIPTEN__)
     // Initialize GLEW
@@ -128,7 +133,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
       const GLubyte* err = glewGetErrorString(glewError);
-      fmt::println("Error initializing GLEW! {}", reinterpret_cast<const char*>(err));
+      SDL_Log("%s", std::format("Error initializing GLEW! {}", reinterpret_cast<const char*>(err)).c_str());
     }
 #endif
   }
@@ -162,7 +167,8 @@ GameWindow::get_native_handles(void*& native_window) const
   SDL_SysWMinfo wmi;
   SDL_VERSION(&wmi.version);
   if (!SDL_GetWindowWMInfo(this->get_handle(), &wmi)) {
-    fmt::println("Failed getting native window handles: {}", SDL_GetError());
+    SDL_Log("%s", std::format("Failed getting native window handles: %s", SDL_GetError()).c_str());
+
     exit(0);
   }
 
@@ -180,7 +186,7 @@ GameWindow::get_native_handles(void*& native_window) const
 #endif // defined(SDL_VIDEO_DRIVER_COCOA)
 
   {
-    fmt::println("Unsupported platform: {}", std::to_string(wmi.subsystem));
+    SDL_Log("%s", std::format("Unsupported platform: %s", std::to_string(wmi.subsystem)).c_str());
     exit(0);
   }
 };
@@ -378,7 +384,7 @@ GameWindow::toggle_mouse_capture()
     set_mouse_captured(false);
     new_grab = false;
   }
-  fmt::println("(App) Mouse grabbed? : {}", new_grab);
+  SDL_Log("%s", std::format("(App) Mouse grabbed? : {}", new_grab).c_str());
 }
 
 glm::ivec2
@@ -501,10 +507,10 @@ GameWindow::set_icon(const std::string& path)
   );
 
   if (hIcon) {
-    fmt::println("setting icon...");
+    SDL_Log("%s", std::format("setting icon...").c_str());
     SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
   } else
-    fmt::println("unable to load icon...");
+    SDL_Log("%s", std::format("unable to load icon...").c_str());
 
     //
 #endif

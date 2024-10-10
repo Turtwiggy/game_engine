@@ -10,7 +10,8 @@
 #include "modules/map/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 #include <map>
 
 namespace game2d {
@@ -29,7 +30,7 @@ reconstruct_path(std::map<vec2i, vec2i> came_from, vec2i from, vec2i to)
     current = came_from[current];
 
     if (equal<vec2i>(copy, current)) {
-      fmt::println("(error) pathfinding hit a loop.");
+      SDL_Log("%s", std::format("(error) pathfinding hit a loop.").c_str());
       break;
     }
   }
@@ -84,7 +85,7 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
   while (frontier.size() > 0) {
 
     // if ((int)frontier.size() > (map_c.xmax * map_c.ymax)) {
-    //   fmt::println("highly likly pathfinding broke... ");
+    //   SDL_Log("%s", std::format("highly likly pathfinding broke... ").c_str());
     //   break;
     // }
 
@@ -128,7 +129,7 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
   return {};
 };
 
-[[nodiscard]] std::vector<glm::ivec2>
+std::vector<glm::ivec2>
 generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const vec2i from_pos, const int range)
 {
   std::map<vec2i, int> pos_to_distance;

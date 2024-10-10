@@ -194,10 +194,11 @@ imgui_draw_entity(entt::registry& r,        //
                   entt::entity& selected_e  //
 )
 {
-  ImGuiTreeNodeFlags flags = ((selected_e == e) ? ImGuiTreeNodeFlags_Selected : 0);
-  flags |= ImGuiTreeNodeFlags_OpenOnArrow;
-  flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-  bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)e, flags, "%s", label.c_str());
+  // ImGuiTreeNodeFlags flags = ((selected_e == e) ? ImGuiTreeNodeFlags_Selected : 0);
+  // flags |= ImGuiTreeNodeFlags_OpenOnArrow;
+  // flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+  // bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)e, flags, "%s", label.c_str());
+  ImGui::Selectable(label.c_str());
 
   if (ImGui::IsItemClicked())
     selected_e = e;

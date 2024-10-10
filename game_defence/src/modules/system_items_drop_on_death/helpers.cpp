@@ -30,13 +30,13 @@ drop_inventory_on_death_callback(entt::registry& r, const entt::entity e)
   remove_entity_from_map(r, info);
 
   // add inv to floor
-  fmt::println("todo: add drop inv logic");
+  SDL_Log("%s", std::format("todo: add drop inv logic").c_str());
 
   // DataDungeonLootbag loot_desc(inv);
   // loot_desc.pos = pos;
   // Factory_DataDungeonLootbag::create(r, loot_desc);
 
-  fmt::println("item add to map_idx: {} pos: {}", info.idx_in_map, info.idx_in_map_tile);
+  SDL_Log("%s", std::format("item add to map_idx: {} pos: {}", info.idx_in_map, info.idx_in_map_tile).c_str());
 };
 
 } // namespace game2d

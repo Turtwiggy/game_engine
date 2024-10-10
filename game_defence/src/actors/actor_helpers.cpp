@@ -22,7 +22,7 @@ get_position(entt::registry& r, const entt::entity e)
   return { t.position.x, t.position.y };
 };
 
-[[nodiscard]] glm::ivec2
+glm::ivec2
 get_grid_position(entt::registry& r, const entt::entity e)
 {
   const auto& map = get_first_component<MapComponent>(r);

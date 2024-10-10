@@ -11,7 +11,8 @@
 #include <SDL2/SDL_events.h>
 #include <imgui.h>
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 #include <vector>
 
 namespace game2d {
@@ -44,7 +45,7 @@ update_input_system(engine::SINGLE_Application& app, entt::registry& r)
 
       // const SDL_EventType type_enum = static_cast<SDL_EventType>(e.type);
       // const std::string type_name = std::string(magic_enum::enum_name(type_enum));
-      // fmt::println("event... {}", type_name);
+      // SDL_Log("%s", std::format("event... {}", type_name).c_str());
 
       // Events to quit
       if (e.type == SDL_QUIT)
@@ -58,10 +59,10 @@ update_input_system(engine::SINGLE_Application& app, entt::registry& r)
             break;
           }
           case SDL_WINDOWEVENT_FOCUS_GAINED:
-            fmt::println("Window {} gained keyboard focus", e.window.windowID);
+            SDL_Log("%s", std::format("Window {} gained keyboard focus", e.window.windowID).c_str());
             break;
           case SDL_WINDOWEVENT_FOCUS_LOST:
-            fmt::println("Window {} lost keyboard focus", e.window.windowID);
+            SDL_Log("%s", std::format("Window {} lost keyboard focus", e.window.windowID).c_str());
             break;
         }
       }
@@ -100,24 +101,24 @@ update_input_system(engine::SINGLE_Application& app, entt::registry& r)
         // SDL_HAT_DOWN
         // SDL_HAT_RIGHTDOWN
 
-        fmt::println("TODO: process joyhat button press");
+        SDL_Log("%s", std::format("TODO: process joyhat button press").c_str());
       }
 
       if (e.type == SDL_JOYDEVICEADDED) {
-        fmt::println("controller added");
+        SDL_Log("%s", std::format("controller added").c_str());
         process_controller_added(input);
       }
       if (e.type == SDL_JOYDEVICEREMOVED) {
-        fmt::println("controller removed");
+        SDL_Log("%s", std::format("controller removed").c_str());
         process_controller_removed(input);
       }
 
       if (e.type == SDL_AUDIODEVICEADDED) {
-        fmt::println("audio device added. iscapture: {}", e.adevice.iscapture);
+        SDL_Log("%s", std::format("audio device added. iscapture: {}", e.adevice.iscapture).c_str());
         // game2d::audio::sdl_mixer::process_audio_added(r);
       }
       if (e.type == SDL_AUDIODEVICEREMOVED) {
-        fmt::println("audio device removed. iscapture: {}", e.adevice.iscapture);
+        SDL_Log("%s", std::format("audio device removed. iscapture: {}", e.adevice.iscapture).c_str());
         // game2d::audio::sdl_mixer::process_audio_removed(r);
       }
     };

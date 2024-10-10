@@ -26,6 +26,7 @@ get_default_textures()
   add_tex("custom.png", "spritemap_custom.json");
   add_tex("organic2.jpg", "spritemap_default_1024.json");
   add_tex("logo.png", "spritemap_text_logo.json");
+  add_tex("ship_small_rusty.png", "spritemap_ship_small_rusty.json");
 
   return ri;
 };

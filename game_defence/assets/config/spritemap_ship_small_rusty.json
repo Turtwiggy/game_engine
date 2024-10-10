@@ -1,0 +1,14 @@
+{
+  "spritesheet": {
+    "name": "default_1024",
+    "px_total": 200,
+    "py_total": 300,
+    "px": 200,
+    "py": 300,
+    "nx": 1,
+    "ny": 1
+  },
+  "sprites": [
+    { "name": "ship_small_rusty", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] }
+  ]
+}

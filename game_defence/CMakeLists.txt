@@ -33,7 +33,14 @@ file(GLOB_RECURSE SRC_FILES
 )
 
 # Main executable
-add_executable(game_defence ${SRC_FILES})
+if(WIN32)
+  # apparently,
+  # "The WIN32 argument instructs the compiler to build a
+  # Windows GUI app, which doesn't show a console."
+  add_executable(game_defence WIN32 ${SRC_FILES} assets/textures/resource.rc)
+else()
+  add_executable(game_defence ${SRC_FILES})
+endif()
 
 link_libs(game_defence)
 

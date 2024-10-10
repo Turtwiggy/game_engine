@@ -12,7 +12,8 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 #include <string>
 
 namespace game2d {

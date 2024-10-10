@@ -1,6 +1,5 @@
 #include "door_system.hpp"
 
-#include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
@@ -36,7 +35,7 @@ update_door_system(entt::registry& r)
     //
     if (has_mobs) {
       if (auto* t_c = r.try_get<TransformComponent>(e)) {
-        // fmt::println("mobs... opening door");
+        // SDL_Log("%s", std::format("mobs... opening door").c_str());
         r.remove<Edge>(e); // allow pathfinding
         r.remove<TransformComponent>(e);
         r.remove<SpriteComponent>(e);
@@ -51,7 +50,7 @@ update_door_system(entt::registry& r)
     else {
       const auto* t_c = r.try_get<TransformComponent>(e);
       if (!t_c) {
-        // fmt::println("no mobs... shutting door");
+        // SDL_Log("%s", std::format("no mobs... shutting door").c_str());
         r.emplace<Edge>(e, door_c.edge_copy);
         instantiate_edge(r, e, map_c);
       }

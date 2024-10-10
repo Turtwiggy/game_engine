@@ -10,11 +10,12 @@
 #include "modules/actor_player/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
+#include <SDL2/SDL_log.h>
 #include <SDL2/SDL_mouse.h>
 #include <SDL_scancode.h>
 #include <box2d/b2_math.h>
 #include <box2d/box2d.h>
-#include <fmt/core.h>
+#include <format>
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -166,9 +167,8 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
     const auto* keyboard = r.try_get<KeyboardComponent>(entity);
     const auto* controller = r.try_get<ControllerComponent>(entity);
 
-    // const auto l = [](const InputEvent& e) { return (e.type == InputType::keyboard && e.state == InputState::release); };
-    // const bool release_key = std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
-    // if (release_key)
+    // const auto l = [](const InputEvent& e) { return (e.type == InputType::keyboard && e.state == InputState::release);
+    // }; const bool release_key = std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs); if (release_key)
     //   int k = 1;
 
     if (keyboard) {

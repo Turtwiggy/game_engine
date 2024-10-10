@@ -21,7 +21,8 @@ using namespace engine;
 #include <imgui.h>
 
 // std lib
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 #include <optional>
 #include <string>
 #include <thread>
@@ -53,10 +54,10 @@ launch_thread_after_x_frames()
       const auto work = []() { game2d::init_slow(app, game); };
       slow_thread = std::thread(work);
       done_init_slow = true;
-      fmt::println("spawning thread...");
+      SDL_Log("%s", std::format("spawning thread...").c_str());
     }
     if (slow_thread != std::nullopt && slow_thread.value().joinable()) {
-      fmt::println("joining thread...");
+      SDL_Log("%s", std::format("joining thread...").c_str());
       slow_thread.value().join();
       slow_thread = std::nullopt;
     }
@@ -114,28 +115,28 @@ main(int argc, char* argv[])
   IM_UNUSED(argv);
 
 #if (defined(WIN32) || defined(_WIN32))
-  fmt::println("Hello, Windows!");
+  SDL_Log("%s", std::format("Hello, Windows!").c_str());
   bool hide_windows_console = true;
   if (hide_windows_console) {
-    fmt::println("hiding console...");
+    SDL_Log("%s", std::format("hiding console...").c_str());
     engine::hide_windows_console();
   }
 #endif
 
 #if defined(__EMSCRIPTEN__)
-  fmt::println("Hello, Emscripten!");
+  SDL_Log("%s", std::format("Hello, Emscripten!").c_str());
 #endif
 
 #if defined(__EMSCRIPTEN_PTHREADS__)
-  fmt::println("Emscripten pthreads defined");
+  SDL_Log("%s", std::format("Emscripten pthreads defined").c_str());
 #endif
 
 #if defined(__APPLE__)
-  fmt::println("Hello, Apple!");
+  SDL_Log("%s", std::format("Hello, Apple!").c_str());
 #endif
 
 #if defined(__unix__)
-  fmt::println("Hello, Unix!");
+  SDL_Log("%s", std::format("Hello, Unix!").c_str());
 #endif
 
   // const auto start = std::chrono::high_resolution_clock::now();
@@ -166,7 +167,7 @@ main(int argc, char* argv[])
   CHECK_OPENGL_ERROR(0);
 
 #if defined(__EMSCRIPTEN__)
-  fmt::println("about to start main loop...");
+  SDL_Log("%s", std::format("about to start main loop...").c_str());
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
 

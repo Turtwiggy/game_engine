@@ -8,8 +8,9 @@
 #include <imgui_internal.h>
 #include <magic_enum.hpp>
 
+#include <SDL2/SDL_log.h>
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 
 namespace game2d {
 using namespace engine; // used for macro
@@ -159,7 +160,7 @@ search_for_texture_unit_by_spritesheet_path(const SINGLE_RendererInfo& ri, const
   if (result != ri.user_textures.end())
     return result->tex_unit;
 
-  fmt::println("unable to find tex unit for {}", search);
+  SDL_Log("%s", std::format("unable to find tex unit for {}", search).c_str());
   exit(1);
 };
 
@@ -184,7 +185,7 @@ search_for_renderpass_by_name(const SINGLE_RendererInfo& ri, const PassName& nam
     return static_cast<int>(it - ri.passes.begin());
 
   const auto type_name = std::string(magic_enum::enum_name(name));
-  fmt::println("no render pass of name: {}", type_name);
+  SDL_Log("%s", std::format("no render pass of name: {}", type_name).c_str());
   exit(1); // explode
 };
 

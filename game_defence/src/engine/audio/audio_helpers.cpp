@@ -1,7 +1,8 @@
 #include "audio_helpers.hpp"
 
+#include <SDL2/SDL_log.h>
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 
 namespace game2d {
 

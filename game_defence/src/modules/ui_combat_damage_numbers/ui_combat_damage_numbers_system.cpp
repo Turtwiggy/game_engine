@@ -9,8 +9,9 @@
 #include "modules/combat_scale_on_hit/helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
+#include <SDL2/SDL_log.h>
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 
 namespace game2d {
 using namespace std::literals;
@@ -30,7 +31,7 @@ handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
   entry.time_left = entry.time_left_max;
   buffer_c.entries.push_back(entry);
 
-  fmt::println("adding damage event for ui...");
+  SDL_Log("%s", std::format("adding damage event for ui...").c_str());
 };
 
 void

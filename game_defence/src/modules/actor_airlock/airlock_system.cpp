@@ -45,6 +45,8 @@ update_airlock_system(entt::registry& r)
 
     const auto door_north = airlock_c.door_north;
     const auto door_south = airlock_c.door_south;
+    const auto door_east = airlock_c.door_east;
+    const auto door_west = airlock_c.door_west;
 
     // Something entered the airlock...
     //
@@ -57,30 +59,33 @@ update_airlock_system(entt::registry& r)
       cooldown.time = cooldown.time_max;
       const auto& cooldown_c = r.emplace<CooldownComponent>(e, cooldown);
 
-      fmt::println("mob entered airlock... shutting doors");
+      SDL_Log("%s", std::format("mob entered airlock... shutting doors").c_str());
 
       // shut the doors
       auto* e_north = r.try_get<Edge>(door_north);
       auto* e_south = r.try_get<Edge>(door_south);
-      if (!e_north) {
-        const auto& door_c = r.get<DoorComponent>(door_north);
-        r.emplace<Edge>(door_north, door_c.edge_copy);
-        instantiate_edge(r, door_north, map_c);
-        r.remove<DoorComponent>(door_north); // disable doors
-      }
-      if (!e_south) {
-        const auto& door_c = r.get<DoorComponent>(door_south);
-        r.emplace<Edge>(door_south, door_c.edge_copy);
-        instantiate_edge(r, door_south, map_c);
-        r.remove<DoorComponent>(door_south); // disable doors
-      }
+      auto* e_east = r.try_get<Edge>(door_east);
+      auto* e_west = r.try_get<Edge>(door_west);
+
+      const auto helper = [&r, &map_c](Edge* e, entt::entity door) {
+        if (!e) {
+          const auto& door_c = r.get<DoorComponent>(door);
+          r.emplace<Edge>(door, door_c.edge_copy);
+          instantiate_edge(r, door, map_c);
+          r.remove<DoorComponent>(door); // disable doors
+        }
+      };
+      helper(e_north, door_north);
+      helper(e_south, door_south);
+      helper(e_east, door_east);
+      helper(e_west, door_west);
     }
 
     // Something left the airlock...
     //
     if (!mobs_in_airlock && airlock_c.mob_in_airlock != entt::null) {
       airlock_c.mob_in_airlock = entt::null;
-      fmt::println("mob exited airlock...");
+      SDL_Log("%s", std::format("mob exited airlock...").c_str());
     }
 
     // If the airlock is full...
@@ -91,12 +96,14 @@ update_airlock_system(entt::registry& r)
       //
       auto* cooldown_c = r.try_get<CooldownComponent>(e);
       if (cooldown_c && cooldown_c->time <= 0.0f) {
-        fmt::println("airlock releasing...");
+        SDL_Log("%s", std::format("airlock releasing...").c_str());
         r.remove<CooldownComponent>(e);
 
         // allow doors to open
         r.emplace<DoorComponent>(airlock_c.door_north, DoorComponent{ airlock_c.north_edge_copy });
         r.emplace<DoorComponent>(airlock_c.door_south, DoorComponent{ airlock_c.south_edge_copy });
+        r.emplace<DoorComponent>(airlock_c.door_east, DoorComponent{ airlock_c.east_edge_copy });
+        r.emplace<DoorComponent>(airlock_c.door_west, DoorComponent{ airlock_c.west_edge_copy });
       }
     }
   }

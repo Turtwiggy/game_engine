@@ -44,7 +44,7 @@ const auto check_for_duplicates = [](entt::registry& r) {
 
     auto dupl_it = std::find(processed.begin(), processed.end(), edge);
     if (dupl_it != processed.end())
-      fmt::println("gen error: duplicate edge...");
+      SDL_Log("%s", std::format("gen error: duplicate edge...").c_str());
 
     processed.push_back(edge);
   }
@@ -139,31 +139,35 @@ generate_airlocks(entt::registry& r, MapComponent& map, const DungeonIntermediat
 
       // create edge in all 4 directions
       const auto e = create_empty<Edge>(r, edge);
+      r.emplace<DoorComponent>(e, DoorComponent{ edge });
 
-      // set the airlock to have 2 doors: north and south
       if (dir == engine::grid::GridDirection::north) {
-        r.emplace<DoorComponent>(e, DoorComponent{ edge });
         airlock_c.north_edge_copy = edge;
         airlock_c.door_north = e;
       } else if (dir == engine::grid::GridDirection::south) {
-        r.emplace<DoorComponent>(e, DoorComponent{ edge });
         airlock_c.south_edge_copy = edge;
         airlock_c.door_south = e;
+      } else if (dir == engine::grid::GridDirection::east) {
+        airlock_c.east_edge_copy = edge;
+        airlock_c.door_east = e;
+      } else if (dir == engine::grid::GridDirection::west) {
+        airlock_c.west_edge_copy = edge;
+        airlock_c.door_west = e;
       }
     }
 
     //
     const auto pos = engine::grid::index_to_world_position_center((int)idx, map.xmax, map.ymax, map.tilesize);
     const auto gp = engine::grid::index_to_grid_position((int)idx, map.xmax, map.ymax);
-    const auto e = create_transform(r, "airlock");
-    r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
-    r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, "EMPTY");
-    set_position(r, e, pos);
-    set_size(r, e, { map.tilesize, map.tilesize });
-    set_colour(r, e, r.get<DefaultColour>(e).colour);
-    set_z_index(r, e, ZLayer::BACKGROUND);
+    const auto e = create_transform(r, "Airlock");
     r.emplace<AirlockComponent>(e, airlock_c);
+    set_position(r, e, pos);
+    // r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
+    // r.emplace<SpriteComponent>(e);
+    // set_sprite(r, e, "EMPTY");
+    // set_size(r, e, { map.tilesize, map.tilesize });
+    // set_colour(r, e, r.get<DefaultColour>(e).colour);
+    // set_z_index(r, e, ZLayer::BACKGROUND);
     map.map[engine::grid::grid_position_to_index(gp, map.xmax)].push_back(e);
 
     // Make it it's own room?
@@ -203,15 +207,15 @@ instantiate_edge(entt::registry& r, entt::entity e, const MapComponent& map_c)
   // spawn_wall()
   // convert Edge to Wall (i.e. add physics and stuff)
   r.emplace<TransformComponent>(e);
-  r.emplace<SpriteComponent>(e);
-  set_sprite(r, e, "EMPTY");
+  // r.emplace<SpriteComponent>(e);
+  // set_sprite(r, e, "EMPTY");
   set_size(r, e, new_size);
   create_physics_actor_static(r, e, center, new_size);
 
-  if (auto* door_c = r.try_get<DoorComponent>(e))
-    set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
-  else
-    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  // if (auto* door_c = r.try_get<DoorComponent>(e))
+  //   set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+  // else
+  //   set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
 
   r.emplace_or_replace<LightOccluderComponent>(e);
   // r.emplace<DestroyBulletOnCollison>(e);
@@ -234,7 +238,7 @@ update_map_with_pathfinding(entt::registry& r, MapComponent& map, DungeonInterme
       const auto e = create_empty<PathfindComponent>(r, { PathfindComponent{ -1 } });
 
       if (map.map[idx].size() != 0) {
-        fmt::println("ERROR: wall index isnt empty");
+        SDL_Log("%s", std::format("ERROR: wall index isnt empty").c_str());
         exit(1); // crash
       }
 

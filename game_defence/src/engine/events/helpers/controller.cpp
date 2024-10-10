@@ -4,7 +4,8 @@
 #include "engine/maths/maths.hpp"
 
 #include <SDL2/SDL.h>
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 
 namespace game2d {
 
@@ -12,7 +13,7 @@ void
 open_controllers(SINGLE_InputComponent& input)
 {
   const int controllers = SDL_NumJoysticks();
-  fmt::println("(InputManager) controllers available: {}", controllers);
+  SDL_Log("%s", std::format("(InputManager) controllers available: {}", controllers).c_str());
 
   for (int i = 0; i < controllers; ++i) {
     if (SDL_IsGameController(i)) {
@@ -20,9 +21,9 @@ open_controllers(SINGLE_InputComponent& input)
       SDL_GameController* controller = SDL_GameControllerOpen(i);
       if (controller) {
         input.controllers.push_back(controller);
-        fmt::println("(InputManager) controller loaded... {}", i);
+        SDL_Log("%s", std::format("(InputManager) controller loaded... {}", i).c_str());
       } else {
-        fmt::println("Could not open gamecontroller {}, error: {}", i, SDL_GetError());
+        SDL_Log("%s", std::format("Could not open gamecontroller {}, error: {}", i, SDL_GetError()).c_str());
       }
     }
   }
@@ -31,7 +32,7 @@ open_controllers(SINGLE_InputComponent& input)
 void
 process_controller_added(SINGLE_InputComponent& input)
 {
-  fmt::println("controller added... processing");
+  SDL_Log("%s", std::format("controller added... processing").c_str());
 
   for (auto* controller : input.controllers) {
     if (controller)
@@ -45,7 +46,7 @@ process_controller_added(SINGLE_InputComponent& input)
 void
 process_controller_removed(SINGLE_InputComponent& input)
 {
-  fmt::println("controller removed... processing");
+  SDL_Log("%s", std::format("controller removed... processing").c_str());
 
   for (auto* controller : input.controllers) {
     if (controller)
@@ -84,7 +85,7 @@ process_button_up(SINGLE_InputComponent& input, const SDL_JoystickID& id, const 
   input.unprocessed_inputs.push_back(e);
 };
 
-[[nodiscard]] bool
+bool
 get_button_down(const SINGLE_InputComponent& input, SDL_GameController* c, const SDL_GameControllerButton& b)
 {
   const auto& in = input.button_down;
@@ -97,7 +98,7 @@ get_button_down(const SINGLE_InputComponent& input, SDL_GameController* c, const
   return pressed != in.end();
 }
 
-[[nodiscard]] bool
+bool
 get_button_up(const SINGLE_InputComponent& input, SDL_GameController* c, const SDL_GameControllerButton& b)
 {
   const auto& in = input.button_released;

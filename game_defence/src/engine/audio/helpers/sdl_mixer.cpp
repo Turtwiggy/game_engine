@@ -3,8 +3,9 @@
 #include "engine/audio/audio_components.hpp"
 
 #include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_log.h>
 #include <SDL2/SDL_mixer.h>
-#include <fmt/core.h>
+#include <format>
 
 namespace game2d {
 
@@ -38,23 +39,25 @@ stop_all_audio(entt::registry& r)
 void
 process_audio_added(entt::registry& r)
 {
-  fmt::println("TODO: implement audio device added");
+  SDL_Log("%s", std::format("TODO: implement audio device added").c_str());
 
-  fmt::println("~~~~ Devices ~~~~");
+  SDL_Log("%s", std::format("~~~~ Devices ~~~~").c_str());
   for (const auto& device : list_devices())
-    fmt::println("{}", device);
-  fmt::println("~~~~~~~~~~~~~~~~~");
+    SDL_Log("%s", std::format("{}", device).c_str());
+
+  SDL_Log("%s", std::format("~~~~~~~~~~~~~~~~~").c_str());
 };
 
 void
-process_audio_removed(entt::registry& r)
-{
-  fmt::println("TODO: implement audio device removed");
+process_audio_removed(entt::registry& r) {
+  // SDL_Log("%s", std::format("TODO: implement audio device removed").c_str());
 
-  fmt::println("~~~~ Devices ~~~~");
-  for (const auto& device : list_devices())
-    fmt::println("{}", device);
-  fmt::println("~~~~~~~~~~~~~~~~~");
+  // SDL_Log("%s", std::format("~~~~ Devices ~~~~").c_str());
+  // for (const auto& device : list_devices()) {
+  //   // const std::string msg = std::format("%i", device);
+  //   // SDL_Log("%s", msg.c_str());
+  // }
+  // SDL_Log("%s", std::format("~~~~~~~~~~~~~~~~~").c_str());
 };
 
 } // namespace audio

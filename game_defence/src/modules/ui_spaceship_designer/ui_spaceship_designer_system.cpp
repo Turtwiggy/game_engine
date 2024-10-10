@@ -10,6 +10,8 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -18,6 +20,7 @@
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
@@ -59,6 +62,25 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 
     DungeonIntermediate results;
     results.floor_types.resize(map.xmax * map.ymax, FloorType::WALL); // all walls
+
+    // hack: default as a small ship
+    results.floor_types[25] = FloorType::FLOOR;
+    results.floor_types[26] = FloorType::FLOOR;
+    results.floor_types[27] = FloorType::AIRLOCK;
+    results.floor_types[49] = FloorType::FLOOR;
+    results.floor_types[50] = FloorType::FLOOR;
+    results.floor_types[73] = FloorType::FLOOR;
+    results.floor_types[74] = FloorType::FLOOR;
+    results.floor_types[97] = FloorType::FLOOR;
+    results.floor_types[98] = FloorType::FLOOR;
+    results.floor_types[121] = FloorType::FLOOR;
+    results.floor_types[122] = FloorType::FLOOR;
+
+    Room bridge;
+    bridge.tiles_idx = { 25, 26 };
+    auto bridge_e = create_empty<Room>(r, bridge);
+    r.emplace<RoomName>(bridge_e, "Bridge");
+
     create_empty<DungeonIntermediate>(r, results);
   }
 
@@ -95,6 +117,14 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       instantiate_floors(r, map_c, results_c);
     }
     destroy_first<DungeonIntermediate>(r); // consider it "processed"
+
+    // create a transform
+    auto e = create_transform(r, "ship-small");
+    r.emplace<SpriteComponent>(e);
+    set_sprite(r, e, "ship_small_rusty");
+    set_size(r, e, { 200, 300 });
+    set_position(r, e, { 100, 150 });
+    set_z_index(r, e, ZLayer::BACKGROUND);
   }
 
   if (ImGui::Button("Add jetpack player")) {
@@ -199,8 +229,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       ImGui::Text("%s", label.c_str());
   }
 
-  static std::optional<int> selected_tile_idx = std::nullopt;
-
   auto dungeon_e = get_first<DungeonIntermediate>(r);
   if (dungeon_e != entt::null) {
     auto& dungeon_c = r.get<DungeonIntermediate>(dungeon_e);
@@ -232,54 +260,55 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       add_entity_to_map(r, part_e, mouse_idx);
     }
 
-    if (get_mouse_lmb_press() && ri.viewport_hovered)
-      selected_tile_idx = mouse_idx;
-    if (get_mouse_rmb_press())
-      selected_tile_idx = std::nullopt;
+    static std::set<int> selected_tile_idxs;
 
-    if (selected_tile_idx.has_value())
-      ImGui::Text("selected tile: %i", selected_tile_idx.value());
-    else
-      ImGui::Text("selected tile: (none)");
+    if (get_mouse_lmb_press() && ri.viewport_hovered)
+      selected_tile_idxs.emplace(mouse_idx);
+    if (get_mouse_rmb_press())
+      selected_tile_idxs.clear();
+
+    ImGui::Text("Selected tiles: ");
+    for (const auto idx : selected_tile_idxs) {
+      ImGui::SameLine();
+      ImGui::Text("%i, ", idx);
+    }
 
     //
-    if (selected_tile_idx.has_value()) {
-      const auto idx = selected_tile_idx.value();
+    for (const auto idx : selected_tile_idxs) {
       const auto gp = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
       const auto in_rooms = inside_room(r, gp);
       ImGui::Text("%i in_rooms: %zu", idx, in_rooms.size());
       for (const auto room_e : in_rooms)
         ImGui::Text("in_room_eid: %i", static_cast<int>(room_e));
 
-      // Adds the tile to a room... note: not currently doing any validation
-      for (const auto& [e, room_c] : r.view<Room>().each()) {
-        const uint32_t eid = static_cast<uint32_t>(e);
-        ImGui::PushID(eid);
-        const std::string label = std::format("Add");
-        if (ImGui::Button(label.c_str()))
-          room_c.tiles_idx.push_back(idx);
-        ImGui::SameLine();
-        ImGui::Text("Room EID: %i, tiles_idx: %zu", eid, room_c.tiles_idx.size());
-        ImGui::PopID();
-      }
+      // TODO: convert selected tile in to e.g. airlock
+      // const auto& raws = get_first_component<Raws>(r);
+      // std::vector<std::string> labels;
+      // for (const auto& ship_part : raws.ship_parts)
+      //   labels.push_back(ship_part.name);
+      // static int select_part_idx = 0;
+      // WomboComboIn combo_in(labels);
+      // combo_in.label = "SelectShipPart";
+      // combo_in.current_index = static_cast<int>(select_part_idx);
+      // WomboComboOut combo_out = draw_wombo_combo(combo_in);
+      // if (combo_in.current_index != combo_out.selected) {
+      //   select_part_idx = combo_out.selected;
+      //   // todo: convert the tile...?
+      //   SDL_Log("%s", std::format("tile wants to be a: {}", labels[select_part_idx]).c_str());
+      // r.get<TagComponent>(e).tag = labels[select_part_idx];
+      // }
+    }
 
-      // TODO: convert selected tile in to airlock
-      const auto& raws = get_first_component<Raws>(r);
-      std::vector<std::string> labels;
-      for (const auto& ship_part : raws.ship_parts)
-        labels.push_back(ship_part.name);
-      static int select_part_idx = 0;
-      WomboComboIn combo_in(labels);
-      combo_in.label = "SelectShipPart";
-      combo_in.current_index = static_cast<int>(select_part_idx);
-      WomboComboOut combo_out = draw_wombo_combo(combo_in);
-      if (combo_in.current_index != combo_out.selected) {
-        select_part_idx = combo_out.selected;
-        // todo: convert the tile...?
-        fmt::println("tile wants to be a: {}", labels[select_part_idx]);
-
-        // r.get<TagComponent>(e).tag = labels[select_part_idx];
-      }
+    // Adds selected tiles to room... note: not currently doing any validation
+    for (const auto& [e, room_c] : r.view<Room>().each()) {
+      const uint32_t eid = static_cast<uint32_t>(e);
+      ImGui::PushID(eid);
+      const std::string label = std::format("Add all selected to room");
+      if (ImGui::Button(label.c_str()))
+        room_c.tiles_idx.insert(room_c.tiles_idx.end(), selected_tile_idxs.begin(), selected_tile_idxs.end());
+      ImGui::SameLine();
+      ImGui::Text("Room EID: %i, tiles_idx: %zu", eid, room_c.tiles_idx.size());
+      ImGui::PopID();
     }
   }
 

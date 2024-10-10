@@ -16,6 +16,7 @@ uniform sampler2D tex_blueberry_dark;
 uniform sampler2D tex_custom;
 uniform sampler2D tex_organic2;
 uniform sampler2D tex_logo;
+uniform sampler2D tex_ship_small_rusty;
 
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
@@ -126,7 +127,7 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+2){
-      out_colour *= texture(tex_blueberry_dark, sprite_uv);
+      out_colour *= texture(tex_blueberry_dark, v_uv);
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+3){
@@ -134,11 +135,15 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+4){
-      out_colour *= texture(tex_organic2, sprite_uv);
+      out_colour *= texture(tex_organic2, v_uv);
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+5){
-      out_colour *= texture(tex_logo, sprite_uv);
+      out_colour *= texture(tex_logo, v_uv);
+      return; // texture uses 0, 0
+    }
+    else if(index == RENDERER_TEX_UNIT_COUNT+6){
+      out_colour *= texture(tex_ship_small_rusty, v_uv);
       return; // texture uses 0, 0
     }
 

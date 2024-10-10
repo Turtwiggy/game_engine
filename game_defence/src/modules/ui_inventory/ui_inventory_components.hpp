@@ -92,7 +92,7 @@ struct DefaultInventory
     inv.resize(size);
     for (int i = 0; i < size; i++)
       inv[i] = create_empty<InventorySlotComponent>(r, InventorySlotComponent{ InventorySlotType::backpack });
-    fmt::println("created inventory... size: {}", size);
+    SDL_Log("%s", std::format("created inventory... size: {}", size).c_str());
   }
 };
 

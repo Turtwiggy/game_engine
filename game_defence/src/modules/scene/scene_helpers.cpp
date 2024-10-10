@@ -61,7 +61,7 @@ void
 move_to_scene_start(entt::registry& r, const Scene& s)
 {
   const auto scene_name = std::string(magic_enum::enum_name(s));
-  fmt::println("going to scene: {}", scene_name);
+  SDL_Log("%s", std::format("going to scene: {}", scene_name).c_str());
 
   for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
     const auto& [e] = ent_tuple;
@@ -219,7 +219,7 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
   };
 
   const auto scene_name = std::string(magic_enum::enum_name(s));
-  fmt::println("additive scene. scene set to: {}", scene_name);
+  SDL_Log("%s", std::format("additive scene. scene set to: {}", scene_name).c_str());
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   scene.s = s; // done

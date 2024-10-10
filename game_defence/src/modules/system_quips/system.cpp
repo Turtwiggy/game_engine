@@ -179,7 +179,7 @@ update_quips_system(entt::registry& r)
     else if (quip_c.type == QuipType::TOOK_DAMAGE)
       quip = get_quip(quips.quips_hit_unused);
     else
-      fmt::println("WARNING: not implemented quip scenario");
+      SDL_Log("%s", std::format("WARNING: not implemented quip scenario").c_str());
 
     create_imgui_quip(r, e_to_quip, quip_c, quip);
 

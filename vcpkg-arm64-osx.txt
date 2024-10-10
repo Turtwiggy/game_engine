@@ -1,5 +1,4 @@
 box2d
-fmt
 glew
 glm
 gtest

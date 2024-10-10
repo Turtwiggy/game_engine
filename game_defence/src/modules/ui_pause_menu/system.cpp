@@ -17,8 +17,9 @@
 #include <SDL2/SDL_mixer.h>
 #include <imgui.h>
 
+#include <SDL2/SDL_log.h>
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 #include <iterator>
 #include <magic_enum.hpp>
 #include <vector>
@@ -143,7 +144,7 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
     const auto wc_out = draw_wombo_combo(wc_in);
 
     if (wc_out.selected != idx) {
-      fmt::println("changing resolution");
+      SDL_Log("%s", std::format("changing resolution").c_str());
       idx = wc_out.selected;
       app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
     }
@@ -157,7 +158,7 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
 
         if (ImGui::SliderFloat("##max_volume", &audio.volume_user, 0.0f, 1.0f, "%.2f")) {
           audio.volume_internal = static_cast<int>(MIX_MAX_VOLUME * audio.volume_user);
-          fmt::println("setting volume: {}", audio.volume_internal);
+          SDL_Log("%s", std::format("setting volume: {}", audio.volume_internal).c_str());
           for (int i = 0; i < audio.max_audio_sources; i++)
             Mix_Volume(i, audio.volume_internal);
         }

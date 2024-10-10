@@ -103,13 +103,13 @@ ui_mute_sound_icon(entt::registry& r)
 
   // toggle: mute to unmute. play menu theme.
   if (toggle_changed && mute == 0) {
-    fmt::println("unmute all");
+    SDL_Log("%s", std::format("unmute all").c_str());
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
   }
 
   // toggle: unmute to mute. stop all music.
   if (toggle_changed && mute == 1) {
-    fmt::println("muted all");
+    SDL_Log("%s", std::format("muted all").c_str());
     audio::sdl_mixer::stop_all_audio(r);
   }
 

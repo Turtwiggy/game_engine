@@ -7,8 +7,9 @@
 #include <SDL2/SDL_gamecontroller.h>
 #include <imgui.h>
 
+#include <SDL2/SDL_log.h>
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 
 namespace game2d {
 
@@ -33,7 +34,7 @@ update_ui_controller_system(entt::registry& r)
 
     std::string label = std::string("remove-controller##") + std::to_string(i);
     if (ImGui::Button(label.c_str())) {
-      fmt::println("removing controller...");
+      SDL_Log("%s", std::format("removing controller...").c_str());
       SDL_GameControllerClose(c);
       auto it = std::find(input.controllers.begin(), input.controllers.end(), c);
       input.controllers.erase(it);

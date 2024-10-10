@@ -8,8 +8,9 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "engine/entt/helpers.hpp"
+#include <SDL2/SDL_log.h>
 #include <entt/entt.hpp>
-#include <fmt/core.h>
+#include <format>
 #include <imgui.h>
 
 #include <map>
@@ -35,16 +36,16 @@ init_audio_system(entt::registry& r)
   const char* device_name = SDL_GetAudioDeviceName(device_index, 0);
   if (device_name == nullptr) {
 
-    fmt::println("No Default Audio Device enabled. Not loading sounds.");
+    SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
     audio.loaded = true;
     return; // no available devices
   }
-  fmt::println("Using audiodevice: {}", device_name);
+  SDL_Log("%s", std::format("Using audiodevice: %s", device_name).c_str());
   audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, device_name, 0);
 
   // Check if that worked.
   if (audio.captured_device_id == -1) {
-    fmt::println("No Default Audio Device enabled. Not loading sounds.");
+    SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
     return;
   }
 
@@ -52,7 +53,7 @@ init_audio_system(entt::registry& r)
   const int request_channels = 16;
   Mix_AllocateChannels(request_channels);
   audio.max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
-  fmt::println("Audio sources to create: {}", audio.max_audio_sources);
+  SDL_Log("%s", std::format("Audio sources to create: %i", audio.max_audio_sources).c_str());
   for (int i = 0; i < audio.max_audio_sources; i++) {
     create_persistent<AudioSource>(r, AudioSource(i));
 
@@ -60,17 +61,17 @@ init_audio_system(entt::registry& r)
     Mix_Volume(i, audio.volume_internal);
   }
 
-  fmt::println("Loading audio...");
+  SDL_Log("%s", std::format("Loading audio...").c_str());
   for (auto& file : audio.sounds) {
     auto* sound = Mix_LoadWAV(file.path.c_str());
     if (!sound) {
-      fmt::println("Failed to load sound: {}, {}", file.path, Mix_GetError());
+      SDL_Log("%s", std::format("Failed to load sound: %s, %s", file.path.c_str(), Mix_GetError()).c_str());
       continue;
     }
     file.buffer = sound;
   }
 
-  fmt::println("Loaded audio.");
+  SDL_Log("%s", std::format("Loaded audio.").c_str());
   audio.loaded = true;
 }
 
@@ -128,7 +129,8 @@ update_audio_system(entt::registry& r)
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
 
     if (free_audio_sources.size() == 0) {
-      fmt::println("No free audio sources! Missed request for: {}", tag);
+      SDL_Log("%s", std::format("No free audio sources! Missed request for: {}", tag).c_str());
+
       continue;
     }
 
@@ -139,7 +141,7 @@ update_audio_system(entt::registry& r)
     const Sound s = get_sound(audio, request.tag);
     const int channel = Mix_PlayChannel(audio_source.channel, s.buffer, request.looping ? -1 : 0);
     if (channel != audio_source.channel) {
-      fmt::println("Warning: sound playing on incorrect channel");
+      SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());
     }
 
     // process request

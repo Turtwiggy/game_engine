@@ -2,13 +2,12 @@
 
 #include "engine/renderer/transform.hpp"
 
+#include <SDL2/SDL_log.h>
 #include <entt/entt.hpp>
-#include <fmt/core.h>
 
 #include <format>
 #include <optional>
 #include <string>
-#include <typeinfo>
 
 namespace game2d {
 
@@ -75,7 +74,7 @@ get_first_component(entt::registry& r)
   if (e == entt::null) {
     const std::string name = typeid(T).name();
     const std::string err = std::format("get_first_component<{}>() missing", name);
-    fmt::println("Error: {}", err);
+    SDL_Log("%s", std::format("Error: {}", err).c_str());
     throw std::runtime_error(err);
     exit(1); // crash
   }

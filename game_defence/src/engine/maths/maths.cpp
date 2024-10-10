@@ -2,11 +2,12 @@
 // header
 #include "engine/maths/maths.hpp"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 
 namespace engine {
 
-[[nodiscard]] float
+float
 deg2rad(const float& deg)
 {
   return (deg * engine::PI) / 180.0f;
@@ -69,7 +70,7 @@ encode_cantor_pairing_function(int x, int y)
   // then sort a and b before applying the pairing function.
 
   if (x < 0 || y < 0) {
-    fmt::println("encode cantor pairing function not implemented negative ints");
+    SDL_Log("%s", std::format("encode cantor pairing function not implemented negative ints").c_str());
     exit(1); // crash
   }
 

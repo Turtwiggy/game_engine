@@ -5,8 +5,9 @@
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 
+#include <SDL2/SDL_log.h>
 #include <box2d/b2_math.h>
-#include <fmt/core.h>
+#include <format>
 
 namespace game2d {
 

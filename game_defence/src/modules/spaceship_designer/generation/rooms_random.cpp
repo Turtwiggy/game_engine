@@ -107,7 +107,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
       continue;
     const auto& w = gen_room_width;
     const auto& h = gen_room_height;
-    fmt::println("gen room. size: {}, {} at {}, {}", w, h, room.tl.value().x, room.tl.value().y);
+    SDL_Log("%s", std::format("gen room. size: {}, {} at {}, {}", w, h, room.tl.value().x, room.tl.value().y).c_str());
 
     // update_wall_of_floors_bitmap
     auto create_room = [](const Room& room, std::vector<FloorType>& wall_or_floors, const int xmax) {
@@ -141,7 +141,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 };
 
 // i.e. take all the isolated islands of floor tiles and convert them in to the room representation
-[[nodiscard]] std::vector<int>
+std::vector<int>
 convert_floor_islands_to_room(entt::registry& r,
                               const MapComponent& map_c,
                               const int from_idx,
@@ -203,7 +203,7 @@ convert_tunnels_to_rooms(entt::registry& r, const DungeonIntermediate& results)
     std::vector<int> room_idxs = convert_floor_islands_to_room(r, map_c, xy, results);
     if (room_idxs.size() == 0)
       continue;
-    fmt::println("connected room found of size: {}", room_idxs.size());
+    SDL_Log("%s", std::format("connected room found of size: {}", room_idxs.size()).c_str());
 
     Room room;
     room.tiles_idx = room_idxs;

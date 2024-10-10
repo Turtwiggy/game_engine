@@ -61,7 +61,8 @@ create_o2_particle(entt::registry& r, entt::entity dead_e)
   desc.colour = engine::SRGBColour{ 0.9f, 0.9f, 0.9f, 0.9f };
   auto particle_e = Factory_DataParticleEmitter::create(r, desc);
 
-  fmt::println("spawning particle emitter due to blown up edge at {} {}", halfway_pos.x, halfway_pos.y);
+  SDL_Log("%s", std::format("spawning particle emitter due to blown up edge at {} {}", halfway_pos.x,
+halfway_pos.y).c_str());
 }
 */
 
@@ -80,7 +81,7 @@ add_bomb_callback(entt::registry& r, const entt::entity add_to_e)
     auto& map = get_first_component<MapComponent>(r);
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
     const auto gp = engine::grid::worldspace_to_grid_space(pos, map.tilesize);
-    // fmt::println("go boom at {}, {}. gp: {}, {}", pos.x, pos.y, gp.x, gp.y);
+    // SDL_Log("%s", std::format("go boom at {}, {}. gp: {}, {}", pos.x, pos.y, gp.x, gp.y).c_str());
 
     // Have to use gridpos not index, because gridpos {-1, 12} is valid for a bomb to be placed
     // but if that was convertd to an index it would wrap round the value and be too large.
@@ -90,7 +91,7 @@ add_bomb_callback(entt::registry& r, const entt::entity add_to_e)
       if (edge_e == entt::null)
         continue; // no edge
       const Edge& edge = r.get<Edge>(edge_e);
-      fmt::println("removing edge..");
+      SDL_Log("%s", std::format("removing edge..").c_str());
 
       // destroy body immediately
       auto& physics_b = r.get<PhysicsBodyComponent>(edge_e).body;
@@ -123,7 +124,7 @@ debug_spawn_bombs(entt::registry& r, const glm::ivec2& mouse_pos_on_grid)
 #endif
 
   // if (imediately_place_bomb && get_mouse_lmb_press()) {
-  //   // fmt::println("immediately placing bomb...");
+  //   // SDL_Log("%s", std::format("immediately placing bomb...").c_str());
   //   // DataBreachCharge desc;
   //   // desc.pos = glm::vec2(mouse_pos_on_grid);
   //   // const auto charge_e = Factory_DataBreachCharge::create(r, desc);

@@ -15,7 +15,8 @@
 #include "imgui.h"
 #include <magic_enum.hpp>
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 
 namespace game2d {
 

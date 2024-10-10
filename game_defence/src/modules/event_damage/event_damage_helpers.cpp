@@ -10,7 +10,9 @@
 #include "modules/system_particles/components.hpp"
 #include "modules/system_quips/components.hpp"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <fmt/format.h>
+#include <format>
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -54,7 +56,7 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
 
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
-    // fmt::println("handle_damage_event(): to_e has no HealthComponent");
+    // SDL_Log("%s", std::format("handle_damage_event(): to_e has no HealthComponent").c_str());
     return;
   }
 
@@ -68,8 +70,8 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
 
   const auto a_name = std::string(r.get<TagComponent>(from_e).tag);
   const auto b_name = std::string(r.get<TagComponent>(to_e).tag);
-  const auto message = fmt::format("({}) atk ({}) for {}", a_name, b_name, damage);
-  fmt::println("{}", message);
+  const auto message = std::format("({}) atk ({}) for {}", a_name, b_name, damage);
+  SDL_Log("%s", std::format("%s", message.c_str()).c_str());
 
   // .. take damage
   hp->hp -= static_cast<int>(glm::max(0.0f, damage));
@@ -79,8 +81,9 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
     dead.dead.emplace(to_e);
 
-    const auto str = fmt::format("{} died.", b_name);
-    fmt::println("{}", str);
+    const auto str = std::format("{} died.", b_name);
+    SDL_Log("%s", str.c_str());
+
     additional_misc_death_events(r, to_e);
   }
 };

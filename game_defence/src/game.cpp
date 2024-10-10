@@ -62,7 +62,8 @@
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 
 namespace game2d {
 using namespace std::literals;
@@ -188,7 +189,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_move_player_on_map_system(r);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 #if defined(_DEBUG)
-    update_debug_map_system(r);
+    // update_debug_map_system(r);
 #endif
     // space systems
     update_door_system(r);
@@ -246,7 +247,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // note: this doesnt update anything already spawned from raws data
   // const auto& input = get_first_component<SINGLE_InputComponent>(r);
   // if (get_key_down(input, SDL_SCANCODE_9)) {
-  //   fmt::println("reloading raws...");
+  //   SDL_Log("%s", std::format("reloading raws...").c_str());
   //   destroy_first<Raws>(r);
   //   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   // }

@@ -27,7 +27,9 @@ using namespace engine;
 // other lib
 #include "imgui.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_Log.h>
 #include <SDL2/SDL_scancode.h>
+#include <format>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <magic_enum.hpp>
@@ -47,7 +49,7 @@ get_renderer_tex_unit_count(const SINGLE_RendererInfo& ri)
 void
 rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 {
-  fmt::println("rebind...");
+  SDL_Log("%s", std::format("rebind...").c_str());
 
   const auto& wh = ri.viewport_size_render_at;
 
@@ -78,8 +80,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
   glBindTexture(GL_TEXTURE_BUFFER, ri.renderer.data.TEX);
   ri.renderer.data.tex_unit = tex_buffer_unit;
-  fmt::println("tbo (circles) tex_unit... {}", ri.renderer.data.tex_unit);
-  fmt::println("bound textures: {}", i);
+  SDL_Log("%s", std::format("tbo (circles) tex_unit... %i", ri.renderer.data.tex_unit).c_str());
+  SDL_Log("%s", std::format("bound textures: {}", i).c_str());
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
@@ -125,8 +127,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     return file_name.substr(0, last_dot);
   };
   for (const auto& tex : ri.user_textures) {
-    const auto key = "tex_" + clean_path(tex.path);
-    fmt::println("user tex key: {}", key);
+    const std::string key = "tex_" + clean_path(tex.path);
+    SDL_Log("%s", std::format("user tex key: {}", key).c_str());
+
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
   ri.instanced.set_mat4("projection", camera.projection);
@@ -194,7 +197,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   const int max_dim = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
-  fmt::println("jumpflood passes... {}", n_jumpflood_passes);
+  SDL_Log("%s", std::format("jumpflood passes... {}", n_jumpflood_passes).c_str());
 
   // FBO textures
   Framebuffer::default_fbo();
@@ -240,7 +243,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
-    fmt::println("loaded texture... {}", tex.path);
+    SDL_Log("%s", std::format("loaded texture... %s", tex.path).c_str());
   }
 
   ri.stars = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/star_nest.frag");
@@ -257,7 +260,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   // initialize renderer
 #if !defined(__EMSCRIPTEN__)
-  // glEnable(GL_MULTISAMPLE);
+  glEnable(GL_MULTISAMPLE);
 #endif
 
   glEnable(GL_DEPTH_TEST);
@@ -288,15 +291,16 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   for (const auto& pass : ri.passes) {
     const auto type_name = std::string(magic_enum::enum_name(pass.pass));
     if (!pass.update) {
-      fmt::println(stderr, "ERROR! RenderPass Update() not set for {}", type_name);
+      SDL_Log("%s", std::format("ERROR! RenderPass Update() not set for {}", type_name).c_str());
       exit(1); // explode
     }
-    // fmt::println("RenderPass {} tex_size: {}", type_name, pass.texs.size());
+    // SDL_Log("%s", std::format("RenderPass {} tex_size: {}", type_name, pass.texs.size()).c_str());
+
     // for (const auto& tex : pass.texs)
-    //   fmt::println("Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id);
+    //   SDL_Log("%s", std::format("Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
   }
   // for (auto& tex : ri.user_textures)
-  //   fmt::println("User Texture, Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id);
+  //   SDL_Log("%s", std::format("User Texture, Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
 
   CHECK_OPENGL_ERROR(3);
 };

@@ -2,8 +2,9 @@
 // header
 #include "engine/opengl/util.hpp"
 
+#include <SDL2/SDL_log.h>
 #include <cassert>
-#include <fmt/core.h>
+#include <format>
 
 namespace engine {
 
@@ -56,19 +57,21 @@ print_gpu_info()
   // how to get GPU info from OpenGL
   // -------------------------------
   // GPU Info
-  fmt::println("(INFO) OpenGL version supported by this platform: {}",
-               reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+  SDL_Log("%s",
+          std::format("(INFO) OpenGL version supported by this platform: {}",
+                      reinterpret_cast<const char*>(glGetString(GL_VERSION)))
+            .c_str());
 
   int params[1];
   // glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, params);
 
   // printf("(INFO) GPU: Max shader storage buffer bindings: %i \n", params[0]);
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, params);
-  fmt::println("(INFO) GL_MAX_TEXTURE_IMAGE_UNITS: {}", params[0]);
+  SDL_Log("%s", std::format("(INFO) GL_MAX_TEXTURE_IMAGE_UNITS: {}", params[0]).c_str());
 
   // In OpenGL 3.3+ you are guarenteed at least 16 texture units for frag shaders
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, params);
-  fmt::println("(INFO) GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: {}", params[0]);
+  SDL_Log("%s", std::format("(INFO) GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: {}", params[0]).c_str());
 
   // GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 96
   // GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 2147483647

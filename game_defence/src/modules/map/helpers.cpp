@@ -7,7 +7,8 @@
 #include "engine/maths/grid.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
-#include <fmt/core.h>
+#include <SDL2/SDL_log.h>
+#include <format>
 
 namespace game2d {
 
@@ -31,7 +32,7 @@ get_entity_mapinfo(entt::registry& r, entt::entity e)
     return info;
   }
 
-  fmt::println("ERROR: entity requested not on map");
+  SDL_Log("%s", std::format("ERROR: entity requested not on map").c_str());
   return std::nullopt;
 };
 
@@ -41,11 +42,12 @@ remove_entity_from_map(entt::registry& r, const MapInfo& info)
   auto& map = get_first_component<MapComponent>(r);
   auto& es = map.map[info.idx_in_map];
 
-  // fmt::println("remove_entity_from_map(): idx{} tile{} old size: {}", info.idx_in_map, info.idx_in_map_tile, es.size());
+  // SDL_Log("%s", std::format("remove_entity_from_map(): idx{} tile{} old size: {}", info.idx_in_map, info.idx_in_map_tile,
+  // es.size());
 
   es.erase(es.begin() + info.idx_in_map_tile);
 
-  // fmt::println("remove_entity_from_map(): idx{} new size: {}", info.idx_in_map, es.size());
+  // SDL_Log("%s", std::format("remove_entity_from_map(): idx{} new size: {}", info.idx_in_map, es.size()).c_str());
 };
 
 void
@@ -56,7 +58,7 @@ add_entity_to_map(entt::registry& r, const entt::entity src_e, const int idx)
   std::vector<entt::entity>& ents = map.map[idx];
 
   // if (ents.size() > 0)
-  //   fmt::println("add_entity_to_map(): moving to tile that contains an entity");
+  //   SDL_Log("%s", std::format("add_entity_to_map(): moving to tile that contains an entity").c_str());
 
   ents.push_back(src_e);
 };
@@ -69,7 +71,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 
   const auto mapinfo_opt = get_entity_mapinfo(r, src_e);
   if (!mapinfo_opt.has_value()) {
-    fmt::println("move_entity_on_map(): src_e not on map");
+    SDL_Log("%s", std::format("move_entity_on_map(): src_e not on map").c_str());
     return false;
   }
 
