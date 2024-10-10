@@ -146,7 +146,11 @@ generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const ve
 
     // check neighbours
     const auto neighbour_gps = engine::grid::get_neighbour_gridpos({ current.x, current.y }, map_c.xmax, map_c.ymax);
+
     for (const auto& [dir, gp] : neighbour_gps) {
+
+      if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
+        continue; // out of map
 
       if (gridpos_blocked_by_map(r, gp, map_c))
         continue; // impassable

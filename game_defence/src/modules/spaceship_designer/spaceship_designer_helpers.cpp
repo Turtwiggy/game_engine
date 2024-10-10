@@ -200,22 +200,22 @@ instantiate_edge(entt::registry& r, entt::entity e, const MapComponent& map_c)
 
   auto new_size = glm::vec2{ size.y, size.x };
   if (new_size.x == 0)
-    new_size.x = 4;
+    new_size.x = 2;
   if (new_size.y == 0)
-    new_size.y = 4;
+    new_size.y = 2;
 
   // spawn_wall()
   // convert Edge to Wall (i.e. add physics and stuff)
   r.emplace<TransformComponent>(e);
-  // r.emplace<SpriteComponent>(e);
-  // set_sprite(r, e, "EMPTY");
+  r.emplace<SpriteComponent>(e);
+  set_sprite(r, e, "EMPTY");
   set_size(r, e, new_size);
   create_physics_actor_static(r, e, center, new_size);
 
-  // if (auto* door_c = r.try_get<DoorComponent>(e))
-  //   set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
-  // else
-  //   set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  if (auto* door_c = r.try_get<DoorComponent>(e))
+    set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+  else
+    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
 
   r.emplace_or_replace<LightOccluderComponent>(e);
   // r.emplace<DestroyBulletOnCollison>(e);

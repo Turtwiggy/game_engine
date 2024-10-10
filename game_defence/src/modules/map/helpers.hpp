@@ -29,9 +29,4 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int idx);
 void
 remove_entity_from_map(entt::registry& r, const MapInfo& info);
 
-//
-
-std::vector<glm::ivec2>
-generate_path(entt::registry& r, int src_idx, int dst_idx, const size_t limit);
-
 } // namespace game2d

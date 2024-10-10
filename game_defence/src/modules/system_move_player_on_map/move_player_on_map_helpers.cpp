@@ -24,16 +24,10 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
 
   const auto area = generate_accessible_areas(r, map, { src_gp.x, src_gp.y }, 1);
   const auto it = std::find(area.begin(), area.end(), dst_gp);
-  if (it != area.end()) {
-    // todo: finish
-  }
+  if (it == area.end())
+    return; // not able to reach destination
 
-  // note: use pathfinding here instead of direct movement
-  // so that edges are taken in to account and you cant go through walls
-  const auto path = generate_path(r, src_idx, dst_idx, 1);
-  if (path.size() < 2)
-    return;
-  const auto next_dst = path[1];
+  const auto next_dst = (*it);
   const auto next_idx = engine::grid::grid_position_to_index(next_dst, map.xmax);
 
   // move action...

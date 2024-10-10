@@ -1,14 +1,11 @@
 #include "helpers.hpp"
 
 #include "components.hpp"
-#include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/grid.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
 #include <SDL2/SDL_log.h>
-#include <format>
 
 namespace game2d {
 
@@ -18,7 +15,7 @@ get_entity_mapinfo(entt::registry& r, entt::entity e)
   const auto& map = get_first_component<MapComponent>(r);
 
   for (int i = 0; i < map.xmax * map.ymax; i++) {
-    const std::vector<entt::entity>& es = map.map[i];
+    const auto& es = map.map[i];
 
     const auto it = std::find(es.begin(), es.end(), e);
     if (it == es.end())
@@ -32,7 +29,7 @@ get_entity_mapinfo(entt::registry& r, entt::entity e)
     return info;
   }
 
-  SDL_Log("%s", std::format("ERROR: entity requested not on map").c_str());
+  SDL_Log("ERROR: entity requested not on map");
   return std::nullopt;
 };
 
@@ -71,7 +68,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 
   const auto mapinfo_opt = get_entity_mapinfo(r, src_e);
   if (!mapinfo_opt.has_value()) {
-    SDL_Log("%s", std::format("move_entity_on_map(): src_e not on map").c_str());
+    SDL_Log("move_entity_on_map(): src_e not on map");
     return false;
   }
 
@@ -106,22 +103,6 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   }
 
   return false;
-};
-
-std::vector<glm::ivec2>
-generate_path(entt::registry& r, int src_idx, int dst_idx, const size_t limit)
-{
-  const auto& map = get_first_component<MapComponent>(r);
-  const auto a = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
-  const auto b = engine::grid::index_to_grid_position(dst_idx, map.xmax, map.ymax);
-  const auto path = generate_direct(r, { a.x, a.y }, { b.x, b.y });
-
-  // make sure path.size() < limit
-  // return +1, as usually the first path[0] is the element the entity is currently standing on
-  if (path.size() > limit)
-    return { path.begin(), path.begin() + limit + 1 };
-
-  return path;
 };
 
 } // namespace game2d

@@ -189,7 +189,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_move_player_on_map_system(r);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 #if defined(_DEBUG)
-    // update_debug_map_system(r);
+    update_debug_map_system(r);
 #endif
     // space systems
     update_door_system(r);
