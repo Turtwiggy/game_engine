@@ -56,7 +56,7 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
 
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
-    // SDL_Log("%s", std::format("handle_damage_event(): to_e has no HealthComponent").c_str());
+    SDL_Log("handle_damage_event(): to_e has no HealthComponent");
     return;
   }
 
@@ -71,7 +71,7 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
   const auto a_name = std::string(r.get<TagComponent>(from_e).tag);
   const auto b_name = std::string(r.get<TagComponent>(to_e).tag);
   const auto message = std::format("({}) atk ({}) for {}", a_name, b_name, damage);
-  SDL_Log("%s", std::format("%s", message.c_str()).c_str());
+  SDL_Log("%s", message.c_str());
 
   // .. take damage
   hp->hp -= static_cast<int>(glm::max(0.0f, damage));

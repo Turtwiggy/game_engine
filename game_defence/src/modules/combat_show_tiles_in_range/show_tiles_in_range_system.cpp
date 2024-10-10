@@ -9,11 +9,8 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/renderer/transform.hpp"
-#include "engine/sprites/components.hpp"
-#include "engine/sprites/helpers.hpp"
+#include "modules/actor_door/door_helpers.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/combat/components.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/map/components.hpp"
@@ -249,16 +246,24 @@ update_show_tiles_in_range_system(entt::registry& r)
     const auto& evts = get_first_component<SINGLE_Events>(r);
 
     if (get_key_down(input, SDL_SCANCODE_SPACE)) {
-      SDL_Log("%s", std::format("sending damage event...").c_str());
+      SDL_Log("sending damage event...");
 
       for (const auto& tile : tiles) {
-        if (gp_out_of_bounds(tile, map_c.xmax, map_c.ymax))
+        if (gp_out_of_bounds(tile, map_c.xmax, map_c.ymax)) {
+          SDL_Log("gp out of bounds for damage event...");
           continue;
+        }
         const auto idx = engine::grid::grid_position_to_index(tile, map_c.xmax);
 
-        // damage all entities
-        //
-        for (const auto map_e : map_c.map[idx]) {
+        // damage all mobs (off map)
+        std::vector<entt::entity> mobs = contains_mobs(r, tile);
+
+        // damage all entities (on map)
+        std::set<entt::entity> unique_mobs{ mobs.begin(), mobs.end() };
+        for (const auto map_e : map_c.map[idx])
+          unique_mobs.emplace(map_e);
+
+        for (const auto map_e : unique_mobs) {
 
           DamageEvent evt;
           evt.from = e;

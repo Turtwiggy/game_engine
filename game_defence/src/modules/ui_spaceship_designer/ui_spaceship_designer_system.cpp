@@ -39,6 +39,7 @@ enum class SpaceshipDesignerMode
 static SpaceshipDesignerMode mode;
 
 void
+
 update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_pos, const float dt)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
@@ -64,17 +65,11 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     results.floor_types.resize(map.xmax * map.ymax, FloorType::WALL); // all walls
 
     // hack: default as a small ship
-    results.floor_types[25] = FloorType::FLOOR;
-    results.floor_types[26] = FloorType::FLOOR;
+    // note: this only works for xmax 24 ymax 24+++
+    const auto floors = { 25, 26, 49, 50, 73, 74, 97, 98, 121, 122 };
+    for (const auto floor_i : floors)
+      results.floor_types[floor_i] = FloorType::FLOOR;
     results.floor_types[27] = FloorType::AIRLOCK;
-    results.floor_types[49] = FloorType::FLOOR;
-    results.floor_types[50] = FloorType::FLOOR;
-    results.floor_types[73] = FloorType::FLOOR;
-    results.floor_types[74] = FloorType::FLOOR;
-    results.floor_types[97] = FloorType::FLOOR;
-    results.floor_types[98] = FloorType::FLOOR;
-    results.floor_types[121] = FloorType::FLOOR;
-    results.floor_types[122] = FloorType::FLOOR;
 
     Room bridge;
     bridge.tiles_idx = { 25, 26 };
@@ -132,47 +127,72 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     create_jetpack_player(r);
   }
 
-  if (ImGui::Button("Populate rooms...")) {
-    const auto map_e = get_first<MapComponent>(r);
-    if (map_e != entt::null) {
-      const auto& map_c = r.get<MapComponent>(map_e);
-      const auto& view = r.view<Room>();
-      for (const auto& [e, room_c] : view.each()) {
+  const auto spawn_mob_impl = [&r](glm::vec2 wp) -> entt::entity {
+    const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", wp);
+    r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
 
-        auto idxs = get_empty_slots_idxs(r, map_c, room_c);
-        const int n_free_slots = static_cast<int>(idxs.size());
-        if (n_free_slots != 0) {
-          // choose a random slot...
-          const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
-          const int slot_idx = idxs[slot_i];
-          const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+    auto& inv = r.get<DefaultInventory>(mob_e).inv;
+    auto& body = r.get<DefaultBody>(mob_e).body;
 
-          // spawn_mob()
-          {
-            const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
-            r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
+    // give the enemy a piece of scrap in their inventory
+    spawn_inv_item(r, inv, 0, "scrap");
 
-            auto& inv = r.get<DefaultInventory>(mob_e).inv;
-            auto& body = r.get<DefaultBody>(mob_e).body;
+    // give the enemy a 5% chance to have a medkit in their inventory...
+    // TODO: medkits
 
-            // give the enemy a piece of scrap in their inventory
-            spawn_inv_item(r, inv, 0, "scrap");
+    // give enemy a weapon
+    auto weapon_e = spawn_inv_item(r, body, 6, "shotgun");
 
-            // give the enemy a 5% chance to have a medkit in their inventory...
-            // TODO: medkits
+    return mob_e;
+  };
 
-            // give enemy a weapon
-            auto weapon_e = spawn_inv_item(r, body, 6, "shotgun");
+  if (map_e != entt::null && ImGui::Button("Populate rooms...")) {
+    const auto& map_c = r.get<MapComponent>(map_e);
+    const auto& view = r.view<Room>();
+    for (const auto& [e, room_c] : view.each()) {
 
-            add_entity_to_map(r, mob_e, slot_idx);
-          }
+      auto idxs = get_empty_slots_in_room(r, map_c, room_c);
+      const int n_free_slots = static_cast<int>(idxs.size());
+      if (n_free_slots != 0) {
+        // choose a random slot...
+        const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
+        const int slot_idx = idxs[slot_i];
+        const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
-          // spawn_environment(r, slot_idx);
+        // spawn_mob()
+        auto mob_e = spawn_mob_impl(pos);
+        add_entity_to_map(r, mob_e, slot_idx);
 
-          idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
-        }
+        // spawn_environment(r, slot_idx);
+
+        idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
       }
     }
+  }
+
+  if (map_e != entt::null && ImGui::Button("Populate space...")) {
+    const auto& map_c = r.get<MapComponent>(map_e);
+
+    auto idxs = get_empty_slots_in_map(r, map_c);
+
+    int n_free_slots = static_cast<int>(idxs.size());
+    int amount_to_spawn = 3;
+
+    do {
+      // choose a random slot...
+      const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
+      const int slot_idx = idxs[slot_i];
+      const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+
+      auto mob_e = spawn_mob_impl(pos);
+
+      idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
+      amount_to_spawn--;
+      n_free_slots--;
+
+    } while (amount_to_spawn > 0 && n_free_slots > 0);
+
+    //
   }
 
   ImGui::SeparatorText("info: mouse/grid");

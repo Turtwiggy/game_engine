@@ -71,7 +71,7 @@ update_ui_lootbag_system(entt::registry& r)
   ui.hovered = ImGui::IsWindowHovered();
 
   ImGui::SeparatorText("Loot (Press R to toggle)");
-  ImGui::Text("Right click to take loot");
+  // ImGui::Text("Right click to take loot");
 
   const auto& view_players = r.view<PlayerComponent>();
   // ImGui::Text("players: %zu", view_players.size());

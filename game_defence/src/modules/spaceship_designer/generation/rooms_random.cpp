@@ -7,6 +7,7 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
+#include "modules/actor_door/door_helpers.hpp"
 #include "modules/map/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
@@ -307,7 +308,27 @@ connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonIntermediate& resu
 };
 
 std::vector<int>
-get_empty_slots_idxs(entt::registry& r, const MapComponent& map_c, const Room& room)
+get_empty_slots_in_map(entt::registry& r, const MapComponent& map_c)
+{
+  std::vector<int> results;
+
+  for (int i = 0; i < map_c.xmax * map_c.ymax; i++) {
+    const auto gp = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
+
+    if (contains_mobs(r, gp).size() > 0)
+      continue; // free-floating mobs not in map representation
+
+    if (map_c.map[i].size() > 0)
+      continue; // dont spawn in rooms
+
+    results.push_back(i);
+  }
+
+  return results;
+};
+
+std::vector<int>
+get_empty_slots_in_room(entt::registry& r, const MapComponent& map_c, const Room& room)
 {
   std::vector<int> results;
 
