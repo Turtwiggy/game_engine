@@ -290,6 +290,14 @@ GameWindow::get_max_size() const
   return glm::ivec2(width, height);
 }
 
+glm::ivec2
+GameWindow::get_resolution() const
+{
+  SDL_DisplayMode DM;
+  SDL_GetCurrentDisplayMode(0, &DM);
+  return { DM.w, DM.h };
+}
+
 void
 GameWindow::set_displaymode(const DisplayMode mode)
 {

@@ -67,7 +67,7 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
     // ImGui::SetNextWindowPos(viewport->GetCenter());
     // ImGui::SetNextWindowSize(ImVec2{ 300, 350 });
 
-    ImGui::SetNextWindowSize({ 300, 400 });
+    ImGui::SetNextWindowSize({ 300, 600 });
     ImGui::Begin("Paused", &open, flags);
 
     ImGui::Text("Menu FPS: %0.2f", ImGui::GetIO().Framerate);
@@ -112,6 +112,10 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
     if (ImGui::InputInt("Target FPS", &i0))
       app.fps_limit = static_cast<float>(i0);
 
+    ImGui::SeparatorText("Screen Size");
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    ImGui::Text("Current: %i %i", ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+
     struct Resolution
     {
       int x = 1920;
@@ -123,31 +127,57 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
       { 1600, 900 },
       { 1920, 1080 },
     };
+
     static std::vector<std::string> resolutions_as_str;
     static bool first_time = true;
     if (first_time) {
 
-      // convert resolutions to string representation
       const auto convert_resolution_to_string = [](const Resolution& res) -> std::string {
         return { std::to_string(res.x) + "x" + std::to_string(res.y) };
       };
+
+      // convert resolutions to string representation
       std::transform(
         resolutions.begin(), resolutions.end(), std::back_inserter(resolutions_as_str), convert_resolution_to_string);
 
       first_time = false;
     }
 
-    static size_t idx = 0;
-    WomboComboIn wc_in(resolutions_as_str);
-    wc_in.label = "resolutions";
-    wc_in.current_index = idx;
-    const auto wc_out = draw_wombo_combo(wc_in);
+    auto align_right_button = [](std::string label) -> bool {
+      // Align the button to the right
+      const float available_width = ImGui::GetContentRegionAvail().x;
+      const float button_width = 80.0f; // Set the desired button width
+      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + available_width - button_width);
+      return ImGui::Button(label.c_str(), ImVec2(button_width, 0));
+    };
 
-    if (wc_out.selected != idx) {
-      SDL_Log("%s", std::format("changing resolution").c_str());
-      idx = wc_out.selected;
-      app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
+    for (size_t i = 0; i < resolutions.size(); i++) {
+      ImGui::Text("%s", resolutions_as_str[i].c_str());
+      ImGui::SameLine();
+
+      std::string label = "Apply##" + std::to_string(i);
+      if (align_right_button(label.c_str())) {
+        app.window.set_size({ resolutions[i].x, resolutions[i].y });
+        SDL_Log("changing resolution");
+      }
     }
+
+    static int custom_x = 1920;
+    static int custom_y = 1080;
+
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x / 5.0f);
+    {
+      imgui_draw_int("x", custom_x);
+      ImGui::SameLine();
+      imgui_draw_int("y", custom_y);
+      custom_x = glm::max(custom_x, 400);
+      custom_y = glm::max(custom_y, 400);
+
+      ImGui::SameLine();
+      if (align_right_button("Apply##custom"))
+        app.window.set_size({ custom_x, custom_y });
+    }
+    ImGui::PopItemWidth();
 
     const auto audio_e = get_first<SINGLE_AudioComponent>(r);
     if (audio_e != entt::null) {

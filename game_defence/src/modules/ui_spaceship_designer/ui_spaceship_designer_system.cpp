@@ -174,7 +174,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     const auto& map_c = r.get<MapComponent>(map_e);
 
     auto idxs = get_empty_slots_in_map(r, map_c);
-
     int n_free_slots = static_cast<int>(idxs.size());
     int amount_to_spawn = 3;
 

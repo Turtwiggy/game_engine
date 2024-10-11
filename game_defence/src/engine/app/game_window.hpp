@@ -69,6 +69,7 @@ public:
   [[nodiscard]] glm::ivec2 get_size() const;
   [[nodiscard]] glm::ivec2 get_min_size() const;
   [[nodiscard]] glm::ivec2 get_max_size() const;
+  [[nodiscard]] glm::ivec2 get_resolution() const;
   [[nodiscard]] bool get_fullscreen() const;
   [[nodiscard]] float get_brightness() const;
 
