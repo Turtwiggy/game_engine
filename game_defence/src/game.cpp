@@ -46,6 +46,7 @@
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
+#include "modules/ui_combat_designer/ui_combat_designer_system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -231,6 +232,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_combat_damage_numbers_system(r, dt);
     update_ui_spaceship_designer_system(r, mouse_pos, dt);
     update_ui_players_system(r);
+    update_ui_combat_designer_system(r);
   }
   static bool show_settings_ui = true;
   if (show_settings_ui) {

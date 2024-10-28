@@ -64,6 +64,20 @@ load_raws(std::string path)
   return raws;
 };
 
+std::vector<std::string>
+get_raws_keys(const Raws& raws)
+{
+  std::vector<std::string> results;
+
+  for (const auto& key : raws.items)
+    results.push_back(key.name);
+
+  for (const auto& key : raws.mobs)
+    results.push_back(key.name);
+
+  return results;
+};
+
 entt::entity
 create_transform(entt::registry& r, const std::string& name)
 {

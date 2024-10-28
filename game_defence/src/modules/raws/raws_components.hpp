@@ -249,6 +249,9 @@ struct Raws
 Raws
 load_raws(std::string path);
 
+std::vector<std::string>
+get_raws_keys(const Raws& raws);
+
 entt::entity
 create_transform(entt::registry& r, const std::string& name);
 
