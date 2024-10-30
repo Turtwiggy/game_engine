@@ -20,10 +20,10 @@ struct vec2i
   vec2i() = default;
   vec2i(const int& ox, const int& oy)
     : x(ox)
-    , y(oy){};
+    , y(oy) {};
   vec2i(const glm::ivec2& xy)
     : x(xy.x)
-    , y(xy.y){};
+    , y(xy.y) {};
 
   // spaceship operator
   auto operator<=>(const vec2i&) const = default;

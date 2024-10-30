@@ -6,6 +6,9 @@
 namespace game2d {
 
 void
-move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst_wp);
+move_action_lerp_to_neighbour(entt::registry& r, const entt::entity e, const glm::vec2& dst_wp);
+
+void
+move_action_follow_path(entt::registry& r, const entt::entity e, const glm::vec2& dst_wp);
 
 } // namespace game2d

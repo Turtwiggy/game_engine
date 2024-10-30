@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <entt/entt.hpp>
@@ -6,6 +7,6 @@
 namespace game2d {
 
 void
-update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mouse_pos);
+update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos);
 
 } // namespace game2d

@@ -8,6 +8,7 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
 
@@ -16,8 +17,12 @@ namespace game2d {
 void
 update_ui_players_system(entt::registry& r)
 {
-  const auto& view = r.view<NameComponent>();
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+
+  auto init_e = get_first<SINGLE_Initiative>(r);
+  if (init_e == entt::null)
+    return;
+  auto& init_c = r.get<SINGLE_Initiative>(init_e);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoTitleBar;
@@ -33,12 +38,7 @@ update_ui_players_system(entt::registry& r)
 
   ImGui::Begin("Mobs", NULL, flags);
 
-  if (ImGui::Button("Clear##mobselected")) {
-    const auto view = r.view<SelectedComponent>();
-    r.remove<SelectedComponent>(view.begin(), view.end());
-  }
-
-  for (int i = 0; const auto& [e, c] : view.each()) {
+  for (int i = 0; const auto e : init_c.order) {
     const auto eid = static_cast<uint32_t>(e);
     const auto& mob_c = r.get<Mob>(e);
 
@@ -58,35 +58,48 @@ update_ui_players_system(entt::registry& r)
       r.remove<SelectedComponent>(selected_view.begin(), selected_view.end());
       r.emplace<SelectedComponent>(e);
 
-      // if player...
-      {
-        const auto& follow_view = r.view<CameraLerpToTarget>();
-        r.remove<CameraLerpToTarget>(follow_view.begin(), follow_view.end());
-        r.emplace<CameraLerpToTarget>(e);
+      // move camera to newly selected unit
+      const auto& follow_view = r.view<CameraLerpToTarget>();
+      r.remove<CameraLerpToTarget>(follow_view.begin(), follow_view.end());
+      r.emplace<CameraLerpToTarget>(e);
 
-        const auto& input_view = r.view<InputComponent>();
-        r.remove<InputComponent>(input_view.begin(), input_view.end());
-        r.emplace<InputComponent>(e);
+      const auto& input_view = r.view<InputComponent>();
+      r.remove<InputComponent>(input_view.begin(), input_view.end());
+      r.emplace<InputComponent>(e);
 
-        const auto& keyboard_view = r.view<KeyboardComponent>();
-        r.remove<KeyboardComponent>(keyboard_view.begin(), keyboard_view.end());
-        r.emplace<KeyboardComponent>(e);
-      }
+      const auto& keyboard_view = r.view<KeyboardComponent>();
+      r.remove<KeyboardComponent>(keyboard_view.begin(), keyboard_view.end());
+      r.emplace<KeyboardComponent>(e);
     }
+
+    // const auto* init_c = r.try_get<InitiativeComponent>(e);
+    // ImGui::SameLine();
+    // ImGui::Text("%i.", init_c->initiative);
 
     const auto* name_c = r.try_get<NameComponent>(e);
-    if (name_c) {
-      ImGui::SameLine();
-      ImGui::Text("%s", name_c->full_name.c_str());
+
+    ImVec4 col_white = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
+    ImVec4 col_green = ImVec4(0.5f, 1.0f, 0.5f, 1.0f);
+    ImVec4 col_default = col_white;
+
+    if (i == 0) {
+      col_default = col_green;
+      i++;
     }
+
+    ImGui::SameLine();
+    ImGui::TextColored(col_default, "%s", name_c->full_name.c_str());
 
     const auto* selected_c = r.try_get<SelectedComponent>(e);
     if (selected_c) {
       ImGui::SameLine();
-      ImGui::Text("(Selected)");
+      ImGui::Text("(X)");
     }
+  }
 
-    i++;
+  if (ImGui::Button("Clear##mobselected")) {
+    const auto view = r.view<SelectedComponent>();
+    r.remove<SelectedComponent>(view.begin(), view.end());
   }
 
   ImGui::End();

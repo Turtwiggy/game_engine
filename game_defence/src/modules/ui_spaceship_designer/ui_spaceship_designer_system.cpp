@@ -66,15 +66,23 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 
     // hack: default as a small ship
     // note: this only works for xmax 24 ymax 24+++
-    const auto floors = { 25, 26, 49, 50, 73, 74, 97, 98, 121, 122 };
-    for (const auto floor_i : floors)
-      results.floor_types[floor_i] = FloorType::FLOOR;
-    results.floor_types[27] = FloorType::AIRLOCK;
+    // const auto floors = { 25, 26, 49, 50, 73, 74, 97, 98, 121, 122 };
+    // for (const auto floor_i : floors)
+    //   results.floor_types[floor_i] = FloorType::FLOOR;
+    // results.floor_types[27] = FloorType::AIRLOCK;
 
-    Room bridge;
-    bridge.tiles_idx = { 25, 26 };
-    auto bridge_e = create_empty<Room>(r, bridge);
-    r.emplace<RoomName>(bridge_e, "Bridge");
+    // Room bridge;
+    // bridge.tiles_idx = { 25, 26 };
+    // auto bridge_e = create_empty<Room>(r, bridge);
+    // r.emplace<RoomName>(bridge_e, "Bridge");
+
+    // create a transform
+    // auto e = create_transform(r, "ship-small");
+    // r.emplace<SpriteComponent>(e);
+    // set_sprite(r, e, "ship_small_rusty");
+    // set_size(r, e, { 200, 300 });
+    // set_position(r, e, { 100, 150 });
+    // set_z_index(r, e, ZLayer::BACKGROUND);
 
     create_empty<DungeonIntermediate>(r, results);
   }
@@ -112,14 +120,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       instantiate_floors(r, map_c, results_c);
     }
     destroy_first<DungeonIntermediate>(r); // consider it "processed"
-
-    // create a transform
-    auto e = create_transform(r, "ship-small");
-    r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, "ship_small_rusty");
-    set_size(r, e, { 200, 300 });
-    set_position(r, e, { 100, 150 });
-    set_z_index(r, e, ZLayer::BACKGROUND);
   }
 
   if (ImGui::Button("Add jetpack player")) {

@@ -15,8 +15,8 @@
 #include "modules/combat/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/renderer/lights/components.hpp"
 #include "modules/system_cooldown/components.hpp"
+#include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_names/components.hpp"
@@ -211,6 +211,10 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   name_c.first_name = name_c.full_name.substr(0, name_c.full_name.find(' '));
   name_c.last_name = name_c.full_name.substr(name_c.full_name.find(' '), name_c.full_name.length());
   r.emplace<NameComponent>(e, name_c);
+
+  // Give each mob random initiative
+  const int rnd_init = engine::rand_det_s(rnd.rng, 0, 20);
+  r.emplace<InitiativeComponent>(e, rnd_init);
 
   // if (item_template.stats.){
   // }

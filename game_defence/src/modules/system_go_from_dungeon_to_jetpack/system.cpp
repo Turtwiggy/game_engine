@@ -37,7 +37,7 @@ update_go_from_dungeon_to_jetpack_system(entt::registry& r)
     // Remove from the map_c when leaving the dungeon
     // Note: the reason it's to_idx, is that when the movement occurs,
     // it immediately updates in the map_c if it's valid. The entity is in the next cell.
-    const auto lerp_info = r.get<LerpToFixedTarget>(e);
+    const auto& lerp_info = r.get<LerpToFixedTarget>(e);
     int to_idx = engine::grid::worldspace_to_index(lerp_info.b, map_c.tilesize, map_c.xmax, map_c.ymax);
     SDL_Log("%s", std::format("wants to leave (dungeon) at {}", to_idx).c_str());
     auto& map_es = map_c.map[to_idx];

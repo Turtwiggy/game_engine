@@ -1,7 +1,8 @@
 #include "ui_combat_designer_system.hpp"
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/physics/components.hpp"
 #include "modules/actor_player/components.hpp"
@@ -11,54 +12,52 @@
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
+#include <SDL_keyboard.h>
+#include <SDL_scancode.h>
 #include <imgui.h>
 
 namespace game2d {
 
 void
-update_ui_combat_designer_system(entt::registry& r)
+update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
 {
   const auto& raws = get_first_component<Raws>(r);
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  const auto spawn_enemy_button = SDL_SCANCODE_E;
+  const auto spawn_player_button = SDL_SCANCODE_R;
+  const auto pos = engine::grid::worldspace_to_clamped_world_space_center(mouse_pos, 50);
 
   ImGui::Begin("UI combat designer system");
   ImGui::Text("Hello, World");
+  ImGui::Text("spawn enemy: %s", SDL_GetScancodeName(spawn_enemy_button));
+  ImGui::Text("spawn player: %s", SDL_GetScancodeName(spawn_player_button));
 
-  static float tilesize = 50.0f;
-  static int gpx = 0, gpy = 0;
-  imgui_draw_int("x", gpx);
-  imgui_draw_int("y", gpy);
+  if (get_key_down(input, spawn_enemy_button)) {
 
-  static bool is_enemy = false;
-  imgui_draw_bool("enemy", is_enemy);
+    const auto view = r.view<CameraFreeMove>();
+    r.destroy(view.begin(), view.end());
 
-  if (ImGui::Button("Spawn")) {
-    const auto wp = engine::grid::grid_space_to_world_space_center({ gpx, gpy }, tilesize);
-
-    entt::entity e = entt::null;
-
-    if (!is_enemy) {
-      e = spawn_mob(r, "dungeon_actor_hero", { 0, 0 });
-      // r.emplace<CameraFollow>(e);
-      r.emplace<CameraLerpToTarget>(e);
-      r.emplace<CircleComponent>(e);
-      r.emplace<PlayerComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
-      // r.emplace<MovementJetpackComponent>(e);
-      r.emplace<InitBodyAndInventory>(e);
-      spawn_particle_emitter(r, "anything", { 0, 0 }, e);
-    }
-
-    if (is_enemy) {
-      e = spawn_mob(r, "dungeon_actor_enemy_default", wp);
-      r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
-    }
-
-    set_position(r, e, wp);
-
-    //
+    auto e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
+    r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
   }
 
+  if (get_key_down(input, spawn_player_button)) {
+
+    const auto view = r.view<CameraFreeMove>();
+    r.destroy(view.begin(), view.end());
+
+    auto e = spawn_mob(r, "dungeon_actor_hero", pos);
+    // r.emplace<CameraFollow>(e);
+    r.emplace<CameraLerpToTarget>(e);
+    r.emplace<CircleComponent>(e);
+    r.emplace<PlayerComponent>(e);
+    r.emplace<TeamComponent>(e, AvailableTeams::player);
+    r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
+    r.emplace<InitBodyAndInventory>(e);
+    spawn_particle_emitter(r, "anything", mouse_pos, e);
+  }
+
+  // raws: keys
   ImGui::Separator();
   for (const auto& key : get_raws_keys(raws))
     ImGui::Text("%s", key.c_str());

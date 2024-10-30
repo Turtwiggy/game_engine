@@ -147,6 +147,17 @@ worldspace_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
   return glm::ivec2{ grid_size * grid_x, grid_size * grid_y };
 };
 
+[[nodiscard]] inline glm::vec2
+worldspace_to_clamped_world_space_center(const glm::vec2& world_space, int grid_size)
+{
+  const float x = world_space.x;
+  const float y = world_space.y;
+  const int grid_x = x < 0.0f ? static_cast<int>((x - grid_size) / grid_size) : static_cast<int>(x / grid_size);
+  const int grid_y = y < 0.0f ? static_cast<int>((y - grid_size) / grid_size) : static_cast<int>(y / grid_size);
+  const auto clamped = glm::vec2{ grid_size * grid_x, grid_size * grid_y };
+  return clamped + glm::vec2{ grid_size / 2.0f, grid_size / 2.0f };
+};
+
 [[nodiscard]] inline std::vector<glm::ivec2>
 get_grid_cells(const glm::vec2& pos_tl, const glm::vec2& size, const int tilesize)
 {
