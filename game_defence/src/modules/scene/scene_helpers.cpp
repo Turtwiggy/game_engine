@@ -85,8 +85,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   // The first and only transform should be the camera
   const auto camera_e = get_first<OrthographicCamera>(r);
-  if (auto* can_move = r.try_get<CameraFreeMove>(camera_e))
-    r.remove<CameraFreeMove>(camera_e); // reset to default
   r.get<TransformComponent>(camera_e).position = { 0, 0, 0 };
   r.get<TransformComponent>(camera_e).scale = { 0, 0, 0 };
 

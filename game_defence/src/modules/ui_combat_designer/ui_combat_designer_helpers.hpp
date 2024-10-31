@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_move_player_on_map_system(entt::registry& r);
+activate_unit(entt::registry& r, entt::entity e);
 
 } // namespace game2d

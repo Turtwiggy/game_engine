@@ -21,12 +21,12 @@ handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
 {
   const auto from_e = evt.from; // previously bullet, now player?
   const auto to_e = evt.to;
-  const auto amount = evt.amount;
+  const int amount = evt.amount;
 
   // add a new entry to the UI_BufferComponent...
   auto& buffer_c = r.get_or_emplace<UI_BufferComponent>(to_e);
   TimedEntry entry;
-  entry.damage = amount;
+  entry.damage = (float)amount;
   entry.time_left_max = 3.0f;
   entry.time_left = entry.time_left_max;
   buffer_c.entries.push_back(entry);
@@ -145,8 +145,8 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
         const ImVec2 pos = ImGui::GetCursorScreenPos(); // Starting position for the first square
 
         // health variables
-        const float cur_hp = hp_c.hp;
-        const float max_hp = hp_c.max_hp;
+        const float cur_hp = (float)hp_c.hp;
+        const float max_hp = (float)hp_c.max_hp;
         const float health_per_block = max_hp / blocks;
         const int full_blocks = (int)(cur_hp / health_per_block);
 
@@ -178,7 +178,7 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
         }
 
         // Work out the total amount of recieved damage
-        int total_dmg = 0;
+        float total_dmg = 0;
         std::for_each(ui.entries.begin(), ui.entries.end(), [&total_dmg](const TimedEntry& e) { total_dmg += e.damage; });
 
         // display... per block...
@@ -194,9 +194,9 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
           int damage_remaining = damage;
 
           for (int i = 0; i < int(blocks) && damage_remaining > 0 && hp > 0; ++i) {
-            int cur_block_idx = (hp - 1) / health_per_block;
-            int block_start_hp = (cur_block_idx + 0) * health_per_block;
-            int block_end_hp = (cur_block_idx + 1) * health_per_block;
+            int cur_block_idx = int((hp - 1) / health_per_block);
+            int block_start_hp = int((cur_block_idx + 0) * health_per_block);
+            int block_end_hp = int((cur_block_idx + 1) * health_per_block);
 
             // Determine how much of the current block is affected by damage
             int damage_in_block = std::min(hp - block_start_hp, damage_remaining);
@@ -221,8 +221,8 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
           return flash_blocks;
         };
 
-        const auto gend_blocks = generate_blocks(hp_c.hp, total_dmg);
-        for (const auto& block : gend_blocks)
+        const auto gen_blocks = generate_blocks(hp_c.hp, int(total_dmg));
+        for (const auto& block : gen_blocks)
           draw_list->AddRectFilled(block.tl, block.br, white_color);
 
         // fill out the line with the correct size

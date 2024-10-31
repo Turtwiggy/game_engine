@@ -53,7 +53,7 @@ update_ui_raws_system(entt::registry& r)
       auto& inv_c = r.get<DefaultInventory>(player_e);
       for (size_t i = 0; i < inv_c.inv.size(); i++) {
         if (r.get<InventorySlotComponent>(inv_c.inv[i]).item_e == entt::null) {
-          spawn_inv_item(r, inv_c.inv, i, item.name);
+          spawn_inv_item(r, inv_c.inv, (int)i, item.name);
           break; // found a free slot
         }
       }

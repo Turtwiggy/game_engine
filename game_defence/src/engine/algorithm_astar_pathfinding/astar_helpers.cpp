@@ -83,11 +83,6 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
 
   while (frontier.size() > 0) {
 
-    // if ((int)frontier.size() > (map_c.xmax * map_c.ymax)) {
-    //   SDL_Log("%s", std::format("highly likly pathfinding broke... ").c_str());
-    //   break;
-    // }
-
     const vec2i current = frontier.dequeue();
     const int current_idx = map_c.xmax * current.y + current.x;
 
@@ -111,6 +106,61 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
       // auto nxt_in_room = inside_room(r, { gp.x, gp.y }).size() > 0;
       // if (cur_in_room && !nxt_in_room)
       //   continue; // dont search outside the ship
+
+      const auto neighbour = gp;
+      int neighbour_cost = get_cost_at_gridpos(r, gp, map_c);
+      int new_cost = cost_so_far[current] + neighbour_cost;
+
+      if (!cost_so_far.contains(neighbour) || new_cost < cost_so_far[neighbour]) {
+        cost_so_far[neighbour] = new_cost;
+        int priority = new_cost + heuristic<vec2i>(neighbour, to);
+        frontier.enqueue(neighbour, priority);
+        came_from[neighbour] = current;
+      }
+    }
+  }
+
+  return {};
+};
+
+std::vector<glm::ivec2>
+generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i to)
+{
+  if (equal<vec2i>(from, to))
+    return {};
+
+  const auto& map_c = get_first_component<MapComponent>(r);
+
+  std::vector<vec2i> path;
+
+  PriorityQueue<vec2i> frontier;
+  frontier.enqueue(from, 0);
+  std::map<vec2i, vec2i> came_from;
+  std::map<vec2i, int> cost_so_far;
+  came_from[from] = from;
+  cost_so_far[from] = 0;
+
+  while (frontier.size() > 0) {
+
+    const vec2i current = frontier.dequeue();
+    const int current_idx = map_c.xmax * current.y + current.x;
+
+    if (equal<vec2i>(current, to))
+      return reconstruct_path(came_from, from, to);
+
+    const auto neighbour_gps =
+      engine::grid::get_neighbour_gridpos_with_diagonals({ current.x, current.y }, map_c.xmax, map_c.ymax);
+
+    for (const auto& [dir, gp] : neighbour_gps) {
+
+      if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
+        continue; // out of map
+
+      if (gridpos_blocked_by_map(r, gp, map_c))
+        continue; // impassable
+
+      if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
+        continue; // impassable
 
       const auto neighbour = gp;
       int neighbour_cost = get_cost_at_gridpos(r, gp, map_c);

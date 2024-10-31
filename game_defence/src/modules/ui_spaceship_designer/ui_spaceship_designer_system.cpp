@@ -12,7 +12,6 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
@@ -25,10 +24,11 @@
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/spaceship_designer_helpers.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
+#include "modules/ui_spaceship_designer/helpers.hpp"
 
 #include "imgui.h"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
 
@@ -47,11 +47,14 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 
   static auto seed = 0;
   static auto rnd = engine::RandomState(seed);
-  static auto tilesize = 50.0f;
+  static int tilesize = 50;
 
   ImGui::Begin("Spaceship Designer");
 
-  if (ImGui::Button("(new) empty spaceship")) {
+  static bool first_time = true;
+  if (ImGui::Button("(new) empty spaceship") || first_time) {
+    SDL_Log("Creating new map...");
+
     move_to_scene_start(r, Scene::dungeon_designer);
 
     destroy_first_and_create<MapComponent>(r);
@@ -109,7 +112,9 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
   }
 
   auto map_e = get_first<MapComponent>(r);
-  if (map_e != entt::null && ImGui::Button("Instantiate map")) {
+  if ((map_e != entt::null && ImGui::Button("Instantiate map")) || first_time) {
+    first_time = false;
+
     auto& map_c = r.get<MapComponent>(map_e);
     auto& results_c = get_first_component<DungeonIntermediate>(r);
     {

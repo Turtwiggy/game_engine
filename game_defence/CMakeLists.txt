@@ -14,6 +14,12 @@ message("game_defence: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_defence: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
+if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+  message("CMAKE_BUILD_TYPE was empty... setting to debug")
+  set(CMAKE_BUILD_TYPE Debug)
+  message("game_defence: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+endif()
+
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-clang.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
@@ -33,7 +39,7 @@ file(GLOB_RECURSE SRC_FILES
 )
 
 # Main executable
-if(WIN32 AND ${CMAKE_BUILD_TYPE} STREQUAL Release)
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND WIN32)
   # "The WIN32 argument instructs the compiler to build a
   # Windows GUI app, which doesn't show a console."
   add_executable(game_defence WIN32 ${SRC_FILES} assets/textures/resource.rc)
@@ -95,10 +101,16 @@ ENDIF()
 # actions for building release. Github actins will
 # copy over the /assets folder in the release mode,
 # and would fail if this symlink was created here.
-if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   message("creating symlink...")
   set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/Debug/assets)
+  else()
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+  endif()
+
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")
 

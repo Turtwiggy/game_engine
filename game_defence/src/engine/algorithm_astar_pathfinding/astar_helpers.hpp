@@ -35,8 +35,8 @@ heuristic(const T& a, const T& b)
 [[nodiscard]] std::vector<glm::ivec2>
 generate_direct(entt::registry& r, const vec2i from, const vec2i to);
 
-// [[nodiscard]] std::vector<glm::ivec2>
-// generate_direct_with_diagonals(entt::registry& r, const MapComponent& grid, const int from_idx, const int to_idx);
+[[nodiscard]] std::vector<glm::ivec2>
+generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i to);
 
 [[nodiscard]] std::vector<glm::ivec2>
 generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const vec2i from_pos, const int range);

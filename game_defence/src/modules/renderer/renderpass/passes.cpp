@@ -434,11 +434,11 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     if (camera_c.zoom_nonlinear != 0.0f)
       ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
 
-    float tilesize = 50;
+    int tilesize = 50;
     const auto map_e = get_first<MapComponent>(r);
     if (map_e != entt::null)
       tilesize = r.get<MapComponent>(map_e).tilesize;
-    ri.mix_lighting_and_scene.set_float("tilesize", tilesize);
+    ri.mix_lighting_and_scene.set_float("tilesize", (float)tilesize);
 
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };

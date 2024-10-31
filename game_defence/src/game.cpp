@@ -37,7 +37,7 @@
 #include "modules/system_go_from_dungeon_to_jetpack/system.hpp"
 #include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
 #include "modules/system_initiative/initiative_system.hpp"
-#include "modules/system_move_player_on_map/system.hpp"
+#include "modules/system_move_player_on_map/move_player_on_map_system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -190,7 +190,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_breach_charge_system(r, mouse_pos, dt);
     update_initiative_system(r);
     // movement systems
-    update_move_player_on_map_system(r);
+    update_move_player_on_map_system(r, milliseconds_dt);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 #if defined(_DEBUG)
     update_debug_map_system(r);
@@ -227,8 +227,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
-  // update_ui_inventory_system(r);
-  // update_ui_lootbag_system(r);
+  update_ui_inventory_system(r);
+  update_ui_lootbag_system(r);
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
   if (scene.s == Scene::dungeon_designer) {

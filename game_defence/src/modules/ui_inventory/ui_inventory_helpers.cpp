@@ -265,11 +265,11 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
     spawn_inv_item(r, body_c.body, 6, "breach_charge");
 
     // init inventory with items
-    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 1, "scrap");
-    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 2, "shotgun");
-    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 3, "bullet_default");
-    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 4, "bullet_bouncy");
-    spawn_inv_item(r, inv_c.inv, inv_c.inv.size() - 5, "breach_charge");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 1), "scrap");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 2), "shotgun");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 3), "bullet_default");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 4), "bullet_bouncy");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 5), "breach_charge");
   }
 };
 

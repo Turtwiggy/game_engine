@@ -285,7 +285,7 @@ update_show_tiles_in_range_system(entt::registry& r)
   }
 
   static EntityPool pool;
-  pool.update(r, tiles_to_add.size()); // note: bad for multiple playersS
+  pool.update(r, int(tiles_to_add.size())); // note: bad for multiple playersS
   for (int i = 0; const auto& tile : tiles_to_add) {
     const auto debug_e = pool.instances[i++];
     set_position(r, debug_e, tile);

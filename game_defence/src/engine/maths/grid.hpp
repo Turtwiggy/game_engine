@@ -28,11 +28,14 @@ enum class GridDirection : size_t
 [[nodiscard]] std::vector<std::pair<GridDirection, int>>
 get_neighbour_indicies(const int x, const int y, const int x_max, const int y_max);
 
+[[nodiscard]] std::vector<std::pair<GridDirection, int>>
+get_neighbour_indicies_with_diagonals(const int x, const int y, const int x_max, const int y_max);
+
 std::vector<std::pair<GridDirection, glm::ivec2>>
 get_neighbour_gridpos(const glm::ivec2& xy, const int x_max, const int y_max);
 
-[[nodiscard]] std::vector<std::pair<GridDirection, int>>
-get_neighbour_indicies_with_diagonals(const int x, const int y, const int x_max, const int y_max);
+std::vector<std::pair<GridDirection, glm::ivec2>>
+get_neighbour_gridpos_with_diagonals(const glm::ivec2& xy, const int x_max, const int y_max);
 
 [[nodiscard]] inline glm::vec2
 grid_space_to_world_space(const glm::ivec2 pos, const int grid_size)

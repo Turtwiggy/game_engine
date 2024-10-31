@@ -5,12 +5,14 @@
 #include "imgui.h"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
+#include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 
 namespace game2d {
 
@@ -54,22 +56,7 @@ update_ui_players_system(entt::registry& r)
 
     ImGui::ImageButton(label.c_str(), im_id, { 32, 32 }, tl, br);
     if (ImGui::IsItemClicked()) {
-      const auto& selected_view = r.view<SelectedComponent>();
-      r.remove<SelectedComponent>(selected_view.begin(), selected_view.end());
-      r.emplace<SelectedComponent>(e);
-
-      // move camera to newly selected unit
-      const auto& follow_view = r.view<CameraLerpToTarget>();
-      r.remove<CameraLerpToTarget>(follow_view.begin(), follow_view.end());
-      r.emplace<CameraLerpToTarget>(e);
-
-      const auto& input_view = r.view<InputComponent>();
-      r.remove<InputComponent>(input_view.begin(), input_view.end());
-      r.emplace<InputComponent>(e);
-
-      const auto& keyboard_view = r.view<KeyboardComponent>();
-      r.remove<KeyboardComponent>(keyboard_view.begin(), keyboard_view.end());
-      r.emplace<KeyboardComponent>(e);
+      activate_unit(r, e);
     }
 
     // const auto* init_c = r.try_get<InitiativeComponent>(e);
@@ -77,13 +64,16 @@ update_ui_players_system(entt::registry& r)
     // ImGui::Text("%i.", init_c->initiative);
 
     const auto* name_c = r.try_get<NameComponent>(e);
+    const auto& team = r.get<TeamComponent>(e);
 
-    ImVec4 col_white = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
-    ImVec4 col_green = ImVec4(0.5f, 1.0f, 0.5f, 1.0f);
-    ImVec4 col_default = col_white;
+    const ImVec4 col_player_active = ImVec4(0.5f, 1.0f, 0.5f, 1.0f);
+    const ImVec4 col_player_inactive = ImVec4(0.5f, 1.0f, 0.5f, 0.5f);
+    const ImVec4 col_enemy_active = ImVec4(1.0f, 0.5f, 0.5f, 1.0f);
+    const ImVec4 col_enemy_inactive = ImVec4(1.0f, 0.5f, 0.5f, 0.5f);
+    ImVec4 col_default = team.team == AvailableTeams::player ? col_player_inactive : col_enemy_inactive;
 
     if (i == 0) {
-      col_default = col_green;
+      col_default = team.team == AvailableTeams::player ? col_player_active : col_enemy_active;
       i++;
     }
 

@@ -64,9 +64,9 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
   if (auto* defence_c = r.try_get<DefenceComponent>(to_e))
     defence_amount = defence_c->armour;
 
-  float damage = amount;
+  int damage = amount;
   damage -= defence_amount;
-  damage = glm::max(damage, 0.0f);
+  damage = glm::max(damage, 0);
 
   const auto a_name = std::string(r.get<TagComponent>(from_e).tag);
   const auto b_name = std::string(r.get<TagComponent>(to_e).tag);
@@ -74,7 +74,7 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
   SDL_Log("%s", message.c_str());
 
   // .. take damage
-  hp->hp -= static_cast<int>(glm::max(0.0f, damage));
+  hp->hp -= static_cast<int>(glm::max(0, damage));
   additional_misc_damage_events(r, to_e);
 
   if (hp->hp <= 0) {

@@ -74,7 +74,7 @@ update_debug_map_system(entt::registry& r)
     }
   }
 
-  map_debug_pool.update(r, request_to_draw_at_position.size());
+  map_debug_pool.update(r, (int)request_to_draw_at_position.size());
   for (int i = 0; const auto& req : request_to_draw_at_position) {
     const auto instance_e = map_debug_pool.instances[i++];
     set_position(r, instance_e, req.worldspace_pos);
