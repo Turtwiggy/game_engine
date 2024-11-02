@@ -48,5 +48,6 @@ struct MapComponent
   int tilesize = 50;
 
   std::vector<std::vector<entt::entity>> map;
+  // std::unordered_map<glm::ivec2, std::vector<entt::entity>> grid;
 };
 } // namespace game2d

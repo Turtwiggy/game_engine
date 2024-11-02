@@ -1,4 +1,4 @@
-#include "modules/actor_cargo/helpers.hpp"
+#include "helpers.hpp"
 
 #include "engine/io/settings.hpp"
 
@@ -26,5 +26,18 @@ decrement_cargo(entt::registry& r)
 
   save_string(SPACESHIP_COUNT, std::to_string(spaceship_val));
 }
+
+void
+save_level(entt::registry& r, int level, bool complete)
+{
+  save_string("level" + std::to_string(level), complete ? "true" : "false");
+};
+
+bool
+get_level_complete(entt::registry& r, int level)
+{
+  auto str = gesert_string("level" + std::to_string(level), "false");
+  return str == "true";
+};
 
 } // namespace game2d

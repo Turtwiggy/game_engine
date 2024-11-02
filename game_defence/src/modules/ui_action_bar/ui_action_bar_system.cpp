@@ -7,8 +7,14 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/events/helpers/mouse.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
+#include "modules/actor_door/door_helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat_show_tiles_in_range/show_tiles_in_range_components.hpp"
+#include "modules/event_damage/event_damage_helpers.hpp"
+#include "modules/events/events_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
@@ -39,6 +45,39 @@ struct UnitCompletedActions
 };
 
 void
+do_damage_action(entt::registry& r, entt::entity e)
+{
+  const auto* damage_tiles = r.try_get<TilesComponent>(e);
+  if (!damage_tiles)
+    return;
+  const auto& evts = get_first_component<SINGLE_Events>(r);
+  SDL_Log("Dealing damage in highlighted tiles...");
+
+  for (const auto& tile : damage_tiles->tiles) {
+    // damage all mobs (off map)
+    std::vector<entt::entity> mobs = contains_mobs(r, tile);
+
+    // damage all entities (on map)
+    std::set<entt::entity> unique_mobs{ mobs.begin(), mobs.end() };
+    // for (const auto map_e : map_c.map[idx])
+    //   unique_mobs.emplace(map_e);
+
+    for (const auto map_e : unique_mobs) {
+      DamageEvent evt;
+      evt.from = e;
+      evt.to = map_e;
+
+      // note: random damage, but this isn't correct
+      static engine::RandomState rnd(0);
+      evt.amount = engine::rand_det_s(rnd.rng, 0, 10);
+
+      evts.dispatcher->trigger(evt);
+      evts.dispatcher->update();
+    }
+  }
+};
+
+void
 update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 {
   const auto init_e = get_first<SINGLE_Initiative>(r);
@@ -59,7 +98,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 
   ImGui::Begin("Action Bar");
 
-  if (ImGui::Button("Clear In P")) {
+  if (ImGui::Button("Clear") || get_mouse_rmb_press()) {
     if (r.try_get<UnitActionState>(e))
       r.remove<UnitActionState>(e);
     if (r.try_get<GeneratedPathComponent>(e))
@@ -116,9 +155,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     bool request_action = false;
     if (auto* inp_c = r.try_get<InputComponent>(e))
       request_action |= inp_c->shoot;
-
-    // no ui
-    request_action &= (ri.viewport_hovered);
+    request_action &= (ri.viewport_hovered); // no ui
 
     const auto state = std::string(magic_enum::enum_name(state_c->current));
     ImGui::Text("State: %s", state.c_str());
@@ -158,11 +195,15 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     }
 
     if (state_c->current == UnitAction::SHOOT) {
-      //
-
       if (request_action) {
-        SDL_Log("Wants to shoot...");
-        //
+        auto& actions_c = r.get_or_emplace<UnitCompletedActions>(e);
+        const auto it = std::find(actions_c.actions.begin(), actions_c.actions.end(), state_c->current);
+        if (it == actions_c.actions.end()) {
+
+          do_damage_action(r, e);
+
+          // actions_c.actions.push_back(state_c->current); // done
+        }
       }
     }
 
@@ -171,10 +212,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       auto& actions_c = r.get_or_emplace<UnitCompletedActions>(e);
       const auto it = std::find(actions_c.actions.begin(), actions_c.actions.end(), state_c->current);
       if (it == actions_c.actions.end()) {
-        actions_c.actions.push_back(state_c->current);
-        SDL_Log("wants to use item...");
-      } else {
-        SDL_Log("use action already taken... should end your turn");
+        SDL_Log("TODO: wants to use item...");
+
+        actions_c.actions.push_back(state_c->current); // done
       }
     }
   }

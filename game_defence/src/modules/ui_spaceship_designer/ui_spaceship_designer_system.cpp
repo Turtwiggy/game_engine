@@ -9,9 +9,11 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
@@ -19,40 +21,107 @@
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/spaceship_designer_helpers.hpp"
+#include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
+#include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_spaceship_designer/helpers.hpp"
 
 #include "imgui.h"
 
 namespace game2d {
 
-enum class SpaceshipDesignerMode
-{
-  PLACE,
-};
-static SpaceshipDesignerMode mode;
+static auto seed = 0;
+static auto enemy_rnd = engine::RandomState(seed);
+static auto room_rnd = engine::RandomState(seed);
 
 void
+spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
+{
+  const auto map_e = get_first<MapComponent>(r);
+  const auto& map_c = r.get<MapComponent>(map_e);
 
+  int n_free_slots = static_cast<int>(idxs.size());
+  do {
+    // choose a random slot...
+    const int slot_i = engine::rand_det_s(enemy_rnd.rng, 0, n_free_slots);
+    const int slot_idx = idxs[slot_i];
+    const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+
+    {
+      const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
+      r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
+      auto& inv = r.get<DefaultInventory>(mob_e).inv;
+      auto& body = r.get<DefaultBody>(mob_e).body;
+      // give the enemy a piece of scrap in their inventory
+      spawn_inv_item(r, inv, 0, "scrap");
+      // give the enemy a 5% chance to have a medkit in their inventory...
+      // TODO: medkits
+      // give enemy a weapon
+      // auto weapon_e = spawn_inv_item(r, body, 6, "shotgun");
+
+      add_entity_to_map(r, mob_e, slot_idx);
+    }
+
+    idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
+    amount--;
+    n_free_slots--;
+
+  } while (amount > 0 && n_free_slots > 0);
+};
+
+void
 update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_pos, const float dt)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto generate = cleanup_requests<RequestGenerateDungeonComponent>(r);
-
-  static auto seed = 0;
-  static auto rnd = engine::RandomState(seed);
   static int tilesize = 50;
 
   ImGui::Begin("Spaceship Designer");
 
-  static bool first_time = true;
-  if (ImGui::Button("(new) empty spaceship") || first_time) {
+  const auto info_e = get_first<MenuToNextSceneInfo>(r);
+  if (info_e != entt::null) {
+    auto& info_c = r.get<MenuToNextSceneInfo>(info_e);
+    if (!info_c.processed) {
+      destroy_first_and_create<MapComponent>(r);
+      auto& map = get_first_component<MapComponent>(r);
+      map.tilesize = tilesize;
+      map.xmax = 10;
+      map.ymax = 10;
+      map.map.resize(map.xmax * map.ymax);
+
+      // spawn the right amount of enemies...
+      const auto map_e = get_first<MapComponent>(r);
+      const auto& map_c = r.get<MapComponent>(map_e);
+      auto idxs = get_empty_slots_in_map(r, map_c);
+      spawn_n_enemies(r, idxs, info_c.level);
+
+      // spawn the right amount of players...
+      for (int i = 0; i < 1; i++) {
+        auto idxs = get_empty_slots_in_map(r, map_c);
+        const int slot_idx = idxs[engine::rand_det_s(enemy_rnd.rng, 0, idxs.size())];
+        const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+
+        auto e = spawn_mob(r, "dungeon_actor_hero", pos);
+        r.emplace<CircleComponent>(e);
+        r.emplace<PlayerComponent>(e);
+        r.emplace<TeamComponent>(e, AvailableTeams::player);
+        r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
+        r.emplace<InitBodyAndInventory>(e);
+        spawn_particle_emitter(r, "anything", mouse_pos, e);
+
+        activate_unit(r, e);
+      }
+
+      info_c.processed = true;
+    }
+  }
+
+  if (ImGui::Button("(new) empty spaceship")) {
     SDL_Log("Creating new map...");
 
     move_to_scene_start(r, Scene::dungeon_designer);
@@ -104,17 +173,15 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     spec.max_rooms = 10;
     spec.room_size_min = 4;
     spec.room_size_max = glm::min(8, map.xmax);
+    auto results = generate_rooms(r, spec, room_rnd);
 
-    auto results = generate_rooms(r, spec, rnd);
     connect_rooms_via_nearest_neighbour(r, results);
     // update_map_with_pathfinding(r, map, results);
     create_empty<DungeonIntermediate>(r, results);
   }
 
   auto map_e = get_first<MapComponent>(r);
-  if ((map_e != entt::null && ImGui::Button("Instantiate map")) || first_time) {
-    first_time = false;
-
+  if ((map_e != entt::null && ImGui::Button("Instantiate map"))) {
     auto& map_c = r.get<MapComponent>(map_e);
     auto& results_c = get_first_component<DungeonIntermediate>(r);
     {
@@ -132,71 +199,19 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     create_jetpack_player(r);
   }
 
-  const auto spawn_mob_impl = [&r](glm::vec2 wp) -> entt::entity {
-    const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", wp);
-    r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
-
-    auto& inv = r.get<DefaultInventory>(mob_e).inv;
-    auto& body = r.get<DefaultBody>(mob_e).body;
-
-    // give the enemy a piece of scrap in their inventory
-    spawn_inv_item(r, inv, 0, "scrap");
-
-    // give the enemy a 5% chance to have a medkit in their inventory...
-    // TODO: medkits
-
-    // give enemy a weapon
-    auto weapon_e = spawn_inv_item(r, body, 6, "shotgun");
-
-    return mob_e;
-  };
-
   if (map_e != entt::null && ImGui::Button("Populate rooms...")) {
     const auto& map_c = r.get<MapComponent>(map_e);
     const auto& view = r.view<Room>();
     for (const auto& [e, room_c] : view.each()) {
-
       auto idxs = get_empty_slots_in_room(r, map_c, room_c);
-      const int n_free_slots = static_cast<int>(idxs.size());
-      if (n_free_slots != 0) {
-        // choose a random slot...
-        const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
-        const int slot_idx = idxs[slot_i];
-        const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-
-        // spawn_mob()
-        auto mob_e = spawn_mob_impl(pos);
-        add_entity_to_map(r, mob_e, slot_idx);
-
-        // spawn_environment(r, slot_idx);
-
-        idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
-      }
+      spawn_n_enemies(r, idxs, 3);
     }
   }
 
   if (map_e != entt::null && ImGui::Button("Populate space...")) {
     const auto& map_c = r.get<MapComponent>(map_e);
-
     auto idxs = get_empty_slots_in_map(r, map_c);
-    int n_free_slots = static_cast<int>(idxs.size());
-    int amount_to_spawn = 3;
-
-    do {
-      // choose a random slot...
-      const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
-      const int slot_idx = idxs[slot_i];
-      const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-
-      auto mob_e = spawn_mob_impl(pos);
-
-      idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
-      amount_to_spawn--;
-      n_free_slots--;
-
-    } while (amount_to_spawn > 0 && n_free_slots > 0);
-
-    //
+    spawn_n_enemies(r, idxs, 3);
   }
 
   ImGui::SeparatorText("info: mouse/grid");

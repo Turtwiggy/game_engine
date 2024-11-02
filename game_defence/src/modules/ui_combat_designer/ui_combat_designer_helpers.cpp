@@ -9,6 +9,10 @@ namespace game2d {
 void
 activate_unit(entt::registry& r, entt::entity e)
 {
+  // stop the camera moving freely, and focus on the unit
+  const auto view = r.view<CameraFreeMove>();
+  r.destroy(view.begin(), view.end());
+
   // Update the selected unit/camera to the new unit
   const auto& selected_view = r.view<SelectedComponent>();
   r.remove<SelectedComponent>(selected_view.begin(), selected_view.end());

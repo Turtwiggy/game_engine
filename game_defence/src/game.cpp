@@ -23,6 +23,7 @@
 #include "modules/combat_scale_on_hit/system.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
 #include "modules/events/events_system.hpp"
+#include "modules/gameover/system.hpp"
 #include "modules/map_debug/system.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
@@ -51,6 +52,7 @@
 #include "modules/ui_combat_designer/ui_combat_designer_system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
+#include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
 #include "modules/ui_inventory/ui_inventory_system.hpp"
@@ -172,6 +174,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED) {
+    update_gameover_system(r);
     update_cooldown_system(r, milliseconds_dt);
     update_move_to_target_via_lerp(r, dt);
     update_particle_system(r, dt);
@@ -237,6 +240,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_players_system(r);
     update_ui_combat_designer_system(r, mouse_pos);
     update_ui_action_bar_system(r, mouse_pos);
+    update_ui_gameover_system(r);
   }
   static bool show_settings_ui = true;
   if (show_settings_ui) {

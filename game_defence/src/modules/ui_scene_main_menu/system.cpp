@@ -5,6 +5,7 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "helpers.hpp"
+#include "modules/persistent/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
@@ -111,6 +112,29 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       // create_empty<RequestGenerateDungeonComponent>(r);
     }
 #endif
+
+    const auto num = 10.0f;
+    for (int i = 1; i < num; i++) {
+      ImGui::PushID(i);
+      ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / num, 0.6f, 0.6f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / num, 0.7f, 0.7f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / num, 0.8f, 0.8f));
+
+      // load completed from disk
+      bool completed = get_level_complete(r, i);
+
+      std::string com_str = std::format("Level {} ( )", i);
+      if (completed)
+        com_str = std::format("Level {} (X)", i);
+
+      if (ImGui::Button(com_str.c_str())) {
+        move_to_scene_start(r, Scene::dungeon_designer);
+        create_empty<MenuToNextSceneInfo>(r, MenuToNextSceneInfo{ i });
+      }
+
+      ImGui::PopStyleColor(3);
+      ImGui::PopID();
+    }
 
     if (selectable_button("Exit", selected, index++))
       app.running = false;

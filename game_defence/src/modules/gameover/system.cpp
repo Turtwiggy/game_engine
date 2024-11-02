@@ -1,16 +1,6 @@
 #include "system.hpp"
 
-#include "engine/entt/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
-#include "modules/actor_cargo/helpers.hpp"
-#include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
-#include "modules/gen_dungeons/components.hpp"
-#include "modules/scene/components.hpp"
-#include "modules/scene/helpers.hpp"
-#include "modules/ui_gameover/components.hpp"
-
-#include <algorithm>
 
 namespace game2d {
 using namespace std::literals;
@@ -18,67 +8,12 @@ using namespace std::literals;
 void
 update_gameover_system(entt::registry& r)
 {
-  //
-  // gameover conditions
-  //
-  {
-    auto& gameover = get_first_component<SINGLE_GameOver>(r);
-    const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& view = r.view<RequestGameOver>();
+  bool new_game = view.size() > 0;
+  r.destroy(view.begin(), view.end());
 
-    // Scenes to add gameover condition to
-    const auto s = std::vector<Scene>{ Scene::dungeon_designer };
-    const auto it = std::find_if(s.begin(), s.end(), [&scene](const Scene& sc) { return sc == scene.s; });
-    if (it != s.end()) {
-      // Make sure we're not generating a dungeon...
-      // Where players are temporarily 0...
-      const bool generated_dungeon = get_first<DungeonGenerationResults>(r) != entt::null;
-      if (generated_dungeon) {
-
-        // condition: All of one team is daed
-        std::map<AvailableTeams, int> team_count;
-        team_count[AvailableTeams::player] = 0; // force team to exist
-
-        // Count up all teams
-        for (const auto& [e, team_c] : r.view<TeamComponent>().each())
-          team_count[team_c.team] += 1;
-        if (team_count[AvailableTeams::player] == 0) {
-          gameover.game_is_over = true;
-          gameover.win_condition = false;
-          gameover.reason = "Your team wiped out!";
-
-          // punish the player! make them lose a cargo!
-          decrement_cargo(r);
-        }
-      }
-    }
-
-    if (gameover.game_is_over && !gameover.activated_gameover) {
-      gameover.activated_gameover = true;
-
-      if (gameover.win_condition) {
-        // WHOOOOOOOOOOOO!
-        // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "WIN_01" });
-      } else {
-        // WAHHHHHHHHHHHHH.
-        // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "LOSS_01" });
-      }
-    }
-  }
-
-  // gameover requests
-  //
-  bool new_game = false;
-  {
-    const auto& view = r.view<NewGameRequest>(entt::exclude<WaitForInitComponent>);
-    for (const auto& [entity, request] : view.each())
-      new_game = true;
-    r.destroy(view.begin(), view.end()); // requests are processed
-  }
-
-  // do the restart
-  // bug: should not be scene::
-  if (new_game)
-    move_to_scene_start(r, Scene::menu, false);
+  // if (new_game)
+  //   move_to_scene_start(r, Scene::menu);
 }
 
 } // namespace game2d

@@ -180,8 +180,8 @@ main(int argc, char* argv[])
 
 #if defined(_MSC_VER)
   OPTICK_STOP_CAPTURE();
+  OPTICK_SAVE_CAPTURE("GameCapture");
 #endif
-  // OPTICK_SAVE_CAPTURE("GameCapture");
 #endif
 
   return 0;

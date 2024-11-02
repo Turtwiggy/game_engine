@@ -18,6 +18,7 @@
 #include "modules/system_select_unit/select_unit_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
+#include "show_tiles_in_range_components.hpp"
 
 #include <glm/fwd.hpp>
 
@@ -207,89 +208,27 @@ update_show_tiles_in_range_system(entt::registry& r)
   ImGui::End();
 #endif
 
-  std::vector<glm::vec2> tiles_to_add;
+  const auto& view = r.view<PlayerComponent, const SelectedComponent, const InputComponent>();
+  for (const auto& [e, player_c, selected_c, input_c] : view.each()) {
+    auto& tiles_c = r.get_or_emplace<TilesComponent>(e);
 
-  const auto& view = r.view<PlayerComponent, const SelectedComponent>();
-  for (const auto& [e, player_c, selected_c] : view.each()) {
-
-    const auto* input_c = r.try_get<InputComponent>(e);
-    if (input_c == nullptr)
-      continue;
-
-    const auto grid_pos = get_grid_position(r, e);
-    // ImGui::Text("you: %i %i", grid_pos.x, grid_pos.y);
+    const auto gp = get_grid_position(r, e);
 
     std::vector<glm::ivec2> tiles;
+
     if (show_range_type == RangeType::knife)
-      tiles = get_tiles_for_knife(r, map_c, grid_pos);
+      tiles = get_tiles_for_knife(r, map_c, gp);
     if (show_range_type == RangeType::pistol)
-      tiles = get_tiles_in_line(r, map_c, grid_pos, { input_c->rx, input_c->ry }, 1);
+      tiles = get_tiles_in_line(r, map_c, gp, { input_c.rx, input_c.ry }, 1);
     if (show_range_type == RangeType::plunger)
-      tiles = get_tiles_in_line(r, map_c, grid_pos, { input_c->rx, input_c->ry }, 4);
+      tiles = get_tiles_in_line(r, map_c, gp, { input_c.rx, input_c.ry }, 4);
     if (show_range_type == RangeType::shotgun)
-      tiles = get_tiles_for_shotgun(r, map_c, grid_pos, { input_c->rx, input_c->ry });
+      tiles = get_tiles_for_shotgun(r, map_c, gp, { input_c.rx, input_c.ry });
 
-    // debug tiles with squares
-    //
-    for (const auto& tile_gp : tiles) {
-      // ImGui::Text("accessible: %i %i", tile_gp.x, tile_gp.y);
-
-      const auto offset = glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-      const auto anypos = glm::vec2(tile_gp * map_c.tilesize) + offset;
-      tiles_to_add.push_back(anypos);
-    }
-
-// HACK: trial dealing damage to entities on the tiles
-#if defined(_DEBUG)
-
-    const auto& input = get_first_component<SINGLE_InputComponent>(r);
-    const auto& evts = get_first_component<SINGLE_Events>(r);
-
-    if (get_key_down(input, SDL_SCANCODE_SPACE)) {
-      SDL_Log("sending damage event...");
-
-      for (const auto& tile : tiles) {
-        if (gp_out_of_bounds(tile, map_c.xmax, map_c.ymax)) {
-          SDL_Log("gp out of bounds for damage event...");
-          continue;
-        }
-        const auto idx = engine::grid::grid_position_to_index(tile, map_c.xmax);
-
-        // damage all mobs (off map)
-        std::vector<entt::entity> mobs = contains_mobs(r, tile);
-
-        // damage all entities (on map)
-        std::set<entt::entity> unique_mobs{ mobs.begin(), mobs.end() };
-        for (const auto map_e : map_c.map[idx])
-          unique_mobs.emplace(map_e);
-
-        for (const auto map_e : unique_mobs) {
-
-          DamageEvent evt;
-          evt.from = e;
-          evt.to = map_e;
-
-          // evt.amount = get_damage_for_equipped_item(r, e);
-          static engine::RandomState rnd(0);
-          evt.amount = engine::rand_det_s(rnd.rng, 0, 10);
-
-          evts.dispatcher->trigger(evt);
-          evts.dispatcher->update();
-        }
-      }
-    }
-
-#endif
-
-    break; // only first player
+    tiles_c.tiles = tiles;
   }
 
-  static EntityPool pool;
-  pool.update(r, int(tiles_to_add.size())); // note: bad for multiple playersS
-  for (int i = 0; const auto& tile : tiles_to_add) {
-    const auto debug_e = pool.instances[i++];
-    set_position(r, debug_e, tile);
-  }
+  //
 }
 
 } // namespace game2d

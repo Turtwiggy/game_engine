@@ -10,4 +10,11 @@ struct SINGLE_MainMenuUI
   std::vector<std::string> hovered_buttons;
 };
 
+struct MenuToNextSceneInfo
+{
+  int level = 0;
+
+  bool processed = false;
+};
+
 } // namespace game2d
