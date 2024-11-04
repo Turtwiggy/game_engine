@@ -25,6 +25,7 @@
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/spaceship_designer_helpers.hpp"
+#include "modules/system_ai/system_ai_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
@@ -63,6 +64,7 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
       // TODO: medkits
       // give enemy a weapon
       // auto weapon_e = spawn_inv_item(r, body, 6, "shotgun");
+      r.emplace<DefaultBrainComponent>(mob_e);
 
       add_entity_to_map(r, mob_e, slot_idx);
     }
