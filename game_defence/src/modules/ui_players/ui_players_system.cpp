@@ -80,6 +80,9 @@ update_ui_players_system(entt::registry& r)
     ImGui::SameLine();
     ImGui::TextColored(col_default, "%s", name_c->full_name.c_str());
 
+    ImGui::SameLine();
+    ImGui::Text("%i", r.get<InitiativeComponent>(e).initiative);
+
     const auto* selected_c = r.try_get<SelectedComponent>(e);
     if (selected_c) {
       ImGui::SameLine();

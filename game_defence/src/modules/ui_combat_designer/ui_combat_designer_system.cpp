@@ -31,7 +31,6 @@ update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
   const auto pos = engine::grid::worldspace_to_clamped_world_space_center(mouse_pos, 50);
 
   ImGui::Begin("UI combat designer system");
-  ImGui::Text("Hello, World");
   ImGui::Text("spawn enemy: lshift+%s", SDL_GetScancodeName(spawn_enemy_button));
   ImGui::Text("spawn player: lshift+%s", SDL_GetScancodeName(spawn_player_button));
 
@@ -61,11 +60,6 @@ update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
 
     activate_unit(r, e);
   }
-
-  // raws: keys
-  ImGui::Separator();
-  for (const auto& key : get_raws_keys(raws))
-    ImGui::Text("%s", key.c_str());
 
   ImGui::End();
 }

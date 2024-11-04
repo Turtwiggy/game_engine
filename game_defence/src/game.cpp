@@ -39,7 +39,7 @@
 #include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
 #include "modules/system_initiative/initiative_system.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_system.hpp"
-#include "modules/system_move_to_target_via_lerp/system.hpp"
+#include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
@@ -230,8 +230,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
-  update_ui_inventory_system(r);
-  update_ui_lootbag_system(r);
+  // update_ui_inventory_system(r);
+  // update_ui_lootbag_system(r);
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
   if (scene.s == Scene::dungeon_designer) {

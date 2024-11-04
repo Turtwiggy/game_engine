@@ -30,7 +30,7 @@ struct RequestMove
 
 struct RequestAttack
 {
-  bool placeholder = true;
+  std::vector<entt::entity> targets;
 };
 
 } // namespace game2d

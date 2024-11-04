@@ -1,10 +1,13 @@
 #pragma once
 
+#include "actors/actor_helpers.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/system_ai/system_ai_maths.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
+
 #include <format>
 #include <memory>
 #include <optional>
@@ -40,7 +43,7 @@ struct AmmoConsideration : public Consideration
   };
 };
 
-struct HealthConsideration : public Consideration
+struct HealConsideration : public Consideration
 {
   float Evaluate(entt::registry& r, entt::entity e) const override
   {
@@ -58,13 +61,22 @@ struct HealthConsideration : public Consideration
   }
 };
 
+struct MoveConsiderationData
+{
+  std::vector<glm::ivec2> final_path;
+};
 struct MoveConsideration : public Consideration
 {
-  float Evaluate(entt::registry& r, entt::entity e) const override
-  {
-    //
-    return 0.0f;
-  }
+  float Evaluate(entt::registry& r, entt::entity e) const override;
+};
+
+struct AttackConsiderationData
+{
+  std::vector<entt::entity> targets;
+};
+struct AttackConsideration : public Consideration
+{
+  float Evaluate(entt::registry& r, entt::entity e) const override;
 };
 
 //
@@ -114,7 +126,8 @@ struct MoveAction : public Action
 
   MoveAction()
   {
-    // considerations.push_back(MoveConsideration());
+    //
+    considerations.push_back(std::make_shared<MoveConsideration>());
   }
 };
 
@@ -123,22 +136,24 @@ struct AttackAction : public Action
   std::string GetClassName() const override { return "AttackAction"; }
   ActionEnum GetActionEnum() const override { return ActionEnum::SHOOT; }
 
-  AttackAction() {
-    // considerations.push_back(Weapo)
+  AttackAction()
+  {
+    //
+    considerations.push_back(std::make_shared<AttackConsideration>());
   };
 };
 
 // A simple 3 state FSM for AI.
 // IDLE: accept new tasks
+// REASONING: thinking time to seem more real
 // MOVE: moving physically in world
 // ANIMATE: an animation is playing, which triggers events e.g. sound
-// REASONING: thinking time to seem more real
 enum class BRAIN_STATE
 {
   IDLE,
-  // MOVE,
-  // ANIMATE,
   REASONING,
+  MOVE,
+  ANIMATE,
 };
 
 struct DefaultBrainComponent
@@ -171,6 +186,7 @@ public:
 
     std::optional<std::shared_ptr<Action>> result = std::nullopt;
 
+    // take the action with the highest utility (value at end of map)
     if (sorted_actions.size() > 0)
       result = sorted_actions.rend()->second;
 

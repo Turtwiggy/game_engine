@@ -47,7 +47,6 @@ create_player_if_not_in_scene(entt::registry& r)
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<PlayerComponent>(e);
-  r.emplace<InputComponent>(e);
   r.emplace<KeyboardComponent>(e);
   auto& player_thrust = r.emplace<MovementAsteroidsComponent>(e);
   player_thrust.able_to_change_thrust = false;
@@ -148,7 +147,6 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
 
     // remove player control
     const auto player_e = get_first<PlayerComponent>(r);
-    r.remove<InputComponent>(player_e);
     r.remove<KeyboardComponent>(player_e);
     r.remove<MovementAsteroidsComponent>(player_e);
 
@@ -181,7 +179,6 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
       r.remove<PhysicsDynamicTarget>(player_e);
 
       // give back movement control (to player)
-      r.emplace<InputComponent>(player_e);
       r.emplace<KeyboardComponent>(player_e);
       r.emplace<MovementAsteroidsComponent>(player_e);
 

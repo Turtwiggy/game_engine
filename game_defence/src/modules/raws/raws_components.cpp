@@ -11,6 +11,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_breach_charge/breach_charge_helpers.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -202,6 +203,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<HealthComponent>(e, 100, 100);
   r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+  r.emplace<InputComponent>(e);
 
   // Give each mob a random name
   static engine::RandomState rnd(0);
@@ -213,8 +215,15 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<NameComponent>(e, name_c);
 
   // Give each mob random initiative
+
+#if defined(_DEBUG)
+  static int init = 0;
+  init++;
+  r.emplace<InitiativeComponent>(e, init);
+#else
   const int rnd_init = engine::rand_det_s(rnd.rng, 0, 20);
-  r.emplace<InitiativeComponent>(e, rnd_init);
+  r.emplace<InitiativeComponent>(e, inirnd_initt);
+#endif
 
   // if (item_template.stats.){
   // }

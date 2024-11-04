@@ -114,9 +114,8 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
         r.emplace<TeamComponent>(e, AvailableTeams::player);
         r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
         r.emplace<InitBodyAndInventory>(e);
-        spawn_particle_emitter(r, "anything", mouse_pos, e);
-
-        activate_unit(r, e);
+        spawn_particle_emitter(r, "anything", pos, e);
+        add_entity_to_map(r, e, slot_idx);
       }
 
       info_c.processed = true;

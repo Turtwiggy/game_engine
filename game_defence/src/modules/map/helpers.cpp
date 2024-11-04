@@ -75,10 +75,14 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   const auto& dst_es = map.map[dst_idx];
 
   // easy case: dst is clear.
-  if (dst_es.size() == 0) {
-    remove_entity_from_map(r, mapinfo_opt.value());
-    add_entity_to_map(r, src_e, dst_idx);
-    return true;
+  // if (dst_es.size() == 0) {
+  remove_entity_from_map(r, mapinfo_opt.value());
+  add_entity_to_map(r, src_e, dst_idx);
+
+  return true;
+  /*
+
+    // return true;
   }
 
   // hard case: dst is not clear,
@@ -103,6 +107,8 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   }
 
   return false;
+
+  */
 };
 
 } // namespace game2d

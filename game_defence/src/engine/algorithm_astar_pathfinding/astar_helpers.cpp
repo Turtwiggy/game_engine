@@ -228,6 +228,57 @@ generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const ve
   return results;
 };
 
+std::vector<glm::ivec2>
+generate_accessible_areas_with_diagonals(entt::registry& r, const MapComponent& map_c, const vec2i from_pos, const int range)
+{
+  std::map<vec2i, int> pos_to_distance;
+  pos_to_distance[from_pos] = 0;
+
+  PriorityQueue<vec2i> frontier;
+  frontier.enqueue(from_pos, 0);
+
+  std::vector<glm::ivec2> results;
+
+  while (frontier.size() > 0) {
+    const auto current = frontier.dequeue();
+    results.push_back({ current.x, current.y });
+
+    // check neighbours
+    const auto neighbour_gps =
+      engine::grid::get_neighbour_gridpos_with_diagonals({ current.x, current.y }, map_c.xmax, map_c.ymax);
+
+    for (const auto& [dir, gp] : neighbour_gps) {
+
+      if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
+        continue; // out of map
+
+      if (gridpos_blocked_by_map(r, gp, map_c))
+        continue; // impassable
+
+      if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
+        continue; // impassable
+
+      int distance = pos_to_distance[current] + 1;
+      if (distance > range)
+        continue;
+
+      // if a distance value already existed, take the smaller distance
+      if (pos_to_distance.contains(gp))
+        pos_to_distance[gp] = glm::min(distance, pos_to_distance[gp]);
+
+      // no distance value: insert a new one
+      else {
+        pos_to_distance[gp] = distance;
+        frontier.enqueue(gp, 0);
+      }
+    }
+
+    //
+  }
+
+  return results;
+};
+
 bool
 has_destination(entt::registry& r, const entt::entity src_e)
 {

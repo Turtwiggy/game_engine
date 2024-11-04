@@ -1,7 +1,8 @@
-#include "system.hpp"
+#include "move_to_target_via_lerp_system.hpp"
 
 #include "actors/actor_helpers.hpp"
 #include "components.hpp"
+#include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
