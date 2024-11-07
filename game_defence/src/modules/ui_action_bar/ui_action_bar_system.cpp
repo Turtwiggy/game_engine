@@ -100,6 +100,103 @@ action_available(const CompletedActions& actions_c, ActionEnum action)
 };
 
 void
+push_button_available_colours()
+{
+  // Active state: Green
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.8f, 0.0f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.1f, 0.9f, 0.1f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.7f, 0.0f, 1.0f));
+};
+
+void
+push_button_unavailable_colours()
+{
+  // Inactive state: red
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.0f, 0.0f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.0f, 0.0f, 1.0f));
+};
+
+void
+ai_tick(entt::registry& r, entt::entity e)
+{
+  const auto& map_c = get_first_component<MapComponent>(r);
+
+  const auto name = r.get<NameComponent>(e).first_name;
+  auto& brain_c = r.get<DefaultBrainComponent>(e);
+  if (brain_c.brain_fsm == BRAIN_STATE::IDLE) {
+    SDL_Log("AI: IDLE => REASONING");
+    brain_c.brain_fsm = BRAIN_STATE::REASONING;
+
+    // Given all the actions the ai can take, choose one
+    SDL_Log("Ai (%s) deciding what to do...", name.c_str());
+    const std::optional<std::shared_ptr<Action>> action = Reasoner::Evaluate(r, e, brain_c);
+
+    if (action.has_value()) {
+      SDL_Log("AI has chosen to... %s", action.value()->GetClassName().c_str());
+
+      // AI: REASONING => MOVE
+      if (std::dynamic_pointer_cast<MoveAction>(action.value())) {
+        // ai: use path ai has chosen
+        const auto& path = r.get<MoveConsiderationData>(e).final_path;
+
+        GeneratedPathComponent path_c;
+        path_c.path = path;
+        path_c.path_cleared.resize(path.size(), false);
+        path_c.src_pos = get_position(r, e);
+        path_c.dst_pos = engine::grid::grid_space_to_world_space_center(path[path.size() - 1], map_c.tilesize);
+
+        RequestMove req_c;
+        req_c.path_c = path_c;
+        r.emplace<RequestMove>(e, req_c);
+        brain_c.brain_fsm = BRAIN_STATE::MOVE;
+      }
+
+      // AI: REASONING => SHOOT
+      if (std::dynamic_pointer_cast<AttackAction>(action.value())) {
+        const auto& data_c = r.get<AttackConsiderationData>(e);
+        r.emplace<RequestAttack>(e, data_c.targets);
+
+        brain_c.brain_fsm = BRAIN_STATE::ANIMATE;
+      }
+    }
+  }
+
+  // State: MOVE => IDLE
+  if (brain_c.brain_fsm == BRAIN_STATE::MOVE) {
+    const auto has_req = r.try_get<RequestMove>(e) != nullptr;
+    const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
+    const auto& path_c = r.try_get<GeneratedPathComponent>(e);
+    const auto has_path = path_c != nullptr;
+
+    const bool moving = has_lerp || has_req;
+    const bool arrived = at_destination(r, e);
+
+    if (!moving && arrived) {
+      SDL_Log("Finished moving... moving to idle");
+
+      const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+      move_entity_on_map(r, e, dst_idx);
+
+      r.remove<GeneratedPathComponent>(e);
+      brain_c.brain_fsm = BRAIN_STATE::IDLE;
+    }
+  }
+
+  // State: REASONING => IDLE
+  // If we've ended in a reasoning state,
+  // assume that ai didnt choose an action,
+  // and end the turn.
+  if (brain_c.brain_fsm == BRAIN_STATE::REASONING) {
+    const auto brain_state_str = engine::convert_enum_to_string(brain_c.brain_fsm);
+    brain_c.brain_fsm = BRAIN_STATE::IDLE;
+
+    SDL_Log("AI requesting end turn...");
+    r.emplace_or_replace<RequestEndTurn>(e);
+  }
+};
+
+void
 update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 {
   const auto init_e = get_first<SINGLE_Initiative>(r);
@@ -107,6 +204,10 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     return;
   const auto& init_c = r.get<SINGLE_Initiative>(init_e);
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+
+  const auto map_e = get_first<MapComponent>(r);
+  if (map_e == entt::null)
+    return;
   const auto& map_c = get_first_component<MapComponent>(r);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
@@ -134,7 +235,6 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 
   const bool player_turn = r.get<TeamComponent>(e).team == AvailableTeams::player;
   const bool enemy_turn = r.get<TeamComponent>(e).team == AvailableTeams::enemy;
-  const std::string name = r.get<NameComponent>(e).first_name;
 
   static EntityPool debug_path;
   debug_path.update(r, 0);
@@ -152,46 +252,46 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
   ImGui::Begin("Action Bar", NULL, flags);
   {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
 
-    if (ImGui::Button("Clear")) {
-      if (r.try_get<UIActionState>(e))
-        r.remove<UIActionState>(e);
-      if (r.try_get<GeneratedPathComponent>(e))
-        r.remove<GeneratedPathComponent>(e);
-    }
+    const auto button_enabled = [&r, e, &player_turn](const ActionEnum& a,
+                                                      std::string label,
+                                                      const bool additional_enabled_cond = true,
+                                                      const bool additional_action_cond = false) {
+      const auto& actions_c = r.get_or_emplace<CompletedActions>(e);
+      const bool free_to_act = action_available(actions_c, a) && player_turn && additional_enabled_cond;
+      const ImVec2 size = { 32 * 16 / 9.0f, 32 };
 
-    if (ImGui::SameLine(); ImGui::Button("Move") && player_turn)
-      r.emplace_or_replace<UIActionState>(e, ActionEnum::MOVE);
+      if (!free_to_act) {
+        push_button_unavailable_colours();
+        ImGui::BeginDisabled(true);
 
-    if (ImGui::SameLine(); ImGui::Button("Shoot") && player_turn)
-      r.emplace_or_replace<UIActionState>(e, ActionEnum::SHOOT);
+        if (ImGui::SameLine(); ImGui::Button(label.c_str(), size) || additional_action_cond)
+          r.emplace_or_replace<UIActionState>(e, a);
 
-    if (ImGui::SameLine(); ImGui::Button("Use") && player_turn)
-      r.emplace_or_replace<UIActionState>(e, ActionEnum::USE_ITEM);
+        ImGui::EndDisabled();
+      }
+
+      if (free_to_act) {
+        push_button_available_colours();
+
+        if (ImGui::SameLine(); ImGui::Button(label.c_str(), size) || additional_action_cond)
+          r.emplace_or_replace<UIActionState>(e, a);
+      }
+
+      ImGui::PopStyleColor(3);
+    };
+
+    button_enabled(ActionEnum::MOVE, "Move");
+    button_enabled(ActionEnum::SHOOT, "Shoot");
+    button_enabled(ActionEnum::USE_ITEM, "Use");
 
     const bool allowed_to_end = !has_destination(r, e);
-
-    if (allowed_to_end) {
-      // Active state: Green
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.8f, 0.0f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.1f, 0.9f, 0.1f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.7f, 0.0f, 1.0f));
-    } else {
-      // Inactive state: red
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.0f, 0.0f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.0f, 0.0f, 1.0f));
-    }
-
-    if (ImGui::SameLine(); ((ImGui::Button("End") || get_key_down(input_c, end_turn_key)) && allowed_to_end))
-      create_empty<RequestEndTurn>(r);
-
-    ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(1);
+    button_enabled(ActionEnum::END_TURN, "(E)nd", allowed_to_end, get_key_down(input_c, SDL_SCANCODE_E));
 
     if (auto* state_c = r.try_get<UIActionState>(e)) {
       const auto state = std::string(magic_enum::enum_name(state_c->current));
@@ -224,7 +324,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
           path_c.path = path;
           path_c.path_cleared.resize(path.size(), false);
           path_c.src_pos = src_wp;
-          path_c.dst_pos = mouse_pos;
+          path_c.dst_pos = engine::grid::grid_space_to_world_space_center(dst_gp, map_c.tilesize);
 
           RequestMove req_c;
           req_c.path_c = path_c;
@@ -232,105 +332,84 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
         }
       }
 
-      if (state_c->current == ActionEnum::SHOOT && request_action) {
-        SDL_Log("Requesting shoot...");
+      if (state_c->current == ActionEnum::SHOOT && request_action)
         r.emplace_or_replace<RequestAttack>(e);
-      }
 
-      if (state_c->current == ActionEnum::USE_ITEM) {
-        SDL_Log("Requesting item...");
-        // TODO... items
-      }
+      if (state_c->current == ActionEnum::USE_ITEM)
+        r.emplace_or_replace<RequestItem>(e);
+
+      if (state_c->current == ActionEnum::END_TURN)
+        r.emplace_or_replace<RequestEndTurn>(e);
     }
   }
+
+  ImGui::PopStyleVar(1);
   ImGui::End();
 
-  if (enemy_turn) {
-    auto& brain_c = r.get<DefaultBrainComponent>(e);
-    if (brain_c.brain_fsm == BRAIN_STATE::IDLE) {
-      SDL_Log("AI: IDLE => REASONING");
-      brain_c.brain_fsm = BRAIN_STATE::REASONING;
+  if (enemy_turn)
+    ai_tick(r, e);
 
-      // Given all the actions the ai can take, choose one
-      SDL_Log("Ai (%s) deciding what to do...", name.c_str());
-      const std::optional<std::shared_ptr<Action>> action = Reasoner::Evaluate(r, e, brain_c);
+  //
+  // monitor when the entity has stopped moving
+  //
 
-      if (action.has_value()) {
-        SDL_Log("AI has chosen to... %s", action.value()->GetClassName().c_str());
-
-        // AI: REASONING => MOVE
-        if (std::dynamic_pointer_cast<MoveAction>(action.value())) {
-          // ai: use path ai has chosen
-          const auto& path = r.get<MoveConsiderationData>(e).final_path;
-
-          GeneratedPathComponent path_c;
-          path_c.path = path;
-          path_c.path_cleared.resize(path.size(), false);
-          path_c.src_pos = get_position(r, e);
-          path_c.dst_pos = engine::grid::grid_space_to_world_space_center(path[path.size() - 1], map_c.tilesize);
-
-          RequestMove req_c;
-          req_c.path_c = path_c;
-          r.emplace<RequestMove>(e, req_c);
-          brain_c.brain_fsm = BRAIN_STATE::MOVE;
-        }
-
-        // AI: REASONING => SHOOT
-        if (std::dynamic_pointer_cast<AttackAction>(action.value())) {
-          const auto& data_c = r.get<AttackConsiderationData>(e);
-          r.emplace<RequestAttack>(e, data_c.targets);
-
-          brain_c.brain_fsm = BRAIN_STATE::ANIMATE;
-        }
-      }
-    }
-
-    // State: MOVE => IDLE
-    if (brain_c.brain_fsm == BRAIN_STATE::MOVE) {
+  // State: MOVE => IDLE
+  if (auto* brain_c = r.try_get<DefaultBrainComponent>(e)) {
+    if (brain_c && brain_c->brain_fsm == BRAIN_STATE::MOVE) {
       const auto has_req = r.try_get<RequestMove>(e) != nullptr;
       const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
       const auto& path_c = r.try_get<GeneratedPathComponent>(e);
       const auto has_path = path_c != nullptr;
-
       const bool moving = has_lerp || has_req;
       const bool arrived = at_destination(r, e);
 
-      if (!moving && arrived) {
+      if (path_c && !moving && arrived) {
         SDL_Log("Finished moving... moving to idle");
 
         const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
         move_entity_on_map(r, e, dst_idx);
 
         r.remove<GeneratedPathComponent>(e);
-        brain_c.brain_fsm = BRAIN_STATE::IDLE;
+        brain_c->brain_fsm = BRAIN_STATE::IDLE;
       }
     }
+  }
 
-    // State: REASONING => IDLE
-    // If we've ended in a reasoning state,
-    // assume that ai didnt choose an action,
-    // and end the turn.
-    if (brain_c.brain_fsm == BRAIN_STATE::REASONING) {
-      const auto brain_state_str = engine::convert_enum_to_string(brain_c.brain_fsm);
-      brain_c.brain_fsm = BRAIN_STATE::IDLE;
+  // Warning: duplicate code with above
+  // Check if the player is moving...
+  //
+  if (const auto* state_c = r.try_get<UIActionState>(e)) {
+    if (state_c && state_c->current == ActionEnum::MOVE) {
+      const auto has_req = r.try_get<RequestMove>(e) != nullptr;
+      const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
+      const auto& path_c = r.try_get<GeneratedPathComponent>(e);
+      const auto has_path = path_c != nullptr;
+      const bool moving = has_lerp || has_req;
+      const bool arrived = at_destination(r, e);
+      if (path_c && !moving && arrived) {
+        SDL_Log("Player finished moving... ");
 
-      SDL_Log("AI requesting end turn...");
-      create_empty<RequestEndTurn>(r); // assume done...
+        const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+        move_entity_on_map(r, e, dst_idx);
+
+        r.remove<UIActionState>(e);
+        r.remove<GeneratedPathComponent>(e);
+      }
     }
   }
 
   auto& actions_c = r.get_or_emplace<CompletedActions>(e);
 
-  // request move impl
-  for (const auto& [e, req_c] : r.view<RequestMove>().each()) {
+  // process RequestMove
+  for (const auto& [req_e, req_c] : r.view<RequestMove>().each()) {
     const auto action = ActionEnum::MOVE;
 
     if (!action_available(actions_c, action)) {
       const auto action_str = std::string(magic_enum::enum_name(action));
       SDL_Log("Already taken %s action this turn.", action_str.c_str());
-      r.remove<RequestMove>(e);
+      r.remove<RequestMove>(req_e);
 
-      if (auto* brain_c = r.try_get<DefaultBrainComponent>(e)) {
+      if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
         SDL_Log("AI likely requested repeat action... ending their turn");
         brain_c->brain_fsm = BRAIN_STATE::REASONING;
       }
@@ -338,17 +417,15 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       continue;
     }
 
-    // Action is available
+    // Action is available, start moving
     r.emplace_or_replace<GeneratedPathComponent>(e, req_c.path_c);
-    const auto dst_idx = engine::grid::grid_position_to_index(req_c.path_c.path[req_c.path_c.path.size() - 1], map_c.xmax);
-    move_entity_on_map(r, e, dst_idx);
 
     // Set the action as completed, and remove the request
     actions_c.actions.push_back(ActionEnum::MOVE);
     r.remove<RequestMove>(e);
   }
 
-  // request shoot impl
+  // process RequestAttack
   for (const auto& [e, req_c] : r.view<RequestAttack>().each()) {
     const auto action = ActionEnum::SHOOT;
 
@@ -376,10 +453,14 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     // immediately set back to idle as no anim implemented
     if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
       brain_c->brain_fsm = BRAIN_STATE::IDLE;
+
+    // clear the ui
+    if (r.try_get<UIActionState>(e))
+      r.remove<UIActionState>(e);
   }
 
   // end turn impl
-  if (get_first<RequestEndTurn>(r) != entt::null) {
+  for (const auto& [e, req_c] : r.view<RequestEndTurn>().each()) {
     SDL_Log("~~~~~~~~~ ending turn ~~~~~~~~~");
 
     // .. remove in progress action
@@ -406,8 +487,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     }
 
     // process requests
-    const auto& view = r.view<RequestEndTurn>();
-    r.destroy(view.begin(), view.end());
+    r.remove<RequestEndTurn>(e);
   }
 }
 

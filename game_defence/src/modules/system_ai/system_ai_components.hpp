@@ -89,6 +89,7 @@ enum class ActionEnum
   MOVE,
   SHOOT,
   USE_ITEM,
+  END_TURN,
 };
 
 struct Action

@@ -149,19 +149,17 @@ QuadRenderer::init()
   glBindVertexArray(0);
 
   // create a texture buffer object
-  GLuint& tbo = data.TBO;
-  GLuint& tex = data.TEX;
-  glGenBuffers(1, &tbo);
-  glBindBuffer(GL_TEXTURE_BUFFER, tbo);
-  glBufferData(GL_TEXTURE_BUFFER, N_MAX_CIRCLES * sizeof(game2d::CircleComponent), nullptr, GL_DYNAMIC_DRAW);
-
-  // bind the tbo to a texture unit for shaders
-  glGenTextures(1, &tex);
-
-  glBindTexture(GL_TEXTURE_BUFFER, tex);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, tbo);
-
-  SDL_Log("%s", std::format("created texture object...").c_str());
+  {
+    GLuint& tbo = data.TBO;
+    GLuint& tex = data.TEX;
+    glGenBuffers(1, &tbo);
+    glBindBuffer(GL_TEXTURE_BUFFER, tbo);
+    glBufferData(GL_TEXTURE_BUFFER, N_MAX_CIRCLES * sizeof(game2d::CircleComponent), nullptr, GL_DYNAMIC_DRAW);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_BUFFER, tex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, tbo);
+    SDL_Log("%s", std::format("created texture object...").c_str());
+  }
 };
 
 void

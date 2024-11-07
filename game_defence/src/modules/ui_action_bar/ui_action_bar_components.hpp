@@ -33,4 +33,9 @@ struct RequestAttack
   std::vector<entt::entity> targets;
 };
 
+struct RequestItem
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

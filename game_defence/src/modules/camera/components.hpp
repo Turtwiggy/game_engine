@@ -19,4 +19,9 @@ struct CameraLerpToTarget
   bool placeholder = true;
 };
 
+struct RemoveLerpWhenReachedTarget
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

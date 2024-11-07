@@ -22,6 +22,7 @@ activate_unit(entt::registry& r, entt::entity e)
   const auto& follow_view = r.view<CameraLerpToTarget>();
   r.remove<CameraLerpToTarget>(follow_view.begin(), follow_view.end());
   r.emplace<CameraLerpToTarget>(e);
+  r.emplace_or_replace<RemoveLerpWhenReachedTarget>(e);
 
   const auto& keyboard_view = r.view<KeyboardComponent>();
   r.remove<KeyboardComponent>(keyboard_view.begin(), keyboard_view.end());

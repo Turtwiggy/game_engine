@@ -105,6 +105,15 @@ float sdCircle( vec2 p, float radius )
     return length(p) - radius;
 }
 
+// https://www.shadertoy.com/view/7sdXz2
+// s = side length
+// r = corner radius
+float sdRoundSquare( in vec2 p, in float s, in float r ) 
+{
+    vec2 q = abs(p)-s+r;
+    return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r;
+}
+
 // https://www.shadertoy.com/view/lt3BW2
 float opSmoothUnion( float d1, float d2, float k )
 {
@@ -236,9 +245,9 @@ void main()
   // iResolution : is a vec2 with an X value of 640 and a Y value of 360
   vec2 fragCoord = (v_uv * viewport_wh);
   vec2 iResolution = viewport_wh;
-	vec2 p = (fragCoord + vec2(0.5));
-	vec2 c = iResolution.xy / 2.0;
-	
+	vec2 center = iResolution.xy * 0.5;
+	vec2 p = ((fragCoord - center) * zoom + center + vec2(0.5));
+
 	vec2 half_wh = viewport_wh / 2.0;
 	vec2 screen_min = camera_pos - half_wh; // e.g. -960
 
@@ -257,20 +266,20 @@ void main()
 	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0) * (1.0 - length(c - p)/iResolution.x);
 
 	// inside spaceship
-
 	vec4 col = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	if(inside_spaceship)
 	{
 		col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
 		col *= AO(dist, 40.0f, 1.0f);
 	}
+	// outside spaceship
 	else
 	{
-		// outside spaceship
 		col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
 		col *= 1.0f - AO(dist, 1.0f, 0.8f);
 	}
 
+	//
 	// lights
 	//
 	for(int i = 0; i < MAX_LIGHTS; i++)
@@ -293,23 +302,23 @@ void main()
 	}
 	col = clamp(col, 0.0, 1.0);
 
-	// sdf circles for oxygen
+	//
+	// sdf:  circles for oxygen
 	//
 	vec3 circle_col = vec3(1.0f);
 	{
 		// convert uv to -1 and 1
-		vec2 uv = (2.0 * v_uv - 1.0);
-		uv.x *= -1.0;
-		uv.y *= -1.0;
+		vec2 uv = -(2.0 * v_uv - 1.0);
 		float aspect = viewport_wh.x / viewport_wh.y;
 		uv.x *= aspect;
+		uv *= zoom;
 
   	float d = 1e10;
 
 		for (int i = 0; i < NR_MAX_CIRCLES; ++i) {
 			vec3 circleData = texelFetch(circleBuffer, i).xyz;
-			vec2 pos = circleData.xy;   // Circle center position
-			float radius = circleData.z;       // Circle radius
+			vec2 pos = circleData.xy;   	// Circle center position
+			float radius = circleData.z;  // Circle radius
 
 			if(pos == vec2(0.0))
 				break; // assume no more circles
@@ -333,10 +342,47 @@ void main()
 
 		// colouring
 		vec3 ccol = vec3(0.0f, 0.4f, 0.4f);
-
 		float thickness = 0.0025;
 		ccol *= mix( vec3(0.0), vec3(1.0), 1.0-smoothstep(0.0,thickness,abs(d)) ); // border
 		circle_col.rgb = ccol;
+	}
+
+	//
+	// sdf: square so that the outside of the board is darkened
+	//
+	vec3 dark_col = vec3(1.0f);
+	{
+		// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
+  	// iResolution : is a vec2 with an X value of 640 and a Y value of 360
+
+		int grid_width = 5;
+
+		// camera position is in worldspace.
+		vec2 wsp = vec2(grid_width*tilesize, grid_width*tilesize);
+		vec2 camera_uv_screen = vec2( (camera_pos.x - wsp.x) / half_wh.x, (camera_pos.y - wsp.y) / half_wh.y);
+		vec2 camera_uv = camera_uv_screen / zoom; 
+		float aspect_y = viewport_wh.y / viewport_wh.x;
+
+		vec2 grid_uv = (2.0 * v_uv - 1.0);
+		grid_uv += camera_uv;
+		grid_uv.y *= aspect_y;
+
+		float gridsize = tilesize / zoom; // pixels
+		vec2 p = (viewport_wh.x / gridsize / 2.0) * grid_uv;
+
+		// radius 1 = tilesize * 2.0f... i.e. 100 width and height
+		float radius = 1.0f * grid_width;  
+		float rounding = 0.3f;
+		float d0 = sdRoundSquare(p, radius, rounding);
+
+		// colouring
+		vec3 ccol = vec3(0.5f, 0.4f, 0.15f);
+		float thickness = 0.04;
+		ccol *= mix( vec3(0.0), vec3(1.0), 1.0-smoothstep(0.0,thickness,abs(d0)) ); // border
+		dark_col.rgb = ccol;
+
+		// vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
+		// final_lin += grid_lin;
 	}
 
   // linear to srgb
@@ -346,7 +392,8 @@ void main()
 	vec3 scene_debris_lin = texture(tex_unit_debris, v_uv).rgb;
 	float floor_mask = texture(tex_unit_floor_mask, v_uv).r;
 	// bool black_debris = scene_debris_lin == vec3(0.0f);
-	if(floor_mask >= 0.95 ){
+	if(floor_mask >= 0.95 )
+	{
 		scene_debris_lin = vec3(0.0f);
 	}
 	final_lin += scene_debris_lin;
@@ -374,7 +421,7 @@ void main()
 			if(abs(sdGrid(p_grid, margin)) >= grid_width)
 				grid_col = vec3(0.0f);// background
 			else
-				grid_col = vec3(0.25); // line
+				grid_col = vec3(0.15); // line
 		}
 		vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
 		final_lin += grid_lin;
@@ -382,13 +429,12 @@ void main()
 
 	// lighting
 	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
-	// final_lin *= lighting_lin;
+	final_lin *= lighting_lin;
 
 	vec3 srgb_final = lin_to_srgb(final_lin);
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
-	// out_color.rgb = circle_col + srgb_final.rgb;
-	out_color.rgb = srgb_final.rgb;
+	out_color.rgb = circle_col + dark_col + srgb_final.rgb;
 
 	// vignette
 	vec2 vig_uv = fragCoord.xy / iResolution.xy;

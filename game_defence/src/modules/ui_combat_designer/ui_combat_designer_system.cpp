@@ -49,7 +49,6 @@ update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
     r.destroy(view.begin(), view.end());
 
     auto e = spawn_mob(r, "dungeon_actor_hero", pos);
-    // r.emplace<CameraFollow>(e);
     r.emplace<CameraLerpToTarget>(e);
     r.emplace<CircleComponent>(e);
     r.emplace<PlayerComponent>(e);

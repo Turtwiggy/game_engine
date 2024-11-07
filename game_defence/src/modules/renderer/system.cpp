@@ -172,6 +172,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
   ri.mix_lighting_and_scene.set_int("circleBuffer", ri.renderer.data.tex_unit);
 
+  const auto& camera_c = get_first_component<OrthographicCamera>(r);
+  ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
+
   // ri.blur.reload();
   // ri.blur.bind();
   // ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture

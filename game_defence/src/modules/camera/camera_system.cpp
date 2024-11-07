@@ -1,5 +1,5 @@
 // header
-#include "system.hpp"
+#include "camera_system.hpp"
 
 // components/systems
 #include "actors/actor_helpers.hpp"
@@ -52,6 +52,19 @@ update_camera_system(entt::registry& r, const float dt)
     lerp_c.a = get_position(r, camera_ent);
     lerp_c.b = get_position(r, target_e);
     lerp_c.speed = 5.0f;
+
+    const auto d = lerp_c.a - lerp_c.b;
+    const float d2 = d.x * d.x + d.y * d.y;
+    const float threshold = 6;
+    if (d2 <= threshold) {
+      if (const auto* req = r.try_get<RemoveLerpWhenReachedTarget>(target_e)) {
+        SDL_Log("Camera reached target... removing lerp");
+        r.remove<CameraLerpToTarget>(target_e);
+        r.remove<LerpToMovingTarget>(camera_ent);
+        create_empty<CameraFreeMove>(r);
+      }
+    }
+
   } else
     remove_if_exists<LerpToMovingTarget>(r, camera_ent);
 
@@ -117,6 +130,10 @@ update_camera_system(entt::registry& r, const float dt)
     zoom_nonlinear = zoom_in;
     zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
   }
+
+  // ImGui::SeparatorText("DebugCamera");
+  // ImGui::Text("zoom: %f", zoom);
+  // ImGui::Text("zoom nonlinear: %f", zoom_nonlinear);
 
   camera.projection_zoomed =
     calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, zoom_nonlinear);

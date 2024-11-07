@@ -63,7 +63,6 @@ entt::entity
 create_jetpack_player(entt::registry& r)
 {
   auto e = spawn_mob(r, "dungeon_actor_hero", { 0, 0 });
-  // r.emplace<CameraFollow>(e);
   r.emplace<CameraLerpToTarget>(e);
   r.emplace<CircleComponent>(e);
   r.emplace<PlayerComponent>(e);
