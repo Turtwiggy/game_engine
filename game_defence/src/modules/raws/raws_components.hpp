@@ -131,6 +131,13 @@ struct Inventory
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Inventory, size);
 };
 
+struct MoveSpeed
+{
+  int speed = 1;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(MoveSpeed, speed);
+};
+
 //
 // categories in the raw files...
 //
@@ -205,8 +212,27 @@ struct Mob
   Renderable renderable;
   Stats stats;
   bool is_sensor;
+  std::optional<MoveSpeed> move_speed = std::nullopt;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Mob, name, renderable, stats, is_sensor);
+  friend void to_json(nlohmann ::json& j, const Mob& val)
+  {
+    j["name"] = val.name;
+    j["renderable"] = val.renderable;
+    j["stats"] = val.stats;
+    j["is_sensor"] = val.is_sensor;
+    if (val.move_speed.has_value())
+      j["move_speed"] = val.move_speed.value();
+  }
+
+  friend void from_json(const nlohmann ::json& j, Mob& val)
+  {
+    j.at("name").get_to(val.name);
+    j.at("renderable").get_to(val.renderable);
+    j.at("stats").get_to(val.stats);
+    j.at("is_sensor").get_to(val.is_sensor);
+    if (j.contains("move_speed"))
+      j.at("move_speed").get_to(val.move_speed);
+  };
 };
 
 struct ShipParts

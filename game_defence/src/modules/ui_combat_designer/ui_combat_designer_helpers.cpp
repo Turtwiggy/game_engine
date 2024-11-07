@@ -10,8 +10,8 @@ void
 activate_unit(entt::registry& r, entt::entity e)
 {
   // stop the camera moving freely, and focus on the unit
-  const auto view = r.view<CameraFreeMove>();
-  r.destroy(view.begin(), view.end());
+  // const auto view = r.view<CameraFreeMove>();
+  // r.destroy(view.begin(), view.end());
 
   // Update the selected unit/camera to the new unit
   const auto& selected_view = r.view<SelectedComponent>();
@@ -19,10 +19,10 @@ activate_unit(entt::registry& r, entt::entity e)
   r.emplace<SelectedComponent>(e);
 
   // move camera to newly selected unit
-  const auto& follow_view = r.view<CameraLerpToTarget>();
-  r.remove<CameraLerpToTarget>(follow_view.begin(), follow_view.end());
-  r.emplace<CameraLerpToTarget>(e);
-  r.emplace_or_replace<RemoveLerpWhenReachedTarget>(e);
+  // const auto& follow_view = r.view<CameraLerpToTarget>();
+  // r.remove<CameraLerpToTarget>(follow_view.begin(), follow_view.end());
+  // r.emplace<CameraLerpToTarget>(e);
+  // r.emplace_or_replace<RemoveLerpWhenReachedTarget>(e);
 
   const auto& keyboard_view = r.view<KeyboardComponent>();
   r.remove<KeyboardComponent>(keyboard_view.begin(), keyboard_view.end());

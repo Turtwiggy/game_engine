@@ -19,6 +19,7 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_items_drop_on_death/helpers.hpp"
+#include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
@@ -203,6 +204,11 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<HealthComponent>(e, 100, 100);
   r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+  if (mob_template.move_speed.has_value()) {
+    LimitMovementComponent move_c;
+    move_c.path_size = mob_template.move_speed->speed;
+    r.emplace<LimitMovementComponent>(e, move_c);
+  }
   r.emplace<InputComponent>(e);
 
   // Give each mob a random name
@@ -215,7 +221,6 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<NameComponent>(e, name_c);
 
   // Give each mob random initiative
-
 #if defined(_DEBUG)
   static int init = 0;
   init++;

@@ -116,6 +116,11 @@ update_audio_system(entt::registry& r)
       free_audio_sources.push_back(source);
   }
 
+  if (free_audio_sources.size() == 0) {
+    // SDL_Log("%s", std::format("No free audio sources! Missed request for: {}", tag).c_str());
+    return;
+  }
+
   // compact duplicate audio requests
   std::map<std::string, std::vector<entt::entity>> compacted_requests;
   for (const auto& [e, request] : r.view<AudioRequestPlayEvent>().each())
@@ -127,12 +132,6 @@ update_audio_system(entt::registry& r)
     // assume audio request with same tag are the same
     const auto& entity = entities[0];
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
-
-    if (free_audio_sources.size() == 0) {
-      SDL_Log("%s", std::format("No free audio sources! Missed request for: {}", tag).c_str());
-
-      continue;
-    }
 
     AudioSource& audio_source = free_audio_sources.front();
     free_audio_sources.erase(free_audio_sources.begin());

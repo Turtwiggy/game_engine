@@ -10,8 +10,10 @@
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actor_door/door_helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/animations/wiggle/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_components.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
@@ -19,8 +21,10 @@
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
+#include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/ui_action_bar/ui_action_bar_components.hpp"
@@ -138,7 +142,13 @@ ai_tick(entt::registry& r, entt::entity e)
       // AI: REASONING => MOVE
       if (std::dynamic_pointer_cast<MoveAction>(action.value())) {
         // ai: use path ai has chosen
-        const auto& path = r.get<MoveConsiderationData>(e).final_path;
+        auto path = r.get<MoveConsiderationData>(e).final_path;
+
+        // limit: limit path based on movement.
+        if (auto* limit_c = r.try_get<LimitMovementComponent>(e)) {
+          const int n = limit_c->path_size;
+          path = { path.begin(), path.begin() + std::min(n + 1, (int)path.size()) };
+        };
 
         GeneratedPathComponent path_c;
         path_c.path = path;
@@ -149,6 +159,7 @@ ai_tick(entt::registry& r, entt::entity e)
         RequestMove req_c;
         req_c.path_c = path_c;
         r.emplace<RequestMove>(e, req_c);
+
         brain_c.brain_fsm = BRAIN_STATE::MOVE;
       }
 
@@ -197,6 +208,17 @@ ai_tick(entt::registry& r, entt::entity e)
 };
 
 void
+clear_actions(entt::registry& r, entt::entity e)
+{
+  // .. remove in progress action
+  if (r.try_get<UIActionState>(e))
+    r.remove<UIActionState>(e);
+
+  if (r.try_get<GeneratedPathComponent>(e))
+    r.remove<GeneratedPathComponent>(e);
+};
+
+void
 update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 {
   const auto init_e = get_first<SINGLE_Initiative>(r);
@@ -226,6 +248,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   // it's the first unit's turn...
   const auto e = init_c.order[0];
 
+  const bool player_turn = r.get<TeamComponent>(e).team == AvailableTeams::player;
+  const bool enemy_turn = r.get<TeamComponent>(e).team == AvailableTeams::enemy;
+
   bool request_action = false;
   if (auto* inp_c = r.try_get<InputComponent>(e))
     request_action |= inp_c->shoot;
@@ -233,11 +258,11 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   if (request_action)
     SDL_Log("requesting action...");
 
-  const bool player_turn = r.get<TeamComponent>(e).team == AvailableTeams::player;
-  const bool enemy_turn = r.get<TeamComponent>(e).team == AvailableTeams::enemy;
-
   static EntityPool debug_path;
-  debug_path.update(r, 0);
+
+  // clear ui visuals if no action selected
+  if (r.try_get<UIActionState>(e) == nullptr)
+    debug_path.update(r, 0);
 
   // position
   const ImVec2 viewport_pos = { (float)ri.viewport_pos.x, (float)ri.viewport_pos.y };
@@ -306,7 +331,13 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
         const auto dst_wp = mouse_pos;
         const auto src_gp = engine::grid::worldspace_to_grid_space(src_wp, map_c.tilesize);
         const auto dst_gp = engine::grid::worldspace_to_grid_space(dst_wp, map_c.tilesize);
-        const auto path = generate_direct_with_diagonals(r, src_gp, dst_gp);
+        auto path = generate_direct_with_diagonals(r, src_gp, dst_gp);
+
+        // limit: limit path based on movement.
+        if (auto* limit_c = r.try_get<LimitMovementComponent>(e)) {
+          const int n = limit_c->path_size;
+          path = { path.begin(), path.begin() + std::min(n + 1, (int)path.size()) };
+        };
 
         // Debug the active selection
         debug_path.update(r, int(path.size()));
@@ -324,7 +355,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
           path_c.path = path;
           path_c.path_cleared.resize(path.size(), false);
           path_c.src_pos = src_wp;
-          path_c.dst_pos = engine::grid::grid_space_to_world_space_center(dst_gp, map_c.tilesize);
+          path_c.dst_pos = engine::grid::grid_space_to_world_space_center(path[path.size() - 1], map_c.tilesize);
 
           RequestMove req_c;
           req_c.path_c = path_c;
@@ -332,8 +363,50 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
         }
       }
 
-      if (state_c->current == ActionEnum::SHOOT && request_action)
-        r.emplace_or_replace<RequestAttack>(e);
+      if (state_c->current == ActionEnum::SHOOT) {
+
+        // show damage tiles
+        // wiggle the attack icon
+
+        if (auto* tiles_c = r.try_get<TilesComponent>(e)) {
+          debug_path.update(r, int(tiles_c->tiles.size()));
+
+          // if you're hovvering the damage tiles,
+          // show as green, and if you click it while hovering, take the action
+          const auto mouse_gp = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
+          const bool hovering = std::find(tiles_c->tiles.begin(), tiles_c->tiles.end(), mouse_gp) != tiles_c->tiles.end();
+
+          for (size_t i = 0; i < tiles_c->tiles.size(); i++) {
+            const auto tile_gp = tiles_c->tiles[i];
+            const auto tile_wsp = engine::grid::grid_space_to_world_space_center(tile_gp, map_c.tilesize);
+            const auto debug_e = debug_path.instances[i];
+            set_position(r, debug_e, tile_wsp);
+            set_sprite(r, debug_e, "CROSSHAIR_10");
+
+            if (hovering)
+              set_colour(r, debug_e, { 0.0f, 1.0f, 0.0f, 1.0f });
+            else
+              set_colour(r, debug_e, { 1.0f, 0.0f, 0.0f, 1.0f });
+
+            set_size(r, debug_e, { 32, 32 });
+            set_z_index(r, debug_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+
+            const auto* wiggle_c = r.try_get<WiggleUpAndDown>(debug_e);
+            if (!wiggle_c) {
+              WiggleUpAndDown wiggle_c;
+              wiggle_c.base_position = tile_wsp;
+              wiggle_c.amplitude = 1.0;
+              r.emplace<WiggleUpAndDown>(debug_e, wiggle_c);
+            }
+          }
+
+          if (request_action && hovering)
+            r.emplace_or_replace<RequestAttack>(e);
+
+          if (request_action && !hovering)
+            clear_actions(r, e);
+        }
+      }
 
       if (state_c->current == ActionEnum::USE_ITEM)
         r.emplace_or_replace<RequestItem>(e);
@@ -349,53 +422,28 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   if (enemy_turn)
     ai_tick(r, e);
 
-  //
   // monitor when the entity has stopped moving
   //
+  const auto has_req = r.try_get<RequestMove>(e) != nullptr;
+  const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
+  const auto& path_c = r.try_get<GeneratedPathComponent>(e);
+  const auto has_path = path_c != nullptr;
+  const bool moving = has_lerp || has_req;
+  const bool arrived = at_destination(r, e);
+  if (path_c && !moving && arrived) {
+    SDL_Log("finished moving... ");
 
-  // State: MOVE => IDLE
-  if (auto* brain_c = r.try_get<DefaultBrainComponent>(e)) {
-    if (brain_c && brain_c->brain_fsm == BRAIN_STATE::MOVE) {
-      const auto has_req = r.try_get<RequestMove>(e) != nullptr;
-      const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
-      const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-      const auto has_path = path_c != nullptr;
-      const bool moving = has_lerp || has_req;
-      const bool arrived = at_destination(r, e);
+    const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+    move_entity_on_map(r, e, dst_idx);
 
-      if (path_c && !moving && arrived) {
-        SDL_Log("Finished moving... moving to idle");
+    r.remove<GeneratedPathComponent>(e);
 
-        const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-        move_entity_on_map(r, e, dst_idx);
+    if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
+      brain_c->brain_fsm = BRAIN_STATE::IDLE;
 
-        r.remove<GeneratedPathComponent>(e);
-        brain_c->brain_fsm = BRAIN_STATE::IDLE;
-      }
-    }
-  }
-
-  // Warning: duplicate code with above
-  // Check if the player is moving...
-  //
-  if (const auto* state_c = r.try_get<UIActionState>(e)) {
-    if (state_c && state_c->current == ActionEnum::MOVE) {
-      const auto has_req = r.try_get<RequestMove>(e) != nullptr;
-      const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
-      const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-      const auto has_path = path_c != nullptr;
-      const bool moving = has_lerp || has_req;
-      const bool arrived = at_destination(r, e);
-      if (path_c && !moving && arrived) {
-        SDL_Log("Player finished moving... ");
-
-        const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-        move_entity_on_map(r, e, dst_idx);
-
+    if (auto* action_c = r.try_get<UIActionState>(e))
+      if (action_c->current == ActionEnum::MOVE)
         r.remove<UIActionState>(e);
-        r.remove<GeneratedPathComponent>(e);
-      }
-    }
   }
 
   auto& actions_c = r.get_or_emplace<CompletedActions>(e);
@@ -426,15 +474,15 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   }
 
   // process RequestAttack
-  for (const auto& [e, req_c] : r.view<RequestAttack>().each()) {
+  for (const auto& [req_e, req_c] : r.view<RequestAttack>().each()) {
     const auto action = ActionEnum::SHOOT;
 
     if (!action_available(actions_c, action)) {
       const auto action_str = std::string(magic_enum::enum_name(action));
       SDL_Log("Already taken %s action this turn.", action_str.c_str());
-      r.remove<RequestAttack>(e);
+      r.remove<RequestAttack>(req_e);
 
-      if (auto* brain_c = r.try_get<DefaultBrainComponent>(e)) {
+      if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
         SDL_Log("AI likely requested repeat action... ending their turn");
         brain_c->brain_fsm = BRAIN_STATE::REASONING;
       }
@@ -460,22 +508,20 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   }
 
   // end turn impl
-  for (const auto& [e, req_c] : r.view<RequestEndTurn>().each()) {
+  for (const auto& [req_e, req_c] : r.view<RequestEndTurn>().each()) {
     SDL_Log("~~~~~~~~~ ending turn ~~~~~~~~~");
 
-    // .. remove in progress action
-    if (r.try_get<UIActionState>(e))
-      r.remove<UIActionState>(e);
+    clear_actions(r, req_e);
 
     // .. remove completed actions
-    if (r.try_get<CompletedActions>(e))
-      r.remove<CompletedActions>(e);
+    if (r.try_get<CompletedActions>(req_e))
+      r.remove<CompletedActions>(req_e);
 
     // Set the initiative of the first unit to one higher than the last unit
     if (init_c.order.size() > 1) {
       const auto last_e = init_c.order[init_c.order.size() - 1];
       const auto& last_c = r.get<InitiativeComponent>(last_e);
-      auto& first_c = r.get<InitiativeComponent>(e);
+      auto& first_c = r.get<InitiativeComponent>(req_e);
 
       // This line here is weird. It probably shouldnt be +1,
       // but should be relative to the units own agility or dexterity.
