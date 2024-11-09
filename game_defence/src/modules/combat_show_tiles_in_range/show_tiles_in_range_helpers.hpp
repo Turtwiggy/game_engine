@@ -16,4 +16,7 @@ update_tiles_component(entt::registry& r,
                        const RangeType& t,
                        TilesComponent& c);
 
+int
+get_damage_for_equipped_item(entt::registry& r, const entt::entity e);
+
 } // namespace game2d

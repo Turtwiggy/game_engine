@@ -5,39 +5,18 @@
 #include "engine/imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
-#include "modules/raws/raws_components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
-#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 #include "show_tileS_in_range_helpers.hpp"
 #include "show_tiles_in_range_components.hpp"
 
 #include <glm/fwd.hpp>
+#include <imgui.h>
 
 namespace game2d {
 
 static bool show_distance_check = false;
 static auto show_range_type = RangeType::knife;
 static auto range_types_str = engine::enum_class_to_vec_str<RangeType>();
-
-int
-get_damage_for_equipped_item(entt::registry& r, const entt::entity e)
-{
-  const auto& body = r.get<DefaultBody>(e);
-  const auto gun_e = get_slot_type(r, body.body, InventorySlotType::gun);
-  const auto gun_c = r.get<InventorySlotComponent>(gun_e);
-  if (gun_c.item_e != entt::null) {
-    const auto& item = r.get<Item>(gun_c.item_e);
-
-    if (item.melee.has_value())
-      return item.melee.value().damage;
-
-    if (item.ranged.has_value())
-      return item.ranged.value().damage; // or could be bullet in gun...
-  }
-
-  return 0;
-}
 
 void
 update_show_tiles_in_range_system(entt::registry& r)

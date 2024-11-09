@@ -54,9 +54,8 @@ update_ui_inventory_system(entt::registry& r)
       auto& ui_gun = r.get<UI_ItemComponent>(gun_slot_c.item_e);
 
       auto& tag = r.get<TagComponent>(gun_slot_c.item_e);
-      if (tag.tag.find("shotgun") != std::string::npos) {
+      if (tag.tag.find("shotgun") != std::string::npos)
         const auto shotgun_e = create_shotgun(r, e); // adds an HasWeaponComponent to the player_e
-      }
 
       continue; // spawn gun
     }

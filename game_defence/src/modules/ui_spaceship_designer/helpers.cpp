@@ -21,10 +21,12 @@ entt::entity
 create_shotgun(entt::registry& r, entt::entity parent)
 {
   const auto wep_e = spawn_item(r, "shotgun");
+
   r.emplace<HasWeaponComponent>(parent, HasWeaponComponent{ wep_e }); // parent <=> child
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ parent }); // child <=> parent
   r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
   r.emplace<WeaponComponent>(wep_e);
+
   // r.emplace<AbleToShoot>(e);
   // r.emplace<ShotgunComponent>(e)
   set_size(r, wep_e, { 32, 32 }); // shotgun sprite

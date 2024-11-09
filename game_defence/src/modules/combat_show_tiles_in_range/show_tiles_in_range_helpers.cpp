@@ -6,7 +6,11 @@
 #include "engine/maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
+#include "modules/raws/raws_components.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 #include "show_tiles_in_range_components.hpp"
+
 
 namespace game2d {
 
@@ -164,6 +168,25 @@ update_tiles_component(entt::registry& r,
     tiles = get_tiles_for_shotgun(r, map_c, gp, { input_c.rx, input_c.ry });
 
   c.tiles = tiles;
+};
+
+int
+get_damage_for_equipped_item(entt::registry& r, const entt::entity e)
+{
+  const auto& body = r.get<DefaultBody>(e);
+  const auto gun_e = get_slot_type(r, body.body, InventorySlotType::gun);
+  const auto gun_c = r.get<InventorySlotComponent>(gun_e);
+  if (gun_c.item_e != entt::null) {
+    const auto& item = r.get<Item>(gun_c.item_e);
+
+    if (item.melee.has_value())
+      return item.melee.value().damage;
+
+    if (item.ranged.has_value())
+      return item.ranged.value().damage; // or could be bullet in gun...
+  }
+
+  return 0;
 };
 
 } // namespace game2d

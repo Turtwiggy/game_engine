@@ -16,6 +16,7 @@
 #include "modules/animations/wiggle/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_components.hpp"
+#include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/map/components.hpp"
@@ -44,7 +45,10 @@ do_damage_action(entt::registry& r, entt::entity e)
 {
   const auto& evts = get_first_component<SINGLE_Events>(r);
 
-  if (auto* ai_targets = r.try_get<RequestAttack>(e)) {
+  const auto atk = get_damage_for_equipped_item(r, e);
+  SDL_Log("Equipped item damage: %i", atk);
+
+  if (const auto* ai_targets = r.try_get<RequestAttack>(e)) {
     const auto& targets = ai_targets->targets;
     if (targets.size() > 0) {
       SDL_Log("Dealing damage to targets in RequestAttack...");
@@ -177,19 +181,20 @@ ai_tick(entt::registry& r, entt::entity e)
   if (brain_c.brain_fsm == BRAIN_STATE::MOVE) {
     const auto has_req = r.try_get<RequestMove>(e) != nullptr;
     const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
-    const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-    const auto has_path = path_c != nullptr;
-
     const bool moving = has_lerp || has_req;
     const bool arrived = at_destination(r, e);
 
     if (!moving && arrived) {
       SDL_Log("Finished moving... moving to idle");
 
-      const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-      move_entity_on_map(r, e, dst_idx);
+      const auto& path_c = r.try_get<GeneratedPathComponent>(e);
+      if (path_c && path_c->path.size() > 0) {
+        const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+        move_entity_on_map(r, e, dst_idx);
 
-      r.remove<GeneratedPathComponent>(e);
+        r.remove<GeneratedPathComponent>(e);
+      }
+
       brain_c.brain_fsm = BRAIN_STATE::IDLE;
     }
   }
@@ -423,27 +428,28 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     ai_tick(r, e);
 
   // monitor when the entity has stopped moving
-  //
-  const auto has_req = r.try_get<RequestMove>(e) != nullptr;
-  const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
-  const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-  const auto has_path = path_c != nullptr;
-  const bool moving = has_lerp || has_req;
-  const bool arrived = at_destination(r, e);
-  if (path_c && !moving && arrived) {
-    SDL_Log("finished moving... ");
+  {
+    const auto has_req = r.try_get<RequestMove>(e) != nullptr;
+    const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
+    const auto& path_c = r.try_get<GeneratedPathComponent>(e);
+    const auto has_path = path_c != nullptr;
+    const bool moving = has_lerp || has_req;
+    const bool arrived = at_destination(r, e);
+    if (path_c && !moving && arrived) {
+      SDL_Log("finished moving... ");
 
-    const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-    move_entity_on_map(r, e, dst_idx);
+      const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+      move_entity_on_map(r, e, dst_idx);
 
-    r.remove<GeneratedPathComponent>(e);
+      r.remove<GeneratedPathComponent>(e);
 
-    if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
-      brain_c->brain_fsm = BRAIN_STATE::IDLE;
+      if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
+        brain_c->brain_fsm = BRAIN_STATE::IDLE;
 
-    if (auto* action_c = r.try_get<UIActionState>(e))
-      if (action_c->current == ActionEnum::MOVE)
-        r.remove<UIActionState>(e);
+      if (auto* action_c = r.try_get<UIActionState>(e))
+        if (action_c->current == ActionEnum::MOVE)
+          r.remove<UIActionState>(e);
+    }
   }
 
   auto& actions_c = r.get_or_emplace<CompletedActions>(e);
