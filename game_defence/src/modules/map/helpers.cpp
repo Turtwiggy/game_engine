@@ -74,41 +74,23 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 
   const auto& dst_es = map.map[dst_idx];
 
-  // easy case: dst is clear.
-  // if (dst_es.size() == 0) {
-  remove_entity_from_map(r, mapinfo_opt.value());
-  add_entity_to_map(r, src_e, dst_idx);
-
-  return true;
-  /*
-
-    // return true;
-  }
-
   // hard case: dst is not clear,
   // and contain anything,
   // and any number of it.
-
-  //
-  // gamerule: allow move if no mob
-  //
-
   bool contains_mob = false;
   for (const auto dst_e : dst_es) {
     const bool has_body = r.try_get<DefaultBody>(dst_e) != nullptr;
     contains_mob |= has_body;
   }
 
+  // easy case: dst is clear.
   if (!contains_mob) {
     remove_entity_from_map(r, mapinfo_opt.value());
     add_entity_to_map(r, src_e, dst_idx);
-
     return true;
   }
 
   return false;
-
-  */
 };
 
 } // namespace game2d

@@ -56,15 +56,20 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
     {
       const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
       r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
+      r.emplace<DefaultBrainComponent>(mob_e);
+
       auto& inv = r.get<DefaultInventory>(mob_e).inv;
       auto& body = r.get<DefaultBody>(mob_e).body;
+
       // give the enemy a piece of scrap in their inventory
       spawn_inv_item(r, inv, 0, "scrap");
+
       // give the enemy a 5% chance to have a medkit in their inventory...
       // TODO: medkits
+
       // give enemy a weapon
-      // auto weapon_e = spawn_inv_item(r, body, 6, "shotgun");
-      r.emplace<DefaultBrainComponent>(mob_e);
+      // todo: replace idx 6 with finding a slot the weapon should go
+      auto weapon_e = spawn_inv_item(r, body, 6, "scrap_knife");
 
       add_entity_to_map(r, mob_e, slot_idx);
     }

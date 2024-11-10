@@ -21,7 +21,7 @@ toggle_lootbag_display(entt::registry& r)
 {
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
 
-  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_R)) {
+  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_O)) {
     // not showing => showing
     if (get_first<ShowLootbagRequest>(r) == entt::null)
       destroy_first_and_create<ShowLootbagRequest>(r);

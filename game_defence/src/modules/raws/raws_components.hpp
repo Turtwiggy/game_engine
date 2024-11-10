@@ -138,6 +138,13 @@ struct MoveSpeed
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(MoveSpeed, speed);
 };
 
+struct Trait
+{
+  std::string key;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Trait, key);
+};
+
 //
 // categories in the raw files...
 //
@@ -154,6 +161,7 @@ struct Item
   std::optional<Bullet> bullet = std::nullopt;
   std::optional<Defence> defence = std::nullopt;
   std::optional<Inventory> inventory = std::nullopt;
+  std::optional<std::vector<Trait>> traits = std::nullopt;
 
   friend void to_json(json& j, const Item& val)
   {
@@ -173,6 +181,8 @@ struct Item
       j["defence"] = val.defence.value();
     if (val.inventory.has_value())
       j["inventory"] = val.inventory.value();
+    if (val.traits.has_value())
+      j["traits"] = val.traits.value();
   }
   friend void from_json(const json& j, Item& val)
   {
@@ -194,6 +204,8 @@ struct Item
       j.at("defence").get_to(val.defence);
     if (j.contains("inventory"))
       j.at("inventory").get_to(val.inventory);
+    if (j.contains("traits"))
+      j.at("traits").get_to(val.traits);
   };
 };
 

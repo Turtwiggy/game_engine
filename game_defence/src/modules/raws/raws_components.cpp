@@ -140,6 +140,10 @@ spawn_item(entt::registry& r, const std::string& key)
     r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
   }
 
+  if (item_template.traits.has_value())
+    for (const auto& trait : item_template.traits.value())
+      SDL_Log("item with trait: %s", trait.key.c_str());
+
   return e;
 };
 

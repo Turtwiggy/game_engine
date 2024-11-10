@@ -21,7 +21,7 @@ handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
 {
   const auto from_e = evt.from; // previously bullet, now player?
   const auto to_e = evt.to;
-  const int amount = evt.amount;
+  const int amount = calculate_damage_to_take(r, from_e, to_e);
 
   // add a new entry to the UI_BufferComponent...
   auto& buffer_c = r.get_or_emplace<UI_BufferComponent>(to_e);

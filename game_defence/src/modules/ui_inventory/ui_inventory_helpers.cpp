@@ -63,7 +63,7 @@ toggle_inventory_display(entt::registry& r)
 {
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
 
-  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_E)) {
+  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_I)) {
     // not showing => showing
     if (get_first<ShowInventoryRequest>(r) == entt::null)
       destroy_first_and_create<ShowInventoryRequest>(r);
@@ -256,20 +256,28 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
     r.remove<InitBodyAndInventory>(e);
 
     // init body with items
-    spawn_inv_item(r, body_c.body, 0, "scrap_helmet");
-    spawn_inv_item(r, body_c.body, 1, "scrap_core");
-    spawn_inv_item(r, body_c.body, 2, "scrap_gloves");
-    spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
-    spawn_inv_item(r, body_c.body, 4, "scrap_legs");
-    spawn_inv_item(r, body_c.body, 5, "scrap_legs");
-    spawn_inv_item(r, body_c.body, 6, "breach_charge");
+    // spawn_inv_item(r, body_c.body, 0, "scrap_helmet");
+    // spawn_inv_item(r, body_c.body, 1, "scrap_core");
+    // spawn_inv_item(r, body_c.body, 2, "scrap_gloves");
+    // spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
+    // spawn_inv_item(r, body_c.body, 4, "scrap_legs");
+    // spawn_inv_item(r, body_c.body, 5, "scrap_legs");
+    spawn_inv_item(r, body_c.body, 6, "scrap_knife");
 
     // init inventory with items
-    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 1), "scrap");
-    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 2), "shotgun");
-    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 3), "bullet_default");
-    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 4), "bullet_bouncy");
-    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - 5), "breach_charge");
+    int i = 1;
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "shotgun");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "bullet_default");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "bullet_bouncy");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "breach_charge");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "breach_charge");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap_helmet");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap_core");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap_gloves");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap_gloves");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap_legs");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap_legs");
   }
 };
 

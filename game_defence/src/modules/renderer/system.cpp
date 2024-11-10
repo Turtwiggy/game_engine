@@ -246,7 +246,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
-    SDL_Log("%s", std::format("loaded texture... %s", tex.path).c_str());
+    SDL_Log("%s", std::format("loaded texture... {}", tex.path).c_str());
   }
 
   ri.stars = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/star_nest.frag");

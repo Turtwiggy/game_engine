@@ -45,58 +45,37 @@ do_damage_action(entt::registry& r, entt::entity e)
 {
   const auto& evts = get_first_component<SINGLE_Events>(r);
 
-  const auto atk = get_damage_for_equipped_item(r, e);
-  SDL_Log("Equipped item damage: %i", atk);
+  std::set<entt::entity> targets;
 
-  if (const auto* ai_targets = r.try_get<RequestAttack>(e)) {
-    const auto& targets = ai_targets->targets;
-    if (targets.size() > 0) {
-      SDL_Log("Dealing damage to targets in RequestAttack...");
+  // Set targets for AI
+  const auto* ai_targets = r.try_get<RequestAttack>(e);
+  if (ai_targets && ai_targets->targets.size() > 0)
+    targets = { ai_targets->targets.begin(), ai_targets->targets.end() };
 
-      // attack these, not tiles
-      for (const auto map_e : targets) {
-        DamageEvent evt;
-        evt.from = e;
-        evt.to = map_e;
-
-        // note: random damage, but this isn't correct
-        static engine::RandomState rnd(0);
-        evt.amount = engine::rand_det_s(rnd.rng, 1, 10);
-
-        evts.dispatcher->trigger(evt);
-        evts.dispatcher->update();
-      }
-
-      return;
+  // Set targets via Tiles
+  else if (const auto* tiles = r.try_get<TilesComponent>(e)) {
+    for (const glm::ivec2& tile : tiles->tiles) {
+      // damage all mobs (off map)
+      const auto mobs = contains_mobs(r, tile);
+      targets.insert(mobs.begin(), mobs.end());
     }
   }
 
-  const auto* damage_tiles = r.try_get<TilesComponent>(e);
-  if (!damage_tiles)
+  if (targets.size() == 0) {
+    SDL_Log("Tried to attack but no targets...");
     return;
-  SDL_Log("Dealing damage in TilesComponent tiles...");
+  }
 
-  for (const auto& tile : damage_tiles->tiles) {
-    // damage all mobs (off map)
-    std::vector<entt::entity> mobs = contains_mobs(r, tile);
+  SDL_Log("Dealing damage to targets in RequestAttack...");
 
-    // damage all entities (on map)
-    std::set<entt::entity> unique_mobs{ mobs.begin(), mobs.end() };
-    // for (const auto map_e : map_c.map[idx])
-    //   unique_mobs.emplace(map_e);
+  // attack these, not tiles
+  for (const auto map_e : targets) {
+    DamageEvent evt;
+    evt.from = e;
+    evt.to = map_e;
 
-    for (const auto map_e : unique_mobs) {
-      DamageEvent evt;
-      evt.from = e;
-      evt.to = map_e;
-
-      // note: random damage, but this isn't correct
-      static engine::RandomState rnd(0);
-      evt.amount = engine::rand_det_s(rnd.rng, 1, 10);
-
-      evts.dispatcher->trigger(evt);
-      evts.dispatcher->update();
-    }
+    evts.dispatcher->trigger(evt);
+    evts.dispatcher->update();
   }
 };
 
@@ -294,7 +273,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
                                                       const bool additional_action_cond = false) {
       const auto& actions_c = r.get_or_emplace<CompletedActions>(e);
       const bool free_to_act = action_available(actions_c, a) && player_turn && additional_enabled_cond;
-      const ImVec2 size = { 32 * 16 / 9.0f, 32 };
+      const ImVec2 size = { 64 * 16 / 9.0f, 32 };
 
       if (!free_to_act) {
         push_button_unavailable_colours();
@@ -316,9 +295,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       ImGui::PopStyleColor(3);
     };
 
-    button_enabled(ActionEnum::MOVE, "Move");
-    button_enabled(ActionEnum::SHOOT, "Shoot");
-    button_enabled(ActionEnum::USE_ITEM, "Use");
+    button_enabled(ActionEnum::MOVE, "(1) Move", true, get_key_down(input_c, SDL_SCANCODE_1));
+    button_enabled(ActionEnum::SHOOT, "(2) Attack", true, get_key_down(input_c, SDL_SCANCODE_2));
+    button_enabled(ActionEnum::USE_ITEM, "(3) Use", true, get_key_down(input_c, SDL_SCANCODE_3));
 
     const bool allowed_to_end = !has_destination(r, e);
     button_enabled(ActionEnum::END_TURN, "(E)nd", allowed_to_end, get_key_down(input_c, SDL_SCANCODE_E));

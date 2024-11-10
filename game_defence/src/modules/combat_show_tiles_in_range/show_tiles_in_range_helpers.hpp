@@ -16,6 +16,9 @@ update_tiles_component(entt::registry& r,
                        const RangeType& t,
                        TilesComponent& c);
 
+entt::entity
+get_equipped_gun(entt::registry& r, const entt::entity e);
+
 int
 get_damage_for_equipped_item(entt::registry& r, const entt::entity e);
 
