@@ -179,7 +179,7 @@ public:
     // Evaluate all actions
     for (auto& a : b.actions) {
       float score = a->Evaluate(r, e);
-      SDL_Log("%s", std::format("action: {}, score: {}", a->GetClassName(), score).c_str());
+      // SDL_Log("%s", std::format("action: {}, score: {}", a->GetClassName(), score).c_str());
 
       if (score > 0.0f)
         sorted_actions.emplace(score, a);

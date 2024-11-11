@@ -183,6 +183,7 @@ display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const 
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
   const auto& item_tag = r.get<TagComponent>(item_e);
+  const Item& item_data = r.get<Item>(item_e);
   auto& ui = get_first_component<SINGLE_UIInventoryState>(r);
 
   ImVec2 tl{ 0.0f, 0.0f };
@@ -217,6 +218,13 @@ display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const 
     auto& core_item_c = r.get<Item>(item_e);
     if (core_item_c.use.has_value())
       ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "(usable)");
+
+    if (item_data.traits.has_value()) {
+      for (int i = 0; const auto& item_trait : item_data.traits.value()) {
+        const auto display_str = std::format("+{}", item_trait.key);
+        ImGui::TextColored(ImVec4(0.75, 0.3, 0.3, 1.0f), "%s", display_str.c_str());
+      }
+    }
 
     ImGui::EndTooltip();
   }

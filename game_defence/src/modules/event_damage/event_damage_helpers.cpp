@@ -7,7 +7,10 @@
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/combat_show_tiles_in_range/show_tileS_in_range_helpers.hpp"
+#include "modules/raws/raws_components.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/system_combat_bleed/combat_bleed_components.hpp"
+#include "modules/system_names/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_quips/components.hpp"
 
@@ -49,25 +52,28 @@ additional_misc_death_events(entt::registry& r, const entt::entity to_e)
 };
 
 int
-calculate_damage_to_take(entt::registry& r, entt::entity from_e, entt::entity to_e)
+calculate_damage_to_take(entt::registry& r, entt::entity e, int amount, const DamageType& type)
 {
-  const auto amount = get_damage_for_equipped_item(r, from_e);
+  int amount_final = amount;
 
-  int defence_amount = 0;
-  if (auto* defence_c = r.try_get<DefenceComponent>(to_e))
-    defence_amount = defence_c->armour;
+  if (type == DamageType::PHYSICAL) {
+    int defence_amount = 0;
+    if (auto* defence_c = r.try_get<DefenceComponent>(e))
+      defence_amount = defence_c->armour;
+    amount_final -= defence_amount;
+  }
 
-  int damage = amount;
-  damage -= defence_amount;
+  if (type == DamageType::PURE) {
+    // .. pure not blocked ..
+  }
 
-  // make sure damage cant be negative
-  return glm::max(damage, 0);
+  // damage shouldnt be negative
+  return glm::max(amount_final, 0);
 };
 
 void
 handle_damage_event(entt::registry& r, const DamageEvent& evt)
 {
-  const auto from_e = evt.from; // previously bullet, now player?
   const auto to_e = evt.to;
 
   auto* hp = r.try_get<HealthComponent>(to_e);
@@ -76,17 +82,27 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
     return;
   }
 
-  const int damage = calculate_damage_to_take(r, from_e, to_e);
+  const int damage = calculate_damage_to_take(r, evt.to, evt.amount, evt.type);
 
   // log evt
-  const auto a_name = std::string(r.get<TagComponent>(from_e).tag);
-  const auto b_name = std::string(r.get<TagComponent>(to_e).tag);
-  const auto message = std::format("({}) atk ({}) for {}", a_name, b_name, damage);
+  const auto b_name = std::string(r.get<NameComponent>(to_e).first_name);
+  const auto message = std::format("({}) damaged for {}", b_name, damage);
   SDL_Log("%s", message.c_str());
 
-  // .. take damage
+  // apply damage
   hp->hp -= damage;
   additional_misc_damage_events(r, to_e);
+
+  // apply traits
+  //
+  for (const Trait& trait : evt.traits) {
+    if (trait.key.find("bleed") != std::string::npos) {
+      SDL_Log("Applying bleed effect");
+
+      // TODO: dont emplace_or_replace, just extend duration?
+      r.emplace_or_replace<BleedComponent>(to_e);
+    }
+  }
 
   if (hp->hp <= 0) {
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);

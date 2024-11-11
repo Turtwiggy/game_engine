@@ -19,14 +19,13 @@ using namespace std::literals;
 void
 handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
 {
-  const auto from_e = evt.from; // previously bullet, now player?
   const auto to_e = evt.to;
-  const int amount = calculate_damage_to_take(r, from_e, to_e);
+  const auto damage = calculate_damage_to_take(r, evt.to, evt.amount, evt.type);
 
   // add a new entry to the UI_BufferComponent...
   auto& buffer_c = r.get_or_emplace<UI_BufferComponent>(to_e);
   TimedEntry entry;
-  entry.damage = (float)amount;
+  entry.damage = (float)damage;
   entry.time_left_max = 3.0f;
   entry.time_left = entry.time_left_max;
   buffer_c.entries.push_back(entry);

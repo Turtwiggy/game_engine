@@ -53,7 +53,8 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
   r.emplace_or_replace<MoveConsiderationData>(e, data_c);
 
   if (data_c.final_path.size() > 0)
-    return 1.0f;
+    return 0.75f;
+
   return 0.0f;
 };
 

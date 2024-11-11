@@ -15,8 +15,8 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/animations/wiggle/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/combat_show_tiles_in_range/show_tileS_in_range_helpers.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_components.hpp"
-#include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/map/components.hpp"
@@ -68,11 +68,21 @@ do_damage_action(entt::registry& r, entt::entity e)
 
   SDL_Log("Dealing damage to targets in RequestAttack...");
 
+  // Get weapon info...
+  const auto item_e = get_equipped_gun(r, e);
+  const int dmg = get_damage_for_equipped_item(r, e);
+  const DamageType dmg_type = DamageType::PHYSICAL;
+  std::vector<Trait> weapon_traits;
+  if (item_e != entt::null && r.get<Item>(item_e).traits.has_value())
+    weapon_traits = r.get<Item>(item_e).traits.value();
+
   // attack these, not tiles
   for (const auto map_e : targets) {
     DamageEvent evt;
-    evt.from = e;
     evt.to = map_e;
+    evt.type = dmg_type;
+    evt.amount = dmg;
+    evt.traits = weapon_traits;
 
     evts.dispatcher->trigger(evt);
     evts.dispatcher->update();
@@ -164,7 +174,7 @@ ai_tick(entt::registry& r, entt::entity e)
     const bool arrived = at_destination(r, e);
 
     if (!moving && arrived) {
-      SDL_Log("Finished moving... moving to idle");
+      // SDL_Log("Finished moving... moving to idle");
 
       const auto& path_c = r.try_get<GeneratedPathComponent>(e);
       if (path_c && path_c->path.size() > 0) {
@@ -493,7 +503,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   }
 
   // end turn impl
-  for (const auto& [req_e, req_c] : r.view<RequestEndTurn>().each()) {
+  auto& evts = get_first_component<SINGLE_Events>(r);
+  const auto view_req = r.view<RequestEndTurn>();
+  for (const auto& [req_e, req_c] : view_req.each()) {
     SDL_Log("~~~~~~~~~ ending turn ~~~~~~~~~");
 
     clear_actions(r, req_e);
@@ -518,8 +530,15 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     }
 
     // process requests
-    r.remove<RequestEndTurn>(e);
+    r.remove<RequestEndTurn>(req_e);
+
+    // Fire end turn event for this entity
+    EndTurnEvent evt;
+    evt.e = req_e;
+    evts.dispatcher->trigger(evt);
+    evts.dispatcher->update();
   }
+  r.remove<RequestEndTurn>(view_req.begin(), view_req.end());
 }
 
 } // namespace game2d

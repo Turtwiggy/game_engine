@@ -9,6 +9,7 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_combat_bleed/combat_bleed_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
@@ -88,6 +89,14 @@ update_ui_players_system(entt::registry& r)
       ImGui::SameLine();
       ImGui::Text("(X)");
     }
+
+    const auto& hp_c = r.get<HealthComponent>(e);
+    ImGui::Text("HP: %i/%i", hp_c.hp, hp_c.max_hp);
+
+    if (const auto& bleed_c = r.try_get<BleedComponent>(e))
+      ImGui::Text("Bleeding: %i turns left", bleed_c->turns_left);
+
+    ImGui::Separator();
   }
 
   if (ImGui::Button("Clear##mobselected")) {

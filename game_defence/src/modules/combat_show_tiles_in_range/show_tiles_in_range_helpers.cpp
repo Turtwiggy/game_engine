@@ -186,10 +186,6 @@ get_damage_for_equipped_item(entt::registry& r, const entt::entity e)
     return 0;
   const auto& item = r.get<Item>(item_e);
 
-  if (item.traits.has_value())
-    for (const Trait& trait : item.traits.value())
-      SDL_Log("%s", std::format("~~ weapon has trait: {} ~~", trait.key).c_str());
-
   if (item.melee.has_value())
     return item.melee.value().damage;
 

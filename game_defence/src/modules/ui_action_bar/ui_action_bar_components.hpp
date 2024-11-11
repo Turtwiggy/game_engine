@@ -38,4 +38,9 @@ struct RequestItem
   bool placeholder = true;
 };
 
+struct EndTurnEvent
+{
+  entt::entity e = entt::null;
+};
+
 } // namespace game2d
