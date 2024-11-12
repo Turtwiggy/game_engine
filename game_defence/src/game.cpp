@@ -202,7 +202,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_door_system(r);
     update_airlock_system(r);
 
-    // update_combat_heal_system(r);
     // update_combat_defence_system(r);
     // update_actor_cover_system(r);
     // update_turnbased_endturn_system(r);

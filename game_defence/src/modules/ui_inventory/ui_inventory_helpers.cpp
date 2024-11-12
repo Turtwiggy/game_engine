@@ -8,6 +8,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -215,9 +216,15 @@ display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const 
     const auto item_desc_str = item_c.display_desc.c_str();
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", item_desc_str);
 
-    auto& core_item_c = r.get<Item>(item_e);
-    if (core_item_c.use.has_value())
-      ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "(usable)");
+    // Show Damage
+    const auto item_damage = get_damage_for_item(r, item_e);
+    ImGui::TextColored(ImVec4(0.75, 0.3, 0.3, 1.0f), "ATK: %d", item_damage);
+
+    // Show Defence
+    if (item_data.defence.has_value()) {
+      ImGui::SameLine();
+      ImGui::TextColored(ImVec4(0.75, 0.3, 0.3, 1.0f), "DEF: %d", item_data.defence.value().block);
+    }
 
     if (item_data.traits.has_value()) {
       for (int i = 0; const auto& item_trait : item_data.traits.value()) {
@@ -225,6 +232,10 @@ display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const 
         ImGui::TextColored(ImVec4(0.75, 0.3, 0.3, 1.0f), "%s", display_str.c_str());
       }
     }
+
+    auto& core_item_c = r.get<Item>(item_e);
+    if (core_item_c.use.has_value())
+      ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "(usable)");
 
     ImGui::EndTooltip();
   }

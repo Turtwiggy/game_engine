@@ -24,6 +24,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
+#include "modules/system_combat_bleed/combat_bleed_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
@@ -273,6 +274,15 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
+  // Is the current entity moving?
+  const auto has_req = r.try_get<RequestMove>(e) != nullptr;
+  const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
+  const auto& path_c = r.try_get<GeneratedPathComponent>(e);
+  const auto has_path = path_c != nullptr;
+  const bool moving = has_lerp || has_req;
+  const bool arrived = at_destination(r, e);
+  const bool just_finished_moving = path_c && !moving && arrived;
+
   ImGui::Begin("Action Bar", NULL, flags);
   {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
@@ -305,12 +315,12 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       ImGui::PopStyleColor(3);
     };
 
-    button_enabled(ActionEnum::MOVE, "(1) Move", true, get_key_down(input_c, SDL_SCANCODE_1));
-    button_enabled(ActionEnum::SHOOT, "(2) Attack", true, get_key_down(input_c, SDL_SCANCODE_2));
-    button_enabled(ActionEnum::USE_ITEM, "(3) Use", true, get_key_down(input_c, SDL_SCANCODE_3));
+    button_enabled(ActionEnum::MOVE, "(1) Move", true, get_key_down(input_c, SDL_SCANCODE_1) && !moving);
+    button_enabled(ActionEnum::SHOOT, "(2) Attack", true, get_key_down(input_c, SDL_SCANCODE_2) && !moving);
+    button_enabled(ActionEnum::USE_ITEM, "(3) Use", true, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
 
     const bool allowed_to_end = !has_destination(r, e);
-    button_enabled(ActionEnum::END_TURN, "(E)nd", allowed_to_end, get_key_down(input_c, SDL_SCANCODE_E));
+    button_enabled(ActionEnum::END_TURN, "(E)nd", allowed_to_end, get_key_down(input_c, SDL_SCANCODE_E) && !moving);
 
     if (auto* state_c = r.try_get<UIActionState>(e)) {
       const auto state = std::string(magic_enum::enum_name(state_c->current));
@@ -417,90 +427,88 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     ai_tick(r, e);
 
   // monitor when the entity has stopped moving
-  {
-    const auto has_req = r.try_get<RequestMove>(e) != nullptr;
-    const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
-    const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-    const auto has_path = path_c != nullptr;
-    const bool moving = has_lerp || has_req;
-    const bool arrived = at_destination(r, e);
-    if (path_c && !moving && arrived) {
-      SDL_Log("finished moving... ");
+  //
+  if (just_finished_moving) {
+    const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+    move_entity_on_map(r, e, dst_idx);
 
-      const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-      move_entity_on_map(r, e, dst_idx);
+    r.remove<GeneratedPathComponent>(e);
 
-      r.remove<GeneratedPathComponent>(e);
+    if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
+      brain_c->brain_fsm = BRAIN_STATE::IDLE;
 
-      if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
-        brain_c->brain_fsm = BRAIN_STATE::IDLE;
-
-      if (auto* action_c = r.try_get<UIActionState>(e))
-        if (action_c->current == ActionEnum::MOVE)
-          r.remove<UIActionState>(e);
-    }
+    if (auto* action_c = r.try_get<UIActionState>(e))
+      if (action_c->current == ActionEnum::MOVE)
+        r.remove<UIActionState>(e);
   }
 
   auto& actions_c = r.get_or_emplace<CompletedActions>(e);
 
-  // process RequestMove
-  for (const auto& [req_e, req_c] : r.view<RequestMove>().each()) {
-    const auto action = ActionEnum::MOVE;
+  const auto process_actions = [&r, &actions_c]<typename T>(const T& t,
+                                                            const ActionEnum& action,
+                                                            const std::function<void(entt::entity, T&)>& callback) {
+    const auto view = r.view<T>();
 
-    if (!action_available(actions_c, action)) {
-      const auto action_str = std::string(magic_enum::enum_name(action));
-      SDL_Log("Already taken %s action this turn.", action_str.c_str());
-      r.remove<RequestMove>(req_e);
+    for (const auto& [req_e, req_c] : view.each()) {
 
-      if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
-        SDL_Log("AI likely requested repeat action... ending their turn");
-        brain_c->brain_fsm = BRAIN_STATE::REASONING;
+      // limit: only take action once
+      if (!action_available(actions_c, action)) {
+        const auto action_str = std::string(magic_enum::enum_name(action));
+        SDL_Log("Already taken %s action this turn.", action_str.c_str());
+        r.remove<T>(req_e);
+
+        if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
+          SDL_Log("AI likely requested repeat action... ending their turn");
+          brain_c->brain_fsm = BRAIN_STATE::REASONING;
+        }
+
+        continue;
       }
 
-      continue;
+      // Action is available!
+      callback(req_e, req_c);
+
+      // Set the action as completed, and remove the request
+      actions_c.actions.push_back(action);
+
+      // clear the ui
+      if (r.try_get<UIActionState>(req_e))
+        r.remove<UIActionState>(req_e);
     }
 
-    // Action is available, start moving
+    // processed all requests
+    r.remove<T>(view.begin(), view.end());
+  };
+
+  const std::function<void(entt::entity, RequestMove&)> move_callback = [&r](entt::entity e, const RequestMove& req_c) {
+    //
+    // Action is available
     r.emplace_or_replace<GeneratedPathComponent>(e, req_c.path_c);
+  };
+  process_actions(RequestMove(), ActionEnum::MOVE, move_callback);
 
-    // Set the action as completed, and remove the request
-    actions_c.actions.push_back(ActionEnum::MOVE);
-    r.remove<RequestMove>(e);
-  }
-
-  // process RequestAttack
-  for (const auto& [req_e, req_c] : r.view<RequestAttack>().each()) {
-    const auto action = ActionEnum::SHOOT;
-
-    if (!action_available(actions_c, action)) {
-      const auto action_str = std::string(magic_enum::enum_name(action));
-      SDL_Log("Already taken %s action this turn.", action_str.c_str());
-      r.remove<RequestAttack>(req_e);
-
-      if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
-        SDL_Log("AI likely requested repeat action... ending their turn");
-        brain_c->brain_fsm = BRAIN_STATE::REASONING;
-      }
-
-      continue;
-    }
-
+  const std::function<void(entt::entity, RequestAttack&)> shoot_callback = [&r](entt::entity e, const RequestAttack& req_c) {
+    //
     // Action is available
     do_damage_action(r, e);
-
-    // Set the action as completed, and remove the request
-    actions_c.actions.push_back(ActionEnum::SHOOT);
-    r.remove<RequestAttack>(e);
 
     // The damage action could be animated, but for now,
     // immediately set back to idle as no anim implemented
     if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
       brain_c->brain_fsm = BRAIN_STATE::IDLE;
+  };
+  process_actions(RequestAttack(), ActionEnum::SHOOT, shoot_callback);
 
-    // clear the ui
-    if (r.try_get<UIActionState>(e))
-      r.remove<UIActionState>(e);
-  }
+  const std::function<void(entt::entity, RequestItem&)> item_callback = [&r](entt::entity e, const RequestItem& req_c) {
+    //
+    // hack: heal. this should actually be based on items, not just always be a heal
+    auto& hp = r.get<HealthComponent>(e);
+    hp.hp += 10;
+    hp.hp = glm::min(hp.hp, hp.max_hp);
+    if (const auto* bleed_c = r.try_get<BleedComponent>(e))
+      r.remove<BleedComponent>(e); // fix bleed
+  };
+  process_actions(RequestItem(), ActionEnum::USE_ITEM, item_callback);
 
   // end turn impl
   auto& evts = get_first_component<SINGLE_Events>(r);

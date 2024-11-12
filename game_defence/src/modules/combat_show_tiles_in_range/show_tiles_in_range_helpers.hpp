@@ -20,6 +20,9 @@ entt::entity
 get_equipped_gun(entt::registry& r, const entt::entity e);
 
 int
+get_damage_for_item(entt::registry& r, entt::entity e);
+
+int
 get_damage_for_equipped_item(entt::registry& r, const entt::entity e);
 
 } // namespace game2d

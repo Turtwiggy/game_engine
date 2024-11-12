@@ -179,11 +179,8 @@ get_equipped_gun(entt::registry& r, const entt::entity e)
 }
 
 int
-get_damage_for_equipped_item(entt::registry& r, const entt::entity e)
+get_damage_for_item(entt::registry& r, const entt::entity item_e)
 {
-  const auto item_e = get_equipped_gun(r, e);
-  if (item_e == entt::null)
-    return 0;
   const auto& item = r.get<Item>(item_e);
 
   if (item.melee.has_value())
@@ -193,6 +190,17 @@ get_damage_for_equipped_item(entt::registry& r, const entt::entity e)
     return item.ranged.value().damage; // or could be bullet in gun...
 
   return 0;
+}
+
+int
+get_damage_for_equipped_item(entt::registry& r, const entt::entity e)
+{
+  const auto item_e = get_equipped_gun(r, e);
+
+  if (item_e == entt::null)
+    return 0;
+
+  return get_damage_for_item(r, item_e);
 };
 
 } // namespace game2d

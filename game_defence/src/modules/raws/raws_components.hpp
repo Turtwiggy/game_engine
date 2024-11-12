@@ -43,7 +43,7 @@ from_json(const json& j, std::optional<T>& opt)
 
 struct Defence
 {
-  int block;
+  int block = 0;
   std::optional<std::string> worn_on;
 
   friend void to_json(json& j, const Defence& val)

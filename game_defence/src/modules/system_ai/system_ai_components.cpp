@@ -28,6 +28,7 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
   for (const auto& [other_e, other_team, other_t] : targets_view.each()) {
     if (e == other_e)
       continue;
+
     if (src_team.team == other_team.team)
       continue; // not interested in same team
 
@@ -36,7 +37,8 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
     const auto d2 = d.x * d.x + d.y * d.y;
     const auto dst_gp = engine::grid::worldspace_to_grid_space(dst_wp, map_c.tilesize);
     const auto path = generate_direct_with_diagonals(r, src_gp, dst_gp);
-    if (path.size() > 2) {
+
+    if (path.size() != 0) {
       // note: remove the end tile so that the ai doesnt path on top of the destination entity
       std::vector<glm::ivec2> path_without_end_tile{ path.begin(), path.end() - 1 };
       distance_and_path.emplace(d2, path_without_end_tile);
@@ -51,7 +53,6 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
     data_c.final_path = distance_and_path.begin()->second;
 
   r.emplace_or_replace<MoveConsiderationData>(e, data_c);
-
   if (data_c.final_path.size() > 0)
     return 0.75f;
 
