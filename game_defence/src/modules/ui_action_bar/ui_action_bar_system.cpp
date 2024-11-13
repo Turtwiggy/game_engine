@@ -9,7 +9,6 @@
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/grid.hpp"
-#include "engine/maths/maths.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_door/door_helpers.hpp"
 #include "modules/actor_player/components.hpp"
@@ -31,6 +30,7 @@
 #include "modules/system_names/components.hpp"
 #include "modules/ui_action_bar/ui_action_bar_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
+#include "ui_action_bar_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_scancode.h>
@@ -80,6 +80,7 @@ do_damage_action(entt::registry& r, entt::entity e)
   // attack these, not tiles
   for (const auto map_e : targets) {
     DamageEvent evt;
+    evt.from = e;
     evt.to = map_e;
     evt.type = dmg_type;
     evt.amount = dmg;
@@ -171,21 +172,19 @@ ai_tick(entt::registry& r, entt::entity e)
   if (brain_c.brain_fsm == BRAIN_STATE::MOVE) {
     const auto has_req = r.try_get<RequestMove>(e) != nullptr;
     const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
+    const auto& path_c = r.try_get<GeneratedPathComponent>(e);
     const bool moving = has_lerp || has_req;
     const bool arrived = at_destination(r, e);
+    const bool just_finished_moving = path_c && !moving && arrived;
 
-    if (!moving && arrived) {
-      // SDL_Log("Finished moving... moving to idle");
+    if (just_finished_moving) {
+      brain_c.brain_fsm = BRAIN_STATE::IDLE;
 
-      const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-      if (path_c && path_c->path.size() > 0) {
+      if (path_c->path.size() > 0) {
         const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
         move_entity_on_map(r, e, dst_idx);
-
         r.remove<GeneratedPathComponent>(e);
       }
-
-      brain_c.brain_fsm = BRAIN_STATE::IDLE;
     }
   }
 
@@ -317,9 +316,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 
     button_enabled(ActionEnum::MOVE, "(1) Move", true, get_key_down(input_c, SDL_SCANCODE_1) && !moving);
     button_enabled(ActionEnum::SHOOT, "(2) Attack", true, get_key_down(input_c, SDL_SCANCODE_2) && !moving);
-    button_enabled(ActionEnum::USE_ITEM, "(3) Use", true, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
+    button_enabled(ActionEnum::USE_ITEM, "(3) Use (Heal)", true, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
 
-    const bool allowed_to_end = !has_destination(r, e);
+    const bool allowed_to_end = !any_unit_is_moving(r);
     button_enabled(ActionEnum::END_TURN, "(E)nd", allowed_to_end, get_key_down(input_c, SDL_SCANCODE_E) && !moving);
 
     if (auto* state_c = r.try_get<UIActionState>(e)) {
@@ -423,8 +422,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   ImGui::PopStyleVar(1);
   ImGui::End();
 
-  if (enemy_turn)
+  if (enemy_turn) {
     ai_tick(r, e);
+  }
 
   // monitor when the entity has stopped moving
   //
@@ -536,9 +536,6 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       const auto next_e = init_c.order[1];
       activate_unit(r, next_e);
     }
-
-    // process requests
-    r.remove<RequestEndTurn>(req_e);
 
     // Fire end turn event for this entity
     EndTurnEvent evt;

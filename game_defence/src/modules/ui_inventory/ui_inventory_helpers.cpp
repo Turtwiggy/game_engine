@@ -281,12 +281,15 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
     // spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
     // spawn_inv_item(r, body_c.body, 4, "scrap_legs");
     // spawn_inv_item(r, body_c.body, 5, "scrap_legs");
-    spawn_inv_item(r, body_c.body, 6, "scrap_knife");
+    spawn_inv_item(r, body_c.body, 6, "plunger");
 
     // init inventory with items
+    // note: spawn less than 6*5 items (default inventory size)
     int i = 1;
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "plunger");
     spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap");
     spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "shotgun");
+    spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "scrap_knife");
     spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "bullet_default");
     spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "bullet_bouncy");
     spawn_inv_item(r, inv_c.inv, int(inv_c.inv.size() - i++), "breach_charge");

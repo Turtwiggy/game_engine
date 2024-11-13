@@ -116,4 +116,7 @@ normalize_safe(const glm::vec2& value);
 [[nodiscard]] glm::vec3
 normalize_safe(const glm::vec3& value);
 
+glm::ivec2
+round_to_nearest_axis(const glm::vec2& v);
+
 } // namespace engine

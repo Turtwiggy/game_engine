@@ -72,7 +72,7 @@ calculate_damage_to_take(entt::registry& r, entt::entity e, int amount, const Da
 };
 
 void
-handle_damage_event(entt::registry& r, const DamageEvent& evt)
+handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 {
   const auto to_e = evt.to;
 
@@ -92,17 +92,6 @@ handle_damage_event(entt::registry& r, const DamageEvent& evt)
   // apply damage
   hp->hp -= damage;
   additional_misc_damage_events(r, to_e);
-
-  // apply traits
-  //
-  for (const Trait& trait : evt.traits) {
-    if (trait.key.find("bleed") != std::string::npos) {
-      SDL_Log("Applying bleed effect");
-
-      // TODO: dont emplace_or_replace, just extend duration?
-      r.emplace_or_replace<BleedComponent>(to_e);
-    }
-  }
 
   if (hp->hp <= 0) {
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);

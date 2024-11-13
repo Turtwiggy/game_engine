@@ -2,8 +2,8 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
-#include "engine/events/components.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/map/components.hpp"
 #include "modules/raws/raws_components.hpp"
@@ -12,22 +12,6 @@
 #include "show_tiles_in_range_components.hpp"
 
 namespace game2d {
-
-glm::ivec2
-round_to_nearest_axis(const glm::vec2& v)
-{
-  const float abs_x = std::abs(v.x);
-  const float abs_y = std::abs(v.y);
-
-  if (abs_x > abs_y)
-    return glm::ivec2(v.x > 0 ? 1 : -1, 0);
-
-  if (abs_y > abs_x)
-    return glm::ivec2(0, v.y > 0 ? 1 : -1);
-
-  // v.x == v.y
-  return glm::ivec2(0, 0);
-};
 
 // XXX
 // XOX
@@ -64,7 +48,7 @@ get_tiles_in_line(entt::registry& r,
   std::erase(clickable_tiles, pos);
 
   // Which direction is the player facing?
-  const auto axis = round_to_nearest_axis(look_dir);
+  const auto axis = engine::round_to_nearest_axis(look_dir);
 
   // limit: only in dir
   const glm::ivec2 allowed_tile = pos + axis;
@@ -105,7 +89,7 @@ get_tiles_for_shotgun(entt::registry& r, const MapComponent& map_c, const glm::i
   std::erase(clickable_tiles, pos);
 
   // Which direction is the player facing?
-  const auto axis = round_to_nearest_axis(look_dir);
+  const auto axis = engine::round_to_nearest_axis(look_dir);
 
   // limit: only in dir
   const glm::ivec2 allowed_tile = pos + axis;

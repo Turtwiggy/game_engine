@@ -7,6 +7,7 @@
 #include "engine/renderer/transform.hpp"
 #include "gun_follow_player_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/system_select_unit/select_unit_components.hpp"
 
 namespace game2d {
 
@@ -44,13 +45,16 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
 
   const auto& view = r.view<WeaponComponent, HasParentComponent, TransformComponent>();
   for (const auto [shotgun_e, weapon_c, parent_c, weapon_t] : view.each()) {
-    //
 
     const auto& p = parent_c.parent;
     if (p == entt::null || !r.valid(p)) {
       dead.dead.emplace(shotgun_e); // kill this parentless entity (soz)
       continue;
     }
+
+    const bool parent_selected = r.try_get<SelectedComponent>(p) != nullptr;
+    if (!parent_selected)
+      continue;
 
     const auto parent_pos = get_position(r, p);
 

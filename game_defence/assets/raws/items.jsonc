@@ -76,7 +76,16 @@
       "display_name": "Shotgun",
       "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "ranged": { "damage": 1, "type": "cone", "range": 3 }
+      "ranged": { "damage": 8, "type": "cone", "range": 3 },
+      "traits": [ {"key": "push", "amount": 1} ]
+    },
+    {
+      "name": "plunger",
+      "display_name": "Plunger",
+      "display_desc": "",
+      "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "ranged": { "damage": 1, "type": "line", "range": 5 },
+      "traits": [ {"key": "pull", "amount": 1} ]
     },
     {
       "name": "bullet_default",

@@ -138,8 +138,9 @@ update_ui_inventory_system(entt::registry& r)
     ImGuiTableFlags table_flags = ImGuiTableFlags_SizingStretchSame;
     ImGui::BeginTable("backpack", columns, table_flags);
 
-    const auto& inv_view = r.view<PlayerComponent, DefaultInventory>();
-    for (const auto& [e, player_c, inv_c] : inv_view.each()) {
+    const auto& inv_view = r.view<PlayerComponent, DefaultInventory, const SelectedComponent>();
+    int inv_units = 0;
+    for (int i = 0; const auto& [e, player_c, inv_c, selected_c] : inv_view.each()) {
       for (const auto& inv_e : inv_c.inv) {
         const auto eid = static_cast<uint32_t>(inv_e);
         ImGui::PushID(eid);
@@ -147,7 +148,10 @@ update_ui_inventory_system(entt::registry& r)
         display_inventory_slot(r, inv_e, button_size);
         ImGui::PopID();
       }
+      inv_units++;
     }
+    if (inv_units == 0)
+      ImGui::Text("No unit selected. Not displaying inventory.");
 
     ImGui::EndTable();
 

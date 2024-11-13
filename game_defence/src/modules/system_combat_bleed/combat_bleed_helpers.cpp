@@ -33,7 +33,7 @@ handle_end_turn_bleed(entt::registry& r, const EndTurnEvent& evt)
 
   // Take bleed damage
   DamageEvent dmg_evt;
-  // dmg_evt.from = entt::null; // system
+  dmg_evt.from = entt::null; // system
   dmg_evt.to = evt.e;
   dmg_evt.type = DamageType::PURE;
   dmg_evt.amount = 5; // bleed amount

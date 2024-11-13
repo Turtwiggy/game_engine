@@ -156,4 +156,20 @@ normalize_safe(const glm::vec3& value)
   return glm::normalize(value);
 };
 
+glm::ivec2
+round_to_nearest_axis(const glm::vec2& v)
+{
+  const float abs_x = std::abs(v.x);
+  const float abs_y = std::abs(v.y);
+
+  if (abs_x > abs_y)
+    return glm::ivec2(v.x > 0 ? 1 : -1, 0);
+
+  if (abs_y > abs_x)
+    return glm::ivec2(0, v.y > 0 ? 1 : -1);
+
+  // v.x == v.y
+  return glm::ivec2(0, 0);
+};
+
 } // namespace engine
