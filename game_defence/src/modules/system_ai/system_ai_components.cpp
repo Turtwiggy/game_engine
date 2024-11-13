@@ -1,5 +1,6 @@
 #include "system_ai_components.hpp"
 
+#include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
@@ -66,7 +67,7 @@ AttackConsideration::Evaluate(entt::registry& r, entt::entity e) const
   auto& tiles_c = r.get_or_emplace<TilesComponent>(e);
   const auto& map_c = get_first_component<MapComponent>(r);
   const auto& input_c = r.get<InputComponent>(e);
-  update_tiles_component(r, e, map_c, input_c, RangeType::knife, tiles_c);
+  tiles_c.tiles = get_tiles_for_knife(r, map_c, get_grid_position(r, e));
 
   AttackConsiderationData data_c;
 

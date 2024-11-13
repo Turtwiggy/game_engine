@@ -1,5 +1,6 @@
 #include "modules/actor_player/system.hpp"
 
+#include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/fixed_update.hpp"
@@ -8,6 +9,7 @@
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/system_select_unit/select_unit_components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_log.h>
@@ -156,16 +158,16 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
 };
 
 void
-update_player_controller_system(entt::registry& r, const uint64_t milliseconds_dt)
+update_player_controller_system(entt::registry& r, const uint64_t milliseconds_dt, const glm::ivec2& mouse_pos)
 {
   const auto& finputs = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
 
   const auto& view = r.view<InputComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, input] : view.each()) {
+  for (const auto& [e, input] : view.each()) {
 
-    const auto* keyboard = r.try_get<KeyboardComponent>(entity);
-    const auto* controller = r.try_get<ControllerComponent>(entity);
+    const auto* keyboard = r.try_get<KeyboardComponent>(e);
+    const auto* controller = r.try_get<ControllerComponent>(e);
 
     // const auto l = [](const InputEvent& e) { return (e.type == InputType::keyboard && e.state == InputState::release);
     // }; const bool release_key = std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs); if (release_key)
@@ -193,13 +195,12 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
     input.drop = false;
     input.sprint = false;
 
-    // rx via mouse
-    // const auto dir = transform.position - cursor_transform.position;
-    // glm::vec2 r_nrm_dir = { dir.x, dir.y };
-    // if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
-    //   r_nrm_dir = glm::normalize(r_nrm_dir);
-    // input.rx += r_nrm_dir.x;
-    // input.ry += r_nrm_dir.y;
+    // rx via mouse (only if selected, as there's only 1 mouse)
+    if (const auto* selected_c = r.try_get<SelectedComponent>(e)) {
+      const auto dir = glm::vec2{ mouse_pos.x, mouse_pos.y } - get_position(r, e);
+      input.rx += dir.x;
+      input.ry += dir.y;
+    }
 
     if (keyboard) {
       input.ly += fixed_input_keyboard_held(inputs, keyboard->W) ? -1 : 0;

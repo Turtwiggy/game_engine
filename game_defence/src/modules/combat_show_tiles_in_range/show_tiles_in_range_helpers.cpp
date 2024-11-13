@@ -1,6 +1,5 @@
 #include "show_tiles_in_range_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
@@ -9,7 +8,6 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
-#include "show_tiles_in_range_components.hpp"
 
 namespace game2d {
 
@@ -38,10 +36,7 @@ get_tiles_in_line(entt::registry& r,
                   const glm::vec2 look_dir,
                   const int length)
 {
-  // get dir from input
-  const auto worldspace_pos = engine::grid::grid_space_to_world_space_center(pos, map_c.tilesize);
-
-  // these are your clickable tiles... where you can click to shoot the shotgun
+  // clickable tiles around the position
   auto clickable_tiles = generate_accessible_areas(r, map_c, pos, 1);
 
   // remove the player's starting pos
@@ -49,16 +44,18 @@ get_tiles_in_line(entt::registry& r,
 
   // Which direction is the player facing?
   const auto axis = engine::round_to_nearest_axis(look_dir);
+  ImGui::Text("pos: %i %i, axis: %i %i", pos.x, pos.y, axis.x, axis.y);
 
   // limit: only in dir
   const glm::ivec2 allowed_tile = pos + axis;
   auto it = std::find(clickable_tiles.begin(), clickable_tiles.end(), allowed_tile);
   if (it == std::end(clickable_tiles))
-    return {}; // now allowed tiles
+    return {}; // no allowed tiles
 
   std::vector<glm::ivec2> tiles;
   const glm::ivec2 base = *it;
   tiles.push_back(base);
+  ImGui::Text("base: %i %i", base.x, base.y);
 
   auto last = base;
   for (int i = 0; i < length; i++) {
@@ -79,9 +76,6 @@ get_tiles_in_line(entt::registry& r,
 std::vector<glm::ivec2>
 get_tiles_for_shotgun(entt::registry& r, const MapComponent& map_c, const glm::ivec2& pos, const glm::vec2 look_dir)
 {
-  // get dir from input
-  const auto worldspace_pos = engine::grid::grid_space_to_world_space_center(pos, map_c.tilesize);
-
   // these are your clickable tiles... where you can click to shoot the shotgun
   auto clickable_tiles = generate_accessible_areas(r, map_c, pos, 1);
 
@@ -129,30 +123,6 @@ get_tiles_for_shotgun(entt::registry& r, const MapComponent& map_c, const glm::i
   return tiles;
 };
 
-void
-update_tiles_component(entt::registry& r,
-                       entt::entity e,
-                       const MapComponent& map_c,
-                       const InputComponent& input_c,
-                       const RangeType& t,
-                       TilesComponent& c)
-{
-  const auto gp = get_grid_position(r, e);
-
-  std::vector<glm::ivec2> tiles;
-
-  if (t == RangeType::knife)
-    tiles = get_tiles_for_knife(r, map_c, gp);
-  if (t == RangeType::pistol)
-    tiles = get_tiles_in_line(r, map_c, gp, { input_c.rx, input_c.ry }, 1);
-  if (t == RangeType::plunger)
-    tiles = get_tiles_in_line(r, map_c, gp, { input_c.rx, input_c.ry }, 4);
-  if (t == RangeType::shotgun)
-    tiles = get_tiles_for_shotgun(r, map_c, gp, { input_c.rx, input_c.ry });
-
-  c.tiles = tiles;
-};
-
 entt::entity
 get_equipped_gun(entt::registry& r, const entt::entity e)
 {
@@ -160,7 +130,7 @@ get_equipped_gun(entt::registry& r, const entt::entity e)
   const auto gun_e = get_slot_type(r, body.body, InventorySlotType::gun);
   const auto gun_c = r.get<InventorySlotComponent>(gun_e);
   return gun_c.item_e;
-}
+};
 
 int
 get_damage_for_item(entt::registry& r, const entt::entity item_e)

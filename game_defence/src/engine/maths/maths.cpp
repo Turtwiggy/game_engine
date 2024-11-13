@@ -168,8 +168,8 @@ round_to_nearest_axis(const glm::vec2& v)
   if (abs_y > abs_x)
     return glm::ivec2(0, v.y > 0 ? 1 : -1);
 
-  // v.x == v.y
-  return glm::ivec2(0, 0);
+  // v.x == v.y, face right by default
+  return glm::ivec2(1, 0);
 };
 
 } // namespace engine

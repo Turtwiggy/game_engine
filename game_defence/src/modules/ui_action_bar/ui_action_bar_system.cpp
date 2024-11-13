@@ -383,24 +383,24 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
             const auto tile_gp = tiles_c->tiles[i];
             const auto tile_wsp = engine::grid::grid_space_to_world_space_center(tile_gp, map_c.tilesize);
             const auto debug_e = debug_path.instances[i];
+
             set_position(r, debug_e, tile_wsp);
             set_sprite(r, debug_e, "CROSSHAIR_10");
+            set_size(r, debug_e, { 32, 32 });
+            set_z_index(r, debug_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
 
             if (hovering)
               set_colour(r, debug_e, { 0.0f, 1.0f, 0.0f, 1.0f });
             else
               set_colour(r, debug_e, { 1.0f, 0.0f, 0.0f, 1.0f });
 
-            set_size(r, debug_e, { 32, 32 });
-            set_z_index(r, debug_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-
-            const auto* wiggle_c = r.try_get<WiggleUpAndDown>(debug_e);
-            if (!wiggle_c) {
-              WiggleUpAndDown wiggle_c;
-              wiggle_c.base_position = tile_wsp;
-              wiggle_c.amplitude = 1.0;
-              r.emplace<WiggleUpAndDown>(debug_e, wiggle_c);
-            }
+            // const auto* wiggle_c = r.try_get<WiggleUpAndDown>(debug_e);
+            // if (!wiggle_c) {
+            //   WiggleUpAndDown wiggle_c;
+            //   wiggle_c.base_position = tile_wsp;
+            //   wiggle_c.amplitude = 1.0;
+            //   r.emplace<WiggleUpAndDown>(debug_e, wiggle_c);
+            // }
           }
 
           if (request_action && hovering)

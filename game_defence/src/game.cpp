@@ -150,12 +150,14 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   if (state.state == GameState::PAUSED)
     return; // note: this ignores inputs
 
+  const auto mouse_pos = mouse_position_in_worldspace(r);
+
   // destroy/create objects
   update_lifecycle_system(r, milliseconds_dt);
   update_physics_apply_force_system(r);
   update_physics_system(r, milliseconds_dt);
-  update_player_controller_system(r, milliseconds_dt); // input => actions
-  update_events_system(r);                             // dispatch events
+  update_player_controller_system(r, milliseconds_dt, mouse_pos); // input => actions
+  update_events_system(r);                                        // dispatch events
 
   fixed_input.fixed_tick += 1;
 };
