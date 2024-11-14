@@ -158,7 +158,7 @@ ai_tick(entt::registry& r, entt::entity e)
         brain_c.brain_fsm = BRAIN_STATE::MOVE;
       }
 
-      // AI: REASONING => SHOOT
+      // AI: REASONING => ATTACK
       if (std::dynamic_pointer_cast<AttackAction>(action.value())) {
         const auto& data_c = r.get<AttackConsiderationData>(e);
         r.emplace<RequestAttack>(e, data_c.targets);

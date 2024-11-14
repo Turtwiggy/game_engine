@@ -279,7 +279,7 @@ display_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& ty
   // for the inventory menu, show where the equpment should go
   if (item_data.defence.has_value())
     if (item_data.defence.value().worn_on.has_value())
-      text = std::format("[{}] {}", item_data.defence->worn_on.value(), item_tag.tag);
+      text = std::format("[{}] {}", item_data.defence->worn_on.value(), item_data.display_name);
 
   // left-aligned text
   ImGui::SameLine();

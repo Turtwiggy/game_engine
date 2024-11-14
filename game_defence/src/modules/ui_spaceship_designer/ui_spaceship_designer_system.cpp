@@ -108,7 +108,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       spawn_n_enemies(r, idxs, info_c.level);
 
       // spawn the right amount of players...
-      for (int i = 0; i < 2; i++) {
+      for (int i = 0; i < 1; i++) {
         auto idxs = get_empty_slots_in_map(r, map_c);
         const int slot_idx = idxs[engine::rand_det_s(enemy_rnd.rng, 0, idxs.size())];
         const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);

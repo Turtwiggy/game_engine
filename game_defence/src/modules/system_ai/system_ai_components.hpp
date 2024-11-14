@@ -189,7 +189,7 @@ public:
 
     // take the action with the highest utility (value at end of map)
     if (sorted_actions.size() > 0)
-      result = sorted_actions.rend()->second;
+      result = std::prev(sorted_actions.end())->second;
 
     return result;
   };
