@@ -19,7 +19,7 @@ enum class InventorySlotType
   leg,
 
   // inventory
-  gun,
+  weapon,
   bullet,
   backpack,
 };
@@ -77,7 +77,7 @@ struct DefaultBody
     body.push_back(create_body_slot(InventorySlotType::leg));
 
     // equipment slots
-    body.push_back(create_body_slot(InventorySlotType::gun));
+    body.push_back(create_body_slot(InventorySlotType::weapon));
     body.push_back(create_body_slot(InventorySlotType::bullet));
   }
 };

@@ -4,7 +4,7 @@
     //
     {
       "name": "medkit",
-      "display_name": "Basic MedKit.",
+      "display_name": "MedKit.",
       "display_desc": "DRABC. RICE. Oh, your arm's missing?",
       "renderable": { "sprite": "ICON_HEART_FULL", "colour": { "r": 255, "g": 255, "b": 255 } },
       "use": { "name": "heal", "select": "actor", "amount": 25 }
@@ -80,9 +80,9 @@
       "traits": [ {"key": "push", "amount": 1} ]
     },
     {
-      "name": "plunger",
-      "display_name": "Plunger",
-      "display_desc": "",
+      "name": "hook",
+      "display_name": "Hook",
+      "display_desc": "Need the Hook, Captain?",
       "renderable": { "sprite": "HOOK_36_5", "colour": { "r": 255, "g": 255, "b": 255 } },
       "ranged": { "damage": 1, "type": "line", "range": 4 },
       "traits": [ {"key": "pull", "amount": 1} ]

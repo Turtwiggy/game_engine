@@ -422,9 +422,8 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   ImGui::PopStyleVar(1);
   ImGui::End();
 
-  if (enemy_turn) {
+  if (enemy_turn)
     ai_tick(r, e);
-  }
 
   // monitor when the entity has stopped moving
   //

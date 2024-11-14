@@ -44,7 +44,6 @@ get_tiles_in_line(entt::registry& r,
 
   // Which direction is the player facing?
   const auto axis = engine::round_to_nearest_axis(look_dir);
-  ImGui::Text("pos: %i %i, axis: %i %i", pos.x, pos.y, axis.x, axis.y);
 
   // limit: only in dir
   const glm::ivec2 allowed_tile = pos + axis;
@@ -55,7 +54,6 @@ get_tiles_in_line(entt::registry& r,
   std::vector<glm::ivec2> tiles;
   const glm::ivec2 base = *it;
   tiles.push_back(base);
-  ImGui::Text("base: %i %i", base.x, base.y);
 
   auto last = base;
   for (int i = 0; i < length; i++) {
@@ -127,7 +125,7 @@ entt::entity
 get_equipped_gun(entt::registry& r, const entt::entity e)
 {
   const auto& body = r.get<DefaultBody>(e);
-  const auto gun_e = get_slot_type(r, body.body, InventorySlotType::gun);
+  const auto gun_e = get_slot_type(r, body.body, InventorySlotType::weapon);
   const auto gun_c = r.get<InventorySlotComponent>(gun_e);
   return gun_c.item_e;
 };

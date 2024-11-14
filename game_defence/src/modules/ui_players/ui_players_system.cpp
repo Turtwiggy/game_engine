@@ -33,7 +33,7 @@ update_ui_players_system(entt::registry& r)
 
   // Top-Left of the screen
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto padding = ImVec2(100, 100);
+  const auto padding = ImVec2(30, 100);
   const auto pos = ImVec2(viewport_pos.x + padding.x, viewport_pos.y + padding.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.0f, 0.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
@@ -56,9 +56,8 @@ update_ui_players_system(entt::registry& r)
     const std::string label = "player-portrait##" + std::to_string(eid);
 
     ImGui::ImageButton(label.c_str(), im_id, { 32, 32 }, tl, br);
-    if (ImGui::IsItemClicked()) {
+    if (ImGui::IsItemClicked())
       activate_unit(r, e);
-    }
 
     // const auto* init_c = r.try_get<InitiativeComponent>(e);
     // ImGui::SameLine();
@@ -99,10 +98,10 @@ update_ui_players_system(entt::registry& r)
     ImGui::Separator();
   }
 
-  if (ImGui::Button("Clear##mobselected")) {
-    const auto view = r.view<SelectedComponent>();
-    r.remove<SelectedComponent>(view.begin(), view.end());
-  }
+  // if (ImGui::Button("Clear##mobselected")) {
+  //   const auto view = r.view<SelectedComponent>();
+  //   r.remove<SelectedComponent>(view.begin(), view.end());
+  // }
 
   ImGui::End();
   ImGui::PopStyleVar(2);

@@ -7,7 +7,6 @@
 #include "helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
-#include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
@@ -34,43 +33,38 @@ toggle_lootbag_display(entt::registry& r)
 void
 update_ui_lootbag_system(entt::registry& r)
 {
-  const auto map_e = get_first<MapComponent>(r);
-  if (map_e == entt::null)
-    return;
-  const auto& map_c = get_first_component<MapComponent>(r);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
-  toggle_lootbag_display(r);
-
+  // toggle_lootbag_display(r);
   // no request: do not show loot menu
-  if (get_first<ShowLootbagRequest>(r) == entt::null)
-    return;
+  // if (get_first<ShowLootbagRequest>(r) == entt::null)
+  //   return;
+
   auto& ui = get_first_component<SINGLE_UI_Lootbag>(r);
 
-  const int inv_x = 6;
-  const ImVec2 button_size = ImVec2(32, 32); // make the border 48 or 64
-  const ImVec2 window_0_size{ button_size.x * 8, button_size.y * (inv_x + 1) };
-
-  const float window_left_edge_padding = 20;
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-  const float pos_x = viewport_pos.x + ri.viewport_size_current.x - window_0_size.x;
-  const float pos_y = viewport_pos.y + viewport_size_half.y;
-  const auto pos = ImVec2(pos_x, pos_y);
+  const auto viewport_right = viewport_pos.x + ri.viewport_size_current.x;
+  const auto viewport_top = viewport_pos.y;
+
+  // configs
+  const int inv_x = 6;
+  const ImVec2 button_size = ImVec2(32, 32); // make the border 48 or 64
+  const auto window_0_size = ImVec2{ ri.viewport_size_current.x / 6.0f, ri.viewport_size_current.y / 3.0f };
+  const auto window_0_pos = ImVec2(viewport_right - window_0_size.x, viewport_top + 2.0f * window_0_size.y);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
-  // flags |= ImGuiWindowFlags_NoInputs;
 
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
+  ImGui::SetNextWindowPos(window_0_pos, ImGuiCond_Always, ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSizeConstraints(window_0_size, window_0_size);
   ImGui::PushStyleVar(ImGuiTableColumnFlags_WidthFixed, button_size.x);
 
   ImGui::Begin("UILootbag", NULL, flags);
   ui.hovered = ImGui::IsWindowHovered();
 
-  ImGui::SeparatorText("Loot (Press O to toggle)");
+  ImGui::SeparatorText("Loot");
   // ImGui::Text("Right click to take loot");
 
   const auto& view_players = r.view<PlayerComponent>();
