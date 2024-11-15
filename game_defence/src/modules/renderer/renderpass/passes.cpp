@@ -185,16 +185,26 @@ setup_linear_main_update(entt::registry& r)
     ri.instanced.set_mat4("projection", camera_c.projection_zoomed);
 
     // set the positions of the units with circles units & update TBO
+    const int N_MAX_CIRCLES = 100;
     {
-      static std::vector<CircleComponent> points(100);
+      static std::vector<CircleComponent> points(N_MAX_CIRCLES);
+
+      int i = 0;
+
+      // draw active circles
       const auto view = r.view<TransformComponent, CircleComponent>();
-      for (int i = 0; const auto& [e, transform_c, circle_c] : view.each()) {
-        if (i > 100)
+      for (const auto& [e, transform_c, circle_c] : view.each()) {
+        if (i > N_MAX_CIRCLES)
           break;
         circle_c.shader_pos = get_position(r, e);
         points[i] = circle_c;
         i++;
       }
+
+      // reset inactive circles
+      for (; i < N_MAX_CIRCLES; i++)
+        points[i].shader_pos = { 0, 0 };
+
       // Update for TBO
       glBindBuffer(GL_TEXTURE_BUFFER, ri.renderer.data.TBO);
       glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(CircleComponent) * points.size(), points.data());

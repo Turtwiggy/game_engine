@@ -15,6 +15,7 @@
 #include "modules/actor_door/door_system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
+#include "modules/animator/animator_system.hpp"
 #include "modules/camera/camera_system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -176,6 +177,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED) {
+    update_animator_system(r, dt);
     update_gameover_system(r);
     update_cooldown_system(r, milliseconds_dt);
     update_move_to_target_via_lerp(r, dt);

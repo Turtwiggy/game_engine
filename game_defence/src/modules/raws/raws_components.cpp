@@ -167,6 +167,19 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
     r.emplace<SpriteComponent>(e);
     set_sprite(r, e, mob_template.renderable.sprite);
 
+    // add a looping idle_anim
+    if (mob_template.renderable.sprite == "REF_IDLE") {
+      SpriteAnimationState anim_c;
+      anim_c.playing_animation_name = "REF_IDLE";
+      anim_c.duration = 0.9f;
+
+      // offset animation
+      static engine::RandomState anim_rnd(0);
+      anim_c.timer = engine::rand_det_s(anim_rnd.rng, 0.0f, anim_c.duration);
+
+      r.emplace<SpriteAnimationState>(e, anim_c);
+    }
+
     r.emplace<DefaultColour>(e, mob_template.renderable.colour);
     set_colour(r, e, mob_template.renderable.colour);
 

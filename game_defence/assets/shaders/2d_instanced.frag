@@ -16,7 +16,7 @@ uniform sampler2D tex_blueberry_dark;
 uniform sampler2D tex_custom;
 uniform sampler2D tex_organic2;
 uniform sampler2D tex_logo;
-uniform sampler2D tex_ship_small_rusty;
+uniform sampler2D tex_animation_idle;
 
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
@@ -143,7 +143,7 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+6){
-      out_colour *= texture(tex_ship_small_rusty, v_uv);
+      out_colour *= tex2dss(tex_animation_idle, sprite_uv, bias, aa_scale);
       return; // texture uses 0, 0
     }
 

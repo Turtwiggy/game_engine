@@ -168,26 +168,6 @@ ai_tick(entt::registry& r, entt::entity e)
     }
   }
 
-  // State: MOVE => IDLE
-  if (brain_c.brain_fsm == BRAIN_STATE::MOVE) {
-    const auto has_req = r.try_get<RequestMove>(e) != nullptr;
-    const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
-    const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-    const bool moving = has_lerp || has_req;
-    const bool arrived = at_destination(r, e);
-    const bool just_finished_moving = path_c && !moving && arrived;
-
-    if (just_finished_moving) {
-      brain_c.brain_fsm = BRAIN_STATE::IDLE;
-
-      if (path_c->path.size() > 0) {
-        const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-        move_entity_on_map(r, e, dst_idx);
-        r.remove<GeneratedPathComponent>(e);
-      }
-    }
-  }
-
   // State: REASONING => IDLE
   // If we've ended in a reasoning state,
   // assume that ai didnt choose an action,
@@ -267,20 +247,10 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
   ImGuiWindowFlags flags = 0;
-  // flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
-
-  // Is the current entity moving?
-  const auto has_req = r.try_get<RequestMove>(e) != nullptr;
-  const auto has_lerp = r.try_get<LerpToFixedTarget>(e) != nullptr;
-  const auto& path_c = r.try_get<GeneratedPathComponent>(e);
-  const auto has_path = path_c != nullptr;
-  const bool moving = has_lerp || has_req;
-  const bool arrived = at_destination(r, e);
-  const bool just_finished_moving = path_c && !moving && arrived;
 
   ImGui::Begin("Action Bar", NULL, flags);
   {
@@ -314,12 +284,11 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       ImGui::PopStyleColor(3);
     };
 
-    button_enabled(ActionEnum::MOVE, "(1) Move", true, get_key_down(input_c, SDL_SCANCODE_1) && !moving);
-    button_enabled(ActionEnum::SHOOT, "(2) Attack", true, get_key_down(input_c, SDL_SCANCODE_2) && !moving);
-    button_enabled(ActionEnum::USE_ITEM, "(3) Use (Heal)", true, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
-
-    const bool allowed_to_end = !any_unit_is_moving(r);
-    button_enabled(ActionEnum::END_TURN, "(E)nd", allowed_to_end, get_key_down(input_c, SDL_SCANCODE_E) && !moving);
+    const bool moving = any_unit_is_moving(r);
+    button_enabled(ActionEnum::MOVE, "(1) Move", !moving, get_key_down(input_c, SDL_SCANCODE_1) && !moving);
+    button_enabled(ActionEnum::SHOOT, "(2) Attack", !moving, get_key_down(input_c, SDL_SCANCODE_2) && !moving);
+    button_enabled(ActionEnum::USE_ITEM, "(3) Use (Heal)", !moving, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
+    button_enabled(ActionEnum::END_TURN, "(E)nd", !moving, get_key_down(input_c, SDL_SCANCODE_E) && !moving);
 
     if (auto* state_c = r.try_get<UIActionState>(e)) {
       const auto state = std::string(magic_enum::enum_name(state_c->current));
@@ -425,20 +394,28 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   if (enemy_turn)
     ai_tick(r, e);
 
+  //
   // monitor when the entity has stopped moving
   //
-  if (just_finished_moving) {
-    const auto dst_idx = engine::grid::worldspace_to_index(path_c->dst_pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-    move_entity_on_map(r, e, dst_idx);
+  for (const auto& [e, generated_path_c] : r.view<GeneratedPathComponent>().each()) {
 
-    r.remove<GeneratedPathComponent>(e);
+    if (generated_path_c.path.size() == 0)
+      r.remove<GeneratedPathComponent>(e);
+
+    const auto dst_gp = generated_path_c.path[generated_path_c.path.size() - 1];
+    const auto cur_gp = get_grid_position(r, e);
+
+    if (dst_gp != cur_gp)
+      continue;
+
+    const auto dst_idx = engine::grid::grid_position_to_index(dst_gp, map_c.xmax);
+    move_entity_on_map(r, e, dst_idx);
 
     if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
       brain_c->brain_fsm = BRAIN_STATE::IDLE;
 
-    if (auto* action_c = r.try_get<UIActionState>(e))
-      if (action_c->current == ActionEnum::MOVE)
-        r.remove<UIActionState>(e);
+    SDL_Log("Removing generated path..");
+    r.remove<GeneratedPathComponent>(e);
   }
 
   auto& actions_c = r.get_or_emplace<CompletedActions>(e);

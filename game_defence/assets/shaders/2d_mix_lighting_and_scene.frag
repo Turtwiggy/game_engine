@@ -319,9 +319,11 @@ void main()
 			vec3 circleData = texelFetch(circleBuffer, i).xyz;
 			vec2 pos = circleData.xy;   	// Circle center position
 			float radius = circleData.z;  // Circle radius
-
-			if(pos == vec2(0.0))
-				break; // assume no more circles
+      
+			float epsilon = 0.001f;
+      if (abs(pos.x) < epsilon && abs(pos.y) < epsilon) {
+      	break; // assume 0, 0 means no circle
+      }
 
 			// convert worldspace to between -1 and 1.
 			float ss_x = (((pos.x - screen_min.x)/viewport_wh.x) * 2.0) - 1.0;

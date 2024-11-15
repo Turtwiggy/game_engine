@@ -78,15 +78,18 @@ imgui_draw_int(const std::string& label, int& v)
   return false;
 };
 
-void
+bool
 imgui_draw_float(const std::string& label, float& v)
 {
   float v_temp = v;
 
   ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragFloat((std::string("##") + label).c_str(), &v_temp, 0.01f))
+  if (ImGui::DragFloat((std::string("##") + label).c_str(), &v_temp, 0.01f)) {
     v = v_temp;
+    return true;
+  }
+  return false;
 };
 
 void

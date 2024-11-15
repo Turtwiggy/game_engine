@@ -162,14 +162,14 @@
     },
     {
       "name": "dungeon_actor_hero",
-      "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 153 } },
+      "renderable": { "sprite": "REF_IDLE", "colour": { "r": 255, "g": 255, "b": 153 } },
       "stats": { "max_hp": 100, "hp": 100 },
       "is_sensor": true,
       "move_speed": {"speed": 3}
     },
     {
       "name": "dungeon_actor_enemy_default",
-      "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "renderable": { "sprite": "REF_IDLE", "colour": { "r": 255, "g": 255, "b": 255 } },
       "stats": { "max_hp": 50, "hp": 50 },
       "is_sensor": true,
       "move_speed": {"speed": 2}

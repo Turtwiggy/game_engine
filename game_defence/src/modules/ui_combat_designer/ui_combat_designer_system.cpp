@@ -50,12 +50,12 @@ update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
 
     auto e = spawn_mob(r, "dungeon_actor_hero", pos);
     r.emplace<CameraLerpToTarget>(e);
-    r.emplace<CircleComponent>(e);
+    // r.emplace<CircleComponent>(e);
     r.emplace<PlayerComponent>(e);
     r.emplace<TeamComponent>(e, AvailableTeams::player);
     r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
     r.emplace<InitBodyAndInventory>(e);
-    spawn_particle_emitter(r, "anything", mouse_pos, e);
+    // spawn_particle_emitter(r, "anything", mouse_pos, e);
 
     activate_unit(r, e);
   }

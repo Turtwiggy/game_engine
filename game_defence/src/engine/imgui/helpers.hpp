@@ -38,7 +38,7 @@ imgui_draw_bool(const std::string& label, bool& v);
 bool
 imgui_draw_int(const std::string& label, int& v);
 
-void
+bool
 imgui_draw_float(const std::string& label, float& v);
 
 void
