@@ -209,13 +209,38 @@ struct Item
   };
 };
 
+struct PhysicsDesc
+{
+  bool is_sensor = false;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsDesc, is_sensor);
+};
+
 struct Environment
 {
   std::string name;
   Renderable renderable;
-  Defence defence;
+  std::optional<Defence> defence = std::nullopt;
+  std::optional<PhysicsDesc> physics_desc = std::nullopt;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Environment, name, renderable, defence);
+  friend void to_json(nlohmann ::json& j, const Environment& val)
+  {
+    j["name"] = val.name;
+    j["renderable"] = val.renderable;
+    if (val.defence.has_value())
+      j["defence"] = val.defence.value();
+    if (val.physics_desc.has_value())
+      j["physics_desc"] = val.physics_desc.value();
+  }
+  friend void from_json(const nlohmann ::json& j, Environment& val)
+  {
+    j.at("name").get_to(val.name);
+    j.at("renderable").get_to(val.renderable);
+    if (j.contains("defence"))
+      j.at("defence").get_to(val.defence);
+    if (j.contains("physics_desc"))
+      j.at("physics_desc").get_to(val.physics_desc);
+  };
 };
 
 struct Mob
@@ -298,6 +323,9 @@ spawn_item(entt::registry& r, const std::string& key);
 
 entt::entity
 spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos);
+
+entt::entity
+spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& pos);
 
 entt::entity
 spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, const entt::entity parent);

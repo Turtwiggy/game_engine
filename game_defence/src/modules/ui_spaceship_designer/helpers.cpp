@@ -65,8 +65,8 @@ entt::entity
 create_jetpack_player(entt::registry& r)
 {
   auto e = spawn_mob(r, "dungeon_actor_hero", { 0, 0 });
+  // r.emplace<CircleComponent>(e);
   r.emplace<CameraLerpToTarget>(e);
-  r.emplace<CircleComponent>(e);
   r.emplace<PlayerComponent>(e);
   r.emplace<TeamComponent>(e, AvailableTeams::player);
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;

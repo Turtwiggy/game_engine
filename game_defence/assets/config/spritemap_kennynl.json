@@ -220,6 +220,10 @@
     { "name": "SKULL_AND_BONES", "frames": [ { "x": 0, "y": 15 } ] },
     { "name": "SCROLL_33_5", "frames": [ { "x": 33, "y": 15 } ] },
     { "name": "SCROLL_34_5", "frames": [ { "x": 34, "y": 15 } ] },
+    { "name": "SIGN_HEART", "frames": [ { "x": 35, "y": 15 } ] },
+    { "name": "SIGN_SKULL", "frames": [ { "x": 36, "y": 15 } ] },
+    { "name": "SIGN_CROSS", "frames": [ { "x": 37, "y": 15 } ] },
+    { "name": "SIGN_SMILE", "frames": [ { "x": 38, "y": 15 } ] },
 
     { "name": "CARD_HEARTS_2", "frames": [ { "x": 21, "y": 16 } ] },
 

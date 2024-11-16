@@ -145,6 +145,11 @@
       "name": "cover",
       "renderable": { "sprite": "WALL_19_1_NONE", "colour": { "r": 255, "g": 255, "b": 255 } },
       "defence": { "block": 5 }
+    },
+    {
+      "name": "blackhole",
+      "renderable": { "sprite": "SIGN_SKULL", "colour": { "r": 255, "g": 40, "b": 40 } },
+      "physics_desc": { "is_sensor": true}
     }
   ],
   "mobs": [

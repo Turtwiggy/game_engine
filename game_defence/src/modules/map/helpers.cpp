@@ -3,6 +3,9 @@
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "modules/events/events_components.hpp"
+#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
+#include "modules/system_names/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -87,6 +90,16 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   if (!contains_mob) {
     remove_entity_from_map(r, mapinfo_opt.value());
     add_entity_to_map(r, src_e, dst_idx);
+    SDL_Log("Moving %s on map %i", r.get<NameComponent>(src_e).first_name.c_str(), dst_idx);
+
+    GridPositionChangedEvent evt;
+    evt.e = src_e;
+    evt.dst_idx = dst_idx;
+
+    const auto& evts = get_first_component<SINGLE_Events>(r);
+    evts.dispatcher->trigger(evt);
+    evts.dispatcher->update();
+
     return true;
   }
 

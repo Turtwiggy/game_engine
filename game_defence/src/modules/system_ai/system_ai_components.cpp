@@ -77,10 +77,15 @@ AttackConsideration::Evaluate(entt::registry& r, entt::entity e) const
   for (const auto& tile : tiles_c.tiles) {
     const auto idx = engine::grid::grid_position_to_index(tile, map_c.xmax);
     for (const auto map_e : map_c.map[idx]) {
-      SDL_Log("Considering attacking... %s", r.get<NameComponent>(map_e).first_name.c_str());
       const auto& other_team = r.get<TeamComponent>(map_e);
+      SDL_Log("Considering attacking... %s", r.get<NameComponent>(map_e).first_name.c_str());
+
       if (your_team.team == other_team.team)
-        continue;
+        continue; // dont attack same team?
+
+      if (other_team.team == AvailableTeams::neutral)
+        continue; // dont attack neutrals?
+
       // attack enemies only
       data_c.targets.push_back(map_e);
     }

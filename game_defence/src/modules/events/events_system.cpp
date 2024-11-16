@@ -8,6 +8,7 @@
 #include "modules/combat_trait_push/trait_push_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
+#include "modules/event_unit_enter_blackhole/unit_enter_blackhole_helpers.hpp"
 #include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 
 namespace game2d {
@@ -29,6 +30,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_item>(r);
   ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_exit_item>(r);
   ed.dispatcher->sink<EndTurnEvent>().connect<&handle_end_turn_bleed>(r);
+  ed.dispatcher->sink<GridPositionChangedEvent>().connect<&handle_unit_enter_blackhole>(r);
 }
 
 void

@@ -33,8 +33,14 @@ get_grid_position(entt::registry& r, const entt::entity e)
 void
 set_position(entt::registry& r, const entt::entity e, const glm::vec2& pos)
 {
-  if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
+  if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
     pb->body->SetTransform(b2Vec2{ pos.x, pos.y }, 0);
+
+    // Hack: some unit positions are set via lerp.
+    // SetAwake(true) will try to make sure the contacts are updated,
+    // so the GetCollisonEnter() event will still fire.
+    // pb->body->SetAwake(true);
+  }
   r.get<TransformComponent>(e).position = { pos.x, pos.y, 0.0f };
 }
 

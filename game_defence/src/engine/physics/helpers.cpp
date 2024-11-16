@@ -19,7 +19,13 @@ emplace_or_replace_physics_world(entt::registry& r)
   // store one physics world...
   static b2World* world = new b2World(b2Vec2(0.0f, 0.0f));
   static PhysicsEvents* listener = new PhysicsEvents(r);
-  world->SetContactListener(listener);
+
+  // Add callback
+  static bool first_time = true;
+  if (first_time) {
+    world->SetContactListener(listener);
+    first_time = false;
+  }
 
   // cleanup physics world...
   static bool needs_deleting = false;
@@ -42,7 +48,7 @@ emplace_or_replace_physics_world(entt::registry& r)
   }
 
   needs_deleting = true;
-  SDL_Log("%s", std::format("physics world set to clean up...").c_str());
+  SDL_Log("%s", std::format("physics world set to clean up... (deleted: {})", needs_deleting).c_str());
 
   destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
   destroy_first_and_create<SINGLE_PhysicsEvents>(r, SINGLE_PhysicsEvents{ listener });

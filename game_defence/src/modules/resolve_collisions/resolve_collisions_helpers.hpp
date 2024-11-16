@@ -39,6 +39,12 @@ struct OnCollisionExit
   entt::entity b = entt::null;
 };
 
+struct GridPositionChangedEvent
+{
+  entt::entity e = entt::null;
+  int dst_idx = 0;
+};
+
 //
 // Overwrite the box2d contact listener, and this gets set on the world
 //

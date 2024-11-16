@@ -22,24 +22,24 @@ update_animator_system(entt::registry& r, const float dt)
 {
   const auto& anims = get_first_component<SINGLE_Animations>(r);
 
-#if defined(_DEBUG)
-  static float duration = 1.0f;
-  bool duration_changed = false;
-  if (imgui_draw_float("duration", duration)) {
-    SDL_Log("duration changeed...");
-    duration_changed = true;
-  }
-#endif
+  // #if defined(_DEBUG)
+  //   static float duration = 1.0f;
+  //   bool duration_changed = false;
+  //   if (imgui_draw_float("duration", duration)) {
+  //     SDL_Log("duration changeed...");
+  //     duration_changed = true;
+  //   }
+  // #endif
 
   const auto& view = r.view<SpriteComponent, SpriteAnimationState>();
   for (const auto& [e, sprite_c, animation] : view.each()) {
     const auto& [spritesheet, anim] = find_animation(anims, animation.playing_animation_name);
 
-#if defined(_DEBUG)
-    // debug: change animation speed;
-    if (duration_changed)
-      animation.duration = duration;
-#endif
+    // #if defined(_DEBUG)
+    //     // debug: change animation speed;
+    //     if (duration_changed)
+    //       animation.duration = duration;
+    // #endif
 
     // loop timer between 0 and duration
     animation.timer += dt;

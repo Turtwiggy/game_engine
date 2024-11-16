@@ -154,6 +154,9 @@ update_quips_system(entt::registry& r)
   for (const auto& [req_e, quip_c] : quip_req.each()) {
     const auto& e_to_quip = quip_c.quipp_e;
 
+    if (e_to_quip == entt::null || !r.valid(e_to_quip))
+      continue; // quippee likely died
+
     const auto recycle_quips = [](auto& unused, const auto& available) {
       if (unused.size() == 0)
         unused = std::vector<std::string>(available.begin(), available.end());

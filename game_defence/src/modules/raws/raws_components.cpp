@@ -90,6 +90,10 @@ create_transform(entt::registry& r, const std::string& name)
   return e;
 };
 
+const auto item_body_type = b2_kinematicBody;
+const auto mob_body_type = b2_kinematicBody;
+const auto env_body_type = b2_kinematicBody;
+
 entt::entity
 spawn_item(entt::registry& r, const std::string& key)
 {
@@ -112,7 +116,7 @@ spawn_item(entt::registry& r, const std::string& key)
 
   // Add items to physics system?
   PhysicsDescription pdesc;
-  pdesc.type = b2_kinematicBody;
+  pdesc.type = item_body_type;
   pdesc.size = { size, size };
   pdesc.is_sensor = true;
   create_physics_actor(r, e, pdesc);
@@ -256,6 +260,60 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
 };
 
 entt::entity
+spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& pos)
+{
+  const auto& rs = get_first_component<Raws>(r);
+  const auto it = find_key_or_crash<Environment>(rs.environment, key);
+  const auto idx = static_cast<int>(it - rs.environment.begin());
+  const Environment& env_template = rs.environment[idx];
+
+  const auto e = r.create();
+  r.emplace<TagComponent>(e, env_template.name);
+  r.emplace<WaitForInitComponent>(e);
+  r.emplace<Environment>(e, env_template);
+
+  float size = 32;
+
+  // create_transform()
+  {
+    r.emplace<SpriteComponent>(e);
+    r.emplace<DefaultColour>(e, env_template.renderable.colour);
+
+    TransformComponent tf;
+    tf.position = { pos.x, pos.y, 0.0f };
+    tf.scale = { size, size, 0.0f };
+    r.emplace<TransformComponent>(e, tf);
+
+    set_sprite(r, e, env_template.renderable.sprite);
+    set_colour(r, e, env_template.renderable.colour);
+    set_z_index(r, e, ZLayer::BACKGROUND);
+  }
+
+  // create_physics()
+  if (env_template.physics_desc.has_value()) {
+    PhysicsDescription pdesc;
+    pdesc.type = env_body_type;
+    pdesc.position = pos;
+    pdesc.size = { size, size };
+    pdesc.is_sensor = env_template.physics_desc->is_sensor;
+    create_physics_actor(r, e, pdesc);
+  }
+
+  if (env_template.defence.has_value())
+    r.emplace<DefenceComponent>(e, env_template.defence->block);
+  r.emplace<PathfindComponent>(e, 100'000); // pass through terrain if you must
+
+  NameComponent name_c;
+  name_c.full_name = env_template.name;
+  name_c.first_name = env_template.name;
+  name_c.last_name = env_template.name;
+  r.emplace<NameComponent>(e, name_c);
+  r.emplace<TeamComponent>(e, AvailableTeams::neutral);
+
+  return e;
+};
+
+entt::entity
 spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, const entt::entity parent)
 {
   const auto e = create_transform(r, "particle_emitter");
@@ -375,6 +433,6 @@ spawn_ship_part(entt::registry& r, const std::string& key)
   r.emplace<NameComponent>(e, NameComponent{ part_template.name, part_template.name, part_template.name });
 
   return e;
-}
+};
 
 } // namespace game2d
