@@ -250,7 +250,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<InitiativeComponent>(e, init);
 #else
   const int rnd_init = engine::rand_det_s(rnd.rng, 0, 20);
-  r.emplace<InitiativeComponent>(e, inirnd_initt);
+  r.emplace<InitiativeComponent>(e, rnd_init);
 #endif
 
   // if (item_template.stats.){
@@ -302,13 +302,13 @@ spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& po
   if (env_template.defence.has_value())
     r.emplace<DefenceComponent>(e, env_template.defence->block);
   r.emplace<PathfindComponent>(e, 100'000); // pass through terrain if you must
+  r.emplace<TeamComponent>(e, AvailableTeams::neutral);
 
   NameComponent name_c;
   name_c.full_name = env_template.name;
   name_c.first_name = env_template.name;
   name_c.last_name = env_template.name;
   r.emplace<NameComponent>(e, name_c);
-  r.emplace<TeamComponent>(e, AvailableTeams::neutral);
 
   return e;
 };

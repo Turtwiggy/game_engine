@@ -129,7 +129,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   for (const auto& tex : ri.user_textures) {
     const std::string key = "tex_" + clean_path(tex.path);
     SDL_Log("%s", std::format("user tex key: {}", key).c_str());
-
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
   ri.instanced.set_mat4("projection", camera.projection);

@@ -2,9 +2,6 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "imgui.h"
-#include "modules/actor_player/components.hpp"
-#include "modules/camera/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
@@ -15,12 +12,15 @@
 #include "modules/system_select_unit/select_unit_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 
+#include <imgui.h>
+
 namespace game2d {
 
 void
 update_ui_players_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
 
   auto init_e = get_first<SINGLE_Initiative>(r);
   if (init_e == entt::null)
@@ -46,7 +46,8 @@ update_ui_players_system(entt::registry& r)
     const auto& mob_c = r.get<Mob>(e);
 
     // sprite
-    const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
+    const auto [spritesheet, anim] = find_animation(anims, mob_c.renderable.sprite);
+    const int tex_id = search_for_texture_id_by_spritesheet_path(ri, spritesheet.path)->id;
     const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
     ImVec2 tl{ 0.0f, 0.0f };
     ImVec2 br{ 1.0f, 1.0f };

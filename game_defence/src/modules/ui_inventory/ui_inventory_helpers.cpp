@@ -289,10 +289,12 @@ display_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& ty
   ImGui::SetCursorPosY(text_pos_y);
   ImGui::TextUnformatted(text.c_str());
 
-  // right-aligned icon
+  // right-aligned button to equip
   ImGui::SameLine(w - icon_size - padding);
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (h - icon_size) * 0.5f); // Center icon vertically
-  ImGui::Image(im_id, { 18, 18 }, tl, br);
+  if (ImGui::ImageButton(im_id, { 18, 18 }, tl, br)) {
+    // equip the item
+  }
 
   ImGui::PopStyleVar();
 };

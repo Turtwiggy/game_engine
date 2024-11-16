@@ -14,10 +14,10 @@ struct AirlockComponent
   Edge east_edge_copy;
   Edge west_edge_copy;
 
-  entt::entity door_north;
-  entt::entity door_south;
-  entt::entity door_east;
-  entt::entity door_west;
+  entt::entity door_north = entt::null;
+  entt::entity door_south = entt::null;
+  entt::entity door_east = entt::null;
+  entt::entity door_west = entt::null;
 };
 
 } // namespace game2d

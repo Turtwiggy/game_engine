@@ -28,10 +28,13 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
   const auto targets_view = r.view<const TeamComponent, const TransformComponent>();
   for (const auto& [other_e, other_team, other_t] : targets_view.each()) {
     if (e == other_e)
-      continue;
+      continue; // dont path to self
 
     if (src_team.team == other_team.team)
       continue; // not interested in same team
+
+    if (other_team.team == AvailableTeams::neutral)
+      continue; // not interested neutral team
 
     const auto dst_wp = glm::vec2{ other_t.position.x, other_t.position.y };
     const auto d = dst_wp - src_wp;

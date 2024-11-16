@@ -66,7 +66,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   // selected = selected < 0 ? buttons - 1 : selected;
   // selected %= buttons;
 
-  const ImVec2 size = { 120, 120 * 9 / 16.0f };
+  const ImVec2 size = { 96, 32 };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
@@ -99,9 +99,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     //     move_to_scene_start(r, Scene::overworld, true);
     // }
 
-    if (selectable_button("Start", selected, index++)) {
-      move_to_scene_additive(r, Scene::overworld);
-    }
+    // if (selectable_button("Start", selected, index++))
+    //   move_to_scene_additive(r, Scene::overworld);
 
     // if (selectable_button("SETTINGS", selected, index++)) {
     // }
@@ -127,7 +126,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       if (completed)
         com_str = std::format("Level {} (X)", i);
 
-      if (ImGui::Button(com_str.c_str())) {
+      if (ImGui::Button(com_str.c_str(), size)) {
         move_to_scene_start(r, Scene::dungeon_designer);
         create_empty<MenuToNextSceneInfo>(r, MenuToNextSceneInfo{ i });
       }
@@ -136,8 +135,14 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       ImGui::PopID();
     }
 
+    ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.6f, 0.6f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.6f, 0.7f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.6f, 0.8f, 0.8f));
+
     if (selectable_button("Exit", selected, index++))
       app.running = false;
+
+    ImGui::PopStyleColor(3);
   }
 
   ImGui::PopStyleVar();

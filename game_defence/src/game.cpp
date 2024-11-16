@@ -25,7 +25,6 @@
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
 #include "modules/events/events_system.hpp"
 #include "modules/gameover/system.hpp"
-#include "modules/map_debug/system.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
@@ -35,6 +34,7 @@
 #include "modules/screenshake/system.hpp"
 #include "modules/system_cooldown/system.hpp"
 #include "modules/system_distance_check/system.hpp"
+#include "modules/system_dungeon_spawner/dungeon_spawner_system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_go_from_dungeon_to_jetpack/system.hpp"
 #include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
@@ -178,11 +178,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED) {
     update_animator_system(r, dt);
-    update_gameover_system(r);
     update_cooldown_system(r, milliseconds_dt);
+    update_distance_check_system(r);
+    update_dungeon_spawner_system(r);
+    update_gameover_system(r);
     update_move_to_target_via_lerp(r, dt);
     update_particle_system(r, dt);
-    update_distance_check_system(r);
     update_entered_new_room_system(r, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_quips_system(r);
@@ -228,7 +229,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_render_system(r, dt, mouse_pos);
 
   update_ui_fps_counter_system(r);
-  update_ui_raws_system(r);
   update_ui_pause_menu_system(app, r);
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
@@ -238,16 +238,25 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_scene_main_menu(app, r);
   if (scene.s == Scene::dungeon_designer) {
     update_ui_inventory_system(r);
-    update_ui_lootbag_system(r);
     update_ui_combat_damage_numbers_system(r, dt);
-    update_ui_spaceship_designer_system(r, mouse_pos, dt);
     update_ui_players_system(r);
-    update_ui_combat_designer_system(r, mouse_pos);
     update_ui_action_bar_system(r, mouse_pos);
     update_ui_gameover_system(r);
+#if defined(_DEBUG)
+    update_ui_raws_system(r);
+    update_ui_combat_designer_system(r, mouse_pos);
+    update_ui_lootbag_system(r);
+    update_ui_spaceship_designer_system(r, mouse_pos, dt);
+#endif
   }
-  static bool show_settings_ui = true;
+
+#if defined(_DEBUG)
+  static bool show_settings_ui = false;
+#else
+  static bool show_settings_ui = false;
+#endif
   if (show_settings_ui) {
+    // app systems
     ImGui::ShowDemoWindow(NULL);
     update_ui_hierarchy_system(r);
     update_ui_audio_system(r);

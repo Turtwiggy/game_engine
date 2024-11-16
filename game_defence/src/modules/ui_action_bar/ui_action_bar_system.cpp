@@ -430,13 +430,17 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       // limit: only take action once
       if (!action_available(actions_c, action)) {
         const auto action_str = std::string(magic_enum::enum_name(action));
-        SDL_Log("Already taken %s action this turn.", action_str.c_str());
+        // SDL_Log("Already taken %s action this turn.", action_str.c_str());
         r.remove<T>(req_e);
 
         if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
           SDL_Log("AI likely requested repeat action... ending their turn");
           brain_c->brain_fsm = BRAIN_STATE::REASONING;
         }
+
+        // clear the ui
+        if (r.try_get<UIActionState>(req_e))
+          r.remove<UIActionState>(req_e);
 
         continue;
       }

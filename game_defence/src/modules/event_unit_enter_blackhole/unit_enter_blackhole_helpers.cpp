@@ -1,7 +1,6 @@
 #include "unit_enter_blackhole_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "modules/combat/components.hpp"
 #include "modules/map/components.hpp"
 #include "unit_enter_blackhole_components.hpp"
 
@@ -10,7 +9,6 @@ namespace game2d {
 void
 handle_unit_enter_blackhole(entt::registry& r, const GridPositionChangedEvent& evt)
 {
-
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   const auto map_e = get_first<MapComponent>(r);
@@ -25,7 +23,6 @@ handle_unit_enter_blackhole(entt::registry& r, const GridPositionChangedEvent& e
   // immediately kill the unit
   // if it's in a blackhole
   //
-
   const auto& map_es = map_c.map[evt.dst_idx];
   for (const auto map_e : map_es) {
     auto* kill_c = r.try_get<OnCollisionKill>(map_e);

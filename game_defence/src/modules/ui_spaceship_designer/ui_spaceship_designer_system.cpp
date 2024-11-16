@@ -9,12 +9,8 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
-#include "modules/combat/components.hpp"
-#include "modules/event_unit_enter_blackhole/unit_enter_blackhole_components.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
@@ -23,90 +19,15 @@
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/spaceship_designer_helpers.hpp"
-#include "modules/system_ai/system_ai_components.hpp"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
-#include "modules/ui_inventory/ui_inventory_helpers.hpp"
-#include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/system_dungeon_spawner/dungeon_spawner_helpers.hpp"
 #include "modules/ui_spaceship_designer/helpers.hpp"
 
-#include "imgui.h"
+#include <imgui.h>
 
 namespace game2d {
 
 static auto seed = 0;
-static auto enemy_rnd = engine::RandomState(seed);
 static auto room_rnd = engine::RandomState(seed);
-
-void
-spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
-{
-  const auto map_e = get_first<MapComponent>(r);
-  const auto& map_c = r.get<MapComponent>(map_e);
-
-  int n_free_slots = static_cast<int>(idxs.size());
-  do {
-    // choose a random slot...
-    const int slot_i = engine::rand_det_s(enemy_rnd.rng, 0, n_free_slots);
-    const int slot_idx = idxs[slot_i];
-    const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-
-    // impl
-    const auto env_e = spawn_environment(r, "blackhole", pos);
-    r.emplace<OnCollisionKill>(env_e);
-
-    add_entity_to_map(r, env_e, slot_idx);
-
-    // cleanup
-    idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
-    amount--;
-    n_free_slots--;
-
-  } while (amount > 0 && n_free_slots > 0);
-};
-
-void
-spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
-{
-  const auto map_e = get_first<MapComponent>(r);
-  const auto& map_c = r.get<MapComponent>(map_e);
-
-  int n_free_slots = static_cast<int>(idxs.size());
-  do {
-    // choose a random slot...
-    const int slot_i = engine::rand_det_s(enemy_rnd.rng, 0, n_free_slots);
-    const int slot_idx = idxs[slot_i];
-    const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-
-    {
-      const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
-      r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
-      r.emplace<DefaultBrainComponent>(mob_e);
-
-      auto& inv = r.get<DefaultInventory>(mob_e).inv;
-      auto& body = r.get<DefaultBody>(mob_e).body;
-
-      // give the enemy a piece of scrap in their inventory
-      spawn_inv_item(r, inv, 0, "scrap");
-
-      // give the enemy a 5% chance to have a medkit in their inventory...
-      // TODO: medkits
-
-      // give enemy a weapon
-      // todo: replace idx 6 with finding a slot the weapon should go
-      auto weapon_e = spawn_inv_item(r, body, 6, "scrap_knife");
-
-      // HACK: set hp to test death by bleed
-      auto& hp_c = r.get<HealthComponent>(mob_e).hp = 25;
-
-      add_entity_to_map(r, mob_e, slot_idx);
-    }
-
-    idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
-    amount--;
-    n_free_slots--;
-
-  } while (amount > 0 && n_free_slots > 0);
-};
 
 void
 update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_pos, const float dt)
@@ -116,47 +37,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
   static int tilesize = 50;
 
   ImGui::Begin("Spaceship Designer");
-
-  const auto info_e = get_first<MenuToNextSceneInfo>(r);
-  if (info_e != entt::null) {
-    auto& info_c = r.get<MenuToNextSceneInfo>(info_e);
-    if (!info_c.processed) {
-      destroy_first_and_create<MapComponent>(r);
-      auto& map = get_first_component<MapComponent>(r);
-      map.tilesize = tilesize;
-      map.xmax = 10;
-      map.ymax = 10;
-      map.map.resize(map.xmax * map.ymax);
-
-      // spawn the right amount of enemies...
-      const auto map_e = get_first<MapComponent>(r);
-      const auto& map_c = r.get<MapComponent>(map_e);
-      auto idxs = get_empty_slots_in_map(r, map_c);
-      spawn_n_enemies(r, idxs, info_c.level);
-
-      // spawn some kill tiles
-      idxs = get_empty_slots_in_map(r, map_c);
-      spawn_n_blackhole(r, idxs, info_c.level);
-
-      // spawn the right amount of players...
-      for (int i = 0; i < 1; i++) {
-        auto idxs = get_empty_slots_in_map(r, map_c);
-        const int slot_idx = idxs[engine::rand_det_s(enemy_rnd.rng, 0, idxs.size())];
-        const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-
-        auto e = spawn_mob(r, "dungeon_actor_hero", pos);
-        // r.emplace<CircleComponent>(e);
-        r.emplace<PlayerComponent>(e);
-        r.emplace<TeamComponent>(e, AvailableTeams::player);
-        r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
-        r.emplace<InitBodyAndInventory>(e);
-        spawn_particle_emitter(r, "anything", pos, e);
-        add_entity_to_map(r, e, slot_idx);
-      }
-
-      info_c.processed = true;
-    }
-  }
 
   if (ImGui::Button("(new) empty spaceship")) {
     SDL_Log("Creating new map...");
@@ -305,7 +185,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       ImGui::Text("%s", label.c_str());
   }
 
-  auto dungeon_e = get_first<DungeonIntermediate>(r);
+  const auto dungeon_e = get_first<DungeonIntermediate>(r);
   if (dungeon_e != entt::null) {
     auto& dungeon_c = r.get<DungeonIntermediate>(dungeon_e);
     const auto& map_c = r.get<MapComponent>(map_e);

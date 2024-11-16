@@ -100,8 +100,11 @@ setup_debris_update(entt::registry& r)
     ri.debris.set_mat4("view", camera_c.view);
     ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
     ri.debris.set_float("zoom", camera_c.zoom_nonlinear);
+
+#if defined(_DEBUG)
     ImGui::Text("zoom l %f", camera_c.zoom_linear);
     ImGui::Text("zoom nl %f", camera_c.zoom_nonlinear);
+#endif
 
     {
       ri.renderer.reset_quad_vert_count();
@@ -361,7 +364,10 @@ setup_jump_flood_pass(entt::registry& r)
         last_tex_idx = (i + 1) & 1;
         this_tex_idx = last_tex_idx == 1 ? 0 : 1;
       }
+
+#if defined(_DEBUG)
       ImGui::Text("jflood pass: %i. last: %i, this: %i", i, last_tex_idx, this_tex_idx);
+#endif
 
       engine::Framebuffer::bind_fbo(pass.fbos[this_tex_idx]);
       engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
@@ -385,7 +391,9 @@ setup_jump_flood_pass(entt::registry& r)
       render_fullscreen_quad(r, ri.jump_flood, ri.viewport_size_render_at);
     }
 
+#if defined(_DEBUG)
     ImGui::Text("final unit: %i", ri.final_jflood_texunit);
+#endif
   };
 };
 

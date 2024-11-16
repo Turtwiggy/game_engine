@@ -3,6 +3,7 @@ CompileFlags:
     - -Wno-unused-variable
     - -Wno-unused-parameter
     - -Wno-unused-but-set-variable
+    - -Wno-maybe-uninitialized
   # - -Wno-unused-private-field
   # - -Wno-deprecated-declarations
   # - -Wno-microsoft-cast

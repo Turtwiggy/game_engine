@@ -87,7 +87,7 @@ update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
 
   static EntityPool pool;
 
-  ImGui::Begin("Debug Paths");
+  // ImGui::Begin("Debug Paths");
   {
     const auto& path_view = r.view<GeneratedPathComponent>();
 
@@ -99,9 +99,9 @@ update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
     pool.update(r, i);
 
     for (int i = 0; const auto& [e, path_c] : path_view.each()) {
-      ImGui::Separator();
+      // ImGui::Separator();
       for (const auto& p : path_c.path) {
-        ImGui::Text("%i,%i", p.x, p.y);
+        // ImGui::Text("%i,%i", p.x, p.y);
 
         const auto debug_e = pool.instances[i];
         auto pos = engine::grid::grid_space_to_world_space_center(p, 50);
@@ -113,7 +113,7 @@ update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
       }
     }
   }
-  ImGui::End();
+  // ImGui::End();
 
   //
   // Do the actual moving along the path...
