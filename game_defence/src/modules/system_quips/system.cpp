@@ -22,6 +22,9 @@
 namespace game2d {
 using namespace std::literals;
 
+static engine::RandomState enemy_rnd(0);
+static engine::RandomState quip_rnd(0);
+
 void
 create_imgui_quip(entt::registry& r, const entt::entity actor, const RequestQuip& req, const std::string& quip)
 {
@@ -87,8 +90,6 @@ update_quips_system(entt::registry& r)
     return;
   auto& quips = get_first_component<SINGLE_QuipsComponent>(r);
 
-  static engine::RandomState rnd;
-
   //
   // Process ENTER_ROOM quip type
   // Damage request for QUIPs are in the resolve_collisions()
@@ -126,11 +127,11 @@ update_quips_system(entt::registry& r)
           continue;
 
         // choose a random enemy to say the quip
-        const int enemy_to_quip_idx = engine::rand_det_s(rnd.rng, 0, (int)enemies_in_newly_entered_room.size());
+        const int enemy_to_quip_idx = engine::rand_det_s(enemy_rnd.rng, 0, (int)enemies_in_newly_entered_room.size());
         const entt::entity enemy_to_quip = enemies_in_newly_entered_room[enemy_to_quip_idx];
 
         // roll a dice to say a quip.
-        const bool should_quip = engine::rand_01(rnd.rng) < 0.3f;
+        const bool should_quip = engine::rand_01(enemy_rnd.rng) < 0.3f;
         if (!should_quip)
           return;
 
@@ -167,7 +168,8 @@ update_quips_system(entt::registry& r)
 
     const auto get_quip = [](auto& quips) -> std::string {
       // pull the quip from the unused pile
-      const int rnd_idx = int(engine::rand_det_s(rnd.rng, 0, int(quips.size())));
+
+      const int rnd_idx = int(engine::rand_det_s(quip_rnd.rng, 0, int(quips.size())));
       const auto quip = quips[rnd_idx];
       quips.erase(quips.begin() + rnd_idx);
       return quip;

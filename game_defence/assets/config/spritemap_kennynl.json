@@ -173,6 +173,9 @@
     { "name": "ICON_HEART_HALF_FULL", "frames": [ { "x": 41, "y": 10 } ] },
     { "name": "ICON_HEART_FULL", "frames": [ { "x": 42, "y": 10 } ] },
 
+    { "name": "EFFECT_24_11", "frames": [ { "x": 24, "y": 11 } ] },
+    { "name": "EFFECT_25_11", "frames": [ { "x": 25, "y": 11 } ] },
+    { "name": "EFFECT_26_11", "frames": [ { "x": 26, "y": 11 } ] },
     { "name": "KEY_0", "frames": [ { "x": 32, "y": 11 } ] },
     { "name": "KEY_1", "frames": [ { "x": 33, "y": 11 } ] },
     { "name": "KEY_2", "frames": [ { "x": 34, "y": 11 } ] },
@@ -194,14 +197,15 @@
     { "name": "TEXT_?", "frames": [ { "x": 37, "y": 13 } ] },
 
 
-    { "name": "DICE_DARK_O", "frames": [ { "x": 39, "y": 14 } ] },
-    { "name": "DICE_DARK_X", "frames": [ { "x": 40, "y": 14 } ] },
-    { "name": "DICE_DARK_1", "frames": [ { "x": 41, "y": 14 } ] },
-    { "name": "DICE_DARK_2", "frames": [ { "x": 42, "y": 14 } ] },
-    { "name": "DICE_DARK_3", "frames": [ { "x": 42, "y": 14 } ] },
-    { "name": "DICE_DARK_4", "frames": [ { "x": 42, "y": 14 } ] },
-    { "name": "DICE_DARK_5", "frames": [ { "x": 42, "y": 14 } ] },
-    { "name": "DICE_DARK_6", "frames": [ { "x": 42, "y": 14 } ] },
+    { "name": "DICE_DARK_O", "frames": [ { "x": 40, "y": 14 } ] },
+    { "name": "DICE_DARK_X", "frames": [ { "x": 41, "y": 14 } ] },
+    { "name": "DICE_DARK_SKULL", "frames": [ { "x": 42, "y": 14 } ] },
+    { "name": "DICE_DARK_1", "frames": [ { "x": 43, "y": 14 } ] },
+    { "name": "DICE_DARK_2", "frames": [ { "x": 44, "y": 14 } ] },
+    { "name": "DICE_DARK_3", "frames": [ { "x": 45, "y": 14 } ] },
+    { "name": "DICE_DARK_4", "frames": [ { "x": 46, "y": 14 } ] },
+    { "name": "DICE_DARK_5", "frames": [ { "x": 47, "y": 14 } ] },
+    { "name": "DICE_DARK_6", "frames": [ { "x": 48, "y": 14 } ] },
 
     { "name": "CROSSHAIR_0", "frames": [ { "x": 19, "y": 14 } ] },
     { "name": "CROSSHAIR_1", "frames": [ { "x": 20, "y": 14 } ] },

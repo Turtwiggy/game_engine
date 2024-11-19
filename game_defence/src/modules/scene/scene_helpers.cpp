@@ -7,7 +7,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/components.hpp"
 #include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
@@ -26,10 +25,11 @@
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
-#include "modules/ui_lootbag/components.hpp"
+#include "modules/ui_lootbag/ui_lootbag_components.hpp"
 #include "modules/ui_overworld_boardship/components.hpp"
 #include "modules/ui_overworld_shiplabel/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+
 #include <magic_enum.hpp>
 
 namespace game2d {

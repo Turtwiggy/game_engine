@@ -53,32 +53,34 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
     worldspace_ui.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
     worldspace_ui.flags |= ImGuiWindowFlags_NoInputs;
     worldspace_ui.flags |= ImGuiWindowFlags_AlwaysAutoResize;
-    // worldspace_ui.flags |= ImGuiWindowFlags_NoBackground;
+    worldspace_ui.flags |= ImGuiWindowFlags_NoBackground;
     worldspace_ui.alpha = 0.6f;
 
     // Calculate the width of the text e.g. "1 3 5 "
-    float total_text_width = 0.0f;
     std::string label = "";
     const int max_hits_to_display = 3;
     const size_t n_entries = ui.entries.size();
     const size_t start_idx = (n_entries > max_hits_to_display) ? n_entries - max_hits_to_display : 0;
-    for (size_t i = start_idx; i < n_entries; i++) {
+    {
+      float total_text_width = 0.0f;
+      for (size_t i = start_idx; i < n_entries; i++) {
 
-      std::string text = std::to_string((int)ui.entries[i].damage);
+        std::string text = std::to_string((int)ui.entries[i].damage);
 
-      // fix: dont pad only 1 entry with " "
-      if (n_entries == 1) {
+        // fix: dont pad only 1 entry with " "
+        if (n_entries == 1) {
+          total_text_width += ImGui::CalcTextSize(text.c_str()).x;
+          label += text;
+          break;
+        }
+
+        // fix: dont add " " to last word
+        if (i != n_entries - 1)
+          text += " "s;
+
         total_text_width += ImGui::CalcTextSize(text.c_str()).x;
         label += text;
-        break;
       }
-
-      // fix: dont add " " to last word
-      if (i != n_entries - 1)
-        text += " "s;
-
-      total_text_width += ImGui::CalcTextSize(text.c_str()).x;
-      label += text;
     }
 
     const auto& style = ImGui::GetStyle();
@@ -87,21 +89,20 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
     const float both_pad_x = pad_x * 2.0f;
     const float both_pad_y = pad_y * 2.0f;
 
-    float width = 0;
+    float header_width = 0;
     float damagenum_width = ImGui::CalcTextSize(label.c_str()).x;
     float name_width = ImGui::CalcTextSize(name_c.first_name.c_str()).x;
     float name_height = ImGui::CalcTextSize(name_c.first_name.c_str()).y;
-    width = glm::max(width, damagenum_width); // damage numbers, e.g. "0 15 2"
-    width = glm::max(width, name_width);      // the name e.g. "Steve"
+    header_width = glm::max(header_width, damagenum_width); // damage numbers, e.g. "0 15 2"
+    header_width = glm::max(header_width, name_width);      // the name e.g. "Steve"
 
-    worldspace_ui.offset.y = -(get_size(r, e).y); // place ui above entity
+    worldspace_ui.offset.y = get_size(r, e).y * -0.85f; // place ui above entity
 
-    worldspace_ui.layout = [&ui, &hp_c, &name_c, label, start_idx]() {
+    worldspace_ui.layout = [&ui, &hp_c, &name_c, label, start_idx, header_width]() {
       // Draw ui damage numbers
       const size_t n_entries = ui.entries.size();
       if (n_entries > 0) {
         // The last entry will always have the most recent data in it.
-        // Display it left-most.
 
         for (size_t i = start_idx; i < n_entries; i++) {
           const auto& entry = ui.entries[i];
@@ -125,55 +126,65 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 
       // Draw health blocks
       {
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        // blocks styling
+        constexpr float health_per_block = 5;
+        constexpr int blocks_per_line = 10;
+        constexpr float size_x = 4.0f;
+        constexpr float size_y = 4.0f;
+        constexpr float space_x = 2.0f;
+        constexpr float space_y = 2.0f;
+        const auto grey_color = IM_COL32(100, 100, 100, 255);  // color for background blocks
+        const auto red_color = IM_COL32(255, 0, 0, 255);       // color for current health blocks
+        const auto white_color = IM_COL32(255, 255, 255, 255); // color for recent damage
 
-        const float blocks = 5;
-        const float size_x = 4.0f;
-        const float size_y = 4.0f;
-        const float spacing = 2.0f;
-
-        // Center healthbar
-        const auto& style = ImGui::GetStyle();
-        const float avail = ImGui::GetContentRegionAvail().x;
-        const float alignment = 0.5f;
-        const float size = blocks * (size_x + spacing) + style.FramePadding.x * 2.0f;
-        float off = (avail - size) * alignment;
-        if (off > 0.0f)
-          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-
-        const ImVec2 pos = ImGui::GetCursorScreenPos(); // Starting position for the first square
-
-        // health variables
         const float cur_hp = (float)hp_c.hp;
         const float max_hp = (float)hp_c.max_hp;
-        const float health_per_block = max_hp / blocks;
+        const float blocks = max_hp / (int)health_per_block;
+        const int n_lines = int(blocks / (float)blocks_per_line);
         const int full_blocks = (int)(cur_hp / health_per_block);
 
-        // Colors
-        ImU32 grey_color = IM_COL32(100, 100, 100, 255);  // Grey color for background blocks
-        ImU32 red_color = IM_COL32(255, 0, 0, 255);       // Red color for current health blocks
-        ImU32 white_color = IM_COL32(255, 255, 255, 255); // White color for recent damage animation
+        // work out the width of the healthbar
+        const auto& style = ImGui::GetStyle();
+        const float hp_w = blocks_per_line * (size_x + space_x) - space_x + style.FramePadding.x * 2.0f;
+        const float hp_h = n_lines * (size_y + space_y) + style.FramePadding.y * 2.0f;
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        // Starting position for the first square
+        const ImVec2 pos = ImGui::GetCursorScreenPos();
+        const auto get_block_line_idx = [](int block_idx) {
+          // values: 1-20
+          // should return 1-2
+          return block_idx / blocks_per_line;
+        };
 
         // Draw grey background blocks (for full health capacity)
         for (int i = 0; i < blocks; i++) {
-          const auto top_left = ImVec2(pos.x + i * (size_x + spacing), pos.y);
-          const auto bottom_right = ImVec2(top_left.x + size_x, top_left.y + size_y);
-          draw_list->AddRectFilled(top_left, bottom_right, grey_color);
+          const auto mod_idx = i % blocks_per_line; // [0-blocks_per_line-1]
+          const auto line_idx = get_block_line_idx(i);
+          const auto tl = ImVec2(pos.x + mod_idx * (size_x + space_x), pos.y + line_idx * (size_y + space_y));
+          const auto br = ImVec2(tl.x + size_x, tl.y + size_y);
+          draw_list->AddRectFilled(tl, br, grey_color);
         }
 
         // Draw fully filled red blocks
         for (int i = 0; i < full_blocks; ++i) {
-          const auto top_left = ImVec2(pos.x + i * (size_x + spacing), pos.y);
-          const auto bottom_right = ImVec2(top_left.x + size_x, top_left.y + size_y);
-          draw_list->AddRectFilled(top_left, bottom_right, red_color);
+          const auto mod_idx = i % blocks_per_line; // [0-blocks_per_line-1]
+          const auto line_idx = get_block_line_idx(i);
+          const auto tl = ImVec2(pos.x + mod_idx * (size_x + space_x), pos.y + line_idx * (size_y + space_y));
+          const auto br = ImVec2(tl.x + size_x, tl.y + size_y);
+          draw_list->AddRectFilled(tl, br, red_color);
         }
 
         // Draw partially filled red block if there is remaining health
         const float fill_percentage = fmod(cur_hp, health_per_block) / health_per_block;
         if (fill_percentage > 0.0f && full_blocks < blocks) {
-          ImVec2 top_left = ImVec2(pos.x + full_blocks * (size_x + spacing), pos.y);
-          ImVec2 bottom_right = ImVec2(top_left.x + size_x * fill_percentage, top_left.y + size_y);
-          draw_list->AddRectFilled(top_left, bottom_right, red_color);
+          const int i = full_blocks;
+          const auto mod_idx = i % blocks_per_line; // [0-blocks_per_line-1]
+          const auto line_idx = get_block_line_idx(i);
+          const auto tl = ImVec2(pos.x + mod_idx * (size_x + space_x), pos.y + line_idx * (size_y + space_y));
+          const auto br = ImVec2(tl.x + size_x * fill_percentage, tl.y + size_y);
+          draw_list->AddRectFilled(tl, br, red_color);
         }
 
         // Work out the total amount of recieved damage
@@ -192,21 +203,25 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
           int hp = cur_hp + damage; // already taken the damage
           int damage_remaining = damage;
 
-          for (int i = 0; i < int(blocks) && damage_remaining > 0 && hp > 0; ++i) {
-            int cur_block_idx = int((hp - 1) / health_per_block);
-            int block_start_hp = int((cur_block_idx + 0) * health_per_block);
-            int block_end_hp = int((cur_block_idx + 1) * health_per_block);
+          for (int it = 0; it < int(blocks) && damage_remaining > 0 && hp > 0; ++it) {
+            const auto i = int((hp - 1) / health_per_block);
+            const auto mod_idx = i % blocks_per_line; // [0-blocks_per_line-1]
+            const auto line_idx = get_block_line_idx(i);
+
+            const int block_start_hp = int((i + 0) * health_per_block);
+            const int block_end_hp = int((i + 1) * health_per_block);
 
             // Determine how much of the current block is affected by damage
-            int damage_in_block = std::min(hp - block_start_hp, damage_remaining);
+            const int damage_in_block = std::min(hp - block_start_hp, damage_remaining);
+            const int health_in_block_after_damage = hp - block_start_hp - damage_in_block;
 
             // Calculate the top-left corner of the entire block
-            auto base_tl = ImVec2(pos.x + cur_block_idx * (size_x + spacing), pos.y);
+            const auto base_tl = ImVec2(pos.x + mod_idx * (size_x + space_x), pos.y + line_idx * (size_y + space_y));
 
             // Calculate top-left for the white section (damage part)
             // Start from the rightmost point of the remaining health within the block
-            float start_x = base_tl.x + (hp - block_start_hp - damage_in_block) * (size_x / (float)health_per_block);
-            float width = (damage_in_block / (float)health_per_block) * size_x;
+            const float start_x = base_tl.x + health_in_block_after_damage * (size_x / (float)health_per_block);
+            const float width = (damage_in_block / (float)health_per_block) * size_x;
             const auto tl = ImVec2(start_x, base_tl.y);
             const auto br = ImVec2(tl.x + width, base_tl.y + size_y);
 
@@ -219,13 +234,12 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 
           return flash_blocks;
         };
-
         const auto gen_blocks = generate_blocks(hp_c.hp, int(total_dmg));
         for (const auto& block : gen_blocks)
           draw_list->AddRectFilled(block.tl, block.br, white_color);
 
         // fill out the line with the correct size
-        ImGui::Dummy(ImVec2(size, size_y));
+        ImGui::Dummy(ImVec2(std::max(hp_w, header_width), hp_h));
       }
 
       //

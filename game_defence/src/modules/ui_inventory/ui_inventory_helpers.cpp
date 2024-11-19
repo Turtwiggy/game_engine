@@ -210,8 +210,8 @@ display_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& ty
 
   const float w = ImGui::GetContentRegionAvail().x;
   const float h = 20;
-  const float icon_size = 20.0f;    // Size of the icon
-  const float padding = 5.0f;       // Space between text and icon
+  const float icon_size = 20.0f;
+  const float padding = 5.0f;
   const float text_padding = 25.0f; // Padding for the left-aligned text
 
   ImVec2 tl{ 0.0f, 0.0f };

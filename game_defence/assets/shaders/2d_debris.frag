@@ -34,7 +34,8 @@ main()
 
   vec4 O = vec4(0.0f, 0.0f, 0.0f, 1.0f);
   for(; O.r < texture(tex, fzoom*zoom - pos/O.r/100.0f - scroll).r; O+=0.02f);
+  out_colour.rgb = O.rgb * 0.25f;
 
-  out_colour.rgb = O.rgb;
+  // out_colour.rgb = vec3(0.0);
   out_colour.a = 1.0f;
 }

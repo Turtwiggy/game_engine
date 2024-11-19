@@ -1,17 +1,17 @@
-#include "system.hpp"
+#include "ui_lootbag_system.hpp"
 
-#include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
-#include "helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
+#include "modules/ui_lootbag/ui_lootbag_helpers.hpp"
+#include "ui_lootbag_components.hpp"
 
-#include "imgui.h"
+#include <imgui.h>
 
 namespace game2d {
 

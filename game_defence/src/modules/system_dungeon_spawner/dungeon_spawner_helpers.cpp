@@ -65,6 +65,10 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
       auto& inv = r.get<DefaultInventory>(mob_e).inv;
       auto& body = r.get<DefaultBody>(mob_e).body;
 
+      // change the enemy difficulty
+      r.get<HealthComponent>(mob_e).hp = 20;
+      r.get<HealthComponent>(mob_e).max_hp = 20;
+
       // give the enemy a piece of scrap in their inventory
       spawn_inv_item(r, inv, 0, "scrap");
 
@@ -74,9 +78,6 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
       // give enemy a weapon
       // todo: replace idx 6 with finding a slot the weapon should go
       auto weapon_e = spawn_inv_item(r, body, 6, "scrap_knife");
-
-      // HACK: set hp to test death by bleed
-      auto& hp_c = r.get<HealthComponent>(mob_e).hp = 25;
 
       add_entity_to_map(r, mob_e, slot_idx);
     }

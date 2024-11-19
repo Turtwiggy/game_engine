@@ -1,4 +1,4 @@
-#include "helpers.hpp"
+#include "ui_lootbag_helpers.hpp"
 
 namespace game2d {
 

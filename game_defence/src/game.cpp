@@ -57,7 +57,7 @@
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
 #include "modules/ui_inventory/ui_inventory_system.hpp"
-#include "modules/ui_lootbag/system.hpp"
+#include "modules/ui_lootbag/ui_lootbag_system.hpp"
 #include "modules/ui_overworld_boardship/system.hpp"
 #include "modules/ui_overworld_shiplabel/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
@@ -245,13 +245,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #if defined(_DEBUG)
     update_ui_raws_system(r);
     update_ui_combat_designer_system(r, mouse_pos);
-    update_ui_lootbag_system(r);
     update_ui_spaceship_designer_system(r, mouse_pos, dt);
+    // update_ui_lootbag_system(r);
 #endif
   }
 
 #if defined(_DEBUG)
-  static bool show_settings_ui = false;
+  static bool show_settings_ui = true;
 #else
   static bool show_settings_ui = false;
 #endif

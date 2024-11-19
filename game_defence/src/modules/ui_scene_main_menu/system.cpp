@@ -4,9 +4,11 @@
 
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "helpers.hpp"
 #include "modules/persistent/helpers.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 
@@ -19,6 +21,24 @@
 
 namespace game2d {
 using namespace std::literals;
+
+void
+push_button_complete_colours()
+{
+  // Active state: Green
+  ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.33f, 0.6f, 0.6f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.33f, 0.7f, 0.7f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.33f, 0.8f, 0.8f));
+};
+
+void
+push_button_incomplete_colours()
+{
+  // Inactive state: red
+  ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 0.6f, 0.6f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.7f, 0.7f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 0.8f, 0.8f));
+};
 
 void
 update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
@@ -66,11 +86,11 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   // selected = selected < 0 ? buttons - 1 : selected;
   // selected %= buttons;
 
-  const ImVec2 size = { 96, 32 };
+  const ImVec2 size = { 50, 20.0f };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
 
   const auto selectable_button = [&](const std::string& label, int& selected, const int index) {
     // update the selected index if this button is clicked
@@ -112,26 +132,46 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     }
 #endif
 
+    ImGui::NewLine();
+    ImGui::SeparatorText("Levels");
+
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
+    const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+
     const auto num = 10.0f;
     for (int i = 1; i < num; i++) {
       ImGui::PushID(i);
-      ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / num, 0.6f, 0.6f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / num, 0.7f, 0.7f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / num, 0.8f, 0.8f));
+      // ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / num, 0.6f, 0.6f));
+      // ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / num, 0.7f, 0.7f));
+      // ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / num, 0.8f, 0.8f));
 
       // load completed from disk
       bool completed = get_level_complete(r, i);
 
-      std::string com_str = std::format("Level {} ( )", i);
+      std::string com_str = std::format("{}", i);
       if (completed)
-        com_str = std::format("Level {} (X)", i);
+        push_button_complete_colours();
+      else
+        push_button_incomplete_colours();
 
-      if (ImGui::Button(com_str.c_str(), size)) {
+      if (ImGui::Button(com_str.c_str(), { size.x, size.y })) {
         move_to_scene_start(r, Scene::dungeon_designer);
         create_empty<MenuToNextSceneInfo>(r, MenuToNextSceneInfo{ i });
       }
-
       ImGui::PopStyleColor(3);
+
+      // Create an icon to show if the level is done or not
+      const float icon_size = 18.0f;
+      ImVec2 tl{ 0.0f, 0.0f };
+      ImVec2 br{ 1.0f, 1.0f };
+      const auto complete_sprite = completed ? "ICON_TICK" : "ICON_CROSS";
+      const auto result = convert_sprite_to_uv(r, complete_sprite);
+      std::tie(tl, br) = result;
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - (icon_size * 0.5f) - 2);
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ((size.y - icon_size) * 0.5f)); // center icon vertically
+      ImGui::Image(im_id, { icon_size, icon_size }, tl, br);
+
       ImGui::PopID();
     }
 
@@ -139,6 +179,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.6f, 0.7f, 0.7f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.6f, 0.8f, 0.8f));
 
+    ImGui::NewLine();
     if (selectable_button("Exit", selected, index++))
       app.running = false;
 

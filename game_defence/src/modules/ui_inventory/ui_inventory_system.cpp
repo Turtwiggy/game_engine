@@ -149,7 +149,7 @@ update_ui_inventory_system(entt::registry& r)
   }
 
   if (inv_units == 0)
-    ImGui::Text("No unit selected.");
+    ImGui::Text("No player selected.");
 
   ImGui::EndChild();
   ImGui::End();

@@ -134,6 +134,10 @@ search_for_texture_unit_by_texture_path(const SINGLE_RendererInfo& ri, const std
   if (result != ri.user_textures.end())
     return result->tex_unit;
 
+  const std::string err = std::format("search_for_texture_unit_by_texture_path() missing {}", search);
+  SDL_Log("%s", std::format("Error: {}", err).c_str());
+  throw std::runtime_error("err");
+
   return std::nullopt;
 };
 
@@ -146,6 +150,10 @@ search_for_texture_id_by_texture_path(const SINGLE_RendererInfo& ri, const std::
 
   if (result != ri.user_textures.end())
     return result->tex_id;
+
+  const std::string err = std::format("search_for_texture_id_by_texture_path() missing {}", search);
+  SDL_Log("%s", std::format("Error: {}", err).c_str());
+  throw std::runtime_error("err");
 
   return std::nullopt;
 };
@@ -160,8 +168,11 @@ search_for_texture_unit_by_spritesheet_path(const SINGLE_RendererInfo& ri, const
   if (result != ri.user_textures.end())
     return result->tex_unit;
 
-  SDL_Log("%s", std::format("unable to find tex unit for {}", search).c_str());
-  exit(1);
+  const std::string err = std::format("search_for_texture_unit_by_spritesheet_path() missing {}", search);
+  SDL_Log("%s", std::format("Error: {}", err).c_str());
+  throw std::runtime_error("err");
+
+  return std::nullopt;
 };
 
 std::optional<TextureId>
@@ -173,6 +184,10 @@ search_for_texture_id_by_spritesheet_path(const SINGLE_RendererInfo& ri, const s
 
   if (result != ri.user_textures.end())
     return result->tex_id;
+
+  const std::string err = std::format("search_for_texture_id_by_spritesheet_path() missing {}", search);
+  SDL_Log("%s", std::format("Error: {}", err).c_str());
+  throw std::runtime_error("err");
 
   return std::nullopt;
 };
