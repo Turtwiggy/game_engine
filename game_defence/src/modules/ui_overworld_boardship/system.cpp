@@ -59,7 +59,7 @@ update_ui_overworld_boardship_system(entt::registry& r)
   if (ui_c.show) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-    const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+    const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
 
     // window size
     const ImVec2 size = { 160, 160 * 9 / 16.0f };
@@ -68,7 +68,7 @@ update_ui_overworld_boardship_system(entt::registry& r)
     // position
     const float padding_y = size.y / 2.0f;
     const float center_x = viewport_pos.x + viewport_size_half.x;
-    const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - padding_y - 32.0f;
+    const float bottom_y = viewport_pos.y + ri.viewport_size_render_at.y - padding_y - 32.0f;
     const auto pos = ImVec2(center_x, bottom_y);
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 

@@ -12,6 +12,8 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_dungeon_spawner/dungeon_spawner_helpers.hpp"
+#include "modules/system_initiative/initiative_components.hpp"
+#include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 
@@ -69,6 +71,15 @@ update_dungeon_spawner_system(entt::registry& r)
   // center the camera
   const auto camera_e = get_first<OrthographicCamera>(r);
   set_position(r, camera_e, { (map_c.xmax * map_c.tilesize) / 2.0f, (map_c.ymax * map_c.tilesize) / 2.0f });
+
+  // Set the first unit as the active unit
+  auto initiative_group = r.group<InitiativeComponent>();
+  initiative_group.sort<InitiativeComponent>(
+    [](const InitiativeComponent& a, const InitiativeComponent& b) { return a.initiative < b.initiative; });
+  for (const auto& [e, c] : initiative_group.each()) {
+    activate_unit(r, e);
+    break;
+  }
 }
 
 } // namespace game2d

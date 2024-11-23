@@ -114,7 +114,8 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
 
     ImGui::SeparatorText("Screen Size");
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    ImGui::Text("Current: %i %i", ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+    ImGui::Text("Current: %i %i", ri.viewport_size_current.x, ri.viewport_size_current.y);
+    ImGui::Text("Current (render at): %i %i", ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
 
     struct Resolution
     {

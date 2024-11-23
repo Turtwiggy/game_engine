@@ -77,7 +77,7 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
 
       // give enemy a weapon
       // todo: replace idx 6 with finding a slot the weapon should go
-      auto weapon_e = spawn_inv_item(r, body, 6, "scrap_knife");
+      auto weapon_e = spawn_inv_item(r, body, 0, "scrap_knife");
 
       add_entity_to_map(r, mob_e, slot_idx);
     }

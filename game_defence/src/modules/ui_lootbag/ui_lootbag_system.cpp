@@ -43,14 +43,14 @@ update_ui_lootbag_system(entt::registry& r)
   auto& ui = get_first_component<SINGLE_UI_Lootbag>(r);
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-  const auto viewport_right = viewport_pos.x + ri.viewport_size_current.x;
+  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
+  const auto viewport_right = viewport_pos.x + ri.viewport_size_render_at.x;
   const auto viewport_top = viewport_pos.y;
 
   // configs
   const int inv_x = 6;
   const ImVec2 button_size = ImVec2(32, 32); // make the border 48 or 64
-  const auto window_0_size = ImVec2{ ri.viewport_size_current.x / 6.0f, ri.viewport_size_current.y / 3.0f };
+  const auto window_0_size = ImVec2{ ri.viewport_size_render_at.x / 6.0f, ri.viewport_size_render_at.y / 3.0f };
   const auto window_0_pos = ImVec2(viewport_right - window_0_size.x, viewport_top + 2.0f * window_0_size.y);
 
   ImGuiWindowFlags flags = 0;
@@ -106,7 +106,7 @@ update_ui_lootbag_system(entt::registry& r)
         const auto eid = static_cast<uint32_t>(inv_e);
         ImGui::PushID(eid);
         ImGui::TableNextColumn();
-        display_inventory_slot(r, inv_e, button_size);
+        display_inventory_slot(r, e, inv_e, button_size);
 
         // // warning: approach does not work with multiple players
         // bool clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);

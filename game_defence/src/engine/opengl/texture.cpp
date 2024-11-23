@@ -124,10 +124,19 @@ bind_linear_texture(const LinearTexture& tex)
     format_a = GL_RED;
     format_b = GL_RED;
   }
+
+#if defined(__EMSCRIPTEN__)
+  if (nr_components == 3) {
+    format_a = GL_RGB32F;
+    format_b = GL_RGB;
+  }
+#else
   if (nr_components == 3) {
     format_a = GL_RGB;
     format_b = GL_RGB;
   }
+#endif
+
 #if defined(__EMSCRIPTEN__)
   else if (nr_components == 4) {
     format_a = GL_RGBA32F;
@@ -139,6 +148,7 @@ bind_linear_texture(const LinearTexture& tex)
     format_b = GL_RGBA;
   }
 #endif
+  SDL_Log("%s", std::format("Texture: comps:{} format: {}, {}", nr_components, format_a, format_b).c_str());
 
   glActiveTexture(GL_TEXTURE0 + tex_unit);
   glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -148,8 +158,9 @@ bind_linear_texture(const LinearTexture& tex)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex.texture_min_filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex.texture_max_filter);
-
   unbind_tex();
+
+  CHECK_OPENGL_ERROR(4);
   return texture_id;
 };
 

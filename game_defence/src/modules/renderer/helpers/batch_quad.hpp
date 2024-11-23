@@ -45,7 +45,7 @@ struct RenderData
   unsigned int VBO = 0;
   unsigned int EBO = 0;
 
-  unsigned int TBO = 0;
+  // specific circles texture
   unsigned int TEX = 0;
   unsigned int tex_unit = 0;
 

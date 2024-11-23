@@ -40,7 +40,7 @@ init_audio_system(entt::registry& r)
     audio.loaded = true;
     return; // no available devices
   }
-  SDL_Log("%s", std::format("Using audiodevice: %s", device_name).c_str());
+  SDL_Log("%s", std::format("Using audiodevice: {}", device_name).c_str());
   audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, device_name, 0);
 
   // Check if that worked.
@@ -53,7 +53,7 @@ init_audio_system(entt::registry& r)
   const int request_channels = 16;
   Mix_AllocateChannels(request_channels);
   audio.max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
-  SDL_Log("%s", std::format("Audio sources to create: %i", audio.max_audio_sources).c_str());
+  SDL_Log("%s", std::format("Audio sources to create: {}", audio.max_audio_sources).c_str());
   for (int i = 0; i < audio.max_audio_sources; i++) {
     create_persistent<AudioSource>(r, AudioSource(i));
 

@@ -91,15 +91,15 @@ update_ui_inventory_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-  const auto viewport_right = viewport_pos.x + ri.viewport_size_current.x;
+  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
+  const auto viewport_right = viewport_pos.x + ri.viewport_size_render_at.x;
   const auto viewport_top = viewport_pos.y;
 
   // configs
   const int inv_x = 6;
   const auto button_size = ImVec2(32, 32); // make the border 48 or 64
-  const auto window_0_size = ImVec2{ ri.viewport_size_current.x / 6.0f, ri.viewport_size_current.y / 3.0f };
-  const auto window_1_size = ImVec2{ ri.viewport_size_current.x / 6.0f, ri.viewport_size_current.y / 3.0f };
+  const auto window_0_size = ImVec2{ ri.viewport_size_render_at.x / 6.0f, ri.viewport_size_render_at.y / 3.0f };
+  const auto window_1_size = ImVec2{ ri.viewport_size_render_at.x / 6.0f, ri.viewport_size_render_at.y / 3.0f };
   const auto window_0_pos = ImVec2(viewport_right - window_0_size.x, viewport_top);
   const auto window_1_pos = ImVec2(viewport_right - window_1_size.x, viewport_top + window_0_size.y);
 
@@ -117,7 +117,7 @@ update_ui_inventory_system(entt::registry& r)
     for (size_t i = 0; i < body_c.body.size(); i++) {
       const auto eid = static_cast<uint32_t>(body_c.body[i]);
       ImGui::PushID(eid);
-      display_inventory_slot(r, body_c.body[i], button_size);
+      display_inventory_slot(r, e, body_c.body[i], button_size);
       ImGui::PopID();
     }
   }
@@ -142,7 +142,7 @@ update_ui_inventory_system(entt::registry& r)
     for (const auto& inv_e : inv_c.inv) {
       const auto eid = static_cast<uint32_t>(inv_e);
       ImGui::PushID(eid);
-      display_inventory_slot(r, inv_e, button_size);
+      display_inventory_slot(r, e, inv_e, button_size);
       ImGui::PopID();
     }
     inv_units++;

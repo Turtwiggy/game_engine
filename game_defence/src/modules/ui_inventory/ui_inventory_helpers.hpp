@@ -18,6 +18,7 @@ update_item_parent(entt::registry& r, const entt::entity item, const entt::entit
 
 void
 display_inventory_slot(entt::registry& r,
+                       const entt::entity e,
                        const entt::entity inventory_slot_e,
                        const ImVec2& button_size,
                        const ImVec2 pos = { 0, 0 });

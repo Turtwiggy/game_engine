@@ -113,15 +113,24 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
 }
 
 bool
-check_if_viewport_resize(const SINGLE_RendererInfo& ri)
+check_if_viewport_resize(SINGLE_RendererInfo& ri)
 {
-  const auto viewport_wh = ri.viewport_size_render_at;
+  const int old_x = ri.viewport_size_render_at.x;
+  const int old_y = ri.viewport_size_render_at.y;
+  const int new_x = ri.viewport_size_current.x;
+  const int new_y = ri.viewport_size_current.y;
 
-  if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
-      (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {
-    return true;
-  }
-  return false;
+  const bool do_resize_x = old_x != new_x;
+  const bool do_resize_y = old_y != new_y;
+
+  if (do_resize_x)
+    ri.viewport_size_render_at.x = new_x;
+
+  if (do_resize_y)
+    ri.viewport_size_render_at.y = new_y;
+
+  // otherwise, did either x or y resize?
+  return do_resize_x || do_resize_y;
 }
 
 std::optional<TextureUnit>

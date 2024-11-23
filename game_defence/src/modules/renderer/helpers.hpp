@@ -16,7 +16,7 @@ ViewportInfo
 render_texture_to_imgui_viewport(const int64_t& tex_unit);
 
 bool
-check_if_viewport_resize(const SINGLE_RendererInfo& ri);
+check_if_viewport_resize(SINGLE_RendererInfo& ri);
 
 //
 

@@ -15,6 +15,7 @@ uniform sampler2D scene_1; 		 	   // stars
 uniform sampler2D u_distance_data; // distance data
 uniform sampler2D tex_unit_debris;
 uniform sampler2D tex_unit_floor_mask;
+uniform sampler2D tex_circles; 
 
 uniform float brightness_threshold;
 uniform vec2 camera_pos;
@@ -27,7 +28,6 @@ uniform float tilesize;
 uniform float zoom;
 
 #define NR_MAX_CIRCLES 100
-uniform samplerBuffer circleBuffer;  // a texture buffer
 
 struct Light
 {
@@ -260,28 +260,29 @@ void main()
 		return;
 	}
 
-	float dist = sceneDist(p);
+	// float dist = sceneDist(p);
 
 	// gradient
 	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0) * (1.0 - length(c - p)/iResolution.x);
 
 	// inside spaceship
 	vec4 col = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	if(inside_spaceship)
-	{
-		col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
-		col *= AO(dist, 40.0f, 1.0f);
-	}
-	// outside spaceship
-	else
-	{
-		col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
-		col *= 1.0f - AO(dist, 1.0f, 0.8f);
-	}
+	// if(inside_spaceship)
+	// {
+	// 	col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
+	// 	col *= AO(dist, 40.0f, 1.0f);
+	// }
+	// // outside spaceship
+	// else
+	// {
+	// 	col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
+	// 	col *= 1.0f - AO(dist, 1.0f, 0.8f);
+	// }
 
 	//
 	// lights
 	//
+	/*
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{
 		Light l = lights[i];
@@ -300,12 +301,12 @@ void main()
 
 		col += drawLight(p, l.position, l.colour, dist, 450.0, 12.0);
 	}
-	col = clamp(col, 0.0, 1.0);
+  */
 
 	//
 	// sdf:  circles for oxygen
 	//
-	vec3 circle_col = vec3(1.0f);
+	vec3 circle_col = vec3(0.0f);
 	{
 		// convert uv to -1 and 1
 		vec2 uv = -(2.0 * v_uv - 1.0);
@@ -314,9 +315,12 @@ void main()
 		uv *= zoom;
 
   	float d = 1e10;
-
+    
+		/*
 		for (int i = 0; i < NR_MAX_CIRCLES; ++i) {
-			vec3 circleData = texelFetch(circleBuffer, i).xyz;
+			int num_cols = 3; // components in the CircleComponent
+      ivec2 tex_coord = ivec2(i % num_cols, i / num_cols);
+			vec3 circleData = texelFetch(tex_circles, tex_coord, 0).xyz;
 			vec2 pos = circleData.xy;   	// Circle center position
 			float radius = circleData.z;  // Circle radius
       
@@ -347,6 +351,7 @@ void main()
 		float thickness = 0.0025;
 		ccol *= mix( vec3(0.0), vec3(1.0), 1.0-smoothstep(0.0,thickness,abs(d)) ); // border
 		circle_col.rgb = ccol;
+	*/
 	}
 
 	//
@@ -357,7 +362,7 @@ void main()
 		// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
   	// iResolution : is a vec2 with an X value of 640 and a Y value of 360
 
-		int grid_width = 5;
+		float grid_width = 5.0;
 
 		// camera position is in worldspace.
 		vec2 wsp = vec2(grid_width*tilesize, grid_width*tilesize);
@@ -430,7 +435,7 @@ void main()
 	}
 
 	// lighting
-	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
+	// vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
 	// final_lin *= lighting_lin;
 
 	vec3 srgb_final = lin_to_srgb(final_lin);

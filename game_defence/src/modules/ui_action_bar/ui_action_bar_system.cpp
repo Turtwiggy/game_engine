@@ -14,8 +14,8 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/animations/wiggle/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/combat_show_tiles_in_range/show_tileS_in_range_helpers.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_components.hpp"
+#include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/map/components.hpp"
@@ -207,8 +207,6 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   const auto& map_c = get_first_component<MapComponent>(r);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
-  const auto end_turn_key = SDL_SCANCODE_E;
-
   if (init_c.order.size() == 0)
     return; // no units with initiative
 
@@ -226,8 +224,13 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   const bool enemy_turn = r.get<TeamComponent>(e).team == AvailableTeams::enemy;
 
   bool request_action = false;
-  if (auto* inp_c = r.try_get<InputComponent>(e))
+  if (auto* inp_c = r.try_get<InputComponent>(e)) {
     request_action |= inp_c->shoot;
+
+    // update to eat the shoot() event to prevent multiple requests
+    // this is bad if any other system wants to use the shoot() action
+    inp_c->shoot = false;
+  }
   request_action &= (ri.viewport_hovered); // no ui
   if (request_action)
     SDL_Log("requesting action...");
@@ -240,9 +243,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 
   // position
   const ImVec2 viewport_pos = { (float)ri.viewport_pos.x, (float)ri.viewport_pos.y };
-  const ImVec2 viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+  const ImVec2 viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
   const float center_x = viewport_pos.x + viewport_size_half.x;
-  const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - 50.0f;
+  const float bottom_y = viewport_pos.y + ri.viewport_size_render_at.y - 50.0f;
   const auto pos = ImVec2(center_x, bottom_y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 

@@ -149,6 +149,7 @@ become_dragdrop_source(const entt::entity item_e)
   }
 };
 
+/*
 void
 display_empty_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& type, const ImVec2& size)
 {
@@ -164,9 +165,9 @@ display_empty_item(entt::registry& r, entt::entity slot_e, const InventorySlotTy
 
   // a button with no text
   ImGui::Button(std::format("##{}", eid).c_str(), { w, h });
-  ImGui::PopStyleVar();
+  // become_dragdrop_target(r, slot_e);
 
-  become_dragdrop_target(r, slot_e);
+  ImGui::PopStyleVar();
 
   // sounds
   const std::string eid_label = std::format("item-inv##{}", eid);
@@ -196,9 +197,15 @@ display_empty_item(entt::registry& r, entt::entity slot_e, const InventorySlotTy
   ImGui::SetCursorPosY(text_pos_y);
   ImGui::TextUnformatted(text.c_str());
 };
+*/
 
 void
-display_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& type, entt::entity item_e, const ImVec2& size)
+display_item(entt::registry& r,
+             const entt::entity e,
+             entt::entity slot_e,
+             const InventorySlotType& type,
+             entt::entity item_e,
+             const ImVec2& size)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
@@ -210,9 +217,6 @@ display_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& ty
 
   const float w = ImGui::GetContentRegionAvail().x;
   const float h = 20;
-  const float icon_size = 20.0f;
-  const float padding = 5.0f;
-  const float text_padding = 25.0f; // Padding for the left-aligned text
 
   ImVec2 tl{ 0.0f, 0.0f };
   ImVec2 br{ 1.0f, 1.0f };
@@ -223,10 +227,14 @@ display_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& ty
 
   const uint32_t eid = static_cast<uint32_t>(slot_e);
 
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
-  // a button with no text
-  ImGui::Button(std::format("##{}", eid).c_str(), { w, h });
+  if (ImGui::Button(std::format("##{}", eid).c_str(), { w, h })) {
+    // todo: get the index of where the item should go
+    auto& body_c = r.get<DefaultBody>(e);
+    const int idx = 0;
+    handle_dragdrop_target(r, item_e, body_c.body[idx]);
+  }
   become_dragdrop_source(item_e);
   become_dragdrop_target(r, slot_e);
 
@@ -270,37 +278,51 @@ display_item(entt::registry& r, entt::entity slot_e, const InventorySlotType& ty
     ImGui::EndTooltip();
   }
 
-  std::string text = std::format("{}", item_tag.tag);
+  std::string text = std::format("{}", item_data.display_name);
 
   // for the equipment menu, show what the equip type is
-  if (type != InventorySlotType::backpack)
-    text = std::format("[{}] {}", slot_type_str, item_data.display_name);
+  // if (type != InventorySlotType::backpack)
+  //   text = std::format("{}", item_data.display_name);
+  // text = std::format("[{}] {}", item_data.defence->worn_on.value(), item_data.display_name);
 
   // for the inventory menu, show where the equpment should go
-  if (item_data.defence.has_value())
-    if (item_data.defence.value().worn_on.has_value())
-      text = std::format("[{}] {}", item_data.defence->worn_on.value(), item_data.display_name);
+  // if (item_data.defence.has_value())
+  //   if (item_data.defence.value().worn_on.has_value())
+  //     text = std::format("{}", item_data.display_name);
+  // text = std::format("[{}] {}", item_data.defence->worn_on.value(), item_data.display_name);
 
-  // left-aligned text
   ImGui::SameLine();
-  ImVec2 cursor_pos = ImGui::GetCursorPos();
-  float text_pos_y = cursor_pos.y + (h - ImGui::GetFontSize()) * 0.5f;
-  ImGui::SetCursorPosX(text_padding);
-  ImGui::SetCursorPosY(text_pos_y);
-  ImGui::TextUnformatted(text.c_str());
 
-  // right-aligned button to equip
-  ImGui::SameLine(w - icon_size - padding);
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (h - icon_size) * 0.5f); // Center icon vertically
-  if (ImGui::ImageButton(im_id, { 18, 18 }, tl, br)) {
-    // equip the item
-  }
+  const int padding = 4;
+  const auto icon_size = ImVec2{ 18, 18 };
+  const auto cursor_pos = ImGui::GetCursorPos();
+  const auto icon_pos_y = cursor_pos.y + (h - icon_size.y) * 0.5f;
 
-  ImGui::PopStyleVar();
+  // left aligned icon
+  ImGui::SetCursorPosX(padding + icon_size.x * 0.5f);
+  ImGui::SetCursorPosY(icon_pos_y);
+  ImGui::Image(im_id, icon_size, tl, br);
+  ImGui::SameLine();
+
+  // left aligned text
+  ImGui::SetCursorPosX(padding + (icon_size.x * 2.0f) + padding);
+  ImGui::Text("%s", text.c_str());
+  ImGui::SameLine();
+
+  // right-aligned text
+  const float text_size = ImGui::CalcTextSize("equip").x;
+  ImGui::SetCursorPosX(w - text_size - padding);
+  ImGui::Text("%s", "Equip");
+
+  // ImGui::PopStyleVar();
 };
 
 void
-display_inventory_slot(entt::registry& r, const entt::entity inventory_slot_e, const ImVec2& button_size, const ImVec2 pos)
+display_inventory_slot(entt::registry& r,
+                       const entt::entity e,
+                       const entt::entity inventory_slot_e,
+                       const ImVec2& button_size,
+                       const ImVec2 pos)
 {
   if (pos.x != 0)
     ImGui::SetCursorPosX(pos.x);
@@ -311,10 +333,10 @@ display_inventory_slot(entt::registry& r, const entt::entity inventory_slot_e, c
   const auto item_e = slot_c.item_e;
 
   if (item_e != entt::null)
-    display_item(r, inventory_slot_e, slot_c.type, item_e, button_size);
+    display_item(r, e, inventory_slot_e, slot_c.type, item_e, button_size);
 
-  if (item_e == entt::null)
-    display_empty_item(r, inventory_slot_e, slot_c.type, button_size);
+  // if (item_e == entt::null)
+  //   display_empty_item(r, inventory_slot_e, slot_c.type, button_size);
 };
 
 void
@@ -333,12 +355,14 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
     // spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
     // spawn_inv_item(r, body_c.body, 4, "scrap_legs");
     // spawn_inv_item(r, body_c.body, 5, "scrap_legs");
-    spawn_inv_item(r, body_c.body, 6, "hook");
+
+    // todo(21/11/24): replace idx 0 with with where the weapon should go
+    spawn_inv_item(r, body_c.body, 0, "hook");
 
     // init inventory with items
     // note: spawn less than 6*5 items (default inventory size)
     int i = 0;
-    spawn_inv_item(r, inv_c.inv, int(i++), "hook");
+    // spawn_inv_item(r, inv_c.inv, int(i++), "hook");
     spawn_inv_item(r, inv_c.inv, int(i++), "shotgun");
     spawn_inv_item(r, inv_c.inv, int(i++), "scrap_knife");
     // spawn_inv_item(r, inv_c.inv, i++, "scrap");
@@ -346,12 +370,12 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
     // spawn_inv_item(r, inv_c.inv, i++, "bullet_bouncy");
     // spawn_inv_item(r, inv_c.inv, i++, "breach_charge");
     // spawn_inv_item(r, inv_c.inv, i++, "breach_charge");
-    spawn_inv_item(r, inv_c.inv, i++, "scrap_helmet");
-    spawn_inv_item(r, inv_c.inv, i++, "scrap_core");
-    spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
-    spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
-    spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
-    spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
+    // spawn_inv_item(r, inv_c.inv, i++, "scrap_helmet");
+    // spawn_inv_item(r, inv_c.inv, i++, "scrap_core");
+    // spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
+    // spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
+    // spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
+    // spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
   }
 };
 

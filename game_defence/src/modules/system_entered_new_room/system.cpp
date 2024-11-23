@@ -109,7 +109,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   if (show_room_ui) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const ImVec2 viewport_pos = { (float)ri.viewport_pos.x, (float)ri.viewport_pos.y };
-    const ImVec2 viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+    const ImVec2 viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
 
     // text size
     std::string label = "N/A";
@@ -127,7 +127,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
 
     // position
     const float center_x = viewport_pos.x + viewport_size_half.x;
-    const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - h;
+    const float bottom_y = viewport_pos.y + ri.viewport_size_render_at.y - h;
     const auto pos = ImVec2(center_x, bottom_y);
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 

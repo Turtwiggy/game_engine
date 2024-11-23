@@ -208,11 +208,11 @@ setup_linear_main_update(entt::registry& r)
       for (; i < N_MAX_CIRCLES; i++)
         points[i].shader_pos = { 0, 0 };
 
-      // Update for TBO
-      glBindBuffer(GL_TEXTURE_BUFFER, ri.renderer.data.TBO);
-      glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(CircleComponent) * points.size(), points.data());
-      glBindTexture(GL_TEXTURE_BUFFER, ri.renderer.data.TEX);
-      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, ri.renderer.data.TBO);
+      // Update texture
+      const int num_rows = N_MAX_CIRCLES;
+      const int num_cols = sizeof(game2d::CircleComponent) / sizeof(float); // floats per comp
+      // glBindTexture(GL_TEXTURE_2D, ri.renderer.data.TEX);
+      // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, num_cols, num_rows, GL_RGBA, GL_FLOAT, points.data());
     }
 
     // Render some quads
@@ -222,7 +222,7 @@ setup_linear_main_update(entt::registry& r)
 
       const auto& group = r.group<TransformComponent, SpriteComponent>();
 
-      // sort by z-index; adds 0.5ms
+      // sort by z-index; adds ~0.5ms
       group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.z_index < b.z_index; });
 
       for (const auto& [e, transform, sc] : group.each()) {

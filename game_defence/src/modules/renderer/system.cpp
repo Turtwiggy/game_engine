@@ -75,12 +75,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     i++;
   }
 
-  // TBO for quadrenderer...
+  // Texture quadrenderer...
   int tex_buffer_unit = i++;
   glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
-  glBindTexture(GL_TEXTURE_BUFFER, ri.renderer.data.TEX);
+  glBindTexture(GL_TEXTURE_2D, ri.renderer.data.TEX);
   ri.renderer.data.tex_unit = tex_buffer_unit;
-  SDL_Log("%s", std::format("tbo (circles) tex_unit... %i", ri.renderer.data.tex_unit).c_str());
+  SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.renderer.data.tex_unit).c_str());
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
@@ -169,7 +169,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_debris", tex_unit_debris);
   ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
-  ri.mix_lighting_and_scene.set_int("circleBuffer", ri.renderer.data.tex_unit);
+  ri.mix_lighting_and_scene.set_int("tex_circles", ri.renderer.data.tex_unit);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
@@ -273,7 +273,6 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   // init(): create a dynamic VBO
   ri.renderer.init();
-
   rebind(r, ri);
 
   // adds the update() for each renderpass
@@ -323,7 +322,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   if (check_if_viewport_resize(ri)) {
-    ri.viewport_size_render_at = ri.viewport_size_current;
     rebind(r, ri);
   }
   const auto viewport_wh = ri.viewport_size_render_at;

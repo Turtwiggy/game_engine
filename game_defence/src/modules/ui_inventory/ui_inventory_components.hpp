@@ -69,16 +69,16 @@ struct DefaultBody
     };
 
     // body slots
-    body.push_back(create_body_slot(InventorySlotType::head));
-    body.push_back(create_body_slot(InventorySlotType::core));
-    body.push_back(create_body_slot(InventorySlotType::arm));
-    body.push_back(create_body_slot(InventorySlotType::arm));
-    body.push_back(create_body_slot(InventorySlotType::leg));
-    body.push_back(create_body_slot(InventorySlotType::leg));
+    // body.push_back(create_body_slot(InventorySlotType::head));
+    // body.push_back(create_body_slot(InventorySlotType::core));
+    // body.push_back(create_body_slot(InventorySlotType::arm));
+    // body.push_back(create_body_slot(InventorySlotType::arm));
+    // body.push_back(create_body_slot(InventorySlotType::leg));
+    // body.push_back(create_body_slot(InventorySlotType::leg));
 
     // equipment slots
     body.push_back(create_body_slot(InventorySlotType::weapon));
-    body.push_back(create_body_slot(InventorySlotType::bullet));
+    // body.push_back(create_body_slot(InventorySlotType::bullet));
   }
 };
 
