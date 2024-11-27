@@ -13,7 +13,7 @@
 #include "modules/actor_airlock/airlock_system.hpp"
 #include "modules/actor_breach_charge/breach_charge_system.hpp"
 #include "modules/actor_door/door_system.hpp"
-#include "modules/actor_player/system.hpp"
+#include "modules/actor_player/actor_player_system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
 #include "modules/animator/animator_system.hpp"
 #include "modules/camera/camera_system.hpp"
@@ -157,8 +157,8 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   update_lifecycle_system(r, milliseconds_dt);
   update_physics_apply_force_system(r);
   update_physics_system(r, milliseconds_dt);
-  update_player_controller_system(r, milliseconds_dt, mouse_pos); // input => actions
-  update_events_system(r);                                        // dispatch events
+  update_events_system(r); // dispatch events
+  fixed_update_player_controller_system(r, milliseconds_dt, mouse_pos);
 
   fixed_input.fixed_tick += 1;
 };
@@ -174,6 +174,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_camera_system(r, dt);
   update_audio_system(r);
   update_events_system(r); // dispatch events
+  update_player_controller_system(r, milliseconds_dt, mouse_pos);
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED) {

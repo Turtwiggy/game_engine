@@ -155,10 +155,10 @@ main(int argc, char* argv[])
   name += "[MSVC]";
 #endif
 
-  // #if defined(_DEBUG)
-  //   app.limit_fps = true;
-  //   app.fps_limit = 30;
-  // #endif
+#if defined(_DEBUG)
+  // app.limit_fps = true;
+  // app.fps_limit = 25;
+#endif
 
   app.window = GameWindow(name, DisplayMode::windowed, app.vsync);
   app.imgui.initialize(app.window);

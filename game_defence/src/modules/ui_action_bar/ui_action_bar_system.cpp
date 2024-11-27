@@ -227,6 +227,8 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   if (auto* inp_c = r.try_get<InputComponent>(e)) {
     request_action |= inp_c->shoot;
 
+    // note: if two fixed_update() occur before
+
     // update to eat the shoot() event to prevent multiple requests
     // this is bad if any other system wants to use the shoot() action
     inp_c->shoot = false;
@@ -323,7 +325,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
           set_size(r, debug_e, { 8, 8 });
         }
 
-        if (request_action) {
+        if (request_action && path.size() > 0) {
           SDL_Log("Requesting move...");
 
           GeneratedPathComponent path_c;

@@ -24,6 +24,7 @@
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
+#include "modules/system_select_unit/select_unit_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_lootbag/ui_lootbag_components.hpp"
 #include "modules/ui_overworld_boardship/components.hpp"
@@ -48,6 +49,7 @@ create_player_if_not_in_scene(entt::registry& r)
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<PlayerComponent>(e);
   r.emplace<KeyboardComponent>(e);
+  r.emplace<SelectedComponent>(e);
   auto& player_thrust = r.emplace<MovementAsteroidsComponent>(e);
   player_thrust.able_to_change_thrust = false;
   player_thrust.able_to_change_dir = true;

@@ -1,13 +1,17 @@
-#include "modules/actor_player/system.hpp"
+#include "modules/actor_player/actor_player_system.hpp"
 
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "engine/events/helpers/controller.hpp"
 #include "engine/events/helpers/fixed_update.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "engine/events/helpers/mouse.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "imgui.h"
 #include "modules/actor_player/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
 
@@ -17,7 +21,6 @@
 #include <SDL_scancode.h>
 #include <box2d/b2_math.h>
 #include <box2d/box2d.h>
-#include <format>
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -160,103 +163,42 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
 void
 update_player_controller_system(entt::registry& r, const uint64_t milliseconds_dt, const glm::ivec2& mouse_pos)
 {
-  const auto& finputs = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
-  const auto& inputs = finputs.history.at(finputs.fixed_tick);
+  const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
 
   const auto& view = r.view<InputComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, input] : view.each()) {
+  for (const auto& [e, i] : view.each()) {
+    //
+    i.lx = 0.0f;
+    i.ly = 0.0f;
+    i.rx = 0.0f;
+    i.ry = 0.0f;
+    i.shoot = false;
 
-    const auto* keyboard = r.try_get<KeyboardComponent>(e);
-    const auto* controller = r.try_get<ControllerComponent>(e);
-
-    // const auto l = [](const InputEvent& e) { return (e.type == InputType::keyboard && e.state == InputState::release);
-    // }; const bool release_key = std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs); if (release_key)
-    //   int k = 1;
-
-    if (keyboard) {
-      input.shoot_release = fixed_input_mouse_release(inputs, SDL_BUTTON_LEFT);
-      input.sprint_release = fixed_input_keyboard_release(inputs, keyboard->sprint);
-    }
-
-    if (controller) {
-      // if (input.shoot)
-      //   input.shoot_release |= fixed_input_controller_axis_held(inputs, controller->c_right_trigger) <= 0.1f;
-      // if (input.sprint)
-      //   input.sprint_release |= fixed_input_controller_axis_held(inputs, controller->c_left_trigger) <= 0.1f;
-    }
-
-    // reset
-    input.lx = 0.0f;
-    input.ly = 0.0f;
-    input.rx = 0.0f;
-    input.ry = 0.0f;
-    input.shoot = false;
-    input.pickup = false;
-    input.drop = false;
-    input.sprint = false;
-
-    // rx via mouse (only if selected, as there's only 1 mouse)
+    // set rx based on mouse input if selected
     if (const auto* selected_c = r.try_get<SelectedComponent>(e)) {
       const auto dir = glm::vec2{ mouse_pos.x, mouse_pos.y } - get_position(r, e);
-      input.rx += dir.x;
-      input.ry += dir.y;
+      i.rx += dir.x;
+      i.ry += dir.y;
+      i.shoot = get_mouse_lmb_press();
+      i.ly += get_key_held(input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
+      i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
+      i.lx += get_key_held(input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
+      i.lx += get_key_held(input_c, SDL_SCANCODE_D) ? 1.0f : 0.0f;
     }
 
-    if (keyboard) {
-      input.ly += fixed_input_keyboard_held(inputs, keyboard->W) ? -1 : 0;
-      input.ly += fixed_input_keyboard_held(inputs, keyboard->S) ? 1 : 0;
-      input.lx += fixed_input_keyboard_held(inputs, keyboard->A) ? -1 : 0;
-      input.lx += fixed_input_keyboard_held(inputs, keyboard->D) ? 1 : 0;
-
-      input.ry += fixed_input_keyboard_held(inputs, SDL_SCANCODE_UP) ? -1 : 0;
-      input.ry += fixed_input_keyboard_held(inputs, SDL_SCANCODE_DOWN) ? 1 : 0;
-      input.rx += fixed_input_keyboard_held(inputs, SDL_SCANCODE_LEFT) ? -1 : 0;
-      input.rx += fixed_input_keyboard_held(inputs, SDL_SCANCODE_RIGHT) ? 1 : 0;
-
-      input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_LEFT);
-      input.pickup |= fixed_input_keyboard_press(inputs, keyboard->pickup);
-      input.drop |= fixed_input_keyboard_press(inputs, keyboard->drop);
-      input.sprint |= fixed_input_keyboard_press(inputs, keyboard->sprint);
-
-      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->W);
-      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->A);
-      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->S);
-      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->D);
-    }
-
-    if (controller) {
-      input.lx += fixed_input_controller_axis_held(inputs, controller->c_left_stick_x);
-      input.ly += fixed_input_controller_axis_held(inputs, controller->c_left_stick_y);
-      input.rx += fixed_input_controller_axis_held(inputs, controller->c_right_stick_x);
-      input.ry += fixed_input_controller_axis_held(inputs, controller->c_right_stick_y);
-      input.shoot |= fixed_input_controller_axis_held(inputs, controller->c_right_trigger) > 0.5f;
-      input.pickup |= fixed_input_controller_button_held(inputs, controller->c_r_bumper);
-      input.drop |= fixed_input_controller_button_held(inputs, controller->c_l_bumper);
-      input.sprint |= fixed_input_controller_axis_held(inputs, controller->c_left_trigger) > 0.5f;
-
-      input.unprocessed_move_down |= input.lx != 0.0f && input.shoot;
-      input.unprocessed_move_down |= input.ly != 0.0f && input.shoot;
-    }
-
-    const glm::vec2 r_nrm_dir = engine::normalize_safe({ input.rx, input.ry });
-    input.rx = r_nrm_dir.x;
-    input.ry = r_nrm_dir.y;
-
-    // if (input.pickup)
-    //   r.emplace_or_replace<WantsToPickUp>(entity);
-    // if (input.drop)
-    //   r.emplace_or_replace<WantsToDrop>(entity);
-    // if (input.shoot)
-    //   r.emplace_or_replace<WantsToShoot>(entity);
-    // if (input.shoot_release)
-    //   r.emplace_or_replace<WantsToReleaseShot>(entity);
-    // if (input.sprint)
-    //   r.emplace_or_replace<WantsToSprint>(entity);
-    // if (input.sprint_release)
-    //   r.emplace_or_replace<WantsToReleaseSprint>(entity);
+    // if (const auto* controller_c = r.try_get<ControllerComponent>(e)) {
+    //   i.lx += get_axis_01(controller_c, controller_c->c_left_stick_x);
+    //   i.ly += get_axis_01(controller_c, controller_c->c_left_stick_y);
+    // }
   }
+};
 
-  update_movement_asteroids(r, milliseconds_dt);
+void
+fixed_update_player_controller_system(entt::registry& r, const uint64_t ms_dt, const glm::ivec2& mouse_pos)
+{
+  // What happens if multiple fixedupdate() before?
+
+  update_movement_asteroids(r, ms_dt);
   update_movement_direct(r);
   update_movement_jetpack(r);
 };

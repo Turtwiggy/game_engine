@@ -12,6 +12,7 @@ namespace game2d {
 // is probably temporary and should
 // probably be moved to a more generic component
 // as/when it makes sense
+
 struct PlayerComponent
 {
   bool placeholder = true;
@@ -52,27 +53,20 @@ struct ControllerComponent
   SDL_GameControllerButton c_r_bumper = SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
 };
 
+// pressing WASD directly correlates to some axis
+struct MovementDirectComponent
+{
+  bool placeholder = true;
+};
+
+//
 struct InputComponent
 {
   float lx = 0.0f;
   float ly = 0.0f;
   float rx = 0.0f;
   float ry = 0.0f;
-
-  // player actions?
   bool shoot = false;
-  bool shoot_release = false;
-  bool sprint = false;
-  bool sprint_release = false;
-  bool pickup = false;
-  bool drop = false;
-  bool unprocessed_move_down = false;
-};
-
-// pressing WASD directly correlates to some axis
-struct MovementDirectComponent
-{
-  bool placeholder = true;
 };
 
 // move like asteroids
