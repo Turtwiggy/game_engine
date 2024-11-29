@@ -1,0 +1,15 @@
+{
+  "spritesheet": {
+    "name": "studio_text_logo",
+    "px_total": 512,
+    "py_total": 256,
+    "px": 512,
+    "py": 256,
+    "nx": 1,
+    "ny": 1
+  },
+  "sprites": [
+    { "name": "STUDIO_TEXT_LOGO", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] }
+
+  ]
+}

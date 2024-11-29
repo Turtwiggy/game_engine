@@ -65,17 +65,17 @@ update_ui_gameover_system(entt::registry& r)
 
   ImGui::Begin("Gameover", NULL, flags);
 
-  if (gameover_win) {
-    ImGui::Text("You win!");
-    ImGui::Text("All enemies dead!");
-  }
+  // if (gameover_win) {
+  //   ImGui::Text("You win!");
+  //   ImGui::Text("All enemies dead!");
+  // }
 
-  if (gameover_loss) {
-    ImGui::Text("You lose!");
-    ImGui::Text("All players dead!");
-  }
+  // if (gameover_loss) {
+  //   ImGui::Text("You lose!");
+  //   ImGui::Text("All players dead!");
+  // }
 
-  if (centered_button("Back to menu.")) {
+  if (centered_button("Brawl Again!")) {
     // move_to_scene_start(r, Scene::overworld_revamped, false);
     // move_to_scene_additive(r, Scene::overworld_revamped);
 
