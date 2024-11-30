@@ -63,7 +63,7 @@ IKSolver::generate_forward_chain(const std::vector<glm::vec2>& points, const std
     const auto raw_dir = back_chain[i] - results[i - 1];
     const auto nrm_dir = engine::normalize_safe(raw_dir);
 
-    // TODO: Constraint: clamp between desired angles for this joint
+    // Constraint: clamp between desired angles for this joint
     // const float constraint = 30.0f * engine::Deg2Rad;
     // dir.x = glm::clamp(dir.x, -1.0f, 1.0f);
     // dir.y = glm::clamp(dir.y, -1.0f, 1.0f);

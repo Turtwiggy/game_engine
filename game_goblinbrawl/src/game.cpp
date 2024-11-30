@@ -11,12 +11,15 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actor_brawler/actor_brawler_system.hpp"
+#include "modules/actor_brawler_ai/actor_brawler_ai_system.hpp"
+#include "modules/actor_brawler_spawner/actor_brawler_spawner_system.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
 #include "modules/camera/camera_system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_scale_on_hit/system.hpp"
+#include "modules/event_damage/event_damage_system.hpp"
 #include "modules/events/events_system.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
@@ -24,6 +27,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
+#include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_brawler_editor/ui_brawler_editor_system.hpp"
@@ -141,17 +145,19 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_events_system(r); // dispatch events
   update_player_controller_system(r, milliseconds_dt, mouse_pos);
 
+  if (scene.s == Scene::splashscreen)
+    update_scene_splashscreen_move_to_menu_system(r, dt);
+
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED) {
-
     update_actor_brawler_system(r, dt);
+    update_actor_brawler_ai_system(r, dt);
+    update_actor_brawler_spawner_system(r);
+    update_cooldown_system(r, milliseconds_dt);
     update_combat_scale_on_hit_system(r, dt);
+    update_event_damage_system(r, dt);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     update_wiggle_up_and_down_system(r, dt);
-
-    if (scene.s == Scene::splashscreen) {
-      update_scene_splashscreen_move_to_menu_system(r, dt);
-    }
   }
 
   // update_animator_system(r, dt);

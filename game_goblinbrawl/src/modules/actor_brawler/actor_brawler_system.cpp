@@ -24,24 +24,35 @@ update_actor_brawler_system(entt::registry& r, const float dt)
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
   auto& evts_c = get_first_component<SINGLE_Events>(r);
 
-  const auto& brawlers_view = r.view<const ActionKey, const PhysicsBodyComponent, TransformComponent>();
-  for (const auto& [e, action_c, body_c, transform_c] : brawlers_view.each()) {
+  const auto& brawlers_view = r.view<const ActionKey, const PhysicsBodyComponent, TransformComponent, Brawler>();
+  for (const auto& [e, action_c, body_c, transform_c, brawler_c] : brawlers_view.each()) {
 
     auto& offset_c = r.get_or_emplace<TransformOffset>(e);
-    auto* req_c = r.try_get<WantsToPunch>(e);
+    bool is_ai = r.try_get<BrawlerAI>(e);
+    bool wants_to_punch = r.try_get<WantsToPunch>(e) != nullptr;
+    const bool input_pressed = get_key_down(input_c, action_c.key);
+    const bool input_released = get_key_up(input_c, action_c.key);
+    const bool input_held = get_key_held(input_c, action_c.key);
 
-    if (get_key_down(input_c, action_c.key) || req_c != nullptr) {
+    if (input_released) {
+      brawler_c.key_held_s = 0.0f;
+      remove_if_exists<Blocking>(r, e);
+    }
 
-      // ai, probably
-      if (req_c)
-        r.remove<WantsToPunch>(e);
+    if (input_held) {
+      brawler_c.key_held_s += dt;
+      r.emplace_or_replace<Blocking>(e);
+    }
 
-      // .. pop & flash
-      // if (r.try_get<RequestHitScaleComponent>(e) == nullptr)
-      //   r.emplace<RequestHitScaleComponent>(e);
+    if (brawler_c.key_held_s >= brawler_c.do_thing_threshold) {
+      SDL_Log("do something...");
+      brawler_c.key_held_s = 0.0f;
+    }
 
-      // .. screenshake
-      // create_empty<RequestScreenshakeComponent>(r);
+    if (is_ai && wants_to_punch)
+      r.remove<WantsToPunch>(e);
+
+    if ((is_ai && wants_to_punch) || (!is_ai && input_pressed)) {
 
       // apply a force in the direction of your nearest enemy...
       const auto nearest_target = query_aabb_get_nearest_target(r, e);
@@ -63,8 +74,9 @@ update_actor_brawler_system(entt::registry& r, const float dt)
         offset_c.max_offset = 5.0f * nrm_dir;
         offset_c.t = 0.0f;
 
-        // if distance is in range, fire a damage event
+        // if distance is in range
         if (d2 < 1500.0f) {
+
           DamageEvent evt;
           evt.from = e;
           evt.to = nearest_target;
@@ -76,7 +88,6 @@ update_actor_brawler_system(entt::registry& r, const float dt)
           evts.dispatcher->update();
         }
 
-        //
         //
       }
     }

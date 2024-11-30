@@ -1,4 +1,5 @@
 #include "actor_brawler_helpers.hpp"
+#include "actor_brawler_components.hpp"
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/components.hpp"
@@ -63,6 +64,12 @@ public:
     // filter: only search for brawler entities
     const auto* action_c = registry.try_get<ActionKey>(a);
     if (!action_c)
+      return true;
+
+    // filter: only search for other teams brawlers
+    const auto team_a_idx = registry.get<TeamIndexComponent>(a).i;
+    const auto team_b_idx = registry.get<TeamIndexComponent>(entity_to_exclude).i;
+    if (team_a_idx == team_b_idx)
       return true;
 
     targets.push_back(a);

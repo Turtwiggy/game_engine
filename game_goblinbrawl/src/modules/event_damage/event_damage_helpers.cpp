@@ -2,8 +2,11 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "modules/actor_brawler/actor_brawler_components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
+#include "modules/screenshake/components.hpp"
+#include "modules/system_brawler_stats/brawler_stats_components.hpp"
 #include "modules/system_names/components.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -21,7 +24,7 @@ additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
     r.emplace<RequestHitScaleComponent>(to_e);
 
   // .. screenshake
-  // create_empty<RequestScreenshakeComponent>(r);
+  create_empty<RequestScreenshakeComponent>(r);
 
   // // roll_to_quip()
   // static engine::RandomState rnd;
@@ -65,11 +68,17 @@ calculate_damage_to_take(entt::registry& r, entt::entity e, int amount, const Da
 void
 handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 {
+  const auto from_e = evt.from; // can be entt::null if system event
   const auto to_e = evt.to;
 
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
     SDL_Log("handle_damage_event(): to_e has no HealthComponent");
+    return;
+  }
+
+  if (auto* blocking_c = r.try_get<Blocking>(to_e)) {
+    // SDL_Log("to_e is blocking.. no dmg");
     return;
   }
 
@@ -92,8 +101,37 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     // SDL_Log("%s", str.c_str());
     SDL_Log("Something died.");
 
-    additional_misc_death_events(r, to_e);
+    // should be an event, not here
+    const auto kill_team_idx = r.get<TeamIndexComponent>(from_e).i;
+    const auto dead_team_idx = r.get<TeamIndexComponent>(to_e).i;
+    auto& stats = get_first_component<SINGLE_TeamStats>(r);
+    stats.kills[kill_team_idx] += 1;
+
+    // additional_misc_death_events(r, from_e, to_e);
   }
 };
+
+void
+handle_damage_event_add_to_queue(entt::registry& r, const DamageEvent& evt)
+{
+  auto& queue_c = get_first_component<SINGLE_DamageQueue>(r);
+  std::vector<std::pair<DamageEvent, float>>& queue = queue_c.queue;
+
+  const auto cond = [&evt](std::pair<DamageEvent, float>& other_evt) -> bool {
+    // the new damage event is attacking an entity that already attacked them
+    return evt.from == other_evt.first.to && evt.to == other_evt.first.from;
+  };
+  const auto it = std::find_if(queue.begin(), queue.end(), cond);
+
+  // a new attack, parry not found
+  if (it == queue.end())
+    queue.push_back({ evt, 0.0f });
+  // else: you parried an attack
+  else {
+    const auto [evt, time] = (*it);
+    queue.erase(it); // remove it
+    SDL_Log("Attack parried");
+  }
+}
 
 } // namespace game2d

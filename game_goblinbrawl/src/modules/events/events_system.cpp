@@ -15,15 +15,8 @@ init_events_system(entt::registry& r)
   auto& ed = get_first_component<SINGLE_Events>(r);
 
   // link event => function
+  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_add_to_queue>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
-  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_apply_bleed>(r);
-  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_apply_pull>(r);
-  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_apply_push>(r);
-  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
-  // ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_item>(r);
-  // ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_exit_item>(r);
-  // ed.dispatcher->sink<EndTurnEvent>().connect<&handle_end_turn_bleed>(r);
-  // ed.dispatcher->sink<GridPositionChangedEvent>().connect<&handle_unit_enter_blackhole>(r);
 }
 
 void

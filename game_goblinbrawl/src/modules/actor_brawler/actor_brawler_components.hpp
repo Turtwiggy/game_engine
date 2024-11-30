@@ -30,4 +30,20 @@ struct WantsToPunch
   bool placeholder = true;
 };
 
+struct Blocking
+{
+  bool placeholder = true;
+};
+
+struct TeamIndexComponent
+{
+  int i = 0;
+};
+
+struct Brawler
+{
+  float key_held_s = 0.0f;
+  float do_thing_threshold = 3.0f;
+};
+
 } // namespace game2d

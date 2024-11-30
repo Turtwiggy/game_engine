@@ -183,6 +183,7 @@
     { "name": "KEY_2", "frames": [ { "x": 34, "y": 11 } ] },
     { "name": "EFFECT_BUBBLES", "frames": [ { "x": 35, "y": 11 } ] },
     { "name": "EFFECT_SPARKLE", "frames": [ { "x": 36, "y": 11 } ] },
+    { "name": "EFFECT_30_11", "frames": [ { "x": 30, "y": 11 } ] },
 
     { "name": "CURSOR_0", "frames": [ { "x": 35, "y": 12 } ] },
     { "name": "CURSOR_1", "frames": [ { "x": 36, "y": 12 } ] },

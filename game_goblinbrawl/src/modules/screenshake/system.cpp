@@ -40,7 +40,7 @@ update_screenshake_system(entt::registry& r, const float timer, const float dt)
   if (shake != do_screenshake) {
     shake = do_screenshake;
     ri.instanced.set_bool("shake", do_screenshake);
-    ri.instanced.set_float("strength", 0.002f);
+    ri.instanced.set_float("strength", 0.001f);
   }
   ri.instanced.set_float("time", timer);
 };

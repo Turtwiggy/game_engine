@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/actor_brawler/actor_brawler_components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/persistent/helpers.hpp"
@@ -33,24 +34,9 @@ update_ui_gameover_system(entt::registry& r)
 {
   return;
 
-  // Work out if game is over?
+  int brawlers = r.view<ActionKey>().size();
 
-  int enemies = 0;
-  int players = 0;
-  for (const auto& [e, team_c] : r.view<TeamComponent>().each()) {
-    if (team_c.team == AvailableTeams::enemy)
-      enemies++;
-    if (team_c.team == AvailableTeams::player)
-      players++;
-  }
-
-  bool gameover_win = false;
-  gameover_win |= enemies == 0;
-
-  bool gameover_loss = false;
-  gameover_loss |= players == 0;
-
-  if (!gameover_win && !gameover_loss)
+  if (brawlers > 1)
     return;
 
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
@@ -67,30 +53,11 @@ update_ui_gameover_system(entt::registry& r)
 
   ImGui::Begin("Gameover", NULL, flags);
 
-  if (gameover_win) {
-    ImGui::Text("You win!");
-    ImGui::Text("All enemies dead!");
-  }
-
-  if (gameover_loss) {
-    ImGui::Text("You lose!");
-    ImGui::Text("All players dead!");
-  }
-
-  if (centered_button("Back to menu.")) {
+  if (centered_button("Brawl Again!")) {
     // move_to_scene_start(r, Scene::overworld_revamped, false);
     // move_to_scene_additive(r, Scene::overworld_revamped);
 
-    if (gameover_win) {
-
-      const auto info_e = get_first<MenuToNextSceneInfo>(r);
-      if (info_e != entt::null) {
-        auto& info_c = r.get<MenuToNextSceneInfo>(info_e);
-        save_level(r, info_c.level, true);
-      }
-    }
-
-    move_to_scene_start(r, Scene::menu);
+    move_to_scene_start(r, Scene::brawl);
   }
 
   ImGui::End();

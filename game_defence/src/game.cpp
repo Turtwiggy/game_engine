@@ -32,7 +32,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
-#include "modules/system_cooldown/system.hpp"
+#include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_dungeon_spawner/dungeon_spawner_system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
