@@ -18,8 +18,9 @@ project(subprojects VERSION 0.1.0)
 # projects
 # add_subdirectory(game_3d)
 # add_subdirectory(game_networked)
+add_subdirectory(eval_shaders)
 add_subdirectory(game_defence)
-add_subdirectory(game_goblinbrawl)
+add_subdirectory(gamejam_goblinbrawl)
 
 if(EMSCRIPTEN)
 else()

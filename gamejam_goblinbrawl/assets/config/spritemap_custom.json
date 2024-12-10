@@ -1,0 +1,14 @@
+{
+  "spritesheet": {
+    "name": "custom",
+    "px_total": 192,
+    "py_total": 192,
+    "px": 16,
+    "py": 16,
+    "nx": 12,
+    "ny": 12
+  },
+  "sprites": [
+    { "name": "shield_custom", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] }
+  ]
+}
