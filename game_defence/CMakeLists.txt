@@ -35,6 +35,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
   ${OPTICK_SOURCE}
+  ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
 )
 

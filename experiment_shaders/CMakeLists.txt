@@ -2,22 +2,22 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(gamejam_goblinbrawl VERSION 0.1.0)
-message("gamejam_goblinbrawl: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
-message("gamejam_goblinbrawl: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-message("gamejam_goblinbrawl: C: ${CMAKE_C_COMPILER_ID}")
-message("gamejam_goblinbrawl: CXX: ${CMAKE_CXX_COMPILER_ID}")
-message("gamejam_goblinbrawl: CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
-message("gamejam_goblinbrawl: CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}")
-message("gamejam_goblinbrawl: CMAKE_LINKER: ${CMAKE_LINKER}")
-message("gamejam_goblinbrawl: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
-message("gamejam_goblinbrawl: source_dir: ${CMAKE_SOURCE_DIR}")
+project(experiment_shaders VERSION 0.1.0)
+message("experiment_shaders: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+message("experiment_shaders: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+message("experiment_shaders: C: ${CMAKE_C_COMPILER_ID}")
+message("experiment_shaders: CXX: ${CMAKE_CXX_COMPILER_ID}")
+message("experiment_shaders: CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
+message("experiment_shaders: CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}")
+message("experiment_shaders: CMAKE_LINKER: ${CMAKE_LINKER}")
+message("experiment_shaders: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
+message("experiment_shaders: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
   message("CMAKE_BUILD_TYPE was empty... setting to debug")
   set(CMAKE_BUILD_TYPE Debug)
-  message("gamejam_goblinbrawl: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+  message("experiment_shaders: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 endif()
 
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-clang.cmake)
@@ -36,29 +36,29 @@ file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
   ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
-  ${CMAKE_SOURCE_DIR}/gamejam_goblinbrawl/src/*.cpp
+  ${CMAKE_SOURCE_DIR}/experiment_shaders/src/*.cpp
 )
 
 # Main executable
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND WIN32)
   # "The WIN32 argument instructs the compiler to build a
   # Windows GUI app, which doesn't show a console."
-  add_executable(gamejam_goblinbrawl ${SRC_FILES} assets/textures/resource.rc)
+  add_executable(experiment_shaders ${SRC_FILES} assets/textures/resource.rc)
 elseif(WIN32)
-  add_executable(gamejam_goblinbrawl ${SRC_FILES} assets/textures/resource.rc)
+  add_executable(experiment_shaders ${SRC_FILES} assets/textures/resource.rc)
 else()
-  add_executable(gamejam_goblinbrawl ${SRC_FILES})
+  add_executable(experiment_shaders ${SRC_FILES})
 endif()
 
-link_libs(gamejam_goblinbrawl)
+link_libs(experiment_shaders)
 
-target_include_directories(gamejam_goblinbrawl PRIVATE
+target_include_directories(experiment_shaders PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
   ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/gamejam_goblinbrawl/src
+  ${CMAKE_SOURCE_DIR}/experiment_shaders/src
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
@@ -85,7 +85,7 @@ endif()
 
 # Create symlink for assets for emscripten
 IF(EMSCRIPTEN)
-  set(src ${CMAKE_SOURCE_DIR}/gamejam_goblinbrawl/assets)
+  set(src ${CMAKE_SOURCE_DIR}/experiment_shaders/assets)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")
@@ -104,7 +104,7 @@ ENDIF()
 # and would fail if this symlink was created here.
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   message("creating symlink...")
-  set(src ${CMAKE_SOURCE_DIR}/gamejam_goblinbrawl/assets)
+  set(src ${CMAKE_SOURCE_DIR}/experiment_shaders/assets)
 
   if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
     set(dst ${CMAKE_CURRENT_BINARY_DIR}/Debug/assets)
