@@ -8,6 +8,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/effects/outline.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
@@ -165,6 +166,45 @@ setup_linear_main_update(entt::registry& r)
       ri.renderer.end_batch();
       ri.renderer.flush(ri.instanced);
     }
+  };
+};
+
+void
+setup_outline_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::outline);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r) {
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+
+    ri.outline.bind();
+    ri.outline.set_mat4("view", camera_c.view);
+    ri.outline.set_mat4("projection", camera_c.projection_zoomed);
+
+    ri.renderer.reset_quad_vert_count();
+    ri.renderer.begin_batch();
+    const auto& view = r.view<TransformComponent, SpriteComponent, SpriteOutline>();
+
+    for (const auto& [e, transform, sc, outline_c] : view.each()) {
+      engine::quad_renderer::RenderDescriptor desc;
+      desc.pos_tl = transform.position - (transform.scale * 0.5f);
+      desc.size = transform.scale;
+      desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+      desc.colour = sc.colour;
+      desc.tex_unit = sc.tex_unit;
+      desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+      desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+      desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+      ri.renderer.draw_sprite(desc, ri.outline);
+    }
+
+    ri.renderer.end_batch();
+    ri.renderer.flush(ri.outline);
   };
 };
 

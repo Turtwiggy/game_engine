@@ -58,6 +58,7 @@ enum class PassName
 {
   floor_mask,
   linear_main,
+  outline,
   lighting_emitters_and_occluders,
   voronoi_seed,
   jump_flood,
@@ -107,6 +108,7 @@ struct SINGLE_RendererInfo
   engine::Shader jump_flood;
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
+  engine::Shader outline;
 
   // viewport
   // note: values are updated in render

@@ -17,12 +17,18 @@ update_actor_brawler_spawner_system(entt::registry& r)
 
   const auto& view = r.view<const BrawlerSpawner, const TransformComponent, CooldownComponent>();
 
+  const int size = view.size_hint();
+
   for (const auto& [e, spawner_c, t_c, cooldown_c] : view.each()) {
     if (cooldown_c.time > 0.0f)
       continue;
     reset_cooldown(cooldown_c);
 
     // todo: check if the spawn zone is clear..?
+
+    // make sure < X brawlers
+    if (size > 100)
+      continue;
 
     const auto rnd_x = engine::rand_det_s(rnd.rng, -75, 75);
     const auto rnd_y = engine::rand_det_s(rnd.rng, -75, 75);

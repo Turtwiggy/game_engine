@@ -20,6 +20,7 @@
 #include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
 #include "modules/scene/components.hpp"
+#include "renderpass/passes.hpp"
 
 using namespace engine;
 
@@ -90,6 +91,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   };
 
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
+  const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
@@ -99,24 +101,32 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 1.0f);
   camera.projection_zoomed = camera.projection;
 
-  ri.instanced.reload();
-  ri.instanced.bind();
-  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
-
-  // set user textures in ri.instanced
+  // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
     const auto last_slash = path.find_last_of("/\\");
     const auto file_name = path.substr(last_slash + 1);
     const auto last_dot = file_name.find_last_of('.');
     return file_name.substr(0, last_dot);
   };
+
+  ri.instanced.reload();
+  ri.instanced.bind();
+  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  ri.instanced.set_mat4("projection", camera.projection);
+  ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
   for (const auto& tex : ri.user_textures) {
     const std::string key = "tex_" + clean_path(tex.path);
     SDL_Log("%s", std::format("user tex key: {}", key).c_str());
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
-  ri.instanced.set_mat4("projection", camera.projection);
-  ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
+
+  ri.outline.reload();
+  ri.outline.bind();
+  ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  for (const auto& tex : ri.user_textures)
+    ri.outline.set_int("tex_" + clean_path(tex.path), tex.tex_unit.unit);
+  ri.outline.set_mat4("projection", camera.projection);
+  ri.outline.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.lighting_emitters_and_occluders.reload();
   ri.lighting_emitters_and_occluders.bind();
@@ -154,6 +164,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
   ri.mix_lighting_and_scene.set_int("tex_circles", ri.renderer.data.tex_unit);
+  ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
@@ -193,6 +204,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::linear_main));
+  ri.passes.push_back(RenderPass(PassName::outline));
   ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // Use the Jump flood algorithm to generate a voroi diagram,
   // then convert that in to a distance field
@@ -231,6 +243,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   }
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.outline = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
     Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
   ri.voronoi_seed = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
@@ -258,6 +271,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // adds the update() for each renderpass
   setup_floor_mask_update(r);
   setup_linear_main_update(r);
+  setup_outline_update(r);
   setup_lighting_emitters_and_occluders_update(r);
   setup_voronoi_seed_update(r);
   setup_jump_flood_pass(r);
@@ -386,7 +400,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    const bool hide_debug_textures = true;
+    const bool hide_debug_textures = false;
     if (hide_debug_textures)
       return;
 

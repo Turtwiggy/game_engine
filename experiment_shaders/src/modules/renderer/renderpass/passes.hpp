@@ -12,6 +12,9 @@ void
 setup_linear_main_update(entt::registry& r);
 
 void
+setup_outline_update(entt::registry& r);
+
+void
 setup_lighting_emitters_and_occluders_update(entt::registry& r);
 
 void

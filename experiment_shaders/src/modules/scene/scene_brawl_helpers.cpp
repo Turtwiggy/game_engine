@@ -10,6 +10,8 @@
 #include "modules/actor_brawler_spawner/actor_brawler_spawner_components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/effects/outline.hpp"
+
 #include <SDL_scancode.h>
 
 namespace game2d {
@@ -84,6 +86,8 @@ create_brawler(entt::registry& r, const BrawlerSpawner& spawner, const glm::vec2
     ai.time_between_punches_max = 0.3f;
     r.emplace<BrawlerAI>(e, ai);
   }
+
+  r.emplace<SpriteOutline>(e);
 
   return e;
 }
