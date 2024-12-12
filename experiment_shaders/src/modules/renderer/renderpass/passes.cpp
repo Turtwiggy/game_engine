@@ -39,7 +39,7 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
   engine::quad_renderer::RenderDescriptor desc;
   desc.pos_tl = { 0, 0 };
   desc.size = size;
-  desc.angle_radians = 0;
+  desc.yaw_pitch_roll_radians = { 0, 0, 0 };
   ri.renderer.draw_sprite(desc, shader);
 
   ri.renderer.end_batch();
@@ -66,13 +66,15 @@ setup_floor_mask_update(entt::registry& r)
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
 
-      const auto& view = r.view<TransformComponent, SpriteComponent, FloorComponent>();
+      const auto& view = r.view<const TransformComponent, const SpriteComponent, const FloorComponent>();
 
       for (const auto& [e, transform, sc, floor_c] : view.each()) {
         engine::quad_renderer::RenderDescriptor desc;
         desc.pos_tl = transform.position - (transform.scale * 0.5f);
         desc.size = transform.scale;
-        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                        transform.rotation_radians.y,
+                                        sc.angle_radians + transform.rotation_radians.z };
         desc.colour = mask_colour;
         desc.tex_unit = sc.tex_unit;
 
@@ -118,7 +120,7 @@ setup_linear_main_update(entt::registry& r)
       int i = 0;
 
       // draw active circles
-      const auto view = r.view<TransformComponent, CircleComponent>();
+      const auto view = r.view<const TransformComponent, CircleComponent>();
       for (const auto& [e, transform_c, circle_c] : view.each()) {
         if (i > N_MAX_CIRCLES)
           break;
@@ -149,10 +151,13 @@ setup_linear_main_update(entt::registry& r)
       group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.z_index < b.z_index; });
 
       for (const auto& [e, transform, sc] : group.each()) {
+
         engine::quad_renderer::RenderDescriptor desc;
         desc.pos_tl = transform.position - (transform.scale * 0.5f);
         desc.size = transform.scale;
-        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                        transform.rotation_radians.y,
+                                        sc.angle_radians + transform.rotation_radians.z };
         desc.colour = sc.colour;
         desc.tex_unit = sc.tex_unit;
 
@@ -187,13 +192,15 @@ setup_outline_update(entt::registry& r)
 
     ri.renderer.reset_quad_vert_count();
     ri.renderer.begin_batch();
-    const auto& view = r.view<TransformComponent, SpriteComponent, SpriteOutline>();
+    const auto& view = r.view<const TransformComponent, const SpriteComponent, const SpriteOutline>();
 
     for (const auto& [e, transform, sc, outline_c] : view.each()) {
       engine::quad_renderer::RenderDescriptor desc;
       desc.pos_tl = transform.position - (transform.scale * 0.5f);
       desc.size = transform.scale;
-      desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+      desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                      transform.rotation_radians.y,
+                                      sc.angle_radians + transform.rotation_radians.z };
       desc.colour = sc.colour;
       desc.tex_unit = sc.tex_unit;
       desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
@@ -262,7 +269,9 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
           engine::quad_renderer::RenderDescriptor desc;
           desc.pos_tl = transform.position - transform.scale * 0.5f;
           desc.size = transform.scale;
-          desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+          desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                          transform.rotation_radians.y,
+                                          sc.angle_radians + transform.rotation_radians.z };
           desc.colour = occluder_col;
           desc.tex_unit = sc.tex_unit;
 

@@ -28,6 +28,7 @@
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
+#include "modules/system_parallax_mouse/parallax_mouse_system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_brawler_editor/ui_brawler_editor_system.hpp"
@@ -144,6 +145,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_audio_system(r);
   update_events_system(r); // dispatch events
   update_player_controller_system(r, milliseconds_dt, mouse_pos);
+  update_parallax_mouse_system(r, dt, mouse_pos);
 
   if (scene.s == Scene::splashscreen)
     update_scene_splashscreen_move_to_menu_system(r, dt);

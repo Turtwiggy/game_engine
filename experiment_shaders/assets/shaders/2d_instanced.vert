@@ -6,7 +6,8 @@ layout(location = 1) in vec4 colour;
 layout(location = 2) in vec4 sprite_pos;
 layout(location = 3) in vec4 sprite_width_and_max;
 layout(location = 4) in float tex_unit;
-layout(location = 5) in mat4 model;
+layout(location = 5) in vec2 center;
+layout(location = 6) in mat4 model;
 
 out vec2 v_uv;
 out vec4 v_colour;
@@ -33,7 +34,9 @@ main()
   v_tex_unit = tex_unit;
   // v_vertex = vec4( model * vec4(vertex.xy, 1.0, 1.0)).xy;
 
-  gl_Position = projection * view * model * vec4(vertex.xy, 0.0, 1.0);
+  vec4 world_pos = model * vec4(vertex.xy, 0.0, 1.0);
+  
+  gl_Position = projection * view * world_pos;
 
   if(shake)
   {

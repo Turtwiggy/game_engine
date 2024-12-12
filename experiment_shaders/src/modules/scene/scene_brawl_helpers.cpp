@@ -11,6 +11,7 @@
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/effects/outline.hpp"
+#include "modules/system_parallax_mouse/parallax_mouse_components.hpp"
 
 #include <SDL_scancode.h>
 
@@ -88,6 +89,7 @@ create_brawler(entt::registry& r, const BrawlerSpawner& spawner, const glm::vec2
   }
 
   r.emplace<SpriteOutline>(e);
+  // r.emplace<ParallaxMouseComponent>(e);
 
   return e;
 }

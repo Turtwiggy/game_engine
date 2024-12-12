@@ -110,7 +110,10 @@ main()
     float aa_scale = 1.25;
 
     float outline_size = 2.0f;
-    vec2 texel_size = vec2(1.0 / float(viewport_wh.x), 1.0 / float(viewport_wh.y));
+    vec4 _tex_monochrome_transparent_packed_TexelSize = vec4(1.0 / 768, 1.0 / 352, 768, 352);
+    vec2 texel_size = _tex_monochrome_transparent_packed_TexelSize.xy;
+    vec2 up = vec2(0, texel_size.y);
+    vec2 rgt = vec2(texel_size.x, 0);
 
     // vec4 spritesheet_col = tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
     vec4 spritesheet_col = texture(tex_monochrome_transparent_packed, sprite_uv);
@@ -119,18 +122,20 @@ main()
     // float u_pix = tex2dss(tex_monochrome_transparent_packed, sprite_uv + vec2(0, texel_size.y), bias, aa_scale).a;
     // float r_pix = tex2dss(tex_monochrome_transparent_packed, sprite_uv + vec2(texel_size.x, 0), bias, aa_scale).a;
     // float b_pix = tex2dss(tex_monochrome_transparent_packed, sprite_uv + vec2(0, -texel_size.y), bias, aa_scale).a;
-    float l_pix = texture(tex_monochrome_transparent_packed, sprite_uv + vec2(-texel_size.x, 0)).a;
-    float r_pix = texture(tex_monochrome_transparent_packed, sprite_uv + vec2(texel_size.x, 0)).a;
-    float u_pix = texture(tex_monochrome_transparent_packed, sprite_uv + vec2(0, texel_size.y)).a;
-    float d_pix = texture(tex_monochrome_transparent_packed, sprite_uv + vec2(0, -texel_size.y)).a;
+    float u_pix = texture(tex_monochrome_transparent_packed, sprite_uv + up).a;
+    float r_pix = texture(tex_monochrome_transparent_packed, sprite_uv + rgt).a;
+    float d_pix = texture(tex_monochrome_transparent_packed, sprite_uv - up).a;
+    float l_pix = texture(tex_monochrome_transparent_packed, sprite_uv - rgt).a;
 
     out_colour *= spritesheet_col;
     
     // float inline = (1.0f - l_pix * u_pix * r_pix * d_pix) * spritesheet_col.a;
     float outline = max(max(l_pix, u_pix), max(r_pix, d_pix)) - spritesheet_col.a;
 
-    // NOTE: outline_col should be linear, not srgb
-    vec4 outline_col = vec4(1.0, 1.0, 1.0, 1.0);
+    // NOTE: out_colour outputs linear
+    vec4 lin_col = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 outline_col = lin_col;
+
     // out_colour = mix(out_colour, outline_col, outline);
     out_colour = outline == 1.0f ? outline_col : vec4(0.0, 0.0, 0.0, 1.0);
     return;

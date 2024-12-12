@@ -242,7 +242,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
     SDL_Log("%s", std::format("loaded texture... {}", tex.path).c_str());
   }
 
-  ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.instanced = Shader("assets/shaders/2d_instanced_temp.vert", "assets/shaders/2d_instanced.frag");
   ri.outline = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
     Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
@@ -317,6 +317,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     rebind(r, ri);
   }
   const auto viewport_wh = ri.viewport_size_render_at;
+
+  ri.instanced.bind();
+  ri.instanced.set_float("time", time);
+  ri.instanced.set_vec2("mouse_pos", mouse_pos);
 
 #if defined(_DEBUG)
   // reload all shaders
