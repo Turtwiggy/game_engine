@@ -33,16 +33,19 @@ update_screenshake_system(entt::registry& r, const float timer, const float dt)
   screenshake.time_left = glm::max(screenshake.time_left, 0.0f);
 
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  ri.instanced.bind();
 
   // cache the value to avoid set_bool
   static bool shake = do_screenshake;
   if (shake != do_screenshake) {
     shake = do_screenshake;
+    ri.instanced.bind();
     ri.instanced.set_bool("shake", do_screenshake);
     ri.instanced.set_float("strength", 0.001f);
+
+    ri.outline.bind();
+    ri.outline.set_bool("shake", do_screenshake);
+    ri.outline.set_float("strength", 0.001f);
   }
-  ri.instanced.set_float("time", timer);
 };
 
 } // namespace game2d

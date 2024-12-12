@@ -26,7 +26,7 @@ dir_to_angle_radians(const glm::vec2& dir)
   return atan2(dir.y, dir.x) + engine::PI;
 }
 
-constexpr float
+float
 distance_squared(const glm::vec3& i)
 {
   return i.x * i.x + i.y * i.y + i.z * i.z;

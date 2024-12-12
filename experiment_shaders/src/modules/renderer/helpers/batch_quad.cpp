@@ -76,7 +76,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->sprite_offset = sprite_offset;
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
-  data.buffer_ptr->center = center;
+  data.buffer_ptr->parallax = r.parallax;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
@@ -86,7 +86,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->sprite_offset = sprite_offset;
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
-  data.buffer_ptr->center = center;
+  data.buffer_ptr->parallax = r.parallax;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
@@ -96,7 +96,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->sprite_offset = sprite_offset;
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
-  data.buffer_ptr->center = center;
+  data.buffer_ptr->parallax = r.parallax;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
@@ -106,7 +106,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->sprite_offset = sprite_offset;
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
-  data.buffer_ptr->center = center;
+  data.buffer_ptr->parallax = r.parallax;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
@@ -148,7 +148,7 @@ QuadRenderer::init()
   glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex_unit));
 
   glEnableVertexAttribArray(5);
-  glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, center));
+  glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, parallax));
 
   // model
   {

@@ -390,11 +390,13 @@ void main()
 	vec3 srgb_final = lin_to_srgb(final_lin);
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
+	out_color.rgb = circle_col + srgb_final.rgb;
+	
 	vec4 outline_col_lin = texture(tex_outline, v_uv);
 	vec3 outline_col = lin_to_srgb(outline_col_lin.rgb);
+	// out_color.rgb += outline_col;
 
-	// out_color.rgb = outline_col + circle_col + srgb_final.rgb;
-	out_color.rgb = circle_col + srgb_final.rgb;
+	// out_color.rgb = circle_col + srgb_final.rgb;
 
 	// vignette
 	vec2 vig_uv = fragCoord.xy / iResolution.xy;

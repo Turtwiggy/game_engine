@@ -9,137 +9,68 @@ in vec2 v_sprite_pos; // x, y location of sprite
 in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
+in vec2 v_vertex;
+// in vec2 v_pos;
+// in vec2 v_size;
 
-uniform sampler2D tex_monochrome_transparent_packed;
-uniform sampler2D tex_gameicons;
-uniform sampler2D tex_blueberry_dark;
-uniform sampler2D tex_goblin_brawl_background;
+// uniform sampler2D tex_monochrome_transparent_packed;
+// uniform sampler2D tex_gameicons;
+// uniform sampler2D tex_blueberry_dark;
+// uniform sampler2D tex_goblin_brawl_background;
+uniform sampler2D tex_to_outline;
 
-uniform vec2 viewport_wh;
-uniform int RENDERER_TEX_UNIT_COUNT;
+// uniform vec2 viewport_wh;
+// uniform int RENDERER_TEX_UNIT_COUNT;
 
-#define _SUPERSAMPLING_2X2_RGSS
-
-// https://discussions.unity.com/t/how-to-keep-sprites-sharp-and-crisp-even-while-rotating-solved/737314/6
-vec4 tex2dss(sampler2D tex, vec2 uv, float bias, float aascale)
+float
+SRGBFloatToLinearFloat(const float f)
 {
+  if (f <= 0.04045f)
+    return f / 12.92f;
+  return pow((f + 0.055f) / 1.055f, 2.4f);
+}
 
-    vec4 col = vec4(0.0);
-
-    // get uv derivatives
-    vec2 dx = dFdx(uv);
-    vec2 dy = dFdy(uv);
-  
-#if defined(_SUPERSAMPLING_2X2_RGSS)
-    // MSAA style "four rooks" rotated grid super sampling
-    // samples the texture 4 times
-
-    vec2 uvOffsets = vec2(0.125, 0.375);
-
-    col += texture(tex, uv + uvOffsets.x * dx + uvOffsets.y * dy, bias);
-    col += texture(tex, uv - uvOffsets.x * dx - uvOffsets.y * dy, bias);
-    col += texture(tex, uv + uvOffsets.y * dx - uvOffsets.x * dy, bias);
-    col += texture(tex, uv - uvOffsets.y * dx + uvOffsets.x * dy, bias);
-
-    col *= 0.25;
-
-#elif defined(_SUPERSAMPLING_8X_HALTON)
-    // 8 points from a 2, 3 Halton sequence
-    // similar to what TAA uses, though they usually use more points
-    // samples the texture 8 times
-    // better quality for really fine details
-
-    float2 halton[8] = {
-        float2(1,-3) / 16.0,
-        float2(-1,3) / 16.0,
-        float2(5,1) / 16.0,
-        float2(-3,-5) / 16.0,
-        float2(-5,5) / 16.0,
-        float2(-7,-1) / 16.0,
-        float2(3,7) / 16.0,
-        float2(7,-7) / 16.0
-    };
-
-    for (int i=0; i<8; i++)
-      col += tex2Dbias(tex, vec4(uv + halton[i].x * dx + halton[i].y * dy, 0, bias));
-
-    col *= 0.125;
-
-#elif defined(_SUPERSAMPLING_16X16_OGSS)
-    // brute force ground truth 16x16 ordered grid super sampling
-    // samples the texture 256 times! you should not use this!
-    // does not use tex2Dbias, but instead always samples the top mip
-
-    float gridDim = 16;
-    float halfGridDim = gridDim / 2;
-
-    for (float u=0; u<gridDim; u++)
-    {
-        float uOffset = (u - halfGridDim + 0.5) / gridDim;
-        for (float v=0; v<gridDim; v++)
-        {
-            float vOffset = (v - halfGridDim + 0.5) / gridDim;
-            col += tex2Dlod(tex, vec4(uv + uOffset * dx + vOffset * dy, 0, 0));
-        }
-    }
-
-    col /= (gridDim * gridDim);
-#else
-  // no super sampling, just bias
-  // col = tex2Dbias(tex, vec4(uv, 0, bias));
-#endif
-    return col;
+vec3 srgb_to_lin(vec3 color)
+{
+  vec3 result;
+  result.x = SRGBFloatToLinearFloat(color.r / 255.0f);
+  result.y = SRGBFloatToLinearFloat(color.g / 255.0f);
+  result.z = SRGBFloatToLinearFloat(color.b / 255.0f);
+  return result;
 }
 
 void
 main()
 {
-  int index = int(v_tex_unit);
+  // vec2 sprite_uv = (v_uv - v_pos)
 
-  out_colour = v_colour;
+  vec2 texel_size = 1.0 / vec2(textureSize(tex_to_outline, 0));
+  vec2 up = vec2(0, texel_size.y);
+  vec2 rgt = vec2(texel_size.x, 0);
 
-  // v_uv goes from 0 to 1
-  // convert from 0 to 1 to the width/height desired 
-  vec2 sprite_uv = vec2(
-    (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
-    (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
-  );
+  vec4 col = texture(tex_to_outline, v_uv);
+  vec4 l_col = texture(tex_to_outline, v_uv - rgt);
+  vec4 r_col = texture(tex_to_outline, v_uv + rgt);
+  vec4 u_col = texture(tex_to_outline, v_uv + up);
+  vec4 d_col = texture(tex_to_outline, v_uv - up);
 
-  if(index == RENDERER_TEX_UNIT_COUNT){
-    float bias = -0.75;
-    float aa_scale = 1.25;
+  float col_max = max(col.r, max(col.g, col.b)) > 0.0 ? 1.0 : 0.0;
+  float l_max = max(l_col.r, max(l_col.g, l_col.b)) > 0.0 ? 1.0 : 0.0;
+  float r_max = max(r_col.r, max(r_col.g, r_col.b)) > 0.0 ? 1.0 : 0.0;
+  float u_max = max(u_col.r, max(u_col.g, u_col.b)) > 0.0 ? 1.0 : 0.0;
+  float d_max = max(d_col.r, max(d_col.g, d_col.b)) > 0.0 ? 1.0 : 0.0;
 
-    float outline_size = 2.0f;
-    vec4 _tex_monochrome_transparent_packed_TexelSize = vec4(1.0 / 768, 1.0 / 352, 768, 352);
-    vec2 texel_size = _tex_monochrome_transparent_packed_TexelSize.xy;
-    vec2 up = vec2(0, texel_size.y);
-    vec2 rgt = vec2(texel_size.x, 0);
+  // float inline = (1.0f - l_pix * u_pix * r_pix * d_pix) * col.a;
+  float outline = max(max(l_max, u_max), max(r_max, d_max)) - col_max > 0.0 ? 1.0 : 0.0;
 
-    // vec4 spritesheet_col = tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
-    vec4 spritesheet_col = texture(tex_monochrome_transparent_packed, sprite_uv);
+  // NOTE: out_colour outputs linear
+  vec3 lin_col = srgb_to_lin(vec3(1.0, 1.0, 1.0));
+  vec3 outline_col = lin_col.rgb;
 
-    // float l_pix = tex2dss(tex_monochrome_transparent_packed, sprite_uv + vec2(-texel_size.x, 0), bias, aa_scale).a;
-    // float u_pix = tex2dss(tex_monochrome_transparent_packed, sprite_uv + vec2(0, texel_size.y), bias, aa_scale).a;
-    // float r_pix = tex2dss(tex_monochrome_transparent_packed, sprite_uv + vec2(texel_size.x, 0), bias, aa_scale).a;
-    // float b_pix = tex2dss(tex_monochrome_transparent_packed, sprite_uv + vec2(0, -texel_size.y), bias, aa_scale).a;
-    float u_pix = texture(tex_monochrome_transparent_packed, sprite_uv + up).a;
-    float r_pix = texture(tex_monochrome_transparent_packed, sprite_uv + rgt).a;
-    float d_pix = texture(tex_monochrome_transparent_packed, sprite_uv - up).a;
-    float l_pix = texture(tex_monochrome_transparent_packed, sprite_uv - rgt).a;
+  // vec3 fin = srgb_to_lin(mix(col.rgb, outline_col, outline));
+  vec3 fin = vec3(outline, 0.0, 0.0);
 
-    out_colour *= spritesheet_col;
-    
-    // float inline = (1.0f - l_pix * u_pix * r_pix * d_pix) * spritesheet_col.a;
-    float outline = max(max(l_pix, u_pix), max(r_pix, d_pix)) - spritesheet_col.a;
-
-    // NOTE: out_colour outputs linear
-    vec4 lin_col = vec4(1.0, 1.0, 1.0, 1.0);
-    vec4 outline_col = lin_col;
-
-    // out_colour = mix(out_colour, outline_col, outline);
-    out_colour = outline == 1.0f ? outline_col : vec4(0.0, 0.0, 0.0, 1.0);
-    return;
-  }
-
-  out_colour = vec4(0.0, 0.0, 0.0, 1.0);
+  out_colour = vec4(fin.rgb, 1.0);
+  // out_colour = col;
+  // out_colour = vec4(col.rgb, 1.0);
 }

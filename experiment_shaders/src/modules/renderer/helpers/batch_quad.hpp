@@ -19,6 +19,9 @@ struct RenderDescriptor
   glm::vec3 yaw_pitch_roll_radians = { 0, 0, 0 };
   LinearColour colour;
 
+  // xy: translational offset. wz: rotation
+  glm::vec4 parallax{ 0, 0, 0, 0 };
+
   // sprite info
   glm::ivec2 sprite_offset = { 0, 0 }; // e.g. pos 0, 5
   glm::ivec2 sprite_width = { 0, 0 };  // e.g. 2, 2
@@ -36,7 +39,7 @@ struct Vertex
   glm::vec4 sprite_offset;
   glm::vec4 sprite_width_and_max;
   float tex_unit;
-  glm::vec2 center;
+  glm::vec4 parallax; // xy: translational offset. wz: rotation
   glm::mat4 model;
 };
 

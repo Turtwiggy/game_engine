@@ -66,7 +66,7 @@ angle_radians_to_direction(const float angle);
 [[nodiscard]] float
 dir_to_angle_radians(const glm::vec2& dir);
 
-[[nodiscard]] constexpr float
+[[nodiscard]] float
 distance_squared(const glm::vec3& i);
 
 [[nodiscard]] glm::vec3

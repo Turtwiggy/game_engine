@@ -89,7 +89,7 @@ create_brawler(entt::registry& r, const BrawlerSpawner& spawner, const glm::vec2
   }
 
   r.emplace<SpriteOutline>(e);
-  // r.emplace<ParallaxMouseComponent>(e);
+  r.emplace<ParallaxMouseComponent>(e);
 
   return e;
 }

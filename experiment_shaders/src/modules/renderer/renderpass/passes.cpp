@@ -17,6 +17,7 @@
 #include "engine/deps/opengl.hpp"
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
+#include "modules/system_parallax_mouse/parallax_mouse_components.hpp"
 
 namespace game2d {
 using namespace engine;
@@ -40,6 +41,7 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
   desc.pos_tl = { 0, 0 };
   desc.size = size;
   desc.yaw_pitch_roll_radians = { 0, 0, 0 };
+
   ri.renderer.draw_sprite(desc, shader);
 
   ri.renderer.end_batch();
@@ -159,6 +161,10 @@ setup_linear_main_update(entt::registry& r)
                                         transform.rotation_radians.y,
                                         sc.angle_radians + transform.rotation_radians.z };
         desc.colour = sc.colour;
+
+        if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
+          desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+
         desc.tex_unit = sc.tex_unit;
 
         desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
@@ -175,10 +181,10 @@ setup_linear_main_update(entt::registry& r)
 };
 
 void
-setup_outline_update(entt::registry& r)
+setup_sprites_to_outline_update(entt::registry& r)
 {
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::outline);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::sprites_to_outline);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
@@ -186,9 +192,9 @@ setup_outline_update(entt::registry& r)
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
-    ri.outline.bind();
-    ri.outline.set_mat4("view", camera_c.view);
-    ri.outline.set_mat4("projection", camera_c.projection_zoomed);
+    ri.instanced.bind();
+    ri.instanced.set_mat4("view", camera_c.view);
+    ri.instanced.set_mat4("projection", camera_c.projection_zoomed);
 
     ri.renderer.reset_quad_vert_count();
     ri.renderer.begin_batch();
@@ -202,16 +208,67 @@ setup_outline_update(entt::registry& r)
                                       transform.rotation_radians.y,
                                       sc.angle_radians + transform.rotation_radians.z };
       desc.colour = sc.colour;
+
+      if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
+        desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+
       desc.tex_unit = sc.tex_unit;
       desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
       desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
       desc.sprites_max = { sc.total_sx, sc.total_sy };
 
-      ri.renderer.draw_sprite(desc, ri.outline);
+      ri.renderer.draw_sprite(desc, ri.instanced);
     }
 
     ri.renderer.end_batch();
-    ri.renderer.flush(ri.outline);
+    ri.renderer.flush(ri.instanced);
+  };
+};
+
+void
+setup_outline_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::outline);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r) {
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+
+    ri.outline.bind();
+    // ri.outline.set_mat4("view", camera_c.view);
+    ri.outline.set_mat4("projection", camera_c.projection_zoomed);
+
+    render_fullscreen_quad(r, ri.outline, ri.viewport_size_render_at);
+
+    // ri.renderer.reset_quad_vert_count();
+    // ri.renderer.begin_batch();
+    // const auto& view = r.view<const TransformComponent, const SpriteComponent, const SpriteOutline>();
+
+    // for (const auto& [e, transform, sc, outline_c] : view.each()) {
+    //   engine::quad_renderer::RenderDescriptor desc;
+    //   desc.pos_tl = transform.position - (transform.scale * 0.5f);
+    //   desc.size = transform.scale;
+    //   desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+    //                                   transform.rotation_radians.y,
+    //                                   sc.angle_radians + transform.rotation_radians.z };
+    //   desc.colour = sc.colour;
+
+    //   // if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
+    //   //   desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+
+    //   desc.tex_unit = sc.tex_unit;
+    //   desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+    //   desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+    //   desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+    //   ri.renderer.draw_sprite(desc, ri.outline);
+    // }
+
+    // ri.renderer.end_batch();
+    // ri.renderer.flush(ri.outline);
   };
 };
 
@@ -273,6 +330,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
                                           transform.rotation_radians.y,
                                           sc.angle_radians + transform.rotation_radians.z };
           desc.colour = occluder_col;
+          desc.parallax = { 0, 0, 0, 0 };
           desc.tex_unit = sc.tex_unit;
 
           desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };

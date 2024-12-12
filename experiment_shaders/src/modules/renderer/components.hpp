@@ -58,6 +58,7 @@ enum class PassName
 {
   floor_mask,
   linear_main,
+  sprites_to_outline,
   outline,
   lighting_emitters_and_occluders,
   voronoi_seed,

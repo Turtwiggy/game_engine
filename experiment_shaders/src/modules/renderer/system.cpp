@@ -91,6 +91,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   };
 
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
+  const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
@@ -122,11 +123,13 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   ri.outline.reload();
   ri.outline.bind();
-  ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
-  for (const auto& tex : ri.user_textures)
-    ri.outline.set_int("tex_" + clean_path(tex.path), tex.tex_unit.unit);
+  ri.outline.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  // ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  // for (const auto& tex : ri.user_textures)
+  //   ri.outline.set_int("tex_" + clean_path(tex.path), tex.tex_unit.unit);
+  // ri.outline.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.outline.set_mat4("projection", camera.projection);
-  ri.outline.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
 
   ri.lighting_emitters_and_occluders.reload();
   ri.lighting_emitters_and_occluders.bind();
@@ -204,6 +207,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::linear_main));
+  ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
   ri.passes.push_back(RenderPass(PassName::outline));
   ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // Use the Jump flood algorithm to generate a voroi diagram,
@@ -229,20 +233,14 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   for (Texture& tex : ri.user_textures) {
     tex.tex_unit.unit = next_tex_unit;
 
-    auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
-
-    // HACK... should do something better than this
-    if (loaded_tex.path.find("organic2") != std::string::npos) {
-      // loaded_tex.texture_min_filter = GL_NEAREST_MIPMAP_NEAREST;
-      // loaded_tex.texture_max_filter = GL_NEAREST;
-    }
+    const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
     SDL_Log("%s", std::format("loaded texture... {}", tex.path).c_str());
   }
 
-  ri.instanced = Shader("assets/shaders/2d_instanced_temp.vert", "assets/shaders/2d_instanced.frag");
+  ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.outline = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
     Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
@@ -271,6 +269,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // adds the update() for each renderpass
   setup_floor_mask_update(r);
   setup_linear_main_update(r);
+  setup_sprites_to_outline_update(r);
   setup_outline_update(r);
   setup_lighting_emitters_and_occluders_update(r);
   setup_voronoi_seed_update(r);
@@ -320,7 +319,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   ri.instanced.bind();
   ri.instanced.set_float("time", time);
-  ri.instanced.set_vec2("mouse_pos", mouse_pos);
+
+  ri.outline.bind();
+  ri.outline.set_float("time", time);
 
 #if defined(_DEBUG)
   // reload all shaders
