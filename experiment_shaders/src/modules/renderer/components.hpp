@@ -65,6 +65,7 @@ enum class PassName
   jump_flood,
   voronoi_distance,
   mix_lighting_and_scene,
+  crt_effect
   // blur_pingpong_0,
   // blur_pingpong_1,
   // bloom,
@@ -110,6 +111,7 @@ struct SINGLE_RendererInfo
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
   engine::Shader outline;
+  engine::Shader crt;
 
   // viewport
   // note: values are updated in render

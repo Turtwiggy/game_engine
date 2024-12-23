@@ -71,6 +71,7 @@ create_brawler(entt::registry& r, const BrawlerSpawner& spawner, const glm::vec2
 
   set_size(r, e, size);
   set_sprite(r, e, "PERSON_30_6");
+  // set_sprite(r, e, "EMPTY");
   set_position(r, e, pos);
   set_colour(r, e, spawner.colour);
 

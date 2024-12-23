@@ -37,8 +37,8 @@ update_parallax_mouse_system(entt::registry& r, const float dt, const glm::ivec2
     }
 
     // parallax: affected by velocity and mouse position
-    static float max_rot_x = 0.3f;
-    static float max_rot_y = 0.3f;
+    static float max_rot_x = 0.7f;
+    static float max_rot_y = 0.7f;
 #if defined(_DEBUG)
     imgui_draw_float("max_rot_x", max_rot_x);
     imgui_draw_float("max_rot_y", max_rot_x);

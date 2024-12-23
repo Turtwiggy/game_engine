@@ -131,6 +131,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.outline.set_mat4("projection", camera.projection);
   ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
 
+  ri.crt.reload();
+  ri.crt.bind();
+  ri.crt.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.crt.set_mat4("projection", camera.projection);
+  ri.crt.set_int("tex_to_crt", tex_unit_mix_lighting_and_scene);
+
   ri.lighting_emitters_and_occluders.reload();
   ri.lighting_emitters_and_occluders.bind();
   ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
@@ -216,6 +222,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::jump_flood));
   ri.passes.push_back(RenderPass(PassName::voronoi_distance));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
+  ri.passes.push_back(RenderPass(PassName::crt_effect));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   // ri.passes.push_back(RenderPass(PassName::bloom));
@@ -248,6 +255,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.jump_flood = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
+  ri.crt = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
   // ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
   // ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
@@ -276,6 +284,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   setup_jump_flood_pass(r);
   setup_voronoi_distance_field_update(r);
   setup_mix_lighting_and_scene_update(r);
+  setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
   // setup_bloom_update(r);
 
@@ -322,6 +331,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   ri.outline.bind();
   ri.outline.set_float("time", time);
+
+  ri.crt.bind();
+  ri.crt.set_float("time", time);
 
 #if defined(_DEBUG)
   // reload all shaders
