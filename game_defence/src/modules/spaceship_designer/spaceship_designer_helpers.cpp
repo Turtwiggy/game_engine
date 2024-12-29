@@ -2,6 +2,8 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
+#include "engine/map/components.hpp"
+#include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -12,8 +14,6 @@
 #include "modules/actor_airlock/components.hpp"
 #include "modules/actor_door/components.hpp"
 #include "modules/colour/components.hpp"
-#include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"

@@ -4,10 +4,11 @@
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
+#include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+
 
 namespace game2d {
 

@@ -2,11 +2,12 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
+#include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
+
 
 namespace game2d {
 

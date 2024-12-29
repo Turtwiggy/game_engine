@@ -1,12 +1,13 @@
 #include "dungeon_spawner_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
+#include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_unit_enter_blackhole/unit_enter_blackhole_components.hpp"
-#include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
@@ -16,6 +17,7 @@ namespace game2d {
 
 static auto seed = 0;
 static auto enemy_rnd = engine::RandomState(seed);
+static auto player_rnd = engine::RandomState(seed);
 
 void
 spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
@@ -87,6 +89,24 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
     n_free_slots--;
 
   } while (amount > 0 && n_free_slots > 0);
+};
+
+void
+spawn_n_players(entt::registry& r, std::vector<int>& idxs, int amount)
+{
+  const auto map_e = get_first<MapComponent>(r);
+  const auto& map_c = r.get<MapComponent>(map_e);
+
+  const int slot_idx = idxs[engine::rand_det_s(player_rnd.rng, 0, idxs.size())];
+  const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+
+  auto e = spawn_mob(r, "dungeon_actor_hero", pos);
+  // r.emplace<CircleComponent>(e);
+  r.emplace<PlayerComponent>(e);
+  r.emplace<TeamComponent>(e, AvailableTeams::player);
+  r.emplace<InitBodyAndInventory>(e);
+  // spawn_particle_emitter(r, "anything", pos, e);
+  add_entity_to_map(r, e, slot_idx);
 };
 
 } // namespace game2d

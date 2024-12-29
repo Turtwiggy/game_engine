@@ -286,7 +286,7 @@ spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& po
 
     set_sprite(r, e, env_template.renderable.sprite);
     set_colour(r, e, env_template.renderable.colour);
-    set_z_index(r, e, ZLayer::BACKGROUND);
+    set_z_index(r, e, ZLayer::ENVIRONMENT);
   }
 
   // create_physics()

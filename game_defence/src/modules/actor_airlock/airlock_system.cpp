@@ -5,12 +5,13 @@
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/actor_door/components.hpp"
 #include "modules/actor_door/door_helpers.hpp"
-#include "modules/map/components.hpp"
 #include "modules/spaceship_designer/spaceship_designer_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
+
 
 namespace game2d {
 using namespace engine::grid;

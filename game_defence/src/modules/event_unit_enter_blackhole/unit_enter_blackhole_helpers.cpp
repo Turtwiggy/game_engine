@@ -1,7 +1,7 @@
 #include "unit_enter_blackhole_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "modules/map/components.hpp"
+#include "engine/map/components.hpp"
 #include "unit_enter_blackhole_components.hpp"
 
 namespace game2d {

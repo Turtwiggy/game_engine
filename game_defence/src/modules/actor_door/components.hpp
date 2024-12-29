@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/map/components.hpp"
+#include "engine/map/components.hpp"
 
 namespace game2d {
 

@@ -4,9 +4,10 @@
 #include "components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/map/components.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
+
 
 namespace game2d {
 

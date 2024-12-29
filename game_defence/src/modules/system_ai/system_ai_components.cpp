@@ -3,14 +3,15 @@
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_components.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
-#include "modules/map/components.hpp"
 #include "modules/system_names/components.hpp"
+
 
 namespace game2d {
 

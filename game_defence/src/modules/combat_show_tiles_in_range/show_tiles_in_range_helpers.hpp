@@ -1,7 +1,8 @@
 #pragma once
 
+#include "engine/map/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/map/components.hpp"
+
 
 #include <entt/entt.hpp>
 

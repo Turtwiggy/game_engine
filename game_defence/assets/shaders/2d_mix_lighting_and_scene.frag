@@ -444,11 +444,11 @@ void main()
 	out_color.rgb = circle_col + dark_col + srgb_final.rgb;
 
 	// vignette
-	vec2 vig_uv = fragCoord.xy / iResolution.xy;
-	vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
-	float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
-	vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
-	out_color.rgb *= vig;
+	// vec2 vig_uv = fragCoord.xy / iResolution.xy;
+	// vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
+	// float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
+	// vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
+	// out_color.rgb *= vig;
 
 	out_color.a = 1.0f;
 }

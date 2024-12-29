@@ -96,8 +96,19 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
     combo_in.current_index = static_cast<int>(mode);
     WomboComboOut combo_out = draw_wombo_combo(combo_in);
     if (combo_in.current_index != combo_out.selected) {
+      // change display mode
       mode = static_cast<engine::DisplayMode>(combo_out.selected);
       app.window.set_displaymode(mode);
+
+      // center the newly windowed window
+      if (mode == engine::DisplayMode::windowed || mode == engine::DisplayMode::windowed_borderless) {
+        SDL_DisplayMode DM;
+        SDL_GetCurrentDisplayMode(0, &DM);
+        const glm::ivec2 display_size = { DM.w, DM.h };
+        const glm::ivec2 window_size = app.window.get_size();
+        const auto pos = (display_size / 2) - (window_size / 2);
+        app.window.set_position(pos.x, pos.y);
+      }
     }
 
     static bool vsync = app.vsync;

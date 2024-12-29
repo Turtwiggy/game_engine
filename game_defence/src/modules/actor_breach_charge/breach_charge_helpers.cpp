@@ -5,16 +5,17 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/helpers.hpp"
-#include "modules/map/components.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
+
 
 namespace game2d {
 

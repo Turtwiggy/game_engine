@@ -4,16 +4,17 @@
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/entt/entity_pool.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/map/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+
 
 namespace game2d {
 

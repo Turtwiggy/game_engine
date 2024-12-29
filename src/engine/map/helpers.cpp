@@ -76,34 +76,35 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 
   const auto& dst_es = map.map[dst_idx];
 
-  SDL_Log("move_entity_on_map() not implemented");
-  exit(1);
-
   // hard case: dst is not clear,
   // and contain anything,
   // and any number of it.
+
   // bool contains_mob = false;
   // for (const auto dst_e : dst_es) {
   //   const bool has_body = r.try_get<DefaultBody>(dst_e) != nullptr;
   //   contains_mob |= has_body;
   // }
 
+  if (dst_es.size() != 0)
+    SDL_Log("move_entity_on_map: destination not empty");
+
   // easy case: dst is clear.
   // if (!contains_mob) {
-  //   remove_entity_from_map(r, mapinfo_opt.value());
-  //   add_entity_to_map(r, src_e, dst_idx);
-  //   SDL_Log("Moving %s on map %i", r.get<NameComponent>(src_e).first_name.c_str(), dst_idx);
 
-  //   GridPositionChangedEvent evt;
-  //   evt.e = src_e;
-  //   evt.dst_idx = dst_idx;
+  remove_entity_from_map(r, mapinfo_opt.value());
+  add_entity_to_map(r, src_e, dst_idx);
+  SDL_Log("Moving %s on map %i", r.get<NameComponent>(src_e).first_name.c_str(), dst_idx);
 
-  //   const auto& evts = get_first_component<SINGLE_Events>(r);
-  //   evts.dispatcher->trigger(evt);
-  //   evts.dispatcher->update();
+  GridPositionChangedEvent evt;
+  evt.e = src_e;
+  evt.dst_idx = dst_idx;
 
-  //   return true;
-  // }
+  const auto& evts = get_first_component<SINGLE_Events>(r);
+  evts.dispatcher->trigger(evt);
+  evts.dispatcher->update();
+
+  return true;
 
   return false;
 };

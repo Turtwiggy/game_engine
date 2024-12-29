@@ -165,7 +165,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     // }
 
 #if defined(_DEBUG)
-    if (selectable_button("(debug)\ndungeon", selected, index++)) {
+    if (selectable_button("(debug) dungeon", selected, index++)) {
       move_to_scene_start(r, Scene::dungeon_designer);
       // create_empty<RequestGenerateDungeonComponent>(r);
     }

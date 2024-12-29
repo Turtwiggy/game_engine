@@ -1,12 +1,13 @@
 #include "helpers.hpp"
 
 #include "actors/actor_helpers.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/map/components.hpp"
 #include "modules/renderer/lights/components.hpp"
+
 
 namespace game2d {
 using namespace std::literals;

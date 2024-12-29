@@ -7,12 +7,12 @@
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/map/components.hpp"
+#include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/camera/components.hpp"
-#include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
@@ -21,6 +21,7 @@
 #include "modules/spaceship_designer/spaceship_designer_helpers.hpp"
 #include "modules/system_dungeon_spawner/dungeon_spawner_helpers.hpp"
 #include "modules/ui_spaceship_designer/helpers.hpp"
+
 
 #include <imgui.h>
 

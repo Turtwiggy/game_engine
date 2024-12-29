@@ -8,6 +8,8 @@
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/map/components.hpp"
+#include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_door/door_helpers.hpp"
@@ -18,8 +20,6 @@
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/events/events_components.hpp"
-#include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
@@ -31,6 +31,7 @@
 #include "modules/ui_action_bar/ui_action_bar_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "ui_action_bar_helpers.hpp"
+
 
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_scancode.h>

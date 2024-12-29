@@ -2,25 +2,18 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/maths/grid.hpp"
-#include "engine/physics/components.hpp"
-#include "modules/actor_player/components.hpp"
+#include "engine/map/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/combat/components.hpp"
-#include "modules/map/components.hpp"
-#include "modules/map/helpers.hpp"
 #include "modules/raws/raws_components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_dungeon_spawner/dungeon_spawner_helpers.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 
 namespace game2d {
-
-static auto seed = 0;
-static auto player_rnd = engine::RandomState(seed);
 
 void
 update_dungeon_spawner_system(entt::registry& r)
@@ -43,34 +36,23 @@ update_dungeon_spawner_system(entt::registry& r)
   map.ymax = 10;
   map.map.resize(map.xmax * map.ymax);
 
-  // spawn the right amount of enemies...
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
+  const glm::vec2 map_center = { (map_c.xmax * map_c.tilesize) / 2.0f, (map_c.ymax * map_c.tilesize) / 2.0f };
+  const glm::vec2 map_size = { map_c.xmax * map_c.tilesize, map_c.ymax * map_c.tilesize };
+
   auto idxs = get_empty_slots_in_map(r, map_c);
   spawn_n_enemies(r, idxs, info_c.level);
 
-  // spawn some kill tiles
   idxs = get_empty_slots_in_map(r, map_c);
   spawn_n_blackhole(r, idxs, info_c.level);
 
-  // spawn the right amount of players...
-  for (int i = 0; i < 1; i++) {
-    auto idxs = get_empty_slots_in_map(r, map_c);
-    const int slot_idx = idxs[engine::rand_det_s(player_rnd.rng, 0, idxs.size())];
-    const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-
-    auto e = spawn_mob(r, "dungeon_actor_hero", pos);
-    // r.emplace<CircleComponent>(e);
-    r.emplace<PlayerComponent>(e);
-    r.emplace<TeamComponent>(e, AvailableTeams::player);
-    r.emplace<InitBodyAndInventory>(e);
-    // spawn_particle_emitter(r, "anything", pos, e);
-    add_entity_to_map(r, e, slot_idx);
-  }
+  idxs = get_empty_slots_in_map(r, map_c);
+  spawn_n_players(r, idxs, 1);
 
   // center the camera
   const auto camera_e = get_first<OrthographicCamera>(r);
-  set_position(r, camera_e, { (map_c.xmax * map_c.tilesize) / 2.0f, (map_c.ymax * map_c.tilesize) / 2.0f });
+  set_position(r, camera_e, map_center);
 
   // Set the first unit as the active unit
   auto initiative_group = r.group<InitiativeComponent>();
@@ -80,6 +62,9 @@ update_dungeon_spawner_system(entt::registry& r)
     activate_unit(r, e);
     break;
   }
+
+  const auto floor_e = spawn_floor(r, "empty", map_center, map_size);
+  set_z_index(r, floor_e, ZLayer::FLOOR);
 }
 
 } // namespace game2d

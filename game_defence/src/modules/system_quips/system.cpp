@@ -5,17 +5,18 @@
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "imgui.h"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/animations/wiggle/components.hpp"
-#include "modules/map/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
+
 
 #include "fmt/core.h"
 

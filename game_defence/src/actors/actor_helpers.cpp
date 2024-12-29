@@ -2,12 +2,13 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
-#include "modules/map/components.hpp"
+
 
 namespace game2d {
 

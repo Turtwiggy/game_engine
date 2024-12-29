@@ -1,8 +1,9 @@
 #pragma once
 
 #include "components.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/maths.hpp"
-#include "modules/map/components.hpp"
+
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>

@@ -75,7 +75,7 @@ update_ui_gameover_system(entt::registry& r)
   //   ImGui::Text("All players dead!");
   // }
 
-  if (centered_button("Brawl Again!")) {
+  if (centered_button("To Menu")) {
     // move_to_scene_start(r, Scene::overworld_revamped, false);
     // move_to_scene_additive(r, Scene::overworld_revamped);
 

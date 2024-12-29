@@ -4,12 +4,13 @@
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/priority_queue.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actor_door/door_helpers.hpp"
-#include "modules/map/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
+
 
 namespace game2d {
 

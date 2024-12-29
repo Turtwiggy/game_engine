@@ -1,7 +1,7 @@
 #include "airlock_helpers.hpp"
 
+#include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/map/components.hpp"
 
 namespace game2d {
 

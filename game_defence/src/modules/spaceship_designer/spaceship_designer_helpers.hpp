@@ -1,8 +1,9 @@
 #pragma once
 
+#include "engine/map/components.hpp"
 #include "generation/components.hpp"
-#include "modules/map/components.hpp"
 #include <entt/entt.hpp>
+
 
 namespace game2d {
 
