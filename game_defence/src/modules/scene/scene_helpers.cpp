@@ -30,6 +30,7 @@
 #include "modules/ui_overworld_boardship/components.hpp"
 #include "modules/ui_overworld_shiplabel/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_units/ui_units_helpers.hpp"
 
 #include <magic_enum.hpp>
 
@@ -43,7 +44,8 @@ create_player_if_not_in_scene(entt::registry& r)
     return;
 
   const auto pos = glm::vec2{ 0, 0 };
-  auto e = spawn_mob(r, "spaceship_player", pos);
+  auto e = spawn_mob(r, "spaceship_player");
+  give_life(r, e, pos);
   // r.emplace<CameraLerpToTarget>(e);
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
@@ -106,6 +108,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
     create_player_if_not_in_scene(r);
 
+    // load player's saved units
+    const auto units = load_units(r);
+    std::for_each(units.begin(), units.end(), [&r](const auto& u) { add_unit_to_entt(r, u); });
+
     // auto e = create_empty<TransformComponent>(r);
     // r.emplace<SpriteComponent>(e);
     // set_sprite(r, e, "STUDIO_TEXT_LOGO");
@@ -156,7 +162,8 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
     const auto& player_pos = get_position(r, player_e);
     const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
     const auto pos = glm::vec2{ player_pos.x + half_wh.x * 2, player_pos.y };
-    const auto enemy_e = spawn_mob(r, "spaceship_enemy", pos);
+    const auto enemy_e = spawn_mob(r, "spaceship_enemy");
+    give_life(r, enemy_e, pos);
     r.emplace<TeamComponent>(enemy_e, TeamComponent{ AvailableTeams::enemy });
     r.emplace<EnemyComponent>(enemy_e);
     set_size(r, enemy_e, { 16, 16 });

@@ -65,6 +65,9 @@
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_spaceship_designer/ui_spaceship_designer_system.hpp"
+#include "modules/ui_units/ui_units_components.hpp"
+#include "modules/ui_units/ui_units_helpers.hpp"
+#include "modules/ui_units/ui_units_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
@@ -91,9 +94,9 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     init_render_system(app, r);
   }
 
+  create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_QuipsComponent>(r, get_default_quips());
   create_persistent<SINGLE_NamesComponent>(r, get_default_names());
-  create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
 
   {
     create_persistent<SINGLE_FixedUpdateInputHistory>(r);
@@ -235,8 +238,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
 
-  if (scene.s == Scene::menu)
+  if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
+    update_ui_units_system(r);
+  }
   if (scene.s == Scene::dungeon_designer) {
     update_ui_inventory_system(r);
     update_ui_combat_damage_numbers_system(r, dt);

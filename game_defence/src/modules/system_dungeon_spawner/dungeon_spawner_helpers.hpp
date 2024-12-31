@@ -1,5 +1,7 @@
 #pragma once
 
+#include "modules/ui_units/ui_units_components.hpp"
+
 #include <entt/entt.hpp>
 
 #include <vector>
@@ -13,6 +15,6 @@ void
 spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount);
 
 void
-spawn_n_players(entt::registry& r, std::vector<int>& idxs, int amount);
+spawn_n_players(entt::registry& r, std::vector<int>& idxs);
 
 } // namespace game2d

@@ -94,7 +94,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 
   remove_entity_from_map(r, mapinfo_opt.value());
   add_entity_to_map(r, src_e, dst_idx);
-  SDL_Log("Moving %s on map %i", r.get<NameComponent>(src_e).first_name.c_str(), dst_idx);
+  // SDL_Log("Moving %s on map %i", r.get<NameComponent>(src_e).name.c_str(), dst_idx);
 
   GridPositionChangedEvent evt;
   evt.e = src_e;

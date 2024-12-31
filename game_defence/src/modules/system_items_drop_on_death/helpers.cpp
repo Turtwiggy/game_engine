@@ -8,7 +8,6 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
-
 namespace game2d {
 
 //

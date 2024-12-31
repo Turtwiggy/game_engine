@@ -11,9 +11,7 @@ struct SINGLE_NamesComponent
 
 struct NameComponent
 {
-  std::string full_name;
-  std::string first_name;
-  std::string last_name;
+  std::string name;
 };
 
 } // namespace game2d

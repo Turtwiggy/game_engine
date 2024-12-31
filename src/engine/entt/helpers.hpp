@@ -58,11 +58,11 @@ create_persistent(entt::registry& r, const std::optional<T>& val = std::nullopt)
   return e;
 };
 
-template<class T>
+template<class T, typename... Other>
 [[nodiscard]] entt::entity
 get_first(entt::registry& r)
 {
-  return r.view<const T>().front();
+  return r.view<const T, const Other...>().front();
 };
 
 template<class T>

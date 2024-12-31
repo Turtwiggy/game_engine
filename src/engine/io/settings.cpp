@@ -1,13 +1,5 @@
 #include "settings.hpp"
 
-#include <nlohmann/json.hpp>
-
-#include <SDL2/SDL_log.h>
-#include <format>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 namespace game2d {
 
 void

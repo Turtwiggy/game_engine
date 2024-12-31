@@ -69,8 +69,8 @@ update_ui_players_system(entt::registry& r)
 
     const auto& hp_c = r.get<HealthComponent>(e);
     const auto* name_c = r.try_get<NameComponent>(e);
-    const auto name_text = name_c->full_name;
-    ImGui::TextColored(col_default, "%s (%i/%i)", name_c->full_name.c_str(), hp_c.hp, hp_c.max_hp);
+    const auto name_text = name_c->name;
+    ImGui::TextColored(col_default, "%s (%i/%i)", name_c->name.c_str(), hp_c.hp, hp_c.max_hp);
 
     // ImGui::SameLine();
     // ImGui::Text("%i", r.get<InitiativeComponent>(e).initiative);

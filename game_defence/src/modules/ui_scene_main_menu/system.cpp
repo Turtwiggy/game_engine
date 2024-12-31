@@ -241,7 +241,6 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   ImGui::PopStyleVar();
   ImGui::End();
 
-  // show a mute sound icon
   ui_mute_sound_icon(r);
 };
 

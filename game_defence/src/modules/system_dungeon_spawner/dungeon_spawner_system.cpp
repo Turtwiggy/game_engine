@@ -12,14 +12,13 @@
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_units/ui_units_components.hpp"
 
 namespace game2d {
 
 void
 update_dungeon_spawner_system(entt::registry& r)
 {
-  static int tilesize = 50;
-
   const auto info_e = get_first<MenuToNextSceneInfo>(r);
   if (info_e == entt::null)
     return;
@@ -29,6 +28,7 @@ update_dungeon_spawner_system(entt::registry& r)
     return;
   info_c.processed = true;
 
+  static int tilesize = 50;
   destroy_first_and_create<MapComponent>(r);
   auto& map = get_first_component<MapComponent>(r);
   map.tilesize = tilesize;
@@ -48,7 +48,7 @@ update_dungeon_spawner_system(entt::registry& r)
   spawn_n_blackhole(r, idxs, info_c.level);
 
   idxs = get_empty_slots_in_map(r, map_c);
-  spawn_n_players(r, idxs, 1);
+  spawn_n_players(r, idxs);
 
   // center the camera
   const auto camera_e = get_first<OrthographicCamera>(r);

@@ -26,12 +26,10 @@
 #include "modules/system_combat_bleed/combat_bleed_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
-#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/ui_action_bar/ui_action_bar_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "ui_action_bar_helpers.hpp"
-
 
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_scancode.h>
@@ -122,7 +120,7 @@ ai_tick(entt::registry& r, entt::entity e)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
 
-  const auto name = r.get<NameComponent>(e).first_name;
+  const auto name = r.get<NameComponent>(e).name;
   auto& brain_c = r.get<DefaultBrainComponent>(e);
   if (brain_c.brain_fsm == BRAIN_STATE::IDLE) {
     SDL_Log("AI: IDLE => REASONING");
@@ -400,7 +398,6 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   if (enemy_turn)
     ai_tick(r, e);
 
-  //
   // monitor when the entity has stopped moving
   //
   for (const auto& [e, generated_path_c] : r.view<GeneratedPathComponent>().each()) {

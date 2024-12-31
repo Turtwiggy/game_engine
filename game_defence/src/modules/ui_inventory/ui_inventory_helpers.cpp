@@ -12,6 +12,7 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_names/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_scene_main_menu/helpers.hpp"
 
@@ -26,23 +27,18 @@ spawn_inv_item(entt::registry& r, std::vector<entt::entity>& v, int idx, std::st
 {
   const auto e = spawn_item(r, key);
 
-  r.remove<TransformComponent>(e);
-  r.remove<SpriteComponent>(e);
-  if (auto* timer_c = r.try_get<EntityTimedLifecycle>(e))
-    r.remove<EntityTimedLifecycle>(e);
-  if (auto* callback_c = r.try_get<OnDeathCallback>(e))
-    r.remove<OnDeathCallback>(e);
-  if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
-    auto& physics_c = get_first_component<SINGLE_Physics>(r);
-    physics_c.world->DestroyBody(pb->body);
-    r.remove<PhysicsBodyComponent>(e);
-  }
+  remove_life(r, e);
+
+  const auto parent_e = v[idx];
 
   // set child's parent
-  r.get<UI_ItemComponent>(e).parent_slot = v[idx];
+  r.get<UI_ItemComponent>(e).parent_slot = parent_e;
+
+  if (const auto hmm = r.try_get<InventorySlotComponent>(parent_e) == nullptr)
+    SDL_Log("Something is wrong");
 
   // set parent's child
-  r.get<InventorySlotComponent>(v[idx]).item_e = e;
+  r.get<InventorySlotComponent>(parent_e).item_e = e;
 
   return e;
 };
@@ -342,41 +338,43 @@ display_inventory_slot(entt::registry& r,
 void
 update_initialize_inventory(entt::registry& r, entt::entity e)
 {
+  auto* init = r.try_get<InitBodyAndInventory>(e);
+  if (init == nullptr)
+    return;
+  r.remove<InitBodyAndInventory>(e);
+
+  const auto& name_c = r.get<NameComponent>(e);
   auto& body_c = r.get<DefaultBody>(e);
   auto& inv_c = r.get<DefaultInventory>(e);
 
-  if (auto* init = r.try_get<InitBodyAndInventory>(e)) {
-    r.remove<InitBodyAndInventory>(e);
+  // init body with items
+  // spawn_inv_item(r, body_c.body, 0, "scrap_helmet");
+  // spawn_inv_item(r, body_c.body, 1, "scrap_core");
+  // spawn_inv_item(r, body_c.body, 2, "scrap_gloves");
+  // spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
+  // spawn_inv_item(r, body_c.body, 4, "scrap_legs");
+  // spawn_inv_item(r, body_c.body, 5, "scrap_legs");
 
-    // init body with items
-    // spawn_inv_item(r, body_c.body, 0, "scrap_helmet");
-    // spawn_inv_item(r, body_c.body, 1, "scrap_core");
-    // spawn_inv_item(r, body_c.body, 2, "scrap_gloves");
-    // spawn_inv_item(r, body_c.body, 3, "scrap_gloves");
-    // spawn_inv_item(r, body_c.body, 4, "scrap_legs");
-    // spawn_inv_item(r, body_c.body, 5, "scrap_legs");
+  // todo(21/11/24): replace idx 0 with with where the weapon should go
+  spawn_inv_item(r, body_c.body, 0, "hook");
 
-    // todo(21/11/24): replace idx 0 with with where the weapon should go
-    spawn_inv_item(r, body_c.body, 0, "hook");
-
-    // init inventory with items
-    // note: spawn less than 6*5 items (default inventory size)
-    int i = 0;
-    // spawn_inv_item(r, inv_c.inv, int(i++), "hook");
-    spawn_inv_item(r, inv_c.inv, int(i++), "shotgun");
-    spawn_inv_item(r, inv_c.inv, int(i++), "scrap_knife");
-    // spawn_inv_item(r, inv_c.inv, i++, "scrap");
-    // spawn_inv_item(r, inv_c.inv, i++, "bullet_default");
-    // spawn_inv_item(r, inv_c.inv, i++, "bullet_bouncy");
-    // spawn_inv_item(r, inv_c.inv, i++, "breach_charge");
-    // spawn_inv_item(r, inv_c.inv, i++, "breach_charge");
-    // spawn_inv_item(r, inv_c.inv, i++, "scrap_helmet");
-    // spawn_inv_item(r, inv_c.inv, i++, "scrap_core");
-    // spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
-    // spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
-    // spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
-    // spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
-  }
+  // init inventory with items
+  // note: spawn less than 6*5 items (default inventory size)
+  int i = 0;
+  // spawn_inv_item(r, inv_c.inv, int(i++), "hook");
+  spawn_inv_item(r, inv_c.inv, int(i++), "shotgun");
+  spawn_inv_item(r, inv_c.inv, int(i++), "scrap_knife");
+  // spawn_inv_item(r, inv_c.inv, i++, "scrap");
+  // spawn_inv_item(r, inv_c.inv, i++, "bullet_default");
+  // spawn_inv_item(r, inv_c.inv, i++, "bullet_bouncy");
+  // spawn_inv_item(r, inv_c.inv, i++, "breach_charge");
+  // spawn_inv_item(r, inv_c.inv, i++, "breach_charge");
+  // spawn_inv_item(r, inv_c.inv, i++, "scrap_helmet");
+  // spawn_inv_item(r, inv_c.inv, i++, "scrap_core");
+  // spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
+  // spawn_inv_item(r, inv_c.inv, i++, "scrap_gloves");
+  // spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
+  // spawn_inv_item(r, inv_c.inv, i++, "scrap_legs");
 };
 
 } // namespace game2d

@@ -318,11 +318,17 @@ get_raws_keys(const Raws& raws);
 entt::entity
 create_transform(entt::registry& r, const std::string& name);
 
+void
+give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos);
+
+void
+remove_life(entt::registry& r, const entt::entity e);
+
 entt::entity
 spawn_item(entt::registry& r, const std::string& key);
 
 entt::entity
-spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos);
+spawn_mob(entt::registry& r, const std::string& key);
 
 entt::entity
 spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& pos);

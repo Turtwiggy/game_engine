@@ -64,7 +64,8 @@ create_bullet(entt::registry& r)
 entt::entity
 create_jetpack_player(entt::registry& r)
 {
-  auto e = spawn_mob(r, "dungeon_actor_hero", { 0, 0 });
+  auto e = spawn_mob(r, "dungeon_actor_hero");
+  give_life(r, e, { 0, 0 });
   // r.emplace<CircleComponent>(e);
   r.emplace<CameraLerpToTarget>(e);
   r.emplace<PlayerComponent>(e);

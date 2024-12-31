@@ -21,7 +21,7 @@ handle_end_turn_bleed(entt::registry& r, const EndTurnEvent& evt)
     return;
 
   const auto& name_c = r.get<NameComponent>(evt.e);
-  SDL_Log("%s takes damage from bleed.", name_c.first_name.c_str());
+  SDL_Log("%s takes damage from bleed.", name_c.name.c_str());
 
   // decrement counter
   bleed_c->turns_left -= 1;

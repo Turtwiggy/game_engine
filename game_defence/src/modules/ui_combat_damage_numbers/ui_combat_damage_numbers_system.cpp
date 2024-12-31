@@ -91,8 +91,8 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 
     float header_width = 0;
     float damagenum_width = ImGui::CalcTextSize(label.c_str()).x;
-    float name_width = ImGui::CalcTextSize(name_c.first_name.c_str()).x;
-    float name_height = ImGui::CalcTextSize(name_c.first_name.c_str()).y;
+    float name_width = ImGui::CalcTextSize(name_c.name.c_str()).x;
+    float name_height = ImGui::CalcTextSize(name_c.name.c_str()).y;
     header_width = glm::max(header_width, damagenum_width); // damage numbers, e.g. "0 15 2"
     header_width = glm::max(header_width, name_width);      // the name e.g. "Steve"
 
@@ -122,12 +122,12 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 
       // Pad the ui, so that the health bar doesnt jump...
       if (n_entries == 0)
-        ImGui::Text("%s", name_c.first_name.c_str());
+        ImGui::Text("%s", name_c.name.c_str());
 
       // Draw health blocks
       {
         // blocks styling
-        constexpr float health_per_block = 5;
+        constexpr float health_per_block = 2;
         constexpr int blocks_per_line = 10;
         constexpr float size_x = 4.0f;
         constexpr float size_y = 4.0f;

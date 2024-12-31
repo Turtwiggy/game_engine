@@ -39,7 +39,8 @@ update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
     const auto view = r.view<CameraFreeMove>();
     r.destroy(view.begin(), view.end());
 
-    auto e = spawn_mob(r, "dungeon_actor_enemy_default", pos);
+    auto e = spawn_mob(r, "dungeon_actor_enemy_default");
+    give_life(r, e, pos);
     r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
   }
 
@@ -48,7 +49,8 @@ update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
     const auto view = r.view<CameraFreeMove>();
     r.destroy(view.begin(), view.end());
 
-    auto e = spawn_mob(r, "dungeon_actor_hero", pos);
+    auto e = spawn_mob(r, "dungeon_actor_hero");
+    give_life(r, e, pos);
     r.emplace<CameraLerpToTarget>(e);
     // r.emplace<CircleComponent>(e);
     r.emplace<PlayerComponent>(e);

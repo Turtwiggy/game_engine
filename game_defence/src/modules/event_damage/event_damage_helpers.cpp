@@ -6,6 +6,8 @@
 #include "engine/maths/maths.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
+#include "modules/event_death/event_death_components.hpp"
+#include "modules/events/events_components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/system_particles/components.hpp"
@@ -82,7 +84,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   const int damage = calculate_damage_to_take(r, evt.to, evt.amount, evt.type);
 
   // log evt
-  const auto b_name = std::string(r.get<NameComponent>(to_e).first_name);
+  const auto b_name = std::string(r.get<NameComponent>(to_e).name);
   const auto message = std::format("({}) damaged for {}", b_name, damage);
   SDL_Log("%s", message.c_str());
 
@@ -96,6 +98,13 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
     const auto str = std::format("{} died.", b_name);
     SDL_Log("%s", str.c_str());
+
+    // Send death event.
+    auto& evts = get_first_component<SINGLE_Events>(r);
+    DeathEvent evt;
+    evt.dead = to_e;
+    evts.dispatcher->trigger(evt);
+    evts.dispatcher->update();
 
     additional_misc_death_events(r, to_e);
   }

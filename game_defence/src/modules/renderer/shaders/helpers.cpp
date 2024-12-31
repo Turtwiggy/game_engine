@@ -4,10 +4,10 @@
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/lights/components.hpp"
-
 
 namespace game2d {
 using namespace std::literals;
@@ -68,7 +68,7 @@ update_lights(entt::registry& r, SINGLE_RendererInfo& ri)
   }
 
   // update the first light position to the first player position.
-  const auto& first_player = get_first<PlayerComponent>(r);
+  const auto first_player = get_first<PlayerComponent, TransformComponent>(r);
   if (first_player != entt::null) {
     glm::vec2 hmm = get_position(r, first_player);
     // worldspace to screenspace

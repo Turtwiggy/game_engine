@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/entt/helpers.hpp"
+#include "modules/system_names/components.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {
@@ -61,7 +62,7 @@ struct DefaultBody
 {
   std::vector<entt::entity> body;
 
-  DefaultBody() = default;
+  DefaultBody() = delete;
   DefaultBody(entt::registry& r)
   {
     const auto create_body_slot = [&r](const InventorySlotType& type) -> entt::entity {

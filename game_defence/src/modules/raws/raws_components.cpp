@@ -93,6 +93,71 @@ create_transform(entt::registry& r, const std::string& name)
 const auto item_body_type = b2_kinematicBody;
 const auto mob_body_type = b2_kinematicBody;
 const auto env_body_type = b2_kinematicBody;
+static float size = 32.0f;
+
+void
+give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
+{
+  const auto& mob_template = r.get<Mob>(e);
+
+  // create_transform()
+  {
+    r.emplace<SpriteComponent>(e);
+    set_sprite(r, e, mob_template.renderable.sprite);
+
+    // add a looping idle_anim
+    if (mob_template.renderable.sprite == "REF_IDLE") {
+      SpriteAnimationState anim_c;
+      anim_c.playing_animation_name = "REF_IDLE";
+      anim_c.duration = 0.9f;
+
+      // offset animation
+      static engine::RandomState anim_rnd(0);
+      anim_c.timer = engine::rand_det_s(anim_rnd.rng, 0.0f, anim_c.duration);
+
+      r.emplace<SpriteAnimationState>(e, anim_c);
+    }
+
+    r.emplace<DefaultColour>(e, mob_template.renderable.colour);
+    set_colour(r, e, mob_template.renderable.colour);
+
+    TransformComponent tf;
+    tf.position = { pos.x, pos.y, 0.0f };
+    tf.scale = { size, size, 0.0f };
+    r.emplace<TransformComponent>(e, tf);
+
+    set_z_index(r, e, ZLayer::DEFAULT);
+  }
+
+  // create_physics()
+  {
+    PhysicsDescription pdesc;
+    pdesc.type = b2_dynamicBody;
+    pdesc.position = pos;
+    pdesc.size = { size, size };
+    pdesc.is_sensor = mob_template.is_sensor;
+    create_physics_actor(r, e, pdesc);
+  }
+};
+
+void
+remove_life(entt::registry& r, const entt::entity e)
+{
+  r.remove<TransformComponent>(e);
+  r.remove<SpriteComponent>(e);
+
+  if (auto* timer_c = r.try_get<EntityTimedLifecycle>(e))
+    r.remove<EntityTimedLifecycle>(e);
+
+  if (auto* callback_c = r.try_get<OnDeathCallback>(e))
+    r.remove<OnDeathCallback>(e);
+
+  if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
+    auto& physics_c = get_first_component<SINGLE_Physics>(r);
+    physics_c.world->DestroyBody(pb->body);
+    r.remove<PhysicsBodyComponent>(e);
+  }
+};
 
 entt::entity
 spawn_item(entt::registry& r, const std::string& key)
@@ -101,7 +166,6 @@ spawn_item(entt::registry& r, const std::string& key)
   const auto it = find_key_or_crash(rs.items, key);
   const auto idx = static_cast<int>(it - rs.items.begin());
   const Item& item_template = rs.items[idx];
-  float size = 32;
 
   // create_transform()
   const auto e = r.create();
@@ -152,7 +216,7 @@ spawn_item(entt::registry& r, const std::string& key)
 };
 
 entt::entity
-spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
+spawn_mob(entt::registry& r, const std::string& key)
 {
   const auto& rs = get_first_component<Raws>(r);
   const auto it = find_key_or_crash<Mob>(rs.mobs, key);
@@ -164,69 +228,28 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<WaitForInitComponent>(e);
   r.emplace<Mob>(e, mob_template);
 
-  float size = 32;
-
-  // create_transform()
-  {
-    r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, mob_template.renderable.sprite);
-
-    // add a looping idle_anim
-    if (mob_template.renderable.sprite == "REF_IDLE") {
-      SpriteAnimationState anim_c;
-      anim_c.playing_animation_name = "REF_IDLE";
-      anim_c.duration = 0.9f;
-
-      // offset animation
-      static engine::RandomState anim_rnd(0);
-      anim_c.timer = engine::rand_det_s(anim_rnd.rng, 0.0f, anim_c.duration);
-
-      r.emplace<SpriteAnimationState>(e, anim_c);
-    }
-
-    r.emplace<DefaultColour>(e, mob_template.renderable.colour);
-    set_colour(r, e, mob_template.renderable.colour);
-
-    TransformComponent tf;
-    tf.position = { pos.x, pos.y, 0.0f };
-    tf.scale = { size, size, 0.0f };
-    r.emplace<TransformComponent>(e, tf);
-
-    set_z_index(r, e, ZLayer::DEFAULT);
-  }
-
-  // create_physics()
-  {
-    PhysicsDescription pdesc;
-    pdesc.type = b2_dynamicBody;
-    pdesc.position = pos;
-    pdesc.size = { size, size };
-    pdesc.is_sensor = mob_template.is_sensor;
-    create_physics_actor(r, e, pdesc);
-  }
-
   // all mobs: drop_inventory_on_death()
-  {
-    r.emplace<DefaultBody>(e, DefaultBody(r));
+  r.emplace<DefaultBody>(e, DefaultBody(r));
+  auto& body_c = r.get<DefaultBody>(e);
 
-    const int slots = 10;
-    r.emplace<DefaultInventory>(e, DefaultInventory{ r, slots });
+  const int slots = 10;
+  r.emplace<DefaultInventory>(e, DefaultInventory{ r, slots });
 
-    OnDeathCallback callback;
-    callback.callback = [](entt::registry& r, const entt::entity e) {
-      //
-      drop_inventory_on_death_callback(r, e);
-    };
-    r.emplace<OnDeathCallback>(e, callback);
-  }
+  OnDeathCallback callback;
+  callback.callback = [](entt::registry& r, const entt::entity e) {
+    //
+    SDL_Log("Calling drop_inventory_on_death_callback()");
+    drop_inventory_on_death_callback(r, e);
+  };
+  r.emplace<OnDeathCallback>(e, callback);
 
   // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
   // r.emplace<DestroyBulletOnCollison>(e);
   // r.emplace<MoveLimitComponent>(e, 1);
   r.emplace<SpawnParticlesOnDeath>(e);
-  r.emplace<HealthComponent>(e, 100, 100);
-  r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
-  r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+  r.emplace<HealthComponent>(e, mob_template.stats.hp, mob_template.stats.max_hp);
+  r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
+  r.emplace<PathfindComponent>(e, -1);
   if (mob_template.move_speed.has_value()) {
     LimitMovementComponent move_c;
     move_c.path_size = mob_template.move_speed->speed;
@@ -237,21 +260,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   // Give each mob a random name
   static engine::RandomState rnd(0);
   const auto& names = get_first_component<SINGLE_NamesComponent>(r);
-  NameComponent name_c;
-  name_c.full_name = names.name[engine::rand_det_s(rnd.rng, 0, int(names.name.size()))];
-  name_c.first_name = name_c.full_name.substr(0, name_c.full_name.find(' '));
-  name_c.last_name = name_c.full_name.substr(name_c.full_name.find(' '), name_c.full_name.length());
-  r.emplace<NameComponent>(e, name_c);
-
-  // Give each mob random initiative
-#if defined(_DEBUG)
-  static int init = 0;
-  init++;
-  r.emplace<InitiativeComponent>(e, init);
-#else
-  const int rnd_init = engine::rand_det_s(rnd.rng, 0, 20);
-  r.emplace<InitiativeComponent>(e, rnd_init);
-#endif
+  r.emplace<NameComponent>(e, names.name[engine::rand_det_s(rnd.rng, 0, int(names.name.size()))]);
 
   // if (item_template.stats.){
   // }
@@ -271,8 +280,6 @@ spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& po
   r.emplace<TagComponent>(e, env_template.name);
   r.emplace<WaitForInitComponent>(e);
   r.emplace<Environment>(e, env_template);
-
-  float size = 32;
 
   // create_transform()
   {
@@ -303,12 +310,7 @@ spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& po
     r.emplace<DefenceComponent>(e, env_template.defence->block);
   r.emplace<PathfindComponent>(e, 100'000); // pass through terrain if you must
   r.emplace<TeamComponent>(e, AvailableTeams::neutral);
-
-  NameComponent name_c;
-  name_c.full_name = env_template.name;
-  name_c.first_name = env_template.name;
-  name_c.last_name = env_template.name;
-  r.emplace<NameComponent>(e, name_c);
+  r.emplace<NameComponent>(e, NameComponent{ env_template.name });
 
   return e;
 };
@@ -402,7 +404,6 @@ spawn_ship_part(entt::registry& r, const std::string& key)
   const auto it = find_key_or_crash(rs.ship_parts, key);
   const int idx = static_cast<int>(it - rs.ship_parts.begin());
   const ShipParts& part_template = rs.ship_parts[idx];
-  float size = 32;
 
   auto e = r.create();
   r.emplace<TagComponent>(e, part_template.name);
@@ -430,7 +431,7 @@ spawn_ship_part(entt::registry& r, const std::string& key)
   r.emplace<HealthComponent>(e, 100, 100);
   r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-  r.emplace<NameComponent>(e, NameComponent{ part_template.name, part_template.name, part_template.name });
+  r.emplace<NameComponent>(e, NameComponent{ part_template.name });
 
   return e;
 };

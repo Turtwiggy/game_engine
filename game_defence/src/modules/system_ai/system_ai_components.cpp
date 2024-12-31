@@ -12,7 +12,6 @@
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
 #include "modules/system_names/components.hpp"
 
-
 namespace game2d {
 
 float
@@ -82,7 +81,7 @@ AttackConsideration::Evaluate(entt::registry& r, entt::entity e) const
     const auto idx = engine::grid::grid_position_to_index(tile, map_c.xmax);
     for (const auto map_e : map_c.map[idx]) {
       const auto& other_team = r.get<TeamComponent>(map_e);
-      SDL_Log("Considering attacking... %s", r.get<NameComponent>(map_e).first_name.c_str());
+      SDL_Log("Considering attacking... %s", r.get<NameComponent>(map_e).name.c_str());
 
       if (your_team.team == other_team.team)
         continue; // dont attack same team?

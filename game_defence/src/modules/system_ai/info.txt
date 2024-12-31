@@ -19,3 +19,4 @@
     e.g. always hostile,
     retreat after-attacked,
     hostile-after-attacked
+    e.g. docile

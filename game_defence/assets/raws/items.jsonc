@@ -24,7 +24,7 @@
     {
       "name": "seed_stun",
       "display_name": "Stun Seed.",
-      "display_desc": "A backward, stunning seed.",
+      "display_desc": "A stunningly backwards seed.",
       "renderable": { "sprite": "BUSH_4_0", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
@@ -47,7 +47,7 @@
       "display_name": "Knife",
       "display_desc": "Oi, mate! Hand over your creds!",
       "renderable": { "sprite": "WEAPON_DAGGER_4", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "melee": { "damage": 12, "range": 1 },
+      "melee": { "damage": 2, "range": 1 },
       "traits": [ {"key": "bleed"} ],
       "tier": "sCrap"
     },
@@ -79,7 +79,7 @@
       "display_name": "Shotgun",
       "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "ranged": { "damage": 8, "type": "cone", "range": 2 },
+      "ranged": { "damage": 3, "type": "cone", "range": 2 },
       "traits": [ {"key": "push", "amount": 1} ]
     },
     {
@@ -174,15 +174,15 @@
     },
     {
       "name": "dungeon_actor_hero",
-      "renderable": { "sprite": "REF_IDLE", "colour": { "r": 255, "g": 255, "b": 153 } },
-      "stats": { "max_hp": 100, "hp": 100 },
+      "renderable": { "sprite": "EMPTY", "colour": { "r": 0, "g": 255, "b": 0 } },
+      "stats": { "max_hp": 10, "hp": 10 },
       "is_sensor": true,
       "move_speed": {"speed": 3}
     },
     {
       "name": "dungeon_actor_enemy_default",
-      "renderable": { "sprite": "REF_IDLE", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "stats": { "max_hp": 50, "hp": 50 },
+      "renderable": { "sprite": "EMPTY", "colour": { "r": 255, "g": 0, "b": 0 } },
+      "stats": { "max_hp": 10, "hp": 10 },
       "is_sensor": true,
       "move_speed": {"speed": 2}
     }
