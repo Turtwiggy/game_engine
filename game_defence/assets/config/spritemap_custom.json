@@ -9,6 +9,11 @@
     "ny": 12
   },
   "sprites": [
-    { "name": "shield_custom", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] }
+    { "name": "shield_custom", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "BLACKHOLE_0", "frames": [ { "x": 4, "y": 0, "w": 2, "h": 2 } ] },
+    { "name": "BLACKHOLE_1", "frames": [ { "x": 6, "y": 0, "w": 2, "h": 2 } ] },
+    { "name": "BLACKHOLE_2", "frames": [ { "x": 8, "y": 0, "w": 2, "h": 2 } ] },
+    { "name": "BLACKHOLE_3", "frames": [ { "x": 10, "y": 0, "w": 2, "h": 2 } ] },
+    { "name": "BLACKHOLE_4", "frames": [ { "x": 4, "y": 2, "w": 2, "h": 2 } ] }
   ]
 }

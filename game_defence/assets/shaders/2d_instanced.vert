@@ -2,11 +2,13 @@
 //
 
 layout(location = 0) in vec4 vertex; // xy and uv
+// layout(location = 1) in vec4 pos_and_size;
 layout(location = 1) in vec4 colour;
 layout(location = 2) in vec4 sprite_pos;
 layout(location = 3) in vec4 sprite_width_and_max;
 layout(location = 4) in float tex_unit;
-layout(location = 5) in mat4 model;
+layout(location = 5) in vec4 parallax; // xy: translational offset. wz: rotation
+layout(location = 6) in mat4 model;
 
 out vec2 v_uv;
 out vec4 v_colour;
@@ -14,13 +16,44 @@ out vec2 v_sprite_pos;
 out vec2 v_sprite_wh;
 out vec2 v_sprite_max;
 out float v_tex_unit;
-// out vec2 v_vertex;
+out vec2 v_vertex;
+// out vec2 v_pos;
+// out vec2 v_size;
 
 uniform mat4 view;
 uniform mat4 projection;
 uniform bool shake;
 uniform float time;
 uniform float strength;
+
+mat4 parallax_rotation_matrix(vec2 rotation) {
+
+  mat4 x_rot_mat = mat4(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, cos(rotation.x), -sin(rotation.x), 0.0,
+    0.0, sin(rotation.x), cos(rotation.x), 0.0,
+    0.0, 0.0, 0.0, 1.0
+  );
+
+  mat4 y_rot_mat = mat4(
+    cos(rotation.y), 0.0, sin(rotation.y), 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    -sin(rotation.y), 0.0, cos(rotation.y), 0.0,
+    0.0, 0.0, 0.0, 1.0
+  );
+
+  return y_rot_mat * x_rot_mat;
+}
+
+mat4 parallax_offset_matrix(vec2 offset){
+  mat4 offset_mat = mat4(
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      offset.x, offset.y, 0.0, 1.0
+  );
+  return offset_mat;
+}
 
 void
 main()
@@ -31,15 +64,34 @@ main()
   v_sprite_wh = sprite_width_and_max.xy;
   v_sprite_max = sprite_width_and_max.zw;
   v_tex_unit = tex_unit;
-  // v_vertex = vec4( model * vec4(vertex.xy, 1.0, 1.0)).xy;
+  v_vertex = vec4( model * vec4(vertex.xy, 1.0, 1.0)).xy;
 
-  gl_Position = projection * view * model * vec4(vertex.xy, 0.0, 1.0);
+  mat4 to_center = mat4(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    -0.5, -0.5, 0.0, 1.0
+  );
+
+  mat4 from_center = mat4(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.5, 0.5, 0.0, 1.0
+  );
+
+  mat4 parallax_offset = parallax_offset_matrix(parallax.xy);
+  mat4 parallax_rotation = parallax_rotation_matrix(parallax.wz);
+  mat4 parallax_mat = parallax_offset * from_center * parallax_rotation * to_center;
+  // mat4 parallax_mat = mat4(1.0);
+
+  gl_Position = projection * view * model * parallax_mat * vec4(vertex.xy, 0.0, 1.0);
 
   if(shake)
   {
     // todo: translational and rotational screenshake
     gl_Position.x += cos(time * 10.0f) * strength;        
     gl_Position.y += cos(time * 15.0f) * strength;    
-    // gl_Position.z *= cos(time * 100.0f) * strength; 
+    gl_Position.z *= cos(time * 100.0f) * strength; 
   }
 }

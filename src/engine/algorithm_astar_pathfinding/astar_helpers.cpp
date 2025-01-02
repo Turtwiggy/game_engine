@@ -12,6 +12,7 @@
 #include <SDL2/SDL_log.h>
 #include <format>
 #include <map>
+#include <set>
 
 namespace game2d {
 
@@ -56,12 +57,20 @@ get_cost_at_gridpos(entt::registry& r, const glm::ivec2 gp, const MapComponent& 
 };
 
 bool
-gridpos_blocked_by_map(entt::registry& r, const glm::ivec2& gp, const MapComponent& map_c)
+only_targetable_at_gridpos(entt::registry& r, const glm::ivec2 gp, const MapComponent& map_c)
 {
   if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
     return false;
 
-  return get_cost_at_gridpos(r, gp, map_c) == -1;
+  const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
+  const auto& es = map_c.map[idx];
+
+  bool only_targetable = true;
+  for (const auto e : es)
+    if (const auto* p_c = r.try_get<PathfindComponent>(e))
+      only_targetable &= p_c->targetable;
+
+  return only_targetable && es.size() > 0;
 };
 
 std::vector<glm::ivec2>
@@ -71,8 +80,6 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
     return {};
 
   const auto& map_c = get_first_component<MapComponent>(r);
-
-  std::vector<vec2i> path;
 
   PriorityQueue<vec2i> frontier;
   frontier.enqueue(from, 0);
@@ -96,11 +103,19 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
       if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
         continue; // out of map
 
-      if (gridpos_blocked_by_map(r, gp, map_c))
-        continue; // impassable
-
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
+
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
+      if (blocked && targetable && to == gp) {
+        cost_so_far[gp] = cost_so_far[current] + 1;
+        came_from[gp] = current;
+        return reconstruct_path(came_from, from, to);
+      }
+
+      if (blocked)
+        continue;
 
       // auto cur_in_room = inside_room(r, { current.x, current.y }).size() > 0;
       // auto nxt_in_room = inside_room(r, { gp.x, gp.y }).size() > 0;
@@ -131,8 +146,6 @@ generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i 
 
   const auto& map_c = get_first_component<MapComponent>(r);
 
-  std::vector<vec2i> path;
-
   PriorityQueue<vec2i> frontier;
   frontier.enqueue(from, 0);
   std::map<vec2i, vec2i> came_from;
@@ -156,11 +169,19 @@ generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i 
       if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
         continue; // out of map
 
-      if (gridpos_blocked_by_map(r, gp, map_c))
-        continue; // impassable
-
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
+
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
+      if (blocked && targetable && to == gp) {
+        cost_so_far[gp] = cost_so_far[current] + 1;
+        came_from[gp] = current;
+        return reconstruct_path(came_from, from, to);
+      }
+
+      if (blocked)
+        continue;
 
       const auto neighbour = gp;
       int neighbour_cost = get_cost_at_gridpos(r, gp, map_c);
@@ -187,29 +208,31 @@ generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const ve
   PriorityQueue<vec2i> frontier;
   frontier.enqueue(from_pos, 0);
 
-  std::vector<glm::ivec2> results;
+  std::set<vec2i> results;
 
   while (frontier.size() > 0) {
     const auto current = frontier.dequeue();
-    results.push_back({ current.x, current.y });
+    results.emplace(vec2i{ current.x, current.y });
 
-    // check neighbours
     const auto neighbour_gps = engine::grid::get_neighbour_gridpos({ current.x, current.y }, map_c.xmax, map_c.ymax);
-
     for (const auto& [dir, gp] : neighbour_gps) {
+
+      const int distance = pos_to_distance[current] + 1;
+      if (distance > range)
+        continue;
 
       if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
         continue; // out of map
 
-      if (gridpos_blocked_by_map(r, gp, map_c))
-        continue; // impassable
-
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
 
-      int distance = pos_to_distance[current] + 1;
-      if (distance > range)
-        continue;
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
+      if (blocked && targetable)
+        results.emplace(vec2i{ gp.x, gp.y });
+      if (blocked)
+        continue; // impassable
 
       // if a distance value already existed, take the smaller distance
       if (pos_to_distance.contains(gp))
@@ -225,7 +248,10 @@ generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const ve
     //
   }
 
-  return results;
+  // set => vector
+  std::vector<glm::ivec2> final(results.size());
+  std::transform(results.begin(), results.end(), final.begin(), [](const auto& el) { return glm::ivec2{ el.x, el.y }; });
+  return final;
 };
 
 std::vector<glm::ivec2>
@@ -237,11 +263,11 @@ generate_accessible_areas_with_diagonals(entt::registry& r, const MapComponent& 
   PriorityQueue<vec2i> frontier;
   frontier.enqueue(from_pos, 0);
 
-  std::vector<glm::ivec2> results;
+  std::set<vec2i> results;
 
   while (frontier.size() > 0) {
     const auto current = frontier.dequeue();
-    results.push_back({ current.x, current.y });
+    results.emplace(vec2i{ current.x, current.y });
 
     // check neighbours
     const auto neighbour_gps =
@@ -249,18 +275,22 @@ generate_accessible_areas_with_diagonals(entt::registry& r, const MapComponent& 
 
     for (const auto& [dir, gp] : neighbour_gps) {
 
+      int distance = pos_to_distance[current] + 1;
+      if (distance > range)
+        continue;
+
       if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
         continue; // out of map
-
-      if (gridpos_blocked_by_map(r, gp, map_c))
-        continue; // impassable
 
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
 
-      int distance = pos_to_distance[current] + 1;
-      if (distance > range)
-        continue;
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
+      if (blocked && targetable)
+        results.emplace(vec2i{ gp.x, gp.y });
+      if (blocked)
+        continue; // impassable
 
       // if a distance value already existed, take the smaller distance
       if (pos_to_distance.contains(gp))
@@ -276,7 +306,10 @@ generate_accessible_areas_with_diagonals(entt::registry& r, const MapComponent& 
     //
   }
 
-  return results;
+  // set => vector
+  std::vector<glm::ivec2> final(results.size());
+  std::transform(results.begin(), results.end(), final.begin(), [](const auto& el) { return glm::ivec2{ el.x, el.y }; });
+  return final;
 };
 
 bool

@@ -36,8 +36,10 @@ handle_end_turn_bleed(entt::registry& r, const EndTurnEvent& evt)
   dmg_evt.from = entt::null; // system
   dmg_evt.to = evt.e;
   dmg_evt.type = DamageType::PURE;
-  dmg_evt.amount = 5; // bleed amount
-  SDL_Log("Sending bleed event");
+
+  const int bleed_dmg = 3;
+  dmg_evt.amount = bleed_dmg; // bleed amount
+  SDL_Log("Sending bleed event. Dmg: %i.", bleed_dmg);
 
   const auto& evts = get_first_component<SINGLE_Events>(r);
   evts.dispatcher->trigger(dmg_evt);

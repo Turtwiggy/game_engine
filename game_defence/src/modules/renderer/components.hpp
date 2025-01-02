@@ -60,11 +60,14 @@ enum class PassName
   debris,
   floor_mask,
   linear_main,
+  sprites_to_outline,
+  outline,
   lighting_emitters_and_occluders,
   voronoi_seed,
   jump_flood,
   voronoi_distance,
   mix_lighting_and_scene,
+  crt_effect
   // blur_pingpong_0,
   // blur_pingpong_1,
   // bloom,
@@ -111,6 +114,8 @@ struct SINGLE_RendererInfo
   engine::Shader jump_flood;
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
+  engine::Shader outline;
+  engine::Shader crt;
   // engine::Shader blur;
   // engine::Shader bloom;
 
@@ -136,16 +141,16 @@ struct Effect_BlurInfo
 
 struct Effect_GridComponent
 {
-  int gridsize = 50;
+  int gridsize = 64;
 };
 
 enum class ZLayer : int
 {
   BACKGROUND = -4,
   FLOOR,
+  ENVIRONMENT,
   BEHIND_PLAYER,
   PLAYER_GUN_BEHIND_PLAYER,
-  ENVIRONMENT,
   DEFAULT = 0,
   PLAYER_HELMET,
   PLAYER_GUN_ABOVE_PLAYER,

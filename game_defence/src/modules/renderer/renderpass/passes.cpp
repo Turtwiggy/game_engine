@@ -5,10 +5,11 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/imgui/helpers.hpp"
-#include "engine/map/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/effects_outline/outline_components.hpp"
+#include "modules/effects_parallax_mouse/parallax_mouse_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
@@ -39,7 +40,8 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
   engine::quad_renderer::RenderDescriptor desc;
   desc.pos_tl = { 0, 0 };
   desc.size = size;
-  desc.angle_radians = 0;
+  desc.yaw_pitch_roll_radians = { 0, 0, 0 };
+
   ri.renderer.draw_sprite(desc, shader);
 
   ri.renderer.end_batch();
@@ -74,7 +76,7 @@ setup_stars_update(entt::registry& r)
         const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
         desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
         desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
+        desc.yaw_pitch_roll_radians = { 0, 0, 0 };
         ri.renderer.draw_sprite(desc, ri.stars);
       }
       ri.renderer.end_batch();
@@ -114,7 +116,7 @@ setup_debris_update(entt::registry& r)
         const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
         desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
         desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
+        desc.yaw_pitch_roll_radians = { 0, 0, 0 };
         ri.renderer.draw_sprite(desc, ri.debris);
       }
       ri.renderer.end_batch();
@@ -143,13 +145,15 @@ setup_floor_mask_update(entt::registry& r)
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
 
-      const auto& view = r.view<TransformComponent, SpriteComponent, FloorComponent>();
+      const auto& view = r.view<const TransformComponent, const SpriteComponent, const FloorComponent>();
 
       for (const auto& [e, transform, sc, floor_c] : view.each()) {
         engine::quad_renderer::RenderDescriptor desc;
         desc.pos_tl = transform.position - (transform.scale * 0.5f);
         desc.size = transform.scale;
-        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                        transform.rotation_radians.y,
+                                        sc.angle_radians + transform.rotation_radians.z };
         desc.colour = mask_colour;
         desc.tex_unit = sc.tex_unit;
 
@@ -195,7 +199,7 @@ setup_linear_main_update(entt::registry& r)
       int i = 0;
 
       // draw active circles
-      const auto view = r.view<TransformComponent, CircleComponent>();
+      const auto view = r.view<const TransformComponent, CircleComponent>();
       for (const auto& [e, transform_c, circle_c] : view.each()) {
         if (i > N_MAX_CIRCLES)
           break;
@@ -226,11 +230,18 @@ setup_linear_main_update(entt::registry& r)
       group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.z_index < b.z_index; });
 
       for (const auto& [e, transform, sc] : group.each()) {
+
         engine::quad_renderer::RenderDescriptor desc;
         desc.pos_tl = transform.position - (transform.scale * 0.5f);
         desc.size = transform.scale;
-        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                        transform.rotation_radians.y,
+                                        sc.angle_radians + transform.rotation_radians.z };
         desc.colour = sc.colour;
+
+        if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
+          desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+
         desc.tex_unit = sc.tex_unit;
 
         desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
@@ -243,6 +254,98 @@ setup_linear_main_update(entt::registry& r)
       ri.renderer.end_batch();
       ri.renderer.flush(ri.instanced);
     }
+  };
+};
+
+void
+setup_sprites_to_outline_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::sprites_to_outline);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r) {
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+
+    ri.instanced.bind();
+    ri.instanced.set_mat4("view", camera_c.view);
+    ri.instanced.set_mat4("projection", camera_c.projection_zoomed);
+
+    ri.renderer.reset_quad_vert_count();
+    ri.renderer.begin_batch();
+    const auto& view = r.view<const TransformComponent, const SpriteComponent, const SpriteOutline>();
+
+    for (const auto& [e, transform, sc, outline_c] : view.each()) {
+      engine::quad_renderer::RenderDescriptor desc;
+      desc.pos_tl = transform.position - (transform.scale * 0.5f);
+      desc.size = transform.scale;
+      desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                      transform.rotation_radians.y,
+                                      sc.angle_radians + transform.rotation_radians.z };
+      desc.colour = sc.colour;
+
+      if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
+        desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+
+      desc.tex_unit = sc.tex_unit;
+      desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+      desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+      desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+      ri.renderer.draw_sprite(desc, ri.instanced);
+    }
+
+    ri.renderer.end_batch();
+    ri.renderer.flush(ri.instanced);
+  };
+};
+
+void
+setup_outline_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::outline);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r) {
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+
+    ri.outline.bind();
+    ri.outline.set_mat4("projection", camera_c.projection);
+    ri.outline.set_float("zoom", camera_c.zoom_nonlinear);
+
+    render_fullscreen_quad(r, ri.outline, ri.viewport_size_render_at);
+
+    // ri.renderer.reset_quad_vert_count();
+    // ri.renderer.begin_batch();
+    // const auto& view = r.view<const TransformComponent, const SpriteComponent, const SpriteOutline>();
+
+    // for (const auto& [e, transform, sc, outline_c] : view.each()) {
+    //   engine::quad_renderer::RenderDescriptor desc;
+    //   desc.pos_tl = transform.position - (transform.scale * 0.5f);
+    //   desc.size = transform.scale;
+    //   desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+    //                                   transform.rotation_radians.y,
+    //                                   sc.angle_radians + transform.rotation_radians.z };
+    //   desc.colour = sc.colour;
+
+    //   // if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
+    //   //   desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+
+    //   desc.tex_unit = sc.tex_unit;
+    //   desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+    //   desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+    //   desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+    //   ri.renderer.draw_sprite(desc, ri.outline);
+    // }
+
+    // ri.renderer.end_batch();
+    // ri.renderer.flush(ri.outline);
   };
 };
 
@@ -300,8 +403,11 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
           engine::quad_renderer::RenderDescriptor desc;
           desc.pos_tl = transform.position - transform.scale * 0.5f;
           desc.size = transform.scale;
-          desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+          desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                          transform.rotation_radians.y,
+                                          sc.angle_radians + transform.rotation_radians.z };
           desc.colour = occluder_col;
+          desc.parallax = { 0, 0, 0, 0 };
           desc.tex_unit = sc.tex_unit;
 
           desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
@@ -452,13 +558,37 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     if (camera_c.zoom_nonlinear != 0.0f)
       ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
 
-    int tilesize = 50;
-    const auto map_e = get_first<MapComponent>(r);
-    if (map_e != entt::null)
-      tilesize = r.get<MapComponent>(map_e).tilesize;
-    ri.mix_lighting_and_scene.set_float("tilesize", (float)tilesize);
+    if (get_first<Effect_GridComponent>(r) != entt::null) {
+      const auto& grid_c = get_first_component<Effect_GridComponent>(r);
+      ri.mix_lighting_and_scene.set_float("tilesize", (float)grid_c.gridsize);
+    }
 
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
+  };
+};
+
+void
+setup_crt_effect_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::crt_effect);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r) {
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    static float brightness_threshold = 0.80f;
+
+#if defined(_DEBUG)
+    imgui_draw_float("brightness_threshold", brightness_threshold);
+#endif
+
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+
+    ri.crt.bind();
+
+    render_fullscreen_quad(r, ri.crt, ri.viewport_size_render_at);
   };
 };
 

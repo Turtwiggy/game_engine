@@ -5,6 +5,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/renderer/components.hpp"
 
 namespace game2d {
 
@@ -24,7 +25,8 @@ EntityPool::update(entt::registry& r, const int desired)
     r.emplace<TransformComponent>(e);
     r.emplace<SpriteComponent>(e);
     set_sprite(r, e, "EMPTY");
-    set_size(r, e, { 8, 8 });
+    set_size(r, e, { 0, 0 });
+    // set_z_index(r, e, ZLayer::DEFAULT);
     instances.push_back(e);
   }
 

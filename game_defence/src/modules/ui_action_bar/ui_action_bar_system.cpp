@@ -3,8 +3,8 @@
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/entt/entity_pool.hpp"
-#include "engine/entt/helpers.hpp"
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
@@ -22,6 +22,7 @@
 #include "modules/events/events_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
 #include "modules/system_combat_bleed/combat_bleed_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
@@ -236,11 +237,13 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   if (request_action)
     SDL_Log("requesting action...");
 
-  static EntityPool debug_path;
+  const int debug_tilesize = 16;
+  const std::string move_icon = "ARROW_UP";
+  const std::string atk_icon = "TEXT_mul";
 
   // clear ui visuals if no action selected
-  if (r.try_get<UIActionState>(e) == nullptr)
-    debug_path.update(r, 0);
+  // if (r.try_get<UIActionState>(e) == nullptr)
+  //   debug_path.update(r, 0);
 
   // position
   const ImVec2 viewport_pos = { (float)ri.viewport_pos.x, (float)ri.viewport_pos.y };
@@ -291,12 +294,12 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     const bool moving = any_unit_is_moving(r);
     button_enabled(ActionEnum::MOVE, "(1) Move", !moving, get_key_down(input_c, SDL_SCANCODE_1) && !moving);
     button_enabled(ActionEnum::SHOOT, "(2) Attack", !moving, get_key_down(input_c, SDL_SCANCODE_2) && !moving);
-    button_enabled(ActionEnum::USE_ITEM, "(3) Use (Heal)", !moving, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
+    button_enabled(ActionEnum::USE_ITEM, "(3) Heal", !moving, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
     button_enabled(ActionEnum::END_TURN, "(E)nd", !moving, get_key_down(input_c, SDL_SCANCODE_E) && !moving);
 
     if (auto* state_c = r.try_get<UIActionState>(e)) {
       const auto state = std::string(magic_enum::enum_name(state_c->current));
-      ImGui::Text("State: %s", state.c_str());
+      // ImGui::Text("State: %s", state.c_str());
 
       if (state_c->current == ActionEnum::MOVE) {
 
@@ -316,12 +319,17 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
         };
 
         // Debug the active selection
-        debug_path.update(r, int(path.size()));
-        for (size_t i = 0; i < path.size(); i++) {
-          auto debug_e = debug_path.instances[i];
-          auto pos = engine::grid::grid_space_to_world_space_center(path[i], map_c.tilesize);
-          set_position(r, debug_e, pos);
-          set_size(r, debug_e, { 8, 8 });
+        if (path.size() > 0) {
+          // note: -1 so not the tile you're standing on
+          for (size_t i = 1; i < path.size(); i++) {
+            Sprite s;
+            s.sprite = move_icon;
+            s.pos = engine::grid::grid_space_to_world_space_center(path[i], map_c.tilesize);
+            s.size = { debug_tilesize, debug_tilesize };
+            s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
+            s.col = { 0.0f, 1.0f, 0.0f, 1.0f };
+            draw_sprite(r, s);
+          }
         }
 
         if (request_action && path.size() > 0) {
@@ -345,7 +353,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
         // wiggle the attack icon
 
         if (auto* tiles_c = r.try_get<TilesComponent>(e)) {
-          debug_path.update(r, int(tiles_c->tiles.size()));
+          // debug_path.update(r, int(tiles_c->tiles.size()));
 
           // if you're hovvering the damage tiles,
           // show as green, and if you click it while hovering, take the action
@@ -355,17 +363,18 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
           for (size_t i = 0; i < tiles_c->tiles.size(); i++) {
             const auto tile_gp = tiles_c->tiles[i];
             const auto tile_wsp = engine::grid::grid_space_to_world_space_center(tile_gp, map_c.tilesize);
-            const auto debug_e = debug_path.instances[i];
 
-            set_position(r, debug_e, tile_wsp);
-            set_sprite(r, debug_e, "CROSSHAIR_10");
-            set_size(r, debug_e, { 32, 32 });
-            set_z_index(r, debug_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-
+            auto col = engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f };
             if (hovering)
-              set_colour(r, debug_e, { 0.0f, 1.0f, 0.0f, 1.0f });
-            else
-              set_colour(r, debug_e, { 1.0f, 0.0f, 0.0f, 1.0f });
+              col = engine::SRGBColour{ 0.0f, 1.0f, 0.0f, 1.0f };
+
+            Sprite s;
+            s.sprite = atk_icon;
+            s.pos = tile_wsp;
+            s.size = { debug_tilesize, debug_tilesize };
+            s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
+            s.col = col;
+            draw_sprite(r, s);
 
             // const auto* wiggle_c = r.try_get<WiggleUpAndDown>(debug_e);
             // if (!wiggle_c) {
@@ -433,7 +442,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       // limit: only take action once
       if (!action_available(actions_c, action)) {
         const auto action_str = std::string(magic_enum::enum_name(action));
-        // SDL_Log("Already taken %s action this turn.", action_str.c_str());
+        SDL_Log("Already taken %s action this turn.", action_str.c_str());
         r.remove<T>(req_e);
 
         if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
@@ -485,8 +494,9 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   const std::function<void(entt::entity, RequestItem&)> item_callback = [&r](entt::entity e, const RequestItem& req_c) {
     //
     // hack: heal. this should actually be based on items, not just always be a heal
+    SDL_Log("todo: heal impl properly");
     auto& hp = r.get<HealthComponent>(e);
-    hp.hp += 10;
+    hp.hp += 1;
     hp.hp = glm::min(hp.hp, hp.max_hp);
     if (const auto* bleed_c = r.try_get<BleedComponent>(e))
       r.remove<BleedComponent>(e); // fix bleed

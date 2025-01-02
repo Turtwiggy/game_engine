@@ -80,6 +80,11 @@ get_raws_keys(const Raws& raws)
   return results;
 };
 
+const auto item_body_type = b2_kinematicBody;
+const auto mob_body_type = b2_kinematicBody;
+const auto env_body_type = b2_kinematicBody;
+static float size = 32.0f;
+
 entt::entity
 create_transform(entt::registry& r, const std::string& name)
 {
@@ -89,11 +94,6 @@ create_transform(entt::registry& r, const std::string& name)
   r.emplace<TransformComponent>(e);
   return e;
 };
-
-const auto item_body_type = b2_kinematicBody;
-const auto mob_body_type = b2_kinematicBody;
-const auto env_body_type = b2_kinematicBody;
-static float size = 32.0f;
 
 void
 give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
@@ -249,7 +249,7 @@ spawn_mob(entt::registry& r, const std::string& key)
   r.emplace<SpawnParticlesOnDeath>(e);
   r.emplace<HealthComponent>(e, mob_template.stats.hp, mob_template.stats.max_hp);
   r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
-  r.emplace<PathfindComponent>(e, -1);
+  r.emplace<PathfindComponent>(e, -1, true);
   if (mob_template.move_speed.has_value()) {
     LimitMovementComponent move_c;
     move_c.path_size = mob_template.move_speed->speed;
@@ -308,7 +308,7 @@ spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& po
 
   if (env_template.defence.has_value())
     r.emplace<DefenceComponent>(e, env_template.defence->block);
-  r.emplace<PathfindComponent>(e, 100'000); // pass through terrain if you must
+  r.emplace<PathfindComponent>(e, -1, true);
   r.emplace<TeamComponent>(e, AvailableTeams::neutral);
   r.emplace<NameComponent>(e, NameComponent{ env_template.name });
 

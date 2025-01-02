@@ -27,6 +27,8 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
 
   const auto targets_view = r.view<const TeamComponent, const TransformComponent>();
   for (const auto& [other_e, other_team, other_t] : targets_view.each()) {
+    // const auto& other_name = r.get<NameComponent>(other_e);
+
     if (e == other_e)
       continue; // dont path to self
 
@@ -40,7 +42,15 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
     const auto d = dst_wp - src_wp;
     const auto d2 = d.x * d.x + d.y * d.y;
     const auto dst_gp = engine::grid::worldspace_to_grid_space(dst_wp, map_c.tilesize);
-    const auto path = generate_direct_with_diagonals(r, src_gp, dst_gp);
+
+    // Get a tile NEXT to the player
+    auto free_gp = generate_accessible_areas(r, map_c, dst_gp, 1);
+    std::erase(free_gp, dst_gp); // remove the starting pos
+    if (free_gp.size() == 0) {
+      SDL_Log("AI(MoveConsideration) no free slots next to target");
+      continue;
+    }
+    const auto path = generate_direct(r, src_gp, free_gp[0]);
 
     if (path.size() != 0) {
       // note: remove the end tile so that the ai doesnt path on top of the destination entity
@@ -60,6 +70,7 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
   if (data_c.final_path.size() > 0)
     return 0.75f;
 
+  SDL_Log("AI(MoveConsideration) Warning - no targets");
   return 0.0f;
 };
 

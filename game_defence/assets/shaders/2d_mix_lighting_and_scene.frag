@@ -16,6 +16,7 @@ uniform sampler2D u_distance_data; // distance data
 uniform sampler2D tex_unit_debris;
 uniform sampler2D tex_unit_floor_mask;
 uniform sampler2D tex_circles; 
+uniform sampler2D tex_outline;
 
 uniform float brightness_threshold;
 uniform vec2 camera_pos;
@@ -442,6 +443,10 @@ void main()
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
 	out_color.rgb = circle_col + dark_col + srgb_final.rgb;
+
+	vec4 outline_col_lin = texture(tex_outline, v_uv);
+	vec3 outline_col = lin_to_srgb(outline_col_lin.rgb);
+	out_color.rgb += outline_col;
 
 	// vignette
 	// vec2 vig_uv = fragCoord.xy / iResolution.xy;

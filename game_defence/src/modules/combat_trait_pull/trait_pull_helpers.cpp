@@ -32,17 +32,18 @@ handle_damage_event_apply_pull(entt::registry& r, const DamageEvent& evt)
 
     const auto dst_gp = gp_b + pull_dir;
     const auto path = generate_direct_with_diagonals(r, { gp_b.x, gp_b.y }, { dst_gp.x, dst_gp.y });
-    if (path.size() > 0) {
-      const auto& map_c = get_first_component<MapComponent>(r);
-
-      GeneratedPathComponent path_c;
-      path_c.path = path;
-      path_c.path_cleared.resize(path.size(), false);
-      path_c.src_pos = get_position(r, to_e);
-      path_c.dst_pos = engine::grid::grid_space_to_world_space_center(path[path.size() - 1], map_c.tilesize);
-
-      r.emplace_or_replace<GeneratedPathComponent>(to_e, path_c);
+    if (path.size() == 0) {
+      SDL_Log("Unable to pull. No path generated.");
+      return;
     }
+
+    const auto& map_c = get_first_component<MapComponent>(r);
+    GeneratedPathComponent path_c;
+    path_c.path = path;
+    path_c.path_cleared.resize(path.size(), false);
+    path_c.src_pos = get_position(r, to_e);
+    path_c.dst_pos = engine::grid::grid_space_to_world_space_center(path[path.size() - 1], map_c.tilesize);
+    r.emplace_or_replace<GeneratedPathComponent>(to_e, path_c);
   }
 }
 

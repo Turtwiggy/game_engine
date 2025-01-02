@@ -10,6 +10,7 @@ namespace game2d {
 struct PathfindComponent
 {
   int cost = 1;
+  bool targetable = true;
 };
 
 struct vec2i

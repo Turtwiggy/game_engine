@@ -251,25 +251,7 @@ struct Mob
   bool is_sensor;
   std::optional<MoveSpeed> move_speed = std::nullopt;
 
-  friend void to_json(nlohmann ::json& j, const Mob& val)
-  {
-    j["name"] = val.name;
-    j["renderable"] = val.renderable;
-    j["stats"] = val.stats;
-    j["is_sensor"] = val.is_sensor;
-    if (val.move_speed.has_value())
-      j["move_speed"] = val.move_speed.value();
-  }
-
-  friend void from_json(const nlohmann ::json& j, Mob& val)
-  {
-    j.at("name").get_to(val.name);
-    j.at("renderable").get_to(val.renderable);
-    j.at("stats").get_to(val.stats);
-    j.at("is_sensor").get_to(val.is_sensor);
-    if (j.contains("move_speed"))
-      j.at("move_speed").get_to(val.move_speed);
-  };
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Mob, name, renderable, stats, is_sensor, move_speed);
 };
 
 struct ShipParts
@@ -277,18 +259,15 @@ struct ShipParts
   std::string name;
   std::optional<Renderable> renderable;
 
-  friend void to_json(nlohmann ::json& j, const ShipParts& val)
-  {
-    j["name"] = val.name;
-    if (val.renderable.has_value())
-      j["renderable"] = val.renderable.value();
-  }
-  friend void from_json(const nlohmann ::json& j, ShipParts& val)
-  {
-    j.at("name").get_to(val.name);
-    if (j.contains("renderable"))
-      j.at("renderable").get_to(val.renderable);
-  };
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ShipParts, name, renderable);
+};
+
+struct Colour
+{
+  std::string hex;
+  std::string tag;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Colour, hex, tag);
 };
 
 //
@@ -297,12 +276,13 @@ struct ShipParts
 
 struct Raws
 {
+  std::vector<Colour> colours;
   std::vector<Item> items;
   std::vector<Environment> environment;
   std::vector<Mob> mobs;
   std::vector<ShipParts> ship_parts;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, items, environment, mobs, ship_parts);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, colours, items, environment, mobs, ship_parts);
 };
 
 //

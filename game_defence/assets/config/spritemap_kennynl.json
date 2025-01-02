@@ -283,8 +283,13 @@
     { "name": "ARROW_LEFT", "frames": [ { "x": 26, "y": 20 } ] },
 
     { "name": "SCRAP", "frames": [ { "x": 33, "y": 20 } ] },
-
     { "name": "TEXT_HASH", "frames": [ { "x": 35, "y": 20 } ] },
+    { "name": "TEXT_PLUS", "frames": [ { "x": 36, "y": 20 } ] },
+    { "name": "TEXT_minus", "frames": [ { "x": 37, "y": 20 } ] },
+    { "name": "TEXT_mul", "frames": [ { "x": 38, "y": 20 } ] },
+    { "name": "TEXT_div", "frames": [ { "x": 39, "y": 20 } ] },
+    { "name": "TEXT_eq", "frames": [ { "x": 40, "y": 20 } ] },
+    { "name": "TEXT_@", "frames": [ { "x": 41, "y": 20 } ] },
 
     { "name": "SPACE_VEHICLE_1", "frames": [ { "x": 12, "y": 21 } ], "angle": -90.0 },
     { "name": "SPACE_VEHICLE_2", "frames": [ { "x": 13, "y": 21 } ], "angle": -90.0 },

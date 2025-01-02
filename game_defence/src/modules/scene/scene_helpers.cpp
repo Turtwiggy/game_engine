@@ -7,6 +7,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
@@ -21,6 +22,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
@@ -46,6 +48,7 @@ create_player_if_not_in_scene(entt::registry& r)
   const auto pos = glm::vec2{ 0, 0 };
   auto e = spawn_mob(r, "spaceship_player");
   give_life(r, e, pos);
+
   // r.emplace<CameraLerpToTarget>(e);
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
@@ -56,8 +59,9 @@ create_player_if_not_in_scene(entt::registry& r)
   player_thrust.able_to_change_thrust = false;
   player_thrust.able_to_change_dir = true;
   set_size(r, e, { 16, 16 });
+  set_dir(r, e, engine::normalize_safe(engine::angle_radians_to_direction(-30 * engine::Deg2Rad)));
 
-  spawn_particle_emitter(r, "anything", { 0, 0 }, e);
+  spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 };
 
 void
@@ -85,6 +89,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   create_empty<SINGLE_ScreenshakeComponent>(r);
   create_empty<SINGLE_UIInventoryState>(r);
   create_empty<SINGLE_UI_Lootbag>(r);
+  create_empty<SINGLE_ImSprite>(r);
 
   // The first and only transform should be the camera
   const auto camera_e = get_first<OrthographicCamera>(r);

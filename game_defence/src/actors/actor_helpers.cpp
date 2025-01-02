@@ -9,7 +9,6 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 
-
 namespace game2d {
 
 glm::vec2
@@ -56,7 +55,7 @@ set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 grid
 void
 set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir)
 {
-  const auto angle = engine::dir_to_angle_radians(dir) - engine::HALF_PI;
+  const auto angle = engine::dir_to_angle_radians(dir) - engine::PI;
 
   auto& t = r.get<TransformComponent>(e);
   t.rotation_radians.z = angle;

@@ -7,6 +7,7 @@
 #include "engine/maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/effects_outline/outline_components.hpp"
 #include "modules/event_unit_enter_blackhole/unit_enter_blackhole_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
@@ -145,6 +146,8 @@ spawn_n_players(entt::registry& r, std::vector<int>& idxs)
     r.emplace<InitBodyAndInventory>(e); // should be inventroy from active unit?
     r.emplace_or_replace<NameComponent>(e, NameComponent{ unit_data.name });
     r.emplace<UnitPersistentState>(e, UnitPersistentState{ unit_data.active, unit_data.permadead });
+    r.emplace<SpriteOutline>(e);
+
     add_initiative(r, e);
     add_entity_to_map(r, e, slot_idx);
 

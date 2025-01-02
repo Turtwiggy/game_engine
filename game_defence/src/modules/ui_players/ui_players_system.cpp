@@ -1,25 +1,24 @@
 #include "ui_players_system.hpp"
 
+#include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/event_damage/event_damage_helpers.hpp"
-#include "modules/events/events_components.hpp"
-#include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_combat_bleed/combat_bleed_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_names/components.hpp"
-#include "modules/system_select_unit/select_unit_components.hpp"
-#include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 
 #include <imgui.h>
 
 namespace game2d {
 
 void
-update_ui_players_system(entt::registry& r)
+update_ui_players_system(entt::registry& r, const glm::ivec2 mouse_pos)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto& anims = get_first_component<SINGLE_Animations>(r);
@@ -48,39 +47,65 @@ update_ui_players_system(entt::registry& r)
   ImGui::Begin("Mobs", NULL, flags);
   ImGui::SeparatorText("Turns");
 
-  const float size = 64;
+  int gridsize = 50;
+  glm::ivec2 mouse_gp = { -1, -1 };
+  auto map_e = get_first<MapComponent>(r);
+  if (map_e != entt::null) {
+    const auto& map_c = get_first_component<MapComponent>(r);
+    mouse_gp = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
+    gridsize = map_c.tilesize;
+  }
 
   for (int i = 0; const auto e : init_c.order) {
     const auto eid = static_cast<uint32_t>(e);
     ImGui::PushID(eid);
     // const auto& mob_c = r.get<Mob>(e);
 
-    const auto& team = r.get<TeamComponent>(e);
+    const auto& team_c = r.get<TeamComponent>(e);
+    const auto gp = get_grid_position(r, e);
     const ImVec4 col_player_active = ImVec4(0.5f, 1.0f, 0.5f, 1.0f);
     const ImVec4 col_player_inactive = ImVec4(0.5f, 1.0f, 0.5f, 0.5f);
     const ImVec4 col_enemy_active = ImVec4(1.0f, 0.5f, 0.5f, 1.0f);
     const ImVec4 col_enemy_inactive = ImVec4(1.0f, 0.5f, 0.5f, 0.5f);
-    ImVec4 col_default = team.team == AvailableTeams::player ? col_player_inactive : col_enemy_inactive;
+    const ImVec4 col_hovered = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec4 col_default = team_c.team == AvailableTeams::player ? col_player_inactive : col_enemy_inactive;
 
+    // if i==0 , you're active
     if (i == 0) {
-      col_default = team.team == AvailableTeams::player ? col_player_active : col_enemy_active;
+      col_default = team_c.team == AvailableTeams::player ? col_player_active : col_enemy_active;
       i++;
     }
+
+    const bool hovered = gp == mouse_gp;
+    if (hovered)
+      col_default = col_hovered;
 
     const auto& hp_c = r.get<HealthComponent>(e);
     const auto* name_c = r.try_get<NameComponent>(e);
     const auto name_text = name_c->name;
     ImGui::TextColored(col_default, "%s (%i/%i)", name_c->name.c_str(), hp_c.hp, hp_c.max_hp);
 
+    // Show which entity in the world is hovered.
+    if (ImGui::IsItemHovered()) {
+      Sprite s;
+      s.sprite = "CURSOR_0";
+      s.pos = engine::grid::grid_space_to_world_space_center(gp, gridsize);
+      s.size = { gridsize, gridsize };
+      s.z_idx = ZLayer::DEFAULT;
+      // s.col = col; // default
+      draw_sprite(r, s);
+    }
+
     // ImGui::SameLine();
     // ImGui::Text("%i", r.get<InitiativeComponent>(e).initiative);
 
+    // Show bleed info
     if (const auto& bleed_c = r.try_get<BleedComponent>(e)) {
       ImGui::SameLine();
       const auto bleed_red = ImVec4(0.8f, 0.1f, 0.1f, 1.0f);
       const auto text = std::format("{}", bleed_c->turns_left);
       const float text_width = ImGui::CalcTextSize(text.c_str()).x;
-      const auto bleed_tooltip = std::format("Bleed: {}", bleed_c->turns_left);
+      const auto bleed_tooltip = std::format("Bleeding for {} turns", bleed_c->turns_left);
       const auto cursor = ImGui::GetCursorPos();
 
       ImGui::TextColored(bleed_red, "%s", text.c_str());

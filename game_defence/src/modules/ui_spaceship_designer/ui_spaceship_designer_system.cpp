@@ -22,7 +22,6 @@
 #include "modules/system_dungeon_spawner/dungeon_spawner_helpers.hpp"
 #include "modules/ui_spaceship_designer/helpers.hpp"
 
-
 #include <imgui.h>
 
 namespace game2d {
@@ -35,7 +34,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto generate = cleanup_requests<RequestGenerateDungeonComponent>(r);
-  static int tilesize = 50;
+  static int tilesize = 64;
 
   ImGui::Begin("Spaceship Designer");
 
@@ -153,6 +152,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       if (const auto* pathfinding_c = r.try_get<PathfindComponent>(map_e)) {
         ImGui::SameLine();
         ImGui::Text("cost: %i", pathfinding_c->cost);
+        ImGui::Text("targetable: %i", pathfinding_c->targetable);
       }
     }
 

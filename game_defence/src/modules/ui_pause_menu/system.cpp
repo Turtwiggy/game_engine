@@ -13,6 +13,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "ui_pause_menu_components.hpp"
 
 #include <SDL2/SDL_mixer.h>
 #include <imgui.h>
@@ -226,6 +227,10 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
           audio.mute_sfx = mute_sfx;
       }
     }
+
+    // Toggle CRT effect
+    auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
+    ImGui::Checkbox("Effect: CRT", &crt_c.enabled);
 
     ImGui::SeparatorText("Quit");
 

@@ -1,4 +1,24 @@
 {
+  "colours": [
+    { "hex": "#a64a2e", "tag": "dark_red" },
+    { "hex": "#d74200", "tag": "red" },
+    { "hex": "#f15f22", "tag": "dark_orange" },
+    { "hex": "#e99f10", "tag": "orange" },
+    { "hex": "#98875f", "tag": "brown" },
+    { "hex": "#cfc041", "tag": "gold_yellow" },
+    { "hex": "#009403", "tag": "dark_green" },
+    { "hex": "#00c420", "tag": "green" },
+    { "hex": "#0048bd", "tag": "dark_blue" },
+    { "hex": "#0096ff", "tag": "blue" },
+    { "hex": "#40a4b9", "tag": "dark_cyan" },
+    { "hex": "#77bfcf", "tag": "cyan" },
+    { "hex": "#b154cf", "tag": "dark_magenta" },
+    { "hex": "#da5bd6", "tag": "magenta" },
+    { "hex": "#0f3b3a", "tag": "green" },
+    { "hex": "#155352", "tag": "dark_grey" },
+    { "hex": "#b1c9c3", "tag": "grey" },
+    { "hex": "#ffffff", "tag": "white" }
+  ],
   "items": [
     // header: resources
     //
@@ -7,7 +27,7 @@
       "display_name": "MedKit.",
       "display_desc": "DRABC. RICE. Oh, your arm's missing?",
       "renderable": { "sprite": "ICON_HEART_FULL", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "use": { "name": "heal", "select": "actor", "amount": 25 }
+      "use": { "name": "heal", "select": "actor", "amount": 1 }
     },
     {
       "name": "duck",
@@ -151,11 +171,12 @@
     {
       "name": "cover",
       "renderable": { "sprite": "WALL_19_1_NONE", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "defence": { "block": 5 }
+      "defence": { "block": 5 },
+      "physics_desc": { "is_sensor": true}
     },
     {
       "name": "blackhole",
-      "renderable": { "sprite": "SIGN_SKULL", "colour": { "r": 255, "g": 40, "b": 40 } },
+      "renderable": { "sprite": "BLACKHOLE_2", "colour": { "r": 255, "g": 40, "b": 40 } },
       "physics_desc": { "is_sensor": true}
     }
   ],
@@ -174,14 +195,14 @@
     },
     {
       "name": "dungeon_actor_hero",
-      "renderable": { "sprite": "EMPTY", "colour": { "r": 0, "g": 255, "b": 0 } },
+      "renderable": { "sprite": "TEXT_@", "colour":  { "r": 255, "g": 255, "b": 255 } },
       "stats": { "max_hp": 10, "hp": 10 },
       "is_sensor": true,
       "move_speed": {"speed": 3}
     },
     {
       "name": "dungeon_actor_enemy_default",
-      "renderable": { "sprite": "EMPTY", "colour": { "r": 255, "g": 0, "b": 0 } },
+      "renderable": { "sprite": "REF_IDLE", "colour": { "r": 255, "g": 255, "b": 255 } },
       "stats": { "max_hp": 10, "hp": 10 },
       "is_sensor": true,
       "move_speed": {"speed": 2}

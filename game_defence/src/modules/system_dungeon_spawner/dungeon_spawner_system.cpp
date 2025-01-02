@@ -3,7 +3,11 @@
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -28,13 +32,17 @@ update_dungeon_spawner_system(entt::registry& r)
     return;
   info_c.processed = true;
 
-  static int tilesize = 50;
+  static int tilesize = 32;
   destroy_first_and_create<MapComponent>(r);
   auto& map = get_first_component<MapComponent>(r);
   map.tilesize = tilesize;
   map.xmax = 10;
   map.ymax = 10;
   map.map.resize(map.xmax * map.ymax);
+
+  auto grid_e = get_first<Effect_GridComponent>(r);
+  if (grid_e != entt::null)
+    get_first_component<Effect_GridComponent>(r).gridsize = tilesize;
 
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
@@ -63,8 +71,29 @@ update_dungeon_spawner_system(entt::registry& r)
     break;
   }
 
-  const auto floor_e = spawn_floor(r, "empty", map_center, map_size);
-  set_z_index(r, floor_e, ZLayer::FLOOR);
+  // create some floor
+  // const auto floor_e = spawn_floor(r, "empty", map_center, map_size);
+  // set_z_index(r, floor_e, ZLayer::FLOOR);
+
+  static engine::RandomState floor_rnd(0);
+  float percent_to_spawn_thing = 100;
+  std::vector<glm::ivec2> sprites_sizes{ { 1, 1 }, { 1, 2 }, { 2, 2 } };
+
+  // create some random background things
+  for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
+    float random_percent = engine::rand_det_s(floor_rnd.rng, 0, 100);
+    if (random_percent > percent_to_spawn_thing)
+      continue;
+    // create something interesting
+    const auto pos = engine::grid::index_to_world_position_center(idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+    const auto env_e = spawn_environment(r, "cover", pos);
+    const auto rnd_size_idx = engine::rand_det_s(floor_rnd.rng, 0, int(sprites_sizes.size()));
+    set_sprite(r, env_e, "EMPTY");
+    set_size(r, env_e, sprites_sizes[rnd_size_idx]);
+    set_colour(r, env_e, { 1.0, 1.0, 1.0f, 0.1f });
+    set_z_index(r, env_e, ZLayer::BACKGROUND);
+    r.remove<TeamComponent>(env_e);
+  }
 }
 
 } // namespace game2d

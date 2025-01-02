@@ -99,10 +99,10 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   GridPositionChangedEvent evt;
   evt.e = src_e;
   evt.dst_idx = dst_idx;
-
   const auto& evts = get_first_component<SINGLE_Events>(r);
   evts.dispatcher->trigger(evt);
   evts.dispatcher->update();
+  SDL_Log("moved... %i[%i] to %i", mapinfo_opt->idx_in_map, mapinfo_opt->idx_in_map_tile, dst_idx);
 
   return true;
 

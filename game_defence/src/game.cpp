@@ -32,6 +32,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
+#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_dungeon_spawner/dungeon_spawner_system.hpp"
@@ -49,6 +50,7 @@
 #include "modules/ui_action_bar/ui_action_bar_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
+#include "modules/ui_colours/ui_colours_system.hpp"
 #include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_system.hpp"
 #include "modules/ui_controllers/system.hpp"
@@ -61,6 +63,7 @@
 #include "modules/ui_overworld_boardship/system.hpp"
 #include "modules/ui_overworld_shiplabel/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
+#include "modules/ui_pause_menu/ui_pause_menu_components.hpp"
 #include "modules/ui_players/ui_players_system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -97,6 +100,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_QuipsComponent>(r, get_default_quips());
   create_persistent<SINGLE_NamesComponent>(r, get_default_names());
+  create_persistent<SINGLE_EffectCrt>(r);
 
   {
     create_persistent<SINGLE_FixedUpdateInputHistory>(r);
@@ -173,6 +177,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   const float dt = milliseconds_dt / 1000.0f;
   const auto mouse_pos = mouse_position_in_worldspace(r);
 
+  begin_frame_sprite(r);
+
   update_input_system(app, r); // sets update_since_last_fixed_update
   update_camera_system(r, dt);
   update_audio_system(r);
@@ -229,23 +235,22 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     }
   }
 
-  // update_animator_system(r, dt);
-  update_render_system(r, dt, mouse_pos);
-
   update_ui_fps_counter_system(r);
   update_ui_pause_menu_system(app, r);
   update_ui_overworld_shiplabel_system(r);
   update_ui_overworld_boardship_system(r);
   update_ui_worldspace_text_system(r);
+  update_ui_colours_system(r);
 
   if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
     update_ui_units_system(r);
   }
+
   if (scene.s == Scene::dungeon_designer) {
+    // update_ui_combat_damage_numbers_system(r, dt);
     update_ui_inventory_system(r);
-    update_ui_combat_damage_numbers_system(r, dt);
-    update_ui_players_system(r);
+    update_ui_players_system(r, mouse_pos);
     update_ui_action_bar_system(r, mouse_pos);
     update_ui_gameover_system(r);
 #if defined(_DEBUG)
@@ -281,6 +286,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   //   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   // }
 #endif
+
+  // update_animator_system(r, dt);
+  update_render_system(r, dt, mouse_pos);
 
   end_frame_render_system(r);
 };

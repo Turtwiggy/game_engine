@@ -12,7 +12,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/renderer/renderpass/passes.hpp"
-#include "modules/renderer/shaders/helpers.hpp"
+#include "modules/ui_pause_menu/ui_pause_menu_components.hpp"
 
 // engine headers
 #include "engine/opengl/framebuffer.hpp"
@@ -20,7 +20,9 @@
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
+#include "modules/renderer/shaders/helpers.hpp"
 #include "modules/scene/components.hpp"
+#include "renderpass/passes.hpp"
 
 using namespace engine;
 
@@ -93,6 +95,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
   const int tex_unit_stars = get_tex_unit(PassName::stars);
   const int tex_unit_debris = get_tex_unit(PassName::debris);
+  const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
+  const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
@@ -115,24 +119,41 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.debris.set_mat4("projection", camera.projection);
   ri.debris.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
-  ri.instanced.reload();
-  ri.instanced.bind();
-  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
-
-  // set user textures in ri.instanced
+  // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
     const auto last_slash = path.find_last_of("/\\");
     const auto file_name = path.substr(last_slash + 1);
     const auto last_dot = file_name.find_last_of('.');
     return file_name.substr(0, last_dot);
   };
+
+  ri.instanced.reload();
+  ri.instanced.bind();
+  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  ri.instanced.set_mat4("projection", camera.projection);
+  ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
   for (const auto& tex : ri.user_textures) {
     const std::string key = "tex_" + clean_path(tex.path);
     SDL_Log("%s", std::format("user tex key: {}", key).c_str());
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
-  ri.instanced.set_mat4("projection", camera.projection);
-  ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
+
+  ri.outline.reload();
+  ri.outline.bind();
+  ri.outline.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  // ri.outline.set_mat4("projection", camera.projection);
+  // ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  // for (const auto& tex : ri.user_textures)
+  //   ri.outline.set_int("tex_" + clean_path(tex.path), tex.tex_unit.unit);
+  // ri.outline.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
+
+  ri.crt.reload();
+  ri.crt.bind();
+  ri.crt.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.crt.set_mat4("projection", camera.projection);
+  ri.crt.set_int("tex_to_crt", tex_unit_mix_lighting_and_scene);
+  ri.crt.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.lighting_emitters_and_occluders.reload();
   ri.lighting_emitters_and_occluders.bind();
@@ -170,6 +191,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
   ri.mix_lighting_and_scene.set_int("tex_circles", ri.renderer.data.tex_unit);
+  ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
@@ -211,6 +233,8 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::debris));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::linear_main));
+  ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
+  ri.passes.push_back(RenderPass(PassName::outline));
   ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // Use the Jump flood algorithm to generate a voroi diagram,
   // then convert that in to a distance field
@@ -218,6 +242,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::jump_flood));
   ri.passes.push_back(RenderPass(PassName::voronoi_distance));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
+  ri.passes.push_back(RenderPass(PassName::crt_effect));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   // ri.passes.push_back(RenderPass(PassName::bloom));
@@ -235,13 +260,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   for (Texture& tex : ri.user_textures) {
     tex.tex_unit.unit = next_tex_unit;
 
-    auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
-
-    // HACK... should do something better than this
-    if (loaded_tex.path.find("organic2") != std::string::npos) {
-      // loaded_tex.texture_min_filter = GL_NEAREST_MIPMAP_NEAREST;
-      // loaded_tex.texture_max_filter = GL_NEAREST;
-    }
+    const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
@@ -251,12 +270,14 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.stars = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/star_nest.frag");
   ri.debris = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_debris.frag");
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.outline = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
     Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
   ri.voronoi_seed = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
   ri.jump_flood = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
+  ri.crt = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
   // ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
   // ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
@@ -280,11 +301,14 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   setup_floor_mask_update(r);
   setup_debris_update(r);
   setup_linear_main_update(r);
+  setup_sprites_to_outline_update(r);
+  setup_outline_update(r);
   setup_lighting_emitters_and_occluders_update(r);
   setup_voronoi_seed_update(r);
   setup_jump_flood_pass(r);
   setup_voronoi_distance_field_update(r);
   setup_mix_lighting_and_scene_update(r);
+  setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
   // setup_bloom_update(r);
 
@@ -326,16 +350,24 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
   const auto viewport_wh = ri.viewport_size_render_at;
 
+  ri.instanced.bind();
+  ri.instanced.set_float("time", time);
+
+  ri.outline.bind();
+  ri.outline.set_float("time", time);
+
+  ri.crt.bind();
+  ri.crt.set_float("time", time);
+
+  ri.debris.bind();
+  ri.debris.set_float("iTime", time);
+
 #if defined(_DEBUG)
   // reload all shaders
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
   if (get_key_down(input, SDL_SCANCODE_0))
     rebind(r, ri);
 #endif
-
-  // debris shader
-  ri.debris.bind();
-  ri.debris.set_float("iTime", time);
 
   const auto s_stars = std::vector<Scene>{ Scene::splashscreen, Scene::menu, Scene::overworld };
   const bool in_stars_scene = std::find(s_stars.begin(), s_stars.end(), scene.s) != s_stars.end();
@@ -413,9 +445,15 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
-    // Note: ImGui::Image takes in TexID not TexUnit
+    // Which pass to render finally?
+    PassName p = PassName::mix_lighting_and_scene;
+    if (get_first<SINGLE_EffectCrt>(r) != entt::null) {
+      auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
+      if (crt_c.enabled)
+        p = PassName::crt_effect;
+    }
 
-    const PassName p = PassName::mix_lighting_and_scene;
+    // Note: ImGui::Image takes in TexID not TexUnit
     const auto& pass = ri.passes[search_for_renderpass_by_name(ri, p)];
     const auto tex_id = pass.texs[0].tex_id.id;
     const auto vi = render_texture_to_imgui_viewport(tex_id);

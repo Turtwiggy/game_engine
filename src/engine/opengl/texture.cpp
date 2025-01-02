@@ -148,7 +148,7 @@ bind_linear_texture(const LinearTexture& tex)
     format_b = GL_RGBA;
   }
 #endif
-  SDL_Log("%s", std::format("Texture: comps:{} format: {}, {}", nr_components, format_a, format_b).c_str());
+  // SDL_Log("%s", std::format("Texture: comps:{} format: {}, {}", nr_components, format_a, format_b).c_str());
 
   glActiveTexture(GL_TEXTURE0 + tex_unit);
   glBindTexture(GL_TEXTURE_2D, texture_id);

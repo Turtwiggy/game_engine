@@ -7,14 +7,10 @@
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/physics/components.hpp"
-#include "engine/renderer/transform.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
-#include "modules/system_move_player_on_map/move_player_on_map_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-
 
 namespace game2d {
 
@@ -32,7 +28,6 @@ inside_ship(entt::registry& r, const entt::entity e)
 void
 update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
 {
-  const float tilesize = 50.0f;
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   //
@@ -86,35 +81,35 @@ update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
   // lerp from your current position to the destination position
   //
 
-  static EntityPool pool;
+  // static EntityPool pool;
 
-  // ImGui::Begin("Debug Paths");
-  {
-    const auto& path_view = r.view<GeneratedPathComponent>();
+  // // ImGui::Begin("Debug Paths");
+  // {
+  //   const auto& path_view = r.view<GeneratedPathComponent>();
 
-    int i = 0;
-    for (const auto& [e, path_c] : path_view.each()) {
-      for (const auto& path : path_c.path)
-        i++;
-    };
-    pool.update(r, i);
+  //   int i = 0;
+  //   for (const auto& [e, path_c] : path_view.each()) {
+  //     for (const auto& path : path_c.path)
+  //       i++;
+  //   };
+  //   pool.update(r, i);
 
-    for (int i = 0; const auto& [e, path_c] : path_view.each()) {
-      // ImGui::Separator();
-      for (const auto& p : path_c.path) {
-        // ImGui::Text("%i,%i", p.x, p.y);
+  //   for (int i = 0; const auto& [e, path_c] : path_view.each()) {
+  //     // ImGui::Separator();
+  //     for (const auto& p : path_c.path) {
+  //       // ImGui::Text("%i,%i", p.x, p.y);
 
-        const auto debug_e = pool.instances[i];
-        auto pos = engine::grid::grid_space_to_world_space_center(p, 50);
-        set_position(r, debug_e, pos);
-        set_size(r, debug_e, { 50, 50 });
-        set_sprite(r, debug_e, "CURSOR_3");
+  //       const auto debug_e = pool.instances[i];
+  //       auto pos = engine::grid::grid_space_to_world_space_center(p, 50);
+  //       set_position(r, debug_e, pos);
+  //       set_size(r, debug_e, { 50, 50 });
+  //       set_sprite(r, debug_e, "CURSOR_3");
 
-        i++;
-      }
-    }
-  }
-  // ImGui::End();
+  //       i++;
+  //     }
+  //   }
+  // }
+  // // ImGui::End();
 
   //
   // Do the actual moving along the path...

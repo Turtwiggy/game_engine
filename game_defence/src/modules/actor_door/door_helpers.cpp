@@ -6,7 +6,6 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
-
 namespace game2d {
 
 template<typename View, typename Predicate>
@@ -43,6 +42,7 @@ contains_mobs(entt::registry& r, const glm::ivec2 gp)
     const auto gpos = engine::grid::worldspace_to_grid_space(pos, map_c.tilesize);
     return gpos == gp;
   });
+
   return results;
 };
 

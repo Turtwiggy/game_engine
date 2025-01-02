@@ -2,6 +2,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/map/components.hpp"
+#include "modules/system_names/components.hpp"
 #include "unit_enter_blackhole_components.hpp"
 
 namespace game2d {
@@ -29,6 +30,9 @@ handle_unit_enter_blackhole(entt::registry& r, const GridPositionChangedEvent& e
     if (kill_c == nullptr)
       continue;
     dead.dead.emplace(evt.e);
+
+    if (auto* name_c = r.try_get<NameComponent>(evt.e))
+      SDL_Log("%s entered a blackhole.", name_c->name.c_str());
   }
 }
 

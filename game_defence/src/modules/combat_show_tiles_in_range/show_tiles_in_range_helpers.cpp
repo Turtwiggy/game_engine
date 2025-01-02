@@ -4,11 +4,9 @@
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
-
 
 namespace game2d {
 
@@ -19,6 +17,11 @@ std::vector<glm::ivec2>
 get_tiles_for_knife(entt::registry& r, const MapComponent& map_c, const glm::ivec2& pos)
 {
   auto tiles = generate_accessible_areas_with_diagonals(r, map_c, pos, 1);
+
+  // std::vector<glm::ivec2> tiles;
+  // const auto neighbour_gp = engine::grid::get_neighbour_gridpos_with_diagonals({ pos.x, pos.y }, map_c.xmax, map_c.ymax);
+  // for (const auto [dir, gp] : neighbour_gp)
+  //   tiles.push_back(gp);
 
   // remove the player's starting pos
   std::erase(tiles, pos);
