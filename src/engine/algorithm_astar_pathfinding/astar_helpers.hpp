@@ -32,6 +32,9 @@ heuristic(const T& a, const T& b)
   return distance<T>(a, b);
 };
 
+int
+get_cost_at_gridpos(entt::registry& r, const glm::ivec2 gp, const MapComponent& map_c);
+
 [[nodiscard]] std::vector<glm::ivec2>
 generate_direct(entt::registry& r, const vec2i from, const vec2i to);
 

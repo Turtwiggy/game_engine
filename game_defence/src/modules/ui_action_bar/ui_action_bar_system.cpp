@@ -239,6 +239,7 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 
   const int debug_tilesize = 16;
   const std::string move_icon = "ARROW_UP";
+  const std::string invalid_move_icon = "TEXT_mul";
   const std::string atk_icon = "TEXT_mul";
 
   // clear ui visuals if no action selected
@@ -317,6 +318,29 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
           const int n = limit_c->path_size;
           path = { path.begin(), path.begin() + std::min(n + 1, (int)path.size()) };
         };
+
+        // limit: if the last tile(s) are pathfinding cost -1, dont move to them
+        std::vector<glm::ivec2> removed_tiles;
+        if (path.size() >= 2) {
+          for (int i = path.size(); i > 0; i--) {
+            int cost = get_cost_at_gridpos(r, path[i - 1], map_c);
+            if (cost != -1)
+              break; // stop iterating backwards
+            auto it = path.erase(path.begin() + i - 1);
+            removed_tiles.push_back(*it);
+          }
+        }
+
+        // Display the removed tiles
+        for (const glm::ivec2& t : removed_tiles) {
+          Sprite s;
+          s.sprite = invalid_move_icon;
+          s.pos = engine::grid::grid_space_to_world_space_center(t, map_c.tilesize);
+          s.size = { debug_tilesize, debug_tilesize };
+          s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
+          s.col = { 1.0f, 0.0f, 0.0f, 1.0f };
+          draw_sprite(r, s);
+        }
 
         // Debug the active selection
         if (path.size() > 0) {

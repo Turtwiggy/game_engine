@@ -49,10 +49,14 @@ get_cost_at_gridpos(entt::registry& r, const glm::ivec2 gp, const MapComponent& 
   const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
   const auto& es = map_c.map[idx];
 
-  int cost = 0;
-  for (const auto e : es)
-    if (const auto* p_c = r.try_get<PathfindComponent>(e))
+  int cost = 1;
+  for (const auto e : es) {
+    if (const auto* p_c = r.try_get<PathfindComponent>(e)) {
       cost += p_c->cost;
+      if (p_c->cost == -1)
+        return -1; // tile unpassable
+    }
+  }
   return cost;
 };
 
@@ -106,7 +110,7 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
 
-      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) < 0;
       const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
       if (blocked && targetable && to == gp) {
         cost_so_far[gp] = cost_so_far[current] + 1;
@@ -155,6 +159,9 @@ generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i 
 
   while (frontier.size() > 0) {
 
+    if (int(frontier.size()) >= (map_c.xmax * map_c.ymax))
+      SDL_Log("a* pathfinding likely gone wrong...");
+
     const vec2i current = frontier.dequeue();
     const int current_idx = map_c.xmax * current.y + current.x;
 
@@ -172,7 +179,7 @@ generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i 
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
 
-      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) < 0;
       const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
       if (blocked && targetable && to == gp) {
         cost_so_far[gp] = cost_so_far[current] + 1;
@@ -227,7 +234,7 @@ generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const ve
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
 
-      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) < 0;
       const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
       if (blocked && targetable)
         results.emplace(vec2i{ gp.x, gp.y });
@@ -285,7 +292,7 @@ generate_accessible_areas_with_diagonals(entt::registry& r, const MapComponent& 
       if (edge_between_gps(r, { current.x, current.y }, { gp.x, gp.y }) != entt::null)
         continue; // impassable
 
-      const bool blocked = get_cost_at_gridpos(r, gp, map_c) == -1;
+      const bool blocked = get_cost_at_gridpos(r, gp, map_c) < 0;
       const bool targetable = only_targetable_at_gridpos(r, gp, map_c);
       if (blocked && targetable)
         results.emplace(vec2i{ gp.x, gp.y });

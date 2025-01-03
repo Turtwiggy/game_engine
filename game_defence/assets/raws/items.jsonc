@@ -128,7 +128,7 @@
       "name": "lootbag",
       "display_name": "Lootbag",
       "display_desc": "A default bag of loot",
-      "renderable": { "sprite": "GEM", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "renderable": { "sprite": "SKULL_AND_BONES", "colour": { "r": 255, "g": 255, "b": 255 } },
       "inventory": { "size": 30 }
     },
     // header: scrap tier items

@@ -2,14 +2,13 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
-#include "engine/entt/entity_pool.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/physics/components.hpp"
-#include "engine/sprites/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
+#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
 namespace game2d {
@@ -80,44 +79,30 @@ update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
   // If the player has a generated path component attached,
   // lerp from your current position to the destination position
   //
-
-  // static EntityPool pool;
-
-  // // ImGui::Begin("Debug Paths");
-  // {
-  //   const auto& path_view = r.view<GeneratedPathComponent>();
-
-  //   int i = 0;
-  //   for (const auto& [e, path_c] : path_view.each()) {
-  //     for (const auto& path : path_c.path)
-  //       i++;
-  //   };
-  //   pool.update(r, i);
-
-  //   for (int i = 0; const auto& [e, path_c] : path_view.each()) {
-  //     // ImGui::Separator();
-  //     for (const auto& p : path_c.path) {
-  //       // ImGui::Text("%i,%i", p.x, p.y);
-
-  //       const auto debug_e = pool.instances[i];
-  //       auto pos = engine::grid::grid_space_to_world_space_center(p, 50);
-  //       set_position(r, debug_e, pos);
-  //       set_size(r, debug_e, { 50, 50 });
-  //       set_sprite(r, debug_e, "CURSOR_3");
-
-  //       i++;
-  //     }
-  //   }
-  // }
-  // // ImGui::End();
-
-  //
-  // Do the actual moving along the path...
-  //
-  const auto& map_e = get_first<MapComponent>(r);
+  const auto map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
     return;
   const auto& map_c = r.get<MapComponent>(map_e);
+
+  const int ui_size = 16;
+  const int tilesize = map_c.tilesize;
+
+  // UI: Display the path the unit is moving along
+  const auto& path_view = r.view<const GeneratedPathComponent>();
+  for (const auto& [e, path_c] : path_view.each()) {
+    for (size_t i = 1; i < path_c.path.size(); i++) {
+      const auto& p = path_c.path[i]; // skip first
+      Sprite s;
+      s.sprite = "ARROW_UP";
+      s.pos = engine::grid::grid_space_to_world_space_center(p, tilesize);
+      s.col = { 1.0f, 1.0f, 1.0f, 1.0f };
+      s.size = { ui_size, ui_size };
+      s.z_idx = ZLayer::DEFAULT;
+      draw_sprite(r, s);
+    }
+  }
+
+  // Do the actual moving along the path...
   const float lerp_speed = 10.0f;
   const auto& view = r.view<const PhysicsBodyComponent, GeneratedPathComponent>();
   for (const auto& [e, body_c, path_c] : view.each()) {
