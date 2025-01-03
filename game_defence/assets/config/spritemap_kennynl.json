@@ -108,6 +108,12 @@
     { "name": "WOOD_WALL_SMALL", "frames": [ { "x": 2, "y": 3 } ] },
     { "name": "WOOD_WALL_BIG", "frames": [ { "x": 2, "y": 3 } ] },
 
+    { "name": "SCORPION_24_5", "frames": [ { "x": 24, "y": 5 } ] },
+    { "name": "CRAB_25_5", "frames": [ { "x": 25, "y": 5 } ] },
+    { "name": "WASP_26_5", "frames": [ { "x": 26, "y": 5 } ] },
+    { "name": "TURTLE_27_5", "frames": [ { "x": 27, "y": 5 } ] },
+    { "name": "SPIDER_28_5", "frames": [ { "x": 28, "y": 5 } ] },
+
     { "name": "DART_35_5", "frames": [ { "x": 35, "y": 5 } ], "angle": -45.0 },
     { "name": "HOOK_36_5", "frames": [ { "x": 36, "y": 5 } ] },
     { "name": "CROSSBOW_37_5", "frames": [ { "x": 37, "y": 5 } ] },
@@ -118,6 +124,8 @@
     { "name": "SHOVEL", "frames": [ { "x": 42, "y": 5 } ], "angle": -45.0 },
     { "name": "PICKAXE", "frames": [ { "x": 42, "y": 5 } ], "angle": -30.0 },
 
+
+    { "name": "PERSON_30_6", "frames": [ { "x": 30, "y": 6 } ] },
     { "name": "ORC", "frames": [ { "x": 30, "y": 6 } ] },
     { "name": "WEAPON_DAGGER_0", "frames": [ { "x": 32, "y": 6 } ], "angle": -45.0 },
     { "name": "WEAPON_DAGGER_1", "frames": [ { "x": 33, "y": 6 } ], "angle": -45.0 },
@@ -181,6 +189,7 @@
     { "name": "KEY_2", "frames": [ { "x": 34, "y": 11 } ] },
     { "name": "EFFECT_BUBBLES", "frames": [ { "x": 35, "y": 11 } ] },
     { "name": "EFFECT_SPARKLE", "frames": [ { "x": 36, "y": 11 } ] },
+    { "name": "SKULL_38_11", "frames": [ { "x": 38, "y": 11 } ] },
 
     { "name": "CURSOR_0", "frames": [ { "x": 35, "y": 12 } ] },
     { "name": "CURSOR_1", "frames": [ { "x": 36, "y": 12 } ] },

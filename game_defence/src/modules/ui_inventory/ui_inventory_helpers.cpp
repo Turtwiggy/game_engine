@@ -356,14 +356,14 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
   // spawn_inv_item(r, body_c.body, 5, "scrap_legs");
 
   // todo(21/11/24): replace idx 0 with with where the weapon should go
-  spawn_inv_item(r, body_c.body, 0, "hook");
+  // spawn_inv_item(r, body_c.body, 0, "hook");
 
   // init inventory with items
   // note: spawn less than 6*5 items (default inventory size)
   int i = 0;
   // spawn_inv_item(r, inv_c.inv, int(i++), "hook");
-  spawn_inv_item(r, inv_c.inv, int(i++), "shotgun");
-  spawn_inv_item(r, inv_c.inv, int(i++), "scrap_knife");
+  // spawn_inv_item(r, inv_c.inv, int(i++), "shotgun");
+  // spawn_inv_item(r, inv_c.inv, int(i++), "scrap_knife");
   // spawn_inv_item(r, inv_c.inv, i++, "scrap");
   // spawn_inv_item(r, inv_c.inv, i++, "bullet_default");
   // spawn_inv_item(r, inv_c.inv, i++, "bullet_bouncy");

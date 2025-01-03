@@ -444,9 +444,10 @@ void main()
 
 	out_color.rgb = circle_col + dark_col + srgb_final.rgb;
 
-	vec4 outline_col_lin = texture(tex_outline, v_uv);
-	vec3 outline_col = lin_to_srgb(outline_col_lin.rgb);
-	out_color.rgb += outline_col;
+	// vec4 outline_col_lin = texture(tex_outline, v_uv);
+	// vec3 outline_col = lin_to_srgb(outline_col_lin.rgb);
+	// if(outline_col.r > 0.0f)
+	// 	out_color.rgb = vec3(1.0, 1.0, 1.0);
 
 	// vignette
 	// vec2 vig_uv = fragCoord.xy / iResolution.xy;

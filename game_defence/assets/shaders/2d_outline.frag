@@ -40,8 +40,7 @@ void
 main()
 {
   // vec2 sprite_uv = (v_uv - v_pos)
-
-  vec2 texel_size = (1.0 / vec2(textureSize(tex_to_outline, 0)));
+  vec2 texel_size = 1.0 / vec2(textureSize(tex_to_outline, 0));
   vec2 up = vec2(0, texel_size.y);
   vec2 rgt = vec2(texel_size.x, 0);
 
@@ -59,15 +58,6 @@ main()
 
   // float inline = (1.0f - l_pix * u_pix * r_pix * d_pix) * col.a;
   float outline = max(max(l_max, u_max), max(r_max, d_max)) - col_max > 0.0 ? 1.0 : 0.0;
-
-  // NOTE: out_colour outputs linear
-  vec3 lin_col = srgb_to_lin(vec3(1.0, 1.0, 0.0));
-  vec3 outline_col = lin_col.rgb;
-
-  vec3 fin = srgb_to_lin(mix(col.rgb, outline_col, outline));
-  // vec3 fin = vec3(outline, 0.0, 0.0);
-
-  out_colour = vec4(fin.rgb, 1.0);
-  // out_colour = col;
-  // out_colour = vec4(col.rgb, 1.0);
+  if(outline > 0.0f)
+    out_colour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 }

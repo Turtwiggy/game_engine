@@ -5,7 +5,10 @@
 #include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/animations/rotate_components.hpp"
+#include "modules/animations/wiggle/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/event_unit_enter_blackhole/unit_enter_blackhole_components.hpp"
@@ -16,7 +19,6 @@
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
 #include "modules/ui_units/ui_units_components.hpp"
-#include "modules/ui_units/ui_units_helpers.hpp"
 
 namespace game2d {
 
@@ -38,11 +40,13 @@ add_initiative(entt::registry& r, entt::entity e)
 #endif
 }
 
-void
+std::vector<entt::entity>
 spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
 {
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
+
+  std::vector<entt::entity> ents;
 
   int n_free_slots = static_cast<int>(idxs.size());
   do {
@@ -55,7 +59,15 @@ spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
     const auto env_e = spawn_environment(r, "blackhole", pos);
     r.emplace<OnCollisionKill>(env_e);
 
+    float rnd_angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
+    set_dir(r, env_e, engine::angle_radians_to_direction(rnd_angle));
+    float rnd_speed = engine::rand_det_s(rnd.rng, 0.5f, 1.2f);
+    float rotate_speed = rnd_speed;
+    r.emplace<AnimationRotate>(env_e, rotate_speed);
+    r.emplace<SeparateTransformAndAABB>(env_e);
+
     add_entity_to_map(r, env_e, slot_idx);
+    ents.push_back(env_e);
 
     // cleanup
     idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
@@ -63,13 +75,17 @@ spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
     n_free_slots--;
 
   } while (amount > 0 && n_free_slots > 0);
+
+  return ents;
 };
 
-void
+std::vector<entt::entity>
 spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
 {
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
+
+  std::vector<entt::entity> ents;
 
   int n_free_slots = static_cast<int>(idxs.size());
   do {
@@ -99,6 +115,8 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
 
       add_initiative(r, mob_e);
       add_entity_to_map(r, mob_e, slot_idx);
+
+      ents.push_back(mob_e);
     }
 
     idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
@@ -106,28 +124,19 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
     n_free_slots--;
 
   } while (amount > 0 && n_free_slots > 0);
+
+  return ents;
 };
 
-void
-spawn_n_players(entt::registry& r, std::vector<int>& idxs)
+std::vector<entt::entity>
+spawn_n_players(entt::registry& r, std::vector<int>& idxs, const std::vector<UnitType>& units)
 {
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
 
-  const auto units = load_units(r);
-  std::vector<UnitType> active_units;
-  for (const auto& unit : units) {
-    if (unit.active)
-      active_units.push_back(unit);
-  }
-  SDL_Log("Active units: %i", static_cast<int>(active_units.size()));
+  std::vector<entt::entity> ents;
 
-  if (active_units.size() == 0) {
-    SDL_Log("No active units selected.");
-    return;
-  }
-
-  int amount = active_units.size();
+  int amount = units.size();
   int i = 0;
   int n_free_slots = static_cast<int>(idxs.size());
   do {
@@ -136,7 +145,7 @@ spawn_n_players(entt::registry& r, std::vector<int>& idxs)
     const int slot_idx = idxs[slot_i];
     const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
-    const auto unit_data = active_units[i];
+    const auto unit_data = units[i];
 
     SDL_Log("Spawning player mob...");
     auto e = spawn_mob(r, "dungeon_actor_hero");
@@ -148,6 +157,11 @@ spawn_n_players(entt::registry& r, std::vector<int>& idxs)
     r.emplace<UnitPersistentState>(e, UnitPersistentState{ unit_data.active, unit_data.permadead });
     r.emplace<SpriteOutline>(e);
 
+    // WiggleUpAndDown wiggle_c;
+    // wiggle_c.base_position = pos;
+    // wiggle_c.amplitude = 1.0;
+    // r.emplace<WiggleUpAndDown>(e, wiggle_c);
+
     add_initiative(r, e);
     add_entity_to_map(r, e, slot_idx);
 
@@ -156,9 +170,10 @@ spawn_n_players(entt::registry& r, std::vector<int>& idxs)
     n_free_slots--;
 
     i++;
+    ents.push_back(e);
   } while (amount > 0 && n_free_slots > 0);
 
-  //
+  return ents;
 };
 
 } // namespace game2d

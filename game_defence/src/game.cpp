@@ -14,6 +14,7 @@
 #include "modules/actor_breach_charge/breach_charge_system.hpp"
 #include "modules/actor_door/door_system.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
+#include "modules/animations/rotate_system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
 #include "modules/animator/animator_system.hpp"
 #include "modules/camera/camera_system.hpp"
@@ -47,6 +48,7 @@
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_quips/system.hpp"
+#include "modules/system_tutorial/tutorial_system.hpp"
 #include "modules/ui_action_bar/ui_action_bar_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -187,7 +189,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED) {
+
     update_animator_system(r, dt);
+    update_animation_rotate_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);
     update_dungeon_spawner_system(r);
@@ -197,42 +201,25 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_entered_new_room_system(r, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_quips_system(r);
-    // combat systems
+
     update_combat_scale_on_hit_system(r, dt);
     update_show_tiles_in_range_system(r);
     update_gun_follow_player_system(r, mouse_pos, dt);
     update_gun_z_index_system(r);
     update_go_from_jetpack_to_dungeon_system(r);
-    // update_go_from_dungeon_to_jetpack_system(r);
     update_spawn_particles_on_death_system(r);
     update_breach_charge_system(r, mouse_pos, dt);
     update_initiative_system(r);
-    // movement systems
+
     update_move_player_on_map_system(r, milliseconds_dt);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
-#if defined(_DEBUG)
-    // update_debug_map_system(r);
-#endif
-    // space systems
+    update_tutorial_system(r);
+
     update_door_system(r);
     update_airlock_system(r);
 
-    // update_combat_defence_system(r);
-    // update_actor_cover_system(r);
-    // update_turnbased_endturn_system(r);
-    // update_turnbased_enemy_system(r);
-    // update_ux_hoverable(r, mouse_pos);
-    // update_fov_system(r, mouse_pos);
-    // update_dungeon_helmet_system(r);
-    // update_hide_sprites_when_outside_ship_system(r);
-    // update_breached_room_system(r);
-
-    if (scene.s == Scene::splashscreen) {
+    if (scene.s == Scene::splashscreen)
       update_scene_splashscreen_move_to_menu_system(r, dt);
-    }
-
-    if (scene.s == Scene::dungeon_designer) {
-    }
   }
 
   update_ui_fps_counter_system(r);
@@ -247,7 +234,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_units_system(r);
   }
 
-  if (scene.s == Scene::dungeon_designer) {
+  if (scene.s != Scene::menu && scene.s != Scene::splashscreen) {
     // update_ui_combat_damage_numbers_system(r, dt);
     update_ui_inventory_system(r);
     update_ui_players_system(r, mouse_pos);

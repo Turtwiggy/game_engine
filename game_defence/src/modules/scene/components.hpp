@@ -9,6 +9,11 @@ enum class Scene
   overworld,
   dungeon_designer,
 
+  tutorial_shotgun_straight,
+  tutorial_shotgun_diagonal,
+  tutorial_knife_bleed,
+  tutorial_hook_blackhole,
+
   test, // used by tests
   count
 };

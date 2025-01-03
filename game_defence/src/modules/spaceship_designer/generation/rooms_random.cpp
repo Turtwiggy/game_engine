@@ -11,7 +11,6 @@
 #include "modules/actor_door/door_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
-
 namespace game2d {
 
 std::vector<entt::entity>

@@ -7,6 +7,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/map/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -24,10 +25,15 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_distance_check/components.hpp"
+#include "modules/system_dungeon_spawner/dungeon_spawner_helpers.hpp"
+#include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
+#include "modules/ui_action_bar/ui_action_bar_components.hpp"
+#include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
+#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 #include "modules/ui_lootbag/ui_lootbag_components.hpp"
 #include "modules/ui_overworld_boardship/components.hpp"
 #include "modules/ui_overworld_shiplabel/components.hpp"
@@ -136,6 +142,81 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // evts.events.push_back("Press E to open/close inventory.");
     // evts.events.push_back("Press R to open/close loot");
     // evts.events.push_back("Left click to perform item action.");
+  }
+
+  const std::vector<Scene> tutorial_scenes{ Scene::tutorial_shotgun_straight,
+                                            Scene::tutorial_shotgun_diagonal,
+                                            Scene::tutorial_knife_bleed,
+                                            Scene::tutorial_hook_blackhole };
+  bool in_tutorial_scene = std::find(tutorial_scenes.begin(), tutorial_scenes.end(), s) != tutorial_scenes.end();
+
+  if (in_tutorial_scene) {
+    create_empty<CameraFreeMove>(r);
+    create_empty<Effect_GridComponent>(r);
+
+    int tilesize = 32;
+    destroy_first_and_create<MapComponent>(r);
+    auto& map = get_first_component<MapComponent>(r);
+    map.tilesize = tilesize;
+    map.xmax = 10;
+    map.ymax = 10;
+    map.map.resize(map.xmax * map.ymax);
+
+    auto grid_e = get_first<Effect_GridComponent>(r);
+    if (grid_e != entt::null)
+      get_first_component<Effect_GridComponent>(r).gridsize = tilesize;
+    const auto map_e = get_first<MapComponent>(r);
+    const auto& map_c = r.get<MapComponent>(map_e);
+    const glm::vec2 map_center = { (map_c.xmax * map_c.tilesize) / 2.0f, (map_c.ymax * map_c.tilesize) / 2.0f };
+    const glm::vec2 map_size = { map_c.xmax * map_c.tilesize, map_c.ymax * map_c.tilesize };
+
+    // center the camera
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    set_position(r, camera_e, map_center);
+  }
+  if (s == Scene::tutorial_shotgun_straight) {
+
+    std::vector<int> players_idxs{ 44 };
+    std::vector<int> enemy_idxs{ 45 };
+    std::vector<int> blackhole_idxs{ 46 };
+
+    UnitType unit;
+    unit.name = "Steve The Destroyer";
+    auto enemies = spawn_n_enemies(r, enemy_idxs, 1);
+    auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 1);
+    auto players = spawn_n_players(r, players_idxs, { unit });
+
+    // player first
+    r.get<InitiativeComponent>(players[0]).initiative = 0;
+    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+
+    // give the player a shotgun
+    auto& body_c = r.get<DefaultBody>(players[0]);
+    spawn_inv_item(r, body_c.body, 0, "shotgun");
+
+    // scenario win if: you push the enemy in to a blackhole.
+    // moves allowed: 1
+    // WinConditionLimitedActions wc;
+    // wc.action = 1;
+    // wc.expected_enemies = 0;
+    // create_empty<WinConditionLimitedActions>(r, wc);
+  }
+  if (s == Scene::tutorial_shotgun_diagonal) {
+  }
+  if (s == Scene::tutorial_knife_bleed) {
+  }
+  if (s == Scene::tutorial_hook_blackhole) {
+  }
+
+  if (in_tutorial_scene) {
+    // Set the first unit as the active unit
+    auto initiative_group = r.group<InitiativeComponent>();
+    initiative_group.sort<InitiativeComponent>(
+      [](const InitiativeComponent& a, const InitiativeComponent& b) { return a.initiative < b.initiative; });
+    for (const auto& [e, c] : initiative_group.each()) {
+      activate_unit(r, e);
+      break;
+    }
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

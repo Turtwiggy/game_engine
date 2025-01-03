@@ -17,6 +17,7 @@
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_units/ui_units_components.hpp"
+#include "modules/ui_units/ui_units_helpers.hpp"
 
 namespace game2d {
 
@@ -31,6 +32,8 @@ update_dungeon_spawner_system(entt::registry& r)
   if (info_c.processed)
     return;
   info_c.processed = true;
+
+  SDL_Log("update_dungeon_spawner_system() spawning units...");
 
   static int tilesize = 32;
   destroy_first_and_create<MapComponent>(r);
@@ -55,8 +58,15 @@ update_dungeon_spawner_system(entt::registry& r)
   idxs = get_empty_slots_in_map(r, map_c);
   spawn_n_blackhole(r, idxs, info_c.level);
 
+  const auto units = load_units(r);
+  std::vector<UnitType> active_units;
+  for (const auto& unit : units) {
+    if (unit.active)
+      active_units.push_back(unit);
+  }
+  SDL_Log("Active units: %i", static_cast<int>(active_units.size()));
   idxs = get_empty_slots_in_map(r, map_c);
-  spawn_n_players(r, idxs);
+  spawn_n_players(r, idxs, active_units);
 
   // center the camera
   const auto camera_e = get_first<OrthographicCamera>(r);

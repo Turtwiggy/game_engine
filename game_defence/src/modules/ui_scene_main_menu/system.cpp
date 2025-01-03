@@ -125,7 +125,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   // selected = selected < 0 ? buttons - 1 : selected;
   // selected %= buttons;
 
-  const ImVec2 size = { 60, 20.0f };
+  const ImVec2 tutorial_button_size = { 200, 20.0f };
+  const ImVec2 elim_button_size = { 60.0f, 20.0f };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
@@ -133,7 +134,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   const auto selectable_button = [&](const std::string& label, int& selected, const int index) {
     // update the selected index if this button is clicked
-    if (ImGui::Button(label.c_str(), size)) {
+    if (ImGui::Button(label.c_str(), elim_button_size)) {
       do_ui_action = true;
       selected = index;
     }
@@ -175,7 +176,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     if (ImGui::BeginTable("table2", 3)) {
 
       // Example data
-      const int column_0_rows = 3;
+      const int column_0_rows = 4;
       const int column_1_rows = 9;
       const int max_rows = std::max(column_0_rows, column_1_rows);
       int column_0_row = 0;
@@ -193,11 +194,35 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
           const int i = column_0_row;
           ImGui::PushID(i);
 
-          if (i == 0)
-            ImGui::Text("In Progress");
+          ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
 
-          else
-            ImGui::TextUnformatted("");
+          if (i == 0) {
+            const std::string str = std::format("Shotgun: Push");
+            if (ImGui::Button(str.c_str(), tutorial_button_size))
+              move_to_scene_start(r, Scene::tutorial_shotgun_straight);
+          }
+          if (i == 1) {
+            const std::string str = std::format("Shotgun: Diagonals");
+            if (ImGui::Button(str.c_str(), tutorial_button_size))
+              move_to_scene_start(r, Scene::tutorial_shotgun_diagonal);
+          }
+          if (i == 2) {
+            const std::string str = std::format("Knife: Bleed");
+            if (ImGui::Button(str.c_str(), tutorial_button_size))
+              move_to_scene_start(r, Scene::tutorial_knife_bleed);
+          }
+          if (i == 3) {
+            const std::string str = std::format("Hook: Pull");
+            if (ImGui::Button(str.c_str(), tutorial_button_size))
+              move_to_scene_start(r, Scene::tutorial_hook_blackhole);
+          }
+
+          ImGui::PopStyleVar();
+
+          // if (i == 0)
+          //   ImGui::Text("In Progress");
+          // else
+          //   ImGui::TextUnformatted("");
 
           ImGui::PopID();
           column_0_row++;
@@ -215,7 +240,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
           const int i = column_1_row + 1;
 
           // impl
-          eliminiation_level_x(r, i, size);
+          eliminiation_level_x(r, i, elim_button_size);
 
           column_1_row++;
         } else {

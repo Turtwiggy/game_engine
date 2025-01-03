@@ -8,13 +8,13 @@
 
 namespace game2d {
 
-void
+std::vector<entt::entity>
 spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount);
 
-void
+std::vector<entt::entity>
 spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount);
 
-void
-spawn_n_players(entt::registry& r, std::vector<int>& idxs);
+std::vector<entt::entity>
+spawn_n_players(entt::registry& r, std::vector<int>& idxs, const std::vector<UnitType>& units);
 
 } // namespace game2d

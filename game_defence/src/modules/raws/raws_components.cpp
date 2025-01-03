@@ -2,6 +2,7 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
@@ -17,11 +18,11 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
-#include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_names/components.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
 #include <box2d/b2_body.h>
@@ -80,6 +81,15 @@ get_raws_keys(const Raws& raws)
   return results;
 };
 
+engine::SRGBColour
+colour_tag_to_colour(const Raws& raws, const std::string& col)
+{
+  for (const auto& c : raws.colours)
+    if (c.tag == col)
+      return hex_to_srgb(c.hex);
+  return { 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
 const auto item_body_type = b2_kinematicBody;
 const auto mob_body_type = b2_kinematicBody;
 const auto env_body_type = b2_kinematicBody;
@@ -98,6 +108,7 @@ create_transform(entt::registry& r, const std::string& name)
 void
 give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
 {
+  const auto& raws = get_first_component<Raws>(r);
   const auto& mob_template = r.get<Mob>(e);
 
   // create_transform()
@@ -118,8 +129,9 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
       r.emplace<SpriteAnimationState>(e, anim_c);
     }
 
-    r.emplace<DefaultColour>(e, mob_template.renderable.colour);
-    set_colour(r, e, mob_template.renderable.colour);
+    const auto col = colour_tag_to_colour(raws, mob_template.renderable.colour);
+    r.emplace<DefaultColour>(e, col);
+    set_colour(r, e, col);
 
     TransformComponent tf;
     tf.position = { pos.x, pos.y, 0.0f };
@@ -174,7 +186,7 @@ spawn_item(entt::registry& r, const std::string& key)
   r.emplace<TransformComponent>(e);
   r.emplace<SpriteComponent>(e);
   set_sprite(r, e, item_template.renderable.sprite);
-  set_colour(r, e, item_template.renderable.colour);
+  set_colour(r, e, colour_tag_to_colour(rs, item_template.renderable.colour));
   set_z_index(r, e, ZLayer::DEFAULT);
   set_size(r, e, { size, size });
 
@@ -284,7 +296,10 @@ spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& po
   // create_transform()
   {
     r.emplace<SpriteComponent>(e);
-    r.emplace<DefaultColour>(e, env_template.renderable.colour);
+
+    const auto col = colour_tag_to_colour(rs, env_template.renderable.colour);
+    r.emplace<DefaultColour>(e, col);
+    set_colour(r, e, col);
 
     TransformComponent tf;
     tf.position = { pos.x, pos.y, 0.0f };
@@ -292,7 +307,6 @@ spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& po
     r.emplace<TransformComponent>(e, tf);
 
     set_sprite(r, e, env_template.renderable.sprite);
-    set_colour(r, e, env_template.renderable.colour);
     set_z_index(r, e, ZLayer::ENVIRONMENT);
   }
 
@@ -413,8 +427,10 @@ spawn_ship_part(entt::registry& r, const std::string& key)
   if (part_template.renderable.has_value()) {
     r.emplace<TransformComponent>(e);
     r.emplace<SpriteComponent>(e);
-    r.emplace<DefaultColour>(e, part_template.renderable->colour);
-    set_colour(r, e, part_template.renderable->colour);
+
+    const auto col = colour_tag_to_colour(rs, part_template.renderable->colour);
+    r.emplace<DefaultColour>(e, col);
+    set_colour(r, e, col);
     set_sprite(r, e, part_template.renderable->sprite);
     set_size(r, e, { size, size });
     set_z_index(r, e, ZLayer::DEFAULT);

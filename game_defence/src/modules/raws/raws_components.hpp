@@ -87,7 +87,7 @@ struct Bullet
 struct Renderable
 {
   std::string sprite = "EMPTY";
-  engine::SRGBColour colour{ 1.0f, 1.0f, 1.0f, 1.0f };
+  std::string colour = "white";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Renderable, sprite, colour);
 };

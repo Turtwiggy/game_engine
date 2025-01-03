@@ -45,7 +45,10 @@ update_ui_players_system(entt::registry& r, const glm::ivec2 mouse_pos)
   // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
   ImGui::Begin("Mobs", NULL, flags);
-  ImGui::SeparatorText("Turns");
+  ImGui::SeparatorText("Objective");
+  ImGui::Text("Win in X turns");
+
+  ImGui::SeparatorText("Units");
 
   int gridsize = 50;
   glm::ivec2 mouse_gp = { -1, -1 };
