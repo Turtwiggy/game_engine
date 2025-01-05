@@ -1,13 +1,15 @@
 #include "ui_combat_damage_numbers_system.hpp"
-#include "engine/renderer/transform.hpp"
-#include "modules/system_names/components.hpp"
-#include "ui_combat_damage_numbers_components.hpp"
 
 #include "actors/actor_helpers.hpp"
+#include "engine/map/components.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/renderer/transform.hpp"
 #include "imgui.h"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/helpers.hpp"
+#include "modules/system_names/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
+#include "ui_combat_damage_numbers_components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <algorithm>
@@ -34,7 +36,7 @@ handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
 };
 
 void
-update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
+update_ui_combat_damage_numbers_system(entt::registry& r, const float dt, const glm::ivec2 mouse_pos)
 {
   const auto& view = r.view<HealthComponent, NameComponent, const TransformComponent>();
   for (const auto& [e, hp_c, name_c, transform_c] : view.each()) {
@@ -53,8 +55,19 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
     worldspace_ui.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
     worldspace_ui.flags |= ImGuiWindowFlags_NoInputs;
     worldspace_ui.flags |= ImGuiWindowFlags_AlwaysAutoResize;
-    worldspace_ui.flags |= ImGuiWindowFlags_NoBackground;
+    // worldspace_ui.flags |= ImGuiWindowFlags_NoBackground;
     worldspace_ui.alpha = 0.6f;
+
+    // only display info if hovered
+    glm::ivec2 mouse_gp = { -1, -1 };
+    const auto map_e = get_first<MapComponent>(r);
+    if (map_e != entt::null) {
+      const auto& map_c = get_first_component<MapComponent>(r);
+      mouse_gp = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
+    }
+    const auto gp = get_grid_position(r, e);
+    const bool hovered = gp == mouse_gp;
+    worldspace_ui.display = hovered;
 
     // Calculate the width of the text e.g. "1 3 5 "
     std::string label = "";
@@ -89,16 +102,21 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
     const float both_pad_x = pad_x * 2.0f;
     const float both_pad_y = pad_y * 2.0f;
 
+    auto name = name_c.name;
+    const auto spacer = name_c.name.find(" ");
+    if (spacer != std::string::npos)
+      name = name_c.name.substr(0, spacer);
+
     float header_width = 0;
     float damagenum_width = ImGui::CalcTextSize(label.c_str()).x;
-    float name_width = ImGui::CalcTextSize(name_c.name.c_str()).x;
-    float name_height = ImGui::CalcTextSize(name_c.name.c_str()).y;
+    float name_width = ImGui::CalcTextSize(name.c_str()).x;
+    float name_height = ImGui::CalcTextSize(name.c_str()).y;
     header_width = glm::max(header_width, damagenum_width); // damage numbers, e.g. "0 15 2"
     header_width = glm::max(header_width, name_width);      // the name e.g. "Steve"
 
     worldspace_ui.offset.y = get_size(r, e).y * -0.85f; // place ui above entity
 
-    worldspace_ui.layout = [&ui, &hp_c, &name_c, label, start_idx, header_width]() {
+    worldspace_ui.layout = [&ui, &hp_c, name, label, start_idx, header_width](entt::registry& r) {
       // Draw ui damage numbers
       const size_t n_entries = ui.entries.size();
       if (n_entries > 0) {
@@ -122,7 +140,7 @@ update_ui_combat_damage_numbers_system(entt::registry& r, const float dt)
 
       // Pad the ui, so that the health bar doesnt jump...
       if (n_entries == 0)
-        ImGui::Text("%s", name_c.name.c_str());
+        ImGui::Text("%s", name.c_str());
 
       // Draw health blocks
       {

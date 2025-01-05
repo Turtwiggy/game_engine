@@ -251,7 +251,25 @@ struct Mob
   bool is_sensor;
   std::optional<MoveSpeed> move_speed = std::nullopt;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Mob, name, renderable, stats, is_sensor, move_speed);
+  friend void to_json(nlohmann ::json& nlohmann_json_j, const Mob& nlohmann_json_t)
+  {
+    nlohmann_json_j["name"] = nlohmann_json_t.name;
+    nlohmann_json_j["renderable"] = nlohmann_json_t.renderable;
+    nlohmann_json_j["stats"] = nlohmann_json_t.stats;
+    nlohmann_json_j["is_sensor"] = nlohmann_json_t.is_sensor;
+
+    if (nlohmann_json_t.move_speed.has_value())
+      nlohmann_json_j["move_speed"] = nlohmann_json_t.move_speed;
+  }
+  friend void from_json(const nlohmann ::json& nlohmann_json_j, Mob& nlohmann_json_t)
+  {
+    nlohmann_json_j.at("name").get_to(nlohmann_json_t.name);
+    nlohmann_json_j.at("renderable").get_to(nlohmann_json_t.renderable);
+    nlohmann_json_j.at("stats").get_to(nlohmann_json_t.stats);
+    nlohmann_json_j.at("is_sensor").get_to(nlohmann_json_t.is_sensor);
+    if (nlohmann_json_j.contains("move_speed"))
+      nlohmann_json_j.at("move_speed").get_to(nlohmann_json_t.move_speed);
+  };
 };
 
 struct ShipParts

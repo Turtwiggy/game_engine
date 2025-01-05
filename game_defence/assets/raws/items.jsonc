@@ -195,7 +195,7 @@
     },
     {
       "name": "dungeon_actor_hero",
-      "renderable": { "sprite": "ORC", "colour":  "blue" },
+      "renderable": { "sprite": "REF_IDLE", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
       "is_sensor": true,
       "move_speed": {"speed": 3}

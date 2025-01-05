@@ -41,18 +41,19 @@ add_initiative(entt::registry& r, entt::entity e)
 }
 
 std::vector<entt::entity>
-spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
+spawn_n_blackhole(entt::registry& r, const std::vector<int>& idxs, int amount)
 {
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
 
   std::vector<entt::entity> ents;
+  auto idxs_copy = idxs;
 
-  int n_free_slots = static_cast<int>(idxs.size());
+  int n_free_slots = static_cast<int>(idxs_copy.size());
   do {
     // choose a random slot...
     const int slot_i = engine::rand_det_s(enemy_rnd.rng, 0, n_free_slots);
-    const int slot_idx = idxs[slot_i];
+    const int slot_idx = idxs_copy[slot_i];
     const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
     // impl
@@ -70,7 +71,7 @@ spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
     ents.push_back(env_e);
 
     // cleanup
-    idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
+    idxs_copy.erase(idxs_copy.begin() + slot_i); // remove slot from free slot
     amount--;
     n_free_slots--;
 
@@ -80,18 +81,19 @@ spawn_n_blackhole(entt::registry& r, std::vector<int>& idxs, int amount)
 };
 
 std::vector<entt::entity>
-spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
+spawn_n_enemies(entt::registry& r, const std::vector<int>& idxs, int amount)
 {
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
 
   std::vector<entt::entity> ents;
+  auto idxs_copy = idxs;
 
-  int n_free_slots = static_cast<int>(idxs.size());
+  int n_free_slots = static_cast<int>(idxs_copy.size());
   do {
     // choose a random slot...
     const int slot_i = engine::rand_det_s(enemy_rnd.rng, 0, n_free_slots);
-    const int slot_idx = idxs[slot_i];
+    const int slot_idx = idxs_copy[slot_i];
     const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
     {
@@ -99,6 +101,9 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
       give_life(r, mob_e, pos);
       r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
       r.emplace<DefaultBrainComponent>(mob_e);
+      set_size(r, mob_e, { 24, 24 });
+
+      auto& pb = r.get<PhysicsBodyComponent>(mob_e);
 
       auto& inv = r.get<DefaultInventory>(mob_e).inv;
       auto& body = r.get<DefaultBody>(mob_e).body;
@@ -119,7 +124,7 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
       ents.push_back(mob_e);
     }
 
-    idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
+    idxs_copy.erase(idxs_copy.begin() + slot_i); // remove slot from free slot
     amount--;
     n_free_slots--;
 
@@ -129,20 +134,21 @@ spawn_n_enemies(entt::registry& r, std::vector<int>& idxs, int amount)
 };
 
 std::vector<entt::entity>
-spawn_n_players(entt::registry& r, std::vector<int>& idxs, const std::vector<UnitType>& units)
+spawn_n_players(entt::registry& r, const std::vector<int>& idxs, const std::vector<UnitType>& units)
 {
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
 
   std::vector<entt::entity> ents;
+  auto idxs_copy = idxs;
 
   int amount = units.size();
   int i = 0;
-  int n_free_slots = static_cast<int>(idxs.size());
+  int n_free_slots = static_cast<int>(idxs_copy.size());
   do {
     // choose a random slot...
     const int slot_i = engine::rand_det_s(enemy_rnd.rng, 0, n_free_slots);
-    const int slot_idx = idxs[slot_i];
+    const int slot_idx = idxs_copy[slot_i];
     const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
     const auto unit_data = units[i];
@@ -165,7 +171,7 @@ spawn_n_players(entt::registry& r, std::vector<int>& idxs, const std::vector<Uni
     add_initiative(r, e);
     add_entity_to_map(r, e, slot_idx);
 
-    idxs.erase(idxs.begin() + slot_i); // remove slot from free slot
+    idxs_copy.erase(idxs_copy.begin() + slot_i); // remove slot from free slot
     amount--;
     n_free_slots--;
 

@@ -17,7 +17,6 @@
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
-
 #include "fmt/core.h"
 
 namespace game2d {
@@ -51,7 +50,7 @@ create_imgui_quip(entt::registry& r, const entt::entity actor, const RequestQuip
   ui.offset.y = (-get_size(r, actor).y - size_y);
   // ui.size = { size_x, size_y };
 
-  ui.layout = [quip]() {
+  ui.layout = [quip](entt::registry& r) {
     std::string label = quip;
 
     // center x

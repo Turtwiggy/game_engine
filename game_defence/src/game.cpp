@@ -61,7 +61,6 @@
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
 #include "modules/ui_inventory/ui_inventory_system.hpp"
-#include "modules/ui_lootbag/ui_lootbag_system.hpp"
 #include "modules/ui_overworld_boardship/system.hpp"
 #include "modules/ui_overworld_shiplabel/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
@@ -70,14 +69,11 @@
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_spaceship_designer/ui_spaceship_designer_system.hpp"
-#include "modules/ui_units/ui_units_components.hpp"
-#include "modules/ui_units/ui_units_helpers.hpp"
 #include "modules/ui_units/ui_units_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
 #include <SDL2/SDL_log.h>
-#include <format>
 
 namespace game2d {
 using namespace std::literals;
@@ -235,7 +231,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
   if (scene.s != Scene::menu && scene.s != Scene::splashscreen) {
-    // update_ui_combat_damage_numbers_system(r, dt);
+    update_ui_combat_damage_numbers_system(r, dt, mouse_pos);
     update_ui_inventory_system(r);
     update_ui_players_system(r, mouse_pos);
     update_ui_action_bar_system(r, mouse_pos);

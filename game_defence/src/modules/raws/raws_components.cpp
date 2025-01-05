@@ -109,7 +109,9 @@ void
 give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
 {
   const auto& raws = get_first_component<Raws>(r);
-  const auto& mob_template = r.get<Mob>(e);
+  const auto& mob_template = r.get<const Mob>(e);
+  // const auto& name = r.get<NameComponent>(e).name;
+  // SDL_Log("Give life: %s", name.c_str());
 
   // create_transform()
   {

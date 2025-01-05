@@ -372,7 +372,11 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto s_stars = std::vector<Scene>{ Scene::splashscreen, Scene::menu, Scene::overworld };
   const bool in_stars_scene = std::find(s_stars.begin(), s_stars.end(), scene.s) != s_stars.end();
 
-  const auto s_jumpflood = std::vector<Scene>{ Scene::dungeon_designer };
+  const auto s_jumpflood = std::vector<Scene>{ Scene::dungeon_designer,
+                                               Scene::tutorial_hook_blackhole,
+                                               Scene::tutorial_knife_bleed,
+                                               Scene::tutorial_shotgun_diagonal,
+                                               Scene::tutorial_shotgun_straight };
   const bool in_jumpflood_scene = std::find(s_jumpflood.begin(), s_jumpflood.end(), scene.s) != s_jumpflood.end();
 
   const auto jflood_pass = std::vector<PassName>{

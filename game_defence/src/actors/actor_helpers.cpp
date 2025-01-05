@@ -6,6 +6,7 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
+#include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 
@@ -96,6 +97,7 @@ void
 set_size(entt::registry& r, const entt::entity e, const glm::vec2& size)
 {
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
+    SDL_Log("Warning; destroying and creating new fixtures for physics object");
 
     // Destroy all existing fixtures
     for (b2Fixture* fixture = pb->body->GetFixtureList(); fixture != nullptr;) {
@@ -104,16 +106,9 @@ set_size(entt::registry& r, const entt::entity e, const glm::vec2& size)
       fixture = nextFixture;
     }
 
-    // Create a new fixture with the updated size
-    b2PolygonShape newBoxShape;
-    newBoxShape.SetAsBox(size.x / 2.0f, size.y / 2.0f);
-
-    // add fixture
-    b2FixtureDef newFixtureDef;
-    newFixtureDef.shape = &newBoxShape;
-    newFixtureDef.density = 1.0f;
-    newFixtureDef.friction = 0.3f;
-    pb->body->CreateFixture(&newFixtureDef);
+    auto& physd = r.get<PhysicsDescription>(e);
+    physd.size = size;
+    create_box_fixture(r, e, pb->body);
   }
 
   auto& transform = r.get<TransformComponent>(e);

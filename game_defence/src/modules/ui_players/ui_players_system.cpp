@@ -12,6 +12,7 @@
 #include "modules/system_combat_bleed/combat_bleed_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_names/components.hpp"
+#include "modules/system_tutorial/tutorial_components.hpp"
 
 #include <imgui.h>
 
@@ -45,14 +46,20 @@ update_ui_players_system(entt::registry& r, const glm::ivec2 mouse_pos)
   // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
   ImGui::Begin("Mobs", NULL, flags);
-  ImGui::SeparatorText("Objective");
-  ImGui::Text("Win in X turns");
+
+  auto tut_e = get_first<SINGLE_TutorialMetrics>(r);
+  if (tut_e != entt::null) {
+    auto& tut_c = r.get<SINGLE_TutorialMetrics>(tut_e);
+    ImGui::SeparatorText("Objective");
+    ImGui::Text("%s", tut_c.objective.c_str());
+    ImGui::Text("Turn: (%i/%i)", tut_c.turns_taken, tut_c.max_turns);
+  }
 
   ImGui::SeparatorText("Units");
 
   int gridsize = 50;
   glm::ivec2 mouse_gp = { -1, -1 };
-  auto map_e = get_first<MapComponent>(r);
+  const auto map_e = get_first<MapComponent>(r);
   if (map_e != entt::null) {
     const auto& map_c = get_first_component<MapComponent>(r);
     mouse_gp = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);

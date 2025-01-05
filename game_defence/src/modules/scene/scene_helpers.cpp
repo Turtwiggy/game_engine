@@ -30,7 +30,7 @@
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
-#include "modules/ui_action_bar/ui_action_bar_components.hpp"
+#include "modules/system_tutorial/tutorial_components.hpp"
 #include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
@@ -68,6 +68,37 @@ create_player_if_not_in_scene(entt::registry& r)
   set_dir(r, e, engine::normalize_safe(engine::angle_radians_to_direction(-30 * engine::Deg2Rad)));
 
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
+};
+
+void
+setup_tutorial_scene(entt::registry& r, bool in_tutorial_scene)
+{
+  if (!in_tutorial_scene)
+    return;
+
+  create_empty<CameraFreeMove>(r);
+  create_empty<Effect_GridComponent>(r);
+  create_empty<SINGLE_TutorialMetrics>(r);
+
+  int tilesize = 32;
+  destroy_first_and_create<MapComponent>(r);
+  auto& map = get_first_component<MapComponent>(r);
+  map.tilesize = tilesize;
+  map.xmax = 10;
+  map.ymax = 10;
+  map.map.resize(map.xmax * map.ymax);
+
+  auto grid_e = get_first<Effect_GridComponent>(r);
+  if (grid_e != entt::null)
+    get_first_component<Effect_GridComponent>(r).gridsize = tilesize;
+  const auto map_e = get_first<MapComponent>(r);
+  const auto& map_c = r.get<MapComponent>(map_e);
+  const glm::vec2 map_center = { (map_c.xmax * map_c.tilesize) / 2.0f, (map_c.ymax * map_c.tilesize) / 2.0f };
+  const glm::vec2 map_size = { map_c.xmax * map_c.tilesize, map_c.ymax * map_c.tilesize };
+
+  // center the camera
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  set_position(r, camera_e, map_center);
 };
 
 void
@@ -150,62 +181,71 @@ move_to_scene_start(entt::registry& r, const Scene& s)
                                             Scene::tutorial_hook_blackhole };
   bool in_tutorial_scene = std::find(tutorial_scenes.begin(), tutorial_scenes.end(), s) != tutorial_scenes.end();
 
-  if (in_tutorial_scene) {
-    create_empty<CameraFreeMove>(r);
-    create_empty<Effect_GridComponent>(r);
+  setup_tutorial_scene(r, in_tutorial_scene);
 
-    int tilesize = 32;
-    destroy_first_and_create<MapComponent>(r);
-    auto& map = get_first_component<MapComponent>(r);
-    map.tilesize = tilesize;
-    map.xmax = 10;
-    map.ymax = 10;
-    map.map.resize(map.xmax * map.ymax);
-
-    auto grid_e = get_first<Effect_GridComponent>(r);
-    if (grid_e != entt::null)
-      get_first_component<Effect_GridComponent>(r).gridsize = tilesize;
-    const auto map_e = get_first<MapComponent>(r);
-    const auto& map_c = r.get<MapComponent>(map_e);
-    const glm::vec2 map_center = { (map_c.xmax * map_c.tilesize) / 2.0f, (map_c.ymax * map_c.tilesize) / 2.0f };
-    const glm::vec2 map_size = { map_c.xmax * map_c.tilesize, map_c.ymax * map_c.tilesize };
-
-    // center the camera
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    set_position(r, camera_e, map_center);
-  }
   if (s == Scene::tutorial_shotgun_straight) {
-
-    std::vector<int> players_idxs{ 44 };
-    std::vector<int> enemy_idxs{ 45 };
-    std::vector<int> blackhole_idxs{ 46 };
-
-    UnitType unit;
-    unit.name = "Steve The Destroyer";
-    auto enemies = spawn_n_enemies(r, enemy_idxs, 1);
-    auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 1);
-    auto players = spawn_n_players(r, players_idxs, { unit });
-
-    // player first
+    const auto players_idxs = std::vector<int>{ 44 };
+    const auto enemy_idxs = std::vector<int>{ 45 };
+    const auto blackhole_idxs = std::vector<int>{ 46 };
+    const auto enemies = spawn_n_enemies(r, enemy_idxs, 1);
+    const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 1);
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
     r.get<InitiativeComponent>(players[0]).initiative = 0;
     r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+    spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "shotgun");
 
-    // give the player a shotgun
-    auto& body_c = r.get<DefaultBody>(players[0]);
-    spawn_inv_item(r, body_c.body, 0, "shotgun");
-
-    // scenario win if: you push the enemy in to a blackhole.
-    // moves allowed: 1
-    // WinConditionLimitedActions wc;
-    // wc.action = 1;
-    // wc.expected_enemies = 0;
-    // create_empty<WinConditionLimitedActions>(r, wc);
+    auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
+    tutorial_c.max_turns = 1;
+    tutorial_c.objective = "Destroy the enemy in one move.";
+    tutorial_c.expected_enemies = 0;
   }
   if (s == Scene::tutorial_shotgun_diagonal) {
+    const auto players_idxs = std::vector<int>{ 44 };
+    const auto enemy_idxs = std::vector<int>{ 35, 36, 46, 55, 56 };
+    const auto blackhole_idxs = std::vector<int>{ 26, 27, 47, 66, 67 };
+    const auto enemies = spawn_n_enemies(r, enemy_idxs, 5);
+    const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 5);
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
+    r.get<InitiativeComponent>(players[0]).initiative = 0;
+    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+    spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "shotgun");
+
+    auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
+    tutorial_c.max_turns = 1;
+    tutorial_c.objective = "Destroy the enemies in one move.";
+    tutorial_c.expected_enemies = 0;
   }
   if (s == Scene::tutorial_knife_bleed) {
+    const auto players_idxs = std::vector<int>{ 44 };
+    const auto enemy_idxs = std::vector<int>{ 45 };
+    const auto blackhole_idxs = std::vector<int>{ 46 };
+    const auto enemies = spawn_n_enemies(r, enemy_idxs, 1);
+    const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 1);
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
+    r.get<InitiativeComponent>(players[0]).initiative = 0;
+    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+    spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "scrap_knife");
+
+    auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
+    tutorial_c.max_turns = 10;
+    tutorial_c.objective = "Kill the enemy with bleed damage.";
+    tutorial_c.expected_enemies = 0;
   }
   if (s == Scene::tutorial_hook_blackhole) {
+    const auto players_idxs = std::vector<int>{ 44 };
+    const auto enemy_idxs = std::vector<int>{ 49, 47 };
+    const auto blackhole_idxs = std::vector<int>{ 48, 46 };
+    const auto enemies = spawn_n_enemies(r, enemy_idxs, 2);
+    const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 2);
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
+    r.get<InitiativeComponent>(players[0]).initiative = 0;
+    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+    spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "hook");
+
+    auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
+    tutorial_c.max_turns = 1;
+    tutorial_c.objective = "Kill the enemy using the environment.";
+    tutorial_c.expected_enemies = 0;
   }
 
   if (in_tutorial_scene) {

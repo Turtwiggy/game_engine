@@ -235,6 +235,11 @@ update_ui_hierarchy_system(entt::registry& r)
 
     tmp_x = pb->body->GetAngle();
     imgui_draw_float("Physics Angle", tmp_x);
+
+    for (auto* fixture = pb->body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
+      bool is_sensor = fixture->IsSensor();
+      imgui_draw_bool("Physics Fixture: is_sensor", is_sensor);
+    }
   }
 
   if (auto* sc = r.try_get<SpriteComponent>(eid)) {

@@ -10,6 +10,6 @@ void
 handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt);
 
 void
-update_ui_combat_damage_numbers_system(entt::registry& r, const float dt);
+update_ui_combat_damage_numbers_system(entt::registry& r, const float dt, const glm::ivec2 mouse_pos);
 
 } // namespace game2d

@@ -56,8 +56,27 @@ emplace_or_replace_physics_world(entt::registry& r)
 };
 
 void
+create_box_fixture(entt::registry& r, entt::entity e, b2Body* body)
+{
+  const auto& desc = r.get<PhysicsDescription>(e);
+
+  b2PolygonShape box;
+  box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
+
+  b2FixtureDef fixture_def;
+  fixture_def.friction = desc.friction;
+  fixture_def.density = desc.density;
+  fixture_def.restitution = desc.restitution;
+  fixture_def.shape = &box;
+  fixture_def.isSensor = desc.is_sensor;
+  body->CreateFixture(&fixture_def);
+}
+
+void
 create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescription& desc)
 {
+  r.emplace<PhysicsDescription>(e, desc);
+
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
   // Bodies are built using the following steps:
@@ -85,18 +104,8 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
   }
 
   // create a fixture
-  //
-  b2PolygonShape box;
-  box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
+  create_box_fixture(r, e, body);
 
-  b2FixtureDef fixture_def;
-  fixture_def.friction = desc.friction;
-  fixture_def.density = desc.density;
-  fixture_def.restitution = desc.restitution;
-  fixture_def.shape = &box;
-  fixture_def.isSensor = desc.is_sensor;
-
-  body->CreateFixture(&fixture_def);
   r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ body });
 
   // While we're creating it, update the transform
