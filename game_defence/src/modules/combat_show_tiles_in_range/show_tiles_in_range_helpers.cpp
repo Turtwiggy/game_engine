@@ -139,11 +139,8 @@ get_damage_for_item(entt::registry& r, const entt::entity item_e)
 {
   const auto& item = r.get<Item>(item_e);
 
-  if (item.melee.has_value())
-    return item.melee.value().damage;
-
-  if (item.ranged.has_value())
-    return item.ranged.value().damage; // or could be bullet in gun...
+  if (item.combat.has_value())
+    return item.combat->damage;
 
   return 0;
 }

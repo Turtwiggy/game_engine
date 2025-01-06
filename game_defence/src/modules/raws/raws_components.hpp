@@ -60,21 +60,13 @@ struct Defence
   };
 };
 
-struct Melee
+struct Combat
 {
   int damage = 0;
   int range = 0;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Melee, damage, range);
-};
-
-struct Ranged
-{
-  int damage = 0;
   std::string type;
-  int range = 0;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Ranged, damage, type, range);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Combat, damage, range, type);
 };
 
 struct Bullet
@@ -99,6 +91,7 @@ struct Use
 
   // medkit...
   std::optional<int> amount;
+  std::optional<int> uses;
 
   friend void to_json(json& j, const Use& val)
   {
@@ -106,6 +99,8 @@ struct Use
     j["select"] = val.select;
     if (val.amount.has_value())
       j["amount"] = val.amount.value();
+    if (val.uses.has_value())
+      j["uses"] = val.amount.value();
   }
   friend void from_json(const json& j, Use& val)
   {
@@ -113,6 +108,8 @@ struct Use
     j.at("select").get_to(val.select);
     if (j.contains("amount"))
       j.at("amount").get_to(val.amount.emplace());
+    if (j.contains("uses"))
+      j.at("uses").get_to(val.uses.emplace());
   };
 };
 
@@ -155,13 +152,12 @@ struct Item
   std::string display_name;
   std::string display_desc;
   Renderable renderable;
-  std::optional<Use> use;
-  std::optional<Melee> melee = std::nullopt;
-  std::optional<Ranged> ranged = std::nullopt;
-  std::optional<Bullet> bullet = std::nullopt;
+  std::optional<Use> use = std::nullopt;
   std::optional<Defence> defence = std::nullopt;
-  std::optional<Inventory> inventory = std::nullopt;
+  std::optional<Combat> combat = std::nullopt;
   std::optional<std::vector<Trait>> traits = std::nullopt;
+  std::optional<Inventory> inventory = std::nullopt;
+  // std::optional<Bullet> bullet = std::nullopt;
 
   friend void to_json(json& j, const Item& val)
   {
@@ -171,12 +167,8 @@ struct Item
     j["renderable"] = val.renderable;
     if (val.use.has_value())
       j["use"] = val.use.value();
-    if (val.melee.has_value())
-      j["melee"] = val.melee.value();
-    if (val.ranged.has_value())
-      j["ranged"] = val.ranged.value();
-    if (val.bullet.has_value())
-      j["bullet"] = val.bullet.value();
+    if (val.combat.has_value())
+      j["combat"] = val.combat.value();
     if (val.defence.has_value())
       j["defence"] = val.defence.value();
     if (val.inventory.has_value())
@@ -194,12 +186,8 @@ struct Item
     j.at("renderable").get_to(val.renderable);
     if (j.contains("use"))
       j.at("use").get_to(val.use.emplace());
-    if (j.contains("melee"))
-      j.at("melee").get_to(val.melee);
-    if (j.contains("ranged"))
-      j.at("ranged").get_to(val.ranged);
-    if (j.contains("bullet"))
-      j.at("bullet").get_to(val.bullet);
+    if (j.contains("combat"))
+      j.at("combat").get_to(val.combat);
     if (j.contains("defence"))
       j.at("defence").get_to(val.defence);
     if (j.contains("inventory"))
@@ -307,6 +295,8 @@ struct Raws
 //
 //
 
+const int default_size = 32;
+
 Raws
 load_raws(std::string path);
 
@@ -317,13 +307,16 @@ entt::entity
 create_transform(entt::registry& r, const std::string& name);
 
 void
-give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos);
+give_life(entt::registry& r,
+          const entt::entity e,
+          const glm::vec2& pos,
+          const glm::vec2& size = { default_size, default_size });
 
 void
 remove_life(entt::registry& r, const entt::entity e);
 
 entt::entity
-spawn_item(entt::registry& r, const std::string& key);
+spawn_item(entt::registry& r, const std::string& key, const glm::vec2& size = { default_size, default_size });
 
 entt::entity
 spawn_mob(entt::registry& r, const std::string& key);

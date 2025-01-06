@@ -54,6 +54,7 @@ struct SINGLE_Animations
   std::vector<std::pair<Spritesheet, std::vector<SpriteAnimation>>> animations;
 };
 
+// Used by renderer
 struct SpriteComponent
 {
   engine::LinearColour colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f));

@@ -2,31 +2,19 @@
 
 #include "actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
-#include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
-#include "engine/colour/colour.hpp"
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/map/components.hpp"
-#include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/actor_door/door_helpers.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/animations/wiggle/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/combat_show_tiles_in_range/show_tiles_in_range_components.hpp"
-#include "modules/combat_show_tiles_in_range/show_tiles_in_range_helpers.hpp"
-#include "modules/event_damage/event_damage_helpers.hpp"
-#include "modules/events/events_components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
-#include "modules/system_combat_bleed/combat_bleed_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/ui_action_bar/ui_action_bar_components.hpp"
-#include "modules/ui_combat_designer/ui_combat_designer_helpers.hpp"
+#include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "ui_action_bar_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -37,81 +25,6 @@
 #include <memory>
 
 namespace game2d {
-
-void
-do_damage_action(entt::registry& r, entt::entity e)
-{
-  const auto& evts = get_first_component<SINGLE_Events>(r);
-
-  std::set<entt::entity> targets;
-
-  // Set targets for AI
-  const auto* ai_targets = r.try_get<RequestAttack>(e);
-  if (ai_targets && ai_targets->targets.size() > 0)
-    targets = { ai_targets->targets.begin(), ai_targets->targets.end() };
-
-  // Set targets via Tiles
-  else if (const auto* tiles = r.try_get<TilesComponent>(e)) {
-    for (const glm::ivec2& tile : tiles->tiles) {
-      // damage all mobs (off map)
-      const auto mobs = contains_mobs(r, tile);
-      targets.insert(mobs.begin(), mobs.end());
-    }
-  }
-
-  if (targets.size() == 0) {
-    SDL_Log("Tried to attack but no targets...");
-    return;
-  }
-
-  SDL_Log("Dealing damage to targets in RequestAttack...");
-
-  // Get weapon info...
-  const auto item_e = get_equipped_gun(r, e);
-  const int dmg = get_damage_for_equipped_item(r, e);
-  const DamageType dmg_type = DamageType::PHYSICAL;
-  std::vector<Trait> weapon_traits;
-  if (item_e != entt::null && r.get<Item>(item_e).traits.has_value())
-    weapon_traits = r.get<Item>(item_e).traits.value();
-
-  // attack these, not tiles
-  for (const auto map_e : targets) {
-    DamageEvent evt;
-    evt.from = e;
-    evt.to = map_e;
-    evt.type = dmg_type;
-    evt.amount = dmg;
-    evt.traits = weapon_traits;
-
-    evts.dispatcher->trigger(evt);
-    evts.dispatcher->update();
-  }
-};
-
-bool
-action_available(const CompletedActions& actions_c, ActionEnum action)
-{
-  const auto it = std::find(actions_c.actions.begin(), actions_c.actions.end(), action);
-  return it == actions_c.actions.end();
-};
-
-void
-push_button_available_colours()
-{
-  // Active state: Green
-  ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.33f, 0.6f, 0.6f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.33f, 0.7f, 0.7f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.33f, 0.8f, 0.8f));
-};
-
-void
-push_button_unavailable_colours()
-{
-  // Inactive state: red
-  ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 0.6f, 0.6f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.7f, 0.7f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 0.8f, 0.8f));
-};
 
 void
 ai_tick(entt::registry& r, entt::entity e)
@@ -179,75 +92,41 @@ ai_tick(entt::registry& r, entt::entity e)
 };
 
 void
-clear_actions(entt::registry& r, entt::entity e)
-{
-  // .. remove in progress action
-  if (r.try_get<UIActionState>(e))
-    r.remove<UIActionState>(e);
-
-  if (r.try_get<GeneratedPathComponent>(e))
-    r.remove<GeneratedPathComponent>(e);
-};
-
-void
 update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
 {
-  const auto init_e = get_first<SINGLE_Initiative>(r);
-  if (init_e == entt::null)
-    return;
-  const auto& init_c = r.get<SINGLE_Initiative>(init_e);
-  const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  GET_FIRST_OR_RETURN(SINGLE_Initiative, r, init_e, init_c);
+  GET_FIRST_OR_RETURN(MapComponent, r, map_e, map_c);
+  const auto& in_c = get_first_component<SINGLE_InputComponent>(r);
+  const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
 
-  const auto map_e = get_first<MapComponent>(r);
-  if (map_e == entt::null)
-    return;
-  const auto& map_c = get_first_component<MapComponent>(r);
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-
+  // no units with initiative
   if (init_c.order.size() == 0)
-    return; // no units with initiative
+    return;
 
   int n_players = 0;
-  for (const auto& [e, team_c] : r.view<TeamComponent>().each())
+  for (const auto& [e, team_c] : r.view<const TeamComponent>().each())
     if (team_c.team == AvailableTeams::player)
       n_players++;
   if (n_players == 0)
     return; // no players
 
-  // it's the first unit's turn...
+  // This is the unit currnetly "active" in the initiative order.
   const auto e = init_c.order[0];
-
-  const bool player_turn = r.get<TeamComponent>(e).team == AvailableTeams::player;
-  const bool enemy_turn = r.get<TeamComponent>(e).team == AvailableTeams::enemy;
+  const auto eid = static_cast<uint32_t>(e);
+  const auto& body_c = r.get<const DefaultBody>(e);
+  const auto& team_c = r.get<const TeamComponent>(e);
+  const auto player_turn = team_c.team == AvailableTeams::player;
+  const auto enemy_turn = team_c.team == AvailableTeams::enemy;
 
   bool request_action = false;
-  if (auto* inp_c = r.try_get<InputComponent>(e)) {
-    request_action |= inp_c->shoot;
-
-    // note: if two fixed_update() occur before
-
-    // update to eat the shoot() event to prevent multiple requests
-    // this is bad if any other system wants to use the shoot() action
-    inp_c->shoot = false;
-  }
-  request_action &= (ri.viewport_hovered); // no ui
-  if (request_action)
-    SDL_Log("requesting action...");
-
-  const int debug_tilesize = 16;
-  const std::string move_icon = "ARROW_UP";
-  const std::string invalid_move_icon = "TEXT_mul";
-  const std::string atk_icon = "TEXT_mul";
-
-  // clear ui visuals if no action selected
-  // if (r.try_get<UIActionState>(e) == nullptr)
-  //   debug_path.update(r, 0);
+  request_action |= player_has_requested_action(r, e);
+  request_action &= (ri_c.viewport_hovered); // no ui
 
   // position
-  const ImVec2 viewport_pos = { (float)ri.viewport_pos.x, (float)ri.viewport_pos.y };
-  const ImVec2 viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
+  const ImVec2 viewport_pos = { (float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y };
+  const ImVec2 viewport_size_half = ImVec2(ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f);
   const float center_x = viewport_pos.x + viewport_size_half.x;
-  const float bottom_y = viewport_pos.y + ri.viewport_size_render_at.y - 50.0f;
+  const float bottom_y = viewport_pos.y + ri_c.viewport_size_render_at.y - 50.0f;
   const auto pos = ImVec2(center_x, bottom_y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
@@ -258,306 +137,64 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
   ImGui::Begin("Action Bar", NULL, flags);
+  ImGui::PushID(eid);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
   {
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+    // Display actions
+    // UI state: no state => selected action
+    {
+      const bool moving = any_unit_is_moving(r);
+      action_button(r, e, "move", "(1) Move", !moving, get_key_down(in_c, SDL_SCANCODE_1) && !moving);
 
-    const auto button_enabled = [&r, e, &player_turn](const ActionEnum& a,
-                                                      std::string label,
-                                                      const bool additional_enabled_cond = true,
-                                                      const bool additional_action_cond = false) {
-      const auto& actions_c = r.get_or_emplace<CompletedActions>(e);
-      const bool free_to_act = action_available(actions_c, a) && player_turn && additional_enabled_cond;
-      const ImVec2 size = { 64 * 16 / 9.0f, 32 };
+      for (const auto slot_e : body_c.body)
+        display_actions_for_item(r, e, slot_e);
 
-      if (!free_to_act) {
-        push_button_unavailable_colours();
-        ImGui::BeginDisabled(true);
+      action_button(r, e, "end_turn", "(E)nd", !moving, get_key_down(in_c, SDL_SCANCODE_E));
 
-        if (ImGui::SameLine(); ImGui::Button(label.c_str(), size) || additional_action_cond)
-          r.emplace_or_replace<UIActionState>(e, a);
-
-        ImGui::EndDisabled();
+      if (ImGui::SameLine(); ImGui::Button("Clear")) {
+        if (r.try_get<UIActionState>(e))
+          r.remove<UIActionState>(e);
       }
+    }
 
-      if (free_to_act) {
-        push_button_available_colours();
-
-        if (ImGui::SameLine(); ImGui::Button(label.c_str(), size) || additional_action_cond)
-          r.emplace_or_replace<UIActionState>(e, a);
-      }
-
-      ImGui::PopStyleColor(3);
-    };
-
-    const bool moving = any_unit_is_moving(r);
-    button_enabled(ActionEnum::MOVE, "(1) Move", !moving, get_key_down(input_c, SDL_SCANCODE_1) && !moving);
-    button_enabled(ActionEnum::SHOOT, "(2) Attack", !moving, get_key_down(input_c, SDL_SCANCODE_2) && !moving);
-    button_enabled(ActionEnum::USE_ITEM, "(3) Heal", !moving, get_key_down(input_c, SDL_SCANCODE_3) && !moving);
-    button_enabled(ActionEnum::END_TURN, "(E)nd", !moving, get_key_down(input_c, SDL_SCANCODE_E) && !moving);
-
+    //
+    // If an action_button was selected,
+    // The state will be stored in UIActionState
+    // Here, process ui selected action => request action
+    //
     if (auto* state_c = r.try_get<UIActionState>(e)) {
-      const auto state = std::string(magic_enum::enum_name(state_c->current));
-      // ImGui::Text("State: %s", state.c_str());
+      const auto state = state_c->current;
+      ImGui::Text("State: %s", state.c_str());
 
-      if (state_c->current == ActionEnum::MOVE) {
+      // Adds the RequestMove component to e when a tile is selected
+      if (state_c->current == "move")
+        update_request_move_action(r, e, mouse_pos, request_action);
 
-        // Debug from the current unit position, to the mouse position
-        const auto map_e = get_first<MapComponent>(r);
-        const auto& map_c = r.get<MapComponent>(map_e);
-        const auto src_wp = get_position(r, e);
-        const auto dst_wp = mouse_pos;
-        const auto src_gp = engine::grid::worldspace_to_grid_space(src_wp, map_c.tilesize);
-        const auto dst_gp = engine::grid::worldspace_to_grid_space(dst_wp, map_c.tilesize);
-        auto path = generate_direct_with_diagonals(r, src_gp, dst_gp);
+      // If state was heal, immediately request to heal
+      if (state_c->current == "heal")
+        update_request_heal_action(r, e);
 
-        // limit: limit path based on movement.
-        if (auto* limit_c = r.try_get<LimitMovementComponent>(e)) {
-          const int n = limit_c->path_size;
-          path = { path.begin(), path.begin() + std::min(n + 1, (int)path.size()) };
-        };
+      // Adds the RequestAttack component to e when a tile is selected
+      if (state_c->current == "attack")
+        update_request_combat_action(r, e, mouse_pos, request_action);
 
-        // limit: if the last tile(s) are pathfinding cost -1, dont move to them
-        std::vector<glm::ivec2> removed_tiles;
-        if (path.size() >= 2) {
-          for (int i = path.size(); i > 0; i--) {
-            int cost = get_cost_at_gridpos(r, path[i - 1], map_c);
-            if (cost != -1)
-              break; // stop iterating backwards
-            auto it = path.erase(path.begin() + i - 1);
-            removed_tiles.push_back(*it);
-          }
-        }
-
-        // Display the removed tiles
-        for (const glm::ivec2& t : removed_tiles) {
-          Sprite s;
-          s.sprite = invalid_move_icon;
-          s.pos = engine::grid::grid_space_to_world_space_center(t, map_c.tilesize);
-          s.size = { debug_tilesize, debug_tilesize };
-          s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
-          s.col = { 1.0f, 0.0f, 0.0f, 1.0f };
-          draw_sprite(r, s);
-        }
-
-        // Debug the active selection
-        if (path.size() > 0) {
-          // note: -1 so not the tile you're standing on
-          for (size_t i = 1; i < path.size(); i++) {
-            Sprite s;
-            s.sprite = move_icon;
-            s.pos = engine::grid::grid_space_to_world_space_center(path[i], map_c.tilesize);
-            s.size = { debug_tilesize, debug_tilesize };
-            s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
-            s.col = { 0.0f, 1.0f, 0.0f, 1.0f };
-            draw_sprite(r, s);
-          }
-        }
-
-        if (request_action && path.size() > 0) {
-          SDL_Log("Requesting move...");
-
-          GeneratedPathComponent path_c;
-          path_c.path = path;
-          path_c.path_cleared.resize(path.size(), false);
-          path_c.src_pos = src_wp;
-          path_c.dst_pos = engine::grid::grid_space_to_world_space_center(path[path.size() - 1], map_c.tilesize);
-
-          RequestMove req_c;
-          req_c.path_c = path_c;
-          r.emplace<RequestMove>(e, req_c);
-        }
-      }
-
-      if (state_c->current == ActionEnum::SHOOT) {
-
-        // show damage tiles
-        // wiggle the attack icon
-
-        if (auto* tiles_c = r.try_get<TilesComponent>(e)) {
-          // debug_path.update(r, int(tiles_c->tiles.size()));
-
-          // if you're hovvering the damage tiles,
-          // show as green, and if you click it while hovering, take the action
-          const auto mouse_gp = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
-          const bool hovering = std::find(tiles_c->tiles.begin(), tiles_c->tiles.end(), mouse_gp) != tiles_c->tiles.end();
-
-          for (size_t i = 0; i < tiles_c->tiles.size(); i++) {
-            const auto tile_gp = tiles_c->tiles[i];
-            const auto tile_wsp = engine::grid::grid_space_to_world_space_center(tile_gp, map_c.tilesize);
-
-            auto col = engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f };
-            if (hovering)
-              col = engine::SRGBColour{ 0.0f, 1.0f, 0.0f, 1.0f };
-
-            Sprite s;
-            s.sprite = atk_icon;
-            s.pos = tile_wsp;
-            s.size = { debug_tilesize, debug_tilesize };
-            s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
-            s.col = col;
-            draw_sprite(r, s);
-
-            // const auto* wiggle_c = r.try_get<WiggleUpAndDown>(debug_e);
-            // if (!wiggle_c) {
-            //   WiggleUpAndDown wiggle_c;
-            //   wiggle_c.base_position = tile_wsp;
-            //   wiggle_c.amplitude = 1.0;
-            //   r.emplace<WiggleUpAndDown>(debug_e, wiggle_c);
-            // }
-          }
-
-          if (request_action && hovering)
-            r.emplace_or_replace<RequestAttack>(e);
-
-          if (request_action && !hovering)
-            clear_actions(r, e);
-        }
-      }
-
-      if (state_c->current == ActionEnum::USE_ITEM)
-        r.emplace_or_replace<RequestItem>(e);
-
-      if (state_c->current == ActionEnum::END_TURN)
+      // If state was end turn, immediately request to end turn
+      if (state_c->current == "end_turn")
         r.emplace_or_replace<RequestEndTurn>(e);
     }
   }
-
   ImGui::PopStyleVar(1);
+  ImGui::PopID();
   ImGui::End();
 
   if (enemy_turn)
     ai_tick(r, e);
 
-  // monitor when the entity has stopped moving
-  //
-  for (const auto& [e, generated_path_c] : r.view<GeneratedPathComponent>().each()) {
-
-    if (generated_path_c.path.size() == 0)
-      r.remove<GeneratedPathComponent>(e);
-
-    const auto dst_gp = generated_path_c.path[generated_path_c.path.size() - 1];
-    const auto cur_gp = get_grid_position(r, e);
-
-    if (dst_gp != cur_gp)
-      continue;
-
-    const auto dst_idx = engine::grid::grid_position_to_index(dst_gp, map_c.xmax);
-    move_entity_on_map(r, e, dst_idx);
-
-    if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
-      brain_c->brain_fsm = BRAIN_STATE::IDLE;
-
-    SDL_Log("Removing generated path..");
-    r.remove<GeneratedPathComponent>(e);
-  }
-
-  auto& actions_c = r.get_or_emplace<CompletedActions>(e);
-
-  const auto process_actions = [&r, &actions_c]<typename T>(const T& t,
-                                                            const ActionEnum& action,
-                                                            const std::function<void(entt::entity, T&)>& callback) {
-    const auto view = r.view<T>();
-
-    for (const auto& [req_e, req_c] : view.each()) {
-
-      // limit: only take action once
-      if (!action_available(actions_c, action)) {
-        const auto action_str = std::string(magic_enum::enum_name(action));
-        SDL_Log("Already taken %s action this turn.", action_str.c_str());
-        r.remove<T>(req_e);
-
-        if (auto* brain_c = r.try_get<DefaultBrainComponent>(req_e)) {
-          SDL_Log("AI likely requested repeat action... ending their turn");
-          brain_c->brain_fsm = BRAIN_STATE::REASONING;
-        }
-
-        // clear the ui
-        if (r.try_get<UIActionState>(req_e))
-          r.remove<UIActionState>(req_e);
-
-        continue;
-      }
-
-      // Action is available!
-      callback(req_e, req_c);
-
-      // Set the action as completed, and remove the request
-      actions_c.actions.push_back(action);
-
-      // clear the ui
-      if (r.try_get<UIActionState>(req_e))
-        r.remove<UIActionState>(req_e);
-    }
-
-    // processed all requests
-    r.remove<T>(view.begin(), view.end());
-  };
-
-  const std::function<void(entt::entity, RequestMove&)> move_callback = [&r](entt::entity e, const RequestMove& req_c) {
-    //
-    // Action is available
-    r.emplace_or_replace<GeneratedPathComponent>(e, req_c.path_c);
-  };
-  process_actions(RequestMove(), ActionEnum::MOVE, move_callback);
-
-  const std::function<void(entt::entity, RequestAttack&)> shoot_callback = [&r](entt::entity e, const RequestAttack& req_c) {
-    //
-    // Action is available
-    do_damage_action(r, e);
-
-    // The damage action could be animated, but for now,
-    // immediately set back to idle as no anim implemented
-    if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
-      brain_c->brain_fsm = BRAIN_STATE::IDLE;
-  };
-  process_actions(RequestAttack(), ActionEnum::SHOOT, shoot_callback);
-
-  const std::function<void(entt::entity, RequestItem&)> item_callback = [&r](entt::entity e, const RequestItem& req_c) {
-    //
-    // hack: heal. this should actually be based on items, not just always be a heal
-    SDL_Log("todo: heal impl properly");
-    auto& hp = r.get<HealthComponent>(e);
-    hp.hp += 1;
-    hp.hp = glm::min(hp.hp, hp.max_hp);
-    if (const auto* bleed_c = r.try_get<BleedComponent>(e))
-      r.remove<BleedComponent>(e); // fix bleed
-  };
-  process_actions(RequestItem(), ActionEnum::USE_ITEM, item_callback);
-
-  // end turn impl
-  auto& evts = get_first_component<SINGLE_Events>(r);
-  const auto view_req = r.view<RequestEndTurn>();
-  for (const auto& [req_e, req_c] : view_req.each()) {
-    SDL_Log("~~~~~~~~~ ending turn ~~~~~~~~~");
-
-    clear_actions(r, req_e);
-
-    // .. remove completed actions
-    if (r.try_get<CompletedActions>(req_e))
-      r.remove<CompletedActions>(req_e);
-
-    // Set the initiative of the first unit to one higher than the last unit
-    if (init_c.order.size() > 1) {
-      const auto last_e = init_c.order[init_c.order.size() - 1];
-      const auto& last_c = r.get<InitiativeComponent>(last_e);
-      auto& first_c = r.get<InitiativeComponent>(req_e);
-
-      // This line here is weird. It probably shouldnt be +1,
-      // but should be relative to the units own agility or dexterity.
-      // This means that faster units would take turns more frequently.
-      first_c.initiative = last_c.initiative + 1;
-
-      const auto next_e = init_c.order[1];
-      activate_unit(r, next_e);
-    }
-
-    // Fire end turn event for this entity
-    EndTurnEvent evt;
-    evt.e = req_e;
-    evts.dispatcher->trigger(evt);
-    evts.dispatcher->update();
-  }
-  r.remove<RequestEndTurn>(view_req.begin(), view_req.end());
+  update_remove_path_when_at_destination(r, e);
+  update_process_move_request(r, e);
+  update_process_heal_request(r, e);
+  update_process_combat_request(r, e);
+  update_process_end_turn_request(r);
 }
 
 } // namespace game2d

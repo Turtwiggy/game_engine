@@ -30,59 +30,10 @@ update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   //
-  // avoid movement if hovering ui
-  // move direct i.e. WASD movement around grid
-  //
-  /*
-  if (ri.viewport_hovered) {
-    const auto& view =
-      r.view<const PlayerComponent, const TransformComponent, InputComponent>(entt::exclude<GeneratedPathComponent>);
-    for (const auto& [e, player_c, transform_c, inp_c] : view.each()) {
-
-      const auto& map_e = get_first<MapComponent>(r);
-      if (map_e == entt::null)
-        continue;
-      const auto& map_c = r.get<MapComponent>(map_e);
-
-      if (!inside_ship(r, e)) {
-        inp_c.unprocessed_move_down = false;
-        continue; // only move if onboard
-      }
-
-      if (!inp_c.unprocessed_move_down)
-        continue; // no input pressed
-      inp_c.unprocessed_move_down = false;
-
-      const auto round_away_from_zero = [](const float value) -> float {
-        if (value > 0.0f)
-          return std::ceil(value);
-        else if (value < 0.0f)
-          return std::floor(value);
-        else
-          return 0.0f;
-      };
-
-      const auto wp = glm::vec2{ transform_c.position.x, transform_c.position.y };
-
-      // do the move
-      const auto move_position = glm::vec2{
-        wp.x + round_away_from_zero(inp_c.lx) * tilesize,
-        wp.y + round_away_from_zero(inp_c.ly) * tilesize,
-      };
-
-      move_action_lerp_to_neighbour(r, e, move_position);
-    }
-  }
-  */
-
-  //
   // If the player has a generated path component attached,
   // lerp from your current position to the destination position
   //
-  const auto map_e = get_first<MapComponent>(r);
-  if (map_e == entt::null)
-    return;
-  const auto& map_c = r.get<MapComponent>(map_e);
+  GET_FIRST_OR_RETURN(MapComponent, r, map_e, map_c);
 
   const int ui_size = 16;
   const int tilesize = map_c.tilesize;
@@ -170,7 +121,6 @@ update_move_player_on_map_system(entt::registry& r, uint64_t ms_dt)
       path_c.wait_time_ms_left = path_c.wait_time_ms;
 
       // aim for the next gridtile path
-
       auto* lerp_maybe = r.try_get<LerpToFixedTarget>(e);
       if (!lerp_maybe) {
         const auto dst_tile_wsp = engine::grid::grid_space_to_world_space_center(nxt_gp, map_c.tilesize);

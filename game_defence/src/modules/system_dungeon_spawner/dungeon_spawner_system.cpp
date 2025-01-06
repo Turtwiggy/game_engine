@@ -24,11 +24,7 @@ namespace game2d {
 void
 update_dungeon_spawner_system(entt::registry& r)
 {
-  const auto info_e = get_first<MenuToNextSceneInfo>(r);
-  if (info_e == entt::null)
-    return;
-  auto& info_c = r.get<MenuToNextSceneInfo>(info_e);
-
+  GET_FIRST_OR_RETURN(MenuToNextSceneInfo, r, info_e, info_c);
   if (info_c.processed)
     return;
   info_c.processed = true;
@@ -52,12 +48,6 @@ update_dungeon_spawner_system(entt::registry& r)
   const glm::vec2 map_center = { (map_c.xmax * map_c.tilesize) / 2.0f, (map_c.ymax * map_c.tilesize) / 2.0f };
   const glm::vec2 map_size = { map_c.xmax * map_c.tilesize, map_c.ymax * map_c.tilesize };
 
-  auto idxs = get_empty_slots_in_map(r, map_c);
-  spawn_n_enemies(r, idxs, info_c.level);
-
-  idxs = get_empty_slots_in_map(r, map_c);
-  spawn_n_blackhole(r, idxs, info_c.level);
-
   const auto units = load_units(r);
   std::vector<UnitType> active_units;
   for (const auto& unit : units) {
@@ -65,8 +55,14 @@ update_dungeon_spawner_system(entt::registry& r)
       active_units.push_back(unit);
   }
   SDL_Log("Active units: %i", static_cast<int>(active_units.size()));
-  idxs = get_empty_slots_in_map(r, map_c);
+  auto idxs = get_empty_slots_in_map(r, map_c);
   spawn_n_players(r, idxs, active_units);
+
+  idxs = get_empty_slots_in_map(r, map_c);
+  spawn_n_enemies(r, idxs, info_c.level);
+
+  idxs = get_empty_slots_in_map(r, map_c);
+  spawn_n_blackhole(r, idxs, info_c.level);
 
   // center the camera
   const auto camera_e = get_first<OrthographicCamera>(r);
@@ -96,7 +92,7 @@ update_dungeon_spawner_system(entt::registry& r)
       continue;
     // create something interesting
     const auto pos = engine::grid::index_to_world_position_center(idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-    const auto env_e = spawn_environment(r, "cover", pos);
+    const auto env_e = spawn_environment(r, "decoration", pos);
     const auto rnd_size_idx = engine::rand_det_s(floor_rnd.rng, 0, int(sprites_sizes.size()));
     set_sprite(r, env_e, "EMPTY");
     set_size(r, env_e, sprites_sizes[rnd_size_idx]);

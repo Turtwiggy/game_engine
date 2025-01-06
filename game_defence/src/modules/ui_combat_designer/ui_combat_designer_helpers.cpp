@@ -1,7 +1,6 @@
 #include "ui_combat_designer_helpers.hpp"
 
 #include "modules/actor_player/components.hpp"
-#include "modules/camera/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
 
 namespace game2d {

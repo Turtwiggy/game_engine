@@ -9,7 +9,6 @@
 #include "show_tiles_in_range_components.hpp"
 #include "show_tiles_in_range_helpers.hpp"
 
-
 #include <glm/fwd.hpp>
 #include <imgui.h>
 
@@ -18,10 +17,7 @@ namespace game2d {
 void
 update_show_tiles_in_range_system(entt::registry& r)
 {
-  const auto map_e = get_first<MapComponent>(r);
-  if (map_e == entt::null)
-    return;
-  const auto& map_c = r.get<MapComponent>(map_e);
+  GET_FIRST_OR_RETURN(MapComponent, r, map_e, map_c);
 
   // static bool show_distance_check = false;
   // static auto show_range_type = RangeType::knife;
@@ -53,24 +49,24 @@ update_show_tiles_in_range_system(entt::registry& r)
     const auto gp = get_grid_position(r, e);
     const auto& item_c = r.get<Item>(item_e);
 
-    if (item_c.ranged.has_value()) {
-      const auto& type = item_c.ranged->type;
-
-      if (type == "cone")
-        tiles = get_tiles_for_shotgun(r, map_c, gp, { input_c.rx, input_c.ry });
-
-      else if (type == "line") {
-        int range = item_c.ranged->range;
-        tiles = get_tiles_in_line(r, map_c, gp, { input_c.rx, input_c.ry }, range);
-      }
-
-      else
-        tiles = get_tiles_for_knife(r, map_c, gp);
-
+    if (!item_c.combat.has_value()) {
+      // SDL_Log("Item does not have combat attribute");
+      continue;
     }
-    // melee
-    else
+
+    const auto& type = item_c.combat->type;
+
+    if (type == "cone")
+      tiles = get_tiles_for_shotgun(r, map_c, gp, { input_c.rx, input_c.ry });
+
+    if (type == "line")
+      tiles = get_tiles_in_line(r, map_c, gp, { input_c.rx, input_c.ry }, item_c.combat->range);
+
+    if (type == "area")
       tiles = get_tiles_for_knife(r, map_c, gp);
+
+    // else
+    //   SDL_Log("Unknown tile type: %s", type.c_str());
 
     tiles_c.tiles = tiles;
   }

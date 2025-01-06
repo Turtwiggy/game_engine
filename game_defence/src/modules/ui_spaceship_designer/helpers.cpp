@@ -29,7 +29,6 @@ create_shotgun(entt::registry& r, entt::entity parent)
 
   // r.emplace<AbleToShoot>(e);
   // r.emplace<ShotgunComponent>(e)
-  set_size(r, wep_e, { 32, 32 }); // shotgun sprite
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;
 }
@@ -72,7 +71,7 @@ create_jetpack_player(entt::registry& r)
   r.emplace<TeamComponent>(e, AvailableTeams::player);
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   r.emplace<MovementJetpackComponent>(e);
-  r.emplace<InitBodyAndInventory>(e);
+  r.emplace<DebugBodyAndInventory>(e);
   spawn_particle_emitter(r, "anything", { 0, 0 }, e);
 
   // give helmet to breathe

@@ -53,7 +53,7 @@ create_player_if_not_in_scene(entt::registry& r)
 
   const auto pos = glm::vec2{ 0, 0 };
   auto e = spawn_mob(r, "spaceship_player");
-  give_life(r, e, pos);
+  give_life(r, e, pos, { 16, 16 });
 
   // r.emplace<CameraLerpToTarget>(e);
   r.emplace<CameraFollow>(e);
@@ -64,7 +64,6 @@ create_player_if_not_in_scene(entt::registry& r)
   auto& player_thrust = r.emplace<MovementAsteroidsComponent>(e);
   player_thrust.able_to_change_thrust = false;
   player_thrust.able_to_change_dir = true;
-  set_size(r, e, { 16, 16 });
   set_dir(r, e, engine::normalize_safe(engine::angle_radians_to_direction(-30 * engine::Deg2Rad)));
 
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
@@ -206,8 +205,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto enemies = spawn_n_enemies(r, enemy_idxs, 5);
     const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 5);
     const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
-    r.get<InitiativeComponent>(players[0]).initiative = 0;
-    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+
+    for (const auto player : players)
+      r.get<InitiativeComponent>(player).initiative = 0;
+    for (const auto enemy : enemies)
+      r.get<InitiativeComponent>(enemy).initiative = 1;
+
     spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "shotgun");
 
     auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
@@ -238,8 +241,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto enemies = spawn_n_enemies(r, enemy_idxs, 2);
     const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 2);
     const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
-    r.get<InitiativeComponent>(players[0]).initiative = 0;
-    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+
+    for (const auto player : players)
+      r.get<InitiativeComponent>(player).initiative = 0;
+    for (const auto enemy : enemies)
+      r.get<InitiativeComponent>(enemy).initiative = 1;
+
     spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "hook");
 
     auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
@@ -289,10 +296,9 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
     const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
     const auto pos = glm::vec2{ player_pos.x + half_wh.x * 2, player_pos.y };
     const auto enemy_e = spawn_mob(r, "spaceship_enemy");
-    give_life(r, enemy_e, pos);
+    give_life(r, enemy_e, pos, { 16, 16 });
     r.emplace<TeamComponent>(enemy_e, TeamComponent{ AvailableTeams::enemy });
     r.emplace<EnemyComponent>(enemy_e);
-    set_size(r, enemy_e, { 16, 16 });
 
     // boost the player's ship until it reaches the enemy...
     r.emplace<PhysicsDynamicTarget>(player_e, enemy_e);

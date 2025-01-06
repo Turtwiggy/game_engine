@@ -10,7 +10,7 @@ namespace game2d {
 
 template<typename View, typename Predicate>
 std::vector<entt::entity>
-find_all(View view, Predicate pred)
+filter_view(View view, Predicate pred)
 {
   std::vector<entt::entity> result;
   for (auto entity : view)
@@ -36,7 +36,7 @@ contains_mobs(entt::registry& r, const glm::ivec2 gp)
   // return results;
 
   const auto view = r.view<const DefaultBody, const TransformComponent>();
-  const auto results = find_all(view, [&](entt::entity e) {
+  const auto results = filter_view(view, [&](entt::entity e) {
     const auto& t_c = view.get<TransformComponent>(e);
     const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
     const auto gpos = engine::grid::worldspace_to_grid_space(pos, map_c.tilesize);

@@ -31,9 +31,8 @@ drop_inventory_on_death_callback(entt::registry& r, const entt::entity e)
   r.remove<DefaultInventory>(e);               // remove inv from dead unit
 
   // add inv to floor
-  auto item_e = spawn_item(r, "lootbag");
+  auto item_e = spawn_item(r, "lootbag", { 16, 16 });
   set_position(r, item_e, get_position(r, e));
-  set_size(r, item_e, { 16, 16 });
 
   // replace the lootbag inventory with the dead player's inventory
   r.replace<DefaultInventory>(item_e, inv);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "engine/entt/helpers.hpp"
-#include "modules/system_names/components.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {
@@ -97,7 +96,7 @@ struct DefaultInventory
   }
 };
 
-struct InitBodyAndInventory
+struct DebugBodyAndInventory
 {
   bool placeholder = true;
 };

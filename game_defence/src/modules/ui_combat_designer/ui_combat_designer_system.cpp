@@ -1,6 +1,5 @@
 #include "ui_combat_designer_system.hpp"
 
-#include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
@@ -10,7 +9,6 @@
 #include "modules/camera/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
-#include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "ui_combat_designer_helpers.hpp"
 
@@ -56,7 +54,7 @@ update_ui_combat_designer_system(entt::registry& r, glm::ivec2 mouse_pos)
     r.emplace<PlayerComponent>(e);
     r.emplace<TeamComponent>(e, AvailableTeams::player);
     r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
-    r.emplace<InitBodyAndInventory>(e);
+    r.emplace<DebugBodyAndInventory>(e);
     // spawn_particle_emitter(r, "anything", mouse_pos, e);
 
     activate_unit(r, e);

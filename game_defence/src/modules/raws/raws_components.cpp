@@ -106,7 +106,7 @@ create_transform(entt::registry& r, const std::string& name)
 };
 
 void
-give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
+give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const glm::vec2& size)
 {
   const auto& raws = get_first_component<Raws>(r);
   const auto& mob_template = r.get<const Mob>(e);
@@ -137,7 +137,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
 
     TransformComponent tf;
     tf.position = { pos.x, pos.y, 0.0f };
-    tf.scale = { size, size, 0.0f };
+    tf.scale = { size.x, size.y, 0.0f };
     r.emplace<TransformComponent>(e, tf);
 
     set_z_index(r, e, ZLayer::DEFAULT);
@@ -148,7 +148,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos)
     PhysicsDescription pdesc;
     pdesc.type = b2_dynamicBody;
     pdesc.position = pos;
-    pdesc.size = { size, size };
+    pdesc.size = { size.x, size.y };
     pdesc.is_sensor = mob_template.is_sensor;
     create_physics_actor(r, e, pdesc);
   }
@@ -174,7 +174,7 @@ remove_life(entt::registry& r, const entt::entity e)
 };
 
 entt::entity
-spawn_item(entt::registry& r, const std::string& key)
+spawn_item(entt::registry& r, const std::string& key, const glm::vec2& size)
 {
   const auto& rs = get_first_component<Raws>(r);
   const auto it = find_key_or_crash(rs.items, key);
@@ -185,17 +185,20 @@ spawn_item(entt::registry& r, const std::string& key)
   const auto e = r.create();
   r.emplace<TagComponent>(e, item_template.name);
   r.emplace<WaitForInitComponent>(e);
-  r.emplace<TransformComponent>(e);
+
+  TransformComponent t_c;
+  t_c.scale = { size.x, size.y, 1.0 };
+  r.emplace<TransformComponent>(e, t_c);
   r.emplace<SpriteComponent>(e);
   set_sprite(r, e, item_template.renderable.sprite);
   set_colour(r, e, colour_tag_to_colour(rs, item_template.renderable.colour));
   set_z_index(r, e, ZLayer::DEFAULT);
-  set_size(r, e, { size, size });
+  // set_size(r, e, { size, size });
 
   // Add items to physics system?
   PhysicsDescription pdesc;
   pdesc.type = item_body_type;
-  pdesc.size = { size, size };
+  pdesc.size = { size.x, size.y };
   pdesc.is_sensor = true;
   create_physics_actor(r, e, pdesc);
 
@@ -242,11 +245,12 @@ spawn_mob(entt::registry& r, const std::string& key)
   r.emplace<WaitForInitComponent>(e);
   r.emplace<Mob>(e, mob_template);
 
-  // all mobs: drop_inventory_on_death()
+  // Give a body e.g. arms and legs
   r.emplace<DefaultBody>(e, DefaultBody(r));
-  auto& body_c = r.get<DefaultBody>(e);
 
-  const int slots = 10;
+  // Give an inventory that can store items
+  // note: all mobs drop_inventory_on_death()
+  const int slots = 20;
   r.emplace<DefaultInventory>(e, DefaultInventory{ r, slots });
 
   OnDeathCallback callback;

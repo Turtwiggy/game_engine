@@ -111,4 +111,10 @@ remove_if_exists(entt::registry& r, const entt::entity e)
   return false;
 };
 
+#define GET_FIRST_OR_RETURN(TYPE, REGISTRY, ENTITY_VAR, COMPONENT_VAR)                                                      \
+  const auto ENTITY_VAR = get_first<TYPE>(REGISTRY);                                                                        \
+  if (ENTITY_VAR == entt::null)                                                                                             \
+    return;                                                                                                                 \
+  auto& COMPONENT_VAR = r.get<TYPE>(ENTITY_VAR);
+
 }; // namespace game2d

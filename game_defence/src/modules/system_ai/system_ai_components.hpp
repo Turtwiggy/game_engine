@@ -8,7 +8,6 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-#include <format>
 #include <memory>
 #include <optional>
 
@@ -80,17 +79,8 @@ struct AttackConsideration : public Consideration
 };
 
 //
+// actions
 //
-//
-
-enum class ActionEnum
-{
-  NONE,
-  MOVE,
-  SHOOT,
-  USE_ITEM,
-  END_TURN,
-};
 
 struct Action
 {
@@ -117,13 +107,11 @@ struct Action
   };
 
   virtual std::string GetClassName() const { return "DefaultAction"; }
-  virtual ActionEnum GetActionEnum() const { return ActionEnum::NONE; }
 };
 
 struct MoveAction : public Action
 {
   std::string GetClassName() const override { return "MoveAction"; }
-  ActionEnum GetActionEnum() const override { return ActionEnum::MOVE; }
 
   MoveAction()
   {
@@ -135,7 +123,6 @@ struct MoveAction : public Action
 struct AttackAction : public Action
 {
   std::string GetClassName() const override { return "AttackAction"; }
-  ActionEnum GetActionEnum() const override { return ActionEnum::SHOOT; }
 
   AttackAction()
   {

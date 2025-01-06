@@ -38,7 +38,7 @@ add_initiative(entt::registry& r, entt::entity e)
   const int rnd_init = engine::rand_det_s(rnd.rng, 0, 20);
   r.emplace<InitiativeComponent>(e, rnd_init);
 #endif
-}
+};
 
 std::vector<entt::entity>
 spawn_n_blackhole(entt::registry& r, const std::vector<int>& idxs, int amount)
@@ -98,10 +98,9 @@ spawn_n_enemies(entt::registry& r, const std::vector<int>& idxs, int amount)
 
     {
       const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default");
-      give_life(r, mob_e, pos);
+      give_life(r, mob_e, pos, { 24, 24 });
       r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
       r.emplace<DefaultBrainComponent>(mob_e);
-      set_size(r, mob_e, { 24, 24 });
 
       auto& pb = r.get<PhysicsBodyComponent>(mob_e);
 
@@ -158,7 +157,7 @@ spawn_n_players(entt::registry& r, const std::vector<int>& idxs, const std::vect
     give_life(r, e, pos);
     r.emplace<PlayerComponent>(e);
     r.emplace<TeamComponent>(e, AvailableTeams::player);
-    r.emplace<InitBodyAndInventory>(e); // should be inventroy from active unit?
+    r.emplace<DebugBodyAndInventory>(e); // should be inventroy from active unit?
     r.emplace_or_replace<NameComponent>(e, NameComponent{ unit_data.name });
     r.emplace<UnitPersistentState>(e, UnitPersistentState{ unit_data.active, unit_data.permadead });
     r.emplace<SpriteOutline>(e);
