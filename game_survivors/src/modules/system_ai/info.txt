@@ -1,0 +1,22 @@
+  Future interesting topics
+  https://old.reddit.com/r/roguelikedev/comments/3b4wx2/faq_friday_15_ai/
+
+  Specific patterns e.g.
+
+  - Maintaining a certain distance / range. Min dst, max dst.
+  - Pack tactics. Unit stays a minimum of 2 tiles from the player unless
+    there are 4 units with a radius of 3 from the player.
+  - Hit and run pack. Enemy stay ranged. Once they have minumum pack numbers,
+    they charge in. Once they make an attack they switch back to ranged.
+    Combine with healing enemies.
+
+  - Go to Melee attack the player
+  - Look for a good square to move to
+  - Recency bias to encourage fun movement. e.g. avoid the previous 4 squares you've stepped on.
+  - Have a goal. e.g. seeing player, noise, item
+
+  - Temperment.
+    e.g. always hostile,
+    retreat after-attacked,
+    hostile-after-attacked
+    e.g. docile

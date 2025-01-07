@@ -1,13 +1,14 @@
 
 #include "astar_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
 #include "astar_components.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/priority_queue.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
+
 
 #include <SDL2/SDL_log.h>
 #include <format>
