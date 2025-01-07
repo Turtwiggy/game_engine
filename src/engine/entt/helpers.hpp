@@ -111,6 +111,17 @@ remove_if_exists(entt::registry& r, const entt::entity e)
   return false;
 };
 
+template<typename View, typename Predicate>
+std::vector<entt::entity>
+filter_view(View view, Predicate pred)
+{
+  std::vector<entt::entity> result;
+  for (auto entity : view)
+    if (pred(entity))
+      result.push_back(entity);
+  return result;
+};
+
 #define GET_FIRST_OR_RETURN(TYPE, REGISTRY, ENTITY_VAR, COMPONENT_VAR)                                                      \
   const auto ENTITY_VAR = get_first<TYPE>(REGISTRY);                                                                        \
   if (ENTITY_VAR == entt::null)                                                                                             \

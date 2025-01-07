@@ -3,6 +3,7 @@
 #include "actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
+#include "modules/actor_door/door_helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
@@ -51,19 +52,25 @@ update_show_tiles_in_range_system(entt::registry& r)
 
     if (!item_c.combat.has_value()) {
       // SDL_Log("Item does not have combat attribute");
+      tiles_c.tiles.clear();
       continue;
     }
 
+    const auto input = glm::ivec2{ input_c.rx, input_c.ry };
     const auto& type = item_c.combat->type;
+    const auto range = item_c.combat->range;
 
     if (type == "cone")
-      tiles = get_tiles_for_shotgun(r, map_c, gp, { input_c.rx, input_c.ry });
+      tiles = get_tiles_for_shotgun(r, map_c, gp, input, range);
 
     if (type == "line")
-      tiles = get_tiles_in_line(r, map_c, gp, { input_c.rx, input_c.ry }, item_c.combat->range);
+      tiles = get_tiles_in_line(r, map_c, gp, input, range);
 
     if (type == "area")
-      tiles = get_tiles_for_knife(r, map_c, gp);
+      tiles = get_tiles_in_area(r, map_c, gp, range);
+
+    if (type == "other_team_actor_in_range")
+      tiles = get_tiles_in_area(r, map_c, gp, range);
 
     // else
     //   SDL_Log("Unknown tile type: %s", type.c_str());

@@ -4,20 +4,10 @@
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
 namespace game2d {
-
-template<typename View, typename Predicate>
-std::vector<entt::entity>
-filter_view(View view, Predicate pred)
-{
-  std::vector<entt::entity> result;
-  for (auto entity : view)
-    if (pred(entity))
-      result.push_back(entity);
-  return result;
-};
 
 std::vector<entt::entity>
 contains_mobs(entt::registry& r, const glm::ivec2 gp)
@@ -35,7 +25,7 @@ contains_mobs(entt::registry& r, const glm::ivec2 gp)
   //     results.push_back(e);
   // return results;
 
-  const auto view = r.view<const DefaultBody, const TransformComponent>();
+  const auto& view = r.view<const DefaultBody, const TransformComponent>();
   const auto results = filter_view(view, [&](entt::entity e) {
     const auto& t_c = view.get<TransformComponent>(e);
     const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
@@ -45,5 +35,22 @@ contains_mobs(entt::registry& r, const glm::ivec2 gp)
 
   return results;
 };
+
+std::vector<entt::entity>
+contains_enemy_mobs(entt::registry& r, const glm::ivec2 gp)
+{
+  const auto& map_c = get_first_component<MapComponent>(r);
+
+  const auto& view = r.view<const DefaultBody, const TransformComponent, const TeamComponent>();
+  const auto results = filter_view(view, [&](entt::entity e) {
+    const auto& t_c = view.get<TransformComponent>(e);
+    const auto& team_c = view.get<TeamComponent>(e);
+    const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
+    const auto gpos = engine::grid::worldspace_to_grid_space(pos, map_c.tilesize);
+    return gpos == gp && team_c.team == AvailableTeams::enemy;
+  });
+
+  return results;
+}
 
 } // namespace game2d

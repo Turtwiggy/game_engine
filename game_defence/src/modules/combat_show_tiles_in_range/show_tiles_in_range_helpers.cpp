@@ -2,7 +2,6 @@
 
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/map/components.hpp"
-#include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
@@ -14,9 +13,9 @@ namespace game2d {
 // XOX
 // XXX
 std::vector<glm::ivec2>
-get_tiles_for_knife(entt::registry& r, const MapComponent& map_c, const glm::ivec2& pos)
+get_tiles_in_area(entt::registry& r, const MapComponent& map_c, const glm::ivec2& pos, const int range)
 {
-  auto tiles = generate_accessible_areas_with_diagonals(r, map_c, pos, 1);
+  auto tiles = generate_accessible_areas_with_diagonals(r, map_c, pos, range);
 
   // std::vector<glm::ivec2> tiles;
   // const auto neighbour_gp = engine::grid::get_neighbour_gridpos_with_diagonals({ pos.x, pos.y }, map_c.xmax, map_c.ymax);
@@ -30,8 +29,8 @@ get_tiles_for_knife(entt::registry& r, const MapComponent& map_c, const glm::ive
 };
 
 //
-// e.g. OXX...
-// e.g. OXXXXX....
+// e.g. r=2.. OXX...
+// e.g. r=5.. OXXXXX....
 //
 std::vector<glm::ivec2>
 get_tiles_in_line(entt::registry& r,
@@ -60,7 +59,7 @@ get_tiles_in_line(entt::registry& r,
   tiles.push_back(base);
 
   auto last = base;
-  for (int i = 0; i < length; i++) {
+  for (int i = 0; i < length - 1; i++) {
     // dont allow shot to go through walls
     const glm::ivec2 next = last + axis;
     if (edge_between_gps(r, { last.x, last.y }, { next.x, next.y }) != entt::null)
@@ -72,14 +71,19 @@ get_tiles_in_line(entt::registry& r,
   return tiles;
 };
 
-//  XX
-// OXX
-//  XX
+//  12345
+//  XXXXX
+// OXXXXX
+//  XXXXX
 std::vector<glm::ivec2>
-get_tiles_for_shotgun(entt::registry& r, const MapComponent& map_c, const glm::ivec2& pos, const glm::vec2 look_dir)
+get_tiles_for_shotgun(entt::registry& r,
+                      const MapComponent& map_c,
+                      const glm::ivec2& pos,
+                      const glm::vec2 look_dir,
+                      int depth)
 {
   // these are your clickable tiles... where you can click to shoot the shotgun
-  auto clickable_tiles = generate_accessible_areas(r, map_c, pos, 1);
+  auto clickable_tiles = generate_accessible_areas(r, map_c, pos, depth);
 
   // remove the player's starting pos
   std::erase(clickable_tiles, pos);
@@ -94,8 +98,10 @@ get_tiles_for_shotgun(entt::registry& r, const MapComponent& map_c, const glm::i
     return {}; // now allowed tiles
 
   const auto perp = glm::ivec2{ -axis.y, axis.x };
+  auto tiles = std::vector<glm::ivec2>{};
+
   const auto base = *it;
-  auto tiles = std::vector<glm::ivec2>{ base };
+  tiles.push_back(base);
 
   const auto base_up = base + perp;
   if (edge_between_gps(r, { base.x, base.y }, { base_up.x, base_up.y }) == entt::null)
@@ -105,22 +111,12 @@ get_tiles_for_shotgun(entt::registry& r, const MapComponent& map_c, const glm::i
   if (edge_between_gps(r, { base.x, base.y }, { base_down.x, base_down.y }) == entt::null)
     tiles.push_back(base_down);
 
-  const glm::ivec2 next = base + axis;
-  if (edge_between_gps(r, { base.x, base.y }, { next.x, next.y }) == entt::null) {
-    tiles.push_back(next);
-
-    const auto next_up = next + perp;
-    const auto up_no_edge_a = edge_between_gps(r, { base_up.x, base_up.y }, { next_up.x, next_up.y }) == entt::null;
-    const auto up_no_edge_b = edge_between_gps(r, { next.x, next.y }, { next_up.x, next_up.y }) == entt::null;
-    if (up_no_edge_a && up_no_edge_b)
-      tiles.push_back(next_up);
-
-    const auto next_down = next - perp;
-    const auto no_edge_a = edge_between_gps(r, { base_down.x, base_down.y }, { next_down.x, next_down.y }) == entt::null;
-    const auto no_edge_b = edge_between_gps(r, { next.x, next.y }, { next_down.x, next_down.y }) == entt::null;
-    if (no_edge_a && no_edge_b)
-      tiles.push_back(next_down);
-  }
+  const auto a = get_tiles_in_line(r, map_c, base - axis, axis, depth);
+  const auto b = get_tiles_in_line(r, map_c, base_up - axis, axis, depth);
+  const auto c = get_tiles_in_line(r, map_c, base_down - axis, axis, depth);
+  tiles.insert(tiles.end(), a.begin(), a.end());
+  tiles.insert(tiles.end(), b.begin(), b.end());
+  tiles.insert(tiles.end(), c.begin(), c.end());
 
   return tiles;
 };
@@ -143,7 +139,7 @@ get_damage_for_item(entt::registry& r, const entt::entity item_e)
     return item.combat->damage;
 
   return 0;
-}
+};
 
 int
 get_damage_for_equipped_item(entt::registry& r, const entt::entity e)

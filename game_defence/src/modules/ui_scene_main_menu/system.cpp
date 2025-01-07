@@ -173,20 +173,24 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 #endif
 
     // const auto table_flags = ImGuiTableFlags_Borders;
-    if (ImGui::BeginTable("table2", 3)) {
 
-      // Example data
-      const int column_0_rows = 4;
-      const int column_1_rows = 9;
-      const int max_rows = std::max(column_0_rows, column_1_rows);
-      int column_0_row = 0;
-      int column_1_row = 0;
+    // Example data
+    const int column_0_rows = 4;
+    const int column_1_rows = 9;
+    const int max_rows = std::max(column_0_rows, column_1_rows);
+    int column_0_row = 0;
+    int column_1_row = 0;
+    int column_2_row = 0;
+    const int cols = 3;
+
+    if (ImGui::BeginTable("table2", cols)) {
 
       for (int row = 0; row < max_rows; ++row) {
         ImGui::TableNextRow();
+        int col = 0;
 
         // col 0: tutorial levels
-        ImGui::TableSetColumnIndex(0);
+        ImGui::TableSetColumnIndex(col++);
         if (column_0_row == 0)
           ImGui::SeparatorText("Tutorials");
 
@@ -229,10 +233,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         } else
           ImGui::TextUnformatted(""); // empty cell
 
-        // separator
-        ImGui::TableSetColumnIndex(1);
-
-        ImGui::TableSetColumnIndex(2);
+        // ImGui::TableSetColumnIndex(i++); // separator
+        ImGui::TableSetColumnIndex(col++);
         if (column_1_row == 0)
           ImGui::SeparatorText("Elimination");
 
@@ -246,6 +248,15 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         } else {
           ImGui::TextUnformatted(""); // empty cell
         }
+
+        // ImGui::TableSetColumnIndex(i++); // separator
+        ImGui::TableSetColumnIndex(col++);
+        if (column_2_row == 0)
+          ImGui::SeparatorText("Squads");
+
+        //
+
+        column_2_row++;
       }
 
       ImGui::EndTable();

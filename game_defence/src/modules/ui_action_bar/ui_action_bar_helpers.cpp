@@ -190,11 +190,11 @@ display_actions_for_item(entt::registry& r, entt::entity e, entt::entity slot_e)
   const auto& item_c = r.get<Item>(slot_c.item_e);
 
   if (item_c.combat.has_value())
-    action_button(r, e, "attack", "(2) Attack", !moving, get_key_down(in_c, SDL_SCANCODE_2) && !moving);
+    action_button(r, e, action_attack_key, "(2) Attack", !moving, get_key_down(in_c, SDL_SCANCODE_2) && !moving);
 
   if (item_c.use.has_value())
     if (item_c.use->name == "heal")
-      action_button(r, e, "heal", "(3) Heal", !moving, get_key_down(in_c, SDL_SCANCODE_3) && !moving);
+      action_button(r, e, action_heal_key, "(3) Heal", !moving, get_key_down(in_c, SDL_SCANCODE_3) && !moving);
 
   ImGui::PopID();
 };
@@ -282,8 +282,10 @@ update_request_heal_action(entt::registry& r, entt::entity e)
   for (const auto slot_e : body_c.body) {
     const auto& slot_c = r.get<const InventorySlotComponent>(slot_e);
     if (slot_c.item_e == entt::null)
-      return;
+      continue;
     const auto& item_c = r.get<Item>(slot_c.item_e);
+    if (!item_c.use.has_value())
+      continue;
     heal += item_c.use->amount.value();
   }
 
@@ -301,30 +303,92 @@ update_request_combat_action(entt::registry& r, entt::entity e, const glm::ivec2
   if (!tiles_c)
     return;
 
+  const auto item_e = get_equipped_gun(r, e);
+  const auto& item_c = r.get<Item>(item_e);
+  const auto& type = item_c.combat->type;
+
   // if you're hovvering the damage tiles,
   // show as green, and if you click it while hovering, take the action
   const auto mouse_gp = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
-  const bool hovering = std::find(tiles_c->tiles.begin(), tiles_c->tiles.end(), mouse_gp) != tiles_c->tiles.end();
 
-  for (size_t i = 0; i < tiles_c->tiles.size(); i++) {
-    const auto tile_gp = tiles_c->tiles[i];
-    const auto tile_wsp = engine::grid::grid_space_to_world_space_center(tile_gp, map_c.tilesize);
+  bool hovering = false;
+  glm::ivec2 hovering_tile = { 0, 0 };
+  const auto hovering_it = std::find(tiles_c->tiles.begin(), tiles_c->tiles.end(), mouse_gp);
+  hovering = hovering_it != tiles_c->tiles.end();
+  if (hovering)
+    hovering_tile = *hovering_it;
 
-    auto col = engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f };
-    if (hovering)
-      col = engine::SRGBColour{ 0.0f, 1.0f, 0.0f, 1.0f };
+  std::vector<entt::entity> targets;
 
-    Sprite s;
-    s.sprite = atk_icon;
-    s.pos = tile_wsp;
-    s.size = { debug_tilesize, debug_tilesize };
-    s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
-    s.col = col;
-    draw_sprite(r, s);
+  // If your type is "other_team_actor_in_range",
+  // limit the targets to one target that you're selecting.
+  // Otherwise, attack all the tiles.
+
+  if (type == "other_team_actor_in_range") {
+    //
+    // attack only the targets in range that you've got hovered
+    //
+    for (size_t i = 0; i < tiles_c->tiles.size(); i++) {
+      const auto tile_gp = tiles_c->tiles[i];
+      const auto tile_wsp = engine::grid::grid_space_to_world_space_center(tile_gp, map_c.tilesize);
+
+      // filter: valid tiles => tile with target on that we're hovering
+      if (tile_gp != hovering_tile) {
+
+        // display possible tile, but you've not hovered it
+        auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
+        Sprite s;
+        s.sprite = move_icon;
+        s.pos = tile_wsp;
+        s.size = { debug_tilesize / 2, debug_tilesize / 2 };
+        s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
+        s.col = col;
+        draw_sprite(r, s);
+
+        continue;
+      }
+
+      // the tile you'd attack if you clicked
+      const auto col = engine::SRGBColour{ 0.0f, 1.0f, 0.0f, 1.0f };
+      Sprite s;
+      s.sprite = atk_icon;
+      s.pos = tile_wsp;
+      s.size = { debug_tilesize, debug_tilesize };
+      s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
+      s.col = col;
+      draw_sprite(r, s);
+
+      const auto mobs = contains_enemy_mobs(r, tile_gp);
+      targets.insert(targets.end(), mobs.begin(), mobs.end());
+    }
+
+  } else {
+    //
+    // attack all the tiles
+    //
+    for (size_t i = 0; i < tiles_c->tiles.size(); i++) {
+      const auto tile_gp = tiles_c->tiles[i];
+      const auto tile_wsp = engine::grid::grid_space_to_world_space_center(tile_gp, map_c.tilesize);
+
+      auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
+      if (hovering)
+        col = engine::SRGBColour{ 0.0f, 1.0f, 0.0f, 1.0f };
+
+      Sprite s;
+      s.sprite = atk_icon;
+      s.pos = tile_wsp;
+      s.size = { debug_tilesize, debug_tilesize };
+      s.z_idx = ZLayer::PLAYER_GUN_ABOVE_PLAYER;
+      s.col = col;
+      draw_sprite(r, s);
+
+      const auto mobs = contains_enemy_mobs(r, tile_gp);
+      targets.insert(targets.end(), mobs.begin(), mobs.end());
+    }
   }
 
   if (request_action && hovering)
-    r.emplace_or_replace<RequestAttack>(e);
+    r.emplace_or_replace<RequestAttack>(e, targets);
 
   if (request_action && !hovering)
     clear_actions(r, e);
@@ -382,13 +446,13 @@ do_damage_action(entt::registry& r, const entt::entity e)
     targets = { ai_targets->targets.begin(), ai_targets->targets.end() };
 
   // Set targets via Tiles
-  else if (const auto* tiles = r.try_get<TilesComponent>(e)) {
-    for (const glm::ivec2& tile : tiles->tiles) {
-      // damage all mobs (off map)
-      const auto mobs = contains_mobs(r, tile);
-      targets.insert(mobs.begin(), mobs.end());
-    }
-  }
+  // else if (const auto* tiles = r.try_get<TilesComponent>(e)) {
+  //   for (const glm::ivec2& tile : tiles->tiles) {
+  //     // damage all mobs (off map)
+  //     const auto mobs = contains_mobs(r, tile);
+  //     targets.insert(mobs.begin(), mobs.end());
+  //   }
+  // }
 
   if (targets.size() == 0) {
     SDL_Log("Tried to attack but no targets...");
@@ -427,7 +491,7 @@ update_process_move_request(entt::registry& r, entt::entity e)
     // Action is available
     r.emplace_or_replace<GeneratedPathComponent>(e, req_c.path_c);
   };
-  process_actions(r, e, RequestMove(), "move", move_callback);
+  process_actions(r, e, RequestMove(), action_move_key, move_callback);
 };
 
 void
@@ -449,7 +513,7 @@ update_process_heal_request(entt::registry& r, entt::entity e)
     // if (item_c.use->uses.has_value() && item_c.use->uses.value() == 1) {
     // }
   };
-  process_actions(r, e, RequestHeal(), "heal", callback);
+  process_actions(r, e, RequestHeal(), action_heal_key, callback);
 };
 
 void
@@ -465,7 +529,7 @@ update_process_combat_request(entt::registry& r, entt::entity e)
     if (auto* brain_c = r.try_get<DefaultBrainComponent>(e))
       brain_c->brain_fsm = BRAIN_STATE::IDLE;
   };
-  process_actions(r, e, RequestAttack(), "shoot", shoot_callback);
+  process_actions(r, e, RequestAttack(), action_attack_key, shoot_callback);
 };
 
 void

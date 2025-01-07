@@ -10,4 +10,7 @@ namespace game2d {
 std::vector<entt::entity>
 contains_mobs(entt::registry& r, const glm::ivec2 gp);
 
+std::vector<entt::entity>
+contains_enemy_mobs(entt::registry& r, const glm::ivec2 gp);
+
 } // namespace game2d

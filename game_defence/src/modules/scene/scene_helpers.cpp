@@ -186,11 +186,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto players_idxs = std::vector<int>{ 44 };
     const auto enemy_idxs = std::vector<int>{ 45 };
     const auto blackhole_idxs = std::vector<int>{ 46 };
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
     const auto enemies = spawn_n_enemies(r, enemy_idxs, 1);
     const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 1);
-    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
-    r.get<InitiativeComponent>(players[0]).initiative = 0;
-    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+
+    if (auto* debug_req = r.try_get<DebugBodyAndInventory>(players[0]))
+      r.remove<DebugBodyAndInventory>(players[0]);
     spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "shotgun");
 
     auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
@@ -202,15 +203,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto players_idxs = std::vector<int>{ 44 };
     const auto enemy_idxs = std::vector<int>{ 35, 36, 46, 55, 56 };
     const auto blackhole_idxs = std::vector<int>{ 26, 27, 47, 66, 67 };
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
     const auto enemies = spawn_n_enemies(r, enemy_idxs, 5);
     const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 5);
-    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
 
-    for (const auto player : players)
-      r.get<InitiativeComponent>(player).initiative = 0;
-    for (const auto enemy : enemies)
-      r.get<InitiativeComponent>(enemy).initiative = 1;
-
+    if (auto* debug_req = r.try_get<DebugBodyAndInventory>(players[0]))
+      r.remove<DebugBodyAndInventory>(players[0]);
     spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "shotgun");
 
     auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
@@ -222,11 +220,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto players_idxs = std::vector<int>{ 44 };
     const auto enemy_idxs = std::vector<int>{ 45 };
     const auto blackhole_idxs = std::vector<int>{ 46 };
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
     const auto enemies = spawn_n_enemies(r, enemy_idxs, 1);
     const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 1);
-    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
-    r.get<InitiativeComponent>(players[0]).initiative = 0;
-    r.get<InitiativeComponent>(enemies[0]).initiative = 1;
+
+    if (auto* debug_req = r.try_get<DebugBodyAndInventory>(players[0]))
+      r.remove<DebugBodyAndInventory>(players[0]);
     spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "scrap_knife");
 
     auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);
@@ -236,17 +235,14 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
   if (s == Scene::tutorial_hook_blackhole) {
     const auto players_idxs = std::vector<int>{ 44 };
-    const auto enemy_idxs = std::vector<int>{ 49, 47 };
-    const auto blackhole_idxs = std::vector<int>{ 48, 46 };
+    const auto enemy_idxs = std::vector<int>{ 48, 46 };
+    const auto blackhole_idxs = std::vector<int>{ 47, 45 };
+    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
     const auto enemies = spawn_n_enemies(r, enemy_idxs, 2);
     const auto blackholes = spawn_n_blackhole(r, blackhole_idxs, 2);
-    const auto players = spawn_n_players(r, players_idxs, { UnitType{} });
 
-    for (const auto player : players)
-      r.get<InitiativeComponent>(player).initiative = 0;
-    for (const auto enemy : enemies)
-      r.get<InitiativeComponent>(enemy).initiative = 1;
-
+    if (auto* debug_req = r.try_get<DebugBodyAndInventory>(players[0]))
+      r.remove<DebugBodyAndInventory>(players[0]);
     spawn_inv_item(r, r.get<DefaultBody>(players[0]).body, 0, "hook");
 
     auto& tutorial_c = get_first_component<SINGLE_TutorialMetrics>(r);

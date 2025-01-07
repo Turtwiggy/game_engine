@@ -24,7 +24,7 @@
     //
     {
       "name": "medkit",
-      "display_name": "MedKit.",
+      "display_name": "MedKit",
       "display_desc": "DRABC. RICE. Oh, your arm's missing?",
       "renderable": { "sprite": "ICON_HEART_FULL", "colour": "white" },
       "use": { "name": "heal", "select": "actor", "amount": 1, "uses": 1 }
@@ -44,7 +44,7 @@
     },
     {
       "name": "seed_plant",
-      "display_name": "Seed. (Unknown)",
+      "display_name": "Seed (Unknown)",
       "display_desc": "It wants to go home.",
       "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
     },
@@ -91,15 +91,15 @@
       "display_name": "Sword",
       "display_desc": "The handle is insulated. Probably.",
       "renderable": { "sprite": "WEAPON_QUIVER", "colour": "white" },
-      "combat": { "damage": 5, "range": 1, "type": "other_team_actor_in_range" }
+      "combat": { "damage": 10, "range": 1, "type": "other_team_actor_in_range" }
       // "tier": "POW3R"
     },
     {
       "name": "pistol",
       "display_name": "Pistol",
-      "display_desc": "Probably not yours. Klepto.",
+      "display_desc": "SpacePiratesLtd thanks you for your business.",
       "renderable": { "sprite": "WEAPON_PISTOL", "colour": "white" },
-      "combat": { "damage": 3, "range": 3, "type": "other_team_actor_in_range"  }
+      "combat": { "damage": 7, "range": 3, "type": "other_team_actor_in_range"  }
     },
     {
       "name": "shotgun",

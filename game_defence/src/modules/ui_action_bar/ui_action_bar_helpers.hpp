@@ -5,6 +5,11 @@
 
 namespace game2d {
 
+const std::string action_attack_key = "shoot";
+const std::string action_move_key = "move";
+const std::string action_heal_key = "heal";
+const std::string action_end_turn_key = "end_turn";
+
 bool
 any_unit_is_moving(entt::registry& r);
 

@@ -244,26 +244,33 @@ display_item(entt::registry& r,
     // note: could be fun to set the colour here,
     // to represent the rarity of the item
 
+    const auto orange = ImVec4(233 / 255.0f, 159 / 255.0f, 16 / 255.0f, 1.0f);
+    const auto grey = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
+    const auto green = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+
     const auto item_name_str = item_c.display_name.c_str();
-    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", item_name_str);
+    ImGui::TextColored(green, "%s", item_name_str);
 
     const auto item_desc_str = item_c.display_desc.c_str();
-    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", item_desc_str);
+    ImGui::TextColored(grey, "%s", item_desc_str);
 
-    // Show Damage
-    const auto item_damage = get_damage_for_item(r, item_e);
-    ImGui::TextColored(ImVec4(0.75, 0.3, 0.3, 1.0f), "ATK: %d", item_damage);
+    if (item_data.combat.has_value()) {
+      const auto item_damage = item_data.combat->damage;
+      ImGui::TextColored(orange, "ATK %i", item_damage);
+
+      const auto item_range = item_data.combat->range;
+      ImGui::TextColored(orange, "RANGE %i", item_range);
+    }
 
     // Show Defence
     if (item_data.defence.has_value()) {
-      ImGui::SameLine();
-      ImGui::TextColored(ImVec4(0.75, 0.3, 0.3, 1.0f), "DEF: %d", item_data.defence.value().block);
+      ImGui::TextColored(orange, "DEF %d", item_data.defence.value().block);
     }
 
     if (item_data.traits.has_value()) {
       for (int i = 0; const auto& item_trait : item_data.traits.value()) {
         const auto display_str = std::format("+{}", item_trait.key);
-        ImGui::TextColored(ImVec4(0.75, 0.3, 0.3, 1.0f), "%s", display_str.c_str());
+        ImGui::TextColored(orange, "%s", display_str.c_str());
       }
     }
 
@@ -357,12 +364,13 @@ update_initialize_inventory(entt::registry& r, entt::entity e)
 
   // todo(21/11/24): replace idx 0 with with where the weapon should go
   spawn_inv_item(r, body_c.body, 0, "scrap_knife");
+  spawn_inv_item(r, body_c.body, 1, "medkit");
 
   // init inventory with items
   int i = 0;
 
   // items
-  spawn_inv_item(r, inv_c.inv, i++, "medkit");
+  // spawn_inv_item(r, inv_c.inv, i++, "medkit");
   spawn_inv_item(r, inv_c.inv, i++, "lootbag");
 
   // weapons

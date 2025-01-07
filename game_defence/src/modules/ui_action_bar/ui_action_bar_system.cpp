@@ -103,11 +103,13 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
   if (init_c.order.size() == 0)
     return;
 
-  int n_players = 0;
-  for (const auto& [e, team_c] : r.view<const TeamComponent>().each())
-    if (team_c.team == AvailableTeams::player)
-      n_players++;
-  if (n_players == 0)
+  const auto& team_view = r.view<const TeamComponent>();
+  const auto players = filter_view(team_view, [&](entt::entity e) {
+    const auto& team_c = team_view.get<TeamComponent>(e);
+    return team_c.team == AvailableTeams::player;
+  });
+
+  if (players.size() == 0)
     return; // no players
 
   // This is the unit currnetly "active" in the initiative order.
@@ -144,12 +146,12 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
     // UI state: no state => selected action
     {
       const bool moving = any_unit_is_moving(r);
-      action_button(r, e, "move", "(1) Move", !moving, get_key_down(in_c, SDL_SCANCODE_1) && !moving);
+      action_button(r, e, action_move_key, "(1) Move", !moving, get_key_down(in_c, SDL_SCANCODE_1) && !moving);
 
       for (const auto slot_e : body_c.body)
         display_actions_for_item(r, e, slot_e);
 
-      action_button(r, e, "end_turn", "(E)nd", !moving, get_key_down(in_c, SDL_SCANCODE_E));
+      action_button(r, e, action_end_turn_key, "(E)nd", !moving, get_key_down(in_c, SDL_SCANCODE_E));
 
       if (ImGui::SameLine(); ImGui::Button("Clear")) {
         if (r.try_get<UIActionState>(e))
@@ -167,19 +169,19 @@ update_ui_action_bar_system(entt::registry& r, const glm::ivec2 mouse_pos)
       ImGui::Text("State: %s", state.c_str());
 
       // Adds the RequestMove component to e when a tile is selected
-      if (state_c->current == "move")
+      if (state_c->current == action_move_key)
         update_request_move_action(r, e, mouse_pos, request_action);
 
       // If state was heal, immediately request to heal
-      if (state_c->current == "heal")
+      if (state_c->current == action_heal_key)
         update_request_heal_action(r, e);
 
       // Adds the RequestAttack component to e when a tile is selected
-      if (state_c->current == "attack")
+      if (state_c->current == action_attack_key)
         update_request_combat_action(r, e, mouse_pos, request_action);
 
       // If state was end turn, immediately request to end turn
-      if (state_c->current == "end_turn")
+      if (state_c->current == action_end_turn_key)
         r.emplace_or_replace<RequestEndTurn>(e);
     }
   }

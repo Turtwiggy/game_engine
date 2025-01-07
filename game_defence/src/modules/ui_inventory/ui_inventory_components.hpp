@@ -78,6 +78,7 @@ struct DefaultBody
 
     // equipment slots
     body.push_back(create_body_slot(InventorySlotType::weapon));
+    body.push_back(create_body_slot(InventorySlotType::backpack));
     // body.push_back(create_body_slot(InventorySlotType::bullet));
   }
 };
