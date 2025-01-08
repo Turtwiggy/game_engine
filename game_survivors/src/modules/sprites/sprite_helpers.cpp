@@ -41,19 +41,19 @@ draw_sprite(entt::registry& r, const Sprite& desc)
   auto& cached = imsprite.cached;
   auto& used = imsprite.used;
 
+  // double the cache size if we ever go over it
+  if (used >= cached) {
+    imsprite.cached *= 2;
+    pool.update(r, imsprite.cached);
+    SDL_Log("pool count hit... doubling cached size");
+  };
+
   auto e = pool.instances[used++];
   set_sprite(r, e, desc.sprite);
   set_position(r, e, desc.pos);
   set_size(r, e, desc.size);
   set_z_index(r, e, desc.z_idx);
   set_colour(r, e, desc.col);
-
-  // double the cache size if we ever go over it
-  if (used >= cached) {
-    cached *= 2;
-    pool.update(r, cached);
-    SDL_Log("pool count hit... doubling cached size");
-  };
 };
 
 } // namespace game2d

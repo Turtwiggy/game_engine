@@ -211,7 +211,7 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
     i.shoot = false;
 
     // set rx based on mouse input if selected
-    if (const auto* selected_c = r.try_get<SelectedComponent>(e)) {
+    if (const auto* keyboard_c = r.try_get<KeyboardComponent>(e)) {
       const auto dir = glm::vec2{ mouse_pos.x, mouse_pos.y } - get_position(r, e);
       i.rx += dir.x;
       i.ry += dir.y;

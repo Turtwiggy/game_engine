@@ -15,7 +15,7 @@ namespace game2d {
 
 struct PlayerComponent
 {
-  bool placeholder = true;
+  int idx = 0;
 };
 
 struct KeyboardComponent

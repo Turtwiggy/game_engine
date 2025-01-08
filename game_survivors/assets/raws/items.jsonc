@@ -177,8 +177,26 @@
     // Header: actors
     //
     {
-      "name": "actor_player",
+      "name": "actor_player_1",
       "renderable": { "sprite": "SPACE_VEHICLE_1", "colour":  "gold_yellow" },
+      "stats": { "max_hp": 10, "hp": 10 },
+      "physics_desc": { "is_sensor": false }
+    },
+    {
+      "name": "actor_player_2",
+      "renderable": { "sprite": "SPACE_VEHICLE_2", "colour":  "blue" },
+      "stats": { "max_hp": 10, "hp": 10 },
+      "physics_desc": { "is_sensor": false }
+    },
+    {
+      "name": "actor_player_3",
+      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour":  "magenta" },
+      "stats": { "max_hp": 10, "hp": 10 },
+      "physics_desc": { "is_sensor": false }
+    },
+    {
+      "name": "actor_player_4",
+      "renderable": { "sprite": "SPACE_VEHICLE_2", "colour":  "green" },
       "stats": { "max_hp": 10, "hp": 10 },
       "physics_desc": { "is_sensor": false }
     },

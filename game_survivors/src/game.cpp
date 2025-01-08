@@ -49,6 +49,9 @@
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_survive_health/ui_survive_health_system.hpp"
+#include "modules/ui_survive_timer/ui_survive_timer_system.hpp"
+#include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
@@ -61,6 +64,14 @@ void
 init(engine::SINGLE_Application& app, entt::registry& r)
 {
   init_events_system(r);
+
+  // Fonts
+  ImGuiIO& io = ImGui::GetIO();
+  io.Fonts->AddFontDefault();
+  // font for survive timer
+  ImFontConfig fontConfig;
+  fontConfig.PixelSnapH = true; // Ensure pixel alignment
+  io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
 
   {
     SINGLE_RendererInfo ri = get_default_textures();
@@ -76,7 +87,6 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
-
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
   init_input_system(r);
 
@@ -186,6 +196,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
+
+  if (scene.s == Scene::survive) {
+    update_ui_survive_timer_system(r);
+    update_ui_survive_health_system(r);
+    update_ui_survive_xp_bar_system(r);
+  }
 
   if (scene.s != Scene::menu && scene.s != Scene::splashscreen) {
     update_ui_combat_damage_numbers_system(r, dt, mouse_pos);

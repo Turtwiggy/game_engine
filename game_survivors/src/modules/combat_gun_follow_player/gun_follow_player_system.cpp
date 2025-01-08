@@ -52,10 +52,6 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
       continue;
     }
 
-    const bool parent_selected = r.try_get<SelectedComponent>(p) != nullptr;
-    if (!parent_selected)
-      continue;
-
     const auto parent_pos = get_position(r, p);
 
     // Get the position this gun is aiming

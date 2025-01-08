@@ -28,6 +28,7 @@ update_ui_fps_counter_system(entt::registry& r)
     flags |= ImGuiWindowFlags_NoDocking;
     flags |= ImGuiWindowFlags_NoSavedSettings;
     flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+    flags |= ImGuiWindowFlags_NoInputs;
 
     ImGui::Begin("FPS", NULL, flags);
     ImGui::Text("FPS: %0.2f ", ImGui::GetIO().Framerate);

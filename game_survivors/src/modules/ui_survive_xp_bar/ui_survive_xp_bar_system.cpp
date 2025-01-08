@@ -1,0 +1,11 @@
+#include "ui_survive_xp_bar_system.hpp"
+
+namespace game2d {
+
+void
+update_ui_survive_xp_bar_system(entt::registry& r)
+{
+  //
+}
+
+} // namespace game2d
