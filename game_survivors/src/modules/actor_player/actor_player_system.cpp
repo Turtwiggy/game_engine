@@ -97,30 +97,19 @@ update_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float speed = 25.0f; // higher number = faster to destination
     const float max_angle = 15.0f * engine::Deg2Rad;
 
-    const float cur_angle = std::fmod(body_c.body->GetAngle(), 2.0f * engine::PI);
-    const float new_angle = std::fmod(engine::dir_to_angle_radians(l_nrm_dir), 2.0f * engine::PI);
-
-    return;
-    // ensure in range [0, 2PI]
-    const float wrapped_cur_angle = (cur_angle < 0.0f) ? cur_angle + 2.0f * engine::PI : cur_angle;
-    const float wrapped_new_angle = (new_angle < 0.0f) ? new_angle + 2.0f * engine::PI : new_angle;
-    // SDL_Log("wcur: %f wnew: %f", wrapped_cur_angle, wrapped_new_angle);
+    const float cur_angle = std::fmod(body_c.body->GetAngle(), engine::TWO_PI);
+    const float wrapped_cur_angle = (cur_angle < 0.0f) ? cur_angle + engine::TWO_PI : cur_angle;
+    const float new_angle = engine::dir_to_angle_radians(l_nrm_dir);
 
     // Calculate angle diff
-    float angle_diff = wrapped_new_angle - wrapped_cur_angle;
+    float angle_diff = new_angle - wrapped_cur_angle;
     if (angle_diff > engine::PI)
-      angle_diff -= 2.0f * engine::PI; // Take the shorter path (counterclockwise)
+      angle_diff -= engine::TWO_PI; // Take the shorter path (counterclockwise)
     else if (angle_diff < -engine::PI)
-      angle_diff += 2.0f * engine::PI; // Take the shorter path (clockwise)
+      angle_diff += engine::TWO_PI; // Take the shorter path (clockwise)
 
-    float clamped_angle_diff = glm::clamp(angle_diff, -max_angle, max_angle);
-
-    // Compute the target angle in [0, 2π]
-    float tgt_angle = wrapped_cur_angle + clamped_angle_diff;
-    tgt_angle = std::fmod(tgt_angle, 2.0f * engine::PI);
-    if (tgt_angle < 0.0f)
-      tgt_angle += 2.0f * engine::PI;
-
+    const float clamped_angle_diff = glm::clamp(angle_diff, -max_angle, max_angle);
+    const float tgt_angle = wrapped_cur_angle + clamped_angle_diff;
     const float fin_angle = exp_decay(wrapped_cur_angle, tgt_angle, speed, dt);
 
     body_c.body->SetTransform(body_c.body->GetPosition(), fin_angle);

@@ -3,6 +3,7 @@
 #include "autofire_components.hpp"
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
@@ -63,7 +64,7 @@ update_autofire_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_Physics, r, phys_e, phys_c);
 
-  const float search_radius = 500.0f; // Define the radius for searching enemies
+  const float search_radius = 500.0f; // for nearest enemy
 
   for (const auto& [wep_e, t_c, wep_c, cooldown_c] :
        r.view<const TransformComponent, const WeaponComponent, CooldownComponent>().each()) {
@@ -72,8 +73,8 @@ update_autofire_system(entt::registry& r)
       continue;
     reset_cooldown(cooldown_c);
 
-    // todo: get closest enemy
-
+    // get closest enemy
+    //
     NearestEnemyCallback callback(r, { t_c.position.x, t_c.position.y });
     b2AABB aabb;
     aabb.lowerBound = b2Vec2{ t_c.position.x, t_c.position.y } - b2Vec2{ search_radius, search_radius };
@@ -91,6 +92,7 @@ update_autofire_system(entt::registry& r)
     r.emplace<BulletComponent>(bullet_e);
     r.emplace<TeamComponent>(bullet_e, AvailableTeams::player);
     r.get<PhysicsBodyComponent>(bullet_e).base_speed = 100.0f;
+    r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);

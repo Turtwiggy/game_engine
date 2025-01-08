@@ -2,9 +2,9 @@
 #include "engine/entt/helpers.hpp"
 
 #include "events_components.hpp"
+#include "modules/event_bullet_enemy_coll/event_bullet_enemy_coll_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
-#include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 
 namespace game2d {

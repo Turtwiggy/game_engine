@@ -24,14 +24,11 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
 
   // update renderer
   {
-    const auto& view = r.view<PhysicsBodyComponent, TransformComponent>(entt::exclude<SeparateTransformAndAABB>);
+    const auto& view = r.view<const PhysicsBodyComponent, TransformComponent>(entt::exclude<SeparateTransformAndAABB>);
     for (const auto& [e, body_c, transform_c] : view.each()) {
       const b2Vec2& position = body_c.body->GetPosition();
-      const float angle = body_c.body->GetAngle();
-
       transform_c.position.x = position.x;
       transform_c.position.y = position.y;
-      transform_c.rotation_radians.z = angle;
 
       // don't update the sprite scale.
       // when the physics object rotates,
@@ -39,6 +36,14 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
       // const auto& size = get_size(r, e);
       // transform_c.scale.x = size.x;
       // transform_c.scale.y = size.y;
+    }
+  }
+  {
+    const auto& view =
+      r.view<const PhysicsBodyComponent, TransformComponent, const SetTransformRotationBasedOnPhysicsBody>();
+    for (const auto& [e, body_c, transform_c, req_c] : view.each()) {
+      const float angle = body_c.body->GetAngle();
+      transform_c.rotation_radians.z = angle;
     }
   }
 }

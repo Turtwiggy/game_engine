@@ -198,7 +198,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  static bool show_settings_ui = false;
+  static bool show_settings_ui = true;
 #else
   static bool show_settings_ui = false;
 #endif

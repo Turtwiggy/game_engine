@@ -107,6 +107,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     r.emplace<KeyboardComponent>(e);
     r.emplace<ControllerComponent>(e);
     r.emplace<MovementDirectComponent>(e);
+    r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
     r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
     spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 
