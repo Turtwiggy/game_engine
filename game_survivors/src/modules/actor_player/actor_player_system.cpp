@@ -4,14 +4,12 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/controller.hpp"
-#include "engine/events/helpers/fixed_update.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "imgui.h"
 #include "modules/actor_player/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
 
@@ -23,7 +21,16 @@
 #include <box2d/box2d.h>
 #include <glm/glm.hpp>
 
+#include <imgui.h>
+
 namespace game2d {
+
+// https://www.youtube.com/watch?v=LSNQuFEDOyQ
+const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
+  //
+  return b + (a - b) * glm::exp(-decay * dt);
+  //
+};
 
 void
 update_movement_jetpack(entt::registry& r)
@@ -66,11 +73,13 @@ update_movement_jetpack(entt::registry& r)
 
     body_c.body->ApplyForceToCenter(force, true);
   }
-}
+};
 
 void
-update_movement_direct(entt::registry& r)
+update_movement_direct(entt::registry& r, const uint64_t ms_dt)
 {
+  const float dt = ms_dt / 1000.0f;
+
   const auto& view = r.view<const InputComponent, const MovementDirectComponent, PhysicsBodyComponent>();
   for (const auto& [e, input_c, movetype_c, body_c] : view.each()) {
     const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
@@ -78,6 +87,43 @@ update_movement_direct(entt::registry& r)
 
     const glm::vec2 move_vel = (l_nrm_dir * body_c.base_speed);
     body_c.body->SetLinearVelocity({ move_vel.x, move_vel.y });
+
+    //
+    // set rot here as the body itself doesnt rotate with movement_direct
+    // this functionality is equivilent to look_in_direction_of_movemen t
+    //
+    if (glm::length(l_nrm_dir) <= 0.0f)
+      continue;
+    const float speed = 25.0f; // higher number = faster to destination
+    const float max_angle = 15.0f * engine::Deg2Rad;
+
+    const float cur_angle = std::fmod(body_c.body->GetAngle(), 2.0f * engine::PI);
+    const float new_angle = std::fmod(engine::dir_to_angle_radians(l_nrm_dir), 2.0f * engine::PI);
+
+    return;
+    // ensure in range [0, 2PI]
+    const float wrapped_cur_angle = (cur_angle < 0.0f) ? cur_angle + 2.0f * engine::PI : cur_angle;
+    const float wrapped_new_angle = (new_angle < 0.0f) ? new_angle + 2.0f * engine::PI : new_angle;
+    // SDL_Log("wcur: %f wnew: %f", wrapped_cur_angle, wrapped_new_angle);
+
+    // Calculate angle diff
+    float angle_diff = wrapped_new_angle - wrapped_cur_angle;
+    if (angle_diff > engine::PI)
+      angle_diff -= 2.0f * engine::PI; // Take the shorter path (counterclockwise)
+    else if (angle_diff < -engine::PI)
+      angle_diff += 2.0f * engine::PI; // Take the shorter path (clockwise)
+
+    float clamped_angle_diff = glm::clamp(angle_diff, -max_angle, max_angle);
+
+    // Compute the target angle in [0, 2π]
+    float tgt_angle = wrapped_cur_angle + clamped_angle_diff;
+    tgt_angle = std::fmod(tgt_angle, 2.0f * engine::PI);
+    if (tgt_angle < 0.0f)
+      tgt_angle += 2.0f * engine::PI;
+
+    const float fin_angle = exp_decay(wrapped_cur_angle, tgt_angle, speed, dt);
+
+    body_c.body->SetTransform(body_c.body->GetPosition(), fin_angle);
   }
 };
 
@@ -164,6 +210,7 @@ void
 update_player_controller_system(entt::registry& r, const uint64_t milliseconds_dt, const glm::ivec2& mouse_pos)
 {
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  int controllers_used = 0;
 
   const auto& view = r.view<InputComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, i] : view.each()) {
@@ -186,10 +233,21 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       i.lx += get_key_held(input_c, SDL_SCANCODE_D) ? 1.0f : 0.0f;
     }
 
-    // if (const auto* controller_c = r.try_get<ControllerComponent>(e)) {
-    //   i.lx += get_axis_01(controller_c, controller_c->c_left_stick_x);
-    //   i.ly += get_axis_01(controller_c, controller_c->c_left_stick_y);
-    // }
+    if (const auto* controller_c = r.try_get<ControllerComponent>(e)) {
+      if (controllers_used < int(input_c.controllers.size())) {
+
+        // todo: map plugged in controller idxs to player
+        // todo: dont just use idx 0
+        auto* controller = input_c.controllers[0];
+
+        i.lx += get_axis_01(controller, controller_c->c_left_stick_x);
+        i.ly += get_axis_01(controller, controller_c->c_left_stick_y);
+      }
+      // else {
+      //   SDL_Log("Not enough controllers plugged in...");
+      // }
+      controllers_used++;
+    }
   }
 };
 
@@ -198,9 +256,10 @@ fixed_update_player_controller_system(entt::registry& r, const uint64_t ms_dt, c
 {
   // What happens if multiple fixedupdate() before?
 
-  update_movement_asteroids(r, ms_dt);
-  update_movement_direct(r);
-  update_movement_jetpack(r);
+  update_movement_direct(r, ms_dt);
+
+  // update_movement_asteroids(r, ms_dt);
+  // update_movement_jetpack(r);
 };
 
 } // namespace game2d

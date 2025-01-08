@@ -60,14 +60,17 @@ create_box_fixture(entt::registry& r, entt::entity e, b2Body* body)
 {
   const auto& desc = r.get<PhysicsDescription>(e);
 
-  b2PolygonShape box;
-  box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
+  // b2PolygonShape box;
+  // box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
+
+  b2CircleShape circle;
+  circle.m_radius = desc.size.x / 2.0f;
 
   b2FixtureDef fixture_def;
   fixture_def.friction = desc.friction;
   fixture_def.density = desc.density;
   fixture_def.restitution = desc.restitution;
-  fixture_def.shape = &box;
+  fixture_def.shape = &circle;
   fixture_def.isSensor = desc.is_sensor;
   body->CreateFixture(&fixture_def);
 }

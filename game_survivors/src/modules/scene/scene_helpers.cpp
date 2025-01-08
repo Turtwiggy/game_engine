@@ -7,15 +7,25 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/physics/components.hpp"
 #include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/combat/components.hpp"
+#include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/raws/raws_components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
+#include "modules/system_cooldown/components.hpp"
+#include "modules/system_select_unit/select_unit_components.hpp"
+#include "modules/system_spawner/spawner_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_lootbag/ui_lootbag_components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -85,6 +95,35 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::survive) {
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
+
+    // default player
+    const auto e = spawn(r, "actor_player");
+    give_life(r, e, { 0, 0 }, { 32, 32 });
+    r.emplace<PlayerComponent>(e);
+    r.emplace<SelectedComponent>(e);
+    r.emplace<CameraFollow>(e);
+    r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
+    r.emplace<KeyboardComponent>(e);
+    r.emplace<ControllerComponent>(e);
+    r.emplace<MovementDirectComponent>(e);
+    r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
+    spawn_particle_emitter(r, "anything", { 0, 1 }, e);
+
+    // player weapon
+    const auto wep_e = spawn(r, "shotgun");
+    give_life(r, wep_e, get_position(r, e), { 16, 16 });
+    r.emplace<HasWeaponComponent>(e, HasWeaponComponent{ wep_e }); // parent <=> child
+    r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
+    r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
+    r.emplace<WeaponComponent>(wep_e);
+    r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
+    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+
+    // spawn endless enemies
+    const auto spawner_e = create_empty<SpawnerComponent>(r);
+    r.emplace<CooldownComponent>(spawner_e, 3.0f, 0.0f);
+
     //
   }
 

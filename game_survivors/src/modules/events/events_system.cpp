@@ -4,6 +4,7 @@
 #include "events_components.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
+#include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 
 namespace game2d {
@@ -22,6 +23,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_item>(r);
+  ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_enemy_coll>(r);
   ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_exit_item>(r);
 }
 

@@ -32,6 +32,8 @@ update_ui_gameover_system(entt::registry& r)
 {
   // Work out if game is over?
 
+  return; // system disabled for the moment
+
   int enemies = 0;
   int players = 0;
   for (const auto& [e, team_c] : r.view<TeamComponent>().each()) {

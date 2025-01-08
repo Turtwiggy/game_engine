@@ -141,7 +141,7 @@ main(int argc, char* argv[])
 
   // const auto start = std::chrono::high_resolution_clock::now();
 
-  std::string name = "SOLAR WARFARE";
+  std::string name = "Junkers";
 
 #if defined(_DEBUG)
   name += " [DEBUG]";

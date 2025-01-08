@@ -539,11 +539,6 @@ setup_crt_effect_update(entt::registry& r)
 
   pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    static float brightness_threshold = 0.80f;
-
-#if defined(_DEBUG)
-    imgui_draw_float("brightness_threshold", brightness_threshold);
-#endif
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);

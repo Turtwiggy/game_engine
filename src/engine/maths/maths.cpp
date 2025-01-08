@@ -11,26 +11,33 @@ float
 deg2rad(const float& deg)
 {
   return (deg * engine::PI) / 180.0f;
-}
+};
 
 glm::vec2
 angle_radians_to_direction(const float angle)
 {
   return glm::vec2(glm::cos(angle), glm::sin(angle));
-}
+};
 
 // returns the angle from (WHICH) axis?
 float
 dir_to_angle_radians(const glm::vec2& dir)
 {
-  return atan2(dir.y, dir.x) + engine::PI;
-}
+  // note: -y for clockwise rotation
+  float angle = atan2(dir.y, dir.x);
+
+  // normalize to [0, 2PI]
+  if (angle < 0.0f)
+    angle += 2.0f * engine::PI;
+
+  return angle;
+};
 
 float
 distance_squared(const glm::vec3& i)
 {
   return i.x * i.x + i.y * i.y + i.z * i.z;
-}
+};
 
 glm::vec3
 rand_unit_vector(RandomState& rnd)
@@ -39,7 +46,7 @@ rand_unit_vector(RandomState& rnd)
   auto z = rand_det_s(rnd.rng, -1.0f, 1.0f);
   auto r = glm::sqrt(1 - z * z);
   return glm::vec3(r * glm::cos(a), r * glm::sin(a), z);
-}
+};
 
 glm::vec3
 random_in_hemisphere(RandomState& rnd, glm::vec3& normal)
@@ -49,7 +56,7 @@ random_in_hemisphere(RandomState& rnd, glm::vec3& normal)
     return in_unit_sphere;
   else
     return -in_unit_sphere;
-}
+};
 
 glm::vec3
 rotate_point(const glm::vec3& point, const float angle_radians)
@@ -61,7 +68,7 @@ rotate_point(const glm::vec3& point, const float angle_radians)
     point.x * sin_angle + point.y * cos_angle,
     0.0f,
   };
-}
+};
 
 uint64_t
 encode_cantor_pairing_function(int x, int y)
@@ -91,7 +98,7 @@ encode_cantor_pairing_function(int x, int y)
     i += 2;
   }
   return p;
-}
+};
 
 void
 decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
@@ -106,13 +113,13 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
     p >>= 1;
     i++;
   }
-}
+};
 
 float
 scale(const float x, const float min, const float max, const float a, const float b)
 {
   return ((b - a) * (x - min)) / (max - min) + a;
-}
+};
 
 float
 lerp(const float a, const float b, const float t)

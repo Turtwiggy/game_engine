@@ -158,21 +158,42 @@
       "commerce": { "value": 10 }
       // "tier": "sCrap"
     },
+    {
+      "name": "bullet_default",
+      "display_name": "Bullet",
+      "display_desc": "Ballistic material",
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
+      "physics_desc": { "is_sensor": true },
+      "combat": { "damage": 3, "range": 2, "type": "unknown" }
+    },
+    // {
+    //   "name": "bullet_bouncy",
+    //   "display_name": "[Bouncy] Bullet)",
+    //   "display_desc": "Bouncy ballistic material.",
+    //   "renderable": { "sprite": "AMMO_BOX", "colour": "white" },
+    //   "bullet": { "damage": 12 }
+    // },
+
     // Header: actors
     //
     {
-      "name": "dungeon_actor_hero",
-      "renderable": { "sprite": "REF_IDLE", "colour":  "white" },
+      "name": "actor_player",
+      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour":  "gold_yellow" },
       "stats": { "max_hp": 10, "hp": 10 },
-      "is_sensor": true,
-      "move_speed": {"speed": 3}
+      "physics_desc": { "is_sensor": false }
     },
     {
       "name": "dungeon_actor_enemy_default",
       "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
       "stats": { "max_hp": 10, "hp": 10 },
-      "is_sensor": true,
-      "move_speed": {"speed": 2}
+      "physics_desc": { "is_sensor": false }
+    }
+  ],
+  "powerups": [
+    {
+      "name": "empty",
+      "display_name": "empty",
+      "display_desc": "empty"
     }
   ]
 }

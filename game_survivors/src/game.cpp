@@ -29,12 +29,14 @@
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
+#include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
-#include "modules/system_physics_apply_force/system.hpp"
+#include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
+#include "modules/system_spawner/spawner_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/ui_colours_system.hpp"
@@ -44,7 +46,6 @@
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
-#include "modules/ui_inventory/ui_inventory_system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -164,6 +165,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (state.state != GameState::PAUSED) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
+    update_autofire_system(r);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);
@@ -174,6 +176,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     update_spawn_particles_on_death_system(r);
     update_wiggle_up_and_down_system(r, dt);
+    update_spawner_system(r);
   }
 
   update_ui_fps_counter_system(r);
@@ -181,14 +184,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_worldspace_text_system(r);
   update_ui_colours_system(r);
 
-  if (scene.s == Scene::menu) {
+  if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
-  }
 
   if (scene.s != Scene::menu && scene.s != Scene::splashscreen) {
     update_ui_combat_damage_numbers_system(r, dt, mouse_pos);
-    update_ui_inventory_system(r);
     update_ui_gameover_system(r);
+    // update_ui_inventory_system(r);
 #if defined(_DEBUG)
     update_ui_raws_system(r);
     // update_ui_lootbag_system(r);
@@ -196,7 +198,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  static bool show_settings_ui = true;
+  static bool show_settings_ui = false;
 #else
   static bool show_settings_ui = false;
 #endif

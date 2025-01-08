@@ -10,20 +10,19 @@
 
 namespace game2d {
 
-//
 // something should drop their inventory
 //
 void
 drop_inventory_on_death_callback(entt::registry& r, const entt::entity e)
 {
-  auto& map = get_first_component<MapComponent>(r);
+  GET_FIRST_OR_RETURN(MapComponent, r, map_e, map_c);
 
   // it's possible you dont exist if you died off-grid i.e. a space entity off-map
   const auto info_opt = get_entity_mapinfo(r, e);
   if (info_opt.has_value()) {
     const auto info = info_opt.value();
     const auto idx = info.idx_in_map;
-    const auto pos = engine::grid::index_to_world_position_center(idx, map.xmax, map.ymax, map.tilesize);
+    const auto pos = engine::grid::index_to_world_position_center(idx, map_c.xmax, map_c.ymax, map_c.tilesize);
     remove_entity_from_map(r, info);
   }
 

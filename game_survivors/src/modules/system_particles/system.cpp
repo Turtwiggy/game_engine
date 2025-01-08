@@ -11,7 +11,6 @@
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
-
 namespace game2d {
 
 void
