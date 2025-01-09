@@ -232,6 +232,14 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
     auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
     ImGui::Checkbox("Effect: CRT", &crt_c.enabled);
 
+    static bool grid_effect = true;
+    ImGui::Checkbox("Effect: Grid", &grid_effect);
+    const auto grid_e = get_first<Effect_GridComponent>(r);
+    if (grid_effect == true && grid_e == entt::null)
+      create_empty<Effect_GridComponent>(r);
+    if (grid_effect == false && grid_e != entt::null)
+      r.destroy(grid_e);
+
     ImGui::SeparatorText("Quit");
 
     // const auto& scene = get_first_component<SINGLE_CurrentScene>(r);

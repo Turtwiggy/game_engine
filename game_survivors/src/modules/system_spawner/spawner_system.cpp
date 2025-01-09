@@ -5,6 +5,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/effects_outline/outline_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/system_cooldown/components.hpp"
@@ -57,6 +58,7 @@ update_spawner_system(entt::registry& r)
     auto e = spawn(r, "dungeon_actor_enemy_default");
     r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
     r.emplace<PhysicsDynamicTarget>(e, player_e);
+    r.emplace<SpriteOutline>(e);
 
     ApplyForceToDynamicTarget tgt_c;
     tgt_c.orbit = true;

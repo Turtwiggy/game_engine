@@ -20,7 +20,7 @@ update_ui_colours_system(entt::registry& r)
     const std::string label = col.tag;
 
     const auto srgb_col = hex_to_srgb(col.hex);
-    float col_arr[4] = { srgb_col.r / 255.0f, srgb_col.g / 255.0f, srgb_col.b / 255.0f, srgb_col.a };
+    float col_arr[4] = { srgb_col.r / 255.0f, srgb_col.g / 255.0f, srgb_col.b / 255.0f, srgb_col.a / 255.0f };
     ImGui::ColorEdit4(label.c_str(), col_arr);
   }
 

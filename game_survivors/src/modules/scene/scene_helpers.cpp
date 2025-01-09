@@ -18,6 +18,8 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/effect_crt/crt_components.hpp"
+#include "modules/effects_outline/outline_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
@@ -39,10 +41,11 @@ entt::entity
 spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
 {
   const auto e = spawn(r, key);
-  give_life(r, e, pos, { 32, 32 });
+  give_life(r, e, pos, { 55, 32 });
   r.emplace<PlayerComponent>(e, num);
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
+  r.emplace<SpriteOutline>(e);
   r.emplace<MovementDirectComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
@@ -105,7 +108,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     set_size(r, e, { 512, 512 });
     set_position(r, e, { 0, 0 }); // center
   }
-
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
@@ -123,24 +125,25 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
+    create_empty<Effect_GridComponent>(r);
 
-    // default player (keyboard)
+    // players
     const auto p1 = spawn_player(r, "actor_player_1", { 0, 0 }, 0);
     const auto p2 = spawn_player(r, "actor_player_2", { 16, 0 }, 1);
     const auto p3 = spawn_player(r, "actor_player_3", { 0, 16 }, 2);
     const auto p4 = spawn_player(r, "actor_player_4", { 16, 16 }, 3);
 
-    // inputs
+    // inputs => players
     r.emplace<KeyboardComponent>(p1);
     r.emplace<ControllerComponent>(p2);
 
-    // spawn endless enemies
+    // endless enemies
     const auto spawner_e = create_empty<SpawnerComponent>(r);
-    r.emplace<CooldownComponent>(spawner_e, 3.0f, 0.0f);
+    r.emplace<CooldownComponent>(spawner_e, 1.0f, 0.0f);
 
     // a timer
-    float minutes_20 = 20 * 60;
-    const auto timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ minutes_20, minutes_20 });
+    float seconds = 20 * 60;
+    const auto timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
     r.emplace<SurviveTimerComponent>(timer_e);
   }
 

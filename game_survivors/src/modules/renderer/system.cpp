@@ -83,6 +83,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   glBindTexture(GL_TEXTURE_2D, ri.renderer.data.TEX);
   ri.renderer.data.tex_unit = tex_buffer_unit;
   SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.renderer.data.tex_unit).c_str());
+
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
@@ -93,6 +94,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   };
 
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
+  const int tex_unit_water = get_tex_unit(PassName::water);
   const int tex_unit_debris = get_tex_unit(PassName::debris);
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
@@ -105,12 +107,17 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 1.0f);
   camera.projection_zoomed = camera.projection;
 
-  const int tex_unit_organic2 = search_for_texture_unit_by_texture_path(ri, "organic2")->unit;
+  const int tex_unit_worley_noise = search_for_texture_unit_by_texture_path(ri, "worley_noise")->unit;
   ri.debris.reload();
   ri.debris.bind();
-  ri.debris.set_int("tex", tex_unit_organic2);
+  ri.debris.set_int("tex", tex_unit_worley_noise);
   ri.debris.set_mat4("projection", camera.projection);
   ri.debris.set_vec2("viewport_wh", ri.viewport_size_render_at);
+
+  ri.water.reload();
+  ri.water.bind();
+  ri.water.set_mat4("projection", camera.projection);
+  ri.water.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -180,6 +187,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.mix_lighting_and_scene.set_int("scene_0", tex_unit_linear_main);
   // ri.mix_lighting_and_scene.set_int("scene_1", tex_unit_stars);
+  ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_unit_debris", tex_unit_debris);
   ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
@@ -222,6 +230,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 1.0f });
   RenderCommand::clear();
 
+  ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::debris));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::linear_main));
@@ -256,9 +265,10 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
-    SDL_Log("%s", std::format("loaded texture... {}", tex.path).c_str());
+    SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
 
+  ri.water = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.debris = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_debris.frag");
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.outline = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
@@ -289,6 +299,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   // adds the update() for each renderpass
   setup_floor_mask_update(r);
+  setup_water_update(r);
   setup_debris_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
@@ -323,7 +334,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 void
 update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
-  static const engine::SRGBColour black(0, 0, 0, 1.0f);
+  static const engine::SRGBColour black(0, 0, 0, 0);
 
 #if defined(_DEBUG)
   CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
@@ -351,6 +362,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   ri.debris.bind();
   ri.debris.set_float("iTime", time);
+
+  ri.water.bind();
+  ri.water.set_float("iTime", time);
 
 #if defined(_DEBUG)
   // reload all shaders

@@ -143,6 +143,13 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     pdesc.position = pos;
     pdesc.size = { size.x, size.y };
     pdesc.is_sensor = t.physics_desc->is_sensor;
+
+    if (t.physics_desc->is_static.has_value()) {
+      const bool is_static = t.physics_desc->is_static.value();
+      if (is_static)
+        pdesc.type = b2_staticBody;
+    }
+
     create_physics_actor(r, e, pdesc);
   }
 };
@@ -194,6 +201,14 @@ spawn(entt::registry& r, const std::string& key)
   //   drop_inventory_on_death_callback(r, e);
   // };
   // r.emplace<OnDeathCallback>(e, callback);
+
+  OnDeathCallback callback;
+  callback.callback = [](entt::registry& r, const entt::entity e) {
+    //
+    SDL_Log("Calling drop_xp_on_death_callback()");
+    drop_xp_on_death_callback(r, e);
+  };
+  r.emplace<OnDeathCallback>(e, callback);
 
   // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
   // r.emplace<DestroyBulletOnCollison>(e);

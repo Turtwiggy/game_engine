@@ -49,6 +49,41 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
 };
 
 void
+setup_water_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::water);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r) {
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+
+    ri.water.bind();
+    ri.water.set_mat4("view", camera_c.view);
+    ri.water.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+    ri.water.set_float("zoom", camera_c.zoom_nonlinear);
+
+    {
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
+      {
+        engine::quad_renderer::RenderDescriptor desc;
+        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+        desc.size = ri.viewport_size_render_at;
+        desc.yaw_pitch_roll_radians = { 0, 0, 0 };
+        ri.renderer.draw_sprite(desc, ri.water);
+      }
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.water);
+    }
+  };
+};
+
+void
 setup_debris_update(entt::registry& r)
 {
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
@@ -325,7 +360,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     // emitters should be anything but black (i.e. scene lighting)
-    const engine::LinearColour emitter_col = engine::SRGBToLinear({ 255, 0, 0, 1.0f });
+    const engine::LinearColour emitter_col = engine::SRGBToLinear({ 255, 0, 0, 255 });
     const engine::LinearColour occluder_col(0.0f, 0.0f, 0.0f, 1.0f);
 
     ri.lighting_emitters_and_occluders.bind();
@@ -333,7 +368,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     ri.lighting_emitters_and_occluders.set_mat4("projection", camera_c.projection_zoomed);
 
     {
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0 });
       engine::RenderCommand::clear();
 
       ri.renderer.reset_quad_vert_count();
@@ -440,7 +475,7 @@ setup_jump_flood_pass(entt::registry& r)
 
       engine::Framebuffer::bind_fbo(pass.fbos[this_tex_idx]);
       engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0 });
       engine::RenderCommand::clear();
 
       // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest
@@ -502,6 +537,8 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
   pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     static float brightness_threshold = 0.80f;
+
+    engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
 
 #if defined(_DEBUG)
     imgui_draw_float("brightness_threshold", brightness_threshold);

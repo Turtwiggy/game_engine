@@ -56,6 +56,7 @@ struct Texture
 
 enum class PassName
 {
+  water,
   debris,
   floor_mask,
   linear_main,
@@ -105,6 +106,7 @@ struct SINGLE_RendererInfo
   engine::quad_renderer::QuadRenderer renderer;
 
   // shaders
+  engine::Shader water;
   engine::Shader debris;
   engine::Shader instanced;
   engine::Shader lighting_emitters_and_occluders;

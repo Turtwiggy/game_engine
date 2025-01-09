@@ -43,6 +43,13 @@
       "inventory": { "size": 30 }
     },
     {
+      "name": "xp",
+      "display_name": "Lootbag",
+      "display_desc": "A default bag of loot",
+      "renderable": { "sprite": "DUCK", "colour": "white" },
+      "physics_desc": { "is_sensor": true, "is_static": true }
+    },
+    {
       "name": "duck",
       "display_name": "Angry Duck",
       "display_desc": "Quuack Quack QUACK >:(",
@@ -178,25 +185,25 @@
     //
     {
       "name": "actor_player_1",
-      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour":  "gold_yellow" },
+      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
       "physics_desc": { "is_sensor": false }
     },
     {
       "name": "actor_player_2",
-      "renderable": { "sprite": "SPACE_VEHICLE_2", "colour":  "blue" },
+      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
       "physics_desc": { "is_sensor": false }
     },
     {
       "name": "actor_player_3",
-      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour":  "magenta" },
+      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
       "physics_desc": { "is_sensor": false }
     },
     {
       "name": "actor_player_4",
-      "renderable": { "sprite": "SPACE_VEHICLE_2", "colour":  "green" },
+      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
       "physics_desc": { "is_sensor": false }
     },

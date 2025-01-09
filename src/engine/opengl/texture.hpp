@@ -36,8 +36,12 @@ struct LinearTexture
   std::string path;
   std::vector<float> data; // linear colour 0-1
 
-  int texture_min_filter = GL_LINEAR_MIPMAP_LINEAR;
+  // min: filtering mode if texture pixels < screen pixels
+  // max: filtering mode if texture pixels > screen pixels
+  // int texture_max_filter = GL_LINEAR;
+  // int texture_min_filter = GL_LINEAR;
   int texture_max_filter = GL_NEAREST;
+  int texture_min_filter = GL_LINEAR_MIPMAP_LINEAR;
 };
 
 void

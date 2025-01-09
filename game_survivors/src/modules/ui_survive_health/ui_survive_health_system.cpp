@@ -32,31 +32,31 @@ update_ui_survive_health_system(entt::registry& r)
 
   ImVec2 tl{ 0.0f, 0.0f };
   ImVec2 br{ 1.0f, 1.0f };
-  const ImVec2 icon_size{ 32, 32 };
+  const ImVec2 icon_size{ 20, 20 };
   const ImVec2 spacing = { 8, 8 };
 
-  ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
+  ImGui::SetNextWindowPos({ 0, 20 }, ImGuiCond_Always, { 0.0f, 0.0f });
 
   ImGui::Begin("health", NULL, flags);
 
-  for (const auto [e, player_c, hp_c, col_c] :
-       r.view<const PlayerComponent, const HealthComponent, const DefaultColour>().each()) {
+  const auto& group = r.group<PlayerComponent, HealthComponent, DefaultColour>();
 
-    if (player_c.idx != 0)
-      continue; // only p0 for moment
+  // sort by player number
+  group.sort<PlayerComponent>([](const auto& a, const auto& b) { return a.idx < b.idx; });
 
-    const auto im_col = ImVec4{ col_c.colour.r / 255.0f, col_c.colour.g / 255.0f, col_c.colour.b / 255.0f, col_c.colour.a };
-    const auto im_outline_col = ImVec4{ 1.0f, 1.0f, 1.0f, 0.2f };
-    const auto my_outline_col = engine::SRGBColour(1.0f, 1.0f, 1.0f, 0.2f);
+  for (const auto [e, player_c, hp_c, col_c] : group.each()) {
+
+    const auto im_col =
+      ImVec4{ col_c.colour.r / 255.0f, col_c.colour.g / 255.0f, col_c.colour.b / 255.0f, col_c.colour.a / 255.0f };
+    const auto my_out_col = engine::SRGBColour(0.8f, 0.8f, 0.8f, 1.0f);
+    const auto im_out_col = ImVec4{ my_out_col.r / 255.0f, my_out_col.g / 255.0f, my_out_col.b / 255.0f, 0.2f };
     const auto im_heart_col = im_col;
     const auto my_heart_col = col_c.colour;
 
     // draw health background
     for (int i = 0; i < hp_c.max_hp; i++) {
-      if (i == 0) {
-        ImGui::SetCursorPosX(spacing.x);
-        ImGui::SetCursorPosY(spacing.y);
-      }
+      ImGui::SetCursorPosX(spacing.x + icon_size.y * i);
+      ImGui::SetCursorPosY(spacing.y + icon_size.y * player_c.idx);
 
       // worldspace health
       // Sprite s;
@@ -72,15 +72,13 @@ update_ui_survive_health_system(entt::registry& r)
       if (i > 0)
         ImGui::SameLine();
 
-      ImGui::Image(im_id, icon_size, tl, br, im_outline_col);
+      ImGui::Image(im_id, icon_size, tl, br, im_out_col);
     }
 
     // draw active health
     for (int i = 0; i < hp_c.hp; i++) {
-      if (i == 0) {
-        ImGui::SetCursorPosX(spacing.x);
-        ImGui::SetCursorPosY(spacing.y);
-      }
+      ImGui::SetCursorPosX(spacing.x + icon_size.y * i);
+      ImGui::SetCursorPosY(spacing.y + icon_size.y * player_c.idx);
 
       const auto result = convert_sprite_to_uv(r, "ICON_HEART");
       std::tie(tl, br) = result;
@@ -89,7 +87,6 @@ update_ui_survive_health_system(entt::registry& r)
       ImGui::Image(im_id, icon_size, tl, br, im_heart_col);
     }
 
-    break; // 1 player for moment
     ImGui::NewLine();
   }
 

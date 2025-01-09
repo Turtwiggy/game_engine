@@ -14,9 +14,10 @@ uniform sampler2D tex_monochrome_transparent_packed;
 uniform sampler2D tex_gameicons;
 uniform sampler2D tex_blueberry_dark;
 uniform sampler2D tex_custom;
-uniform sampler2D tex_organic2;
+uniform sampler2D tex_worley_noise;
 uniform sampler2D tex_logo;
 uniform sampler2D tex_animation_idle;
+uniform sampler2D tex_boat_dinghy;
 
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
@@ -32,7 +33,7 @@ vec4 tex2dss(sampler2D tex, vec2 uv, float bias, float aascale)
     // get uv derivatives
     vec2 dx = dFdx(uv);
     vec2 dy = dFdy(uv);
-  
+
 #if defined(_SUPERSAMPLING_2X2_RGSS)
     // MSAA style "four rooks" rotated grid super sampling
     // samples the texture 4 times
@@ -102,7 +103,7 @@ main()
   // A spritesheet texture
   {
     // v_uv goes from 0 to 1
-    // convert from 0 to 1 to the width/height desired 
+    // convert from 0 to 1 to the width/height desired
     vec2 sprite_uv = vec2(
       (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
       (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
@@ -120,7 +121,7 @@ main()
 
     if(index == RENDERER_TEX_UNIT_COUNT){
       out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
-      // out_colour *= texture(tex_kenny, sprite_uv);
+      // out_colour *= texture(tex_monochrome_transparent_packed, sprite_uv);
     }
     else if(index == (RENDERER_TEX_UNIT_COUNT+1)){
       out_colour *= texture(tex_gameicons, sprite_uv);
@@ -135,7 +136,7 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+4){
-      out_colour *= texture(tex_organic2, v_uv);
+      out_colour *= texture(tex_worley_noise, v_uv);
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+5){
@@ -146,7 +147,13 @@ main()
       out_colour *= tex2dss(tex_animation_idle, sprite_uv, bias, aa_scale);
       return; // texture uses 0, 0
     }
-
+    else if(index == RENDERER_TEX_UNIT_COUNT+7){
+      // vec2 half_pixel = vec2(0.5) / textureSize(tex_boat_dinghy, 0);
+      // vec2 corrected_tex_coord = sprite_uv + half_pixel;
+      // out_colour *= texture(tex_boat_dinghy, v_uv);
+      out_colour *= tex2dss(tex_boat_dinghy, v_uv, bias, aa_scale);
+      return; // texture uses 0, 0
+    }
   }
 
   // Sample texture directly

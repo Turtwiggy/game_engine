@@ -19,8 +19,9 @@ get_exe_path_without_exe_name()
   uint32_t size = sizeof(path_buf);
   if (_NSGetExecutablePath(path_buf, &size) == 0)
     path = std::string(path_buf);
-  else
+  else {
     SDL_Log("%s", std::format("buffer too small; need size: {}", size);
+  }
 
   // Remove the exectable name from the exe path
   const size_t pos = path.find_last_of('/');

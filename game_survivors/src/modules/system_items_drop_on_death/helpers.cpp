@@ -2,9 +2,12 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/map/components.hpp"
 #include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
+#include "modules/combat/components.hpp"
+#include "modules/event_player_xp_coll/event_player_xp_coll_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
@@ -35,6 +38,16 @@ drop_inventory_on_death_callback(entt::registry& r, const entt::entity e)
 
   // replace the lootbag inventory with the dead player's inventory
   r.replace<DefaultInventory>(item_e, inv);
+};
+
+void
+drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
+{
+  const auto item_e = spawn(r, "xp");
+  give_life(r, item_e, get_position(r, e), { 16, 16 });
+  r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
+  r.emplace<XpComponent>(item_e);
+  r.remove<OnDeathCallback>(item_e); // xp doesnt do anything on it's death?
 };
 
 } // namespace game2d

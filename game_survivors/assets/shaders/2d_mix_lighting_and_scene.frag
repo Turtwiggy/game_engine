@@ -13,6 +13,7 @@ in float v_tex_unit;
 uniform sampler2D scene_0;         // linear main
 uniform sampler2D scene_1; 		 	   // stars
 uniform sampler2D u_distance_data; // distance data
+uniform sampler2D tex_unit_water;
 uniform sampler2D tex_unit_debris;
 uniform sampler2D tex_unit_floor_mask;
 uniform sampler2D tex_circles; 
@@ -395,21 +396,28 @@ void main()
 
   // linear to srgb
 	vec3 final_lin = scene_lin.rgb;
-
+	
+	//
 	// debris backdrop
-	vec3 scene_debris_lin = texture(tex_unit_debris, v_uv).rgb;
-	float floor_mask = texture(tex_unit_floor_mask, v_uv).r;
-	// bool black_debris = scene_debris_lin == vec3(0.0f);
-	if(floor_mask >= 0.95 )
-	{
-		scene_debris_lin = vec3(0.0f);
-	}
-	final_lin += scene_debris_lin;
+	//
+	// vec3 scene_debris_lin = texture(tex_unit_debris, v_uv).rgb;
+	// float floor_mask = texture(tex_unit_floor_mask, v_uv).r;
+	// // bool black_debris = scene_debris_lin == vec3(0.0f);
+	// if(floor_mask >= 0.95 )
+	// {
+	// 	scene_debris_lin = vec3(0.0f);
+	// }
+	// final_lin += scene_debris_lin;
+
+	// 
+	// water backdrop
+	//
+	vec3 scene_water = texture(tex_unit_water, v_uv).rgb;
 
 	// sdf grid	
 	//
+	vec3 grid_col = vec3(0.0f);
 	if(add_grid) {
-		vec3 grid_col = vec3(0.0f);
 		{
 			float gridsize = tilesize / zoom; // pixels
 			vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
@@ -424,15 +432,15 @@ void main()
 
 			// if the gridsize gets too small and the gridwidth isnt large enough, 
 			// the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
-			float grid_width = 0.02; 
+			// float grid_width = 0.02; 
+			float grid_width = 0.04; 
 			float margin = 0.5;
 			if(abs(sdGrid(p_grid, margin)) >= grid_width)
-				grid_col = vec3(0.0f);// background
+				grid_col = vec3(0.0);// background
 			else
-				grid_col = vec3(0.15); // line
+				grid_col = vec3(0.04); // line
 		}
-		vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
-		final_lin += grid_lin;
+		// grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
 	}
 
 	// lighting
@@ -442,12 +450,27 @@ void main()
 	vec3 srgb_final = lin_to_srgb(final_lin);
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
-	out_color.rgb = circle_col + dark_col + srgb_final.rgb;
+	// out_color.rgb = vec3(a, a, a);
+	out_color.rgb = srgb_final.rgb;
 
-	// vec4 outline_col_lin = texture(tex_outline, v_uv);
-	// vec3 outline_col = lin_to_srgb(outline_col_lin.rgb);
-	// if(outline_col.r > 0.0f)
-	// 	out_color.rgb = vec3(1.0, 1.0, 1.0);
+	float a = scene_lin.a;
+	// if(a > 0.0)
+	// 	out_color.rgb = vec3(0.0, 1.0, 1.0);
+
+	if(scene_lin.a == 0.0f)
+		out_color.rgb = scene_water.rgb;
+	else
+		out_color.rgb = srgb_final.rgb;
+
+	out_color.rgb += grid_col;
+
+		
+	// out_color.rgb = circle_col + dark_col + srgb_final.rgb;
+
+	vec4 outline_col_lin = texture(tex_outline, v_uv);
+	vec3 outline_col = lin_to_srgb(outline_col_lin.rgb);
+	if(outline_col.r > 0.0f)
+		out_color.rgb = vec3(1.0, 1.0, 1.0);
 
 	// vignette
 	// vec2 vig_uv = fragCoord.xy / iResolution.xy;

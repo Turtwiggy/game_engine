@@ -61,6 +61,9 @@ load_texture_srgb(const int tex_unit, const std::string& path)
 LinearTexture
 load_texture_linear(const int tex_unit, const std::string& path)
 {
+  // if (path.find("boat") != std::string::npos)
+  //   int k = 1;
+
   SRGBTexture srgb = load_texture_srgb(tex_unit, path);
   const int width = srgb.width;
   const int height = srgb.height;
@@ -78,15 +81,15 @@ load_texture_linear(const int tex_unit, const std::string& path)
     for (int j = 0; j < srgb.height; j++) {
       int offset = (i + srgb.width * j) * srgb.nr_components;
       unsigned char* pixel_offset = srgb.data + offset;
-      int r = static_cast<int>(pixel_offset[0]);
-      int g = static_cast<int>(pixel_offset[1]);
-      int b = static_cast<int>(pixel_offset[2]);
+      const int r = static_cast<int>(pixel_offset[0]);
+      const int g = static_cast<int>(pixel_offset[1]);
+      const int b = static_cast<int>(pixel_offset[2]);
 
       int a = 0;
       if (srgb.nr_components > 3)
         a = static_cast<int>(pixel_offset[3]);
 
-      const SRGBColour srgbcol = { r, g, b, a / 255.0f };
+      const SRGBColour srgbcol = { r, g, b, a };
       const LinearColour lincol = SRGBToLinear(srgbcol);
       const float lin_r = lincol.r;
       const float lin_g = lincol.g;
@@ -154,8 +157,8 @@ bind_linear_texture(const LinearTexture& tex)
   glBindTexture(GL_TEXTURE_2D, texture_id);
   glTexImage2D(GL_TEXTURE_2D, 0, format_a, width, height, 0, format_b, GL_FLOAT, data.data());
   glGenerateMipmap(GL_TEXTURE_2D);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex.texture_min_filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex.texture_max_filter);
   unbind_tex();

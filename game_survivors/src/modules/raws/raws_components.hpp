@@ -145,8 +145,20 @@ struct Trait
 struct PhysicsDesc
 {
   bool is_sensor = false;
+  std::optional<bool> is_static = std::nullopt;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsDesc, is_sensor);
+  friend void to_json(nlohmann ::json& j, const PhysicsDesc& val)
+  {
+    j["is_sensor"] = val.is_sensor;
+    if (j.contains("is_static"))
+      j["is_static"] = val.is_static.value();
+  }
+  friend void from_json(const nlohmann ::json& j, PhysicsDesc& val)
+  {
+    j.at("is_sensor").get_to(val.is_sensor);
+    if (j.contains("is_static"))
+      j.at("is_static").get_to(val.is_static.emplace());
+  };
 };
 
 //

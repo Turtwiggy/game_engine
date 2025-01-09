@@ -9,6 +9,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
+#include "imgui.h"
 #include "modules/actor_player/actor_player_system.hpp"
 #include "modules/animations/rotate_system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
@@ -23,6 +24,7 @@
 #include "modules/events/events_system.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
@@ -72,6 +74,12 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   ImFontConfig fontConfig;
   fontConfig.PixelSnapH = true; // Ensure pixel alignment
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
+
+  // hide default cursor
+  io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+  auto result = SDL_ShowCursor(SDL_DISABLE);
+  if (result < 0)
+    SDL_Log("Failed to hide system cursor: %s", SDL_GetError());
 
   {
     SINGLE_RendererInfo ri = get_default_textures();
@@ -180,7 +188,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);
     update_gun_follow_player_system(r, mouse_pos, dt);
-    update_gun_z_index_system(r);
+    // update_gun_z_index_system(r);
     update_move_to_target_via_lerp(r, dt);
     update_particle_system(r, dt);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
@@ -214,12 +222,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  static bool show_settings_ui = true;
+  static bool show_settings_ui = false;
 #else
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
-    // ImGui::ShowDemoWindow(NULL);
+    ImGui::ShowDemoWindow(NULL);
     update_ui_hierarchy_system(r);
     update_ui_audio_system(r);
     update_ui_collisions_system(r);
@@ -238,7 +246,22 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // }
 #endif
 
-  // update_animator_system(r, dt);
+  // draw a custom mouse cursor
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto half_wh = ImVec2{ 0.5f * ri.viewport_size_render_at.x, 0.5f * ri.viewport_size_render_at.y };
+  const auto pos = ImVec2(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
+  ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+  const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
+  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  ImVec2 tl{ 0.0f, 0.0f };
+  ImVec2 br{ 1.0f, 1.0f };
+  const auto result = convert_sprite_to_uv(r, "CURSOR_0");
+  std::tie(tl, br) = result;
+  const auto size = ImVec2{ 32, 32 };
+  const ImVec2 cursor_tl{ pos.x - (size.x / 2.0f), pos.y - (size.y / 2.0f) };
+  const ImVec2 cursor_br{ pos.x + (size.x / 2.0f), pos.y + (size.y / 2.0f) };
+  draw_list->AddImage(im_id, cursor_tl, cursor_br, tl, br);
+
   update_render_system(r, dt, mouse_pos);
 
   end_frame_render_system(r);
