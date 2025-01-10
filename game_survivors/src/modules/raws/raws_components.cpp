@@ -186,42 +186,19 @@ spawn(entt::registry& r, const std::string& key)
   r.emplace<WaitForInitComponent>(e);
   r.emplace<Item>(e, templ);
 
-  // Give a body e.g. arms and legs
-  // r.emplace<DefaultBody>(e, DefaultBody(r));
-
-  // Give an inventory that can store items
-  // note: all mobs drop_inventory_on_death()
-  // const int slots = 20;
-  // r.emplace<DefaultInventory>(e, DefaultInventory{ r, slots });
-
-  // OnDeathCallback callback;
-  // callback.callback = [](entt::registry& r, const entt::entity e) {
-  //   //
-  //   SDL_Log("Calling drop_inventory_on_death_callback()");
-  //   drop_inventory_on_death_callback(r, e);
-  // };
-  // r.emplace<OnDeathCallback>(e, callback);
-
   OnDeathCallback callback;
   callback.callback = [](entt::registry& r, const entt::entity e) {
     //
-    SDL_Log("Calling drop_xp_on_death_callback()");
+    // SDL_Log("Calling drop_xp_on_death_callback()");
     drop_xp_on_death_callback(r, e);
   };
   r.emplace<OnDeathCallback>(e, callback);
 
-  // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-  // r.emplace<DestroyBulletOnCollison>(e);
-  // r.emplace<MoveLimitComponent>(e, 1);
   r.emplace<SpawnParticlesOnDeath>(e);
   if (templ.stats.has_value())
     r.emplace<HealthComponent>(e, templ.stats->hp, templ.stats->max_hp);
   r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
-  // r.emplace<PathfindComponent>(e, -1, true);
   r.emplace<InputComponent>(e);
-
-  // if (item_template.stats.){
-  // }
 
   return e;
 };

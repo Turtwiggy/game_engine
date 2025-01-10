@@ -1,4 +1,4 @@
-#include "event_bullet_enemy_coll_helpers.hpp"
+#include "event_coll_bullet_enemy_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "modules/combat/components.hpp"
@@ -23,7 +23,7 @@ handle_bullet_enemy_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   evt.from = bullet_e;
   evt.to = team_e;
   evt.type = DamageType::PHYSICAL;
-  evt.amount = 10;
+  evt.amount = 10; // todo: replace with "correct" bullet damage
   evt.traits = {};
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();

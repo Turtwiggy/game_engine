@@ -17,7 +17,7 @@ uniform sampler2D tex_custom;
 uniform sampler2D tex_worley_noise;
 uniform sampler2D tex_logo;
 uniform sampler2D tex_animation_idle;
-uniform sampler2D tex_boat_dinghy;
+uniform sampler2D tex_junkers;
 
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
@@ -148,10 +148,8 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+7){
-      // vec2 half_pixel = vec2(0.5) / textureSize(tex_boat_dinghy, 0);
-      // vec2 corrected_tex_coord = sprite_uv + half_pixel;
-      // out_colour *= texture(tex_boat_dinghy, v_uv);
-      out_colour *= tex2dss(tex_boat_dinghy, v_uv, bias, aa_scale);
+      out_colour *= tex2dss(tex_junkers, sprite_uv, bias, aa_scale);
+      // out_colour *= tex2dss(tex_junkers, v_uv, bias, aa_scale);
       return; // texture uses 0, 0
     }
   }

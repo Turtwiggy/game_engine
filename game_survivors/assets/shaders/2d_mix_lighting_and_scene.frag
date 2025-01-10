@@ -22,7 +22,7 @@ uniform sampler2D tex_outline;
 uniform float brightness_threshold;
 uniform vec2 camera_pos;
 uniform vec2 viewport_wh;
-uniform bool put_starshader_behind;
+uniform bool put_water_behind;
 uniform bool add_grid;
 uniform vec2 uv_offset;
 uniform bool inside_spaceship;
@@ -254,11 +254,12 @@ void main()
 	vec2 screen_min = camera_pos - half_wh; // e.g. -960
 
   vec4 scene_lin = texture(scene_0, v_uv);
+	vec3 water_srgb = texture(tex_unit_water, v_uv).rgb;
   vec3 stars_srgb = texture(scene_1, v_uv).rgb;
 
-	if(put_starshader_behind){
+	if(put_water_behind){
 		vec3 scene_col = lin_to_srgb(scene_lin.rgb);
-		out_color.rgb = stars_srgb.rgb + scene_col;
+		out_color.rgb = water_srgb + scene_col;
 		return;
 	}
 

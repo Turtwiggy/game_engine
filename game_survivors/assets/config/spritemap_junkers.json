@@ -1,0 +1,21 @@
+{
+  "spritesheet": {
+    "name": "spritesheet_junkers",
+    "px_total": 640,
+    "py_total": 360,
+    "px": 5,
+    "py": 5,
+    "nx": 128,
+    "ny": 72
+  },
+  "sprites": [
+    { "name": "hull_dinghy", "frames": [ { "x": 1, "y": 0, "w": 7, "h": 4 } ] },
+    { "name": "hull_rhib", "frames": [ { "x": 9, "y": 0, "w": 11, "h": 6 } ] },
+
+    { "name": "boat_weapon_1", "frames": [ { "x": 1, "y": 6, "w": 1, "h": 2 } ], "angle": 90.0  },
+    { "name": "boat_weapon_2", "frames": [ { "x": 4, "y": 6, "w": 2, "h": 3 } ], "angle": 90.0  },
+
+    { "name": "random_decal", "frames": [ { "x": 21, "y": 0, "w": 13, "h": 13 } ]}
+
+  ]
+}

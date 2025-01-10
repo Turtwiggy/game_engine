@@ -46,7 +46,7 @@
       "name": "xp",
       "display_name": "Lootbag",
       "display_desc": "A default bag of loot",
-      "renderable": { "sprite": "DUCK", "colour": "white" },
+      "renderable": { "sprite": "GEM", "colour": "white" },
       "physics_desc": { "is_sensor": true, "is_static": true }
     },
     {
@@ -130,6 +130,14 @@
       "combat": { "damage": 1,  "range": 4, "type": "line" },
       "traits": [ {"key": "pull", "amount": 1} ]
     },
+    {
+      "name": "boat_default_weapon",
+      "display_name": "default_weapon",
+      "display_desc": "More gun is better gun.",
+      "renderable": { "sprite": "boat_weapon_1", "colour": "white" },
+      "combat": { "damage": 3, "range": 2, "type": "cone" },
+      "traits": [ {"key": "push", "amount": 1} ]
+    },
     // header: scrap tier armour
     //
     {
@@ -184,33 +192,29 @@
     // Header: actors
     //
     {
-      "name": "actor_player_1",
-      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
+      "name": "actor_player",
+      "renderable": { "sprite": "hull_dinghy", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
       "physics_desc": { "is_sensor": false }
     },
     {
-      "name": "actor_player_2",
-      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
-      "stats": { "max_hp": 10, "hp": 10 },
-      "physics_desc": { "is_sensor": false }
-    },
-    {
-      "name": "actor_player_3",
-      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
-      "stats": { "max_hp": 10, "hp": 10 },
-      "physics_desc": { "is_sensor": false }
-    },
-    {
-      "name": "actor_player_4",
-      "renderable": { "sprite": "boat_dinghy", "colour":  "white" },
-      "stats": { "max_hp": 10, "hp": 10 },
-      "physics_desc": { "is_sensor": false }
-    },
-    {
-      "name": "dungeon_actor_enemy_default",
+      "name": "actor_enemy_melee",
       "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
-      "stats": { "max_hp": 10, "hp": 10 },
+      "physics_desc": { "is_sensor": false }
+    },
+    {
+      "name": "actor_enemy_exploder",
+      "renderable": { "sprite": "CRAB_25_5", "colour": "gold_yellow" },
+      "physics_desc": { "is_sensor": false }
+    },
+    {
+      "name": "actor_enemy_projectile",
+      "renderable": { "sprite": "SNAKE_28_8", "colour": "red" },
+      "physics_desc": { "is_sensor": false }
+    },
+    {
+      "name": "actor_enemy_rocks",
+      "renderable": { "sprite": "TREE_0_1", "colour": "red" },
       "physics_desc": { "is_sensor": false }
     }
   ],

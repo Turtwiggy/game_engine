@@ -20,6 +20,7 @@
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
+#include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
@@ -40,8 +41,12 @@ namespace game2d {
 entt::entity
 spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
 {
+  glm::vec2 dinghy_size = { 33, 18 };
+  glm::vec2 rhib_size = { 55, 30 };
+  glm::vec2 weapon_size = { 5, 10 };
+
   const auto e = spawn(r, key);
-  give_life(r, e, pos, { 55, 32 });
+  give_life(r, e, pos, dinghy_size);
   r.emplace<PlayerComponent>(e, num);
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
@@ -52,14 +57,15 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 
   // player weapon
-  const auto wep_e = spawn(r, "shotgun");
-  give_life(r, wep_e, get_position(r, e), { 16, 16 });
+  const auto wep_e = spawn(r, "boat_default_weapon");
+  give_life(r, wep_e, get_position(r, e), weapon_size);
   r.emplace<HasWeaponComponent>(e, HasWeaponComponent{ wep_e }); // parent <=> child
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
   r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
   r.emplace<WeaponComponent>(wep_e);
   r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+  set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
 
   return e;
 };
@@ -126,12 +132,13 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
     create_empty<Effect_GridComponent>(r);
+    create_empty<SINGLE_XpComponent>(r);
 
     // players
-    const auto p1 = spawn_player(r, "actor_player_1", { 0, 0 }, 0);
-    const auto p2 = spawn_player(r, "actor_player_2", { 16, 0 }, 1);
-    const auto p3 = spawn_player(r, "actor_player_3", { 0, 16 }, 2);
-    const auto p4 = spawn_player(r, "actor_player_4", { 16, 16 }, 3);
+    const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0);
+    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
+    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
+    const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
@@ -145,6 +152,16 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     float seconds = 20 * 60;
     const auto timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
     r.emplace<SurviveTimerComponent>(timer_e);
+
+    // something random
+    {
+      auto e = create_empty<TransformComponent>(r);
+      r.emplace<SpriteComponent>(e);
+      set_sprite(r, e, "random_decal");
+      set_size(r, e, { 64, 64 });
+      set_position(r, e, { -32, -32 });
+      set_z_index(r, e, ZLayer::BACKGROUND);
+    }
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

@@ -10,6 +10,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "spawner_components.hpp"
 
@@ -55,11 +56,18 @@ update_spawner_system(entt::registry& r)
       continue;
     reset_cooldown(cooldown_c);
 
-    auto e = spawn(r, "dungeon_actor_enemy_default");
+    std::string enemy_key = "actor_enemy_melee";
+
+    auto e = spawn(r, enemy_key);
     r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
-    r.emplace<PhysicsDynamicTarget>(e, player_e);
+    r.emplace<DynamicTargetComponent>(e, player_e);
     r.emplace<SpriteOutline>(e);
 
+    // temp: health here, but it should be based on wave/enemytype
+    r.emplace_or_replace<HealthComponent>(e, 30, 30);
+
+    // move at player, this gotta be changed for more interesting types
+    r.emplace<PhysicsDynamicTarget>(e, player_e);
     ApplyForceToDynamicTarget tgt_c;
     tgt_c.orbit = true;
     tgt_c.reduce_thrusters = false;

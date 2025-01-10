@@ -9,7 +9,6 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
-#include "imgui.h"
 #include "modules/actor_player/actor_player_system.hpp"
 #include "modules/animations/rotate_system.hpp"
 #include "modules/animations/wiggle/wiggle_up_and_down.hpp"
@@ -18,7 +17,6 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
-#include "modules/combat_gun_z_index/system.hpp"
 #include "modules/combat_scale_on_hit/system.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/events/events_system.hpp"
@@ -52,15 +50,19 @@
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_survive_health/ui_survive_health_system.hpp"
+#include "modules/ui_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
 #include <SDL2/SDL_log.h>
+#include <imgui.h>
 
 namespace game2d {
 using namespace std::literals;
+
+bool custom_mouse_cursor = false;
 
 void
 init(engine::SINGLE_Application& app, entt::registry& r)
@@ -76,10 +78,12 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
 
   // hide default cursor
-  io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-  auto result = SDL_ShowCursor(SDL_DISABLE);
-  if (result < 0)
-    SDL_Log("Failed to hide system cursor: %s", SDL_GetError());
+  if (custom_mouse_cursor) {
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+    auto result = SDL_ShowCursor(SDL_DISABLE);
+    if (result < 0)
+      SDL_Log("Failed to hide system cursor: %s", SDL_GetError());
+  }
 
   {
     SINGLE_RendererInfo ri = get_default_textures();
@@ -209,6 +213,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_timer_system(r);
     update_ui_survive_health_system(r);
     update_ui_survive_xp_bar_system(r);
+    update_ui_survive_level_up_system(r);
   }
 
   if (scene.s != Scene::menu && scene.s != Scene::splashscreen) {
@@ -222,7 +227,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  static bool show_settings_ui = false;
+  static bool show_settings_ui = true;
 #else
   static bool show_settings_ui = false;
 #endif
@@ -247,20 +252,22 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #endif
 
   // draw a custom mouse cursor
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto half_wh = ImVec2{ 0.5f * ri.viewport_size_render_at.x, 0.5f * ri.viewport_size_render_at.y };
-  const auto pos = ImVec2(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
-  ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-  const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
-  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
-  ImVec2 tl{ 0.0f, 0.0f };
-  ImVec2 br{ 1.0f, 1.0f };
-  const auto result = convert_sprite_to_uv(r, "CURSOR_0");
-  std::tie(tl, br) = result;
-  const auto size = ImVec2{ 32, 32 };
-  const ImVec2 cursor_tl{ pos.x - (size.x / 2.0f), pos.y - (size.y / 2.0f) };
-  const ImVec2 cursor_br{ pos.x + (size.x / 2.0f), pos.y + (size.y / 2.0f) };
-  draw_list->AddImage(im_id, cursor_tl, cursor_br, tl, br);
+  if (custom_mouse_cursor) {
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto half_wh = ImVec2{ 0.5f * ri.viewport_size_render_at.x, 0.5f * ri.viewport_size_render_at.y };
+    const auto pos = ImVec2(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
+    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+    const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
+    const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+    ImVec2 tl{ 0.0f, 0.0f };
+    ImVec2 br{ 1.0f, 1.0f };
+    const auto result = convert_sprite_to_uv(r, "CURSOR_0");
+    std::tie(tl, br) = result;
+    const auto size = ImVec2{ 32, 32 };
+    const ImVec2 cursor_tl{ pos.x - (size.x / 2.0f), pos.y - (size.y / 2.0f) };
+    const ImVec2 cursor_br{ pos.x + (size.x / 2.0f), pos.y + (size.y / 2.0f) };
+    draw_list->AddImage(im_id, cursor_tl, cursor_br, tl, br);
+  }
 
   update_render_system(r, dt, mouse_pos);
 

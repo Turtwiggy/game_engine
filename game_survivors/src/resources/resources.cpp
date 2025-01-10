@@ -27,8 +27,7 @@ get_default_textures()
   add_tex("logo.png", "spritemap_text_logo.json");
   // add_tex("ship_small_rusty.png", "spritemap_ship_small_rusty.json");
   add_tex("animation_idle.png", "spritemap_animation_idle.json");
-
-  add_tex("boat_dinghy.png", "spritemap_boat_dinghy.json");
+  add_tex("junkers.png", "spritemap_junkers.json");
 
   return ri;
 };

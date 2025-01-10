@@ -34,8 +34,9 @@ update_ui_survive_health_system(entt::registry& r)
   ImVec2 br{ 1.0f, 1.0f };
   const ImVec2 icon_size{ 20, 20 };
   const ImVec2 spacing = { 8, 8 };
+  const int distance_from_top_of_screen = 20.0f;
 
-  ImGui::SetNextWindowPos({ 0, 20 }, ImGuiCond_Always, { 0.0f, 0.0f });
+  ImGui::SetNextWindowPos({ 0, distance_from_top_of_screen }, ImGuiCond_Always, { 0.0f, 0.0f });
 
   ImGui::Begin("health", NULL, flags);
 

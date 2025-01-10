@@ -14,6 +14,7 @@ update_ui_survive_timer_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const glm::vec2 tr = ri.viewport_size_render_at;
+  const int distance_from_top_of_screen = 20.0f;
 
   // Push larger font
   ImGuiIO& io = ImGui::GetIO();
@@ -28,7 +29,7 @@ update_ui_survive_timer_system(entt::registry& r)
     const auto padding = ImGui::GetStyle().WindowPadding;
     const auto space = 8;
 
-    const auto pos = ImVec2{ tr.x - len.x - padding.x - space, 0 };
+    const auto pos = ImVec2{ tr.x - len.x - padding.x - space, distance_from_top_of_screen };
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 0.0f, 0.0f });
 
     ImGuiWindowFlags flags = 0;

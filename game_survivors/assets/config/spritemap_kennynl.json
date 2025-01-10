@@ -153,7 +153,9 @@
     { "name": "WEAPON_HAMMER_42_7", "frames": [ { "x": 42, "y": 7 } ], "angle": -45.0 },
 
     { "name": "DOOR_16_8", "frames": [ { "x": 16, "y": 8 } ] },
+    { "name": "OCTOPUS_25_8", "frames": [ { "x": 25, "y": 8 } ] },
     { "name": "BAT_26_8", "frames": [ { "x": 26, "y": 8 } ] },
+    { "name": "SNAKE_28_8", "frames": [ { "x": 28, "y": 8 } ] },
 
     { "name": "WEAPON_SWORD_32_9", "frames": [ { "x": 32, "y": 9 } ], "angle": -45.0 },
     { "name": "WEAPON_SWORD_33_9", "frames": [ { "x": 33, "y": 9 } ], "angle": -45.0 },

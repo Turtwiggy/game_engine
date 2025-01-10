@@ -7,7 +7,7 @@
 #include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/event_player_xp_coll/event_player_xp_coll_components.hpp"
+#include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 
@@ -43,8 +43,10 @@ drop_inventory_on_death_callback(entt::registry& r, const entt::entity e)
 void
 drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
 {
+  const auto size = glm::vec2{ 8, 8 };
+
   const auto item_e = spawn(r, "xp");
-  give_life(r, item_e, get_position(r, e), { 16, 16 });
+  give_life(r, item_e, get_position(r, e), size);
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
   r.emplace<XpComponent>(item_e);
   r.remove<OnDeathCallback>(item_e); // xp doesnt do anything on it's death?

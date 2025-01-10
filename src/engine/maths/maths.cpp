@@ -63,6 +63,7 @@ rotate_point(const glm::vec3& point, const float angle_radians)
 {
   const float cos_angle = std::cos(angle_radians);
   const float sin_angle = std::sin(angle_radians);
+
   return {
     point.x * cos_angle - point.y * sin_angle,
     point.x * sin_angle + point.y * cos_angle,

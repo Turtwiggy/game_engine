@@ -4,7 +4,7 @@
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/event_player_coll_item/event_player_coll_item_helpers.hpp"
+#include "modules/event_coll_player_item/event_coll_player_item_helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"

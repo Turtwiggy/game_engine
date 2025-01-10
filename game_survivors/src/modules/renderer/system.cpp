@@ -373,6 +373,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     rebind(r, ri);
 #endif
 
+  const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
+  const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
+
   const auto s_jumpflood = std::vector<Scene>{ Scene::menu, Scene::survive };
   const bool in_jumpflood_scene = std::find(s_jumpflood.begin(), s_jumpflood.end(), scene.s) != s_jumpflood.end();
 
@@ -389,6 +392,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
+  ri.mix_lighting_and_scene.set_bool("put_water_behind", in_splash_scene);
 
 #if defined(_DEBUG)
   ImGui::Begin("DebugRenderPasses");
