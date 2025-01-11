@@ -46,6 +46,15 @@ update_physics_apply_force_system(entt::registry& r){
   { const auto& view =
       r.view<PhysicsBodyComponent, TransformComponent, const ApplyForceToDynamicTarget, const PhysicsDynamicTarget>();
 for (const auto& [e, body_c, t_c, req_c, target_c] : view.each()) {
+
+  // check your target hasn't died
+  const auto target_e = target_c.target;
+  if (target_e == entt::null || !r.valid(target_e)) {
+    // SDL_Log("Your target died. You should do some sort of regargeting.");
+    r.remove<PhysicsDynamicTarget>(e);
+    continue;
+  }
+
   const auto& b_body = r.get<PhysicsBodyComponent>(target_c.target).body;
 
   auto& a_body = body_c.body;

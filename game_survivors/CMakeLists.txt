@@ -43,7 +43,7 @@ file(GLOB_RECURSE SRC_FILES
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND WIN32)
   # "The WIN32 argument instructs the compiler to build a
   # Windows GUI app, which doesn't show a console."
-  add_executable(game_survivors ${SRC_FILES} assets/textures/resource.rc)
+  add_executable(game_survivors WIN32 ${SRC_FILES} assets/textures/resource.rc)
 elseif(WIN32)
   add_executable(game_survivors ${SRC_FILES} assets/textures/resource.rc)
 else()

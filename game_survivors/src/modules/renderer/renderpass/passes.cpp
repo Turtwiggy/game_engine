@@ -222,10 +222,19 @@ setup_linear_main_update(entt::registry& r)
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
 
-      const auto& group = r.group<TransformComponent, SpriteComponent>();
+      auto group = r.group<TransformComponent, SpriteComponent>();
 
       // sort by z-index; adds ~0.5ms
-      group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.z_index < b.z_index; });
+      group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
+        const auto& a = group.get<TransformComponent>(lhs);
+        const auto& b = group.get<TransformComponent>(rhs);
+
+        if (a.z_index != b.z_index)
+          return a.z_index < b.z_index;
+
+        // sort by eid if the layers are the same
+        return lhs < rhs;
+      });
 
       for (const auto& [e, transform, sc] : group.each()) {
 

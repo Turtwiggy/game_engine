@@ -3,6 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/effects_outline/outline_components.hpp"

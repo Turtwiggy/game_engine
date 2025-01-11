@@ -94,8 +94,8 @@ update_movement_direct(entt::registry& r, const uint64_t ms_dt)
     //
     if (glm::length(l_nrm_dir) <= 0.0f)
       continue;
-    const float speed = 25.0f; // higher number = faster to destination
-    const float max_angle = 15.0f * engine::Deg2Rad;
+    const float speed = 30.0f; // higher number = faster to destination
+    const float max_angle = 30.0f * engine::Deg2Rad;
 
     const float cur_angle = std::fmod(body_c.body->GetAngle(), engine::TWO_PI);
     const float wrapped_cur_angle = (cur_angle < 0.0f) ? cur_angle + engine::TWO_PI : cur_angle;

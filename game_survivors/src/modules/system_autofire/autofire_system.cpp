@@ -9,6 +9,7 @@
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/raws/raws_components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include <box2d/b2_collision.h>
@@ -93,6 +94,7 @@ update_autofire_system(entt::registry& r)
     r.emplace<TeamComponent>(bullet_e, AvailableTeams::player);
     r.get<PhysicsBodyComponent>(bullet_e).base_speed = 100.0f;
     r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
+    set_z_index(r, bullet_e, ZLayer::PROJECTILE);
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);

@@ -1,4 +1,4 @@
-#include "system.hpp"
+#include "combat_scale_on_hit_system.hpp"
 
 #include "components.hpp"
 #include "engine/actors/actor_helpers.hpp"
@@ -7,7 +7,6 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat_scale_on_hit/helpers.hpp"
-
 
 namespace game2d {
 
@@ -53,7 +52,8 @@ update_combat_scale_on_hit_system(entt::registry& r, const float dt)
       disable_flash(r, e);
 
       // reset the transform
-      auto physics_size = get_size(r, e);
+      // const auto physics_size = get_size(r, e);
+      const auto physics_size = r.get<DefaultSizeComponent>(e).size;
       t_c.scale = { physics_size.x, physics_size.y, 1.0f };
 
       r.remove<RequestHitScaleComponent>(e);

@@ -37,11 +37,17 @@ update_camera_system(entt::registry& r, const float dt)
   // camera_offset_due_to_mouse.x = dir.x * 10.0f;
   // camera_offset_due_to_mouse.y = dir.y * 10.0f;
 
-  // Set position as first position of target
+  // Set position as the centered position of all targetss
   const auto& targets_view = r.view<const CameraFollow, const TransformComponent>();
+  int i = 0;
   for (const auto& [e, follow, t_c] : targets_view.each()) {
-    camera_transform.position.x = t_c.position.x;
-    camera_transform.position.y = t_c.position.y;
+    camera_transform.position.x += t_c.position.x;
+    camera_transform.position.y += t_c.position.y;
+    i++;
+  }
+  if (i > 0) {
+    camera_transform.position.x /= i;
+    camera_transform.position.y /= i;
   }
 
   // update lerp

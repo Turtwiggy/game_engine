@@ -1,7 +1,6 @@
 #include "modules/raws/raws_components.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -14,13 +13,13 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
 
 #include <box2d/b2_body.h>
 #include <fstream>
@@ -152,6 +151,8 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
     create_physics_actor(r, e, pdesc);
   }
+
+  r.emplace<DefaultSizeComponent>(e, size);
 };
 
 void

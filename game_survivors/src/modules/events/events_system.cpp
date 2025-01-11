@@ -3,6 +3,7 @@
 
 #include "events_components.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_helpers.hpp"
+#include "modules/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
 #include "modules/event_coll_player_item/event_coll_player_item_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
@@ -27,6 +28,9 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_enemy_coll>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_xp>(r);
   ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_exit_item>(r);
+
+  ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enemy_coll_enter>(r);
+  ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_enemy_coll_exit>(r);
 }
 
 void

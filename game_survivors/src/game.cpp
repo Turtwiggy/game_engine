@@ -17,7 +17,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
-#include "modules/combat_scale_on_hit/system.hpp"
+#include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/events/events_system.hpp"
 #include "modules/raws/raws_components.hpp"
@@ -42,6 +42,7 @@
 #include "modules/ui_colours/ui_colours_system.hpp"
 #include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 #include "modules/ui_controllers/system.hpp"
+#include "modules/ui_debug_spawner/ui_debug_spawner_system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -187,7 +188,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (state.state != GameState::PAUSED) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
-    update_autofire_system(r);
+    // update_autofire_system(r);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);
@@ -204,7 +205,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_fps_counter_system(r);
   update_ui_pause_menu_system(app, r);
   update_ui_worldspace_text_system(r);
-  update_ui_colours_system(r);
 
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
@@ -221,6 +221,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_gameover_system(r);
     // update_ui_inventory_system(r);
 #if defined(_DEBUG)
+    update_ui_colours_system(r);
+    update_ui_debug_spawner_system(r);
     update_ui_raws_system(r);
     // update_ui_lootbag_system(r);
 #endif
