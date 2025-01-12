@@ -34,42 +34,24 @@ init_steam_input_actions(entt::registry& r)
   auto& analog_action_handles = steam_c.analog_action_handles;
   auto& action_set_handles = steam_c.action_set_handles;
 
-  // digital_action_handles[Action_GameUp] = SteamInput()->GetDigitalActionHandle("action_up");
-  // digital_action_handles[Action_GameDown] = SteamInput()->GetDigitalActionHandle("action_down");
-  // digital_action_handles[Action_GameLeft] = SteamInput()->GetDigitalActionHandle("action_left");
-  // digital_action_handles[Action_GameRight] = SteamInput()->GetDigitalActionHandle("action_right");
-  // digital_action_handles[Action_GameCancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
-  // digital_action_handles[Action_GameMenu] = SteamInput()->GetDigitalActionHandle("action_menu");
+  digital_action_handles[(int)DA::Action_GameUp] = SteamInput()->GetDigitalActionHandle("action_up");
+  digital_action_handles[(int)DA::Action_GameDown] = SteamInput()->GetDigitalActionHandle("action_down");
+  digital_action_handles[(int)DA::Action_GameLeft] = SteamInput()->GetDigitalActionHandle("action_left");
+  digital_action_handles[(int)DA::Action_GameRight] = SteamInput()->GetDigitalActionHandle("action_right");
+  digital_action_handles[(int)DA::Action_GameCancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
+  digital_action_handles[(int)DA::Action_GameMenu] = SteamInput()->GetDigitalActionHandle("action_menu");
 
-  // digital_action_handles[Menu_Up] = SteamInput()->GetDigitalActionHandle("menu_up");
-  // digital_action_handles[Menu_Down] = SteamInput()->GetDigitalActionHandle("menu_down");
-  // digital_action_handles[Menu_Left] = SteamInput()->GetDigitalActionHandle("menu_left");
-  // digital_action_handles[Menu_Right] = SteamInput()->GetDigitalActionHandle("menu_right");
-  // digital_action_handles[Menu_Select] = SteamInput()->GetDigitalActionHandle("menu_select");
-  // digital_action_handles[Menu_Cancel] = SteamInput()->GetDigitalActionHandle("menu_cancel");
-  // clang-format off
+  digital_action_handles[(int)DA::Menu_Up] = SteamInput()->GetDigitalActionHandle("menu_up");
+  digital_action_handles[(int)DA::Menu_Down] = SteamInput()->GetDigitalActionHandle("menu_down");
+  digital_action_handles[(int)DA::Menu_Left] = SteamInput()->GetDigitalActionHandle("menu_left");
+  digital_action_handles[(int)DA::Menu_Right] = SteamInput()->GetDigitalActionHandle("menu_right");
+  digital_action_handles[(int)DA::Menu_Select] = SteamInput()->GetDigitalActionHandle("menu_select");
+  digital_action_handles[(int)DA::Menu_Cancel] = SteamInput()->GetDigitalActionHandle("menu_cancel");
 
-  digital_action_handles[(int)DA::eControllerDigitalAction_TurnLeft] = SteamInput()->GetDigitalActionHandle("turn_left");
-  digital_action_handles[(int)DA::eControllerDigitalAction_TurnRight] = SteamInput()->GetDigitalActionHandle("turn_right");
-  digital_action_handles[(int)DA::eControllerDigitalAction_ForwardThrust] = SteamInput()->GetDigitalActionHandle("forward_thrust");
-  digital_action_handles[(int)DA::eControllerDigitalAction_ReverseThrust] = SteamInput()->GetDigitalActionHandle("backward_thrust");
-  digital_action_handles[(int)DA::eControllerDigitalAction_FireLasers] = SteamInput()->GetDigitalActionHandle("fire_lasers");
-  digital_action_handles[(int)DA::eControllerDigitalAction_PauseMenu] = SteamInput()->GetDigitalActionHandle("pause_menu");
+  analog_action_handles[(int)AA::AnalogControls] = SteamInput()->GetAnalogActionHandle("analog_controls");
 
-  digital_action_handles[(int)DA::eControllerDigitalAction_MenuUp] = SteamInput()->GetDigitalActionHandle("menu_up");
-  digital_action_handles[(int)DA::eControllerDigitalAction_MenuDown] = SteamInput()->GetDigitalActionHandle("menu_down");
-  digital_action_handles[(int)DA::eControllerDigitalAction_MenuLeft] = SteamInput()->GetDigitalActionHandle("menu_left");
-  digital_action_handles[(int)DA::eControllerDigitalAction_MenuRight] = SteamInput()->GetDigitalActionHandle("menu_right");
-  digital_action_handles[(int)DA::eControllerDigitalAction_MenuSelect] = SteamInput()->GetDigitalActionHandle("menu_select");
-  digital_action_handles[(int)DA::eControllerDigitalAction_MenuCancel] = SteamInput()->GetDigitalActionHandle("menu_cancel");
-
-  // analog_action_handles[AnalogAction_Move] = SteamInput()->GetAnalogActionHandle("AnalogControls");
-  analog_action_handles[(int)AA::eControllerAnalogAction_AnalogControls] = SteamInput()->GetAnalogActionHandle("analog_controls");
-
-  // action_set_handles[ActionSet_GameControls] = SteamInput()->GetActionSetHandle("game_controls");
-  // action_set_handles[ActionSet_MenuControls] = SteamInput()->GetActionSetHandle("menu_controls");
-  action_set_handles[(int)AS::eControllerActionSet_ShipControls] = SteamInput()->GetActionSetHandle("ship_controls");
-  action_set_handles[(int)AS::eControllerActionSet_MenuControls] = SteamInput()->GetActionSetHandle("menu_controls");
+  action_set_handles[(int)AS::ActionSet_GameControls] = SteamInput()->GetActionSetHandle("game_controls");
+  action_set_handles[(int)AS::ActionSet_MenuControls] = SteamInput()->GetActionSetHandle("menu_controls");
 
   // Action set layer handle
   // m_ControllerActionSetHandles[actionSet_Layer_Thrust] = SteamInput()->GetActionSetHandle( "thrust_action_layer" );
@@ -84,15 +66,14 @@ init_steam_input(entt::registry& r)
   // when Init(false): update when SteamAPI_RunCallbacks() is called
   SteamInput()->Init(false);
 
-  const auto path = std::filesystem::absolute(".");
-  const auto abs_path_to_vdf = path.generic_string() + "/steam_input_manifest.vdf";
-  SDL_Log("Absolute path: %s", path.generic_string().c_str());
-
-  auto result = SteamInput()->SetInputActionManifestFilePath(abs_path_to_vdf.c_str());
-  if (!result) {
-    SDL_Log(".vdf file not found or corrupt");
-    exit(1);
-  }
+  // const auto path = std::filesystem::absolute(".");
+  // const auto abs_path_to_vdf = path.generic_string() + "/steam_input_manifest.vdf";
+  // SDL_Log("Absolute path: %s", path.generic_string().c_str());
+  // auto result = SteamInput()->SetInputActionManifestFilePath(abs_path_to_vdf.c_str());
+  // if (!result) {
+  //   SDL_Log(".vdf file not found or corrupt");
+  //   exit(1);
+  // }
 
   create_persistent<SINGLE_SteamControllers>(r);
   init_steam_input_actions(r);

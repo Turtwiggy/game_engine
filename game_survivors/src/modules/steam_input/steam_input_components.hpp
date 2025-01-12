@@ -8,9 +8,9 @@ namespace game2d {
 
 #define STEAM_CONTROLLER_MAX_COUNT 16
 
-enum class DigitalAction : int
+enum class DigitalAction
 {
-  Action_GameUp,
+  Action_GameUp = 0,
   Action_GameDown,
   Action_GameLeft,
   Action_GameRight,
@@ -24,26 +24,22 @@ enum class DigitalAction : int
   Menu_Select,
   Menu_Cancel,
 
-  count
+  count,
 };
 
 enum class AnalogAction
 {
-  // AnalogAction_Move,
-  eControllerAnalogAction_AnalogControls,
+  AnalogControls = 0,
 
-  count
+  count,
 };
 
 enum class ActionSet
 {
-  // ActionSet_GameControls,
-  // ActionSet_MenuControls,
-  eControllerActionSet_ShipControls,
-  eControllerActionSet_MenuControls,
-  eControllerActionSet_Layer_Thrust,
+  ActionSet_GameControls = 0,
+  ActionSet_MenuControls,
 
-  count
+  count,
 };
 
 using DA = DigitalAction;

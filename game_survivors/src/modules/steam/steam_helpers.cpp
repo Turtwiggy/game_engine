@@ -3,6 +3,9 @@
 #include <SDL2/SDL_log.h>
 #include <steam/steam_api.h>
 
+#include <fstream>
+#include <string>
+
 namespace game2d {
 
 void
@@ -22,11 +25,17 @@ SteamAPIDebugTextHook(int nSeverity, const char* pchDebugText)
 void
 init_steam(entt::registry& r)
 {
-  // load steamworks id
-  const int app_id = 480; // commit via secrets
-
 #if defined(_DEBUG)
-#endif
+  // load app id
+  std::ifstream file("steam_appid.txt");
+  if (!file) {
+    SDL_Log("No steam_appid.txt detected");
+    exit(1);
+  }
+  std::string line;
+  std::getline(file, line);
+  file.close();
+  const int app_id = std::stoi(line);
 
   // Check if your executable was launched through Steam, and relaunches if it wasn't.
   // Note: if steam_app.txt is present, this will return false regardless.
@@ -34,6 +43,7 @@ init_steam(entt::registry& r)
   // Make sure to remove steam_appid.txt file when uploading the game to steam depot.
   if (SteamAPI_RestartAppIfNecessary(app_id))
     exit(1);
+#endif
 
   if (!SteamAPI_Init()) {
     SDL_Log("Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n");

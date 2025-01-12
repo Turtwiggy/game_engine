@@ -18,7 +18,7 @@ update_ui_controller_system(entt::registry& r)
 {
   auto& input = get_first_component<SINGLE_InputComponent>(r);
 
-  ImGui::Begin("Controller");
+  ImGui::Begin("SDL2Controller");
 
   if (ImGui::Button("Re-open all controllers"))
     open_controllers(input);
@@ -64,6 +64,7 @@ update_ui_controller_system(entt::registry& r)
 
     // clang-format on
   }
+
   ImGui::End();
 };
 
