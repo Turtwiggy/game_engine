@@ -52,6 +52,22 @@ endif()
 
 link_libs(game_survivors)
 
+# Link steam api
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  # Link steam_api[64].lib
+  set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
+  target_link_libraries(game_survivors PRIVATE ${steam_lib}/steam_api64.lib)
+
+  # Copy the .dll next to the .exe
+  message("Copying steam .dll next to .exe")
+  set(dst ${CMAKE_CURRENT_BINARY_DIR})
+  add_custom_command(TARGET game_survivors POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${steam_lib}/steam_api64.dll
+    $<TARGET_FILE_DIR:game_survivors>
+  )
+endif()
+
 target_include_directories(game_survivors PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
@@ -62,6 +78,7 @@ target_include_directories(game_survivors PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
+  ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
 )
 
 # rename executable

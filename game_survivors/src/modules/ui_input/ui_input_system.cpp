@@ -20,7 +20,7 @@ update_ui_input_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
 
-  ImGui::Begin("PlayerInput", NULL, flags);
+  ImGui::Begin("SDL2Input", NULL, flags);
 
   const auto& view = r.view<const PlayerComponent, const InputComponent>();
   for (const auto& [e, player_c, input_c] : view.each()) {

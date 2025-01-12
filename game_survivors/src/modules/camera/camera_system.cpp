@@ -39,15 +39,18 @@ update_camera_system(entt::registry& r, const float dt)
 
   // Set position as the centered position of all targetss
   const auto& targets_view = r.view<const CameraFollow, const TransformComponent>();
+  auto aggregate_pos = glm::vec2{ 0, 0 };
   int i = 0;
   for (const auto& [e, follow, t_c] : targets_view.each()) {
-    camera_transform.position.x += t_c.position.x;
-    camera_transform.position.y += t_c.position.y;
+    aggregate_pos.x += t_c.position.x;
+    aggregate_pos.y += t_c.position.y;
     i++;
   }
   if (i > 0) {
-    camera_transform.position.x /= i;
-    camera_transform.position.y /= i;
+    aggregate_pos.x /= i;
+    aggregate_pos.y /= i;
+    camera_transform.position.x = aggregate_pos.x;
+    camera_transform.position.y = aggregate_pos.y;
   }
 
   // update lerp

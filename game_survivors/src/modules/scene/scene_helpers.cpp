@@ -27,6 +27,7 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
+#include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_lootbag/ui_lootbag_components.hpp"
@@ -136,13 +137,13 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // players
     const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0);
-    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
-    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
-    const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
+    // const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
+    // const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
+    // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
-    r.emplace<ControllerComponent>(p2);
+    r.emplace<ControllerComponent>(p1);
 
     // endless enemies
     const auto spawner_e = create_empty<SpawnerComponent>(r);

@@ -187,14 +187,6 @@ spawn(entt::registry& r, const std::string& key)
   r.emplace<WaitForInitComponent>(e);
   r.emplace<Item>(e, templ);
 
-  OnDeathCallback callback;
-  callback.callback = [](entt::registry& r, const entt::entity e) {
-    //
-    // SDL_Log("Calling drop_xp_on_death_callback()");
-    drop_xp_on_death_callback(r, e);
-  };
-  r.emplace<OnDeathCallback>(e, callback);
-
   r.emplace<SpawnParticlesOnDeath>(e);
   if (templ.stats.has_value())
     r.emplace<HealthComponent>(e, templ.stats->hp, templ.stats->max_hp);

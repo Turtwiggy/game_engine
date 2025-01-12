@@ -29,6 +29,8 @@
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
+#include "modules/steam/steam_helpers.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
@@ -47,6 +49,7 @@
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
+#include "modules/ui_input_steam/ui_input_steam_system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -57,8 +60,10 @@
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
+#include "steam/steam_api_common.h"
 #include <SDL2/SDL_log.h>
 #include <imgui.h>
+#include <steam/steam_api.h>
 
 namespace game2d {
 using namespace std::literals;
@@ -100,8 +105,12 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
+
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
   init_input_system(r);
+  init_steam(r);
+  init_steam_input(r);
+  create_persistent<SteamOverlayManager>(r);
 
   move_to_scene_start(r, Scene::splashscreen);
 };
@@ -163,7 +172,7 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   update_events_system(r); // dispatch events
   fixed_update_player_controller_system(r, milliseconds_dt, mouse_pos);
 
-  fixed_input.fixed_tick += 1;
+  // fixed_input.fixed_tick += 1;
 };
 
 void
@@ -175,7 +184,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   begin_frame_sprite(r);
 
+  SteamAPI_RunCallbacks();
   update_input_system(app, r); // sets update_since_last_fixed_update
+  update_steam_input(r);
+
   update_camera_system(r, dt);
   update_audio_system(r);
   update_events_system(r); // dispatch events
@@ -240,6 +252,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_collisions_system(r);
     update_ui_controller_system(r);
     update_ui_input_system(r);
+    update_ui_steam_input_system(r);
   }
 
 #if defined(_DEBUG)

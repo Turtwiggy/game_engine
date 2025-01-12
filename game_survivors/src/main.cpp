@@ -16,12 +16,13 @@ using namespace engine;
 #endif
 
 // other libs
+#include <SDL2/SDL_log.h>
 #include <SDL2/SDL_timer.h>
 #include <entt/entt.hpp>
 #include <imgui.h>
+#include <steam/steam_api.h>
 
 // std lib
-#include <SDL2/SDL_log.h>
 #include <format>
 #include <optional>
 #include <string>
@@ -111,6 +112,7 @@ main_loop(void* arg)
 int
 main(int argc, char* argv[])
 {
+
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
@@ -183,6 +185,8 @@ main(int argc, char* argv[])
   OPTICK_SAVE_CAPTURE("GameCapture");
 #endif
 #endif
+
+  SteamAPI_Shutdown();
 
   return 0;
 }
