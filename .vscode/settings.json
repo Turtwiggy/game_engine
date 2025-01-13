@@ -18,7 +18,12 @@
   "search.exclude": {
     "**/*.code-search": true,
     "**/.git": true,
-    "**/thirdparty": true
+    "**/thirdparty": true,
+    "game_defence/**": true,
+    "game_defence_tests/**": true,
+    "game_networked/**": true,
+    "game_roguelike/**": true,
+    "gamejam_goblinbrawl/**": true
   },
   "files.exclude": {
     "**/.vs": true,

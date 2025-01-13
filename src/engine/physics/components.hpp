@@ -43,4 +43,9 @@ struct SeparateTransformAndAABB
   bool placeholder = true;
 };
 
+struct SetTransformRotationBasedOnPhysicsBody
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

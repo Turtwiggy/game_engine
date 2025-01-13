@@ -10,7 +10,7 @@ struct SRGBColour
   int r = 0;
   int g = 0;
   int b = 0;
-  float a = 0.0f;
+  int a = 0;
 
   constexpr SRGBColour() = default;
 
@@ -19,18 +19,18 @@ struct SRGBColour
     : r(static_cast<int>(r * 255.0f))
     , g(static_cast<int>(g * 255.0f))
     , b(static_cast<int>(b * 255.0f))
-    , a(a)
+    , a(static_cast<int>(b * 255.0f))
   {
   }
 
   // assumes 0-255 as input (except alpha, 0-1)
-  constexpr SRGBColour(int r, int g, int b, float a)
+  constexpr SRGBColour(int r, int g, int b, int a)
     : r(r)
     , g(g)
     , b(b)
     , a(a) {};
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SRGBColour, r, g, b);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SRGBColour, r, g, b, a);
 };
 
 struct LinearColour
@@ -50,7 +50,7 @@ struct LinearColour
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LinearColour, r, g, b);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LinearColour, r, g, b, a);
 };
 
 LinearColour

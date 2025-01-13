@@ -23,7 +23,7 @@ init_input_system(entt::registry& r)
   SINGLE_InputComponent input;
   input.state = SDL_GetKeyboardState(NULL);
   open_controllers(input);
-  destroy_first_and_create<SINGLE_InputComponent>(r, input);
+  create_persistent<SINGLE_InputComponent>(r, input);
 };
 
 void

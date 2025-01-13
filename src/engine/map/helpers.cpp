@@ -5,7 +5,6 @@
 #include "engine/lifecycle/components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
-#include "modules/system_names/components.hpp"
 
 #include <SDL2/SDL_log.h>
 
@@ -94,7 +93,6 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 
   remove_entity_from_map(r, mapinfo_opt.value());
   add_entity_to_map(r, src_e, dst_idx);
-  // SDL_Log("Moving %s on map %i", r.get<NameComponent>(src_e).name.c_str(), dst_idx);
 
   GridPositionChangedEvent evt;
   evt.e = src_e;

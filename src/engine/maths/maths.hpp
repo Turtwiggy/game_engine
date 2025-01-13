@@ -9,6 +9,7 @@
 namespace engine {
 
 constexpr float PI{ 3.1415926535897932385f };
+constexpr float TWO_PI = 2.0f * PI;
 constexpr float HALF_PI = PI / 2.0f;
 constexpr float Deg2Rad = PI / 180.0f;
 constexpr float Rad2Deg = 180.0f / PI;

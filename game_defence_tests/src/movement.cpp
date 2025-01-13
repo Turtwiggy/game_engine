@@ -155,7 +155,7 @@ TEST(TestMovement, MoveDungeonActorOverInventory)
 
   // Assert: index 2 contains dungeon player (i.e. size=1)
   ASSERT_EQ(1, map.map[2].size());
-}
+};
 
 TEST(TestMovement, DungeonActorCanDropInventoryWithNoItems)
 {

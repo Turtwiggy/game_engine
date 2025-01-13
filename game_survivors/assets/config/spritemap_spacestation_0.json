@@ -1,0 +1,14 @@
+{
+  "spritesheet": {
+    "name": "spacestation_0",
+    "px_total": 1000,
+    "py_total": 1000,
+    "px": 1000,
+    "py": 1000,
+    "nx": 1,
+    "ny": 1
+  },
+  "sprites": [
+    { "name": "SPACESTATION_0", "frames": [ { "x": 1, "y": 0, "w": 1, "h": 1 } ] }
+  ]
+}

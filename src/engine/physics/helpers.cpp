@@ -63,6 +63,9 @@ create_box_fixture(entt::registry& r, entt::entity e, b2Body* body)
   b2PolygonShape box;
   box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
 
+  // b2CircleShape circle;
+  // circle.m_radius = desc.size.x / 2.0f;
+
   b2FixtureDef fixture_def;
   fixture_def.friction = desc.friction;
   fixture_def.density = desc.density;
