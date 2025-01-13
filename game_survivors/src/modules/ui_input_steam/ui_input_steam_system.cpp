@@ -45,6 +45,13 @@ update_ui_steam_input_system(entt::registry& r)
     return;
   }
 
+  auto unassigned_handles = unassigned_steam_input_handles(r);
+  for (const auto h : unassigned_handles)
+    ImGui::Text("Handle: %zu (available)", h);
+  auto assigned_handles = steam_c.assigned_handles;
+  for (const auto h : assigned_handles)
+    ImGui::Text("Handle: %zu (assigned)", h);
+
   static auto mode = ActionSet::ActionSet_GameControls;
   static auto modes = engine::enum_class_to_vec_str<ActionSet>();
   WomboComboIn combo_in(modes);
@@ -63,6 +70,8 @@ update_ui_steam_input_system(entt::registry& r)
   auto& handles = steam_c.handles;
 
   for (int i = 0; i < steam_c.n_active; i++) {
+    std::string label = std::format("Controller: {}", i);
+    ImGui::SeparatorText(label.c_str());
     SteamInput()->ActivateActionSet(handles[i], action_set);
 
     ImGui::Text("Action_GameUp %i", controller_button_held(steam_c, handles[i], DA::Action_GameUp));
@@ -82,7 +91,7 @@ update_ui_steam_input_system(entt::registry& r)
     // ImGui::Text("Action_GameCancel %i", controller_button_held(steam_c, handles[i], Action_GameCancel));
     // ImGui::Text("Action_GameMenu %i", controller_button_held(steam_c, handles[i], Action_GameMenu));
     auto analog = controller_axis(r, handles[i], AA::AnalogControls);
-    ImGui::Text("Analog: %f %f", analog.x, analog.y);
+    ImGui::Text("LAnalog: %f %f", analog.x, analog.y);
   }
 
   ImGui::End();

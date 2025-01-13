@@ -11,7 +11,8 @@
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/system_select_unit/select_unit_components.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_log.h>
@@ -199,7 +200,8 @@ void
 update_player_controller_system(entt::registry& r, const uint64_t milliseconds_dt, const glm::ivec2& mouse_pos)
 {
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
-  int controllers_used = 0;
+  const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  int sdl_controllers_used = 0;
 
   const auto& view = r.view<InputComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, i] : view.each()) {
@@ -222,8 +224,8 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       i.lx += get_key_held(input_c, SDL_SCANCODE_D) ? 1.0f : 0.0f;
     }
 
-    if (const auto* controller_c = r.try_get<ControllerComponent>(e)) {
-      if (controllers_used < int(input_c.controllers.size())) {
+    if (const auto* controller_c = r.try_get<SDLControllerComponent>(e)) {
+      if (sdl_controllers_used < int(input_c.controllers.size())) {
 
         // todo: map plugged in controller idxs to player
         // todo: dont just use idx 0
@@ -235,7 +237,23 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       // else {
       //   SDL_Log("Not enough controllers plugged in...");
       // }
-      controllers_used++;
+      sdl_controllers_used++;
+    }
+
+    if (auto* controller_c = r.try_get<SteamControllerComponent>(e)) {
+
+      // Assign handle => player
+      if (controller_c->handle == 0) {
+        auto handle = aquire_unused_steam_input_handle(r);
+        if (!handle.has_value())
+          continue;
+        controller_c->handle = handle.value();
+      }
+
+      auto handle = controller_c->handle;
+      auto l_analog = controller_axis(r, handle, AA::AnalogControls);
+      i.lx += l_analog.x;
+      i.ly += -l_analog.y; // flip y
     }
   }
 };

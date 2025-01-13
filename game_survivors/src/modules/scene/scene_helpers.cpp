@@ -18,7 +18,6 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
-#include "modules/effect_crt/crt_components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/raws/raws_components.hpp"
@@ -26,8 +25,8 @@
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/system_cooldown/components.hpp"
-#include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_lootbag/ui_lootbag_components.hpp"
@@ -123,6 +122,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto units = load_units(r);
     std::for_each(units.begin(), units.end(), [&r](const auto& u) { add_unit_to_entt(r, u); });
 
+    // TEMP: clear assigned controller handles?
+    // this is annoying for players
+    auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+    steam_c.assigned_handles.clear();
+
     // auto e = create_empty<TransformComponent>(r);
     // r.emplace<SpriteComponent>(e);
     // set_sprite(r, e, "STUDIO_TEXT_LOGO");
@@ -137,13 +141,14 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // players
     const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0);
-    // const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
-    // const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
+    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
+    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
     // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
-    r.emplace<ControllerComponent>(p1);
+    r.emplace<SteamControllerComponent>(p2);
+    r.emplace<SteamControllerComponent>(p3);
 
     // endless enemies
     const auto spawner_e = create_empty<SpawnerComponent>(r);

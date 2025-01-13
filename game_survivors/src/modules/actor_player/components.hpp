@@ -32,7 +32,7 @@ struct KeyboardComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(KeyboardComponent, W, A, S, D);
 };
 
-struct ControllerComponent
+struct SDLControllerComponent
 {
   SDL_GameControllerAxis c_left_stick_x = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX;
   SDL_GameControllerAxis c_left_stick_y = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY;

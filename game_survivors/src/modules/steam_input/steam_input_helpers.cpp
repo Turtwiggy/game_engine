@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 
-#include <filesystem>
+#include <steam/isteaminput.h>
 #include <steam/steam_api.h>
 #include <steam/steam_api_flat.h>
 
@@ -62,9 +62,13 @@ init_steam_input_actions(entt::registry& r)
 void
 init_steam_input(entt::registry& r)
 {
-  // when Init(true): update explicitely with a seperate call
+  // when Init(true): update explicitely with a separate call
   // when Init(false): update when SteamAPI_RunCallbacks() is called
-  SteamInput()->Init(false);
+  if (!SteamInput()->Init(false)) {
+    SDL_Log("Fatal Error, SteamInput()->Init() failed");
+    exit(1);
+  }
+  SDL_Log("SteamInput()->Init() Success");
 
   // const auto path = std::filesystem::absolute(".");
   // const auto abs_path_to_vdf = path.generic_string() + "/steam_input_manifest.vdf";
@@ -80,13 +84,9 @@ init_steam_input(entt::registry& r)
 };
 
 void
-find_active_steam_input_device(entt::registry& r)
+update_steam_input_handles(entt::registry& r)
 {
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-
-  // Use the first available steam controller for all interaction. We can call this each frame to handle
-  // a controller disconnecting and a different one reconnecting. Handles are guaranteed to be unique for
-  // a given controller, even across power cycles.
 
   steam_c.n_active = SteamInput()->GetConnectedControllers(steam_c.handles.data());
 };
@@ -97,12 +97,47 @@ update_steam_input(entt::registry& r)
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
 
   // check connect/disconnects
-  find_active_steam_input_device(r);
+  update_steam_input_handles(r);
+};
+
+std::vector<InputHandle_t>
+unassigned_steam_input_handles(entt::registry& r)
+{
+  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& handles = steam_c.handles;
+  auto& assigned = steam_c.assigned_handles;
+
+  auto non_zero = [&](InputHandle_t h) { return h != 0; };
+  auto non_zero_handles = handles | std::views::filter(non_zero);
+
+  // Find handles that haven't been assigned.
+  auto is_unassigned = [&](InputHandle_t h) { return std::ranges::find(assigned, h) == assigned.end(); };
+  auto unassigned_view = non_zero_handles | std::views::filter(is_unassigned);
+
+  return std::vector(unassigned_view.begin(), unassigned_view.end());
+};
+
+std::optional<InputHandle_t>
+aquire_unused_steam_input_handle(entt::registry& r)
+{
+  auto unassigned_handles = unassigned_steam_input_handles(r);
+  if (unassigned_handles.size() == 0)
+    return std::nullopt;
+
+  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+
+  // assign the first
+  auto h = unassigned_handles[0];
+  steam_c.assigned_handles.push_back(h);
+  return h;
 };
 
 bool
 controller_button_held(SINGLE_SteamControllers steam_c, InputHandle_t handle, DA dwAction)
 {
+  if (handle == 0)
+    return false;
+
   auto& digital_action_handles = steam_c.digital_action_handles;
 
   auto h = digital_action_handles[(int)dwAction];
@@ -119,6 +154,9 @@ controller_button_held(SINGLE_SteamControllers steam_c, InputHandle_t handle, DA
 glm::vec2
 controller_axis(entt::registry& r, InputHandle_t handle, AA aAction)
 {
+  if (handle == 0)
+    return { 0, 0 };
+
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& analog_action_handles = steam_c.analog_action_handles;
 
@@ -137,6 +175,7 @@ set_steam_controller_action_set(entt::registry& r, InputHandle_t handle, AS set)
 {
   if (handle == 0)
     return;
+
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& sets = steam_c.action_set_handles;
 
@@ -149,6 +188,7 @@ activate_steam_controller_action_set_layer(entt::registry& r, InputHandle_t hand
 {
   if (handle == 0)
     return;
+
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& sets = steam_c.action_set_handles;
 
@@ -171,6 +211,7 @@ is_action_set_layer_active(entt::registry& r, InputHandle_t handle, AS set_layer
 {
   if (handle == 0)
     return false;
+
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& sets = steam_c.action_set_handles;
 

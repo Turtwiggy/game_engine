@@ -246,7 +246,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
-    ImGui::ShowDemoWindow(NULL);
+    // ImGui::ShowDemoWindow(NULL);
     update_ui_hierarchy_system(r);
     update_ui_audio_system(r);
     update_ui_collisions_system(r);
