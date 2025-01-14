@@ -4,9 +4,9 @@
 
 namespace game2d {
 
-struct BulletComponent
+struct BulletDamage
 {
-  int damage = 10;
+  int dmg = 10;
 };
 
 } // namespace game2d

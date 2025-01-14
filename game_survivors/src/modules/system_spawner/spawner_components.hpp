@@ -4,9 +4,25 @@
 
 namespace game2d {
 
-struct SpawnerComponent
+// struct SpawnerComponent
+// {
+//   bool placeholder = true;
+// };
+
+struct EnemySpawnWave
 {
-  bool placeholder = true;
+  int wave_start_seconds = 0;
+  int wave_end_seconds = 20 * 60;
+  int hp = 30;
+  int max_allowed = 2;
+  int number_per_spawn = 1;
+  int spawn_cooldown = 4;
+};
+
+struct EnemySpawnData
+{
+  std::string enemy_key = "actor_enemy_exploder";
+  std::vector<EnemySpawnWave> waves;
 };
 
 // // walk up and hit

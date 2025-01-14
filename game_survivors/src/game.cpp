@@ -54,6 +54,7 @@
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_survive_health/ui_survive_health_system.hpp"
+#include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
@@ -69,6 +70,21 @@ namespace game2d {
 using namespace std::literals;
 
 bool custom_mouse_cursor = false;
+
+bool
+require_pause(entt::registry& r)
+{
+  bool pause = false;
+
+  // pause due to needing level up
+  auto lv_up_e = get_first<SINGLE_LevelUpUI>(r);
+  if (lv_up_e != entt::null) {
+    const auto& lv_up_c = r.get<SINGLE_LevelUpUI>(lv_up_e);
+    pause |= lv_up_c.require_level_up;
+  }
+
+  return pause;
+}
 
 void
 init(engine::SINGLE_Application& app, entt::registry& r)
@@ -163,6 +179,9 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   if (state.state == GameState::PAUSED)
     return; // note: this ignores inputs
 
+  if (require_pause(r))
+    return;
+
   const auto mouse_pos = mouse_position_in_worldspace(r);
 
   // destroy/create objects
@@ -192,23 +211,25 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_audio_system(r);
   update_events_system(r); // dispatch events
   update_player_controller_system(r, milliseconds_dt, mouse_pos);
+  // update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 
   if (scene.s == Scene::splashscreen)
     update_scene_splashscreen_move_to_menu_system(r, dt);
 
+  // pause due to gamelogic
+  bool pause = require_pause(r);
+
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
-  if (state.state != GameState::PAUSED) {
+  if (state.state != GameState::PAUSED && !pause) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
-    // update_autofire_system(r);
+    update_autofire_system(r);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);
     update_gun_follow_player_system(r, mouse_pos, dt);
-    // update_gun_z_index_system(r);
     update_move_to_target_via_lerp(r, dt);
     update_particle_system(r, dt);
-    update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     update_spawn_particles_on_death_system(r);
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);

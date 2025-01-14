@@ -39,9 +39,10 @@ struct WaitForInitComponent
   bool placeholder = true;
 };
 
-struct OnDeathCallback
+struct OnDeathCallbacks
 {
-  std::function<void(entt::registry&, const entt::entity)> callback;
+  using func = std::function<void(entt::registry&, const entt::entity)>;
+  std::vector<func> callbacks;
 };
 
 };

@@ -31,7 +31,7 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   evt.from = enemy_e;
   evt.to = player_e;
   evt.type = DamageType::PHYSICAL;
-  evt.amount = 10; // todo: replace with "correct" damage for enemy
+  evt.amount = 1; // todo: replace with "correct" damage for enemy
   evt.traits = {};
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();

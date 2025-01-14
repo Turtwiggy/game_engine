@@ -19,6 +19,7 @@
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
+#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -28,9 +29,11 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
+#include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_lootbag/ui_lootbag_components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_units/ui_units_helpers.hpp"
 
@@ -56,12 +59,14 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 
+  r.emplace<BulletDamage>(e);
+
   // player weapon
   const auto wep_e = spawn(r, "boat_default_weapon");
   give_life(r, wep_e, get_position(r, e), weapon_size);
+  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
   r.emplace<HasWeaponComponent>(e, HasWeaponComponent{ wep_e }); // parent <=> child
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
-  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
   r.emplace<WeaponComponent>(wep_e);
   r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
@@ -138,26 +143,35 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
+    create_empty<SINGLE_LevelUpUI>(r);
 
     // players
     const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0);
-    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
-    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
+    // const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
+    // const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
     // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
-    r.emplace<SteamControllerComponent>(p2);
-    r.emplace<SteamControllerComponent>(p3);
+    r.emplace<SteamControllerComponent>(p1);
+    // r.emplace<SteamControllerComponent>(p3);
 
-    // endless enemies
-    const auto spawner_e = create_empty<SpawnerComponent>(r);
-    r.emplace<CooldownComponent>(spawner_e, 1.0f, 0.0f);
-
-    // a timer
+    // The survive timer that various spawners read from
     float seconds = 20 * 60;
-    const auto timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
-    r.emplace<SurviveTimerComponent>(timer_e);
+    const auto survive_timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
+    r.emplace<SurviveTimerComponent>(survive_timer_e);
+
+    const auto spawner_1_e = create_empty<CooldownComponent>(r);
+    r.emplace<EnemySpawnData>(spawner_1_e, exploder_data());
+
+    const auto spawner_2_e = create_empty<CooldownComponent>(r);
+    r.emplace<EnemySpawnData>(spawner_2_e, melee_enemy_1());
+
+    const auto spawner_3_e = create_empty<CooldownComponent>(r);
+    r.emplace<EnemySpawnData>(spawner_3_e, melee_enemy_2());
+
+    const auto spawner_4_e = create_empty<CooldownComponent>(r);
+    r.emplace<EnemySpawnData>(spawner_4_e, projectile_enemy());
 
     // something random
     {

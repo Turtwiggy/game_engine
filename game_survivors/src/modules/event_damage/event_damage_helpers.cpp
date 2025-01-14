@@ -1,16 +1,13 @@
 #include "event_damage_helpers.hpp"
 
-#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/event_death/event_death_components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/screenshake/components.hpp"
-#include "modules/system_particles/components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>
@@ -28,15 +25,6 @@ additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
 
   // .. screenshake
   create_empty<RequestScreenshakeComponent>(r);
-};
-
-void
-additional_misc_death_events(entt::registry& r, const entt::entity to_e)
-{
-  if (const auto* req = r.try_get<SpawnParticlesOnDeath>(to_e)) {
-    create_empty<RequestToSpawnParticles>(r, RequestToSpawnParticles{ get_position(r, to_e) });
-    r.remove<SpawnParticlesOnDeath>(to_e);
-  }
 };
 
 int
@@ -94,8 +82,6 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     evt.dead = to_e;
     evts.dispatcher->trigger(evt);
     evts.dispatcher->update();
-
-    additional_misc_death_events(r, to_e);
   }
 };
 

@@ -4,9 +4,9 @@
 
 namespace game2d {
 
-struct BulletComponent
+struct SINGLE_LevelUpUI
 {
-  int damage = 10;
+  bool require_level_up = false;
 };
 
 } // namespace game2d

@@ -51,7 +51,8 @@ update_ui_survive_xp_bar_system(entt::registry& r)
 
   {
     ImGuiStyle& style = ImGui::GetStyle();
-    std::string label = std::format("{} / {}", int(current_xp), max_xp);
+    // std::string label = std::format("{} / {}", int(current_xp), max_xp);
+    std::string label = std::format("LEVEL {}", sxp_c.level);
     const float alignment = 0.5f;
     const auto text_size = ImGui::CalcTextSize(label.c_str());
     const float text_size_x = text_size.x + style.FramePadding.x * 2.0f;

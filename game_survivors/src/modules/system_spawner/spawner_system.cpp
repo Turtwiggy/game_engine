@@ -2,11 +2,9 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/actor_player/components.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/effects_outline/outline_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/system_cooldown/components.hpp"
@@ -14,77 +12,102 @@
 #include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
+#include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
 #include "spawner_components.hpp"
+#include "spawner_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
+#include <unordered_map>
 
 namespace game2d {
 
-glm::ivec2
-rnd_position_off_screen(entt::registry& r, const glm::ivec2 center)
+entt::entity
+spawn_enemy(entt::registry& r, std::string key, int hp)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  static engine::RandomState rnd(0);
-  const float rnd_val_0 = engine::rand_01(rnd.rng);
+  // TODO: could have an "aggro meter" per player?
+  auto target_e = get_random_player_target(r);
+  if (target_e == entt::null)
+    return entt::null;
 
-  // generate a random angle 0 to 2PI
-  float angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
+  auto e = spawn(r, key);
+  r.emplace<EnemyComponent>(e);
+  r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
+  r.emplace_or_replace<HealthComponent>(e, hp, hp);
+  // r.emplace<SpriteOutline>(e);
 
-  // generate a random distance outside the radius
-  // float radius = std::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
-  float distance = 200;
+  // move at player, this gotta be changed for more interesting types
+  r.emplace<DynamicTargetComponent>(e, target_e);
+  r.emplace<PhysicsDynamicTarget>(e, target_e);
 
-  const auto dir = engine::angle_radians_to_direction(angle);
-  float spawn_x = center.x + dir.x * distance;
-  float spawn_y = center.y + dir.y * distance;
-  return { spawn_x, spawn_y };
+  auto& callbacks_c = r.get<OnDeathCallbacks>(e);
+  auto drop_xp_callback = [](entt::registry& r, const entt::entity e) {
+    SDL_Log("Calling drop_xp_on_death_callback()");
+    drop_xp_on_death_callback(r, e);
+  };
+  callbacks_c.callbacks.push_back(drop_xp_callback);
+
+  // get a random position around target player?
+  // TODO: : it should be a larger zone considering all players
+  const auto& target_t = r.get<TransformComponent>(target_e);
+  const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
+  give_life(r, e, rnd_pos, { 16, 16 });
+
+  return e;
 };
 
 void
 update_spawner_system(entt::registry& r)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
+  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
 
-  // should vary targets, not just be first player
-  const auto player_e = get_first<PlayerComponent>(r);
-  if (player_e == entt::null)
-    return;
-  const auto player_t = r.get<TransformComponent>(player_e);
+  // Get info from the survive timer
+  const auto& survive_timer_c = r.get<CooldownComponent>(survive_e);
+  const int seconds_from_start = survive_timer_c.time_max - (int)survive_timer_c.time;
 
-  for (const auto& [spawner_e, spawner_c, cooldown_c] : r.view<SpawnerComponent, CooldownComponent>().each()) {
-    //
+  // How many of each enemies do we currently have?
+  const auto& enemies_view = r.view<EnemyComponent, Item>();
+  std::unordered_map<std::string, int> enemy_to_amount;
+  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
+    enemy_to_amount[item_c.name] += 1;
+
+  const auto& view = r.view<CooldownComponent, const EnemySpawnData>();
+  for (const auto& [spawner_e, cooldown_c, spawn_data] : view.each()) {
     if (cooldown_c.time > 0.0f)
       continue;
+
+    // Get mob's spawner data
+    const auto wave_opt = get_wave_from_time(spawn_data, seconds_from_start);
+    if (!wave_opt.has_value())
+      continue;
+    const auto wave = wave_opt.value();
+
+    // configs
+    const int max_allowed = wave.max_allowed;
+    const int number_per_spawn = wave.number_per_spawn;
+    const int hp = wave.hp;
+    const int cooldown = wave.spawn_cooldown;
+    const std::string key = spawn_data.enemy_key;
+
+    // live data
+    const int enemies = enemy_to_amount[key];
+
+    bool allowed_to_spawn = true;
+    allowed_to_spawn &= cooldown_c.time <= 0.0f; // not on cooldown
+    allowed_to_spawn &= enemies < max_allowed;
+    allowed_to_spawn &= (enemies + number_per_spawn) <= max_allowed;
+    if (!allowed_to_spawn)
+      continue;
+
+    // spawn the thing
+    for (int i = 0; i < number_per_spawn; i++)
+      spawn_enemy(r, key, hp);
+
+    // once spawned, put this mob's spawner on cooldown
+    cooldown_c.time_max = cooldown;
     reset_cooldown(cooldown_c);
 
-    std::string enemy_key = "actor_enemy_melee";
-
-    auto e = spawn(r, enemy_key);
-    r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
-    r.emplace<DynamicTargetComponent>(e, player_e);
-    // r.emplace<SpriteOutline>(e);
-
-    // temp: health here, but it should be based on wave/enemytype
-    r.emplace_or_replace<HealthComponent>(e, 30, 30);
-
-    // move at player, this gotta be changed for more interesting types
-    r.emplace<PhysicsDynamicTarget>(e, player_e);
-    ApplyForceToDynamicTarget tgt_c;
-    tgt_c.orbit = true;
-    tgt_c.reduce_thrusters = false;
-    tgt_c.speed = 10.0f;
-    r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
-
-    OnDeathCallback callback;
-    callback.callback = [](entt::registry& r, const entt::entity e) {
-      SDL_Log("Calling drop_xp_on_death_callback()");
-      drop_xp_on_death_callback(r, e);
-    };
-    r.emplace<OnDeathCallback>(e, callback);
-
-    // get a random position off screen
-    const auto rnd_pos = rnd_position_off_screen(r, { player_t.position.x, player_t.position.y });
-    give_life(r, e, rnd_pos, { 16, 16 });
+    // SDL_Log("spawning %i, cooldown: %i", number_per_spawn, cooldown);
   }
 }
 

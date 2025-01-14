@@ -25,8 +25,9 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
   for (const auto& e : dead.dead) {
     // Death callback
-    if (auto* callback = r.try_get<OnDeathCallback>(e))
-      callback->callback(r, e);
+    if (auto* callback = r.try_get<OnDeathCallbacks>(e))
+      for (const auto& cb : callback->callbacks)
+        cb(r, e);
 
     // Update physics
     if (auto* pb = r.try_get<PhysicsBodyComponent>(e))

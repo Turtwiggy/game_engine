@@ -63,11 +63,7 @@ struct ParticleEmitterComponent
 struct RequestToSpawnParticles
 {
   glm::ivec2 position{ 0, 0 };
-};
-
-struct SpawnParticlesOnDeath
-{
-  bool placeholder = true;
+  std::string key = "default_explode";
 };
 
 } // namespace game2d

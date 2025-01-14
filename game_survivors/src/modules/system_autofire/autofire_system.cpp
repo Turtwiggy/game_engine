@@ -8,10 +8,12 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
+
 #include <box2d/b2_collision.h>
 
 namespace game2d {
@@ -56,7 +58,9 @@ public:
   bool is_enemy(b2Body* body)
   {
     const entt::entity e = (entt::entity)body->GetUserData().pointer;
-    return r.get<TeamComponent>(e).team == AvailableTeams::enemy;
+    if (auto* team_c = r.try_get<TeamComponent>(e))
+      return team_c->team == AvailableTeams::enemy;
+    return false;
   }
 };
 
@@ -65,11 +69,19 @@ update_autofire_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_Physics, r, phys_e, phys_c);
 
+  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+
   const float search_radius = 500.0f; // for nearest enemy
 
-  for (const auto& [wep_e, t_c, wep_c, cooldown_c] :
-       r.view<const TransformComponent, const WeaponComponent, CooldownComponent>().each()) {
-    //
+  for (const auto& [wep_e, t_c, wep_c, parent_c, cooldown_c] :
+       r.view<const TransformComponent, const WeaponComponent, const HasParentComponent, CooldownComponent>().each()) {
+
+    const auto p = parent_c.parent;
+    if (p == entt::null || !r.valid(p)) {
+      dead.dead.emplace(wep_e); // kill this parentless entity (soz)
+      continue;
+    }
+
     if (cooldown_c.time > 0.0f)
       continue;
     reset_cooldown(cooldown_c);
@@ -88,10 +100,12 @@ update_autofire_system(entt::registry& r)
 
     const auto dir = get_position(r, nearest_e) - get_position(r, wep_e);
 
+    int bullet_damage = r.get<BulletDamage>(parent_c.parent).dmg;
+
     auto bullet_e = spawn(r, "bullet_default");
     give_life(r, bullet_e, get_position(r, wep_e), { 6, 6 });
-    r.emplace<BulletComponent>(bullet_e);
     r.emplace<TeamComponent>(bullet_e, AvailableTeams::player);
+    r.emplace<BulletComponent>(bullet_e, bullet_damage);
     r.get<PhysicsBodyComponent>(bullet_e).base_speed = 100.0f;
     r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
     set_z_index(r, bullet_e, ZLayer::PROJECTILE);

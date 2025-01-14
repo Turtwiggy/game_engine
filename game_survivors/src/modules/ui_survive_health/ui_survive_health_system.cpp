@@ -1,13 +1,12 @@
 #include "ui_survive_health_system.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/sprites/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/sprites/sprite_helpers.hpp"
 
 #include <imgui.h>
 
@@ -54,6 +53,14 @@ update_ui_survive_health_system(entt::registry& r)
     const auto im_heart_col = im_col;
     const auto my_heart_col = col_c.colour;
 
+    ImGui::SetCursorPosX(spacing.x + icon_size.y * 0);
+    ImGui::SetCursorPosY(spacing.y + icon_size.y * player_c.idx);
+    std::string hp_label = std::format("HP: {}/{}", hp_c.hp, hp_c.max_hp);
+    ImGui::Text("%s", hp_label.c_str());
+    ImGui::Text("DMG: %i", r.get<BulletDamage>(e).dmg);
+
+    /*
+
     // draw health background
     for (int i = 0; i < hp_c.max_hp; i++) {
       ImGui::SetCursorPosX(spacing.x + icon_size.y * i);
@@ -87,6 +94,7 @@ update_ui_survive_health_system(entt::registry& r)
         ImGui::SameLine();
       ImGui::Image(im_id, icon_size, tl, br, im_heart_col);
     }
+    */
 
     ImGui::NewLine();
   }

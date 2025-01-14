@@ -2,8 +2,12 @@
 
 #include "engine/entt/helpers.hpp"
 #include "imgui.h"
+#include "modules/actor_player/components.hpp"
+#include "modules/combat/components.hpp"
+#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/renderer/components.hpp"
+#include "ui_survive_level_up_components.hpp"
 
 namespace game2d {
 
@@ -12,14 +16,18 @@ update_ui_survive_level_up_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri);
+  GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, lvup_e, lvup_c);
 
-  if (sxp_c.xp < sxp_c.xp_for_next_level) {
+  bool level_up_required = sxp_c.xp >= sxp_c.xp_for_next_level;
+
 #if defined(_DEBUG)
-    if (ImGui::Button("GiveXp"))
-      sxp_c.xp += 34;
+  if (ImGui::Button("GiveXp"))
+    sxp_c.xp += 34;
 #endif
+
+  lvup_c.require_level_up = level_up_required;
+  if (!level_up_required)
     return;
-  }
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -35,7 +43,7 @@ update_ui_survive_level_up_system(entt::registry& r)
   ImGui::SetNextWindowSize({ 640, 360 }, ImGuiCond_Always);
 
   ImGui::Begin("Level up required!", NULL, flags);
-  ImGui::Text("Levelup required");
+  ImGui::Text("Level-up!");
 
   std::string label = std::format("LeveUp");
 
@@ -43,22 +51,39 @@ update_ui_survive_level_up_system(entt::registry& r)
     ImGui::TableNextRow();
 
     ImGui::TableNextColumn();
-    if (ImGui::Button("con\n+4 MAX HP", ImVec2(-FLT_MIN, -FLT_MIN))) {
+    if (ImGui::Button("+HP", ImVec2(-FLT_MIN, -FLT_MIN))) {
       sxp_c.xp = 0;
+      sxp_c.level++;
+      sxp_c.xp_for_next_level += 5; // 5 harder every time
+
+      // TEMP: refill hp.
+      const auto& players_view = r.view<PlayerComponent>();
+      for (const auto& [e, player_c] : players_view.each()) {
+        if (auto* hp_c = r.try_get<HealthComponent>(e))
+          hp_c->hp = hp_c->max_hp;
+      }
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button("+DMG", ImVec2(-FLT_MIN, -FLT_MIN))) {
+      sxp_c.xp = 0;
+      sxp_c.level++;
+      sxp_c.xp_for_next_level += 5; // 5 harder every time
+
+      const auto& players_view = r.view<PlayerComponent>();
+      for (const auto& [e, player_c] : players_view.each()) {
+        auto& bullet_damage_c = r.get_or_emplace<BulletDamage>(e);
+        bullet_damage_c.dmg += 5;
+      }
 
       //
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button("str\n+1 ATK", ImVec2(-FLT_MIN, -FLT_MIN))) {
+    if (ImGui::Button("Not impl", ImVec2(-FLT_MIN, -FLT_MIN))) {
       sxp_c.xp = 0;
-
-      //
-    }
-
-    ImGui::TableNextColumn();
-    if (ImGui::Button("agi\n+1 DEF", ImVec2(-FLT_MIN, -FLT_MIN))) {
-      sxp_c.xp = 0;
+      sxp_c.level++;
+      sxp_c.xp_for_next_level += 5; // 5 harder every time
 
       //
     }

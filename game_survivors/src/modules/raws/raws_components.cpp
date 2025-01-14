@@ -10,6 +10,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/actor_exploder/actor_exploder_helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
@@ -17,8 +18,8 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
-#include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/system_physics_apply_force/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 
 #include <box2d/b2_body.h>
@@ -164,8 +165,8 @@ remove_life(entt::registry& r, const entt::entity e)
   if (auto* timer_c = r.try_get<EntityTimedLifecycle>(e))
     r.remove<EntityTimedLifecycle>(e);
 
-  if (auto* callback_c = r.try_get<OnDeathCallback>(e))
-    r.remove<OnDeathCallback>(e);
+  if (auto* callback_c = r.try_get<OnDeathCallbacks>(e))
+    r.remove<OnDeathCallbacks>(e);
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
     auto& physics_c = get_first_component<SINGLE_Physics>(r);
@@ -186,8 +187,47 @@ spawn(entt::registry& r, const std::string& key)
   r.emplace<TagComponent>(e, templ.name);
   r.emplace<WaitForInitComponent>(e);
   r.emplace<Item>(e, templ);
+  r.emplace<OnDeathCallbacks>(e);
 
-  r.emplace<SpawnParticlesOnDeath>(e);
+  bool big_explode = false;
+
+  if (templ.traits.has_value()) {
+    for (const auto& trait : templ.traits.value()) {
+      if (trait.key == "direct") {
+        ApplyForceToDynamicTarget tgt_c;
+        tgt_c.orbit = false;
+        tgt_c.reduce_thrusters = false;
+        tgt_c.speed = 100.0f;
+        r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
+        //
+      }
+      if (trait.key == "projectile") {
+        ApplyForceToDynamicTarget tgt_c;
+        tgt_c.orbit = true;
+        tgt_c.reduce_thrusters = true;
+        tgt_c.distance_to_reduce_thrust = 400;
+        tgt_c.speed = 100.0f;
+        r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
+      }
+      if (trait.key == "explode") {
+        add_explode_on_death_callback(r, e);
+        big_explode = true;
+      }
+    }
+  }
+
+  // Spawn particles on death
+  if (!big_explode) {
+    auto& callbacks_c = r.get<OnDeathCallbacks>(e);
+    const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
+      RequestToSpawnParticles request;
+      request.key = "default_explode";
+      request.position = get_position(r, e);
+      create_empty<RequestToSpawnParticles>(r, request);
+    };
+    callbacks_c.callbacks.push_back(spawn_particles_callback);
+  }
+
   if (templ.stats.has_value())
     r.emplace<HealthComponent>(e, templ.stats->hp, templ.stats->max_hp);
   r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
@@ -212,11 +252,21 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec
     pdesc.start_size = 16;
     pdesc.end_size = 4;
   }
+  if (key.find("death_exploder") != std::string::npos) {
+    pdesc.start_size = explosion_radius * 2;
+    pdesc.end_size = explosion_radius * 1;
+  }
 
   // which particle to spawn?
   ParticleEmitterComponent pedesc;
   pedesc.particle_to_emit = pdesc;
   if (key.find("default_explode") != std::string::npos) {
+    pedesc.expires = true;
+    pedesc.particles_to_spawn_before_emitter_expires = 10;
+    pedesc.random_velocity = true;
+    pedesc.spawn_all_particles_at_once = true;
+  }
+  if (key.find("death_exploder") != std::string::npos) {
     pedesc.expires = true;
     pedesc.particles_to_spawn_before_emitter_expires = 10;
     pedesc.random_velocity = true;

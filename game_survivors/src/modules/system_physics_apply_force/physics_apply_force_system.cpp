@@ -21,7 +21,8 @@ calculate_desired_velocity(b2Body* a_body, b2Body* b_body, const ApplyForceToDyn
 
   // full-speed ahead!
   if (distance > req.distance_to_reduce_thrust || !req.reduce_thrusters)
-    return b_body->GetLinearVelocity() + req.speed * dir;
+    // return b_body->GetLinearVelocity() + req.speed * dir;
+    return req.speed * dir;
 
   // Adjust the desired vel to account for target's velocity,
   // reduce speed the closer to the target you get
@@ -52,7 +53,7 @@ update_physics_apply_force_system(entt::registry& r)
       // check your target hasn't died
       const auto target_e = target_c.target;
       if (target_e == entt::null || !r.valid(target_e)) {
-        // SDL_Log("Your target died. You should do some sort of regargeting.");
+        SDL_Log("Your target invalid. Should regarget.");
         r.remove<PhysicsDynamicTarget>(e);
         continue;
       }
@@ -78,7 +79,7 @@ update_physics_apply_force_system(entt::registry& r)
 
       // Set ship angle as velocity
       const auto& vel = body_c.body->GetLinearVelocity();
-      const float angle = engine::dir_to_angle_radians({ vel.x, vel.y }) + engine::PI;
+      const float angle = engine::dir_to_angle_radians({ vel.x, vel.y });
       body_c.body->SetTransform(body_c.body->GetPosition(), angle);
     }
   }

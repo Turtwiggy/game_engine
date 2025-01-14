@@ -200,17 +200,26 @@
     {
       "name": "actor_enemy_melee",
       "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
-      "physics_desc": { "is_sensor": false }
+      "physics_desc": { "is_sensor": false },
+      "traits": [ {"key": "direct" } ]
+    },
+    {
+      "name": "actor_enemy_melee_2",
+      "renderable": { "sprite": "TURTLE_27_5", "colour": "magenta" },
+      "physics_desc": { "is_sensor": false },
+      "traits": [ {"key": "direct"} ]
     },
     {
       "name": "actor_enemy_exploder",
       "renderable": { "sprite": "CRAB_25_5", "colour": "gold_yellow" },
-      "physics_desc": { "is_sensor": false }
+      "physics_desc": { "is_sensor": false },
+      "traits": [ {"key": "direct"}, {"key": "explode"} ]
     },
     {
       "name": "actor_enemy_projectile",
-      "renderable": { "sprite": "SNAKE_28_8", "colour": "red" },
-      "physics_desc": { "is_sensor": false }
+      "renderable": { "sprite": "SNAKE_28_8", "colour": "green" },
+      "physics_desc": { "is_sensor": false },
+      "traits": [ {"key": "projectile"} ]
     },
     {
       "name": "actor_enemy_rocks",

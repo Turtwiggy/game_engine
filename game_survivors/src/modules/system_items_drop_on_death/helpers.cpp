@@ -49,7 +49,8 @@ drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
   give_life(r, item_e, get_position(r, e), size);
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
   r.emplace<XpComponent>(item_e);
-  r.remove<OnDeathCallback>(item_e); // xp doesnt do anything on it's death?
+
+  r.remove<OnDeathCallbacks>(item_e); // xp doesnt do anything on it's death?
 };
 
 } // namespace game2d
