@@ -2,6 +2,8 @@
 
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 #include "imgui.h"
 
@@ -11,6 +13,11 @@ void
 update_ui_colours_system(entt::registry& r)
 {
   const auto& raws = get_first_component<Raws>(r);
+
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto ui_state = gesert_menubar_state(menu_c, "Colours");
+  if (!ui_state.enabled)
+    return;
 
   ImGui::Begin("ui colours system");
 

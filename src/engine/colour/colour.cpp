@@ -29,7 +29,7 @@ SRGBToLinear(const SRGBColour& colour)
   output.r = SRGBFloatToLinearFloat(colour.r / 255.0f);
   output.g = SRGBFloatToLinearFloat(colour.g / 255.0f);
   output.b = SRGBFloatToLinearFloat(colour.b / 255.0f);
-  output.a = colour.a;
+  output.a = colour.a / 255.0f;
   return output;
 };
 
@@ -43,7 +43,7 @@ LinearToSRGB(const LinearColour& colour)
   output.r = static_cast<int>(r * 255.0f);
   output.g = static_cast<int>(g * 255.0f);
   output.b = static_cast<int>(b * 255.0f);
-  output.a = colour.a;
+  output.a = colour.a * 255.0f;
   return output;
 };
 

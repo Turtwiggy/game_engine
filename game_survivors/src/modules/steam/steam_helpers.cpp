@@ -41,8 +41,10 @@ init_steam(entt::registry& r)
   // Note: if steam_app.txt is present, this will return false regardless.
   // This allows you to develop and text without launching the game through the steam client.
   // Make sure to remove steam_appid.txt file when uploading the game to steam depot.
-  if (SteamAPI_RestartAppIfNecessary(app_id))
+  if (SteamAPI_RestartAppIfNecessary(app_id)) {
+    SDL_Log("Restarting app");
     exit(1);
+  }
 #endif
 
   if (!SteamAPI_Init()) {

@@ -4,7 +4,6 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/helpers/mouse.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -100,11 +99,6 @@ setup_debris_update(entt::registry& r)
     ri.debris.set_mat4("view", camera_c.view);
     ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
     ri.debris.set_float("zoom", camera_c.zoom_nonlinear);
-
-#if defined(_DEBUG)
-    ImGui::Text("zoom l %f", camera_c.zoom_linear);
-    ImGui::Text("zoom nl %f", camera_c.zoom_nonlinear);
-#endif
 
     {
       ri.renderer.reset_quad_vert_count();
@@ -356,6 +350,7 @@ setup_outline_update(entt::registry& r)
   };
 };
 
+/*
 void
 setup_lighting_emitters_and_occluders_update(entt::registry& r)
 {
@@ -383,7 +378,6 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
 
-      /*
       {
         const auto& emitters = r.view<const LightEmitterComponent, const TransformComponent, const SpriteComponent>();
         for (const auto& [entity, emitter, transform, sc] : emitters.each()) {
@@ -401,7 +395,6 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
           ri.renderer.draw_sprite(desc, ri.lighting_emitters_and_occluders);
         }
       }
-      */
 
       // draw occluders
       {
@@ -432,7 +425,9 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     glDisable(GL_BLEND);
   };
 };
+*/
 
+/*
 void
 setup_voronoi_seed_update(entt::registry& r)
 {
@@ -451,7 +446,9 @@ setup_voronoi_seed_update(entt::registry& r)
     render_fullscreen_quad(r, ri.voronoi_seed, ri.viewport_size_render_at);
   };
 };
+*/
 
+/*
 void
 setup_jump_flood_pass(entt::registry& r)
 {
@@ -478,9 +475,9 @@ setup_jump_flood_pass(entt::registry& r)
         this_tex_idx = last_tex_idx == 1 ? 0 : 1;
       }
 
-#if defined(_DEBUG)
-      ImGui::Text("jflood pass: %i. last: %i, this: %i", i, last_tex_idx, this_tex_idx);
-#endif
+      // #if defined(_DEBUG)
+      //       ImGui::Text("jflood pass: %i. last: %i, this: %i", i, last_tex_idx, this_tex_idx);
+      // #endif
 
       engine::Framebuffer::bind_fbo(pass.fbos[this_tex_idx]);
       engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
@@ -504,12 +501,14 @@ setup_jump_flood_pass(entt::registry& r)
       render_fullscreen_quad(r, ri.jump_flood, ri.viewport_size_render_at);
     }
 
-#if defined(_DEBUG)
-    ImGui::Text("final unit: %i", ri.final_jflood_texunit);
-#endif
+    // #if defined(_DEBUG)
+    //     ImGui::Text("final unit: %i", ri.final_jflood_texunit);
+    // #endif
   };
 };
+*/
 
+/*
 void
 setup_voronoi_distance_field_update(entt::registry& r)
 {
@@ -535,6 +534,7 @@ setup_voronoi_distance_field_update(entt::registry& r)
     render_fullscreen_quad(r, ri.voronoi_distance, ri.viewport_size_render_at);
   };
 };
+*/
 
 void
 setup_mix_lighting_and_scene_update(entt::registry& r)
@@ -549,9 +549,9 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 
     engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
 
-#if defined(_DEBUG)
-    imgui_draw_float("brightness_threshold", brightness_threshold);
-#endif
+    // #if defined(_DEBUG)
+    //     imgui_draw_float("brightness_threshold", brightness_threshold);
+    // #endif
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);

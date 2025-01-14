@@ -1,7 +1,6 @@
 #include "system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "imgui.h"
 #include "modules/renderer/components.hpp"
 
@@ -29,10 +28,16 @@ update_ui_fps_counter_system(entt::registry& r)
     flags |= ImGuiWindowFlags_NoSavedSettings;
     flags |= ImGuiWindowFlags_NoFocusOnAppearing;
     flags |= ImGuiWindowFlags_NoInputs;
+    flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
+    const ImVec2 pivot = { 0.0f, 0.5f };
+    ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
 
     ImGui::Begin("FPS", NULL, flags);
-    ImGui::Text("FPS: %0.2f ", ImGui::GetIO().Framerate);
+    ImGui::Text("%d FPS", (int)ImGui::GetIO().Framerate);
     ImGui::End();
+
+    ImGui::PopStyleVar();
   }
 }
 

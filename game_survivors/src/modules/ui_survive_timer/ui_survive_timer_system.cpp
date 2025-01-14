@@ -14,7 +14,7 @@ update_ui_survive_timer_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const glm::vec2 tr = ri.viewport_size_render_at;
-  const int distance_from_top_of_screen = 20.0f;
+  const int distance_from_top_of_screen = 20;
 
   // Push larger font
   ImGuiIO& io = ImGui::GetIO();

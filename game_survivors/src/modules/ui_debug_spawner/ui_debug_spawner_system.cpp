@@ -6,6 +6,8 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
 
 #include <imgui.h>
@@ -15,6 +17,11 @@ namespace game2d {
 void
 update_ui_debug_spawner_system(entt::registry& r)
 {
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto ui_state = gesert_menubar_state(menu_c, "Spawners");
+  if (!ui_state.enabled)
+    return;
+
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, timer_e, timer_c);
   auto& cooldown_c = r.get<CooldownComponent>(timer_e);
   auto& input_c = get_first_component<SINGLE_InputComponent>(r);

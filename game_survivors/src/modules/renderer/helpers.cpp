@@ -64,8 +64,8 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
       ImGuiID dock_id_down = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.15f, nullptr, &dock_id_main);
 
       ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
+      // ImGui::DockBuilderDockWindow("MenuBar", dock_id_top);
       // ImGui::DockBuilderDockWindow("Player", dock_id_left);
-      // ImGui::DockBuilderDockWindow("Events", dock_id_top);
 
       // tools
       // ImGui::DockBuilderDockWindow("ColourEditor", dock_id_down);
@@ -204,9 +204,11 @@ search_for_texture_id_by_spritesheet_path(const SINGLE_RendererInfo& ri, const s
 int
 search_for_renderpass_by_name(const SINGLE_RendererInfo& ri, const PassName& name)
 {
-  auto it = std::find_if(ri.passes.begin(), ri.passes.end(), [&name](const RenderPass& pass) { return pass.pass == name; });
-  if (it != ri.passes.end())
-    return static_cast<int>(it - ri.passes.begin());
+  for (size_t i = 0; i < ri.passes.size(); i++) {
+    auto pass = ri.passes[i];
+    if (pass.pass == name)
+      return i;
+  }
 
   const auto type_name = std::string(magic_enum::enum_name(name));
   SDL_Log("%s", std::format("no render pass of name: {}", type_name).c_str());

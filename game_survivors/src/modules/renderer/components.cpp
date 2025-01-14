@@ -3,7 +3,6 @@
 #include "engine/opengl/texture.hpp"
 
 #include <SDL2/SDL_log.h>
-#include <format>
 #include <magic_enum.hpp>
 
 namespace game2d {

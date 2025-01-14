@@ -27,7 +27,6 @@
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
-#include "modules/screenshake/system.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/steam/steam_helpers.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
@@ -44,6 +43,9 @@
 #include "modules/ui_colours/ui_colours_system.hpp"
 #include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 #include "modules/ui_controllers/system.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_system.hpp"
 #include "modules/ui_debug_spawner/ui_debug_spawner_system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_gameover/system.hpp"
@@ -61,10 +63,10 @@
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-#include "steam/steam_api_common.h"
 #include <SDL2/SDL_log.h>
 #include <imgui.h>
 #include <steam/steam_api.h>
+#include <steam/steam_api_common.h>
 
 namespace game2d {
 using namespace std::literals;
@@ -119,6 +121,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     init_render_system(app, r);
   }
 
+  create_persistent<SINGLE_DebugMenuBar>(r);
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
 
@@ -263,16 +266,31 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
 #if defined(_DEBUG)
   static bool show_settings_ui = true;
+  update_ui_debug_menubar_system(r);
 #else
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
-    // ImGui::ShowDemoWindow(NULL);
+    auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+
+    auto demo_state = gesert_menubar_state(menu_c, "ImGui Demo");
+    if (demo_state.enabled)
+      ImGui::ShowDemoWindow(NULL);
+
+    auto audio_state = gesert_menubar_state(menu_c, "Audio");
+    if (audio_state.enabled)
+      update_ui_audio_system(r);
+
+    auto sdl2_controller_state = gesert_menubar_state(menu_c, "SDL2 Controller");
+    if (sdl2_controller_state.enabled)
+      update_ui_controller_system(r);
+
+    auto sdl2_input_state = gesert_menubar_state(menu_c, "SDL2 Input");
+    if (sdl2_input_state.enabled)
+      update_ui_input_system(r);
+
     update_ui_hierarchy_system(r);
-    update_ui_audio_system(r);
     update_ui_collisions_system(r);
-    update_ui_controller_system(r);
-    update_ui_input_system(r);
     update_ui_steam_input_system(r);
   }
 

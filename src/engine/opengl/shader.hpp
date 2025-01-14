@@ -1,6 +1,7 @@
 #pragma once
 
 // other library headers
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
 // c++ standard library headers
@@ -13,13 +14,13 @@ void
 check_compile_errors(unsigned int shader, std::string type);
 
 void
-reload_shader_program(unsigned int& id, const std::string& vert_path, const std::string& frag_path);
+reload_shader_program(entt::registry& r, unsigned int& id, const std::string& vert_path, const std::string& frag_path);
 
 [[nodiscard]] unsigned int
-create_opengl_shader(const std::string& vert_path, const std::string& frag_path);
+create_opengl_shader(entt::registry& r, const std::string& vert_path, const std::string& frag_path);
 
 [[nodiscard]] unsigned int
-load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std::string type);
+load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int gl_shader_type, std::string type);
 
 class Shader
 {
@@ -27,11 +28,11 @@ public:
   unsigned int ID;
 
   Shader() = default;
-  Shader(const std::string& vert_path, const std::string& frag_path);
+  Shader(entt::registry& r, const std::string& vert_path, const std::string& frag_path);
 
   void bind() const;
   void unbind() const;
-  void reload();
+  void reload(entt::registry& r);
 
   void set_bool(const std::string& name, bool value) const;
   void set_int(const std::string& name, int value) const;

@@ -92,7 +92,7 @@ void main()
 
 	//Add some gradient
 	// t*=exp(-length2(abs(0.2*uv - 1.0)));	
-	t *= 0.50;
+	t *= 0.4;
 
 	//Make it blue!
 	out_colour = vec4(t * vec3(0.1, 1.1*t, pow(t, 0.5-t)), 1.0);

@@ -3,8 +3,11 @@
 
 // your project headers
 #include "engine/app/game_window.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/io/path.hpp"
-#include "engine/opengl/util.hpp"
+
+// this probably shouldnt be here
+#include "modules/renderer/components.hpp"
 
 // other library headers
 #include "engine/deps/opengl.hpp"
@@ -42,10 +45,10 @@ check_compile_errors(unsigned int shader, std::string type, std::string path)
 }
 
 void
-reload_shader_program(unsigned int* id, const std::string& vert_path, const std::string& frag_path)
+reload_shader_program(entt::registry& r, unsigned int* id, const std::string& vert_path, const std::string& frag_path)
 {
   // Create a new shader program from the given file names. Halt on failure.
-  auto new_id = create_opengl_shader(vert_path, frag_path);
+  auto new_id = create_opengl_shader(r, vert_path, frag_path);
   // SDL_Log("%s", std::format("reloading shader, new_id: {}", new_id).c_str());
 
   if (new_id) {
@@ -56,7 +59,7 @@ reload_shader_program(unsigned int* id, const std::string& vert_path, const std:
 }
 
 unsigned int
-create_opengl_shader(const std::string& vert_path, const std::string& frag_path)
+create_opengl_shader(entt::registry& r, const std::string& vert_path, const std::string& frag_path)
 {
   // OpenGL ShaderTypes
   // GL_VERTEX_SHADER VERTEX
@@ -64,8 +67,8 @@ create_opengl_shader(const std::string& vert_path, const std::string& frag_path)
   // GL_FRAGMENT_SHADER FRAGMENT
   // GL_GEOMETRY_SHADER VERTEX
 
-  unsigned int vert_shader = load_shader_from_disk(vert_path, GL_VERTEX_SHADER, "VERTEX");
-  unsigned int frag_shader = load_shader_from_disk(frag_path, GL_FRAGMENT_SHADER, "FRAGMENT");
+  unsigned int vert_shader = load_shader_from_disk(r, vert_path, GL_VERTEX_SHADER, "VERTEX");
+  unsigned int frag_shader = load_shader_from_disk(r, frag_path, GL_FRAGMENT_SHADER, "FRAGMENT");
 
   unsigned int ID = glCreateProgram();
   glAttachShader(ID, vert_shader);
@@ -81,7 +84,7 @@ create_opengl_shader(const std::string& vert_path, const std::string& frag_path)
 }
 
 unsigned int
-load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std::string type)
+load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int gl_shader_type, std::string type)
 {
   unsigned int shader_id;
   std::string code;
@@ -123,6 +126,85 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
   // add the rest of the shader code
   code = version + code;
 
+  const auto& ri_c = game2d::get_first_component<game2d::SINGLE_RendererInfo>(r);
+
+  // Generate keys user for textures
+  const auto clean_path = [](const std::string& path) -> std::string {
+    const auto last_slash = path.find_last_of("/\\");
+    const auto file_name = path.substr(last_slash + 1);
+    const auto last_dot = file_name.find_last_of('.');
+    return file_name.substr(0, last_dot);
+  };
+  std::vector<std::string> tex_keys;
+  for (const auto& tex : ri_c.user_textures)
+    tex_keys.push_back("tex_" + clean_path(tex.path));
+
+  // generate user uniform sampler
+  {
+    const std::string key0 = "{{ generate_user_samplers }}";
+    const size_t pos0 = code.find(key0);
+    if (pos0 != std::string::npos) {
+      std::string generated = "";
+
+      // generate uniform sampler2D user texture key
+      for (const auto& key : tex_keys) {
+        generated += "uniform sampler2D ";
+        generated += key + "; \n";
+      }
+
+      // SDL_Log("generated: %s", generated.c_str());
+      code.replace(pos0, key0.length(), generated);
+    }
+  }
+
+  // generate big if statement for sampling
+  {
+    const std::string key1 = "{{ generate_sampler_if_statements }}";
+    const size_t pos1 = code.find(key1);
+    if (pos1 != std::string::npos) {
+
+      const auto get_renderer_tex_unit_count = [&ri_c]() {
+        int i = 0;
+        for (const auto& p : ri_c.passes)
+          i += int(p.texs.size());
+        return i;
+      };
+      const int texs_used_by_renderer = get_renderer_tex_unit_count();
+
+      std::string generated = "";
+
+      for (size_t i = 0; i < tex_keys.size(); i++) {
+        auto key = tex_keys[i];
+        if (i == 0) {
+          // std::string l1 = "out_colour *= tex2dss()";
+          std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
+          std::string l1 = "out_colour *= tex2dss(" + key + ", sprite_uv, bias, aa_scale);\n";
+          // std::string l2 = "return;\n";
+          std::string l3 = "}\n";
+          generated.append(l0);
+          generated.append(l1);
+          // generated.append(l2);
+          generated.append(l3);
+          continue;
+        }
+        auto i_str = std::to_string(i);
+        std::string l0 = "else if(index == RENDERER_TEX_UNIT_COUNT+" + i_str + "){\n";
+        std::string l1 = "out_colour *= texture(" + key + ", sprite_uv);\n";
+        std::string l2 = "return;\n";
+        std::string l3 = "}\n";
+        generated.append(l0);
+        generated.append(l1);
+        generated.append(l2);
+        generated.append(l3);
+      }
+
+      // SDL_Log("generated: %s", generated.c_str());
+      code.replace(pos1, key1.length(), generated);
+
+      SDL_Log("%s", code.c_str());
+    }
+  }
+
   const char* csCode = code.c_str();
   shader_id = glCreateShader(gl_shader_type);
   glShaderSource(shader_id, 1, &csCode, NULL);
@@ -136,12 +218,12 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
 // Shader
 //
 
-Shader::Shader(const std::string& vp, const std::string& fp)
+Shader::Shader(entt::registry& r, const std::string& vp, const std::string& fp)
 {
   vert_path = get_exe_path_without_exe_name() + vp;
   frag_path = get_exe_path_without_exe_name() + fp;
 
-  ID = create_opengl_shader(vert_path, frag_path);
+  ID = create_opengl_shader(r, vert_path, frag_path);
 }
 
 void
@@ -157,9 +239,9 @@ Shader::unbind() const
 }
 
 void
-Shader::reload()
+Shader::reload(entt::registry& r)
 {
-  reload_shader_program(&ID, vert_path, frag_path);
+  reload_shader_program(r, &ID, vert_path, frag_path);
   // SDL_Log("%s", std::format("shader new id: {}", ID).c_str());
 }
 

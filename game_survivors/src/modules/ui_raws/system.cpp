@@ -5,10 +5,12 @@
 #include "engine/imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/raws/raws_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
 
-#include "imgui.h"
+#include <imgui.h>
 
 namespace game2d {
 
@@ -16,6 +18,11 @@ void
 update_ui_raws_system(entt::registry& r)
 {
   const auto& raws = get_first_component<Raws>(r);
+
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto ui_state = gesert_menubar_state(menu_c, "Raws");
+  if (!ui_state.enabled)
+    return;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDocking;
@@ -35,7 +42,7 @@ update_ui_raws_system(entt::registry& r)
     const std::string label = "world##" + item.name;
     if (ImGui::Button(label.c_str())) {
       auto e = spawn(r, item.name.c_str());
-      set_position(r, e, spaceitem_pos);
+      give_life(r, e, spaceitem_pos);
 
       // hack: add a piece of scrap to a lootbag
       if (item.name.find("lootbag") != std::string::npos) {

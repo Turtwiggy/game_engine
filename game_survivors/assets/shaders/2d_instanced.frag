@@ -10,14 +10,9 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform sampler2D tex_monochrome_transparent_packed;
-uniform sampler2D tex_gameicons;
-uniform sampler2D tex_blueberry_dark;
-uniform sampler2D tex_custom;
-uniform sampler2D tex_worley_noise;
-uniform sampler2D tex_logo;
-uniform sampler2D tex_animation_idle;
-uniform sampler2D tex_junkers;
+// this key is replaced by the engine with
+// e.g. "uniform sampler2D tex_monochrome_transparent_packed"
+{{ generate_user_samplers }}
 
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
@@ -116,42 +111,11 @@ main()
     // aa_scale, range: 0.75, 10
     float aa_scale = 1.25;
 
-    // index set on cpu side...
-    // WARNING: seems bad
+    // the engine generates code here e.g. 
+    // if(index == RENDERER_TEX_UNIT_COUNT)
+    //   out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
+{{ generate_sampler_if_statements }}
 
-    if(index == RENDERER_TEX_UNIT_COUNT){
-      out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
-      // out_colour *= texture(tex_monochrome_transparent_packed, sprite_uv);
-    }
-    else if(index == (RENDERER_TEX_UNIT_COUNT+1)){
-      out_colour *= texture(tex_gameicons, sprite_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+2){
-      out_colour *= texture(tex_blueberry_dark, v_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+3){
-      out_colour *= texture(tex_custom, sprite_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+4){
-      out_colour *= texture(tex_worley_noise, v_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+5){
-      out_colour *= texture(tex_logo, v_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+6){
-      out_colour *= tex2dss(tex_animation_idle, sprite_uv, bias, aa_scale);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+7){
-      out_colour *= tex2dss(tex_junkers, sprite_uv, bias, aa_scale);
-      // out_colour *= tex2dss(tex_junkers, v_uv, bias, aa_scale);
-      return; // texture uses 0, 0
-    }
   }
 
   // Sample texture directly
