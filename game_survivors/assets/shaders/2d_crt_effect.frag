@@ -3,17 +3,28 @@
 
 out vec4 out_colour;
 
-in vec2 v_uv;
-in vec4 v_colour;
-in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
-in vec2 v_sprite_max; // 22 sprites
-in float v_tex_unit;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
 
 uniform sampler2D tex_to_crt;
-
-uniform float time;
 uniform vec2 viewport_wh;
+
+layout(std140) uniform Data {
+  mat4 projection_zoomed;
+  mat4 view;
+  vec2 camera_pos;
+  float time;
+  float zoom;
+  float tilesize;
+};
 
 // Shader based on:
 // https://godotshaders.com/shader/vhs-and-crt-monitor-effect/
@@ -112,6 +123,13 @@ float vignette(vec2 uv){
 void
 main()
 {
+	vec2 v_uv = fs_in.v_uv;
+  vec4 v_colour= fs_in.v_colour;
+  vec2 v_sprite_pos = fs_in.v_sprite_pos;
+  vec2 v_sprite_wh = fs_in.v_sprite_wh;
+  vec2 v_sprite_max = fs_in.v_sprite_max;
+  int index = int(fs_in.v_tex_unit);
+
 	vec2 resolution = vec2(viewport_wh.x/3, viewport_wh.y/3); // div by 3 because 3 channels???
   vec2 SCREEN_UV = v_uv; // values between 0 and 1
   vec2 UV = v_uv;

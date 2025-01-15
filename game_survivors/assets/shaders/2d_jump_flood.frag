@@ -3,12 +3,16 @@
 
 out vec4 out_colour;
 
-in vec2 v_uv;
-in vec4 v_colour;
-in vec2 v_sprite_pos;
-in vec2 v_sprite_wh;
-in vec2 v_sprite_max;
-in float v_tex_unit;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
 
 uniform float u_offset;
 uniform vec2 screen_wh;
@@ -19,6 +23,12 @@ float V2_F16(vec2 v) { return v.x + (v.y / 255.0); }
 void
 main()
 {
+  vec2 v_uv = fs_in.v_uv;
+  vec4 v_colour= fs_in.v_colour;
+  vec2 v_sprite_pos = fs_in.v_sprite_pos;
+  vec2 v_sprite_wh = fs_in.v_sprite_wh;
+  vec2 v_sprite_max = fs_in.v_sprite_max;
+  int index = int(fs_in.v_tex_unit);
   // vec2 SCREEN_PIXEL_SIZE = vec2(1.0/screen_wh.x, 1.0/screen_wh.y);
 
 	vec2 offsets[9];

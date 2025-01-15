@@ -3,11 +3,16 @@
 
 out vec4 out_colour;
 
-in vec2 v_uv;
-in vec4 v_colour;
-in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprites;    // amount of sprites (x, y)
-in float v_tex_unit;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
 
 uniform sampler2D tex;
 

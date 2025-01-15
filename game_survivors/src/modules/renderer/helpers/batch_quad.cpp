@@ -188,31 +188,6 @@ QuadRenderer::init()
   // unbind vbo and vao
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-
-  // create a texture
-  {
-    GLuint tex = 0;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    data.TEX = tex;
-
-    // allocate texture storage
-    const int num_rows = N_MAX_CIRCLES;
-    const int num_cols = sizeof(game2d::CircleComponent) / sizeof(float); // floats per comp
-    const auto size = glm::ivec2{ num_cols, num_rows };
-#if defined(__EMSCRIPTEN__)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-#else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-#endif
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    SDL_Log("%s", std::format("created texture object... id: {}", tex).c_str());
-  }
 };
 
 void

@@ -102,6 +102,9 @@ struct SINGLE_RendererInfo
   std::vector<Texture> user_textures;
   int final_jflood_texunit = 0;
 
+  // int tex_unit_circles = 0;
+  int tex_unit_ubo_data = 0;
+
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;
 

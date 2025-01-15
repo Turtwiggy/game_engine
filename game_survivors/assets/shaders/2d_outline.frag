@@ -3,18 +3,18 @@
 
 out vec4 out_colour;
 
-in vec2 v_uv;
-in vec4 v_colour;
-in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
-in vec2 v_sprite_max; // 22 sprites
-in float v_tex_unit;
-in vec2 v_vertex;
-// in vec2 v_pos;
-// in vec2 v_size;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
 
 uniform sampler2D tex_to_outline;
-uniform float zoom;
 
 // uniform vec2 viewport_wh;
 // uniform int RENDERER_TEX_UNIT_COUNT;
@@ -39,6 +39,13 @@ vec3 srgb_to_lin(vec3 color)
 void
 main()
 {
+	vec2 v_uv = fs_in.v_uv;
+  vec4 v_colour= fs_in.v_colour;
+  vec2 v_sprite_pos = fs_in.v_sprite_pos;
+  vec2 v_sprite_wh = fs_in.v_sprite_wh;
+  vec2 v_sprite_max = fs_in.v_sprite_max;
+  int index = int(fs_in.v_tex_unit);
+
   // vec2 sprite_uv = (v_uv - v_pos)
   vec2 texel_size = 2.0 / vec2(textureSize(tex_to_outline, 0));
   vec2 up = vec2(0, texel_size.y);

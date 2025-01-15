@@ -57,6 +57,8 @@ update_ui_survive_health_system(entt::registry& r)
     ImGui::SetCursorPosY(spacing.y + icon_size.y * player_c.idx);
     std::string hp_label = std::format("HP: {}/{}", hp_c.hp, hp_c.max_hp);
     ImGui::Text("%s", hp_label.c_str());
+
+    ImGui::SameLine();
     ImGui::Text("DMG: %i", r.get<BulletDamage>(e).dmg);
 
     /*

@@ -54,6 +54,8 @@ public:
   [[nodiscard]] int get_compute_buffer_bind_location(const std::string& name) const;
   void set_compute_buffer_bind_location(const std::string& name);
 
+  void set_uniform_block_binding(const std::string& uniform_name, int binding);
+
 private:
   std::string vert_path;
   std::string frag_path;

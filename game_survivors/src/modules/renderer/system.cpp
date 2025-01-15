@@ -20,24 +20,38 @@
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
-#include "modules/renderer/shaders/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "renderpass/passes.hpp"
+
+#if defined(_MSC_VER)
+#include <optick.h>
+#endif
 
 using namespace engine;
 
 // other lib
-#include "imgui.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_Log.h>
 #include <SDL2/SDL_scancode.h>
 #include <format>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
 #include <magic_enum.hpp>
 
 namespace game2d {
 using namespace std::literals;
+
+struct UboData
+{
+  // glm::mat4 projection = glm::mat4(1.0f);
+  glm::mat4 projection_zoomed = glm::mat4(1.0f);
+  glm::mat4 view = glm::mat4(1.0f);
+  glm::vec2 camera_pos{ 0, 0 };
+  float time = 0;
+  float zoom = 0;
+  float tilesize = 50;
+};
 
 int
 get_renderer_tex_unit_count(const SINGLE_RendererInfo& ri)
@@ -78,11 +92,11 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   }
 
   // Texture quadrenderer...
-  int tex_buffer_unit = i++;
-  glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
-  glBindTexture(GL_TEXTURE_2D, ri.renderer.data.TEX);
-  ri.renderer.data.tex_unit = tex_buffer_unit;
-  SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.renderer.data.tex_unit).c_str());
+  // int tex_buffer_unit = i++;
+  // glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
+  // glBindTexture(GL_TEXTURE_2D, ri.tex_unit_circles);
+  // ri.tex_unit_circles = tex_buffer_unit;
+  // SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.tex_unit_circles).c_str());
 
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
@@ -107,15 +121,22 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 1.0f);
   camera.projection_zoomed = camera.projection;
 
+  // store projection ONCE in the UBO
+  // glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+  // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+  // glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
   const int tex_unit_worley_noise = search_for_texture_unit_by_texture_path(ri, "worley_noise")->unit;
   ri.debris.reload(r);
   ri.debris.bind();
+  ri.debris.set_uniform_block_binding("Data", 0);
   ri.debris.set_int("tex", tex_unit_worley_noise);
   ri.debris.set_mat4("projection", camera.projection);
   ri.debris.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.water.reload(r);
   ri.water.bind();
+  ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
@@ -129,7 +150,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   ri.instanced.reload(r);
   ri.instanced.bind();
+  ri.instanced.set_uniform_block_binding("Data", 0);
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
   ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
   for (const auto& tex : ri.user_textures) {
@@ -140,7 +163,11 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   ri.outline.reload(r);
   ri.outline.bind();
-  ri.outline.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.outline.set_uniform_block_binding("Data", 0);
+  ri.outline.set_mat4("projection", camera.projection);
+  ri.outline.set_bool("is_fullscreen", true);
+  ri.outline.set_bool("do_zoom", false);
+
   // ri.outline.set_mat4("projection", camera.projection);
   // ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
   // for (const auto& tex : ri.user_textures)
@@ -150,37 +177,40 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   ri.crt.reload(r);
   ri.crt.bind();
-  ri.crt.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.crt.set_uniform_block_binding("Data", 0);
+  ri.crt.set_bool("is_fullscreen", true);
   ri.crt.set_mat4("projection", camera.projection);
   ri.crt.set_int("tex_to_crt", tex_unit_mix_lighting_and_scene);
   ri.crt.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.lighting_emitters_and_occluders.reload(r);
   ri.lighting_emitters_and_occluders.bind();
+  ri.lighting_emitters_and_occluders.set_uniform_block_binding("Data", 0);
   ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
 
   ri.voronoi_seed.reload(r);
   ri.voronoi_seed.bind();
-  ri.voronoi_seed.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.voronoi_seed.set_bool("is_fullscreen", true);
   ri.voronoi_seed.set_mat4("projection", camera.projection);
   // ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
 
   ri.jump_flood.reload(r);
   ri.jump_flood.bind();
-  ri.jump_flood.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.jump_flood.set_bool("is_fullscreen", true);
   ri.jump_flood.set_mat4("projection", camera.projection);
   ri.jump_flood.set_vec2("screen_wh", ri.viewport_size_render_at);
 
   ri.voronoi_distance.reload(r);
   ri.voronoi_distance.bind();
-  ri.voronoi_distance.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.voronoi_distance.set_bool("is_fullscreen", true);
   ri.voronoi_distance.set_mat4("projection", camera.projection);
   // ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit_emitters_and_occluders);
   ri.voronoi_distance.set_vec2("screen_wh", ri.viewport_size_render_at);
 
   ri.mix_lighting_and_scene.reload(r);
   ri.mix_lighting_and_scene.bind();
-  ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.mix_lighting_and_scene.set_uniform_block_binding("Data", 0);
+  ri.mix_lighting_and_scene.set_bool("is_fullscreen", true);
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_bool("add_grid", false);
@@ -191,7 +221,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_debris", tex_unit_debris);
   ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
   // ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
-  ri.mix_lighting_and_scene.set_int("tex_circles", ri.renderer.data.tex_unit);
+  // ri.mix_lighting_and_scene.set_int("tex_circles", ri.tex_unit_circles);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
@@ -199,12 +229,10 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   // ri.blur.reload(r);
   // ri.blur.bind();
-  // ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
   // ri.blur.set_mat4("projection", camera.projection);
 
   // ri.bloom.reload(r);
   // ri.bloom.bind();
-  // ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
   // ri.bloom.set_mat4("projection", camera.projection);
   // ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
   // ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
@@ -295,6 +323,63 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   // init(): create a dynamic VBO
   ri.renderer.init();
+
+  // create a texture
+  //   constexpr static int N_MAX_CIRCLES = 100;
+  //   {
+  //     GLuint tex = 0;
+  //     glGenTextures(1, &tex);
+  //     glBindTexture(GL_TEXTURE_2D, tex);
+  //     ri.tex_unit_circles = tex;
+  //     // allocate texture storage
+  //     const int num_rows = N_MAX_CIRCLES;
+  //     const int num_cols = sizeof(game2d::CircleComponent) / sizeof(float); // floats per comp
+  //     const auto size = glm::ivec2{ num_cols, num_rows };
+  // #if defined(__EMSCRIPTEN__)
+  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  // #else
+  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  // #endif
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  //     SDL_Log("%s", std::format("created texture object... id: {}", tex).c_str());
+  //   }
+
+  // generate ubo
+  {
+    GLuint ubo;
+    glGenBuffers(1, &ubo);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(UboData), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // set as binding point 0
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, sizeof(UboData));
+
+    ri.tex_unit_ubo_data = ubo;
+  }
+
+  // update ubo data
+  // {
+  //   const auto camera_e = get_first<OrthographicCamera>(r);
+  //   const auto& camera_t = r.get<TransformComponent>(camera_e);
+  //   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+  //   static UboData data;
+  //   data.time = 0;
+  //   data.view = camera_c.view;
+  //   data.camera_pos = { camera_t.position.x, camera_t.position.y };
+  //   data.zoom = camera_c.zoom_nonlinear;
+  //   auto grid_e = get_first<Effect_GridComponent>(r);
+  //   if (grid_e != entt::null)
+  //     data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
+  //   glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
+  //   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
+  //   // glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+  // }
+
   rebind(r, ri);
 
   // adds the update() for each renderpass
@@ -334,6 +419,10 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 void
 update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
+#if defined(_MSC_VER)
+  OPTICK_EVENT();
+#endif
+
   static const engine::SRGBColour black(0, 0, 0, 0);
 
 #if defined(_DEBUG)
@@ -346,25 +435,31 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
-  if (check_if_viewport_resize(ri)) {
+  if (check_if_viewport_resize(ri))
     rebind(r, ri);
-  }
+
   const auto viewport_wh = ri.viewport_size_render_at;
 
-  ri.instanced.bind();
-  ri.instanced.set_float("time", time);
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  const auto& camera_t = r.get<TransformComponent>(camera_e);
+  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
-  ri.outline.bind();
-  ri.outline.set_float("time", time);
+  // update ubo data
+  static UboData data;
+  data.projection_zoomed = camera_c.projection_zoomed;
+  data.view = camera_c.view;
+  data.camera_pos = { camera_t.position.x, camera_t.position.y };
+  data.time = time;
+  data.zoom = camera_c.zoom_nonlinear;
+  auto grid_e = get_first<Effect_GridComponent>(r);
+  if (grid_e != entt::null)
+    data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
 
-  ri.crt.bind();
-  ri.crt.set_float("time", time);
-
-  ri.debris.bind();
-  ri.debris.set_float("iTime", time);
-
-  ri.water.bind();
-  ri.water.set_float("iTime", time);
+  // Note: this updates the entire array.
+  // We could update only the parts that change
+  glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 #if defined(_DEBUG)
   // reload all shaders
@@ -384,7 +479,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   //   return std::find(jflood_pass.begin(), jflood_pass.end(), p) != jflood_pass.end();
   // };
 
-  update_lights(r, ri);
+  // update_lights(r, ri);
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);

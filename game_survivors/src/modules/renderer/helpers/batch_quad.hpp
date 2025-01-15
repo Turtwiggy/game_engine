@@ -49,10 +49,6 @@ struct RenderData
   unsigned int VBO = 0;
   unsigned int EBO = 0;
 
-  // specific circles texture
-  unsigned int TEX = 0;
-  unsigned int tex_unit = 0;
-
   uint32_t index_count = 0;
   int quad_vertex = 0;
 
@@ -83,7 +79,6 @@ public:
   int draw_calls();
 
 private:
-  constexpr static int N_MAX_CIRCLES = 100;
   constexpr static int max_quad = 2000;
   constexpr static int max_quad_vert_count = max_quad * 4;
   constexpr static int max_quad_index_count = max_quad * 6;

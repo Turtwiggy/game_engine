@@ -6,17 +6,27 @@
 
 out vec4 out_colour;
 
-in vec2 v_uv;
-in vec4 v_colour;
-in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
-in vec2 v_sprite_max; // 22 sprites
-in float v_tex_unit;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
+
+layout(std140) uniform Data {
+  mat4 projection_zoomed;
+  mat4 view;
+  vec2 camera_pos;
+  float time;
+  float zoom;
+  float tilesize;
+};
 
 uniform vec2 viewport_wh;
-uniform vec2 camera_pos;
-uniform float iTime;
-uniform float zoom;
 
 //Calculate the squared length of a vector
 float length2(vec2 p){
@@ -50,12 +60,12 @@ float fworley(vec2 p) {
 	sqrt(
 		sqrt(
 			sqrt(
-				worley(p*5.0 + 0.05*iTime) *
+				worley(p*5.0 + 0.05*time) *
 					sqrt(
-						worley(p * 40.0 + 0.12 + -0.1*iTime)) *
+						worley(p * 40.0 + 0.12 + -0.1*time)) *
 							sqrt(
 								sqrt(
-									worley(p * 100.0 + 0.03*iTime)
+									worley(p * 100.0 + 0.03*time)
 								)
 							)
 						)
@@ -65,6 +75,13 @@ float fworley(vec2 p) {
       
 void main()
 {
+	vec2 v_uv = fs_in.v_uv;
+  vec4 v_colour = fs_in.v_colour;
+  vec2 v_sprite_pos = fs_in.v_sprite_pos;
+  vec2 v_sprite_wh = fs_in.v_sprite_wh;
+  vec2 v_sprite_max = fs_in.v_sprite_max;
+  int index = int(fs_in.v_tex_unit);
+
   vec2 fragCoord = v_uv * viewport_wh;
   vec2 iResolution = viewport_wh;
 	vec2 half_wh = viewport_wh / 2.0;

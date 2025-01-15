@@ -3,12 +3,16 @@
 
 out vec4 out_color;
 
-in vec2 v_uv;
-in vec4 v_colour;
-in vec2 v_sprite_pos;
-in vec2 v_sprite_wh;
-in vec2 v_sprite_max;
-in float v_tex_unit;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
 
 uniform sampler2D scene_0;         // linear main
 uniform sampler2D scene_1; 		 	   // stars
@@ -20,14 +24,20 @@ uniform sampler2D tex_circles;
 uniform sampler2D tex_outline;
 
 uniform float brightness_threshold;
-uniform vec2 camera_pos;
 uniform vec2 viewport_wh;
 uniform bool put_water_behind;
 uniform bool add_grid;
 uniform vec2 uv_offset;
 uniform bool inside_spaceship;
-uniform float tilesize;
-uniform float zoom;
+
+layout(std140) uniform Data {
+  mat4 projection_zoomed;
+  mat4 view;
+  vec2 camera_pos;
+  float time;
+  float zoom;
+  float tilesize;
+};
 
 #define NR_MAX_CIRCLES 100
 
@@ -241,8 +251,15 @@ float AO(float dist, float radius, float intensity)
 
 void main()
 {
-	out_color.a = 1.0f;
+	vec2 v_uv = fs_in.v_uv;
+  vec4 v_colour= fs_in.v_colour;
+  vec2 v_sprite_pos = fs_in.v_sprite_pos;
+  vec2 v_sprite_wh = fs_in.v_sprite_wh;
+  vec2 v_sprite_max = fs_in.v_sprite_max;
+  int index = int(fs_in.v_tex_unit);
 
+	out_color.a = 1.0f;
+	
 	// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
   // iResolution : is a vec2 with an X value of 640 and a Y value of 360
   vec2 fragCoord = (v_uv * viewport_wh);

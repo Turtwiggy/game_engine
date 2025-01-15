@@ -12,7 +12,6 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/renderer/lights/components.hpp"
 
 #include "engine/deps/opengl.hpp"
 #include "engine/opengl/framebuffer.hpp"
@@ -58,12 +57,8 @@ setup_water_update(entt::registry& r)
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     ri.water.bind();
-    ri.water.set_mat4("view", camera_c.view);
-    ri.water.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-    ri.water.set_float("zoom", camera_c.zoom_nonlinear);
 
     {
       ri.renderer.reset_quad_vert_count();
@@ -93,12 +88,6 @@ setup_debris_update(entt::registry& r)
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-
-    ri.debris.bind();
-    ri.debris.set_mat4("view", camera_c.view);
-    ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-    ri.debris.set_float("zoom", camera_c.zoom_nonlinear);
 
     {
       ri.renderer.reset_quad_vert_count();
@@ -126,9 +115,6 @@ setup_floor_mask_update(entt::registry& r)
   pass.update = [](entt::registry& r) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto& camera_c = get_first_component<OrthographicCamera>(r);
-
-    ri.instanced.bind();
-    ri.instanced.set_mat4("view", camera_c.view);
 
     // Render floor quads in to floor-mask texture.
     engine::LinearColour mask_colour = engine::LinearColour(1.0f, 1.0f, 1.0f, 1.0f);
@@ -178,10 +164,6 @@ setup_linear_main_update(entt::registry& r)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
-
-    ri.instanced.bind();
-    ri.instanced.set_mat4("view", camera_c.view);
-    ri.instanced.set_mat4("projection", camera_c.projection_zoomed);
 
     // set the positions of the units with circles units & update TBO
     const int N_MAX_CIRCLES = 100;
@@ -270,10 +252,6 @@ setup_sprites_to_outline_update(entt::registry& r)
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
-    ri.instanced.bind();
-    ri.instanced.set_mat4("view", camera_c.view);
-    ri.instanced.set_mat4("projection", camera_c.projection_zoomed);
-
     ri.renderer.reset_quad_vert_count();
     ri.renderer.begin_batch();
     const auto& view = r.view<const TransformComponent, const SpriteComponent, const SpriteOutline>();
@@ -311,13 +289,8 @@ setup_outline_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     ri.outline.bind();
-    ri.outline.set_mat4("projection", camera_c.projection);
-    ri.outline.set_float("zoom", camera_c.zoom_nonlinear);
 
     render_fullscreen_quad(r, ri.outline, ri.viewport_size_render_at);
 
@@ -545,32 +518,8 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 
   pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    static float brightness_threshold = 0.80f;
 
     engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
-
-    // #if defined(_DEBUG)
-    //     imgui_draw_float("brightness_threshold", brightness_threshold);
-    // #endif
-
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-
-    // update uniforms
-    ri.mix_lighting_and_scene.bind();
-
-    const glm::vec2 mouse_raw = get_mouse_pos() - ri.viewport_pos;
-    ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-    // ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
-
-    if (camera_c.zoom_nonlinear != 0.0f)
-      ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
-
-    if (get_first<Effect_GridComponent>(r) != entt::null) {
-      const auto& grid_c = get_first_component<Effect_GridComponent>(r);
-      ri.mix_lighting_and_scene.set_float("tilesize", (float)grid_c.gridsize);
-    }
 
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };
@@ -589,8 +538,6 @@ setup_crt_effect_update(entt::registry& r)
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-
-    ri.crt.bind();
 
     render_fullscreen_quad(r, ri.crt, ri.viewport_size_render_at);
   };

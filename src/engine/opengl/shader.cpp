@@ -201,7 +201,7 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
       // SDL_Log("generated: %s", generated.c_str());
       code.replace(pos1, key1.length(), generated);
 
-      SDL_Log("%s", code.c_str());
+      // SDL_Log("%s", code.c_str());
     }
   }
 
@@ -270,7 +270,8 @@ Shader::set_uint(const std::string& name, unsigned int value) const
 void
 Shader::set_float(const std::string& name, float value) const
 {
-  glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+  const auto loc = glGetUniformLocation(ID, name.c_str());
+  glUniform1f(loc, value);
 }
 void
 Shader::set_vec2(const std::string& name, const glm::vec2& value) const
@@ -352,6 +353,13 @@ Shader::set_compute_buffer_bind_location(const std::string& name)
   int location = get_compute_buffer_bind_location(name);
 
   glShaderStorageBlockBinding(ID, index, location);
+}
+
+void
+Shader::set_uniform_block_binding(const std::string& uniform_name, int binding)
+{
+  unsigned int idx = glGetUniformBlockIndex(ID, uniform_name.c_str());
+  glUniformBlockBinding(ID, idx, binding);
 }
 
 } // namespace engine

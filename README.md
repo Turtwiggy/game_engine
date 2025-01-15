@@ -20,6 +20,8 @@ git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
+or
+thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-mingw-static.txt
 ```
 
 Mac

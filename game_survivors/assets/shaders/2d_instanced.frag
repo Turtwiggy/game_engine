@@ -3,12 +3,16 @@
 
 out vec4 out_colour;
 
-in vec2 v_uv;
-in vec4 v_colour;
-in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
-in vec2 v_sprite_max; // 22 sprites
-in float v_tex_unit;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
 
 // this key is replaced by the engine with
 // e.g. "uniform sampler2D tex_monochrome_transparent_packed"
@@ -93,7 +97,12 @@ vec4 tex2dss(sampler2D tex, vec2 uv, float bias, float aascale)
 void
 main()
 {
-  int index = int(v_tex_unit);
+  vec2 v_uv = fs_in.v_uv;
+  vec4 v_colour= fs_in.v_colour;
+  vec2 v_sprite_pos = fs_in.v_sprite_pos;
+  vec2 v_sprite_wh = fs_in.v_sprite_wh;
+  vec2 v_sprite_max = fs_in.v_sprite_max;
+  int index = int(fs_in.v_tex_unit);
 
   // A spritesheet texture
   {

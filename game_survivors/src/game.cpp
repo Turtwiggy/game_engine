@@ -68,6 +68,10 @@
 #include <steam/steam_api.h>
 #include <steam/steam_api_common.h>
 
+#if defined(_MSC_VER)
+#include <optick.h>
+#endif
+
 namespace game2d {
 using namespace std::literals;
 
@@ -160,6 +164,10 @@ duplicate_held_input(SINGLE_FixedUpdateInputHistory& fixed_input)
 void
 fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
+#if defined(_MSC_VER)
+  OPTICK_EVENT();
+#endif
+
   auto& input = get_first_component<SINGLE_InputComponent>(r);
   auto& fixed_input = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
 
@@ -200,6 +208,10 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
 void
 update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
+#if defined(_MSC_VER)
+  OPTICK_EVENT();
+#endif
+
   const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   const float dt = milliseconds_dt / 1000.0f;
   const auto mouse_pos = mouse_position_in_worldspace(r);
@@ -209,7 +221,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   SteamAPI_RunCallbacks();
   update_input_system(app, r); // sets update_since_last_fixed_update
   update_steam_input(r);
-
   update_camera_system(r, dt);
   update_audio_system(r);
   update_events_system(r); // dispatch events
