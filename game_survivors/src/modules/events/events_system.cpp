@@ -22,8 +22,8 @@ init_events_system(entt::registry& r)
   // link event => function
   // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_apply_pull>(r);
   // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_apply_push>(r);
+  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
-  ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_item>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_enemy_coll>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_xp>(r);

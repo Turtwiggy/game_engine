@@ -48,4 +48,9 @@ struct SetTransformRotationBasedOnPhysicsBody
   bool placeholder = true;
 };
 
+struct SetTransformRotationBasedOnPhysicsVelocity
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

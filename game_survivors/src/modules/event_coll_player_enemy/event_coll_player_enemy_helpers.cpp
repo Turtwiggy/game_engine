@@ -27,6 +27,32 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
 
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
+  const auto& item_c = r.get<Item>(enemy_e);
+  std::string exlosive_trait = "explode";
+  if (item_c.traits.has_value()) {
+    auto find_trait = [&](const Trait& t) { return t.key == exlosive_trait; };
+    auto it = std::find_if(item_c.traits.value().begin(), item_c.traits.value().end(), find_trait);
+    if (it != item_c.traits.value().end()) {
+      //
+      // You've collided with an enemy that explodes
+      // Kill the enemy, and that should trigger the
+      // explode-on-death callback
+      //
+      const auto& hp_c = r.get<HealthComponent>(enemy_e);
+
+      DamageEvent evt;
+      evt.from = entt::null;
+      evt.to = enemy_e;
+      evt.type = DamageType::PHYSICAL;
+      evt.amount = hp_c.max_hp;
+      evt.traits = {};
+      evts_c.dispatcher->trigger(evt);
+      evts_c.dispatcher->update();
+
+      return;
+    }
+  }
+
   DamageEvent evt;
   evt.from = enemy_e;
   evt.to = player_e;
@@ -41,6 +67,8 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   const auto& enemy_phys = r.get<PhysicsBodyComponent>(enemy_e);
 
   // ding ding, you hit. now stop and move away
+  // This sets the velocity this frame,
+  // but then gets taken over by physics again
   enemy_phys.body->SetLinearVelocity(50.0f * b2Vec2{ dir.x, dir.y });
 };
 

@@ -178,7 +178,7 @@
       "display_name": "Bullet",
       "display_desc": "Ballistic material",
       "renderable": { "sprite": "EMPTY", "colour": "white" },
-      "physics_desc": { "is_sensor": true },
+      "physics_desc": { "is_sensor": true, "is_bullet": true },
       "combat": { "damage": 3, "range": 2, "type": "unknown" }
     },
     // {

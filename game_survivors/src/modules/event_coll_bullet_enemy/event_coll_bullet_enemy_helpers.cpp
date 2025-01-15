@@ -1,8 +1,6 @@
 #include "event_coll_bullet_enemy_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
-#include "event_coll_bullet_enemy_components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_Damage/event_damage_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"

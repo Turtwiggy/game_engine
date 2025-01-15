@@ -146,18 +146,23 @@ struct PhysicsDesc
 {
   bool is_sensor = false;
   std::optional<bool> is_static = std::nullopt;
+  std::optional<bool> is_bullet = std::nullopt;
 
   friend void to_json(nlohmann ::json& j, const PhysicsDesc& val)
   {
     j["is_sensor"] = val.is_sensor;
     if (j.contains("is_static"))
       j["is_static"] = val.is_static.value();
+    if (j.contains("is_bullet"))
+      j["is_bullet"] = val.is_bullet.value();
   }
   friend void from_json(const nlohmann ::json& j, PhysicsDesc& val)
   {
     j.at("is_sensor").get_to(val.is_sensor);
     if (j.contains("is_static"))
       j.at("is_static").get_to(val.is_static.emplace());
+    if (j.contains("is_bullet"))
+      j.at("is_bullet").get_to(val.is_bullet.emplace());
   };
 };
 

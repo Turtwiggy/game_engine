@@ -18,6 +18,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
+#include "modules/system_enemy_projectile/enemy_projectile_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
@@ -144,6 +145,9 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     pdesc.size = { size.x, size.y };
     pdesc.is_sensor = t.physics_desc->is_sensor;
 
+    if (t.physics_desc->is_bullet.has_value())
+      pdesc.is_bullet = t.physics_desc->is_bullet.value();
+
     if (t.physics_desc->is_static.has_value()) {
       const bool is_static = t.physics_desc->is_static.value();
       if (is_static)
@@ -202,12 +206,7 @@ spawn(entt::registry& r, const std::string& key)
         //
       }
       if (trait.key == "projectile") {
-        ApplyForceToDynamicTarget tgt_c;
-        tgt_c.orbit = true;
-        tgt_c.reduce_thrusters = true;
-        tgt_c.distance_to_reduce_thrust = 400;
-        tgt_c.speed = 100.0f;
-        r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
+        add_projectile_enemy_components(r, e);
       }
       if (trait.key == "explode") {
         add_explode_on_death_callback(r, e);

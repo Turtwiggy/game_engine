@@ -4,6 +4,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
@@ -98,7 +99,8 @@ update_autofire_system(entt::registry& r)
     if (nearest_e == entt::null)
       continue;
 
-    const auto dir = get_position(r, nearest_e) - get_position(r, wep_e);
+    const auto raw_dir = get_position(r, nearest_e) - get_position(r, wep_e);
+    const auto nrm_dir = engine::normalize_safe(raw_dir);
 
     int bullet_damage = r.get<BulletDamage>(parent_c.parent).dmg;
 
@@ -112,7 +114,7 @@ update_autofire_system(entt::registry& r)
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
-    body_c.body->SetLinearVelocity({ body_c.base_speed * dir.x, body_c.base_speed * dir.y });
+    body_c.body->SetLinearVelocity({ body_c.base_speed * nrm_dir.x, body_c.base_speed * nrm_dir.y });
   }
 }
 

@@ -247,6 +247,9 @@ update_ui_hierarchy_system(entt::registry& r)
         bool is_sensor = fixture->IsSensor();
         imgui_draw_bool("Physics Fixture: is_sensor", is_sensor);
       }
+
+      bool is_bullet = pb->body->IsBullet();
+      imgui_draw_bool("Physics: is_bullet", is_bullet);
     }
 
     if (auto* sc = r.try_get<SpriteComponent>(eid)) {

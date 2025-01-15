@@ -55,6 +55,17 @@ spawn_enemy(entt::registry& r, std::string key, int hp)
   return e;
 };
 
+std::unordered_map<std::string, int>
+get_live_enemies_map(entt::registry& r)
+{
+  // How many of each enemies do we currently have?
+  const auto& enemies_view = r.view<EnemyComponent, Item>();
+  std::unordered_map<std::string, int> enemy_to_amount;
+  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
+    enemy_to_amount[item_c.name] += 1;
+  return enemy_to_amount;
+}
+
 void
 update_spawner_system(entt::registry& r)
 {
@@ -65,11 +76,7 @@ update_spawner_system(entt::registry& r)
   const auto& survive_timer_c = r.get<CooldownComponent>(survive_e);
   const int seconds_from_start = survive_timer_c.time_max - (int)survive_timer_c.time;
 
-  // How many of each enemies do we currently have?
-  const auto& enemies_view = r.view<EnemyComponent, Item>();
-  std::unordered_map<std::string, int> enemy_to_amount;
-  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
-    enemy_to_amount[item_c.name] += 1;
+  auto enemy_to_amount = get_live_enemies_map(r);
 
   const auto& view = r.view<CooldownComponent, const EnemySpawnData>();
   for (const auto& [spawner_e, cooldown_c, spawn_data] : view.each()) {

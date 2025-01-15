@@ -305,8 +305,8 @@
     { "name": "SPACE_VEHICLE_1", "frames": [ { "x": 12, "y": 21 } ], "angle": -90.0 },
     { "name": "SPACE_VEHICLE_2", "frames": [ { "x": 13, "y": 21 } ], "angle": 90.0 },
     { "name": "SPACE_VEHICLE_3", "frames": [ { "x": 14, "y": 21 } ] },
-    { "name": "FIREWORK", "frames": [ { "x": 32, "y": 21 } ] },
-    { "name": "ROCKET_1", "frames": [ { "x": 33, "y": 21 } ] },
-    { "name": "ROCKET_2", "frames": [ { "x": 34, "y": 21 } ] }
+    { "name": "FIREWORK", "frames": [ { "x": 32, "y": 21 } ], "angle": -45.0 },
+    { "name": "ROCKET_1", "frames": [ { "x": 33, "y": 21 } ], "angle": -45.0 },
+    { "name": "ROCKET_2", "frames": [ { "x": 34, "y": 21 } ], "angle": -45.0 }
   ]
 }

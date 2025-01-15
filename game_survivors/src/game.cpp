@@ -33,6 +33,7 @@
 #include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
+#include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -247,6 +248,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_spawn_particles_on_death_system(r);
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);
+    update_enemy_projectile_system(r);
   }
 
   update_ui_fps_counter_system(r);

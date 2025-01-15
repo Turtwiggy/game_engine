@@ -2,6 +2,7 @@
 
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 
 namespace game2d {
@@ -43,6 +44,16 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
       r.view<const PhysicsBodyComponent, TransformComponent, const SetTransformRotationBasedOnPhysicsBody>();
     for (const auto& [e, body_c, transform_c, req_c] : view.each()) {
       const float angle = body_c.body->GetAngle();
+      transform_c.rotation_radians.z = angle;
+    }
+  }
+  {
+    const auto& view =
+      r.view<const PhysicsBodyComponent, TransformComponent, const SetTransformRotationBasedOnPhysicsVelocity>();
+    for (const auto& [e, body_c, transform_c, req_c] : view.each()) {
+      const auto vel = body_c.body->GetLinearVelocity();
+      const auto dir = engine::normalize_safe({ vel.x, vel.y });
+      const auto angle = engine::dir_to_angle_radians({ dir.x, dir.y });
       transform_c.rotation_radians.z = angle;
     }
   }
