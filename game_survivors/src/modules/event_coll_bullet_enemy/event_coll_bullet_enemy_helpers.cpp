@@ -10,7 +10,14 @@ namespace game2d {
 void
 handle_bullet_enemy_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 {
-  const auto [bullet_e, team_e] = collision_of_interest<BulletComponent, TeamComponent>(r, coll_evt.a, coll_evt.b);
+  //
+  // Two fixtures have collided,
+  // If we choose FixtureOrBody::BODY, check the entt components on the body's user data e, not the fixture.
+  // If we choose FixtureOrBody::FIXTURE, check the entt components on the fixture's user data e, not the body.
+  //
+  const auto [bullet_e, team_e] = collision_of_interest<BulletComponent, TeamComponent>(
+    r, coll_evt.a, coll_evt.b, FixtureOrBody::BODY, FixtureOrBody::BODY);
+
   if (bullet_e == entt::null || team_e == entt::null)
     return;
   if (r.get<TeamComponent>(bullet_e).team != AvailableTeams::player)

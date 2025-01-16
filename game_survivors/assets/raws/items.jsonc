@@ -43,13 +43,6 @@
       "inventory": { "size": 30 }
     },
     {
-      "name": "xp",
-      "display_name": "Lootbag",
-      "display_desc": "A default bag of loot",
-      "renderable": { "sprite": "GEM", "colour": "white" },
-      "physics_desc": { "is_sensor": true, "is_static": true }
-    },
-    {
       "name": "duck",
       "display_name": "Angry Duck",
       "display_desc": "Quuack Quack QUACK >:(",
@@ -173,14 +166,7 @@
       "commerce": { "value": 10 }
       // "tier": "sCrap"
     },
-    {
-      "name": "bullet_default",
-      "display_name": "Bullet",
-      "display_desc": "Ballistic material",
-      "renderable": { "sprite": "EMPTY", "colour": "white" },
-      "physics_desc": { "is_sensor": true, "is_bullet": true },
-      "combat": { "damage": 3, "range": 2, "type": "unknown" }
-    },
+
     // {
     //   "name": "bullet_bouncy",
     //   "display_name": "[Bouncy] Bullet)",
@@ -192,39 +178,65 @@
     // Header: actors
     //
     {
+      "name": "bullet_default",
+      "display_name": "Bullet",
+      "display_desc": "Ballistic material",
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
+      "combat": { "damage": 3, "range": 2, "type": "unknown" },
+      "phys_body": { "is_bullet": true, "is_static": false },
+      "phys_fixtures": [ { "tag": "bullet", "type": "box", "is_sensor": true } ]
+    },
+    {
+      "name": "xp",
+      "display_name": "XP",
+      "display_desc": "Delicious experience. num num num num.",
+      "renderable": { "sprite": "GEM", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "xp", "type": "box", "is_sensor": true } ]
+    },
+    {
       "name": "actor_player",
       "renderable": { "sprite": "hull_dinghy", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
-      "physics_desc": { "is_sensor": false }
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [
+        { "tag": "player", "type": "box", "is_sensor": false },
+        { "tag": "xp_zone", "type": "circle", "radius": 50, "is_sensor": true, "density": 0.0 }
+      ]
     },
     {
       "name": "actor_enemy_melee",
       "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
-      "physics_desc": { "is_sensor": false },
-      "traits": [ {"key": "direct" } ]
+      "traits": [ {"key": "direct" } ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "enemy", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_melee_2",
       "renderable": { "sprite": "TURTLE_27_5", "colour": "magenta" },
-      "physics_desc": { "is_sensor": false },
-      "traits": [ {"key": "direct"} ]
+      "traits": [ {"key": "direct"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "enemy", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_exploder",
       "renderable": { "sprite": "CRAB_25_5", "colour": "gold_yellow" },
-      "physics_desc": { "is_sensor": false },
-      "traits": [ {"key": "direct"}, {"key": "explode"} ]
+      "traits": [ {"key": "direct"}, {"key": "explode"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "enemy", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_projectile",
       "renderable": { "sprite": "SNAKE_28_8", "colour": "green" },
-      "physics_desc": { "is_sensor": false },
-      "traits": [ {"key": "projectile"} ]
+      "traits": [ {"key": "projectile"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "enemy", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_rocks",
       "renderable": { "sprite": "TREE_0_1", "colour": "red" },
-      "physics_desc": { "is_sensor": false }
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "rocks", "type": "box", "is_sensor": false } ]
     }
   ],
   "powerups": [

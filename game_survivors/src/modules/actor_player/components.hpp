@@ -18,6 +18,12 @@ struct PlayerComponent
   int idx = 0;
 };
 
+// attached to the player fixture
+struct PlayerFixtureComponent
+{
+  bool placeholder = true;
+};
+
 struct KeyboardComponent
 {
   // input

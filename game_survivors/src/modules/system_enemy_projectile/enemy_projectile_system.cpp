@@ -15,6 +15,7 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 
 namespace game2d {
 
@@ -42,12 +43,13 @@ update_enemy_projectile_system(entt::registry& r)
     int bullet_damage = r.get<BulletDamage>(e).dmg;
 
     auto bullet_e = spawn(r, "bullet_default");
-    give_life(r, bullet_e, get_position(r, e), { 12, 12 });
+    give_life(r, bullet_e, get_position(r, e), { 36, 36 });
     r.emplace<TeamComponent>(bullet_e, AvailableTeams::enemy);
     r.get<PhysicsBodyComponent>(bullet_e).base_speed = 50.0f;
-    r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
+    r.emplace<EntityTimedLifecycle>(bullet_e, 10 * 1000);
     set_z_index(r, bullet_e, ZLayer::PROJECTILE);
-    set_sprite(r, bullet_e, "FIREWORK");
+    set_colour(r, bullet_e, hex_to_srgb("#00c420"));
+    // set_sprite(r, bullet_e, "FIREWORK");
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);

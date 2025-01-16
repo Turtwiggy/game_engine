@@ -17,4 +17,10 @@ struct SINGLE_XpComponent
   int level = 1;
 };
 
+// Attached to a fixture to identify it
+struct XpZoneComponent
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

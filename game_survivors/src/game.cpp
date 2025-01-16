@@ -18,6 +18,7 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
+#include "modules/debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/events/events_system.hpp"
 #include "modules/raws/raws_components.hpp"
@@ -63,6 +64,7 @@
 #include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 #include <SDL2/SDL_log.h>
 #include <imgui.h>
@@ -251,6 +253,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_enemy_projectile_system(r);
   }
 
+#if defined(_DEBUG)
+  update_debug_fixtures_system(r);
+#endif
+
   update_ui_fps_counter_system(r);
   update_ui_pause_menu_system(app, r);
   update_ui_worldspace_text_system(r);
@@ -309,12 +315,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
 #if defined(_DEBUG)
   // hack: reload RAWS
-  // note: this doesnt update anything already spawned from raws data
   // const auto& input = get_first_component<SINGLE_InputComponent>(r);
   // if (get_key_down(input, SDL_SCANCODE_9)) {
   //   SDL_Log("%s", std::format("reloading raws...").c_str());
   //   destroy_first<Raws>(r);
   //   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
+  //   move_to_scene_start(r, Scene::menu);
   // }
 #endif
 

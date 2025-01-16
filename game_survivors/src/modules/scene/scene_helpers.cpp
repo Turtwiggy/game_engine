@@ -58,8 +58,15 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
+  r.emplace<BulletDamage>(e); // probably shouldnt be on body
 
-  r.emplace<BulletDamage>(e);
+  // player fixture
+  auto player_fixture_e = get_fixture_by_tag(r, e, "player");
+  r.emplace<PlayerFixtureComponent>(player_fixture_e);
+
+  // xp_zone fixture
+  auto fixture_e = get_fixture_by_tag(r, e, "xp_zone");
+  r.emplace<XpZoneComponent>(fixture_e);
 
   // player weapon
   const auto wep_e = spawn(r, "boat_default_weapon");

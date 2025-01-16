@@ -13,6 +13,7 @@ struct Sprite
   std::string sprite = "EMPTY";
   glm::vec2 pos{ 0, 0 };
   glm::vec2 size{ 0, 0 };
+  float z_rotation = 0.0f;
   ZLayer z_idx = ZLayer::DEFAULT;
   engine::SRGBColour col{ 1.0f, 1.0f, 1.0f, 1.0f };
 };

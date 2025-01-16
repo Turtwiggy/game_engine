@@ -24,6 +24,8 @@
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 
 #include <box2d/b2_body.h>
+#include <box2d/b2_dynamic_tree.h>
+#include <box2d/b2_fixture.h>
 #include <fstream>
 #include <sstream>
 
@@ -76,6 +78,16 @@ get_raws_keys(const Raws& raws)
   return results;
 };
 
+const Item
+find_item(entt::registry& r, std::string key)
+{
+  const auto& rs = get_first_component<Raws>(r);
+  const auto it = find_key_or_crash<Item>(rs.items, key);
+  const auto idx = static_cast<int>(it - rs.items.begin());
+  const auto& templ = rs.items[idx];
+  return templ;
+};
+
 engine::SRGBColour
 colour_tag_to_colour(const Raws& raws, const std::string& col)
 {
@@ -84,10 +96,6 @@ colour_tag_to_colour(const Raws& raws, const std::string& col)
       return hex_to_srgb(c.hex);
   return { 1.0f, 1.0f, 1.0f, 1.0f };
 };
-
-const auto item_body_type = b2_kinematicBody;
-const auto mob_body_type = b2_kinematicBody;
-const auto env_body_type = b2_kinematicBody;
 
 entt::entity
 create_transform(entt::registry& r, const std::string& name)
@@ -103,7 +111,9 @@ void
 give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const glm::vec2& size)
 {
   const auto& raws = get_first_component<Raws>(r);
-  const auto& t = r.get<const Item>(e);
+  const auto key = r.get<ItemKey>(e).key;
+  const auto t = find_item(r, key);
+
   // const auto& name = r.get<NameComponent>(e).name;
   // SDL_Log("Give life: %s", name.c_str());
 
@@ -138,23 +148,110 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
   }
 
   // create_physics()
-  if (t.physics_desc.has_value()) {
-    PhysicsDescription pdesc;
-    pdesc.type = b2_dynamicBody;
-    pdesc.position = pos;
-    pdesc.size = { size.x, size.y };
-    pdesc.is_sensor = t.physics_desc->is_sensor;
+  if (t.phys_body.has_value()) {
+    const auto& my_body_def = t.phys_body.value();
+    auto is_bullet = my_body_def.is_bullet;
+    auto is_static = my_body_def.is_static;
 
-    if (t.physics_desc->is_bullet.has_value())
-      pdesc.is_bullet = t.physics_desc->is_bullet.value();
+    // Create a physics body.
+    //
+    auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
-    if (t.physics_desc->is_static.has_value()) {
-      const bool is_static = t.physics_desc->is_static.value();
-      if (is_static)
-        pdesc.type = b2_staticBody;
+    // Bodies are built using the following steps:
+    // Define a body with position, damping, etc.
+    // Use the world object to create the body.
+    // Define fixtures with a shape, friction, density, etc.
+    // Create fixtures on the body.
+
+    b2BodyDef body_def;
+    body_def.position.Set(pos.x, pos.y);
+    body_def.angle = 0.0f;
+    body_def.fixedRotation = true;
+    body_def.bullet = is_bullet;
+    body_def.type = is_static ? b2_staticBody : b2_dynamicBody;
+    body_def.linearVelocity = b2Vec2_zero;
+    body_def.linearDamping = my_body_def.linear_damping;
+    body_def.angularDamping = my_body_def.angular_damping;
+
+    // box2d: create body
+    b2Body* body = nullptr;
+    body = physics_c.world->CreateBody(&body_def);
+    // SDL_Log("creating physics body..");
+
+    // box2d: give link to entt
+    body->GetUserData().pointer = (uintptr_t)e;
+
+    // entt: create body representation
+    auto& body_c = r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ body });
+
+    if (!t.phys_fixtures.has_value()) {
+      SDL_Log("(Error) phys_body defined, but not phys_fixtures");
+      exit(1);
     }
 
-    create_physics_actor(r, e, pdesc);
+    if (t.phys_fixtures.has_value()) {
+      const auto& fixtures = t.phys_fixtures.value();
+
+      if (fixtures.size() == 0) {
+        SDL_Log("(Error) phys_fixtures size 0 when phys_body defined");
+        exit(1);
+      }
+
+      for (const auto& fix : fixtures) {
+        auto tag = fix.tag;
+        auto type = fix.type;
+        auto is_sensor = fix.is_sensor;
+        auto density = fix.density;
+        auto friction = fix.friction;
+        auto restitution = fix.restitution;
+
+        b2FixtureDef fixture_def;
+        fixture_def.friction = friction;
+        fixture_def.density = density;
+        fixture_def.restitution = restitution;
+        fixture_def.isSensor = is_sensor;
+
+        b2Fixture* fixture = nullptr;
+
+        if (type == "circle") {
+          b2CircleShape circle;
+          circle.m_radius = fix.radius;
+          fixture_def.shape = &circle;
+          fixture = body->CreateFixture(&fixture_def);
+          // SDL_Log("creating circle fixture..");
+        }
+
+        if (type == "box") {
+          b2PolygonShape box;
+          box.SetAsBox(size.x / 2.0f, size.y / 2.0f);
+          fixture_def.shape = &box;
+          fixture = body->CreateFixture(&fixture_def);
+          // SDL_Log("creating box fixture..");
+        }
+
+        if (fixture == nullptr) {
+          SDL_Log("(Error) unknown fixture type: %s", type.c_str());
+          exit(1);
+        }
+
+        // entt: create fixture representation
+        PhysicsFixtureComponent fixture_c;
+        fixture_c.body = body;
+        fixture_c.fixture = fixture;
+        auto fixture_e = create_empty<PhysicsFixtureComponent>(r);
+        r.emplace_or_replace<TagComponent>(fixture_e, fix.tag);
+        r.emplace<HasParentComponent>(fixture_e, e); // link fixture => body
+        body_c.fixtures.push_back(fixture_e);        // link body => fixture
+
+        // box2d: give link to entt
+        fixture->GetUserData().pointer = (uint32)fixture_e;
+      }
+    }
+
+    // While we're creating it, update the transform
+    auto& transform_c = r.get<TransformComponent>(e);
+    transform_c.scale.x = size.x;
+    transform_c.scale.y = size.y;
   }
 
   r.emplace<DefaultSizeComponent>(e, size);
@@ -190,8 +287,9 @@ spawn(entt::registry& r, const std::string& key)
   const auto e = r.create();
   r.emplace<TagComponent>(e, templ.name);
   r.emplace<WaitForInitComponent>(e);
-  r.emplace<Item>(e, templ);
   r.emplace<OnDeathCallbacks>(e);
+  r.emplace<ItemKey>(e, key);
+  // r.emplace<Item>(e, templ);
 
   bool big_explode = false;
 
@@ -229,6 +327,7 @@ spawn(entt::registry& r, const std::string& key)
 
   if (templ.stats.has_value())
     r.emplace<HealthComponent>(e, templ.stats->hp, templ.stats->max_hp);
+
   r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
   r.emplace<InputComponent>(e);
 

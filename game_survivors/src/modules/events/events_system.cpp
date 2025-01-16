@@ -7,7 +7,6 @@
 #include "modules/event_coll_player_item/event_coll_player_item_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
-#include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 
 namespace game2d {
 

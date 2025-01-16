@@ -96,20 +96,24 @@ get_size(entt::registry& r, const entt::entity e)
 void
 set_size(entt::registry& r, const entt::entity e, const glm::vec2& size)
 {
-  if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
-    SDL_Log("Warning; destroying and creating new fixtures for physics object");
+  // WARNING: does not set physics size currently
+  // This is because one entity could have multiple fixtures.
+  // How to correctly resize all fixtures?
+  // Easy case: if 1 fixture, just resize it with size
+  // Hard case: if 1+ fixtures...
 
-    // Destroy all existing fixtures
-    for (b2Fixture* fixture = pb->body->GetFixtureList(); fixture != nullptr;) {
-      b2Fixture* nextFixture = fixture->GetNext();
-      pb->body->DestroyFixture(fixture);
-      fixture = nextFixture;
-    }
-
-    auto& physd = r.get<PhysicsDescription>(e);
-    physd.size = size;
-    create_box_fixture(r, e, pb->body);
-  }
+  // if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
+  //   SDL_Log("Warning; destroying and creating new fixtures for physics object");
+  //   // Destroy all existing fixtures
+  //   for (b2Fixture* fixture = pb->body->GetFixtureList(); fixture != nullptr;) {
+  //     b2Fixture* nextFixture = fixture->GetNext();
+  //     pb->body->DestroyFixture(fixture);
+  //     fixture = nextFixture;
+  //   }
+  //   auto& physd = r.get<PhysicsDescription>(e);
+  //   physd.size = size;
+  //   create_box_fixture(r, e, pb->body);
+  // }
 
   auto& transform = r.get<TransformComponent>(e);
   transform.scale.x = size.x;

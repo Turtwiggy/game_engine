@@ -1,22 +1,40 @@
 #include "event_coll_player_enemy_helpers.hpp"
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_coll_player_item/event_coll_player_item_helpers.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
+#include "modules/raws/raws_components.hpp"
+#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
+#include "modules/system_autofire/autofire_components.hpp"
 
 namespace game2d {
 
 void
 handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_evt)
 {
-  const auto [player_e, enemy_e] = collision_of_interest<PlayerComponent, TeamComponent>(r, coll_evt.a, coll_evt.b);
-  if (player_e == entt::null || enemy_e == entt::null)
+  //
+  // Two fixtures have collided,
+  // If we choose FixtureOrBody::BODY, check the entt components on the body's user data e, not the fixture.
+  // If we choose FixtureOrBody::FIXTURE, check the entt components on the fixture's user data e, not the body.
+  //
+
+  // PlayerFixtureComponent will be on the fixture level
+  // TeamComponent will be on the body level
+  const auto [player_fixture_e, enemy_e] = collision_of_interest<PlayerFixtureComponent, TeamComponent>(
+    r, coll_evt.a, coll_evt.b, FixtureOrBody::FIXTURE, FixtureOrBody::BODY);
+
+  if (player_fixture_e == entt::null || enemy_e == entt::null)
     return;
+
   if (r.get<TeamComponent>(enemy_e).team != AvailableTeams::enemy)
     return;
+
+  auto player_e = r.get<HasParentComponent>(player_fixture_e).parent;
 
   // if the enemy is already colliding with the player, dont damage again
   auto& coll = r.get_or_emplace<CollInfo>(enemy_e).other;
@@ -27,7 +45,30 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
 
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
-  const auto& item_c = r.get<Item>(enemy_e);
+  // You collided with a bullet, not an enemy
+  // Destroy the bullet, damage the player
+  if (auto* bullet_c = r.try_get<BulletComponent>(enemy_e)) {
+
+    // destroy bullet
+    auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+    dead.dead.emplace(enemy_e);
+
+    // damage player
+    DamageEvent evt;
+    evt.from = enemy_e;
+    evt.to = player_e;
+    evt.type = DamageType::PHYSICAL;
+    evt.amount = 1; // TODO: fix bullet_c->damage damage;
+    evt.traits = {};
+    evts_c.dispatcher->trigger(evt);
+    evts_c.dispatcher->update();
+
+    return;
+  }
+
+  const auto key = r.get<ItemKey>(enemy_e).key;
+  const auto item_c = find_item(r, key);
+
   std::string exlosive_trait = "explode";
   if (item_c.traits.has_value()) {
     auto find_trait = [&](const Trait& t) { return t.key == exlosive_trait; };
@@ -75,7 +116,9 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
 void
 handle_player_enemy_coll_exit(entt::registry& r, const OnCollisionExit& coll_evt)
 {
-  const auto [player_e, enemy_e] = collision_of_interest<PlayerComponent, TeamComponent>(r, coll_evt.a, coll_evt.b);
+  const auto [player_e, enemy_e] = collision_of_interest<PlayerFixtureComponent, TeamComponent>(
+    r, coll_evt.a, coll_evt.b, FixtureOrBody::FIXTURE, FixtureOrBody::BODY);
+
   if (player_e == entt::null || enemy_e == entt::null)
     return;
   if (r.get<TeamComponent>(enemy_e).team != AvailableTeams::enemy)

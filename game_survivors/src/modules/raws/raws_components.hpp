@@ -2,8 +2,10 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/physics/components.hpp"
 #include "modules/system_particles/components.hpp"
 
+#include <box2d/b2_fixture.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <nlohmann/detail/macro_scope.hpp>
@@ -142,33 +144,14 @@ struct Trait
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Trait, key);
 };
 
-struct PhysicsDesc
-{
-  bool is_sensor = false;
-  std::optional<bool> is_static = std::nullopt;
-  std::optional<bool> is_bullet = std::nullopt;
-
-  friend void to_json(nlohmann ::json& j, const PhysicsDesc& val)
-  {
-    j["is_sensor"] = val.is_sensor;
-    if (j.contains("is_static"))
-      j["is_static"] = val.is_static.value();
-    if (j.contains("is_bullet"))
-      j["is_bullet"] = val.is_bullet.value();
-  }
-  friend void from_json(const nlohmann ::json& j, PhysicsDesc& val)
-  {
-    j.at("is_sensor").get_to(val.is_sensor);
-    if (j.contains("is_static"))
-      j.at("is_static").get_to(val.is_static.emplace());
-    if (j.contains("is_bullet"))
-      j.at("is_bullet").get_to(val.is_bullet.emplace());
-  };
-};
-
 //
 // categories in the raw files...
 //
+
+struct ItemKey
+{
+  std::string key;
+};
 
 struct Item
 {
@@ -182,7 +165,8 @@ struct Item
   std::optional<Combat> combat = std::nullopt;
   std::optional<std::vector<Trait>> traits = std::nullopt;
   std::optional<Inventory> inventory = std::nullopt;
-  std::optional<PhysicsDesc> physics_desc = std::nullopt;
+  std::optional<PhysicsBodyDef> phys_body = std::nullopt;
+  std::optional<std::vector<PhysicsFixtureDef>> phys_fixtures = std::nullopt;
   // std::optional<Bullet> bullet = std::nullopt;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Item,
@@ -196,7 +180,8 @@ struct Item
                                               combat,
                                               traits,
                                               inventory,
-                                              physics_desc);
+                                              phys_body,
+                                              phys_fixtures);
 };
 
 struct Colour
@@ -228,6 +213,9 @@ load_raws(std::string path);
 
 std::vector<std::string>
 get_raws_keys(const Raws& raws);
+
+const Item
+find_item(entt::registry& r, std::string key);
 
 entt::entity
 create_transform(entt::registry& r, const std::string& name);

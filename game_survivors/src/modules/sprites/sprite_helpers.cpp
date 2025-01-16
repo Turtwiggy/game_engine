@@ -3,6 +3,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/entity_pool.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/renderer/transform.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/renderer/helpers.hpp"
 
@@ -54,6 +55,7 @@ draw_sprite(entt::registry& r, const Sprite& desc)
   set_size(r, e, desc.size);
   set_z_index(r, e, desc.z_idx);
   set_colour(r, e, desc.col);
+  r.get<TransformComponent>(e).rotation_radians.z = desc.z_rotation;
 };
 
 } // namespace game2d

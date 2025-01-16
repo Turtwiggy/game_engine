@@ -55,66 +55,22 @@ emplace_or_replace_physics_world(entt::registry& r)
   r.emplace<Persistent>(get_first<SINGLE_Physics>(r));
 };
 
-void
-create_box_fixture(entt::registry& r, entt::entity e, b2Body* body)
+entt::entity
+get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
 {
-  const auto& desc = r.get<PhysicsDescription>(e);
-
-  b2PolygonShape box;
-  box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
-
-  // b2CircleShape circle;
-  // circle.m_radius = desc.size.x / 2.0f;
-
-  b2FixtureDef fixture_def;
-  fixture_def.friction = desc.friction;
-  fixture_def.density = desc.density;
-  fixture_def.restitution = desc.restitution;
-  fixture_def.shape = &box;
-  fixture_def.isSensor = desc.is_sensor;
-  body->CreateFixture(&fixture_def);
-}
-
-void
-create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescription& desc)
-{
-  r.emplace<PhysicsDescription>(e, desc);
-
-  auto& physics_c = get_first_component<SINGLE_Physics>(r);
-
-  // Bodies are built using the following steps:
-  // Define a body with position, damping, etc.
-  // Use the world object to create the body.
-  // Define fixtures with a shape, friction, density, etc.
-  // Create fixtures on the body.
-  b2Body* body = nullptr;
-
-  // create a body
-  {
-    b2BodyDef body_def;
-    body_def.position.Set(desc.position.x, desc.position.y);
-    body_def.angle = 0.0f;
-    body_def.fixedRotation = true;
-    body_def.bullet = desc.is_bullet;
-    body_def.type = desc.type;
-    body_def.linearVelocity = b2Vec2_zero;
-    body_def.linearDamping = desc.linear_damping;
-    body_def.angularDamping = desc.angular_damping;
-    body = physics_c.world->CreateBody(&body_def);
-
-    // set user data as the entity id
-    body->GetUserData().pointer = (uintptr_t)e;
+  const auto& body_c = r.get<PhysicsBodyComponent>(e);
+  for (const auto& fix_e : body_c.fixtures) {
+    const auto& fix_c = r.get<PhysicsFixtureComponent>(fix_e);
+    const auto* b2_fixture = fix_c.fixture;
+    const auto& fix_tag = r.get<TagComponent>(fix_e);
+    if (fix_tag.tag == tag)
+      return fix_e;
   }
 
-  // create a fixture
-  create_box_fixture(r, e, body);
+  SDL_Log("missing get_fixture_by_tag(): %s", tag.c_str());
+  exit(1); // explode
 
-  r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ body });
-
-  // While we're creating it, update the transform
-  auto& transform_c = r.get<TransformComponent>(e);
-  transform_c.scale.x = desc.size.x;
-  transform_c.scale.y = desc.size.y;
+  return entt::null;
 };
 
 /*
