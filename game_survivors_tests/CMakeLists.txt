@@ -35,6 +35,22 @@ add_executable(game_survivors_tests ${TEST_SRC_FILES})
 
 link_libs(game_survivors_tests)
 
+# Link steam api
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  # Link steam_api[64].lib
+  set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
+  target_link_libraries(game_survivors_tests PRIVATE ${steam_lib}/steam_api64.lib)
+
+  # Copy the .dll next to the .exe
+  message("Copying steam .dll next to .exe")
+  set(dst ${CMAKE_CURRENT_BINARY_DIR})
+  add_custom_command(TARGET game_survivors_tests PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${steam_lib}/steam_api64.dll
+    $<TARGET_FILE_DIR:game_survivors>
+  )
+endif()
+
 target_link_libraries(game_survivors_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 
 target_include_directories(game_survivors_tests PRIVATE
@@ -48,6 +64,7 @@ target_include_directories(game_survivors_tests PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
+  ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -103,17 +120,53 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE STREQUAL "Debug")
   # )
 endif()
 
-message("creating symlink...")
-set(src ${CMAKE_SOURCE_DIR}/game_survivors/assets)
-set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-message("creating symlink src... ${src}")
-message("creating symlink dst... ${dst}")
-add_custom_command(
-  TARGET ${PROJECT_NAME} PRE_BUILD
-  COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-  DEPENDS ${dst}
-  COMMENT "symbolic link resources folder from ${src} => ${dst}"
-)
+# Create symlink for assets only in debug mode.
+# This is due to the way I've implemented github
+# actions for building release. Github actins will
+# copy over the /assets folder in the release mode,
+# and would fail if this symlink was created here.
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  message("creating symlink...")
+  set(src ${CMAKE_SOURCE_DIR}/game_survivors/assets)
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/Debug/assets)
+  else()
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+  endif()
+
+  message("creating symlink src... ${src}")
+  message("creating symlink dst... ${dst}")
+
+  if(UNIX)
+    message("creating symlink... (unix)")
+    add_custom_command(
+      TARGET ${PROJECT_NAME} PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+      DEPENDS ${dst_sym}
+      COMMENT "symbolic link resources folder from ${src} => ${dst}"
+    )
+  else()
+    message("creating symlink... (windows)")
+    file(TO_NATIVE_PATH "${src}" _srcDir)
+    file(TO_NATIVE_PATH "${dst}" _dstDir)
+
+    if(NOT EXISTS ${_dstDir})
+      # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink
+      # mklink [[/d] | [/h] | [/j]] <link> <target>
+      # <link>	Specifies the name of the symbolic link being created.
+      # <target>	Specifies the path (relative or absolute) that the new symbolic link refers to.
+      #
+      add_custom_command(
+        TARGET ${PROJECT_NAME} PRE_BUILD
+        COMMAND cmd.exe /c mklink /D "${_dstDir}" "${_srcDir}"
+        COMMENT "Creating symlink on Windows"
+      )
+    ELSE()
+      message("creating symlink... (already exists)")
+    ENDIF()
+  ENDIF()
+ENDIF()
 
 # If COMMAND specifies an executable target (created by add_executable)
 # it will automatically be replaced by the location of the executable

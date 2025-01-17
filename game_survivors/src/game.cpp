@@ -16,6 +16,7 @@
 #include "modules/camera/camera_system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/combat_draw_hardpoint_arcs/ship_draw_arcs_system.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
 #include "modules/debug_physics_fixtures/debug_fixtures_system.hpp"
@@ -64,7 +65,6 @@
 #include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
-
 
 #include <SDL2/SDL_log.h>
 #include <imgui.h>
@@ -253,6 +253,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_enemy_projectile_system(r);
   }
 
+  update_ship_draw_arcs_system(r);
+
 #if defined(_DEBUG)
   update_debug_fixtures_system(r);
 #endif
@@ -285,11 +287,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
 #if defined(_DEBUG)
   static bool show_settings_ui = true;
-  update_ui_debug_menubar_system(r);
 #else
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
+    // update_ui_debug_menubar_system(r);
+
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
 
     auto demo_state = gesert_menubar_state(menu_c, "ImGui Demo");
@@ -308,9 +311,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     if (sdl2_input_state.enabled)
       update_ui_input_system(r);
 
+    auto ui_steam_state = gesert_menubar_state(menu_c, "Steam");
+    if (ui_steam_state.enabled)
+      update_ui_steam_input_system(r);
+
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
-    update_ui_steam_input_system(r);
   }
 
 #if defined(_DEBUG)

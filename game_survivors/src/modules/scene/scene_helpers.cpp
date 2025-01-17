@@ -30,8 +30,6 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
-#include "modules/ui_lootbag/ui_lootbag_components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
@@ -105,8 +103,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   create_empty<SINGLE_GameStateComponent>(r);
   create_empty<SINGLE_InputComponent>(r);
   create_empty<SINGLE_ScreenshakeComponent>(r);
-  create_empty<SINGLE_UIInventoryState>(r);
-  create_empty<SINGLE_UI_Lootbag>(r);
   create_empty<SINGLE_ImSprite>(r);
   begin_frame_sprite(r); // initialize cached for sprites
 

@@ -4,9 +4,9 @@
 
 namespace game2d {
 
-struct SelectedComponent
+struct CollInfo
 {
-  bool placeholder = true;
+  std::set<entt::entity> other;
 };
 
 } // namespace game2d

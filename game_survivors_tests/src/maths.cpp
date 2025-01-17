@@ -31,3 +31,38 @@ TEST(TestSuite, DirToAngle)
   ASSERT_NEAR(angle2, 1.0f * engine::PI, epsilon);
   ASSERT_NEAR(angle3, 1.5f * engine::PI, epsilon);
 };
+
+TEST(TestSuite, AngleFlipYAxis)
+{
+  // note: all inputs on the positive y axis scale,
+  // so that 90 degrees is the y-axis up,
+  // and that the 270 degrees is the y-axis down.
+
+  // convert angles to the engine angles,
+  // where y-axis down is 90, and y-axis up is 270
+
+  // arrange & act
+  const auto angle_45 = engine::angle_degrees_flip_y_axis(-45);
+  const auto angle0 = engine::angle_degrees_flip_y_axis(0);
+  const auto angle45 = engine::angle_degrees_flip_y_axis(45);
+  const auto angle90 = engine::angle_degrees_flip_y_axis(90);
+  const auto angle135 = engine::angle_degrees_flip_y_axis(135);
+  const auto angle180 = engine::angle_degrees_flip_y_axis(180);
+  const auto angle225 = engine::angle_degrees_flip_y_axis(225);
+  const auto angle270 = engine::angle_degrees_flip_y_axis(270);
+  const auto angle315 = engine::angle_degrees_flip_y_axis(315);
+  const auto angle360 = engine::angle_degrees_flip_y_axis(360);
+
+  // assert
+  const float epsilon = 0.001f;
+  ASSERT_NEAR(angle_45, 45, epsilon);
+  ASSERT_NEAR(angle0, 0, epsilon);
+  ASSERT_NEAR(angle45, 315, epsilon);
+  ASSERT_NEAR(angle90, 270, epsilon);
+  ASSERT_NEAR(angle135, 225, epsilon);
+  ASSERT_NEAR(angle180, 180, epsilon);
+  ASSERT_NEAR(angle225, 135, epsilon);
+  ASSERT_NEAR(angle270, 90, epsilon);
+  ASSERT_NEAR(angle315, 45, epsilon);
+  ASSERT_NEAR(angle360, 0, epsilon);
+};

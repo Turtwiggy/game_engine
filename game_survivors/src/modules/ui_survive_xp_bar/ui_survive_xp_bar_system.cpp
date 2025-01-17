@@ -19,18 +19,19 @@ update_ui_survive_xp_bar_system(entt::registry& r)
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoSavedSettings;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   flags |= ImGuiWindowFlags_NoInputs;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  flags |= ImGuiWindowFlags_NoBackground;
+  // flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
-  const auto size = ImVec2(ri.viewport_size_render_at.x, 40);
-  const auto size_half_y = ImVec2{ size.x, size.y / 2.0f };
+  const float offset_y = 0;
+  const auto bar_height = 16;
+  const auto window_size = ImVec2(ri.viewport_size_render_at.x, 100);
 
-  ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
-  ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+  ImGui::SetNextWindowPos({ 0, offset_y }, ImGuiCond_Always, { 0.0f, 0.0f });
+  ImGui::SetNextWindowSize(window_size, ImGuiCond_Always);
 
   // data
   const int current_xp = sxp_c.xp;
@@ -38,16 +39,34 @@ update_ui_survive_xp_bar_system(entt::registry& r)
   const float progress = current_xp / max_xp;
 
   // Define colors for the XP bar
-  const ImU32 bg = IM_COL32(50, 50, 50, 255);
-  const ImU32 fg = IM_COL32(100, 200, 100, 255);
+  const ImU32 bg = ImColor(50, 50, 50, 255);
+  const ImU32 fg = ImColor(100, 200, 100, 255);
   const auto text_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+  const float r_adj = 25;
+  const float l_adj = 5;
+  // imgui_draw_float("debug r_adj", r_adj);
+  // imgui_draw_float("debug l_adj", l_adj);
 
   ImGui::Begin("XPbar", NULL, flags);
 
+  ImVec2 spos = ImGui::GetCursorScreenPos();
+  spos.x += l_adj;
+
+  // note: upper-left & lower right corners
+  const auto p_min = spos;
+  // const auto partial = ImVec2(spos.x + window_size.x * progress, spos.y + bar_height);
+
+  auto p_max = ImVec2(p_min.x + window_size.x - r_adj, p_min.y + bar_height);
+  // p_max.y -=f;
+
+  // const auto partial = ImVec2(p_min.x + 50, p_min.y + 100);
+
+  // const ImDrawFlags corners_tl_br = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
+  const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  const ImVec2 spos = ImGui::GetCursorScreenPos();
-  draw_list->AddRectFilled(spos, ImVec2(spos.x + size.x, spos.y + size_half_y.y), bg, 4.0f);
-  draw_list->AddRectFilled(spos, ImVec2(spos.x + size.x * progress, spos.y + size_half_y.y), fg, 4.0f);
+  draw_list->AddRectFilled(p_min, p_max, bg, 10.0f, corners); // background bar
+  // draw_list->AddRectFilled(p_min, partial, fg, 10.0f, corners_tl_br); // foreground bar
 
   {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -62,7 +81,7 @@ update_ui_survive_xp_bar_system(entt::registry& r)
     float off = (avail - text_size_x) * alignment;
     if (off > 0.0f)
       ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-    ImGui::SetCursorPosY(size_half_y.y + (0.5f * text_size_y)); // below bar
+    ImGui::SetCursorPosY(bar_height + 0.5f * text_size_y); // below bar
 
     ImGui::TextColored(text_col, "%s", label.c_str());
   }

@@ -1,4 +1,5 @@
 #include "event_coll_player_enemy_helpers.hpp"
+
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -6,7 +7,7 @@
 #include "engine/physics/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/event_coll_player_item/event_coll_player_item_helpers.hpp"
+#include "modules/event_coll/event_coll_components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/resolve_collisions/resolve_collisions_helpers.hpp"

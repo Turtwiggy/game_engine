@@ -4,7 +4,6 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/raws/raws_components.hpp"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "ui_units_components.hpp"
 #include "ui_units_helpers.hpp"
 
@@ -38,8 +37,8 @@ add_unit_to_entt(entt::registry& r, const UnitType& unit)
   auto e = spawn(r, "dungeon_actor_hero");
   r.emplace<PlayerComponent>(e);
   r.emplace<TeamComponent>(e, AvailableTeams::player);
-  r.emplace<DebugBodyAndInventory>(e);
   r.emplace<UnitPersistentState>(e, UnitPersistentState{ unit.active, unit.permadead });
+  // r.emplace<DebugBodyAndInventory>(e);
   // r.emplace_or_replace<NameComponent>(e, NameComponent{ unit.name });
 };
 

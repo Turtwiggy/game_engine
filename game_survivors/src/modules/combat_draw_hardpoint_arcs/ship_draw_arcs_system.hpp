@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_level_up_system(entt::registry& r);
+update_ship_draw_arcs_system(entt::registry& r);
 
 } // namespace game2d

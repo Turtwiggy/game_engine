@@ -1,14 +1,11 @@
 #include "system.hpp"
 
-#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-#include "modules/ui_inventory/ui_inventory_components.hpp"
-#include "modules/ui_inventory/ui_inventory_helpers.hpp"
 
 #include <imgui.h>
 
@@ -45,10 +42,10 @@ update_ui_raws_system(entt::registry& r)
       give_life(r, e, spaceitem_pos);
 
       // hack: add a piece of scrap to a lootbag
-      if (item.name.find("lootbag") != std::string::npos) {
-        auto& inv_c = r.get<DefaultInventory>(e);
-        spawn_inv_item(r, inv_c.inv, 0, "scrap");
-      }
+      // if (item.name.find("lootbag") != std::string::npos) {
+      //   auto& inv_c = r.get<DefaultInventory>(e);
+      //   spawn_inv_item(r, inv_c.inv, 0, "scrap");
+      // }
     }
 
     ImGui::SameLine();
@@ -57,13 +54,13 @@ update_ui_raws_system(entt::registry& r)
       auto player_e = get_first<PlayerComponent>(r);
 
       // add item to the first player
-      auto& inv_c = r.get<DefaultInventory>(player_e);
-      for (size_t i = 0; i < inv_c.inv.size(); i++) {
-        if (r.get<InventorySlotComponent>(inv_c.inv[i]).item_e == entt::null) {
-          spawn_inv_item(r, inv_c.inv, (int)i, item.name);
-          break; // found a free slot
-        }
-      }
+      // auto& inv_c = r.get<DefaultInventory>(player_e);
+      // for (size_t i = 0; i < inv_c.inv.size(); i++) {
+      //   if (r.get<InventorySlotComponent>(inv_c.inv[i]).item_e == entt::null) {
+      //     spawn_inv_item(r, inv_c.inv, (int)i, item.name);
+      //     break; // found a free slot
+      //   }
+      // }
     }
 
     if (item.use.has_value()) {

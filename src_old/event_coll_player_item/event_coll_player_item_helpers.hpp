@@ -6,11 +6,6 @@
 
 namespace game2d {
 
-struct CollInfo
-{
-  std::set<entt::entity> other;
-};
-
 void
 handle_player_enter_item(entt::registry& r, const OnCollisionEnter& evt);
 

@@ -71,6 +71,18 @@ rotate_point(const glm::vec3& point, const float angle_radians)
   };
 };
 
+glm::vec2
+rotate_point(const glm::vec2& point, const float angle_radians)
+{
+  const float cos_angle = std::cos(angle_radians);
+  const float sin_angle = std::sin(angle_radians);
+
+  return {
+    point.x * cos_angle - point.y * sin_angle,
+    point.x * sin_angle + point.y * cos_angle,
+  };
+};
+
 uint64_t
 encode_cantor_pairing_function(int x, int y)
 {
@@ -178,6 +190,17 @@ round_to_nearest_axis(const glm::vec2& v)
 
   // v.x == v.y, face right by default
   return glm::ivec2(1, 0);
+};
+
+float
+angle_degrees_flip_y_axis(float angle_degrees)
+{
+  float flipped_angle = std::fmod(360 - angle_degrees, 360);
+
+  if (flipped_angle < 0.0f)
+    flipped_angle += 360.0f;
+
+  return flipped_angle;
 };
 
 } // namespace engine

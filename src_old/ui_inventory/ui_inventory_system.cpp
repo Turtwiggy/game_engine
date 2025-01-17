@@ -6,7 +6,6 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/system_select_unit/select_unit_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
 

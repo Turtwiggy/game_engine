@@ -1,6 +1,7 @@
 #pragma once
 
 // other library headers
+#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 
 // c++ standard lib headers
@@ -79,6 +80,9 @@ random_in_hemisphere(RandomState& rnd, glm::vec3& normal);
 [[nodiscard]] glm::vec3
 rotate_point(const glm::vec3& point, const float angle_radians);
 
+[[nodiscard]] glm::vec2
+rotate_point(const glm::vec2& point, const float angle_radians);
+
 [[nodiscard]] uint64_t
 encode_cantor_pairing_function(int x, int y);
 
@@ -119,5 +123,8 @@ normalize_safe(const glm::vec3& value);
 
 glm::ivec2
 round_to_nearest_axis(const glm::vec2& v);
+
+float
+angle_degrees_flip_y_axis(float angle_degrees);
 
 } // namespace engine
