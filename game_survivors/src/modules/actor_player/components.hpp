@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/colour/colour.hpp"
 #include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_scancode.h>
 #include <entt/entt.hpp>

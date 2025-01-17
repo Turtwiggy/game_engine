@@ -16,8 +16,8 @@
 #include "modules/camera/camera_system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/combat_draw_hardpoint_arcs/ship_draw_arcs_system.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
+#include "modules/combat_hardpoints/ship_draw_arcs_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
 #include "modules/debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/effect_crt/crt_components.hpp"
@@ -236,11 +236,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // pause due to gamelogic
   bool pause = require_pause(r);
 
+  update_ship_draw_arcs_system(r);
+
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
-    update_autofire_system(r);
+    update_autofire_system(r, mouse_pos); // prefer after calculating arcs this frame
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);
@@ -253,10 +255,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_enemy_projectile_system(r);
   }
 
-  update_ship_draw_arcs_system(r);
-
 #if defined(_DEBUG)
-  update_debug_fixtures_system(r);
+  // update_debug_fixtures_system(r);
 #endif
 
   update_ui_fps_counter_system(r);

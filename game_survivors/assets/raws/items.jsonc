@@ -201,7 +201,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [
         { "tag": "player", "type": "box", "is_sensor": false },
-        { "tag": "xp_zone", "type": "circle", "radius": 50, "is_sensor": true, "density": 0.0 }
+        { "tag": "xp_zone", "type": "circle", "radius": 35, "is_sensor": true, "density": 0.0 }
       ]
     },
     {

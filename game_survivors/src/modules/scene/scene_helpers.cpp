@@ -16,8 +16,10 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat_hardpoints/ship_draw_arcs_components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
@@ -30,6 +32,7 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
@@ -43,6 +46,7 @@ entt::entity
 spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
 {
   glm::vec2 dinghy_size = { 33, 18 };
+  // glm::vec2 dinghy_size = { 10, 10 };
   glm::vec2 rhib_size = { 55, 30 };
   glm::vec2 weapon_size = { 5, 10 };
 
@@ -58,6 +62,16 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
   r.emplace<BulletDamage>(e); // probably shouldnt be on body
 
+  if (num == 0)
+    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#cfc041")); // gold_yellow
+  if (num == 1)
+    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#da5bd6")); // magenta
+  if (num == 2)
+    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#00c420")); // green
+  if (num == 3)
+    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#0096ff")); // blue
+  set_colour(r, e, r.get<DefaultColour>(e).colour);
+
   // player fixture
   auto player_fixture_e = get_fixture_by_tag(r, e, "player");
   r.emplace<PlayerFixtureComponent>(player_fixture_e);
@@ -66,16 +80,44 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
   auto fixture_e = get_fixture_by_tag(r, e, "xp_zone");
   r.emplace<XpZoneComponent>(fixture_e);
 
-  // player weapon
-  const auto wep_e = spawn(r, "boat_default_weapon");
-  give_life(r, wep_e, get_position(r, e), weapon_size);
-  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-  r.emplace<HasWeaponComponent>(e, HasWeaponComponent{ wep_e }); // parent <=> child
-  r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
-  r.emplace<WeaponComponent>(wep_e);
-  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
-  set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-  set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  // player weapon a
+  {
+    const auto wep_e = spawn(r, "boat_default_weapon");
+    give_life(r, wep_e, get_position(r, e), weapon_size);
+    r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
+    r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
+    r.emplace<WeaponComponent>(wep_e);
+    r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
+    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+    set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    ShipArcComponent arc_c; // should be config-loaded for dinghy
+    // arc_c.arc = 225;
+    arc_c.arc = 90;
+    arc_c.arc_mid = 55;
+    arc_c.x_rel_tl = 22;
+    arc_c.y_rel_tl = 4.5;
+    r.emplace<ShipArcComponent>(wep_e, arc_c);
+  }
+
+  // player weapon b
+  {
+    const auto wep_e = spawn(r, "boat_default_weapon");
+    give_life(r, wep_e, get_position(r, e), weapon_size);
+    r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
+    r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
+    r.emplace<WeaponComponent>(wep_e);
+    r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
+    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+    set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    ShipArcComponent arc_c; // should be config-loaded for dinghy
+    arc_c.arc = 325;
+    arc_c.arc_mid = 145;
+    arc_c.x_rel_tl = 22.5;
+    arc_c.y_rel_tl = 13.5;
+    r.emplace<ShipArcComponent>(wep_e, arc_c);
+  }
 
   return e;
 };
@@ -150,14 +192,15 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // players
     const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0);
-    // const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
-    // const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
+    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
+    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
     // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
     r.emplace<SteamControllerComponent>(p1);
-    // r.emplace<SteamControllerComponent>(p3);
+    r.emplace<SteamControllerComponent>(p2);
+    r.emplace<SteamControllerComponent>(p3);
 
     // The survive timer that various spawners read from
     float seconds = 20 * 60;

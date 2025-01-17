@@ -36,7 +36,7 @@ update_ui_survive_xp_bar_system(entt::registry& r)
   // data
   const int current_xp = sxp_c.xp;
   const float max_xp = sxp_c.xp_for_next_level;
-  const float progress = current_xp / max_xp;
+  const float percent = current_xp / max_xp;
 
   // Define colors for the XP bar
   const ImU32 bg = ImColor(50, 50, 50, 255);
@@ -53,20 +53,15 @@ update_ui_survive_xp_bar_system(entt::registry& r)
   ImVec2 spos = ImGui::GetCursorScreenPos();
   spos.x += l_adj;
 
-  // note: upper-left & lower right corners
   const auto p_min = spos;
-  // const auto partial = ImVec2(spos.x + window_size.x * progress, spos.y + bar_height);
+  const auto p_max = ImVec2(p_min.x + window_size.x - r_adj, p_min.y + bar_height);
+  const auto partial = ImVec2(p_min.x + percent * (window_size.x - r_adj), p_min.y + bar_height);
 
-  auto p_max = ImVec2(p_min.x + window_size.x - r_adj, p_min.y + bar_height);
-  // p_max.y -=f;
-
-  // const auto partial = ImVec2(p_min.x + 50, p_min.y + 100);
-
-  // const ImDrawFlags corners_tl_br = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
-  const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
+  const ImDrawFlags corners = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
+  // const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  draw_list->AddRectFilled(p_min, p_max, bg, 10.0f, corners); // background bar
-  // draw_list->AddRectFilled(p_min, partial, fg, 10.0f, corners_tl_br); // foreground bar
+  draw_list->AddRectFilled(p_min, p_max, bg, 10.0f, corners);   // background bar
+  draw_list->AddRectFilled(p_min, partial, fg, 10.0f, corners); // foreground bar
 
   {
     ImGuiStyle& style = ImGui::GetStyle();

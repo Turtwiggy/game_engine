@@ -7,6 +7,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "gun_follow_player_components.hpp"
+#include "modules/combat_hardpoints/ship_draw_arcs_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
 namespace game2d {
@@ -47,8 +48,8 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
   static glm::vec2 hardpoint_offset{ 5.0f, -5.0f }; // dinghy
   // imgui_draw_vec2("hardpoint_offset", hardpoint_offset);
 
-  const auto& view = r.view<WeaponComponent, HasParentComponent, TransformComponent>();
-  for (const auto [shotgun_e, weapon_c, parent_c, weapon_t] : view.each()) {
+  const auto& view = r.view<WeaponComponent, HasParentComponent, TransformComponent, const ShipArcComponent>();
+  for (const auto [shotgun_e, weapon_c, parent_c, weapon_t, arc_c] : view.each()) {
 
     const auto p = parent_c.parent;
     if (p == entt::null || !r.valid(p)) {
@@ -56,16 +57,16 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
       continue;
     }
 
-    const auto& parent_t = r.get<TransformComponent>(p);
-    const auto dir = engine::angle_radians_to_direction(parent_t.rotation_radians.z);
-    const auto parent_pos = glm::vec2(parent_t.position.x, parent_t.position.y);
-
-    const float angle = parent_t.rotation_radians.z;
-    const glm::vec2 rotated_point = engine::rotate_point({ hardpoint_offset.x, hardpoint_offset.y, 0.0f }, angle);
-    const glm::vec2 hardpoint_pos = parent_pos + rotated_point;
-
-    const auto aim_dir = mouse_pos - hardpoint_pos; // aim to mouse
-    const auto aim_angle = engine::dir_to_angle_radians(aim_dir);
+    // gunpoint base
+    const auto tl_offset = glm::vec2{ arc_c.x_rel_tl, arc_c.y_rel_tl };
+    const auto& t_c = r.get<TransformComponent>(p);
+    const float fwd = t_c.rotation_radians.z;
+    const auto pos = glm::vec2(t_c.position.x, t_c.position.y);
+    const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
+    const auto tl = pos - (0.5f * size);
+    const auto rel_tl = (tl - pos) + tl_offset;
+    const auto rotated_point = engine::rotate_point(rel_tl, fwd);
+    const auto hardpoint_pos = pos + rotated_point;
 
     // Add an offset due to recoil.
     // auto offset_due_to_recoil = glm::vec2{ 0.0f, 0.0f };
@@ -76,9 +77,6 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
 
     // set gun position
     set_position(r, shotgun_e, hardpoint_pos);
-
-    // Rotate the gun axis to the target
-    weapon_t.rotation_radians.z = aim_angle;
   }
 }
 
