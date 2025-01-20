@@ -11,13 +11,13 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
-#include "modules/combat_hardpoints/ship_draw_arcs_components.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
+#include "modules/system_hulls/hulls_components.hpp"
 
 #include <box2d/b2_collision.h>
 
@@ -124,8 +124,11 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
 
   const float search_radius = 500.0f; // for nearest enemy
 
-  const auto& view =
-    r.view<TransformComponent, const WeaponComponent, const HasParentComponent, const ShipArcComponent, CooldownComponent>();
+  const auto& view = r.view<TransformComponent,
+                            const WeaponComponent,
+                            const HasParentComponent,
+                            const HardpointComponent,
+                            CooldownComponent>();
 
   for (const auto& [wep_e, wep_t, wep_c, parent_c, arc_c, cooldown_c] : view.each()) {
 

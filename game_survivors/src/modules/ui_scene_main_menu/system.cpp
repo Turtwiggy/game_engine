@@ -113,7 +113,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   int index = 0;
 
   if (selectable_button("Play", selected, index++))
-    move_to_scene_start(r, Scene::survive);
+    move_to_scene_start(r, Scene::select);
 
   if (selectable_button("Exit", selected, index++))
     app.running = false;

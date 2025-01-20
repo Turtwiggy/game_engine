@@ -12,7 +12,7 @@ hex_to_srgb(const std::string& hex)
   const int r = std::stoi(str_r, 0, 16);
   const int g = std::stoi(str_g, 0, 16);
   const int b = std::stoi(str_b, 0, 16);
-  return { r, g, b, 1.0f };
+  return { r, g, b, 255 };
 };
 
 } // namespace game2d

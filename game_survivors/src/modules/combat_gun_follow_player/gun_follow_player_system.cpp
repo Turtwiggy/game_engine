@@ -2,12 +2,11 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "gun_follow_player_components.hpp"
-#include "modules/combat_hardpoints/ship_draw_arcs_components.hpp"
+#include "modules/system_hulls/hulls_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
 namespace game2d {
@@ -48,8 +47,8 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
   static glm::vec2 hardpoint_offset{ 5.0f, -5.0f }; // dinghy
   // imgui_draw_vec2("hardpoint_offset", hardpoint_offset);
 
-  const auto& view = r.view<WeaponComponent, HasParentComponent, TransformComponent, const ShipArcComponent>();
-  for (const auto [shotgun_e, weapon_c, parent_c, weapon_t, arc_c] : view.each()) {
+  const auto& view = r.view<WeaponComponent, HasParentComponent, TransformComponent, const HardpointComponent>();
+  for (const auto [shotgun_e, weapon_c, parent_c, weapon_t, hardpoint_c] : view.each()) {
 
     const auto p = parent_c.parent;
     if (p == entt::null || !r.valid(p)) {
@@ -58,7 +57,7 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
     }
 
     // gunpoint base
-    const auto tl_offset = glm::vec2{ arc_c.x_rel_tl, arc_c.y_rel_tl };
+    const auto tl_offset = glm::vec2{ hardpoint_c.data.x_rel_tl, hardpoint_c.data.y_rel_tl };
     const auto& t_c = r.get<TransformComponent>(p);
     const float fwd = t_c.rotation_radians.z;
     const auto pos = glm::vec2(t_c.position.x, t_c.position.y);

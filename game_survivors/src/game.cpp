@@ -17,7 +17,6 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
-#include "modules/combat_hardpoints/ship_draw_arcs_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
 #include "modules/debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/effect_crt/crt_components.hpp"
@@ -36,6 +35,8 @@
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
+#include "modules/system_hulls/hardpoints_system.hpp"
+#include "modules/system_hulls/hulls_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -58,6 +59,7 @@
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_survive_health/ui_survive_health_system.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_system.hpp"
@@ -130,6 +132,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   create_persistent<SINGLE_DebugMenuBar>(r);
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
+  create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
   create_persistent<SINGLE_EffectCrt>(r);
 
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
@@ -248,7 +251,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_distance_check_system(r);
     update_gun_follow_player_system(r, mouse_pos, dt);
     update_move_to_target_via_lerp(r, dt);
-    update_particle_system(r, dt);
+    // update_particle_system(r, dt);
     update_spawn_particles_on_death_system(r);
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);
@@ -256,7 +259,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  // update_debug_fixtures_system(r);
+  update_debug_fixtures_system(r);
 #endif
 
   update_ui_fps_counter_system(r);
@@ -265,6 +268,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
+
+  if (scene.s == Scene::select)
+    update_ui_scene_select_system(r);
 
   if (scene.s == Scene::survive) {
     update_ui_survive_timer_system(r);

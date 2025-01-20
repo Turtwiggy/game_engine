@@ -1,0 +1,452 @@
+{
+    // 0,0 top left
+    "s_name" : "Constitution",
+    "s_description" : "Old Ironside!",
+    "n_height_px" : 188,
+    "n_width_px" : 842,
+    "o_center_of_mass": {
+        "n_x_rel_tl" : 340,
+        "n_y_rel_tl" : 97
+    },
+    // 0 = along x axis. +90 = 'up', +270 = 'down'
+    "n_forward_dir_angle" : 0,
+    "o_rudder_pivot" : {
+        "n_x_rel_tl" : 70,
+        "n_y_rel_tl" : 97
+    },
+    "a_hardpoints" : [
+        // Front to back, inner to outer, left before right.
+        {
+            "s_key" : "front_1",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 5,
+            "n_arc" : 15,
+            "n_x_rel_tl" : 554.5,
+            "n_y_rel_tl" : 71.5
+        },
+        {
+            "s_key" : "front_2",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 355,
+            "n_arc" : 15,
+            "n_x_rel_tl" : 554.5,
+            "n_y_rel_tl" : 114.5
+        },
+        {
+            "s_key" : "left_1",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 527.5,
+            "n_y_rel_tl" : 59.5
+        },
+        {
+            "s_key" : "right_1",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 527.5,
+            "n_y_rel_tl" : 126.5
+        },
+        {
+            "s_key" : "left_2",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 497.5,
+            "n_y_rel_tl" : 57.5 
+        },
+        {
+            "s_key" : "right_2",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 497.5,
+            "n_y_rel_tl" : 128.5
+        },
+        {
+            "s_key" : "left_3",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 481.5,
+            "n_y_rel_tl" : 69.5 
+        },
+        {
+            "s_key" : "right_3",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 481.5,
+            "n_y_rel_tl" : 116.5 
+        },
+        {
+            "s_key" : "left_4",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 467.5,
+            "n_y_rel_tl" : 55.5  
+        },
+        {
+            "s_key" : "right_4",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 467.5,
+            "n_y_rel_tl" : 130.5 
+        },
+        {
+            "s_key" : "left_5",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 452.5,
+            "n_y_rel_tl" : 68.5  
+        },
+        {
+            "s_key" : "right_5",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 452.5,
+            "n_y_rel_tl" : 117.5  
+        },
+        {
+            "s_key" : "left_6",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 438.5,
+            "n_y_rel_tl" : 53.5  
+        },
+        {
+            "s_key" : "right_6",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 438.5,
+            "n_y_rel_tl" : 53.5  
+        },
+        {
+            "s_key" : "left_7",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 409.5,
+            "n_y_rel_tl" : 52.5   
+        },
+        {
+            "s_key" : "right_7",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 409.5,
+            "n_y_rel_tl" : 133.5  
+        },
+        {
+            "s_key" : "left_8",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 380.5,
+            "n_y_rel_tl" : 52.5   
+        },
+        {
+            "s_key" : "right_8",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 380.5,
+            "n_y_rel_tl" : 133.5  
+        },
+        {
+            "s_key" : "left_9",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 350.5,
+            "n_y_rel_tl" : 52.5   
+        },
+        {
+            "s_key" : "right_9",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 350.5,
+            "n_y_rel_tl" : 133.5  
+        },
+        {
+            "s_key" : "left_10",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 320.5,
+            "n_y_rel_tl" : 52.5   
+        },
+        {
+            "s_key" : "right_10",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 320.5,
+            "n_y_rel_tl" : 133.5  
+        },
+        {
+            "s_key" : "left_11",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 306.5,
+            "n_y_rel_tl" : 66.5   
+        },
+        {
+            "s_key" : "right_11",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 119.5,
+            "n_y_rel_tl" : 133.5  
+        },
+        {
+            "s_key" : "left_12",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 291.5,
+            "n_y_rel_tl" : 53.5   
+        },
+        {
+            "s_key" : "right_12",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 291.5,
+            "n_y_rel_tl" : 132.5 
+        },
+        {
+            "s_key" : "left_13",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 276.5,
+            "n_y_rel_tl" : 67.5   
+        },
+        {
+            "s_key" : "right_13",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 276.5,
+            "n_y_rel_tl" : 118.5 
+        },
+        {
+            "s_key" : "left_14",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 261.5,
+            "n_y_rel_tl" : 53.5   
+        },
+        {
+            "s_key" : "right_14",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 261.5,
+            "n_y_rel_tl" : 132.5 
+        },
+        {
+            "s_key" : "left_15",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 247.5,
+            "n_y_rel_tl" : 67.5   
+        },
+        {
+            "s_key" : "right_15",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 247.5,
+            "n_y_rel_tl" : 118.5 
+        },
+        {
+            "s_key" : "left_16",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 232.5,
+            "n_y_rel_tl" : 54.5   
+        },
+        {
+            "s_key" : "right_16",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 232.5,
+            "n_y_rel_tl" : 131.5 
+        },
+        {
+            "s_key" : "left_17",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 218.5,
+            "n_y_rel_tl" : 68.5   
+        },
+        {
+            "s_key" : "right_17",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 218.5,
+            "n_y_rel_tl" : 117.5 
+        },
+        {
+            "s_key" : "left_18",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 202.5,
+            "n_y_rel_tl" : 55.5   
+        },
+        {
+            "s_key" : "right_18",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 202.5,
+            "n_y_rel_tl" : 130.5
+        },
+        {
+            "s_key" : "left_19",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 188.5,
+            "n_y_rel_tl" : 69.5   
+        },
+        {
+            "s_key" : "right_19",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 188.5,
+            "n_y_rel_tl" : 116.5
+        },
+        {
+            "s_key" : "left_20",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 173.5,
+            "n_y_rel_tl" : 56.5   
+        },
+        {
+            "s_key" : "right_20",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 173.5,
+            "n_y_rel_tl" : 129.5
+        },
+        {
+            "s_key" : "left_21",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 159.5,
+            "n_y_rel_tl" : 70.5   
+        },
+        {
+            "s_key" : "right_21",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 159.5,
+            "n_y_rel_tl" : 115.5
+        },
+        {
+            "s_key" : "left_22",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 144.5,
+            "n_y_rel_tl" : 58.5   
+        },
+        {
+            "s_key" : "right_22",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 144.5,
+            "n_y_rel_tl" : 127.5
+        },
+        {
+            "s_key" : "left_23",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 129.5,
+            "n_y_rel_tl" : 71.5   
+        },
+        {
+            "s_key" : "right_23",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 129.5,
+            "n_y_rel_tl" : 114.5
+        },
+        {
+            "s_key" : "left_24",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 112.5,
+            "n_y_rel_tl" : 60.5   
+        },
+        {
+            "s_key" : "right_24",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 112.5,
+            "n_y_rel_tl" : 125.5
+        },
+        {
+            "s_key" : "left_25",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 90,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 93.5,
+            "n_y_rel_tl" : 71.5   
+        },
+        {
+            "s_key" : "right_25",
+            "n_mount_size" : 3,
+            "n_arc_mid" : 270,
+            "n_arc" : 10,
+            "n_x_rel_tl" : 93.5,
+            "n_y_rel_tl" : 114.5
+        },
+        {
+            "s_key" : "rear_1",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 135,
+            "n_arc" : 180,
+            "n_x_rel_tl" : 71.5,
+            "n_y_rel_tl" : 70.5   
+        },
+        {
+            "s_key" : "rear_2",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 225,
+            "n_arc" : 180,
+            "n_x_rel_tl" : 71.5,
+            "n_y_rel_tl" : 115.5
+        }
+    ]
+}

@@ -1,0 +1,116 @@
+{
+    // 0,0 top left
+    "s_name" : "Trimanan",
+    "s_description" : "It's so bad it's good? Sorry, Costner.",
+    "n_height_px" : 126,
+    "n_width_px" : 149,
+    "o_center_of_mass": {
+        "n_x_rel_tl" : 60,
+        "n_y_rel_tl" : 63
+    },
+    // 0 = along x axis. +90 = 'up', +270 = 'down'
+    "n_forward_dir_angle" : 0,
+    "o_rudder_pivot" : {
+        "n_x_rel_tl" : 7,
+        "n_y_rel_tl" : 63
+    },
+    "a_hardpoints" : [
+        // Front to back, inner to outer, left before right.
+        {
+            "s_key" : "front_1",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 0,
+            "n_arc" : 250,
+            "n_x_rel_tl" : 141.5,
+            "n_y_rel_tl" : 63
+        },
+        {
+            "s_key" : "left_1",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 28,
+            "n_arc" : 90,
+            "n_x_rel_tl" : 77.5,
+            "n_y_rel_tl" : 33.5
+        },
+        {
+            "s_key" : "right_1",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 195,
+            "n_arc" : 90,
+            "n_x_rel_tl" : 77.5,
+            "n_y_rel_tl" : 92.5
+        },
+        {
+            "s_key" : "left_2",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 68,
+            "n_arc" : 205,
+            "n_x_rel_tl" : 77.5,
+            "n_y_rel_tl" : 7.5
+        },
+        {
+            "s_key" : "right_2",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 292,
+            "n_arc" : 205,
+            "n_x_rel_tl" : 77.5,
+            "n_y_rel_tl" : 118.5
+        },
+        {
+            "s_key" : "left_3",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 90,
+            "n_arc" : 160,
+            "n_x_rel_tl" : 50.5,
+            "n_y_rel_tl" : 5.5 
+        },
+        {
+            "s_key" : "right_3",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 270,
+            "n_arc" : 160,
+            "n_x_rel_tl" : 50.5,
+            "n_y_rel_tl" : 120.5
+        },
+        {
+            "s_key" : "left_4",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 165,
+            "n_arc" : 120,
+            "n_x_rel_tl" : 25.5,
+            "n_y_rel_tl" : 7.5
+        },
+        {
+            "s_key" : "right_4",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 195,
+            "n_arc" : 120,
+            "n_x_rel_tl" : 25.5,
+            "n_y_rel_tl" : 93.5
+        },
+        {
+            "s_key" : "left_5",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 127.5,
+            "n_arc" : 225,
+            "n_x_rel_tl" : 25.5,
+            "n_y_rel_tl" : 7.5
+        },
+        {
+            "s_key" : "right_5",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 232.5,
+            "n_arc" : 225,
+            "n_x_rel_tl" : 25.5,
+            "n_y_rel_tl" : 118.5
+        },
+        {
+            "s_key" : "rear_1",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 180,
+            "n_arc" : 190,
+            "n_x_rel_tl" : 10,
+            "n_y_rel_tl" : 63
+        }
+    ]
+}

@@ -1,0 +1,36 @@
+{
+    // 0,0 top left
+    "s_name" : "Dinghy",
+    "s_description" : "It floats",
+    "n_height_px" : 18,
+    "n_width_px" : 33,
+    "o_center_of_mass": {
+        "n_x_rel_tl" : 13,
+        "n_y_rel_tl" : 9
+    },
+    // 0 = along x axis. +90 = 'up', +270 = 'down'
+    "n_forward_dir_angle" : 0,
+    "o_rudder_pivot" : {
+        "n_x_rel_tl" : 5,
+        "n_y_rel_tl" : 9
+    },
+    "a_hardpoints" : [
+        // Front to back, inner to outer, left before right.
+        {
+            "s_key" : "front_1",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 55,
+            "n_arc" : 225,
+            "n_x_rel_tl" : 22.5,
+            "n_y_rel_tl" : 4.5
+        },
+        {
+            "s_key" : "front_2",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 145,
+            "n_arc" : 325,
+            "n_x_rel_tl" : 22.5,
+            "n_y_rel_tl" : 13.5
+        }
+    ]
+}

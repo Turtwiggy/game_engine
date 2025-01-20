@@ -6,6 +6,7 @@ enum class Scene
 {
   splashscreen,
   menu,
+  select,
   survive,
 
   test, // used by tests

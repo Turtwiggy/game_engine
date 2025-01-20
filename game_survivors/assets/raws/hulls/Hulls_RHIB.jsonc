@@ -1,0 +1,60 @@
+{
+    // 0,0 top left
+    "s_name" : "RHIB",
+    "s_description" : "A RHIB for your pleasure, seamen; rigid and fully inflated.",
+    "n_height_px" : 30,
+    "n_width_px" : 55,
+    "o_center_of_mass": {
+        "n_x_rel_tl" : 23,
+        "n_y_rel_tl" : 14.5
+    },
+    // 0 = along x axis. +90 = 'up', +270 = 'down'
+    "n_forward_dir_angle" : 0,
+    "o_rudder_pivot" : {
+        "n_x_rel_tl" : 7,
+        "n_y_rel_tl" : 14.5
+    },
+    "a_hardpoints" : [
+        // Front to back, inner to outer, left before right.
+        {
+            "s_key" : "front_1",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 0,
+            "n_arc" : 220,
+            "n_x_rel_tl" : 48.5,
+            "n_y_rel_tl" : 14.5
+        },
+        {
+            "s_key" : "left_1",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 80,
+            "n_arc" : 180,
+            "n_x_rel_tl" : 32.5,
+            "n_y_rel_tl" : 3.5
+        },
+        {
+            "s_key" : "right_1",
+            "n_mount_size" : 1,
+            "n_arc_mid" : 280,
+            "n_arc" : 180,
+            "n_x_rel_tl" : 32.5,
+            "n_y_rel_tl" : 26.5
+        },
+        {
+            "s_key" : "rear_1",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 140,
+            "n_arc" : 140,
+            "n_x_rel_tl" : 12.5,
+            "n_y_rel_tl" : 5.5
+        },
+        {
+            "s_key" : "rear_2",
+            "n_mount_size" : 2,
+            "n_arc_mid" : 230,
+            "n_arc" : 140,
+            "n_x_rel_tl" : 12.5,
+            "n_y_rel_tl" : 24.5 
+        }
+    ]
+}

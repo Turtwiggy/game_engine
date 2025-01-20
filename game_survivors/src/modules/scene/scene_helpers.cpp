@@ -19,7 +19,6 @@
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
-#include "modules/combat_hardpoints/ship_draw_arcs_components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
@@ -30,10 +29,13 @@
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/system_cooldown/components.hpp"
+#include "modules/system_hulls/hulls_components.hpp"
+#include "modules/system_hulls/hulls_helpers.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_units/ui_units_helpers.hpp"
@@ -43,15 +45,18 @@
 namespace game2d {
 
 entt::entity
-spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
+spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key)
 {
-  glm::vec2 dinghy_size = { 33, 18 };
-  // glm::vec2 dinghy_size = { 10, 10 };
-  glm::vec2 rhib_size = { 55, 30 };
   glm::vec2 weapon_size = { 5, 10 };
 
   const auto e = spawn(r, key);
-  give_life(r, e, pos, dinghy_size);
+
+  const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
+  ShipHullData hull = get_hull(hulls_c, hull_key).value();
+  r.emplace<ShipHullComponent>(e, ShipHullComponent{ hull });
+  const auto size = glm::vec2{ hull.width, hull.height };
+
+  give_life(r, e, pos, size);
   r.emplace<PlayerComponent>(e, num);
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
@@ -61,6 +66,18 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
   r.emplace<BulletDamage>(e); // probably shouldnt be on body
+
+  // TODO: come up with something better
+  if (hull_key == "Dinghy")
+    set_sprite(r, e, "hull_dinghy");
+  if (hull_key == "RHIB")
+    set_sprite(r, e, "hull_rhib");
+  if (hull_key == "Constitution")
+    set_sprite(r, e, "hull_constitution");
+  if (hull_key == "PBR")
+    set_sprite(r, e, "hull_pbr");
+  if (hull_key == "Trimanan")
+    set_sprite(r, e, "hull_trimanan");
 
   if (num == 0)
     r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#cfc041")); // gold_yellow
@@ -80,8 +97,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
   auto fixture_e = get_fixture_by_tag(r, e, "xp_zone");
   r.emplace<XpZoneComponent>(fixture_e);
 
-  // player weapon a
-  {
+  // Spawn the weapons...
+  for (const auto& hardpoint_data : hull.hardpoints) {
     const auto wep_e = spawn(r, "boat_default_weapon");
     give_life(r, wep_e, get_position(r, e), weapon_size);
     r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
@@ -90,33 +107,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num)
     r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
     set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
     set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
-
-    ShipArcComponent arc_c; // should be config-loaded for dinghy
-    // arc_c.arc = 225;
-    arc_c.arc = 90;
-    arc_c.arc_mid = 55;
-    arc_c.x_rel_tl = 22;
-    arc_c.y_rel_tl = 4.5;
-    r.emplace<ShipArcComponent>(wep_e, arc_c);
-  }
-
-  // player weapon b
-  {
-    const auto wep_e = spawn(r, "boat_default_weapon");
-    give_life(r, wep_e, get_position(r, e), weapon_size);
-    r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-    r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
-    r.emplace<WeaponComponent>(wep_e);
-    r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
-    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-    set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
-
-    ShipArcComponent arc_c; // should be config-loaded for dinghy
-    arc_c.arc = 325;
-    arc_c.arc_mid = 145;
-    arc_c.x_rel_tl = 22.5;
-    arc_c.y_rel_tl = 13.5;
-    r.emplace<ShipArcComponent>(wep_e, arc_c);
+    r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
   }
 
   return e;
@@ -183,17 +174,23 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // set_size(r, e, { 512, 256 });
     // set_position(r, e, { 0, 0 }); // center
   }
-
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);
 
+    std::string hull_key = "Dinghy";
+    auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
+    if (transfer_scene_e != entt::null) {
+      const auto& transfer_scene_c = r.get<SelectSceneToSurviveScene>(transfer_scene_e);
+      hull_key = transfer_scene_c.chosen_boat;
+    }
+
     // players
-    const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0);
-    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1);
-    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2);
+    const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0, hull_key);
+    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1, hull_key);
+    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2, hull_key);
     // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
 
     // inputs => players

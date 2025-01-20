@@ -11,7 +11,7 @@ namespace game2d {
 void
 update_debug_fixtures_system(entt::registry& r)
 {
-  auto& physics_c = get_first_component<SINGLE_Physics>(r);
+  const auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
   for (b2Body* body = physics_c.world->GetBodyList(); body; body = body->GetNext()) {
     for (b2Fixture* fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
@@ -40,7 +40,7 @@ update_debug_fixtures_system(entt::registry& r)
           s.pos = line.position;
           s.size = line.scale;
           s.z_rotation = line.rotation;
-          s.col.a = 0.05f * 255;
+          s.col.a = 1.0f * 255;
           draw_sprite(r, s);
 
           prev_vert = cur_vert;
@@ -65,7 +65,7 @@ update_debug_fixtures_system(entt::registry& r)
         s.sprite = "EMPTY";
         s.pos = { center.x, center.y };
         s.size = { size.x, size.y };
-        s.col.a = 0.1f * 255;
+        // s.col.a = 1.0f * 255;
 
         draw_sprite(r, s);
       }
