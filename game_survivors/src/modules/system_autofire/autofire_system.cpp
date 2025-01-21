@@ -135,9 +135,10 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
                             const WeaponComponent,
                             const HasParentComponent,
                             const HardpointComponent,
+                            const AutofireComponent,
                             CooldownComponent>();
 
-  for (const auto& [wep_e, wep_t, wep_c, parent_c, arc_c, cooldown_c] : view.each()) {
+  for (const auto& [wep_e, wep_t, wep_c, parent_c, arc_c, autofire_c, cooldown_c] : view.each()) {
 
     const auto p = parent_c.parent;
     if (p == entt::null || !r.valid(p)) {

@@ -28,9 +28,11 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
 #include "modules/system_hulls/hulls_helpers.hpp"
+#include "modules/system_manualfire/manualfire_components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
@@ -108,6 +110,29 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
     set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
     r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
+    r.emplace<AutofireComponent>(wep_e);
+  }
+
+  // Spawn a manual weapon
+  {
+    const auto wep_e = spawn(r, "boat_default_weapon");
+    give_life(r, wep_e, get_position(r, e), weapon_size);
+    r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
+    r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
+    r.emplace<WeaponComponent>(wep_e);
+    r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
+    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+    set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
+
+    HardpointComponent hardpoint_c;
+    HardpointData hardpoint_data;
+    hardpoint_data.key = "manual";
+    hardpoint_data.arc = 360;
+    hardpoint_data.arc = 0;
+    hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
+    hardpoint_data.y_rel_tl = size.y / 2;
+    r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
+    r.emplace<ManualfireComponent>(wep_e);
   }
 
   return e;
@@ -155,6 +180,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     set_size(r, e, { 512, 512 });
     set_position(r, e, { 0, 0 }); // center
   }
+
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
@@ -174,6 +200,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // set_size(r, e, { 512, 256 });
     // set_position(r, e, { 0, 0 }); // center
   }
+
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
     create_empty<Effect_GridComponent>(r);

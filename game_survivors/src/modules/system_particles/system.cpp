@@ -22,8 +22,14 @@ update_particle_system(entt::registry& r, const float dt)
 
     // instead of spawning at emitter position, spawn at parent position
     particle_description.position = get_position(r, e);
-    if (auto* target_c = r.try_get<DynamicTargetComponent>(e))
+
+    if (auto* target_c = r.try_get<DynamicTargetComponent>(e)) {
+      if (!r.valid(target_c->target)) {
+        r.remove<DynamicTargetComponent>(e);
+        return;
+      }
       particle_description.position = get_position(r, target_c->target);
+    }
 
     if (emitter.random_velocity) {
       static engine::RandomState rnd;

@@ -90,8 +90,10 @@ update_ui_steam_input_system(entt::registry& r)
 
     // ImGui::Text("Action_GameCancel %i", controller_button_held(steam_c, handles[i], Action_GameCancel));
     // ImGui::Text("Action_GameMenu %i", controller_button_held(steam_c, handles[i], Action_GameMenu));
-    auto analog = controller_axis(r, handles[i], AA::AnalogControls);
-    ImGui::Text("LAnalog: %f %f", analog.x, analog.y);
+    auto l_analog = controller_axis(r, handles[i], AA::LAnalogControls);
+    auto r_analog = controller_axis(r, handles[i], AA::RAnalogControls);
+    ImGui::Text("LAnalog: %f %f", l_analog.x, l_analog.y);
+    ImGui::Text("RAnalog: %f %f", r_analog.x, r_analog.y);
   }
 
   ImGui::End();

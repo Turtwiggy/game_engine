@@ -38,6 +38,7 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Action_GameDown] = SteamInput()->GetDigitalActionHandle("action_down");
   digital_action_handles[(int)DA::Action_GameLeft] = SteamInput()->GetDigitalActionHandle("action_left");
   digital_action_handles[(int)DA::Action_GameRight] = SteamInput()->GetDigitalActionHandle("action_right");
+  digital_action_handles[(int)DA::Action_GameShoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
   digital_action_handles[(int)DA::Action_GameCancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
   digital_action_handles[(int)DA::Action_GameMenu] = SteamInput()->GetDigitalActionHandle("action_menu");
 
@@ -48,7 +49,8 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Menu_Select] = SteamInput()->GetDigitalActionHandle("menu_select");
   digital_action_handles[(int)DA::Menu_Cancel] = SteamInput()->GetDigitalActionHandle("menu_cancel");
 
-  analog_action_handles[(int)AA::AnalogControls] = SteamInput()->GetAnalogActionHandle("analog_controls");
+  analog_action_handles[(int)AA::LAnalogControls] = SteamInput()->GetAnalogActionHandle("l_analog_controls");
+  analog_action_handles[(int)AA::RAnalogControls] = SteamInput()->GetAnalogActionHandle("r_analog_controls");
 
   action_set_handles[(int)AS::ActionSet_GameControls] = SteamInput()->GetActionSetHandle("game_controls");
   action_set_handles[(int)AS::ActionSet_MenuControls] = SteamInput()->GetActionSetHandle("menu_controls");

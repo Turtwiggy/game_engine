@@ -15,6 +15,7 @@ enum class DigitalAction
   Action_GameDown,
   Action_GameLeft,
   Action_GameRight,
+  Action_GameShoot,
   Action_GameCancel,
   Action_GameMenu,
 
@@ -30,7 +31,8 @@ enum class DigitalAction
 
 enum class AnalogAction
 {
-  AnalogControls = 0,
+  LAnalogControls = 0,
+  RAnalogControls,
 
   count,
 };

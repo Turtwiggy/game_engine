@@ -1,6 +1,7 @@
 #include "hardpoints_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
@@ -8,6 +9,7 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
 
 #include <imgui.h>
@@ -107,8 +109,9 @@ update_ship_draw_arcs_system(entt::registry& r)
 
   ImGui::Begin("cursors_ui", NULL, flags);
 
-  const auto& view = r.view<const HasParentComponent, HardpointComponent, const TransformComponent>();
-  for (const auto& [e, parent_c, hardpoint_c, weapon_t] : view.each()) {
+  const auto& view =
+    r.view<const HasParentComponent, HardpointComponent, const TransformComponent, const AutofireComponent>();
+  for (const auto& [e, parent_c, hardpoint_c, weapon_t, autofire_c] : view.each()) {
 
     const auto p = parent_c.parent;
     if (p == entt::null || !r.valid(p)) {
@@ -156,15 +159,25 @@ update_ship_draw_arcs_system(entt::registry& r)
     // draw the xp-zone arc. this shouldnt be here.
     float zone_radius = (50) / zoom;
     const auto screenspace = worldspace_to_screenspace(r, pos);
-    DrawArc(screenspace, zone_radius, 0, 360, 3, ImColor(0.3f, 0.3f, 0.3f, 1.0f), true);
+    DrawArc(screenspace, zone_radius, 0, 360, 2, ImColor(0.3f, 0.3f, 0.3f, 1.0f), true);
 
     // draw the gun arc.
-    float thickness = 2;
-    float radius = (50 + entity_to_guncount[p] * 2) / zoom;
-    const auto col = r.get<DefaultColour>(p).colour;
-    const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
-    float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
-    DrawArc(screenspace, radius, center_angle_deg, arc, thickness, im_col, true);
+    // float thickness = 2;
+    // float radius = (50 + entity_to_guncount[p] * 2) / zoom;
+    // const auto col = r.get<DefaultColour>(p).colour;
+    // const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
+    // float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
+    // DrawArc(screenspace, radius, center_angle_deg, arc, thickness, im_col, true);
+
+    // draw the arc where the gun cant shoot.
+    // float thickness = 0.5;
+    // float radius = (50 + entity_to_guncount[p] * 2) / zoom;
+    // const auto col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
+    // const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
+    // float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
+    // float opposite_angle = center_angle_deg + 180;
+    // opposite_angle >= 360 ? opposite_angle -= 360 : opposite_angle;
+    // DrawArc(screenspace, radius, opposite_angle, 360 - arc, thickness, im_col, true);
 
     ImGui::PopID();
   }

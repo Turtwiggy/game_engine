@@ -4,12 +4,7 @@
 
 namespace game2d {
 
-struct BulletComponent
-{
-  int damage = 10;
-};
-
-struct AutofireComponent
+struct ManualfireComponent
 {
   bool placeholder = true;
 };

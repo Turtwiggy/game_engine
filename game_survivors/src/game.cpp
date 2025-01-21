@@ -37,6 +37,7 @@
 #include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
 #include "modules/system_hulls/hardpoints_system.hpp"
 #include "modules/system_hulls/hulls_helpers.hpp"
+#include "modules/system_manualfire/manualfire_system.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -246,6 +247,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
     update_autofire_system(r, mouse_pos); // prefer after calculating arcs this frame
+    update_manualfire_system(r);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);

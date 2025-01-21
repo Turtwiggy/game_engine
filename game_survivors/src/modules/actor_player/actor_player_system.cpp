@@ -214,10 +214,11 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
 
     // set rx based on mouse input if selected
     if (const auto* keyboard_c = r.try_get<KeyboardComponent>(e)) {
-      const auto dir = glm::vec2{ mouse_pos.x, mouse_pos.y } - get_position(r, e);
-      i.rx += dir.x;
-      i.ry += dir.y;
-      i.shoot = get_mouse_lmb_press();
+      const auto raw_dir = glm::vec2{ mouse_pos.x, mouse_pos.y } - get_position(r, e);
+      const auto nrm_dir = engine::normalize_safe(raw_dir);
+      i.rx += nrm_dir.x;
+      i.ry += nrm_dir.y;
+      i.shoot = get_mouse_lmb_held();
       i.ly += get_key_held(input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
       i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
       i.lx += get_key_held(input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
@@ -250,10 +251,15 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
         controller_c->handle = handle.value();
       }
 
-      auto handle = controller_c->handle;
-      auto l_analog = controller_axis(r, handle, AA::AnalogControls);
+      const auto handle = controller_c->handle;
+      const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
+      const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
+      const auto shoot = controller_button_held(steam_c, handle, DA::Action_GameShoot);
       i.lx += l_analog.x;
       i.ly += -l_analog.y; // flip y
+      i.rx += r_analog.x;
+      i.ry += -r_analog.y; // flip y
+      i.shoot = shoot;
     }
   }
 };
