@@ -25,26 +25,21 @@ LinearFloatToSRGBFloat(const float f)
 LinearColour
 SRGBToLinear(const SRGBColour& colour)
 {
-  LinearColour output;
-  output.r = SRGBFloatToLinearFloat(colour.r / 255.0f);
-  output.g = SRGBFloatToLinearFloat(colour.g / 255.0f);
-  output.b = SRGBFloatToLinearFloat(colour.b / 255.0f);
-  output.a = colour.a / 255.0f;
-  return output;
+  float r = SRGBFloatToLinearFloat(colour.r / 255.0f);
+  float g = SRGBFloatToLinearFloat(colour.g / 255.0f);
+  float b = SRGBFloatToLinearFloat(colour.b / 255.0f);
+  float a = colour.a / 255.0f;
+  return LinearColour(r, g, b, a);
 };
 
 SRGBColour
 LinearToSRGB(const LinearColour& colour)
 {
-  SRGBColour output;
   float r = LinearFloatToSRGBFloat(colour.r);
   float g = LinearFloatToSRGBFloat(colour.g);
   float b = LinearFloatToSRGBFloat(colour.b);
-  output.r = static_cast<int>(r * 255.0f);
-  output.g = static_cast<int>(g * 255.0f);
-  output.b = static_cast<int>(b * 255.0f);
-  output.a = colour.a * 255.0f;
-  return output;
+  float a = colour.a * 255.0f;
+  return SRGBColour(r, g, b, a);
 };
 
 } // namespace engine

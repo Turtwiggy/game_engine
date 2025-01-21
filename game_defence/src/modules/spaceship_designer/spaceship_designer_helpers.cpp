@@ -1,6 +1,6 @@
 #include "spaceship_designer_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/map/components.hpp"
 #include "engine/map/helpers.hpp"
@@ -210,7 +210,8 @@ instantiate_edge(entt::registry& r, entt::entity e, const MapComponent& map_c)
   r.emplace<SpriteComponent>(e);
   set_sprite(r, e, "EMPTY");
   set_size(r, e, new_size);
-  create_physics_actor_static(r, e, center, new_size);
+  // TODO: fix this call
+  // create_physics_actor_static(r, e, center, new_size);
 
   if (auto* door_c = r.try_get<DoorComponent>(e))
     set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
@@ -254,9 +255,19 @@ instantiate_floors(entt::registry& r, MapComponent& map, DungeonIntermediate& re
     if (result.floor_types[xy] == FloorType::FLOOR) {
       const auto pos = engine::grid::index_to_world_position_center((int)xy, map.xmax, map.ymax, map.tilesize);
       const auto gp = engine::grid::index_to_grid_position((int)xy, map.xmax, map.ymax);
-      const auto floor_e = spawn_floor(r, "default", pos, { map.tilesize, map.tilesize });
 
-      map.map[engine::grid::grid_position_to_index(gp, map.xmax)].push_back(floor_e);
+      // const auto floor_e = create_transform(r, "floor");
+      // r.emplace<DefaultColour>(floor_e, engine::SRGBColour{ 0.5f, 0.5f, 0.5f, 1.0f });
+      // r.emplace<SpriteComponent>(floor_e);
+      // set_sprite(r, floor_e, "EMPTY");
+      // set_position(r, floor_e, pos);
+      // set_size(r, floor_e, size);
+      // set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
+      // set_z_index(r, floor_e, ZLayer::FLOOR);
+      // r.emplace<FloorComponent>(floor_e);
+
+      // const auto floor_e = spawn_floor(r, "default", pos, { map.tilesize, map.tilesize });
+      // map.map[engine::grid::grid_position_to_index(gp, map.xmax)].push_back(floor_e);
     }
   }
 };

@@ -1,6 +1,6 @@
 #include "ui_action_bar_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
@@ -187,7 +187,9 @@ display_actions_for_item(entt::registry& r, entt::entity e, entt::entity slot_e)
   // ImGui::Text("%s", item_ui_c.display_desc.c_str());
 
   // List the actions that the equipped item can take.
-  const auto& item_c = r.get<Item>(slot_c.item_e);
+
+  const auto& item_key = r.get<ItemKey>(slot_c.item_e);
+  const auto item_c = find_item(r, item_key.key);
 
   if (item_c.combat.has_value())
     action_button(r, e, action_attack_key, "(2) Attack", !moving, get_key_down(in_c, SDL_SCANCODE_2) && !moving);
@@ -219,12 +221,13 @@ update_request_move_action(entt::registry& r, entt::entity e, const glm::ivec2 m
   // limit: if the last tile(s) are pathfinding cost -1, dont move to them
   std::vector<glm::ivec2> removed_tiles;
   if (path.size() >= 2) {
-    for (int i = path.size(); i > 0; i--) {
+    for (int i = (int)path.size(); i > 0; i--) {
       int cost = get_cost_at_gridpos(r, path[i - 1], map_c);
       if (cost != -1)
         break; // stop iterating backwards
       auto it = path.erase(path.begin() + i - 1);
-      removed_tiles.push_back(*it);
+      const glm::ivec2 val = *it;
+      removed_tiles.push_back(val);
     }
   }
 
@@ -240,6 +243,7 @@ update_request_move_action(entt::registry& r, entt::entity e, const glm::ivec2 m
   }
 
   // Display the active path
+  ImGui::Text("active path: %zu", path.size());
   if (path.size() > 0) {
     // note: -1 so not the tile you're standing on
     for (size_t i = 1; i < path.size(); i++) {
@@ -283,7 +287,9 @@ update_request_heal_action(entt::registry& r, entt::entity e)
     const auto& slot_c = r.get<const InventorySlotComponent>(slot_e);
     if (slot_c.item_e == entt::null)
       continue;
-    const auto& item_c = r.get<Item>(slot_c.item_e);
+
+    const auto& item_key = r.get<ItemKey>(slot_c.item_e);
+    const auto item_c = find_item(r, item_key.key);
     if (!item_c.use.has_value())
       continue;
     heal += item_c.use->amount.value();
@@ -304,7 +310,9 @@ update_request_combat_action(entt::registry& r, entt::entity e, const glm::ivec2
     return;
 
   const auto item_e = get_equipped_gun(r, e);
-  const auto& item_c = r.get<Item>(item_e);
+  const auto& item_key = r.get<ItemKey>(item_e);
+  const auto item_c = find_item(r, item_key.key);
+
   const auto& type = item_c.combat->type;
 
   // if you're hovvering the damage tiles,
@@ -466,8 +474,13 @@ do_damage_action(entt::registry& r, const entt::entity e)
   const int dmg = get_damage_for_equipped_item(r, e);
   const DamageType dmg_type = DamageType::PHYSICAL;
   std::vector<Trait> weapon_traits;
-  if (item_e != entt::null && r.get<Item>(item_e).traits.has_value())
-    weapon_traits = r.get<Item>(item_e).traits.value();
+
+  if (item_e != entt::null) {
+    const auto& item_key = r.get<ItemKey>(item_e);
+    const auto item_c = find_item(r, item_key.key);
+    if (item_c.traits.has_value())
+      weapon_traits = item_c.traits.value();
+  }
 
   // attack targets, not tiles
   for (const auto map_e : targets) {

@@ -1,6 +1,6 @@
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
 #include "modules/actor_door/door_helpers.hpp"
@@ -48,7 +48,9 @@ update_show_tiles_in_range_system(entt::registry& r)
     std::vector<glm::ivec2> tiles;
 
     const auto gp = get_grid_position(r, e);
-    const auto& item_c = r.get<Item>(item_e);
+
+    const auto& item_key = r.get<ItemKey>(item_e);
+    const auto item_c = find_item(r, item_key.key);
 
     if (!item_c.combat.has_value()) {
       // SDL_Log("Item does not have combat attribute");

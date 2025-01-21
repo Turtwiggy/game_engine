@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
@@ -34,7 +34,7 @@ update_ui_raws_system(entt::registry& r)
 
     const std::string label = "world##" + item.name;
     if (ImGui::Button(label.c_str())) {
-      auto e = spawn_item(r, item.name.c_str());
+      auto e = spawn(r, item.name.c_str());
       set_position(r, e, spaceitem_pos);
 
       // hack: add a piece of scrap to a lootbag
@@ -64,8 +64,6 @@ update_ui_raws_system(entt::registry& r)
       ImGui::Text("(has use...)");
     }
   }
-  ImGui::Text("environment: %zu", raws.environment.size());
-  ImGui::Text("mobs: %zu", raws.mobs.size());
 
   ImGui::End();
 };

@@ -1,6 +1,6 @@
 #include "helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/sprites/components.hpp"
@@ -20,7 +20,8 @@ namespace game2d {
 entt::entity
 create_shotgun(entt::registry& r, entt::entity parent)
 {
-  const auto wep_e = spawn_item(r, "shotgun");
+  const auto wep_e = spawn(r, "shotgun");
+  give_life(r, wep_e, get_position(r, parent));
 
   r.emplace<HasWeaponComponent>(parent, HasWeaponComponent{ wep_e }); // parent <=> child
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ parent }); // child <=> parent
@@ -63,7 +64,7 @@ create_bullet(entt::registry& r)
 entt::entity
 create_jetpack_player(entt::registry& r)
 {
-  auto e = spawn_mob(r, "dungeon_actor_hero");
+  auto e = spawn(r, "dungeon_actor_hero");
   give_life(r, e, { 0, 0 });
   // r.emplace<CircleComponent>(e);
   r.emplace<CameraLerpToTarget>(e);

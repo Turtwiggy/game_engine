@@ -2,8 +2,8 @@
 #include "camera_system.hpp"
 
 // components/systems
-#include "actors/actor_helpers.hpp"
 #include "components.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
@@ -13,6 +13,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "orthographic.hpp"
+
 
 #include <cmath>
 #include <glm/glm.hpp>
@@ -105,10 +106,10 @@ update_camera_system(entt::registry& r, const float dt)
   auto& zoom = camera.zoom_linear;
   auto& zoom_nonlinear = camera.zoom_nonlinear;
 
-  // if (ImGui::GetIO().MouseWheel > 0.0f)
-  //   zoom -= 0.1f;
-  // if (ImGui::GetIO().MouseWheel < 0.0f)
-  //   zoom += 0.1f;
+  if (ImGui::GetIO().MouseWheel > 0.0f)
+    zoom -= 0.1f;
+  if (ImGui::GetIO().MouseWheel < 0.0f)
+    zoom += 0.1f;
 
   // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
   // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).

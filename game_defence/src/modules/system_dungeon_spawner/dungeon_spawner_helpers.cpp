@@ -1,6 +1,7 @@
 #include "dungeon_spawner_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/map/components.hpp"
 #include "engine/map/helpers.hpp"
 #include "engine/maths/grid.hpp"
@@ -15,6 +16,7 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/system_ai/system_ai_components.hpp"
 #include "modules/system_initiative/initiative_components.hpp"
+#include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
@@ -40,6 +42,20 @@ add_initiative(entt::registry& r, entt::entity e)
 #endif
 };
 
+void
+attach_mob_components(entt::registry& r, entt::entity e)
+{
+  r.emplace<DefaultBody>(e, DefaultBody(r));
+  r.emplace<DefaultInventory>(e, DefaultInventory(r, 20));
+
+  auto drop_inv_callback = [](entt::registry& r, const entt::entity e) {
+    SDL_Log("Calling drop_inventory_on_death_callback()");
+    drop_inventory_on_death_callback(r, e);
+  };
+  auto& callbacks_c = r.get_or_emplace<OnDeathCallbacks>(e);
+  callbacks_c.callbacks.push_back(drop_inv_callback);
+}
+
 std::vector<entt::entity>
 spawn_n_blackhole(entt::registry& r, const std::vector<int>& idxs, int amount)
 {
@@ -57,8 +73,11 @@ spawn_n_blackhole(entt::registry& r, const std::vector<int>& idxs, int amount)
     const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
     // impl
-    const auto env_e = spawn_environment(r, "blackhole", pos);
+    const auto env_e = spawn(r, "blackhole");
+    give_life(r, env_e, pos);
+
     r.emplace<OnCollisionKill>(env_e);
+    r.emplace<TeamComponent>(env_e, TeamComponent{ AvailableTeams::neutral });
 
     float rnd_angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
     set_dir(r, env_e, engine::angle_radians_to_direction(rnd_angle));
@@ -97,12 +116,13 @@ spawn_n_enemies(entt::registry& r, const std::vector<int>& idxs, int amount)
     const auto pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
 
     {
-      const auto mob_e = spawn_mob(r, "dungeon_actor_enemy_default");
+      const auto mob_e = spawn(r, "dungeon_actor_enemy_default");
       give_life(r, mob_e, pos, { 24, 24 });
+      attach_mob_components(r, mob_e);
       r.emplace<TeamComponent>(mob_e, TeamComponent{ AvailableTeams::enemy });
       r.emplace<DefaultBrainComponent>(mob_e);
 
-      auto& pb = r.get<PhysicsBodyComponent>(mob_e);
+      // auto& pb = r.get<PhysicsBodyComponent>(mob_e);
 
       auto& inv = r.get<DefaultInventory>(mob_e).inv;
       auto& body = r.get<DefaultBody>(mob_e).body;
@@ -135,13 +155,16 @@ spawn_n_enemies(entt::registry& r, const std::vector<int>& idxs, int amount)
 std::vector<entt::entity>
 spawn_n_players(entt::registry& r, const std::vector<int>& idxs, const std::vector<UnitType>& units)
 {
+  if (units.size() == 0)
+    return {};
+
   const auto map_e = get_first<MapComponent>(r);
   const auto& map_c = r.get<MapComponent>(map_e);
 
   std::vector<entt::entity> ents;
   auto idxs_copy = idxs;
 
-  int amount = units.size();
+  int amount = (int)units.size();
   int i = 0;
   int n_free_slots = static_cast<int>(idxs_copy.size());
   do {
@@ -153,8 +176,9 @@ spawn_n_players(entt::registry& r, const std::vector<int>& idxs, const std::vect
     const auto unit_data = units[i];
 
     SDL_Log("Spawning player mob...");
-    auto e = spawn_mob(r, "dungeon_actor_hero");
+    auto e = spawn(r, "dungeon_actor_hero");
     give_life(r, e, pos);
+    attach_mob_components(r, e);
     r.emplace<PlayerComponent>(e);
     r.emplace<TeamComponent>(e, AvailableTeams::player);
     r.emplace<DebugBodyAndInventory>(e); // should be inventroy from active unit?

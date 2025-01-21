@@ -1,6 +1,6 @@
 #include "ui_action_bar_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/events/components.hpp"

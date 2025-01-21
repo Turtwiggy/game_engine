@@ -133,10 +133,11 @@ get_equipped_gun(entt::registry& r, const entt::entity e)
 int
 get_damage_for_item(entt::registry& r, const entt::entity item_e)
 {
-  const auto& item = r.get<Item>(item_e);
+  const auto& item_key = r.get<ItemKey>(item_e);
+  const auto item_c = find_item(r, item_key.key);
 
-  if (item.combat.has_value())
-    return item.combat->damage;
+  if (item_c.combat.has_value())
+    return item_c.combat->damage;
 
   return 0;
 };

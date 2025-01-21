@@ -1,13 +1,12 @@
 #include "modules/raws/raws_components.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
-#include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -18,7 +17,6 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
-#include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_names/components.hpp"
@@ -75,10 +73,17 @@ get_raws_keys(const Raws& raws)
   for (const auto& key : raws.items)
     results.push_back(key.name);
 
-  for (const auto& key : raws.mobs)
-    results.push_back(key.name);
-
   return results;
+};
+
+const Item
+find_item(entt::registry& r, std::string key)
+{
+  const auto& rs = get_first_component<Raws>(r);
+  const auto it = find_key_or_crash<Item>(rs.items, key);
+  const auto idx = static_cast<int>(it - rs.items.begin());
+  const auto& templ = rs.items[idx];
+  return templ;
 };
 
 engine::SRGBColour
@@ -87,13 +92,8 @@ colour_tag_to_colour(const Raws& raws, const std::string& col)
   for (const auto& c : raws.colours)
     if (c.tag == col)
       return hex_to_srgb(c.hex);
-  return { 1.0f, 1.0f, 1.0f, 1.0f };
+  return engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f);
 };
-
-const auto item_body_type = b2_kinematicBody;
-const auto mob_body_type = b2_kinematicBody;
-const auto env_body_type = b2_kinematicBody;
-static float size = 32.0f;
 
 entt::entity
 create_transform(entt::registry& r, const std::string& name)
@@ -109,17 +109,19 @@ void
 give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const glm::vec2& size)
 {
   const auto& raws = get_first_component<Raws>(r);
-  const auto& mob_template = r.get<const Mob>(e);
+  const auto key = r.get<ItemKey>(e).key;
+  const auto t = find_item(r, key);
+
   // const auto& name = r.get<NameComponent>(e).name;
   // SDL_Log("Give life: %s", name.c_str());
 
   // create_transform()
   {
     r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, mob_template.renderable.sprite);
+    set_sprite(r, e, t.renderable.sprite);
 
     // add a looping idle_anim
-    if (mob_template.renderable.sprite == "REF_IDLE") {
+    if (t.renderable.sprite == "REF_IDLE") {
       SpriteAnimationState anim_c;
       anim_c.playing_animation_name = "REF_IDLE";
       anim_c.duration = 0.9f;
@@ -131,7 +133,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       r.emplace<SpriteAnimationState>(e, anim_c);
     }
 
-    const auto col = colour_tag_to_colour(raws, mob_template.renderable.colour);
+    const auto col = colour_tag_to_colour(raws, t.renderable.colour);
     r.emplace<DefaultColour>(e, col);
     set_colour(r, e, col);
 
@@ -144,14 +146,113 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
   }
 
   // create_physics()
-  {
-    PhysicsDescription pdesc;
-    pdesc.type = b2_dynamicBody;
-    pdesc.position = pos;
-    pdesc.size = { size.x, size.y };
-    pdesc.is_sensor = mob_template.is_sensor;
-    create_physics_actor(r, e, pdesc);
+  if (t.phys_body.has_value()) {
+    const auto& my_body_def = t.phys_body.value();
+    auto is_bullet = my_body_def.is_bullet;
+    auto is_static = my_body_def.is_static;
+
+    // Create a physics body.
+    //
+    auto& physics_c = get_first_component<SINGLE_Physics>(r);
+
+    // Bodies are built using the following steps:
+    // Define a body with position, damping, etc.
+    // Use the world object to create the body.
+    // Define fixtures with a shape, friction, density, etc.
+    // Create fixtures on the body.
+
+    b2BodyDef body_def;
+    body_def.position.Set(pos.x, pos.y);
+    body_def.angle = 0.0f;
+    body_def.fixedRotation = true;
+    body_def.bullet = is_bullet;
+    body_def.type = is_static ? b2_staticBody : b2_dynamicBody;
+    body_def.linearVelocity = b2Vec2_zero;
+    body_def.linearDamping = my_body_def.linear_damping;
+    body_def.angularDamping = my_body_def.angular_damping;
+
+    // box2d: create body
+    b2Body* body = nullptr;
+    body = physics_c.world->CreateBody(&body_def);
+    // SDL_Log("creating physics body..");
+
+    // box2d: give link to entt
+    body->GetUserData().pointer = (uintptr_t)e;
+
+    // entt: create body representation
+    auto& body_c = r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ body });
+
+    if (!t.phys_fixtures.has_value()) {
+      SDL_Log("(Error) phys_body defined, but not phys_fixtures");
+      exit(1);
+    }
+
+    if (t.phys_fixtures.has_value()) {
+      const auto& fixtures = t.phys_fixtures.value();
+
+      if (fixtures.size() == 0) {
+        SDL_Log("(Error) phys_fixtures size 0 when phys_body defined");
+        exit(1);
+      }
+
+      for (const auto& fix : fixtures) {
+        auto tag = fix.tag;
+        auto type = fix.type;
+        auto is_sensor = fix.is_sensor;
+        auto density = fix.density;
+        auto friction = fix.friction;
+        auto restitution = fix.restitution;
+
+        b2FixtureDef fixture_def;
+        fixture_def.friction = friction;
+        fixture_def.density = density;
+        fixture_def.restitution = restitution;
+        fixture_def.isSensor = is_sensor;
+
+        b2Fixture* fixture = nullptr;
+
+        if (type == "circle") {
+          b2CircleShape circle;
+          circle.m_radius = fix.radius;
+          fixture_def.shape = &circle;
+          fixture = body->CreateFixture(&fixture_def);
+          // SDL_Log("creating circle fixture..");
+        }
+
+        if (type == "box") {
+          b2PolygonShape box;
+          box.SetAsBox(size.x / 2.0f, size.y / 2.0f);
+          fixture_def.shape = &box;
+          fixture = body->CreateFixture(&fixture_def);
+          // SDL_Log("creating box fixture..");
+        }
+
+        if (fixture == nullptr) {
+          SDL_Log("(Error) unknown fixture type: %s", type.c_str());
+          exit(1);
+        }
+
+        // entt: create fixture representation
+        PhysicsFixtureComponent fixture_c;
+        fixture_c.body = body;
+        fixture_c.fixture = fixture;
+        auto fixture_e = create_empty<PhysicsFixtureComponent>(r);
+        r.emplace_or_replace<TagComponent>(fixture_e, fix.tag);
+        r.emplace<HasParentComponent>(fixture_e, e); // link fixture => body
+        body_c.fixtures.push_back(fixture_e);        // link body => fixture
+
+        // box2d: give link to entt
+        fixture->GetUserData().pointer = (uint32)fixture_e;
+      }
+    }
+
+    // While we're creating it, update the transform
+    auto& transform_c = r.get<TransformComponent>(e);
+    transform_c.scale.x = size.x;
+    transform_c.scale.y = size.y;
   }
+
+  // r.emplace<DefaultSizeComponent>(e, size);
 };
 
 void
@@ -163,8 +264,8 @@ remove_life(entt::registry& r, const entt::entity e)
   if (auto* timer_c = r.try_get<EntityTimedLifecycle>(e))
     r.remove<EntityTimedLifecycle>(e);
 
-  if (auto* callback_c = r.try_get<OnDeathCallback>(e))
-    r.remove<OnDeathCallback>(e);
+  if (auto* callback_c = r.try_get<OnDeathCallbacks>(e))
+    r.remove<OnDeathCallbacks>(e);
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
     auto& physics_c = get_first_component<SINGLE_Physics>(r);
@@ -174,36 +275,18 @@ remove_life(entt::registry& r, const entt::entity e)
 };
 
 entt::entity
-spawn_item(entt::registry& r, const std::string& key, const glm::vec2& size)
+spawn(entt::registry& r, const std::string& key)
 {
   const auto& rs = get_first_component<Raws>(r);
-  const auto it = find_key_or_crash(rs.items, key);
+  const auto it = find_key_or_crash<Item>(rs.items, key);
   const auto idx = static_cast<int>(it - rs.items.begin());
   const Item& item_template = rs.items[idx];
 
-  // create_transform()
   const auto e = r.create();
   r.emplace<TagComponent>(e, item_template.name);
   r.emplace<WaitForInitComponent>(e);
-
-  TransformComponent t_c;
-  t_c.scale = { size.x, size.y, 1.0 };
-  r.emplace<TransformComponent>(e, t_c);
-  r.emplace<SpriteComponent>(e);
-  set_sprite(r, e, item_template.renderable.sprite);
-  set_colour(r, e, colour_tag_to_colour(rs, item_template.renderable.colour));
-  set_z_index(r, e, ZLayer::DEFAULT);
-  // set_size(r, e, { size, size });
-
-  // Add items to physics system?
-  PhysicsDescription pdesc;
-  pdesc.type = item_body_type;
-  pdesc.size = { size.x, size.y };
-  pdesc.is_sensor = true;
-  create_physics_actor(r, e, pdesc);
-
-  // item is use across the game to represent any item
-  r.emplace<Item>(e, item_template);
+  r.emplace<OnDeathCallbacks>(e);
+  r.emplace<ItemKey>(e, key);
 
   // item component is used by the inventory ui
   UI_ItemComponent item_c;
@@ -219,6 +302,24 @@ spawn_item(entt::registry& r, const std::string& key, const glm::vec2& size)
   if (item_template.inventory.has_value())
     r.emplace<DefaultInventory>(e, DefaultInventory(r, item_template.inventory.value().size));
 
+  if (item_template.stats.has_value())
+    r.emplace<HealthComponent>(e, item_template.stats->hp, item_template.stats->max_hp);
+  r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
+  r.emplace<InputComponent>(e);
+
+  if (item_template.move_speed.has_value()) {
+    LimitMovementComponent move_c;
+    move_c.path_size = item_template.move_speed->speed;
+    r.emplace<LimitMovementComponent>(e, move_c);
+  }
+  r.emplace<PathfindComponent>(e, -1, true);
+  r.emplace<SpawnParticlesOnDeath>(e);
+
+  // Give each mob a random name
+  static engine::RandomState rnd(0);
+  const auto& names = get_first_component<SINGLE_NamesComponent>(r);
+  r.emplace<NameComponent>(e, names.name[engine::rand_det_s(rnd.rng, 0, int(names.name.size()))]);
+
   // todo: replace with item traits
   if (key == "breach_charge") {
     add_bomb_callback(r, e);
@@ -228,109 +329,6 @@ spawn_item(entt::registry& r, const std::string& key, const glm::vec2& size)
   if (item_template.traits.has_value())
     for (const auto& trait : item_template.traits.value())
       SDL_Log("item with trait: %s", trait.key.c_str());
-
-  return e;
-};
-
-entt::entity
-spawn_mob(entt::registry& r, const std::string& key)
-{
-  const auto& rs = get_first_component<Raws>(r);
-  const auto it = find_key_or_crash<Mob>(rs.mobs, key);
-  const auto idx = static_cast<int>(it - rs.mobs.begin());
-  const Mob& mob_template = rs.mobs[idx];
-
-  const auto e = r.create();
-  r.emplace<TagComponent>(e, mob_template.name);
-  r.emplace<WaitForInitComponent>(e);
-  r.emplace<Mob>(e, mob_template);
-
-  // Give a body e.g. arms and legs
-  r.emplace<DefaultBody>(e, DefaultBody(r));
-
-  // Give an inventory that can store items
-  // note: all mobs drop_inventory_on_death()
-  const int slots = 20;
-  r.emplace<DefaultInventory>(e, DefaultInventory{ r, slots });
-
-  OnDeathCallback callback;
-  callback.callback = [](entt::registry& r, const entt::entity e) {
-    //
-    SDL_Log("Calling drop_inventory_on_death_callback()");
-    drop_inventory_on_death_callback(r, e);
-  };
-  r.emplace<OnDeathCallback>(e, callback);
-
-  // r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-  // r.emplace<DestroyBulletOnCollison>(e);
-  // r.emplace<MoveLimitComponent>(e, 1);
-  r.emplace<SpawnParticlesOnDeath>(e);
-  r.emplace<HealthComponent>(e, mob_template.stats.hp, mob_template.stats.max_hp);
-  r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
-  r.emplace<PathfindComponent>(e, -1, true);
-  if (mob_template.move_speed.has_value()) {
-    LimitMovementComponent move_c;
-    move_c.path_size = mob_template.move_speed->speed;
-    r.emplace<LimitMovementComponent>(e, move_c);
-  }
-  r.emplace<InputComponent>(e);
-
-  // Give each mob a random name
-  static engine::RandomState rnd(0);
-  const auto& names = get_first_component<SINGLE_NamesComponent>(r);
-  r.emplace<NameComponent>(e, names.name[engine::rand_det_s(rnd.rng, 0, int(names.name.size()))]);
-
-  // if (item_template.stats.){
-  // }
-
-  return e;
-};
-
-entt::entity
-spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& pos)
-{
-  const auto& rs = get_first_component<Raws>(r);
-  const auto it = find_key_or_crash<Environment>(rs.environment, key);
-  const auto idx = static_cast<int>(it - rs.environment.begin());
-  const Environment& env_template = rs.environment[idx];
-
-  const auto e = r.create();
-  r.emplace<TagComponent>(e, env_template.name);
-  r.emplace<WaitForInitComponent>(e);
-  r.emplace<Environment>(e, env_template);
-
-  // create_transform()
-  {
-    r.emplace<SpriteComponent>(e);
-
-    const auto col = colour_tag_to_colour(rs, env_template.renderable.colour);
-    r.emplace<DefaultColour>(e, col);
-    set_colour(r, e, col);
-
-    TransformComponent tf;
-    tf.position = { pos.x, pos.y, 0.0f };
-    tf.scale = { size, size, 0.0f };
-    r.emplace<TransformComponent>(e, tf);
-
-    set_sprite(r, e, env_template.renderable.sprite);
-    set_z_index(r, e, ZLayer::ENVIRONMENT);
-  }
-
-  // create_physics()
-  if (env_template.physics_desc.has_value()) {
-    PhysicsDescription pdesc;
-    pdesc.type = env_body_type;
-    pdesc.position = pos;
-    pdesc.size = { size, size };
-    pdesc.is_sensor = env_template.physics_desc->is_sensor;
-    create_physics_actor(r, e, pdesc);
-  }
-
-  if (env_template.defence.has_value())
-    r.emplace<DefenceComponent>(e, env_template.defence->block);
-  r.emplace<PathfindComponent>(e, -1, true);
-  r.emplace<TeamComponent>(e, AvailableTeams::neutral);
-  r.emplace<NameComponent>(e, NameComponent{ env_template.name });
 
   return e;
 };
@@ -399,62 +397,6 @@ spawn_particle(entt::registry& r, const std::string& key, const Particle& desc)
     set_colour(r, e, col->colour);
 
   set_position(r, e, desc.position);
-  return e;
-};
-
-entt::entity
-spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size)
-{
-  const auto floor_e = create_transform(r, "floor");
-  r.emplace<DefaultColour>(floor_e, engine::SRGBColour{ 0.5f, 0.5f, 0.5f, 1.0f });
-  r.emplace<SpriteComponent>(floor_e);
-  set_sprite(r, floor_e, "EMPTY");
-  set_position(r, floor_e, pos);
-  set_size(r, floor_e, size);
-  set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
-  set_z_index(r, floor_e, ZLayer::FLOOR);
-  r.emplace<FloorComponent>(floor_e);
-  return floor_e;
-};
-
-entt::entity
-spawn_ship_part(entt::registry& r, const std::string& key)
-{
-  const auto& rs = get_first_component<Raws>(r);
-  const auto it = find_key_or_crash(rs.ship_parts, key);
-  const int idx = static_cast<int>(it - rs.ship_parts.begin());
-  const ShipParts& part_template = rs.ship_parts[idx];
-
-  auto e = r.create();
-  r.emplace<TagComponent>(e, part_template.name);
-  r.emplace<WaitForInitComponent>(e);
-  r.emplace<ShipParts>(e, part_template);
-
-  if (part_template.renderable.has_value()) {
-    r.emplace<TransformComponent>(e);
-    r.emplace<SpriteComponent>(e);
-
-    const auto col = colour_tag_to_colour(rs, part_template.renderable->colour);
-    r.emplace<DefaultColour>(e, col);
-    set_colour(r, e, col);
-    set_sprite(r, e, part_template.renderable->sprite);
-    set_size(r, e, { size, size });
-    set_z_index(r, e, ZLayer::DEFAULT);
-  }
-
-  // Add items to physics system?
-  PhysicsDescription pdesc;
-  pdesc.type = b2_staticBody;
-  pdesc.size = { size, size };
-  pdesc.is_sensor = true;
-  create_physics_actor(r, e, pdesc);
-
-  r.emplace<SpawnParticlesOnDeath>(e);
-  r.emplace<HealthComponent>(e, 100, 100);
-  r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
-  r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-  r.emplace<NameComponent>(e, NameComponent{ part_template.name });
-
   return e;
 };
 

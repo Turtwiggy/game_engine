@@ -1,13 +1,12 @@
 #include "system.hpp"
 
-#include "actors/actor_helpers.hpp"
 #include "components.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/spaceship_designer/generation/components.hpp"
-
 
 namespace game2d {
 

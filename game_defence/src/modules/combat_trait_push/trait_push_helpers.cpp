@@ -1,6 +1,6 @@
 #include "trait_push_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/maths/grid.hpp"
 

@@ -1,6 +1,6 @@
 #include "modules/actor_player/actor_player_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/controller.hpp"

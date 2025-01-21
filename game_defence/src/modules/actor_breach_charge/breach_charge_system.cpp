@@ -1,6 +1,6 @@
 #include "breach_charge_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -11,7 +11,6 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
-
 
 #include <SDL2/SDL_log.h>
 #include <format>
@@ -66,8 +65,8 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
     SDL_Log("%s", std::format("spawning bomb!").c_str());
 
     // spawn the bomb!
-    const auto world_bomb_e = spawn_item(r, "breach_charge");
-    set_position(r, world_bomb_e, mouse_pos_on_grid);
+    const auto world_bomb_e = spawn(r, "breach_charge");
+    give_life(r, world_bomb_e, mouse_pos_on_grid);
 
     // remove bomb from inventory (a one use)
     const auto& item_e = r.get<UI_ItemComponent>(inv_bomb_e);

@@ -1,6 +1,6 @@
 #include "sprite_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/entity_pool.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/sprites/helpers.hpp"

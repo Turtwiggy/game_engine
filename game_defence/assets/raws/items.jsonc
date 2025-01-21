@@ -166,9 +166,9 @@
       "defence": { "block": 4, "worn_on": "LEG" },
       "commerce": { "value": 10 }
       // "tier": "sCrap"
-    }
-  ],
-  "environment": [
+    },
+    // header: environment
+    //
     {
       "name": "decoration",
       "renderable": { "sprite": "EMPTY", "colour": "white" }
@@ -177,56 +177,60 @@
       "name": "cover",
       "renderable": { "sprite": "WALL_19_1_NONE", "colour": "white" },
       "defence": { "block": 5 },
-      "physics_desc": { "is_sensor": true}
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "cover", "type": "box", "is_sensor": true } ]
     },
     {
       "name": "blackhole",
       "renderable": { "sprite": "BLACKHOLE_2", "colour": "dark_magenta" },
-      "physics_desc": { "is_sensor": true}
-    }
-  ],
-  "mobs": [
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "blachole", "type": "box", "is_sensor": true } ]
+    },
+    // Header: actors
+    //
     {
       "name": "spaceship_player",
       "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": "gold_yellow"},
       "stats": { "max_hp": 100, "hp": 100 },
-      "is_sensor": false
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "player", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "spaceship_enemy",
       "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": "red" },
       "stats": { "max_hp": 100, "hp": 100 },
-      "is_sensor": false
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "enemy", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "dungeon_actor_hero",
       "renderable": { "sprite": "REF_IDLE", "colour":  "white" },
       "stats": { "max_hp": 10, "hp": 10 },
-      "is_sensor": true,
-      "move_speed": {"speed": 3}
+      "move_speed": {"speed": 3},
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "enemy", "type": "box", "is_sensor": true } ]
     },
     {
       "name": "dungeon_actor_enemy_default",
       "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
       "stats": { "max_hp": 10, "hp": 10 },
-      "is_sensor": true,
-      "move_speed": {"speed": 2}
+      "move_speed": {"speed": 2 },
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "enemy", "type": "box", "is_sensor": true } ]
+    },
+    {
+      "name": "engine",
+      "repair_by": [ {"item_key": "scrap", "quantity": 10} ],
+      "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
+    },
+    {
+      "name": "seat_pilot",
+      "repair_by": [ {"item_key": "scrap", "quantity": 2} ],
+      "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
+    },
+    {
+      "name": "airlock",
+      "repair_by": [ ]
     }
-  ],
-  "ship_parts": [
-   {
-    "name": "engine",
-    "repair_by": [ {"item_key": "scrap", "quantity": 10} ],
-    "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
-   },
-   {
-    "name": "seat_pilot",
-    "repair_by": [ {"item_key": "scrap", "quantity": 2} ],
-    "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
-   },
-   {
-    "name": "airlock",
-    "repair_by": [ ]
-   }
   ]
 }

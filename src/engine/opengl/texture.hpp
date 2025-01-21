@@ -40,6 +40,9 @@ struct LinearTexture
   // max: filtering mode if texture pixels > screen pixels
   // int texture_max_filter = GL_LINEAR;
   // int texture_min_filter = GL_LINEAR;
+
+  int texture_wrap_s = GL_CLAMP_TO_BORDER;
+  int texture_wrap_t = GL_CLAMP_TO_BORDER;
   int texture_max_filter = GL_NEAREST;
   int texture_min_filter = GL_LINEAR_MIPMAP_LINEAR;
 };
@@ -50,11 +53,11 @@ bind_tex(const int id);
 void
 unbind_tex();
 
-[[nodiscard]] std::vector<unsigned int>
-load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load);
+// [[nodiscard]] std::vector<unsigned int>
+// load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load);
 
-[[nodiscard]] std::vector<unsigned int>
-load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load);
+// [[nodiscard]] std::vector<unsigned int>
+// load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load);
 
 [[nodiscard]] LinearTexture
 load_texture_linear(const int tex_unit, const std::string& path);

@@ -2,6 +2,7 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/physics/components.hpp"
 #include "modules/system_particles/components.hpp"
 
 #include <entt/entt.hpp>
@@ -146,126 +147,41 @@ struct Trait
 // categories in the raw files...
 //
 
+struct ItemKey
+{
+  std::string key;
+};
+
 struct Item
 {
   std::string name;
   std::string display_name;
   std::string display_desc;
   Renderable renderable;
+  std::optional<Stats> stats = std::nullopt;
   std::optional<Use> use = std::nullopt;
   std::optional<Defence> defence = std::nullopt;
   std::optional<Combat> combat = std::nullopt;
+  std::optional<MoveSpeed> move_speed = std::nullopt;
   std::optional<std::vector<Trait>> traits = std::nullopt;
   std::optional<Inventory> inventory = std::nullopt;
-  // std::optional<Bullet> bullet = std::nullopt;
+  std::optional<PhysicsBodyDef> phys_body = std::nullopt;
+  std::optional<std::vector<PhysicsFixtureDef>> phys_fixtures = std::nullopt;
 
-  friend void to_json(json& j, const Item& val)
-  {
-    j["name"] = val.name;
-    j["display_name"] = val.display_name;
-    j["display_desc"] = val.display_desc;
-    j["renderable"] = val.renderable;
-    if (val.use.has_value())
-      j["use"] = val.use.value();
-    if (val.combat.has_value())
-      j["combat"] = val.combat.value();
-    if (val.defence.has_value())
-      j["defence"] = val.defence.value();
-    if (val.inventory.has_value())
-      j["inventory"] = val.inventory.value();
-    if (val.traits.has_value())
-      j["traits"] = val.traits.value();
-  }
-  friend void from_json(const json& j, Item& val)
-  {
-    j.at("name").get_to(val.name);
-    if (j.contains("display_name"))
-      j.at("display_name").get_to(val.display_name);
-    if (j.contains("display_desc"))
-      j.at("display_desc").get_to(val.display_desc);
-    j.at("renderable").get_to(val.renderable);
-    if (j.contains("use"))
-      j.at("use").get_to(val.use.emplace());
-    if (j.contains("combat"))
-      j.at("combat").get_to(val.combat);
-    if (j.contains("defence"))
-      j.at("defence").get_to(val.defence);
-    if (j.contains("inventory"))
-      j.at("inventory").get_to(val.inventory);
-    if (j.contains("traits"))
-      j.at("traits").get_to(val.traits);
-  };
-};
-
-struct PhysicsDesc
-{
-  bool is_sensor = false;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsDesc, is_sensor);
-};
-
-struct Environment
-{
-  std::string name;
-  Renderable renderable;
-  std::optional<Defence> defence = std::nullopt;
-  std::optional<PhysicsDesc> physics_desc = std::nullopt;
-
-  friend void to_json(nlohmann ::json& j, const Environment& val)
-  {
-    j["name"] = val.name;
-    j["renderable"] = val.renderable;
-    if (val.defence.has_value())
-      j["defence"] = val.defence.value();
-    if (val.physics_desc.has_value())
-      j["physics_desc"] = val.physics_desc.value();
-  }
-  friend void from_json(const nlohmann ::json& j, Environment& val)
-  {
-    j.at("name").get_to(val.name);
-    j.at("renderable").get_to(val.renderable);
-    if (j.contains("defence"))
-      j.at("defence").get_to(val.defence);
-    if (j.contains("physics_desc"))
-      j.at("physics_desc").get_to(val.physics_desc);
-  };
-};
-
-struct Mob
-{
-  std::string name;
-  Renderable renderable;
-  Stats stats;
-  bool is_sensor;
-  std::optional<MoveSpeed> move_speed = std::nullopt;
-
-  friend void to_json(nlohmann ::json& nlohmann_json_j, const Mob& nlohmann_json_t)
-  {
-    nlohmann_json_j["name"] = nlohmann_json_t.name;
-    nlohmann_json_j["renderable"] = nlohmann_json_t.renderable;
-    nlohmann_json_j["stats"] = nlohmann_json_t.stats;
-    nlohmann_json_j["is_sensor"] = nlohmann_json_t.is_sensor;
-
-    if (nlohmann_json_t.move_speed.has_value())
-      nlohmann_json_j["move_speed"] = nlohmann_json_t.move_speed;
-  }
-  friend void from_json(const nlohmann ::json& nlohmann_json_j, Mob& nlohmann_json_t)
-  {
-    nlohmann_json_j.at("name").get_to(nlohmann_json_t.name);
-    nlohmann_json_j.at("renderable").get_to(nlohmann_json_t.renderable);
-    nlohmann_json_j.at("stats").get_to(nlohmann_json_t.stats);
-    nlohmann_json_j.at("is_sensor").get_to(nlohmann_json_t.is_sensor);
-    if (nlohmann_json_j.contains("move_speed"))
-      nlohmann_json_j.at("move_speed").get_to(nlohmann_json_t.move_speed);
-  };
-};
-
-struct ShipParts
-{
-  std::string name;
-  std::optional<Renderable> renderable;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ShipParts, name, renderable);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Item,
+                                              name,
+                                              display_name,
+                                              display_desc,
+                                              renderable,
+                                              stats,
+                                              use,
+                                              defence,
+                                              combat,
+                                              move_speed,
+                                              traits,
+                                              inventory,
+                                              phys_body,
+                                              phys_fixtures);
 };
 
 struct Colour
@@ -284,11 +200,8 @@ struct Raws
 {
   std::vector<Colour> colours;
   std::vector<Item> items;
-  std::vector<Environment> environment;
-  std::vector<Mob> mobs;
-  std::vector<ShipParts> ship_parts;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, colours, items, environment, mobs, ship_parts);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, colours, items);
 };
 
 //
@@ -296,6 +209,9 @@ struct Raws
 //
 
 const int default_size = 32;
+
+const Item
+find_item(entt::registry& r, std::string key);
 
 Raws
 load_raws(std::string path);
@@ -316,24 +232,12 @@ void
 remove_life(entt::registry& r, const entt::entity e);
 
 entt::entity
-spawn_item(entt::registry& r, const std::string& key, const glm::vec2& size = { default_size, default_size });
-
-entt::entity
-spawn_mob(entt::registry& r, const std::string& key);
-
-entt::entity
-spawn_environment(entt::registry& r, const std::string& key, const glm::vec2& pos);
+spawn(entt::registry& r, const std::string& key);
 
 entt::entity
 spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, const entt::entity parent);
 
 entt::entity
 spawn_particle(entt::registry& r, const std::string& key, const Particle& desc);
-
-entt::entity
-spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size);
-
-entt::entity
-spawn_ship_part(entt::registry& r, const std::string& key);
 
 } // namespace game2d

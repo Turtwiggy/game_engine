@@ -1,6 +1,6 @@
 #pragma once
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/system_ai/system_ai_maths.hpp"
 

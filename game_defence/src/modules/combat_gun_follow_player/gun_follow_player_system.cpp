@@ -1,6 +1,6 @@
 #include "gun_follow_player_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
@@ -79,7 +79,7 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
     set_position(r, shotgun_e, offset_pos);
 
     // Rotate the gun axis to the target
-    weapon_t.rotation_radians.z = engine::dir_to_angle_radians(nrm_dir) + engine::PI;
+    weapon_t.rotation_radians.z = engine::dir_to_angle_radians(nrm_dir);
   }
 }
 

@@ -1,6 +1,6 @@
 #include "ui_combat_damage_numbers_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"

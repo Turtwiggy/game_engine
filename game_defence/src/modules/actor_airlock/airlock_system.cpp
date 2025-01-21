@@ -1,7 +1,7 @@
 #include "airlock_system.hpp"
 
-#include "actors/actor_helpers.hpp"
 #include "components.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -11,7 +11,6 @@
 #include "modules/actor_door/door_helpers.hpp"
 #include "modules/spaceship_designer/spaceship_designer_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
-
 
 namespace game2d {
 using namespace engine::grid;

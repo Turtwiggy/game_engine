@@ -36,7 +36,10 @@ save_units(entt::registry& r, const std::vector<UnitType>& units)
 void
 add_unit_to_entt(entt::registry& r, const UnitType& unit)
 {
-  auto e = spawn_mob(r, "dungeon_actor_hero");
+  auto e = spawn(r, "dungeon_actor_hero");
+  r.emplace<DefaultBody>(e, DefaultBody(r));
+  r.emplace<DefaultInventory>(e, DefaultInventory(r, 20));
+
   r.emplace<PlayerComponent>(e);
   r.emplace<TeamComponent>(e, AvailableTeams::player);
   r.emplace<DebugBodyAndInventory>(e);

@@ -1,6 +1,6 @@
 #include "ui_spaceship_designer_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
@@ -211,9 +211,10 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
       // add_entity_to_map(r, part_e, mouse_idx);
     }
     if (get_key_down(input, SDL_SCANCODE_4)) {
-      const auto part_e = spawn_ship_part(r, "engine");
+      const auto part_e = spawn(r, "engine");
       const auto pos = engine::grid::index_to_world_position_center(mouse_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-      set_position(r, part_e, pos);
+      give_life(r, part_e, pos);
+
       add_entity_to_map(r, part_e, mouse_idx);
     }
 

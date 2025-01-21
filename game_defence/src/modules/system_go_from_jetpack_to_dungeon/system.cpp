@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
 #include "engine/map/helpers.hpp"
@@ -12,7 +12,6 @@
 #include "modules/spaceship_designer/generation/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_math.h>

@@ -41,7 +41,7 @@ inline float
 Parabola(float x, float r1, float r2, float h, float k)
 {
   auto y = -k / ((r1 - h) * (r2 - h) * std::pow(x - h, 2) + k);
-  return y;
+  return (float)y;
 }
 
 } // namespace game2d

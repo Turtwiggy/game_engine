@@ -1,12 +1,13 @@
 #include "system.hpp"
 
-#include "actors/actor_helpers.hpp"
 #include "components.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat_scale_on_hit/helpers.hpp"
+
 
 namespace game2d {
 
@@ -14,7 +15,7 @@ void
 enable_flash(entt::registry& r, entt::entity e)
 {
   // set_colour(r, e, get_srgb_colour_by_tag(r, "enemy_flash"));
-  set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  set_colour(r, e, engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f));
 };
 
 void

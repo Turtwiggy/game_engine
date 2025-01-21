@@ -208,7 +208,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_initiative_system(r);
 
     update_move_player_on_map_system(r, milliseconds_dt);
-    update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
+    // update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     update_tutorial_system(r);
 
     update_door_system(r);

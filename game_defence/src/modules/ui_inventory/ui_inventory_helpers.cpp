@@ -31,7 +31,7 @@ spawn_inv_item(entt::registry& r, std::vector<entt::entity>& v, int idx, std::st
     return entt::null;
   }
 
-  const auto e = spawn_item(r, key);
+  const auto e = spawn(r, key);
   remove_life(r, e); // data only, no transform/physics
 
   // set child's parent
@@ -207,7 +207,10 @@ display_item(entt::registry& r,
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
   const auto& item_tag = r.get<TagComponent>(item_e);
-  const Item& item_data = r.get<Item>(item_e);
+
+  const auto& item_key = r.get<ItemKey>(item_e);
+  const auto item_key_c = find_item(r, item_key.key);
+
   auto& ui = get_first_component<SINGLE_UIInventoryState>(r);
   const std::string slot_type_str = std::string(magic_enum::enum_name(type));
 
@@ -254,34 +257,35 @@ display_item(entt::registry& r,
     const auto item_desc_str = item_c.display_desc.c_str();
     ImGui::TextColored(grey, "%s", item_desc_str);
 
-    if (item_data.combat.has_value()) {
-      const auto item_damage = item_data.combat->damage;
+    if (item_key_c.combat.has_value()) {
+      const auto item_damage = item_key_c.combat->damage;
       ImGui::TextColored(orange, "ATK %i", item_damage);
 
-      const auto item_range = item_data.combat->range;
+      const auto item_range = item_key_c.combat->range;
       ImGui::TextColored(orange, "RANGE %i", item_range);
     }
 
     // Show Defence
-    if (item_data.defence.has_value()) {
-      ImGui::TextColored(orange, "DEF %d", item_data.defence.value().block);
+    if (item_key_c.defence.has_value()) {
+      ImGui::TextColored(orange, "DEF %d", item_key_c.defence.value().block);
     }
 
-    if (item_data.traits.has_value()) {
-      for (int i = 0; const auto& item_trait : item_data.traits.value()) {
+    if (item_key_c.traits.has_value()) {
+      for (int i = 0; const auto& item_trait : item_key_c.traits.value()) {
         const auto display_str = std::format("+{}", item_trait.key);
         ImGui::TextColored(orange, "%s", display_str.c_str());
       }
     }
 
-    auto& core_item_c = r.get<Item>(item_e);
-    if (core_item_c.use.has_value())
+    const auto& item_key = r.get<ItemKey>(item_e);
+    const auto item_c = find_item(r, item_key.key);
+    if (item_c.use.has_value())
       ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "(usable)");
 
     ImGui::EndTooltip();
   }
 
-  std::string text = std::format("{}", item_data.display_name);
+  std::string text = std::format("{}", item_key_c.display_name);
 
   // for the equipment menu, show what the equip type is
   // if (type != InventorySlotType::backpack)

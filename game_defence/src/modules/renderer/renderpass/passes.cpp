@@ -1,6 +1,6 @@
 #include "passes.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/helpers/mouse.hpp"
@@ -100,7 +100,9 @@ setup_debris_update(entt::registry& r)
 
     ri.debris.bind();
     ri.debris.set_mat4("view", camera_c.view);
+    ri.debris.set_mat4("projection", camera_c.projection);
     ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+    ri.debris.set_vec2("viewport_wh", ri.viewport_size_render_at);
     ri.debris.set_float("zoom", camera_c.zoom_nonlinear);
 
 #if defined(_DEBUG)
@@ -227,7 +229,16 @@ setup_linear_main_update(entt::registry& r)
       const auto& group = r.group<TransformComponent, SpriteComponent>();
 
       // sort by z-index; adds ~0.5ms
-      group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.z_index < b.z_index; });
+      group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
+        const auto& a = group.get<TransformComponent>(lhs);
+        const auto& b = group.get<TransformComponent>(rhs);
+
+        if (a.z_index != b.z_index)
+          return a.z_index < b.z_index;
+
+        // sort by eid if the layers are the same
+        return lhs < rhs;
+      });
 
       for (const auto& [e, transform, sc] : group.each()) {
 
@@ -362,7 +373,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     // emitters should be anything but black (i.e. scene lighting)
-    const engine::LinearColour emitter_col = engine::SRGBToLinear({ 255, 0, 0, 1.0f });
+    const engine::LinearColour emitter_col = engine::SRGBToLinear({ 255, 0, 0, 255 });
     const engine::LinearColour occluder_col(0.0f, 0.0f, 0.0f, 1.0f);
 
     ri.lighting_emitters_and_occluders.bind();
@@ -370,7 +381,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     ri.lighting_emitters_and_occluders.set_mat4("projection", camera_c.projection_zoomed);
 
     {
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0 });
       engine::RenderCommand::clear();
 
       ri.renderer.reset_quad_vert_count();
@@ -477,7 +488,7 @@ setup_jump_flood_pass(entt::registry& r)
 
       engine::Framebuffer::bind_fbo(pass.fbos[this_tex_idx]);
       engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
       engine::RenderCommand::clear();
 
       // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest

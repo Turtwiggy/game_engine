@@ -81,15 +81,16 @@ load_texture_linear(const int tex_unit, const std::string& path)
     for (int j = 0; j < srgb.height; j++) {
       int offset = (i + srgb.width * j) * srgb.nr_components;
       unsigned char* pixel_offset = srgb.data + offset;
-      const int r = static_cast<int>(pixel_offset[0]);
-      const int g = static_cast<int>(pixel_offset[1]);
-      const int b = static_cast<int>(pixel_offset[2]);
 
+      int r = static_cast<int>(pixel_offset[0]);
+      int g = static_cast<int>(pixel_offset[1]);
+      int b = static_cast<int>(pixel_offset[2]);
       int a = 0;
+
       if (srgb.nr_components > 3)
         a = static_cast<int>(pixel_offset[3]);
 
-      const SRGBColour srgbcol = { r, g, b, a };
+      const SRGBColour srgbcol = SRGBColour(r, g, b, a);
       const LinearColour lincol = SRGBToLinear(srgbcol);
       const float lin_r = lincol.r;
       const float lin_g = lincol.g;
@@ -157,8 +158,8 @@ bind_linear_texture(const LinearTexture& tex)
   glBindTexture(GL_TEXTURE_2D, texture_id);
   glTexImage2D(GL_TEXTURE_2D, 0, format_a, width, height, 0, format_b, GL_FLOAT, data.data());
   glGenerateMipmap(GL_TEXTURE_2D);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, tex.texture_wrap_s);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tex.texture_wrap_t);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex.texture_min_filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex.texture_max_filter);
   unbind_tex();
@@ -258,7 +259,7 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
 };
 
 std::vector<unsigned int>
-engine::load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load)
+load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load)
 {
   const auto start = std::chrono::high_resolution_clock::now();
   log_time_since("loading textures... ", start);
@@ -271,11 +272,11 @@ engine::load_textures(const std::vector<std::pair<int, std::string>>& textures_t
   }
 
   // sort by texture unit
-  std::sort(loaded_textures.begin(), loaded_textures.end(), [](LinearTexture a, LinearTexture b) {
-    return a.texture_unit < b.texture_unit;
-  });
+  auto sort_by_texunit = [](const auto& a, const auto& b) { return a.texture_unit < b.texture_unit; };
+  std::sort(loaded_textures.begin(), loaded_textures.end(), sort_by_texunit);
 
   for (LinearTexture& l : loaded_textures) {
+
     unsigned int id = bind_linear_texture(l);
     texture_ids.push_back(id);
   }
@@ -285,7 +286,7 @@ engine::load_textures(const std::vector<std::pair<int, std::string>>& textures_t
 }
 
 std::vector<unsigned int>
-engine::load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load)
+load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load)
 {
   const auto start = std::chrono::high_resolution_clock::now();
   log_time_since("(Threaded) loading textures... ", start);

@@ -1,6 +1,6 @@
 #include "dungeon_spawner_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
@@ -87,15 +87,17 @@ update_dungeon_spawner_system(entt::registry& r)
 
   // create some random background things
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
-    float random_percent = engine::rand_det_s(floor_rnd.rng, 0, 100);
+    float random_percent = engine::rand_det_s(floor_rnd.rng, 0.0f, 100.0f);
     if (random_percent > percent_to_spawn_thing)
       continue;
     // create something interesting
+    const auto env_e = spawn(r, "decoration");
+
     const auto pos = engine::grid::index_to_world_position_center(idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-    const auto env_e = spawn_environment(r, "decoration", pos);
     const auto rnd_size_idx = engine::rand_det_s(floor_rnd.rng, 0, int(sprites_sizes.size()));
+    give_life(r, env_e, pos, sprites_sizes[rnd_size_idx]);
+
     set_sprite(r, env_e, "EMPTY");
-    set_size(r, env_e, sprites_sizes[rnd_size_idx]);
     set_colour(r, env_e, { 1.0, 1.0, 1.0f, 0.1f });
     set_z_index(r, env_e, ZLayer::BACKGROUND);
     r.remove<TeamComponent>(env_e);

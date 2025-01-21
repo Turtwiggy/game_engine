@@ -106,14 +106,14 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 1.0f);
   camera.projection_zoomed = camera.projection;
 
-  ri.stars.reload();
+  ri.stars.reload(r);
   ri.stars.bind();
   ri.stars.set_int("tex", tex_unit_emitters_and_occluders);
   ri.stars.set_mat4("projection", camera.projection);
   ri.stars.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   const int tex_unit_organic2 = search_for_texture_unit_by_texture_path(ri, "organic2")->unit;
-  ri.debris.reload();
+  ri.debris.reload(r);
   ri.debris.bind();
   ri.debris.set_int("tex", tex_unit_organic2);
   ri.debris.set_mat4("projection", camera.projection);
@@ -127,7 +127,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     return file_name.substr(0, last_dot);
   };
 
-  ri.instanced.reload();
+  ri.instanced.reload(r);
   ri.instanced.bind();
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
   ri.instanced.set_mat4("projection", camera.projection);
@@ -138,7 +138,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
 
-  ri.outline.reload();
+  ri.outline.reload(r);
   ri.outline.bind();
   ri.outline.set_mat4("view", glm::mat4(1.0f)); // whole texture
   // ri.outline.set_mat4("projection", camera.projection);
@@ -148,37 +148,37 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // ri.outline.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
 
-  ri.crt.reload();
+  ri.crt.reload(r);
   ri.crt.bind();
   ri.crt.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.crt.set_mat4("projection", camera.projection);
   ri.crt.set_int("tex_to_crt", tex_unit_mix_lighting_and_scene);
   ri.crt.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
-  ri.lighting_emitters_and_occluders.reload();
+  ri.lighting_emitters_and_occluders.reload(r);
   ri.lighting_emitters_and_occluders.bind();
   ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
 
-  ri.voronoi_seed.reload();
+  ri.voronoi_seed.reload(r);
   ri.voronoi_seed.bind();
   ri.voronoi_seed.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.voronoi_seed.set_mat4("projection", camera.projection);
   ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
 
-  ri.jump_flood.reload();
+  ri.jump_flood.reload(r);
   ri.jump_flood.bind();
   ri.jump_flood.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.jump_flood.set_mat4("projection", camera.projection);
   ri.jump_flood.set_vec2("screen_wh", ri.viewport_size_render_at);
 
-  ri.voronoi_distance.reload();
+  ri.voronoi_distance.reload(r);
   ri.voronoi_distance.bind();
   ri.voronoi_distance.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.voronoi_distance.set_mat4("projection", camera.projection);
   ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit_emitters_and_occluders);
   ri.voronoi_distance.set_vec2("screen_wh", ri.viewport_size_render_at);
 
-  ri.mix_lighting_and_scene.reload();
+  ri.mix_lighting_and_scene.reload(r);
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
@@ -196,12 +196,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
 
-  // ri.blur.reload();
+  // ri.blur.reload(r);
   // ri.blur.bind();
   // ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
   // ri.blur.set_mat4("projection", camera.projection);
 
-  // ri.bloom.reload();
+  // ri.bloom.reload(r);
   // ri.bloom.bind();
   // ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
   // ri.bloom.set_mat4("projection", camera.projection);
@@ -260,26 +260,32 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   for (Texture& tex : ri.user_textures) {
     tex.tex_unit.unit = next_tex_unit;
 
-    const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
+    auto l = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
 
-    tex.tex_id.id = bind_linear_texture(loaded_tex);
+    // HACK: update specific texture...
+    if (l.path.find("organic2") != std::string::npos) {
+      l.texture_wrap_s = GL_REPEAT;
+      l.texture_wrap_t = GL_REPEAT;
+    }
+
+    tex.tex_id.id = bind_linear_texture(l);
     next_tex_unit++;
     SDL_Log("%s", std::format("loaded texture... {}", tex.path).c_str());
   }
 
-  ri.stars = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/star_nest.frag");
-  ri.debris = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_debris.frag");
-  ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
-  ri.outline = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
+  ri.stars = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/star_nest.frag");
+  ri.debris = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_debris.frag");
+  ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
-    Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
-  ri.voronoi_seed = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
-  ri.jump_flood = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
-  ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
-  ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
-  ri.crt = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
-  // ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
-  // ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
+    Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
+  ri.voronoi_seed = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
+  ri.jump_flood = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
+  ri.voronoi_distance = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
+  ri.mix_lighting_and_scene = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
+  ri.crt = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
+  // ri.blur = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/blur.frag");
+  // ri.bloom = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
   // initialize renderer
 #if !defined(__EMSCRIPTEN__)
@@ -333,7 +339,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 void
 update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
-  static const engine::SRGBColour black(0, 0, 0, 1.0f);
+  static const engine::SRGBColour black(0.0f, 0.0f, 0.0f, 1.0f);
 
 #if defined(_DEBUG)
   CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
@@ -360,7 +366,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   ri.crt.set_float("time", time);
 
   ri.debris.bind();
-  ri.debris.set_float("iTime", time);
+  ri.debris.set_float("time", time);
 
 #if defined(_DEBUG)
   // reload all shaders

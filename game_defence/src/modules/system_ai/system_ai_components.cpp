@@ -1,6 +1,6 @@
 #include "system_ai_components.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"
@@ -40,7 +40,7 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
 
     const auto dst_wp = glm::vec2{ other_t.position.x, other_t.position.y };
     const auto d = dst_wp - src_wp;
-    const auto d2 = d.x * d.x + d.y * d.y;
+    const int d2 = int(d.x * d.x + d.y * d.y);
     const auto dst_gp = engine::grid::worldspace_to_grid_space(dst_wp, map_c.tilesize);
 
     // Get a tile NEXT to the player
@@ -55,7 +55,7 @@ MoveConsideration::Evaluate(entt::registry& r, entt::entity e) const
     if (path.size() != 0) {
       // note: remove the end tile so that the ai doesnt path on top of the destination entity
       std::vector<glm::ivec2> path_without_end_tile{ path.begin(), path.end() - 1 };
-      distance_and_path.emplace(d2, path_without_end_tile);
+      distance_and_path.emplace((int)d2, path_without_end_tile);
     }
   }
 

@@ -195,7 +195,7 @@ round_to_nearest_axis(const glm::vec2& v)
 float
 angle_degrees_flip_y_axis(float angle_degrees)
 {
-  float flipped_angle = std::fmod(360 - angle_degrees, 360);
+  float flipped_angle = (float)std::fmod(360 - angle_degrees, 360);
 
   if (flipped_angle < 0.0f)
     flipped_angle += 360.0f;

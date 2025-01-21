@@ -1,7 +1,7 @@
 #pragma once
 
-#include "entt/entt.hpp"
-#include "imgui.h"
+#include <entt/entt.hpp>
+#include <imgui.h>
 
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 

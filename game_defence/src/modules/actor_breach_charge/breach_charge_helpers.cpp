@@ -1,6 +1,6 @@
 #include "breach_charge_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
@@ -69,8 +69,7 @@ halfway_pos.y).c_str());
 void
 add_bomb_callback(entt::registry& r, const entt::entity add_to_e)
 {
-  OnDeathCallback callback;
-  callback.callback = [](entt::registry& r, const entt::entity e) {
+  auto bomb_callback = [](entt::registry& r, const entt::entity e) {
     // create a boom effect
     const glm::vec2 pos = get_position(r, e);
     create_empty<RequestToSpawnParticles>(r, RequestToSpawnParticles{ pos });
@@ -110,7 +109,8 @@ add_bomb_callback(entt::registry& r, const entt::entity add_to_e)
     // request some audio
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "BOMB_BLOWUP_01" });
   };
-  r.emplace<OnDeathCallback>(add_to_e, callback);
+  auto& callbacks_c = r.get<OnDeathCallbacks>(add_to_e);
+  callbacks_c.callbacks.push_back(bomb_callback);
 };
 
 bool

@@ -1,6 +1,6 @@
 #include "move_player_on_map_system.hpp"
 
-#include "actors/actor_helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/map/components.hpp"

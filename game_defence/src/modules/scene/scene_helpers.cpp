@@ -1,7 +1,7 @@
 #include "scene_helpers.hpp"
 
-#include "actors/actor_helpers.hpp"
 #include "components.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/audio/audio_components.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
@@ -40,6 +40,7 @@
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_units/ui_units_helpers.hpp"
 
+
 #include <magic_enum.hpp>
 
 namespace game2d {
@@ -52,7 +53,7 @@ create_player_if_not_in_scene(entt::registry& r)
     return;
 
   const auto pos = glm::vec2{ 0, 0 };
-  auto e = spawn_mob(r, "spaceship_player");
+  auto e = spawn(r, "spaceship_player");
   give_life(r, e, pos, { 16, 16 });
 
   // r.emplace<CameraLerpToTarget>(e);
@@ -291,7 +292,7 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
     const auto& player_pos = get_position(r, player_e);
     const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
     const auto pos = glm::vec2{ player_pos.x + half_wh.x * 2, player_pos.y };
-    const auto enemy_e = spawn_mob(r, "spaceship_enemy");
+    const auto enemy_e = spawn(r, "spaceship_enemy");
     give_life(r, enemy_e, pos, { 16, 16 });
     r.emplace<TeamComponent>(enemy_e, TeamComponent{ AvailableTeams::enemy });
     r.emplace<EnemyComponent>(enemy_e);
