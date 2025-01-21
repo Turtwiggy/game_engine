@@ -78,35 +78,6 @@ setup_water_update(entt::registry& r)
 };
 
 void
-setup_debris_update(entt::registry& r)
-{
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::debris);
-  auto& pass = ri.passes[pass_idx];
-
-  pass.update = [](entt::registry& r) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
-
-    {
-      ri.renderer.reset_quad_vert_count();
-      ri.renderer.begin_batch();
-      {
-        engine::quad_renderer::RenderDescriptor desc;
-        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-        desc.size = ri.viewport_size_render_at;
-        desc.yaw_pitch_roll_radians = { 0, 0, 0 };
-        ri.renderer.draw_sprite(desc, ri.debris);
-      }
-      ri.renderer.end_batch();
-      ri.renderer.flush(ri.debris);
-    }
-  };
-};
-
-void
 setup_floor_mask_update(entt::registry& r)
 {
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);

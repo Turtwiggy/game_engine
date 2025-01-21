@@ -4,11 +4,13 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
@@ -124,6 +126,11 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
 
   const float search_radius = 500.0f; // for nearest enemy
 
+  static float lead_amount = 0.4f;
+#if defined(_DEBUG)
+  imgui_draw_float("shot lead amount", lead_amount);
+#endif
+
   const auto& view = r.view<TransformComponent,
                             const WeaponComponent,
                             const HasParentComponent,
@@ -138,11 +145,12 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
       continue;
     }
 
-    if (cooldown_c.time > 0.0f)
-      continue;
-    reset_cooldown(cooldown_c);
+    // if (cooldown_c.time > 0.0f)
+    //   continue;
+    // reset_cooldown(cooldown_c);
 
     const auto& parent_t = r.get<TransformComponent>(p);
+    const auto& parent_col = r.get<DefaultColour>(p).colour;
 
     // get closest enemy
     NearestEnemyCallback callback(r, b2Vec2{ parent_t.position.x, parent_t.position.y });
@@ -154,12 +162,32 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     if (nearest_e == entt::null)
       continue;
 
-    const auto pos = glm::vec2{ parent_t.position.x, parent_t.position.y };
-    const auto raw_dir = get_position(r, nearest_e) - pos;
+    const auto you_pos = glm::vec2{ parent_t.position.x, parent_t.position.y };
+    const auto tgt_pos = get_position(r, nearest_e);
+
+    // Note: Adjust the angle, so that the auto-fire leads it's shot a little
+    const auto tgt_vel = r.get<PhysicsBodyComponent>(nearest_e).body->GetLinearVelocity();
+    const auto adj_tgt_pos = tgt_pos + glm::vec2{ tgt_vel.x * lead_amount, tgt_vel.y * lead_amount };
+
+    // debug the nearest enemy
+    Sprite tgt_s;
+    tgt_s.pos = tgt_pos;
+    tgt_s.sprite = "CROSSHAIR_1";
+    tgt_s.size = { 16, 16 };
+    tgt_s.col = parent_col;
+    draw_sprite(r, tgt_s);
+
+    // debug updated target position
+    Sprite adj_tgt_pos_s;
+    adj_tgt_pos_s.pos = adj_tgt_pos;
+    adj_tgt_pos_s.sprite = "EFFECT_30_11";
+    adj_tgt_pos_s.size = { 16, 16 };
+    adj_tgt_pos_s.col = parent_col;
+    draw_sprite(r, adj_tgt_pos_s);
+
+    const auto raw_dir = adj_tgt_pos - you_pos;
     const auto nrm_dir = engine::normalize_safe(raw_dir);
     const auto angle = engine::dir_to_angle_radians(nrm_dir);
-    // const auto angle = engine::dir_to_angle_radians(mouse_pos - pos);
-
     const auto fwd = parent_t.rotation_radians.z;
     const auto fwd_dir = engine::angle_radians_to_direction(fwd);
 
@@ -171,8 +199,8 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     const auto limited_angle = clamp_angle(angle, min, max);
     const auto limited_dir = engine::angle_radians_to_direction(limited_angle);
 
-    // DEBUG: draw line in dir
-    // #if defined(_DEBUG)
+// DEBUG: draw shoot line
+#if defined(_DEBUG)
     // auto draw_line = [&r](const LineInfo& l) {
     //   Sprite s;
     //   s.sprite = "EMPTY";
@@ -182,8 +210,12 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     //   s.col = engine::SRGBColour(255, 0, 0, 255);
     //   draw_sprite(r, s);
     // };
-    // draw_line(generate_line(pos, pos + 100.0f * limited_dir, 4.0f));
-    // #endif
+    // draw_line(generate_line(you_pos, you_pos + 100.0f * limited_dir, 4.0f));
+#endif
+
+    if (cooldown_c.time > 0.0f)
+      continue;
+    reset_cooldown(cooldown_c);
 
     int bullet_damage = r.get<BulletDamage>(parent_c.parent).dmg;
 
@@ -191,7 +223,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     give_life(r, bullet_e, get_position(r, wep_e), { 6, 6 });
     r.emplace<TeamComponent>(bullet_e, AvailableTeams::player);
     r.emplace<BulletComponent>(bullet_e, bullet_damage);
-    r.get<PhysicsBodyComponent>(bullet_e).base_speed = 100.0f;
+    r.get<PhysicsBodyComponent>(bullet_e).base_speed = 250.0f;
     r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
     set_z_index(r, bullet_e, ZLayer::PROJECTILE);
 

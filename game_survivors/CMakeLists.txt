@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -59,13 +59,15 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   target_link_libraries(game_survivors PRIVATE ${steam_lib}/steam_api64.lib)
 
   # Copy the .dll next to the .exe
-  message("Copying steam .dll next to .exe")
-  set(dst ${CMAKE_CURRENT_BINARY_DIR})
-  add_custom_command(TARGET game_survivors POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${steam_lib}/steam_api64.dll
-    $<TARGET_FILE_DIR:game_survivors>
-  )
+  if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll")
+    message("Copying steam .dll next to .exe")
+    set(dst ${CMAKE_CURRENT_BINARY_DIR})
+    add_custom_command(TARGET game_survivors POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy
+      ${steam_lib}/steam_api64.dll
+      $<TARGET_FILE_DIR:game_survivors>
+    )
+  endif()
 endif()
 
 target_include_directories(game_survivors PRIVATE
@@ -87,7 +89,7 @@ if(EMSCRIPTEN)
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "index")
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 else()
-  set(GAME_EXE_NAME "survive")
+  set(GAME_EXE_NAME "ohbuoy")
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${GAME_EXE_NAME})
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()

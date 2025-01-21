@@ -251,7 +251,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_distance_check_system(r);
     update_gun_follow_player_system(r, mouse_pos, dt);
     update_move_to_target_via_lerp(r, dt);
-    // update_particle_system(r, dt);
+    update_particle_system(r, dt);
     update_spawn_particles_on_death_system(r);
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);
@@ -259,7 +259,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  update_debug_fixtures_system(r);
+  // update_debug_fixtures_system(r);
 #endif
 
   update_ui_fps_counter_system(r);

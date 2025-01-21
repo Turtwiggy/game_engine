@@ -27,7 +27,7 @@ else()
   enable_testing()
 
   # add_subdirectory(game_defence_tests)
-  # add_subdirectory(game_survivors_tests)
+  add_subdirectory(game_survivors_tests)
 endif()
 
 #

@@ -57,7 +57,6 @@ struct Texture
 enum class PassName
 {
   water,
-  debris,
   floor_mask,
   linear_main,
   sprites_to_outline,
@@ -110,7 +109,6 @@ struct SINGLE_RendererInfo
 
   // shaders
   engine::Shader water;
-  engine::Shader debris;
   engine::Shader instanced;
   engine::Shader lighting_emitters_and_occluders;
   engine::Shader voronoi_seed; // this shader stores the uv coordinates in the texture

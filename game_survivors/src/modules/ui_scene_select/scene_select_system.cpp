@@ -52,7 +52,16 @@ update_ui_scene_select_system(entt::registry& r)
   };
 
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
-  for (const auto& hull_data : hulls_c.hulls) {
+
+  auto sorted_hulls = hulls_c.hulls;
+  auto sort_by_hullsize = [](const ShipHullData& a, const ShipHullData& b) {
+    int size_a = a.height * a.width;
+    int size_b = b.height * b.height;
+    return size_a < size_b;
+  };
+  std::sort(sorted_hulls.begin(), sorted_hulls.end(), sort_by_hullsize);
+
+  for (const auto& hull_data : sorted_hulls) {
 
     // Name
     ImGui::Text("%s", hull_data.name.c_str());

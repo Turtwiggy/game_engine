@@ -14,21 +14,11 @@ in VS_OUT
   vec2 v_vertex;
 } fs_in;
 
-uniform sampler2D scene_0;         // linear main
-uniform sampler2D scene_1; 		 	   // stars
-uniform sampler2D u_distance_data; // distance data
+uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
-uniform sampler2D tex_unit_debris;
-uniform sampler2D tex_unit_floor_mask;
-uniform sampler2D tex_circles; 
 uniform sampler2D tex_outline;
-
-uniform float brightness_threshold;
 uniform vec2 viewport_wh;
-uniform bool put_water_behind;
 uniform bool add_grid;
-uniform vec2 uv_offset;
-uniform bool inside_spaceship;
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
@@ -133,121 +123,190 @@ float opSmoothUnion( float d1, float d2, float k )
     return min(d1, d2) - h*h*0.25/k;
 }
 
-// masks for drawing
+//
+// blending modes...
+//
 
-float fillMask(float dist)
+vec3 multiply(in vec3 src, in vec3 dst)
 {
-	return clamp(-dist, 0.0, 1.0);
+	return src * dst;
 }
 
-float innerBorderMask(float dist, float width)
+vec3 screen(in vec3 src, in vec3 dst)
 {
-	//dist += 1.0;
-	float alpha1 = clamp(dist + width, 0.0, 1.0);
-	float alpha2 = clamp(dist, 0.0, 1.0);
-	return alpha1 - alpha2;
+    return src + dst - src * dst;
 }
 
-
-// the scene
-
-float V2_F16(vec2 v) { return v.x + (v.y / 255.0); }
-float sceneDist(vec2 p)
+vec3 overlay(in vec3 src, in vec3 dst)
 {
-	vec2 uv = p / viewport_wh;
-	
-	float m_sign = texture(u_distance_data, uv).b;
-	float m = V2_F16(texture(u_distance_data, uv).rg) * viewport_wh.y * m_sign;
-
-	return m;
+	return mix(2.0 * src * dst, 1.0 - 2.0 * (1.0 - src) * (1.0-dst), step(0.5, dst));
 }
 
-float sceneSmooth(vec2 p, float r)
+vec3 hardlight(in vec3 src, in vec3 dst)
 {
-	float accum = sceneDist(p);
-	accum += sceneDist(p + vec2(0.0, r));
-	accum += sceneDist(p + vec2(0.0, -r));
-	accum += sceneDist(p + vec2(r, 0.0));
-	accum += sceneDist(p + vec2(-r, 0.0));
-	return accum / 5.0;
+    return mix(2.0 * src * dst,  1.0 - 2.0 * (1.0 - src) * (1.0-dst), step(0.5, src));
 }
 
-// lighting and shadows
-
-float shadow(vec2 p, vec2 pos, float radius)
+vec3 softlight(in vec3 src, in vec3 dst)
 {
-	vec2 dir = normalize(pos - p);
-	float dl = length(p - pos);
-	
-	// fraction of light visible, starts at one radius (second half added in the end);
-	float lf = radius * dl;
-	
-	// distance traveled
-	float dt = 0.01;
-
-	for (int i = 0; i < 64; ++i)
-	{				
-		// distance to scene at current position
-		float sd = sceneDist(p + dir * dt);
-
-        // early out when this ray is guaranteed to be full shadow
-        if (sd < -radius) 
-            return 0.0;
-        
-		// width of cone-overlap at light
-		// 0 in center, so 50% overlap: add one radius outside of loop to get total coverage
-		// should be '(sd / dt) * dl', but '*dl' outside of loop
-		// lf = min(lf, sd / dt);
-		lf = min(lf, (sd / dt));
-		
-		// move ahead
-		dt += max(1.0, abs(sd));
-		if (dt > dl) break;
-	}
-
-	// multiply by dl to get the real projected overlap (moved out of loop)
-	// add one radius, before between -radius and + radius
-	// normalize to 1 ( / 2*radius)
-	lf = clamp((lf*dl + radius) / (2.0 * radius), 0.0, 1.0);
-	lf = smoothstep(0.0, 1.0, lf);
-	return lf;
+    return mix(dst - (1.0 - 2.0 * src) * dst * (1.0 - dst), 
+               mix(dst + ( 2.0 * src - 1.0 ) * (sqrt(dst) - dst),
+                   dst + (2.0 * src - 1.0) * dst * ((16.0 * dst - 12.0) * dst + 3.0),
+                   step(0.5, src) * (1.0 - step(0.25, dst))),
+               step(0.5, src));
 }
 
-vec4 drawLight(vec2 p, vec2 pos, vec4 color, float dist, float range, float radius)
+vec3 colorDodge(in vec3 src, in vec3 dst)
 {
-	// distance to light
-	float ld = length(p - pos);
-	
-	// out of range
-	if (ld > range) return vec4(0.0);
-	
-	// shadow and falloff
-	float shad = shadow(p, pos, radius);
-	float fall = (range - ld)/range;
-	fall *= fall;
-	return (shad * fall) * color;
+    return step(0.0, dst) * mix(min(vec3(1.0), dst/ (1.0 - src)), vec3(1.0), step(1.0, src)); 
 }
 
-float luminance(vec4 col)
+vec3 colorBurn(in vec3 src, in vec3 dst)
 {
-	return 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
+    return mix(step(0.0, src) * (1.0 - min(vec3(1.0), (1.0 - dst) / src)),
+        vec3(1.0), step(1.0, dst));
 }
 
-void setLuminance(inout vec4 col, float lum)
+vec3 linearDodge(in vec3 src, in vec3 dst)
 {
-	lum /= luminance(col);
-	col *= lum;
+    return clamp(src.xyz + dst.xyz, 0.0, 1.0);
 }
 
-// dist will be a value between 0 and 1
-
-float AO(float dist, float radius, float intensity)
+vec3 linearBurn(in vec3 src, in vec3 dst)
 {
-	float a = clamp(dist / radius, 0.0, 1.0) - 1.0;
-	return 1.0 - (pow(abs(a), 5.0) + 1.0) * intensity + (1.0 - intensity);
-	return smoothstep(0.0, 1.0, dist / radius);
+    return clamp(src.xyz + dst.xyz - 1.0, 0.0, 1.0);
 }
 
+vec3 vividLight(in vec3 src, in vec3 dst)
+{
+    return mix(max(vec3(0.0), 1.0 - min(vec3(1.0), (1.0 - dst) / (2.0 * src))),
+               min(vec3(1.0), dst / (2.0 * (1.0 - src))),
+               step(0.5, src));
+}
+
+vec3 linearLight(in vec3 src, in vec3 dst)
+{
+    return clamp(2.0 * src + dst - 1.0, 0.0, 1.0);;
+}
+
+vec3 pinLight(in vec3 src, in vec3 dst)
+{
+    return mix(mix(2.0 * src, dst, step(0.5 * dst, src)),
+        max(vec3(0.0), 2.0 * src - 1.0), 
+        step(dst, (2.0 * src - 1.0))
+    );
+}
+
+vec3 hardMix(in vec3 src, in vec3 dst)
+{
+    return step(1.0, src + dst);
+}
+
+vec3 subtract(in vec3 src, in vec3 dst)
+{
+    return dst - src;
+}
+
+vec3 divide(in vec3 src, in vec3 dst)
+{
+    return dst / src;
+}
+
+vec3 addition(vec3 src, vec3 dst)
+{
+    return src + dst;
+}
+
+vec3 difference(in vec3 src, in vec3 dst )
+{
+    return abs(dst - src);   
+}
+
+vec3 darken(in vec3 src, in vec3 dst)
+{
+    return min(src, dst);
+}
+
+vec3 lighten(in vec3 src, in vec3 dst)
+{
+    return max(src, dst);
+}
+
+vec3 invert(in vec3 src, in vec3 dst)
+{
+    return 1.0 - dst;
+}
+
+vec3 invertRGB(in vec3 src, in vec3 dst)
+{
+    return src * (1.0 - dst);
+}
+
+vec3 source(in vec3 src, in vec3 dst)
+{
+	return src;
+}
+
+vec3 dest(in vec3 src, in vec3 dst)
+{
+	return dst;
+}
+
+// Branchless RGB2HSL implementation from : https://www.shadertoy.com/view/MsKGRW
+vec3 rgb2hsl( in vec3 c )
+{
+    const float epsilon = 0.00000001;
+    float cmin = min( c.r, min( c.g, c.b ) );
+    float cmax = max( c.r, max( c.g, c.b ) );
+	float cd   = cmax - cmin;
+    vec3 hsl = vec3(0.0);
+    hsl.z = (cmax + cmin) / 2.0;
+    hsl.y = mix(cd / (cmax + cmin + epsilon), cd / (epsilon + 2.0 - (cmax + cmin)), step(0.5, hsl.z));
+
+    vec3 a = vec3(1.0 - step(epsilon, abs(cmax - c)));
+    a = mix(vec3(a.x, 0.0, a.z), a, step(0.5, 2.0 - a.x - a.y));
+    a = mix(vec3(a.x, a.y, 0.0), a, step(0.5, 2.0 - a.x - a.z));
+    a = mix(vec3(a.x, a.y, 0.0), a, step(0.5, 2.0 - a.y - a.z));
+    
+    hsl.x = dot( vec3(0.0, 2.0, 4.0) + ((c.gbr - c.brg) / (epsilon + cd)), a );
+    hsl.x = (hsl.x + (1.0 - step(0.0, hsl.x) ) * 6.0 ) / 6.0;
+    return hsl;
+}
+
+// HSL2RGB thanks to IQ : https://www.shadertoy.com/view/lsS3Wc
+vec3 hsl2rgb(in vec3 c)
+{
+    vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
+    return c.z + c.y * (rgb-0.5)*(1.0-abs(2.0*c.z-1.0));
+}
+
+vec3 hue(in vec3 src, in vec3 dst)
+{
+    vec3 dstHSL = rgb2hsl(dst);
+    vec3 srcHSL = rgb2hsl(src);
+    return hsl2rgb(vec3(srcHSL.r, dstHSL.gb));
+}
+
+vec3 saturation(in vec3 src, in vec3 dst)
+{
+    vec3 dstHSL = rgb2hsl(dst);
+    vec3 srcHSL = rgb2hsl(src);
+    return hsl2rgb(vec3(dstHSL.r, srcHSL.g, dstHSL.b));
+}
+
+vec3 color(in vec3 src, in vec3 dst)
+{
+    vec3 dstHSL = rgb2hsl(dst);
+    vec3 srcHSL = rgb2hsl(src);
+    return hsl2rgb(vec3(srcHSL.rg, dstHSL.b));
+}
+
+vec3 luminosity(in vec3 src, in vec3 dst)
+{
+    vec3 dstHSL = rgb2hsl(dst);
+    vec3 srcHSL = rgb2hsl(src);
+    return hsl2rgb(vec3(dstHSL.rg, srcHSL.b));
+}
 
 void main()
 {
@@ -269,171 +328,8 @@ void main()
 
 	vec2 half_wh = viewport_wh / 2.0;
 	vec2 screen_min = camera_pos - half_wh; // e.g. -960
-
-  vec4 scene_lin = texture(scene_0, v_uv);
-	vec3 water_srgb = texture(tex_unit_water, v_uv).rgb;
-  vec3 stars_srgb = texture(scene_1, v_uv).rgb;
-
-	if(put_water_behind){
-		vec3 scene_col = lin_to_srgb(scene_lin.rgb);
-		out_color.rgb = water_srgb + scene_col;
-		return;
-	}
-
-	// float dist = sceneDist(p);
-
-	// gradient
-	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0) * (1.0 - length(c - p)/iResolution.x);
-
-	// inside spaceship
-	vec4 col = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	// if(inside_spaceship)
-	// {
-	// 	col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
-	// 	col *= AO(dist, 40.0f, 1.0f);
-	// }
-	// // outside spaceship
-	// else
-	// {
-	// 	col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
-	// 	col *= 1.0f - AO(dist, 1.0f, 0.8f);
-	// }
-
-	//
-	// lights
-	//
-	/*
-	for(int i = 0; i < MAX_LIGHTS; i++)
-	{
-		Light l = lights[i];
-
-		if(!l.enabled){
-			continue;
-		}
-
-		// inside spaceship
-		// most lights, 0.6
-		// player light: 1.0
-		// player light outside spaceship: 1.25
- 		setLuminance(l.colour, l.luminance);
-
-		// vec4 pcol = vec4(1.0f); 
-
-		col += drawLight(p, l.position, l.colour, dist, 450.0, 12.0);
-	}
-  */
-
-	//
-	// sdf:  circles for oxygen
-	//
-	vec3 circle_col = vec3(0.0f);
-	{
-		// convert uv to -1 and 1
-		vec2 uv = -(2.0 * v_uv - 1.0);
-		float aspect = viewport_wh.x / viewport_wh.y;
-		uv.x *= aspect;
-		uv *= zoom;
-
-  	float d = 1e10;
-    
-		/*
-		for (int i = 0; i < NR_MAX_CIRCLES; ++i) {
-			int num_cols = 3; // components in the CircleComponent
-      ivec2 tex_coord = ivec2(i % num_cols, i / num_cols);
-			vec3 circleData = texelFetch(tex_circles, tex_coord, 0).xyz;
-			vec2 pos = circleData.xy;   	// Circle center position
-			float radius = circleData.z;  // Circle radius
-      
-			float epsilon = 0.001f;
-      if (abs(pos.x) < epsilon && abs(pos.y) < epsilon) {
-      	break; // assume 0, 0 means no circle
-      }
-
-			// convert worldspace to between -1 and 1.
-			float ss_x = (((pos.x - screen_min.x)/viewport_wh.x) * 2.0) - 1.0;
-			float ss_y = (((pos.y - screen_min.y)/viewport_wh.y) * 2.0) - 1.0;
-			ss_x *= aspect;
-
-			vec2 p = vec2(uv.x + ss_x, uv.y + ss_y);
-
-			// radius 
-			float circle_size = tilesize * radius;
-			float rad = (circle_size / viewport_wh.y);	
-			float d0 = sdCircle(p, rad);
-
-			// If not the first circle, smooth it in
-			float dt = opSmoothUnion(d, d0, 0.1);
-			d = min(d, dt); 
-		}
-
-		// colouring
-		vec3 ccol = vec3(0.0f, 0.4f, 0.4f);
-		float thickness = 0.0025;
-		ccol *= mix( vec3(0.0), vec3(1.0), 1.0-smoothstep(0.0,thickness,abs(d)) ); // border
-		circle_col.rgb = ccol;
-	*/
-	}
-
-	//
-	// sdf: square so that the outside of the board is darkened
-	//
-	vec3 dark_col = vec3(1.0f);
-	{
-		// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
-  	// iResolution : is a vec2 with an X value of 640 and a Y value of 360
-
-		float grid_width = 5.0;
-
-		// camera position is in worldspace.
-		vec2 wsp = vec2(grid_width*tilesize, grid_width*tilesize);
-		vec2 camera_uv_screen = vec2( (camera_pos.x - wsp.x) / half_wh.x, (camera_pos.y - wsp.y) / half_wh.y);
-		vec2 camera_uv = camera_uv_screen / zoom; 
-		float aspect_y = viewport_wh.y / viewport_wh.x;
-
-		vec2 grid_uv = (2.0 * v_uv - 1.0);
-		grid_uv += camera_uv;
-		grid_uv.y *= aspect_y;
-
-		float gridsize = tilesize / zoom; // pixels
-		vec2 p = (viewport_wh.x / gridsize / 2.0) * grid_uv;
-
-		// radius 1 = tilesize * 2.0f... i.e. 100 width and height
-		float radius = 1.0f * grid_width;  
-		float rounding = 0.3f;
-		float d0 = sdRoundSquare(p, radius, rounding);
-
-		// colouring
-		vec3 ccol = vec3(0.5f, 0.4f, 0.15f);
-		float thickness = 0.04;
-		ccol *= mix( vec3(0.0), vec3(1.0), 1.0-smoothstep(0.0,thickness,abs(d0)) ); // border
-		dark_col.rgb = ccol;
-
-		// vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
-		// final_lin += grid_lin;
-	}
-
-  // linear to srgb
-	vec3 final_lin = scene_lin.rgb;
 	
-	//
-	// debris backdrop
-	//
-	// vec3 scene_debris_lin = texture(tex_unit_debris, v_uv).rgb;
-	// float floor_mask = texture(tex_unit_floor_mask, v_uv).r;
-	// // bool black_debris = scene_debris_lin == vec3(0.0f);
-	// if(floor_mask >= 0.95 )
-	// {
-	// 	scene_debris_lin = vec3(0.0f);
-	// }
-	// final_lin += scene_debris_lin;
-
-	// 
-	// water backdrop
-	//
-	vec3 scene_water = texture(tex_unit_water, v_uv).rgb;
-
 	// sdf grid	
-	//
 	vec3 grid_col = vec3(0.0f);
 	if(add_grid) {
 		{
@@ -458,35 +354,24 @@ void main()
 			else
 				grid_col = vec3(0.04); // line
 		}
-		// grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
 	}
 
-	// lighting
-	// vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
-	// final_lin *= lighting_lin;
+	vec4 scene_lin = texture(tex_scene_0, v_uv);
+	vec4 outline_col = texture(tex_outline, v_uv);
 
-	vec3 srgb_final = lin_to_srgb(final_lin);
-	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+	vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+	vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
 
-	// out_color.rgb = vec3(a, a, a);
-	out_color.rgb = srgb_final.rgb;
+	// Combine textures
+	// vec3 src = srgb_final; // top layer
+	// vec3 dst = srgb_water; // bottom layer
 
-	float a = scene_lin.a;
-	// if(a > 0.0)
-	// 	out_color.rgb = vec3(0.0, 1.0, 1.0);
+	if (length(scene_lin.rgb) > 0.0) {
+		out_color.rgb = srgb_final;
+	} else {
+		out_color.rgb = srgb_water;
+	}
 
-	if(scene_lin.a == 0.0f)
-		out_color.rgb = scene_water.rgb;
-	else
-		out_color.rgb = srgb_final.rgb;
-
-	out_color.rgb += grid_col;
-
-		
-	// out_color.rgb = circle_col + dark_col + srgb_final.rgb;
-
-	vec4 outline_col_lin = texture(tex_outline, v_uv);
-	vec3 outline_col = lin_to_srgb(outline_col_lin.rgb);
 	if(outline_col.r > 0.0f)
 		out_color.rgb = vec3(1.0, 1.0, 1.0);
 

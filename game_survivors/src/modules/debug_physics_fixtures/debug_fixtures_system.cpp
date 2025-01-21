@@ -65,8 +65,6 @@ update_debug_fixtures_system(entt::registry& r)
         s.sprite = "EMPTY";
         s.pos = { center.x, center.y };
         s.size = { size.x, size.y };
-        // s.col.a = 1.0f * 255;
-
         draw_sprite(r, s);
       }
     }

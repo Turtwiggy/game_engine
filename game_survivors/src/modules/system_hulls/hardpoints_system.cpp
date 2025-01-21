@@ -154,18 +154,17 @@ update_ship_draw_arcs_system(entt::registry& r)
     entity_to_guncount[p] += 1;
 
     // draw the xp-zone arc. this shouldnt be here.
-    float zone_radius = 30;
-    zone_radius /= zoom;
+    float zone_radius = (50) / zoom;
     const auto screenspace = worldspace_to_screenspace(r, pos);
     DrawArc(screenspace, zone_radius, 0, 360, 3, ImColor(0.3f, 0.3f, 0.3f, 1.0f), true);
 
     // draw the gun arc.
-    float radius = 30 + entity_to_guncount[p] * 10;
-    radius /= zoom;
+    float thickness = 2;
+    float radius = (50 + entity_to_guncount[p] * 2) / zoom;
     const auto col = r.get<DefaultColour>(p).colour;
     const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
     float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
-    DrawArc(screenspace, radius, center_angle_deg, arc, 2, im_col, true);
+    DrawArc(screenspace, radius, center_angle_deg, arc, thickness, im_col, true);
 
     ImGui::PopID();
   }

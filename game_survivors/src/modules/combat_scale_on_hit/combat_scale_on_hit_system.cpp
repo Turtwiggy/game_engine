@@ -31,7 +31,7 @@ update_combat_scale_on_hit_system(entt::registry& r, const float dt)
   const auto& view =
     r.view<TransformComponent, RequestHitScaleComponent, const PhysicsBodyComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, t_c, req_c, pb_c] : view.each()) {
-    const auto physics_size = r.get<DefaultSizeComponent>(e).size;
+    const auto default_size = r.get<DefaultSizeComponent>(e).size;
 
     //
     if (req_c.t == 0.0f)
@@ -39,15 +39,16 @@ update_combat_scale_on_hit_system(entt::registry& r, const float dt)
 
     // variables
     const float speed = 5.0f;
-    const float scale_up = 5.0f;
+    const float scale_up = 8.0f;
 
     req_c.t += dt * speed;
 
     const float scale = spike(req_c.t);
-    const float new_size = physics_size.x + scale_up * scale;
+    const float new_size_x = default_size.x + scale_up * scale;
+    const float new_size_y = default_size.y + scale_up * scale;
 
     // assume: x and y are the same size
-    t_c.scale = { new_size, new_size, 1.0f };
+    t_c.scale = { new_size_x, new_size_y, 1.0f };
 
     if (req_c.t >= 1.0f) {
 

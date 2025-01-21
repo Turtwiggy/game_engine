@@ -109,7 +109,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
   const int tex_unit_water = get_tex_unit(PassName::water);
-  const int tex_unit_debris = get_tex_unit(PassName::debris);
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
@@ -125,14 +124,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
   // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
   // glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-  const int tex_unit_worley_noise = search_for_texture_unit_by_texture_path(ri, "worley_noise")->unit;
-  ri.debris.reload(r);
-  ri.debris.bind();
-  ri.debris.set_uniform_block_binding("Data", 0);
-  ri.debris.set_int("tex", tex_unit_worley_noise);
-  ri.debris.set_mat4("projection", camera.projection);
-  ri.debris.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.water.reload(r);
   ri.water.bind();
@@ -215,13 +206,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_bool("add_grid", false);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  ri.mix_lighting_and_scene.set_int("scene_0", tex_unit_linear_main);
-  // ri.mix_lighting_and_scene.set_int("scene_1", tex_unit_stars);
+  ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
-  ri.mix_lighting_and_scene.set_int("tex_unit_debris", tex_unit_debris);
-  ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
-  // ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
-  // ri.mix_lighting_and_scene.set_int("tex_circles", ri.tex_unit_circles);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
@@ -255,11 +241,10 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // FBO textures
   Framebuffer::default_fbo();
   RenderCommand::set_viewport(0, 0, ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
-  RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 1.0f });
+  RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
   RenderCommand::clear();
 
   ri.passes.push_back(RenderPass(PassName::water));
-  ri.passes.push_back(RenderPass(PassName::debris));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
@@ -297,7 +282,6 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   }
 
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
-  ri.debris = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_debris.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
@@ -385,7 +369,6 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // adds the update() for each renderpass
   setup_floor_mask_update(r);
   setup_water_update(r);
-  setup_debris_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
   setup_outline_update(r);
@@ -471,43 +454,21 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
   const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
 
-  // const auto s_jumpflood = std::vector<Scene>{ Scene::menu, Scene::survive };
-  // const bool in_jumpflood_scene = std::find(s_jumpflood.begin(), s_jumpflood.end(), scene.s) != s_jumpflood.end();
-
-  // const auto jflood_pass = std::vector<PassName>{ PassName::voronoi_seed, PassName::jump_flood, PassName::voronoi_distance
-  // }; const auto in_jumpflood_pass = [&jflood_pass](const PassName& p) {
-  //   return std::find(jflood_pass.begin(), jflood_pass.end(), p) != jflood_pass.end();
-  // };
-
-  // update_lights(r, ri);
-
-  ri.mix_lighting_and_scene.bind();
-  ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
-  ri.mix_lighting_and_scene.set_bool("put_water_behind", in_splash_scene);
-
-  // #if defined(_DEBUG)
-  //   ImGui::Begin("DebugRenderPasses");
-  // #endif
+  static bool showing_grid = false;
+  static bool showing_grid_updated = true;
+  const bool show_grid = get_first<Effect_GridComponent>(r) != entt::null;
+  if (show_grid && !showing_grid)
+    showing_grid_updated = true;
+  if (!show_grid && showing_grid)
+    showing_grid_updated = true;
+  if (showing_grid_updated) {
+    ri.mix_lighting_and_scene.bind();
+    ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
+  }
 
   for (auto& pass : ri.passes) {
     const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
     const auto& pass_enum = pass.pass;
-
-    // #if defined(_DEBUG)
-    //     ImGui::Text("Pass: %s", pass_name.c_str());
-    // #endif
-
-    // Optimisation:
-    // avoid some heavy passes on scene that doesnt need them.
-    // There's probably a better way to do this.
-
-    // if (in_jumpflood_pass(pass_enum) && !in_jumpflood_scene) {
-    //   // #if defined(_DEBUG)
-    //   //       ImGui::SameLine();
-    //   //       ImGui::Text("(Skipped)");
-    //   // #endif
-    //   continue;
-    // }
 
     const auto& wh = ri.viewport_size_render_at;
     Framebuffer::bind_fbo(pass.fbos[0]);
@@ -517,10 +478,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     pass.update(r);
   }
-
-  // #if defined(_DEBUG)
-  //   ImGui::End();
-  // #endif
 
   // Default: render_texture_to_imgui
   // Render the last renderpass texture to the final output

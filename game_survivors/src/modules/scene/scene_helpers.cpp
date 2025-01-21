@@ -189,15 +189,15 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // players
     const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0, hull_key);
-    const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1, hull_key);
-    const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2, hull_key);
+    // const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1, hull_key);
+    // const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2, hull_key);
     // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
     r.emplace<SteamControllerComponent>(p1);
-    r.emplace<SteamControllerComponent>(p2);
-    r.emplace<SteamControllerComponent>(p3);
+    // r.emplace<SteamControllerComponent>(p2);
+    // r.emplace<SteamControllerComponent>(p3);
 
     // The survive timer that various spawners read from
     float seconds = 20 * 60;
