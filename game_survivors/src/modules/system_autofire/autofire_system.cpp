@@ -20,6 +20,7 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <box2d/b2_collision.h>
 
@@ -214,17 +215,21 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     // draw_line(generate_line(you_pos, you_pos + 100.0f * limited_dir, 4.0f));
 #endif
 
+    int bullet_damage = r.get<BulletDamage>(parent_c.parent).dmg;
+    int bullet_speed = 250;
+    auto& upgrades_c = r.get<StatModifierComponent>(p);
+    const float modified_speed = upgrades_c.apply_modifiers(bullet_speed, bullet_speed_key);
+    const float modified_damage = upgrades_c.apply_modifiers(bullet_damage, bullet_damage_key);
+
     if (cooldown_c.time > 0.0f)
       continue;
     reset_cooldown(cooldown_c);
 
-    int bullet_damage = r.get<BulletDamage>(parent_c.parent).dmg;
-
     auto bullet_e = spawn(r, "bullet_default");
     give_life(r, bullet_e, get_position(r, wep_e), { 6, 6 });
     r.emplace<TeamComponent>(bullet_e, AvailableTeams::player);
-    r.emplace<BulletComponent>(bullet_e, bullet_damage);
-    r.get<PhysicsBodyComponent>(bullet_e).base_speed = 250.0f;
+    r.emplace<BulletComponent>(bullet_e, (int)modified_damage);
+    r.get<PhysicsBodyComponent>(bullet_e).base_speed = modified_speed;
     r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
     set_z_index(r, bullet_e, ZLayer::PROJECTILE);
 

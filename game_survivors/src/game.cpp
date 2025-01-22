@@ -66,6 +66,7 @@
 #include "modules/ui_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
+#include "modules/ui_upgrades/ui_upgrades_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
@@ -323,6 +324,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     if (ui_steam_state.enabled)
       update_ui_steam_input_system(r);
 
+    update_ui_upgrades_system(r);
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
   }

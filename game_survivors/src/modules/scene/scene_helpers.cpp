@@ -35,6 +35,7 @@
 #include "modules/system_manualfire/manualfire_components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
@@ -98,6 +99,9 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   // xp_zone fixture
   auto fixture_e = get_fixture_by_tag(r, e, "xp_zone");
   r.emplace<XpZoneComponent>(fixture_e);
+
+  // upgrades...
+  r.emplace<StatModifierComponent>(e);
 
   // Spawn the weapons...
   for (const auto& hardpoint_data : hull.hardpoints) {

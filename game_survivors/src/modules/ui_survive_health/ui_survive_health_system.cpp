@@ -7,6 +7,7 @@
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <imgui.h>
 
@@ -63,7 +64,11 @@ update_ui_survive_health_system(entt::registry& r)
     ImGui::Text("%s", hp_label.c_str());
 
     ImGui::SameLine();
-    ImGui::Text("DMG: %i", r.get<BulletDamage>(e).dmg);
+
+    int bullet_damage = r.get<BulletDamage>(e).dmg;
+    auto& upgrades_c = r.get<StatModifierComponent>(e);
+    const float modified_damage = upgrades_c.apply_modifiers(bullet_damage, bullet_damage_key);
+    ImGui::Text("DMG: %i", (int)modified_damage);
 
     /*
 
