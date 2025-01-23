@@ -218,7 +218,7 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       const auto nrm_dir = engine::normalize_safe(raw_dir);
       i.rx += nrm_dir.x;
       i.ry += nrm_dir.y;
-      i.shoot = get_mouse_lmb_held();
+      i.shoot |= get_mouse_lmb_held();
       i.ly += get_key_held(input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
       i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
       i.lx += get_key_held(input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
@@ -259,7 +259,7 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       i.ly += -l_analog.y; // flip y
       i.rx += r_analog.x;
       i.ry += -r_analog.y; // flip y
-      i.shoot = shoot;
+      i.shoot |= shoot;
     }
   }
 };

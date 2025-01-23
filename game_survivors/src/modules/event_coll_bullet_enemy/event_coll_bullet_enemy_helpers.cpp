@@ -1,6 +1,9 @@
 #include "event_coll_bullet_enemy_helpers.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_Damage/event_damage_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
@@ -40,6 +43,15 @@ handle_bullet_enemy_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   // TODO: give bullets "pierce" as the num enemies you can hit
   // auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   // dead.dead.emplace(bullet_e);
+
+  // Slightly knockback the enemy
+  auto& enemy_body_c = r.get<PhysicsBodyComponent>(team_e);
+  const auto raw_dir = get_position(r, team_e) - get_position(r, bullet_e);
+  const auto nrm_dir = engine::normalize_safe(raw_dir);
+  // const float knockback_amount = 25000.0f;
+  // enemy_body_c.body->ApplyLinearImpulseToCenter({ nrm_dir.x * knockback_amount, nrm_dir.y * knockback_amount }, true);
+  const float knockback_amount = 50;
+  enemy_body_c.body->SetLinearVelocity(knockback_amount * b2Vec2{ nrm_dir.x, nrm_dir.y });
 }
 
 } // namespace game2d
