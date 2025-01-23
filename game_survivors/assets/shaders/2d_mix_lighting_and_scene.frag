@@ -17,6 +17,7 @@ in VS_OUT
 uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
+uniform sampler2D tex_unit_smoke;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
 
@@ -374,6 +375,8 @@ void main()
 
 	if(outline_col.r > 0.0f)
 		out_color.rgb = vec3(1.0, 1.0, 1.0);
+
+    out_color.rgb += texture(tex_unit_smoke, v_uv).rgb;
 
 	// vignette
 	// vec2 vig_uv = fragCoord.xy / iResolution.xy;

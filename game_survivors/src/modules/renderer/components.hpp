@@ -56,6 +56,7 @@ struct Texture
 
 enum class PassName
 {
+  smoke,
   water,
   floor_mask,
   linear_main,
@@ -99,10 +100,17 @@ struct SINGLE_RendererInfo
   std::vector<RenderPass> passes;
 
   std::vector<Texture> user_textures;
-  int final_jflood_texunit = 0;
 
-  // int tex_unit_circles = 0;
   int tex_unit_ubo_data = 0;
+
+  int tex_id_smoke = 0;
+  int tex_id_fluiddata = 0;
+  int tex_id_vorticitydata = 0;
+  int tex_id_dye = 0;
+  int tex_unit_smoke = 0;
+  int tex_unit_fluiddata = 0;
+  int tex_unit_vorticitydata = 0;
+  int tex_unit_dye = 0;
 
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;
@@ -119,6 +127,10 @@ struct SINGLE_RendererInfo
   engine::Shader crt;
   // engine::Shader blur;
   // engine::Shader bloom;
+
+  // Compute shade
+  engine::Shader texture; // for rendering smoke
+  engine::Shader smoke;
 
   // viewport
   // note: values are updated in render

@@ -88,11 +88,18 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #else
-  // GL 3.3 + GLSL 330 core
+  // // GL 3.3 + GLSL 330 core
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+  // GL 4.3 + GLSL 430 core
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
 #endif
 
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -196,6 +203,7 @@ GameWindow::get_native_handles(void*& native_window) const
 // OpenGL 3.1: #version 140
 // OpenGL 3.2: #version 150
 // OpenGL 3.3: #version 330 core
+// Opengl 4.3: #version 430 core
 // OpenGL ES 2.0: #version 100
 // OpenGL ES 3.0: #version 300 es
 // OpenGL ES 3.1: #version 310 es
@@ -206,7 +214,8 @@ GameWindow::get_glsl_version()
 #if defined(__EMSCRIPTEN__)
   return "#version 300 es"s;
 #else
-  return "#version 330 core"s;
+  // return "#version 330 core"s;
+  return "#version 430 core"s;
 #endif
 };
 
@@ -520,7 +529,7 @@ GameWindow::set_icon(const std::string& path)
   } else
     SDL_Log("%s", std::format("unable to load icon...").c_str());
 
-    //
+  //
 #endif
 }
 

@@ -181,7 +181,7 @@ engine::update_bound_texture_size(const glm::ivec2 size)
 #if defined(__EMSCRIPTEN__)
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 #else
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 #endif
 };
 
@@ -205,7 +205,7 @@ add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
 #if defined(__EMSCRIPTEN__)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 #else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 #endif
 
     // attach it to the currently bound framebuffer object

@@ -1,17 +1,24 @@
 // version prepended to file when loaded by engine.
 //
 
-out vec4 out_color;
+out vec4 out_colour;
 
-in vec2 v_uv;
+in VS_OUT
+{
+  vec2 v_uv;
+  vec4 v_colour;
+  vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
+  vec2 v_sprite_max;  // 22 sprites
+  float v_tex_unit;
+  vec2 v_vertex;
+} fs_in;
 
 uniform sampler2D tex;
 
 void
 main()
 {
-  // color = sprite_colour; //* texture(tex, TexCoords);
-  // color = sprite_colour * texture(tex, TexCoords);
-  // color = vec4(1.0, 0.0, 1.0, 1.0);
-  out_color = texture(tex, v_uv);
+  vec2 v_uv = fs_in.v_uv;
+  out_colour = texture(tex, v_uv);
 }

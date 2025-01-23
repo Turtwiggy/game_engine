@@ -45,6 +45,19 @@ check_compile_errors(unsigned int shader, std::string type, std::string path)
 }
 
 void
+reload_compute_program(entt::registry& r, unsigned int* id, const std::string& comp_path)
+{
+  auto new_id = create_compute_shader(r, comp_path);
+  // SDL_Log("%s", std::format("reloading shader, new_id: {}", new_id).c_str());
+
+  if (new_id) {
+    // SDL_Log("%s", std::format("deleting old shader program").c_str());
+    glDeleteProgram(*id);
+    *id = new_id;
+  }
+}
+
+void
 reload_shader_program(entt::registry& r, unsigned int* id, const std::string& vert_path, const std::string& frag_path)
 {
   // Create a new shader program from the given file names. Halt on failure.
@@ -57,6 +70,19 @@ reload_shader_program(entt::registry& r, unsigned int* id, const std::string& ve
     *id = new_id;
   }
 }
+
+unsigned int
+create_compute_shader(entt::registry& r, const std::string& compute_path)
+{
+  unsigned int shader = load_shader_from_disk(r, compute_path, GL_COMPUTE_SHADER, "COMPUTE");
+
+  unsigned int ID = glCreateProgram();
+  glAttachShader(ID, shader);
+  glLinkProgram(ID);
+  check_compile_errors(ID, "PROGRAM", "");
+
+  return ID;
+};
 
 unsigned int
 create_opengl_shader(entt::registry& r, const std::string& vert_path, const std::string& frag_path)
@@ -218,6 +244,13 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
 // Shader
 //
 
+Shader::Shader(entt::registry& r, const std::string& compute_path)
+{
+  comp_path = get_exe_path_without_exe_name() + compute_path;
+
+  ID = create_compute_shader(r, comp_path);
+}
+
 Shader::Shader(entt::registry& r, const std::string& vp, const std::string& fp)
 {
   vert_path = get_exe_path_without_exe_name() + vp;
@@ -241,7 +274,12 @@ Shader::unbind() const
 void
 Shader::reload(entt::registry& r)
 {
-  reload_shader_program(r, &ID, vert_path, frag_path);
+  if (comp_path != "")
+    reload_compute_program(r, &ID, comp_path);
+
+  if (vert_path != "")
+    reload_shader_program(r, &ID, vert_path, frag_path);
+
   // SDL_Log("%s", std::format("shader new id: {}", ID).c_str());
 }
 

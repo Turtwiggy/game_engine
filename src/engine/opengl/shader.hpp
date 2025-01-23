@@ -20,6 +20,9 @@ reload_shader_program(entt::registry& r, unsigned int& id, const std::string& ve
 create_opengl_shader(entt::registry& r, const std::string& vert_path, const std::string& frag_path);
 
 [[nodiscard]] unsigned int
+create_compute_shader(entt::registry& r, const std::string& comp_path);
+
+[[nodiscard]] unsigned int
 load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int gl_shader_type, std::string type);
 
 class Shader
@@ -28,6 +31,7 @@ public:
   unsigned int ID;
 
   Shader() = default;
+  Shader(entt::registry& r, const std::string& compute_path);
   Shader(entt::registry& r, const std::string& vert_path, const std::string& frag_path);
 
   void bind() const;
@@ -59,6 +63,7 @@ public:
 private:
   std::string vert_path;
   std::string frag_path;
+  std::string comp_path;
 };
 
 } // namespace engine

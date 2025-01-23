@@ -47,6 +47,31 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
 };
 
 void
+setup_smoke_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::smoke);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r) {
+    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+
+    auto wh = ri.viewport_size_render_at;
+
+    // Render the compute shader to it's own texture,
+    ri.smoke.bind();
+    glDispatchCompute((unsigned int)wh.x, (unsigned int)wh.y, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); // finish write before read
+    ri.smoke.unbind();
+
+    // Then render that texture to the fullscreen quad texture,
+    render_fullscreen_quad(r, ri.texture, wh);
+  };
+};
+
+void
 setup_water_update(entt::registry& r)
 {
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);

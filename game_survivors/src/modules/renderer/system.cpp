@@ -4,9 +4,11 @@
 // components/systems#
 #include "components.hpp"
 #include "engine/colour/colour.hpp"
+#include "engine/deps/opengl.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/maths/maths.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/renderer/components.hpp"
@@ -15,6 +17,7 @@
 #include "modules/renderer/renderpass/passes.hpp"
 
 // engine headers
+#include "engine/deps/opengl.hpp"
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/shader.hpp"
@@ -98,6 +101,34 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // ri.tex_unit_circles = tex_buffer_unit;
   // SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.tex_unit_circles).c_str());
 
+  // Texture smoke...
+  int next_unit = i + 1;
+  glActiveTexture(GL_TEXTURE0 + next_unit);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_smoke);
+  update_bound_texture_size(ri.viewport_size_render_at);
+  ri.tex_unit_smoke = next_unit;
+
+  // Texture fluiddata...
+  next_unit = i + 2;
+  glActiveTexture(GL_TEXTURE0 + next_unit);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_fluiddata);
+  update_bound_texture_size(ri.viewport_size_render_at);
+  ri.tex_unit_fluiddata = next_unit;
+
+  // Texture vorticitydata...
+  next_unit = i + 3;
+  glActiveTexture(GL_TEXTURE0 + next_unit);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_vorticitydata);
+  update_bound_texture_size(ri.viewport_size_render_at);
+  ri.tex_unit_vorticitydata = next_unit;
+
+  // Texture dye...
+  next_unit = i + 4;
+  glActiveTexture(GL_TEXTURE0 + next_unit);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_dye);
+  update_bound_texture_size(ri.viewport_size_render_at);
+  ri.tex_unit_dye = next_unit;
+
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
@@ -115,6 +146,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
   // const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
+  const int tex_unit_smoke = get_tex_unit(PassName::smoke);
 
   auto& camera = get_first_component<OrthographicCamera>(r);
   camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 1.0f);
@@ -124,6 +156,17 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
   // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
   // glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+  ri.smoke.reload(r);
+  ri.smoke.bind();
+  ri.smoke.set_vec2("viewport_wh", ri.viewport_size_render_at);
+
+  ri.texture.reload(r);
+  ri.texture.bind();
+  ri.texture.set_uniform_block_binding("Data", 0);
+  ri.texture.set_int("tex", ri.tex_unit_smoke);
+  ri.texture.set_bool("is_fullscreen", true);
+  ri.texture.set_mat4("projection", camera.projection);
 
   ri.water.reload(r);
   ri.water.bind();
@@ -209,6 +252,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
+  ri.mix_lighting_and_scene.set_int("tex_smoke", tex_unit_smoke); // note: NOT ri.tex_unit_smoke
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
@@ -244,27 +288,16 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
   RenderCommand::clear();
 
+  ri.passes.push_back(RenderPass(PassName::smoke));
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
   ri.passes.push_back(RenderPass(PassName::outline));
-  // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
-  // // Use the Jump flood algorithm to generate a voroi diagram,
-  // // then convert that in to a distance field
-  // ri.passes.push_back(RenderPass(PassName::voronoi_seed));
-  // ri.passes.push_back(RenderPass(PassName::jump_flood));
-  // ri.passes.push_back(RenderPass(PassName::voronoi_distance));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
   ri.passes.push_back(RenderPass(PassName::crt_effect));
-  // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
-  // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
-  // ri.passes.push_back(RenderPass(PassName::bloom));
 
   for (auto& rp : ri.passes) {
-    // if (rp.pass == PassName::jump_flood)
-    //   rp.setup(fbo_size, 2);
-    // else
     rp.setup(fbo_size);
   }
 
@@ -281,6 +314,8 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
 
+  std::string shader_path = "assets/shaders/";
+
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
@@ -293,6 +328,9 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.crt = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
   // ri.blur = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/blur.frag");
   // ri.bloom = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
+
+  ri.texture = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_texture.frag");
+  ri.smoke = Shader(r, "assets/shaders/smoke.glsl");
 
   // initialize renderer
 #if !defined(__EMSCRIPTEN__)
@@ -308,42 +346,71 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // init(): create a dynamic VBO
   ri.renderer.init();
 
-  // create a texture
-  //   constexpr static int N_MAX_CIRCLES = 100;
-  //   {
-  //     GLuint tex = 0;
-  //     glGenTextures(1, &tex);
-  //     glBindTexture(GL_TEXTURE_2D, tex);
-  //     ri.tex_unit_circles = tex;
-  //     // allocate texture storage
-  //     const int num_rows = N_MAX_CIRCLES;
-  //     const int num_cols = sizeof(game2d::CircleComponent) / sizeof(float); // floats per comp
-  //     const auto size = glm::ivec2{ num_cols, num_rows };
-  // #if defined(__EMSCRIPTEN__)
-  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-  // #else
-  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-  // #endif
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  //     SDL_Log("%s", std::format("created texture object... id: {}", tex).c_str());
-  //   }
-
   // generate ubo
   {
     GLuint ubo;
     glGenBuffers(1, &ubo);
-
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(UboData), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    // set as binding point 0
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, sizeof(UboData));
-
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, sizeof(UboData)); // binding point 0
     ri.tex_unit_ubo_data = ubo;
+  }
+
+  // generate smoke texture
+  {
+    auto wh = screen_wh;
+
+    // Create smoke visiulization texture
+    unsigned int tex_id = 0;
+    glGenTextures(1, &tex_id);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex_id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, wh.x, wh.y, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    // Create fluid data texture
+    unsigned int tex_id_fluiddata = 0;
+    glGenTextures(1, &tex_id_fluiddata);
+    glBindTexture(GL_TEXTURE_2D, tex_id_fluiddata);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, wh.x, wh.y, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    // Create vorticity data texture
+    unsigned int tex_id_vorticitydata = 0;
+    glGenTextures(1, &tex_id_vorticitydata);
+    glBindTexture(GL_TEXTURE_2D, tex_id_vorticitydata);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, wh.x, wh.y, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    // Create dye texture
+    unsigned int tex_id_dye = 0;
+    glGenTextures(1, &tex_id_dye);
+    glBindTexture(GL_TEXTURE_2D, tex_id_dye);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, wh.x, wh.y, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    glBindImageTexture(0, tex_id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindImageTexture(1, tex_id_fluiddata, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindImageTexture(2, tex_id_vorticitydata, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindImageTexture(3, tex_id_dye, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    ri.tex_id_smoke = tex_id;
+    ri.tex_id_fluiddata = tex_id_fluiddata;
+    ri.tex_id_vorticitydata = tex_id_vorticitydata;
+    ri.tex_id_dye = tex_id_dye;
   }
 
   // update ubo data
@@ -367,8 +434,9 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   rebind(r, ri);
 
   // adds the update() for each renderpass
-  setup_floor_mask_update(r);
+  setup_smoke_update(r);
   setup_water_update(r);
+  setup_floor_mask_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
   setup_outline_update(r);
@@ -420,6 +488,28 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   if (check_if_viewport_resize(ri))
     rebind(r, ri);
+
+  ri.smoke.bind();
+  {
+    // if loc wont change, query once for performance improvement
+    static auto loc = glGetUniformLocation(ri.smoke.ID, "t");
+    glUniform1f(loc, time);
+
+    static ImVec2 prev_frame_pos{ 0, 0 };
+    ImVec2 mpos = ImGui::GetMousePos();
+    ri.smoke.set_vec2("mouse_pos", { mpos.x, mpos.y });
+
+    if (ImGui::IsMouseDragging(0)) {
+      ImVec2 dir = { mpos.x - prev_frame_pos.x, mpos.y - prev_frame_pos.y };
+      prev_frame_pos = mpos;
+
+      auto nrm = engine::normalize_safe({ dir.x, dir.y });
+      ri.smoke.set_vec2("mouse_delta", nrm);
+
+      ImGui::Text("nrm dir %f %f", nrm.x, nrm.y);
+    } else
+      ri.smoke.set_vec2("mouse_delta", { 0, 0 });
+  }
 
   const auto viewport_wh = ri.viewport_size_render_at;
 
@@ -511,7 +601,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    const bool hide_debug_textures = true;
+    const bool hide_debug_textures = false;
     if (hide_debug_textures)
       return;
 
@@ -535,6 +625,32 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       ImGui::Begin(label.c_str());
       ImVec2 viewport_size = ImGui::GetContentRegionAvail();
       const uint64_t id = tex.tex_id.id;
+      ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      ImGui::End();
+    }
+
+    // Debug smoke stuff...
+    {
+      const std::string label = std::string("DebugSmoke");
+      ImGui::Begin(label.c_str());
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      const uint64_t id = ri.tex_id_smoke;
+      ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      ImGui::End();
+    }
+    {
+      const std::string label = std::string("DebugSmokeData");
+      ImGui::Begin(label.c_str());
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      const uint64_t id = ri.tex_id_fluiddata;
+      ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      ImGui::End();
+    }
+    {
+      const std::string label = std::string("DebugDye");
+      ImGui::Begin(label.c_str());
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      const uint64_t id = ri.tex_id_dye;
       ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
       ImGui::End();
     }

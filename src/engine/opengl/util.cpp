@@ -73,6 +73,13 @@ print_gpu_info()
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, params);
   SDL_Log("%s", std::format("(INFO) GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: {}", params[0]).c_str());
 
+  // glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_COUNT, params);
+  // SDL_Log("%s", std::format("(INFO) GL_MAX_COMPUTE_WORK_GROUP_COUNT: {}", params[0]).c_str());
+  // glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_SIZE, params);
+  // SDL_Log("%s", std::format("(INFO) GL_MAX_COMPUTE_WORK_GROUP_SIZE: {}", params[0]).c_str());
+  // glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, params);
+  // SDL_Log("%s", std::format("(INFO) GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS: {}", params[0]).c_str());
+
   // GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 96
   // GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 2147483647
   // GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS = 16
