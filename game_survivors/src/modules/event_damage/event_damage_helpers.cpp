@@ -5,7 +5,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
-#include "modules/event_death/event_death_components.hpp"
+#include "modules/event_permadeath/event_permadeath_components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/screenshake/components.hpp"
 
@@ -28,8 +28,12 @@ additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
 };
 
 int
-calculate_damage_to_take(entt::registry& r, entt::entity e, int amount, const DamageType& type)
+calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
 {
+  const auto amount = evt.amount;
+  const auto type = evt.type;
+  const auto e = evt.to;
+
   int amount_final = amount;
 
   if (type == DamageType::PHYSICAL) {
@@ -58,7 +62,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     return;
   }
 
-  const int damage = calculate_damage_to_take(r, evt.to, evt.amount, evt.type);
+  const int damage = calculate_damage_to_take(r, evt);
 
   // log evt
   const auto b_name = std::string(r.get<TagComponent>(to_e).tag);

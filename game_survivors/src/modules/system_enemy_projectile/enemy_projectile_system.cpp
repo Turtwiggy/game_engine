@@ -1,16 +1,12 @@
 #include "enemy_projectile_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
-#include "engine/sprites/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/combat_projectiles/projectile_helpers.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
@@ -42,12 +38,16 @@ update_enemy_projectile_system(entt::registry& r)
 
     int bullet_damage = r.get<BulletDamage>(e).dmg;
 
-    auto bullet_e = spawn(r, "bullet_default");
-    give_life(r, bullet_e, get_position(r, e), { 36, 36 });
-    r.emplace<TeamComponent>(bullet_e, AvailableTeams::enemy);
-    r.get<PhysicsBodyComponent>(bullet_e).base_speed = 50.0f;
-    r.emplace<EntityTimedLifecycle>(bullet_e, 10 * 1000);
-    set_z_index(r, bullet_e, ZLayer::PROJECTILE);
+    BulletDef bullet_def;
+    bullet_def.key = "bullet_default";
+    bullet_def.parent_e = e;
+    bullet_def.size = { 36, 36 };
+    bullet_def.team = AvailableTeams::enemy;
+    bullet_def.damage = 1;
+    bullet_def.speed = 50.0f;
+    bullet_def.lifecycle = 10 * 1000;
+    // bullet_def.trailts = // no traits for enemies?
+    auto bullet_e = spawn_projectile(r, bullet_def);
     set_colour(r, bullet_e, hex_to_srgb("#00c420"));
     // set_sprite(r, bullet_e, "FIREWORK");
 

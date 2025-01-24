@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/raws/raws_components.hpp"
+#include "modules/system_traits/trait_components.hpp"
 
 #include <entt/entt.hpp>
 

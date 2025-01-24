@@ -1,8 +1,9 @@
 #pragma once
 
-#include "modules/event_damage/event_damage_helpers.hpp"
+#include "modules/event_damage/event_damage_components.hpp"
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 namespace game2d {
 

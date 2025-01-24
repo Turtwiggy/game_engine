@@ -6,20 +6,19 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat_projectiles/projectile_helpers.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
+#include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <box2d/b2_collision.h>
@@ -172,18 +171,18 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     const auto adj_tgt_pos = tgt_pos + glm::vec2{ tgt_vel.x * lead_amount, tgt_vel.y * lead_amount };
 
     // debug the nearest enemy
-    Sprite tgt_s;
-    tgt_s.pos = tgt_pos;
-    tgt_s.sprite = "CROSSHAIR_1";
-    tgt_s.size = { 16, 16 };
-    tgt_s.col = parent_col;
-    draw_sprite(r, tgt_s);
+    // Sprite tgt_s;
+    // tgt_s.pos = tgt_pos;
+    // tgt_s.sprite = "CROSSHAIR_1";
+    // tgt_s.size = { 16, 16 };
+    // tgt_s.col = parent_col;
+    // draw_sprite(r, tgt_s);
 
     // debug updated target position
     Sprite adj_tgt_pos_s;
     adj_tgt_pos_s.pos = adj_tgt_pos;
     adj_tgt_pos_s.sprite = "EFFECT_30_11";
-    adj_tgt_pos_s.size = { 16, 16 };
+    adj_tgt_pos_s.size = { 8, 8 };
     adj_tgt_pos_s.col = parent_col;
     draw_sprite(r, adj_tgt_pos_s);
 
@@ -225,13 +224,16 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
       continue;
     reset_cooldown(cooldown_c);
 
-    auto bullet_e = spawn(r, "bullet_default");
-    give_life(r, bullet_e, get_position(r, wep_e), { 6, 6 });
-    r.emplace<TeamComponent>(bullet_e, AvailableTeams::player);
-    r.emplace<BulletComponent>(bullet_e, (int)modified_damage);
-    r.get<PhysicsBodyComponent>(bullet_e).base_speed = modified_speed;
-    r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
-    set_z_index(r, bullet_e, ZLayer::PROJECTILE);
+    BulletDef bullet_def;
+    bullet_def.key = "bullet_default";
+    bullet_def.parent_e = wep_e;
+    bullet_def.size = { 6, 6 };
+    bullet_def.team = AvailableTeams::player;
+    bullet_def.damage = (int)modified_damage;
+    bullet_def.speed = modified_speed;
+    bullet_def.lifecycle = 3 * 1000;
+    bullet_def.traits = r.get<TraitComponent>(p).traits; // traits from wep's parent, not wep
+    auto bullet_e = spawn_projectile(r, bullet_def);
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);

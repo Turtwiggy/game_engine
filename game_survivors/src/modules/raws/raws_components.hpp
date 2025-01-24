@@ -1,9 +1,9 @@
 #pragma once
 
-#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/components.hpp"
 #include "modules/system_particles/components.hpp"
+#include "modules/system_traits/trait_components.hpp"
 
 #include <box2d/b2_fixture.h>
 #include <entt/entt.hpp>
@@ -135,13 +135,6 @@ struct MoveSpeed
   int speed = 1;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(MoveSpeed, speed);
-};
-
-struct Trait
-{
-  std::string key;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Trait, key);
 };
 
 //

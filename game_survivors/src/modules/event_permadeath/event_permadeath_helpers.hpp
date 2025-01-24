@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event_death_components.hpp"
+#include "event_permadeath_components.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {

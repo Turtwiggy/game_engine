@@ -6,7 +6,6 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
-#include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -26,6 +25,7 @@
 #include <box2d/b2_body.h>
 #include <box2d/b2_dynamic_tree.h>
 #include <box2d/b2_fixture.h>
+
 #include <fstream>
 #include <sstream>
 
@@ -293,23 +293,29 @@ spawn(entt::registry& r, const std::string& key)
 
   bool big_explode = false;
 
+  std::vector<Trait> traits;
   if (templ.traits.has_value()) {
-    for (const auto& trait : templ.traits.value()) {
-      if (trait.key == "direct") {
-        ApplyForceToDynamicTarget tgt_c;
-        tgt_c.orbit = false;
-        tgt_c.reduce_thrusters = false;
-        tgt_c.speed = 100.0f;
-        r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
-        //
-      }
-      if (trait.key == "projectile") {
-        add_projectile_enemy_components(r, e);
-      }
-      if (trait.key == "explode") {
-        add_explode_on_death_callback(r, e);
-        big_explode = true;
-      }
+    traits = templ.traits.value();
+  }
+
+  // Store traits on a per-entity basis as well
+  r.emplace<TraitComponent>(e, TraitComponent{ traits });
+
+  for (const auto& trait : traits) {
+    if (trait.key == "direct") {
+      ApplyForceToDynamicTarget tgt_c;
+      tgt_c.orbit = false;
+      tgt_c.reduce_thrusters = false;
+      tgt_c.speed = 100.0f;
+      r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
+      //
+    }
+    if (trait.key == "projectile") {
+      add_projectile_enemy_components(r, e);
+    }
+    if (trait.key == "explode") {
+      add_explode_on_death_callback(r, e);
+      big_explode = true;
     }
   }
 

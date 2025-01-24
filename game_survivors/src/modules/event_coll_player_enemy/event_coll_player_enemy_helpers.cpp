@@ -67,6 +67,7 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
     return;
   }
 
+  // Note, for enemies, checking the item template, not the live TraitComponent
   const auto key = r.get<ItemKey>(enemy_e).key;
   const auto item_c = find_item(r, key);
 

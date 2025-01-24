@@ -7,6 +7,7 @@
 #include "modules/combat/components.hpp"
 #include "modules/event_Damage/event_damage_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
+#include "modules/system_traits/trait_components.hpp"
 
 namespace game2d {
 
@@ -30,19 +31,20 @@ handle_bullet_enemy_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
   auto& bullet_c = r.get<BulletComponent>(bullet_e);
+  auto& traits_c = r.get<TraitComponent>(bullet_e);
 
   DamageEvent evt;
-  evt.from = entt::null; // bullet likely dead
+  evt.from = entt::null; // bullet likely ded next frame
   evt.to = team_e;
   evt.type = DamageType::PHYSICAL;
   evt.amount = bullet_c.damage;
-  evt.traits = {};
+  evt.traits = traits_c.traits;
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();
 
   // TODO: give bullets "pierce" as the num enemies you can hit
-  // auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  // dead.dead.emplace(bullet_e);
+  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+  dead.dead.emplace(bullet_e);
 
   // Slightly knockback the enemy
   auto& enemy_body_c = r.get<PhysicsBodyComponent>(team_e);

@@ -2,6 +2,7 @@
 #include "engine/entt/helpers.hpp"
 
 #include "events_components.hpp"
+#include "modules/combat_trait_assassin/trait_assassin_helpers.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_helpers.hpp"
 #include "modules/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
@@ -18,15 +19,14 @@ init_events_system(entt::registry& r)
   auto& ed = get_first_component<SINGLE_Events>(r);
 
   // link event => function
-  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_apply_pull>(r);
-  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_apply_push>(r);
-  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
-  ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_enemy_coll>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_xp>(r);
-
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enemy_coll_enter>(r);
   ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_enemy_coll_exit>(r);
+
+  // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
+  ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
+  ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event__trait_assassin>(r);
 }
 
 void

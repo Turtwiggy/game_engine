@@ -1,4 +1,4 @@
-#include "event_death_helpers.hpp"
+#include "event_permadeath_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "modules/ui_units/ui_units_components.hpp"
@@ -6,6 +6,7 @@
 
 namespace game2d {
 
+// note: persistent death in the game
 void
 handle_death_event_set_unit_as_dead(entt::registry& r, const DeathEvent& evt)
 {

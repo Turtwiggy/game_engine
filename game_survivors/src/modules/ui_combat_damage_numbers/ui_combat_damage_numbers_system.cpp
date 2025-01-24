@@ -1,5 +1,6 @@
 #include "ui_combat_damage_numbers_system.hpp"
 
+#include "modules/event_damage/event_damage_helpers.hpp"
 #include "ui_combat_damage_numbers_components.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -12,7 +13,7 @@ void
 handle_damage_event_for_ui(entt::registry& r, const DamageEvent& evt)
 {
   const auto to_e = evt.to;
-  const auto damage = calculate_damage_to_take(r, evt.to, evt.amount, evt.type);
+  const auto damage = calculate_damage_to_take(r, evt);
 
   // add a new entry to the UI_BufferComponent...
   auto& buffer_c = r.get_or_emplace<UI_BufferComponent>(to_e);

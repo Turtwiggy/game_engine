@@ -8,6 +8,7 @@ namespace game2d {
 
 const std::string bullet_speed_key = "bullet_speed";
 const std::string bullet_damage_key = "bullet_damage";
+const std::string trait_assassin_key = "assassin";
 
 // Loaded Data
 
