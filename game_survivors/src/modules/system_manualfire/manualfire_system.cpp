@@ -80,7 +80,9 @@ update_manualfire_system(entt::registry& r)
 
     reset_cooldown(cooldown_c);
 
-    int bullet_damage = r.get<BulletDamage>(parent_c.parent).damage;
+    // TODO: implement same functionality as system autofire
+
+    int bullet_damage = r.get<BulletDamage>(wep_e).damage;
 
     BulletDef bullet_def;
     bullet_def.key = "bullet_default";

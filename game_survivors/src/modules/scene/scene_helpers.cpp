@@ -55,13 +55,24 @@ spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
   const auto wep_e = spawn(r, "boat_default_weapon");
   give_life(r, wep_e, get_position(r, e), weapon_size);
   r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-  r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
-  r.emplace<WeaponComponent>(wep_e);
-  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
-  set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-  set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
   r.emplace<HardpointComponent>(wep_e, HardpointComponent{ data });
 
+  // parent <=> child
+  auto& weapons_c = r.get_or_emplace<HasWeaponsComponent>(e);
+  weapons_c.weapons.push_back(wep_e);
+
+  // child <=> parent
+  r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e });
+
+  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
+  r.emplace<WeaponComponent>(wep_e);
+  r.emplace<WeaponProjectiles>(wep_e, 1);
+  r.emplace<WeaponSpread>(wep_e);
+  r.emplace<BulletDamage>(wep_e);
+  r.emplace<BulletPierce>(wep_e, 1);
+
+  set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+  set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
   return wep_e;
 };
 
@@ -85,10 +96,6 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
-
-  // stuff that probably shouldnt be on body?
-  r.emplace<BulletDamage>(e);
-  r.emplace<BulletPierce>(e, 1);
 
   // TODO: come up with something better
   if (hull_key == "Dinghy")
@@ -127,6 +134,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   for (const auto& hardpoint_data : hull.hardpoints) {
     auto weapon_e = spawn_weapon(r, e, hardpoint_data);
     r.emplace<AutofireComponent>(weapon_e);
+
+    // break; // one weapon for the moment
   }
 
   // Spawn a manual weapon
@@ -281,6 +290,6 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   scene.s = s; // done
-}
+};
 
 } // namespace game2d

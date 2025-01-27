@@ -19,12 +19,12 @@ add_projectile_enemy_components(entt::registry& r, entt::entity e)
   tgt_c.distance_to_reduce_thrust = 600; // distance to shoot from
   r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
 
-  // time between shots
-  CooldownComponent cooldown_c;
-  cooldown_c.time_max = 2.0f;
-  cooldown_c.time = 0.0f;
-  r.emplace<CooldownComponent>(e, cooldown_c);
+  // TODO: give the enemy a weapon, dont attach these components to enemy?
+  r.emplace<CooldownComponent>(e, CooldownComponent{ 2.0f, 0.0 });
   r.emplace<BulletDamage>(e, BulletDamage{ 1 });
+  r.emplace<BulletPierce>(e, 1);
+  // r.emplace<WeaponSpread>(wep_e);
+  // r.emplace<WeaponProjectiles>(wep_e, 1);
 }
 
 } // namespace game2d

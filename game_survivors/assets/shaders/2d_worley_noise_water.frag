@@ -110,9 +110,9 @@ void main()
 		tmp_uv.x *= aspect_x;
 		tmp_uv *= zoom;
 
-		vec2 pos = vec2(0, 0);
-		float tilesize = 64;
-		float radius = 40.0f;
+		vec2 pos = vec2(0, 0); // worldspace
+		float tilesize = 64.0;
+		float radius = 12.0;
 		float size = tilesize * radius;
 
 		// convert worldspace to between -1 and 1.
@@ -120,7 +120,7 @@ void main()
 		ss.x *= aspect_x;
 		vec2 p = tmp_uv + ss;
 
-		d = sdfCircle(p, size / viewport_wh.y);
+		d = sdfCircle(p, size / (aspect_x * 100.0f));
 		
 		// vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
 		// out_colour.rgb = col;

@@ -65,19 +65,33 @@ update_ui_survive_health_system(entt::registry& r)
     std::string hp_label = std::format("HP: {}/{}", hp_c.hp, hp_c.max_hp);
     ImGui::Text("%s", hp_label.c_str());
 
-    ImGui::SameLine();
+    const auto& weps_c = r.get<HasWeaponsComponent>(e);
+    for (const auto wep_e : weps_c.weapons) {
 
-    const int bullet_damage = r.get<BulletDamage>(e).damage;
-    const int bullet_pierce = r.get<BulletPierce>(e).pierce;
+      const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
+      const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
+      const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
+      const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
 
-    auto& upgrades_c = r.get<StatModifierComponent>(e);
-    const auto bullet_damage_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
-    const auto bullet_pierce_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
-    const int modified_damage = (int)upgrades_c.apply_modifiers(bullet_damage, bullet_damage_key);
-    const int modified_pierce = (int)upgrades_c.apply_modifiers(bullet_pierce, bullet_pierce_key);
+      auto& upgrades_c = r.get<StatModifierComponent>(e);
+      const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
+      const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
+      const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
+      const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
 
-    ImGui::Text("DMG: %i", modified_damage);
-    ImGui::Text("Pierce: %i", modified_pierce);
+      const int mod_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
+      const int mod_pierce = upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
+      const int mod_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
+      const int mod_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
+
+      // clang-format off
+      ImGui::Text("Weapon...");
+      ImGui::SameLine(); ImGui::Text("DMG: %i", mod_damage); 
+      ImGui::SameLine(); ImGui::Text("Pierce: %i", mod_pierce);
+      ImGui::SameLine(); ImGui::Text("Projectiles: %i", mod_projectiles);
+      ImGui::SameLine(); ImGui::Text("Spread: %i", mod_spread);
+      // clang-format on
+    }
 
     /*
 

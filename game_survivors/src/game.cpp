@@ -285,12 +285,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s != Scene::menu && scene.s != Scene::splashscreen) {
     update_ui_combat_damage_numbers_system(r, dt, mouse_pos);
     update_ui_gameover_system(r);
-    // update_ui_inventory_system(r);
 #if defined(_DEBUG)
     update_ui_colours_system(r);
     update_ui_debug_spawner_system(r);
     update_ui_raws_system(r);
-    // update_ui_lootbag_system(r);
 #endif
   }
 

@@ -7,7 +7,6 @@
 #include "modules/combat/components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
-#include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_physics_apply_force/components.hpp"

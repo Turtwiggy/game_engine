@@ -11,6 +11,8 @@ enum class UpgradeableStat
   BULLET_SPEED = 0,
   BULLET_DAMAGE,
   BULLET_PIERCE,
+  WEAPON_PROJECTILES,
+  WEAPON_SPREAD,
 
   count,
 };

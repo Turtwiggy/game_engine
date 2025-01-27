@@ -20,4 +20,18 @@ struct BulletPierce
   int pierced = 0;
 };
 
+// How many bullets to fire every time a bullet is fired?
+struct WeaponProjectiles
+{
+  int projectiles = 1;
+};
+
+// Given you're firing 1+ bullets,
+// and you're firing in a given direction,
+// what angle to add between the bullets?
+struct WeaponSpread
+{
+  float angle_between_bullets_deg = 30;
+};
+
 } // namespace game2d

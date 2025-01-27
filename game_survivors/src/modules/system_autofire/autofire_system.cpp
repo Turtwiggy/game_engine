@@ -118,6 +118,22 @@ clamp_angle(float rad_a, float rad_min, float rad_max)
   return normalize_axis(rad_a);
 };
 
+const auto generate_angles = [](float dir, int bullets, float spread_rad) -> std::vector<float> {
+  if (bullets == 0)
+    return {};
+  if (bullets == 1)
+    return { dir };
+
+  std::vector<float> angles;
+  const float step = spread_rad / (bullets - 1);
+  const float start_angle = dir - (spread_rad / 2.0f);
+
+  for (int i = 0; i < bullets; i++)
+    angles.push_back(start_angle + i * step);
+
+  return angles;
+};
+
 void
 update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
 {
@@ -233,20 +249,25 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     // draw_line(generate_line(you_pos, you_pos + 100.0f * limited_dir, 4.0f));
 #endif
 
-    // Defaults (should be loaded from config)
-    int bullet_damage = r.get<BulletDamage>(parent_c.parent).damage;
-    int bullet_speed = 250;
-    int bullet_pierce = 1;
+    // Defaults
+    const int val_bullet_speed = 250;
+    const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
+    const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
+    const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
+    const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
 
-    // Apply upgrades
     auto& upgrades_c = r.get<StatModifierComponent>(p);
+    const auto key_bullet_speed = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
+    const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
+    const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
+    const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
+    const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
 
-    const auto bullet_speed_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
-    const auto bullet_damage_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
-    const auto bullet_pierce_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
-    const float modified_speed = upgrades_c.apply_modifiers(bullet_speed, bullet_speed_key);
-    const float modified_damage = upgrades_c.apply_modifiers(bullet_damage, bullet_damage_key);
-    const int modified_pierce = (int)upgrades_c.apply_modifiers(bullet_pierce, bullet_pierce_key);
+    const int mod_speed = upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
+    const int mod_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
+    const int mod_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
+    const int mod_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
+    const int mod_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
 
     if (cooldown_c.time > 0.0f)
       continue;
@@ -257,20 +278,28 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     bullet_def.parent_e = wep_e;
     bullet_def.size = { 6, 6 };
     bullet_def.team = AvailableTeams::player;
-    bullet_def.damage = (int)modified_damage;
-    bullet_def.pierce = modified_pierce;
-    bullet_def.speed = modified_speed;
+    bullet_def.damage = mod_damage;
+    bullet_def.pierce = mod_pierce;
+    bullet_def.speed = mod_speed;
     bullet_def.lifecycle = 3 * 1000;
     bullet_def.traits = r.get<TraitComponent>(p).traits; // traits from wep's parent, not wep
-    auto bullet_e = spawn_projectile(r, bullet_def);
-
-    // set velocity
-    auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
-    body_c.body->SetLinearVelocity(b2Vec2{ body_c.base_speed * limited_dir.x, body_c.base_speed * limited_dir.y });
 
     // rotate the gun
     const float shoot_angle = engine::dir_to_angle_radians(limited_dir);
     wep_t.rotation_radians.z = shoot_angle;
+
+    auto angles_rad = generate_angles(shoot_angle, mod_projectiles, mod_spread * engine::Deg2Rad);
+
+    // Spawn X amount of bullets
+    // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
+    // If the weapon has enough weapon spread (e.g. 90 degrees)
+    // It could still shoot at the limited angles.
+    for (int i = 0; i < mod_projectiles; i++) {
+      auto bullet_e = spawn_projectile(r, bullet_def);
+      auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
+      const auto bullet_dir = engine::angle_radians_to_direction(angles_rad[i]);
+      body_c.body->SetLinearVelocity(b2Vec2{ body_c.base_speed * bullet_dir.x, body_c.base_speed * bullet_dir.y });
+    }
   }
 }
 
