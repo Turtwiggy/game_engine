@@ -6,7 +6,8 @@
 #include "engine/physics/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_Damage/event_damage_components.hpp"
-#include "modules/system_autofire/autofire_components.hpp"
+#include "modules/event_coll/event_coll_components.hpp"
+#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 
 namespace game2d {
@@ -31,20 +32,36 @@ handle_bullet_enemy_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
   auto& bullet_c = r.get<BulletComponent>(bullet_e);
+  auto& bullet_damage_c = r.get<BulletDamage>(bullet_e);
   auto& traits_c = r.get<TraitComponent>(bullet_e);
 
   DamageEvent evt;
   evt.from = entt::null; // bullet likely ded next frame
   evt.to = team_e;
   evt.type = DamageType::PHYSICAL;
-  evt.amount = bullet_c.damage;
+  evt.amount = bullet_damage_c.damage;
   evt.traits = traits_c.traits;
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();
 
-  // TODO: give bullets "pierce" as the num enemies you can hit
-  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  dead.dead.emplace(bullet_e);
+  auto& coll = r.get_or_emplace<CollInfo>(bullet_e).other;
+  auto it = std::find(coll.begin(), coll.end(), bullet_e);
+  bool bullet_already_coll_with_enemy = it != coll.end();
+
+  if (bullet_already_coll_with_enemy)
+    return;
+
+  // new bullet <=> enemy coll
+  coll.emplace(team_e);
+
+  // give bullets "pierce" as the num enemies you can hit
+  auto& pierce_c = r.get<BulletPierce>(bullet_e);
+  pierce_c.pierced++;
+  if (pierce_c.pierced >= pierce_c.pierce) {
+    // maximum number of enemies pierced with this bullet
+    auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+    dead.dead.emplace(bullet_e);
+  }
 
   // Slightly knockback the enemy
   auto& enemy_body_c = r.get<PhysicsBodyComponent>(team_e);

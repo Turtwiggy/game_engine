@@ -49,8 +49,8 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Menu_Select] = SteamInput()->GetDigitalActionHandle("menu_select");
   digital_action_handles[(int)DA::Menu_Cancel] = SteamInput()->GetDigitalActionHandle("menu_cancel");
 
-  analog_action_handles[(int)AA::LAnalogControls] = SteamInput()->GetAnalogActionHandle("l_analog_controls");
-  analog_action_handles[(int)AA::RAnalogControls] = SteamInput()->GetAnalogActionHandle("r_analog_controls");
+  analog_action_handles[(int)AA::LAnalogControls] = SteamInput()->GetAnalogActionHandle("l_analog");
+  analog_action_handles[(int)AA::RAnalogControls] = SteamInput()->GetAnalogActionHandle("r_analog");
 
   action_set_handles[(int)AS::ActionSet_GameControls] = SteamInput()->GetActionSetHandle("game_controls");
   action_set_handles[(int)AS::ActionSet_MenuControls] = SteamInput()->GetActionSetHandle("menu_controls");
@@ -72,9 +72,24 @@ init_steam_input(entt::registry& r)
   }
   SDL_Log("SteamInput()->Init() Success");
 
+  //
+  // Steam uses the action file in this location:
+  // C:\Software\Steam\controller_config\{APPID}.vdf
+  //
+  // To generate configs in this location via the controller configurator
+  // C:\Software\Steam\steamapps\common\Steam Controller Configs\{SOMENUMBER}\config\{APPID}\YOURCONFIG.vdf
+  //
+  // IF you want to bundle controller configs in the app (i.e. uncomment the below)
+  // you need a e.g. steam_input_manifest.vdf
+  // with a "configuration {}" section, that links the generated
+  // e.g. steam_input_manifest_steam.vdf
+  //
+  // ALTERNATIVELY: upload your generated config via
+  // steamworkshop, and dont bundle a .vdf with the app
+  //
   // const auto path = std::filesystem::absolute(".");
   // const auto abs_path_to_vdf = path.generic_string() + "/steam_input_manifest.vdf";
-  // SDL_Log("Absolute path: %s", path.generic_string().c_str());
+  // SDL_Log("Absolute path: %s", abs_path_to_vdf.c_str());
   // auto result = SteamInput()->SetInputActionManifestFilePath(abs_path_to_vdf.c_str());
   // if (!result) {
   //   SDL_Log(".vdf file not found or corrupt");

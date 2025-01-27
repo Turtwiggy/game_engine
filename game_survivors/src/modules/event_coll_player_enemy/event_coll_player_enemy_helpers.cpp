@@ -8,10 +8,10 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_coll/event_coll_components.hpp"
+#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
-#include "modules/system_autofire/autofire_components.hpp"
 
 namespace game2d {
 

@@ -6,8 +6,15 @@
 
 namespace game2d {
 
-const std::string bullet_speed_key = "bullet_speed";
-const std::string bullet_damage_key = "bullet_damage";
+enum class UpgradeableStat
+{
+  BULLET_SPEED = 0,
+  BULLET_DAMAGE,
+  BULLET_PIERCE,
+
+  count,
+};
+
 const std::string trait_assassin_key = "assassin";
 
 // Loaded Data

@@ -22,6 +22,7 @@
 #include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <box2d/b2_collision.h>
+#include <magic_enum.hpp>
 
 namespace game2d {
 
@@ -178,9 +179,27 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     // tgt_s.col = parent_col;
     // draw_sprite(r, tgt_s);
 
+    // Clamp the adjusted target pos
+    // to a circle radius around your player
+    // so you know where you're shooting
+    constexpr float radius = 40;
+    constexpr float radius_squared = radius * radius;
+    const float dx = adj_tgt_pos.x - you_pos.x;
+    const float dy = adj_tgt_pos.y - you_pos.y;
+    const float d2 = dx * dx + dy * dy;
+    glm::vec2 clamped_tgt_pos = adj_tgt_pos;
+    if (d2 > radius_squared) {
+      const auto raw_dir = glm::vec2{ adj_tgt_pos - you_pos };
+      const auto nrm_dir = engine::normalize_safe(raw_dir);
+      engine::Ray ray;
+      ray.origin = { you_pos.x, you_pos.y, 0 };
+      ray.dir = { nrm_dir.x, nrm_dir.y, 0.0 };
+      clamped_tgt_pos = engine::ray_at(ray, radius);
+    }
+
     // debug updated target position
     Sprite adj_tgt_pos_s;
-    adj_tgt_pos_s.pos = adj_tgt_pos;
+    adj_tgt_pos_s.pos = clamped_tgt_pos;
     adj_tgt_pos_s.sprite = "EFFECT_30_11";
     adj_tgt_pos_s.size = { 8, 8 };
     adj_tgt_pos_s.col = parent_col;
@@ -214,11 +233,20 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     // draw_line(generate_line(you_pos, you_pos + 100.0f * limited_dir, 4.0f));
 #endif
 
-    int bullet_damage = r.get<BulletDamage>(parent_c.parent).dmg;
+    // Defaults (should be loaded from config)
+    int bullet_damage = r.get<BulletDamage>(parent_c.parent).damage;
     int bullet_speed = 250;
+    int bullet_pierce = 1;
+
+    // Apply upgrades
     auto& upgrades_c = r.get<StatModifierComponent>(p);
+
+    const auto bullet_speed_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
+    const auto bullet_damage_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
+    const auto bullet_pierce_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
     const float modified_speed = upgrades_c.apply_modifiers(bullet_speed, bullet_speed_key);
     const float modified_damage = upgrades_c.apply_modifiers(bullet_damage, bullet_damage_key);
+    const int modified_pierce = (int)upgrades_c.apply_modifiers(bullet_pierce, bullet_pierce_key);
 
     if (cooldown_c.time > 0.0f)
       continue;
@@ -230,6 +258,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     bullet_def.size = { 6, 6 };
     bullet_def.team = AvailableTeams::player;
     bullet_def.damage = (int)modified_damage;
+    bullet_def.pierce = modified_pierce;
     bullet_def.speed = modified_speed;
     bullet_def.lifecycle = 3 * 1000;
     bullet_def.traits = r.get<TraitComponent>(p).traits; // traits from wep's parent, not wep

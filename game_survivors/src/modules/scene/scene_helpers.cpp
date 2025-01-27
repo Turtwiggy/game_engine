@@ -47,10 +47,27 @@
 
 namespace game2d {
 
+glm::vec2 weapon_size = { 5, 10 };
+
+entt::entity
+spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
+{
+  const auto wep_e = spawn(r, "boat_default_weapon");
+  give_life(r, wep_e, get_position(r, e), weapon_size);
+  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
+  r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
+  r.emplace<WeaponComponent>(wep_e);
+  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
+  set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+  set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
+  r.emplace<HardpointComponent>(wep_e, HardpointComponent{ data });
+
+  return wep_e;
+};
+
 entt::entity
 spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key)
 {
-  glm::vec2 weapon_size = { 5, 10 };
 
   const auto e = spawn(r, key);
 
@@ -68,7 +85,10 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
-  r.emplace<BulletDamage>(e); // probably shouldnt be on body
+
+  // stuff that probably shouldnt be on body?
+  r.emplace<BulletDamage>(e);
+  r.emplace<BulletPierce>(e, 1);
 
   // TODO: come up with something better
   if (hull_key == "Dinghy")
@@ -105,29 +125,12 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
 
   // Spawn the weapons...
   for (const auto& hardpoint_data : hull.hardpoints) {
-    const auto wep_e = spawn(r, "boat_default_weapon");
-    give_life(r, wep_e, get_position(r, e), weapon_size);
-    r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-    r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
-    r.emplace<WeaponComponent>(wep_e);
-    r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
-    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-    set_colour(r, wep_e, { 1.0f, 1.0f, 1.0f, 1.0f });
-    r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
-    r.emplace<AutofireComponent>(wep_e);
+    auto weapon_e = spawn_weapon(r, e, hardpoint_data);
+    r.emplace<AutofireComponent>(weapon_e);
   }
 
   // Spawn a manual weapon
   {
-    const auto wep_e = spawn(r, "boat_default_weapon");
-    give_life(r, wep_e, get_position(r, e), weapon_size);
-    r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-    r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e }); // child <=> parent
-    r.emplace<WeaponComponent>(wep_e);
-    r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
-    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-    set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
-
     HardpointComponent hardpoint_c;
     HardpointData hardpoint_data;
     hardpoint_data.key = "manual";
@@ -135,8 +138,9 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     hardpoint_data.arc = 0;
     hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
     hardpoint_data.y_rel_tl = size.y / 2;
-    r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
-    r.emplace<ManualfireComponent>(wep_e);
+
+    auto weapon_e = spawn_weapon(r, e, hardpoint_data);
+    r.emplace<ManualfireComponent>(weapon_e);
   }
 
   return e;
@@ -222,13 +226,14 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0, hull_key);
     // const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1, hull_key);
     // const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2, hull_key);
-    // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3);
+    // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3, hull_key);
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
-    r.emplace<SteamControllerComponent>(p1);
+    // r.emplace<SteamControllerComponent>(p1);
     // r.emplace<SteamControllerComponent>(p2);
     // r.emplace<SteamControllerComponent>(p3);
+    // r.emplace<SteamControllerComponent>(p4);
 
     // The survive timer that various spawners read from
     float seconds = 20 * 60;

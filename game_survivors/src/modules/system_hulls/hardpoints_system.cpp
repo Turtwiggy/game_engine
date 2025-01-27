@@ -162,12 +162,13 @@ update_ship_draw_arcs_system(entt::registry& r)
     DrawArc(screenspace, zone_radius, 0, 360, 2, ImColor(0.3f, 0.3f, 0.3f, 1.0f), true);
 
     // draw the gun arc.
-    // float thickness = 2;
-    // float radius = (50 + entity_to_guncount[p] * 2) / zoom;
-    // const auto col = r.get<DefaultColour>(p).colour;
-    // const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
-    // float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
-    // DrawArc(screenspace, radius, center_angle_deg, arc, thickness, im_col, true);
+    float thickness = 2;
+    float radius = (50 + entity_to_guncount[p] * 2) / zoom;
+    auto col = r.get<DefaultColour>(p).colour;
+    col.a = (int)(1.0f * 255);
+    const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
+    float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
+    DrawArc(screenspace, radius, center_angle_deg, arc, thickness, im_col, true);
 
     // draw the arc where the gun cant shoot.
     // float thickness = 0.5;

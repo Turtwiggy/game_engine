@@ -9,6 +9,7 @@
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat_projectiles/projectile_helpers.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
@@ -48,23 +49,20 @@ update_manualfire_system(entt::registry& r)
 
     const auto you_pos = glm::vec2{ parent_t.position.x, parent_t.position.y };
     const auto gun_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
+    const auto input = glm::vec2{ parent_input_c.rx, parent_input_c.ry };
 
-    // input
-    const auto tgt_pos = you_pos + 20.0f * glm::vec2{ parent_input_c.rx, parent_input_c.ry };
-    const bool shoot = parent_input_c.shoot;
+    const float radius = 40.0f;
+    const auto tgt_pos = you_pos + radius * input;
 
     // draw a crosshair at your target direction
     Sprite s;
-    s.pos = gun_pos + 20.0f * glm::vec2{ parent_input_c.rx, parent_input_c.ry };
+    s.pos = tgt_pos;
     s.sprite = "CROSSHAIR_1";
     s.size = { 16, 16 };
     s.col = parent_col;
     draw_sprite(r, s);
 
-    if (cooldown_c.time > 0.0f)
-      continue;
-
-    const auto raw_dir = tgt_pos - you_pos;
+    const auto raw_dir = (tgt_pos - gun_pos);
     const auto nrm_dir = engine::normalize_safe(raw_dir);
     const auto angle = engine::dir_to_angle_radians(nrm_dir);
 
@@ -72,19 +70,27 @@ update_manualfire_system(entt::registry& r)
     const float shoot_angle = engine::dir_to_angle_radians(nrm_dir);
     wep_t.rotation_radians.z = shoot_angle;
 
+    if (cooldown_c.time > 0.0f)
+      continue;
+
+    // input
+    const bool shoot = parent_input_c.shoot;
     if (!shoot)
       continue;
+
     reset_cooldown(cooldown_c);
 
-    int bullet_damage = r.get<BulletDamage>(parent_c.parent).dmg;
+    int bullet_damage = r.get<BulletDamage>(parent_c.parent).damage;
 
-    auto bullet_e = spawn(r, "bullet_default");
-    give_life(r, bullet_e, get_position(r, wep_e), { 6, 6 });
-    r.emplace<TeamComponent>(bullet_e, AvailableTeams::player);
-    r.emplace<BulletComponent>(bullet_e, bullet_damage);
-    r.get<PhysicsBodyComponent>(bullet_e).base_speed = 250.0f;
-    r.emplace<EntityTimedLifecycle>(bullet_e, 3 * 1000);
-    set_z_index(r, bullet_e, ZLayer::PROJECTILE);
+    BulletDef bullet_def;
+    bullet_def.key = "bullet_default";
+    bullet_def.parent_e = wep_e;
+    bullet_def.size = { 6, 6 };
+    bullet_def.team = AvailableTeams::player;
+    bullet_def.damage = bullet_damage;
+    bullet_def.speed = 250;
+    bullet_def.lifecycle = 3 * 1000;
+    const auto bullet_e = spawn_projectile(r, bullet_def);
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);

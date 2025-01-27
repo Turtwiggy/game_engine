@@ -300,7 +300,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
-    // update_ui_debug_menubar_system(r);
+    update_ui_debug_menubar_system(r);
 
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
 

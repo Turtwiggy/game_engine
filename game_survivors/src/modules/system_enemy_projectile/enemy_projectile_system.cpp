@@ -36,27 +36,24 @@ update_enemy_projectile_system(entt::registry& r)
     const auto raw_dir = get_position(r, target_e) - get_position(r, e);
     const auto nrm_dir = engine::normalize_safe(raw_dir);
 
-    int bullet_damage = r.get<BulletDamage>(e).dmg;
+    int bullet_damage = r.get<BulletDamage>(e).damage;
 
     BulletDef bullet_def;
     bullet_def.key = "bullet_default";
-    bullet_def.parent_e = e;
-    bullet_def.size = { 36, 36 };
+    bullet_def.parent_e = e; // note: not a weapon parent, but an enemy
+    bullet_def.size = { 18, 18 };
     bullet_def.team = AvailableTeams::enemy;
-    bullet_def.damage = 1;
+    bullet_def.damage = bullet_damage;
     bullet_def.speed = 50.0f;
     bullet_def.lifecycle = 10 * 1000;
     // bullet_def.trailts = // no traits for enemies?
-    auto bullet_e = spawn_projectile(r, bullet_def);
+    const auto bullet_e = spawn_projectile(r, bullet_def);
     set_colour(r, bullet_e, hex_to_srgb("#00c420"));
     // set_sprite(r, bullet_e, "FIREWORK");
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
     body_c.body->SetLinearVelocity({ body_c.base_speed * nrm_dir.x, body_c.base_speed * nrm_dir.y });
-
-    r.emplace<BulletComponent>(bullet_e, bullet_damage);
-    r.emplace<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);
   }
 }
 

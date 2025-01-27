@@ -2,10 +2,10 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 
 namespace game2d {
@@ -18,11 +18,17 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def)
   auto bullet_e = spawn(r, bullet_def.key);
   give_life(r, bullet_e, get_position(r, parent_e), bullet_def.size);
   r.emplace<TeamComponent>(bullet_e, bullet_def.team);
-  r.emplace<BulletComponent>(bullet_e, bullet_def.damage);
   r.get<PhysicsBodyComponent>(bullet_e).base_speed = bullet_def.speed;
   r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);
   r.emplace<HasParentComponent>(bullet_e, parent_e);
   r.emplace_or_replace<TraitComponent>(bullet_e, bullet_def.traits);
+  r.emplace<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);
+
+  r.emplace<BulletComponent>(bullet_e);
+  r.emplace<BulletDamage>(bullet_e, bullet_def.damage);
+  r.emplace<BulletPierce>(bullet_e, bullet_def.pierce);
+
+  // r.emplace<PierceComponent>(bullet_e, 1);
   set_z_index(r, bullet_e, ZLayer::PROJECTILE);
 
   return bullet_e;

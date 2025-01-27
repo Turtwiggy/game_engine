@@ -1,6 +1,8 @@
 #include "ui_survive_health_system.hpp"
+
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
@@ -65,10 +67,17 @@ update_ui_survive_health_system(entt::registry& r)
 
     ImGui::SameLine();
 
-    int bullet_damage = r.get<BulletDamage>(e).dmg;
+    const int bullet_damage = r.get<BulletDamage>(e).damage;
+    const int bullet_pierce = r.get<BulletPierce>(e).pierce;
+
     auto& upgrades_c = r.get<StatModifierComponent>(e);
-    const float modified_damage = upgrades_c.apply_modifiers(bullet_damage, bullet_damage_key);
-    ImGui::Text("DMG: %i", (int)modified_damage);
+    const auto bullet_damage_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
+    const auto bullet_pierce_key = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
+    const int modified_damage = (int)upgrades_c.apply_modifiers(bullet_damage, bullet_damage_key);
+    const int modified_pierce = (int)upgrades_c.apply_modifiers(bullet_pierce, bullet_pierce_key);
+
+    ImGui::Text("DMG: %i", modified_damage);
+    ImGui::Text("Pierce: %i", modified_pierce);
 
     /*
 

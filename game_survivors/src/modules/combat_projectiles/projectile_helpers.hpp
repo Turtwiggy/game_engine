@@ -15,6 +15,7 @@ struct BulletDef
   glm::vec2 size{ 10, 10 };
   AvailableTeams team = AvailableTeams::neutral;
   int damage = 0;
+  int pierce = 1;
   int speed = 0;
   int lifecycle = 3 * 1000;
   std::vector<Trait> traits;

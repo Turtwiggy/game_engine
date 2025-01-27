@@ -2,11 +2,13 @@
 
 #include "engine/entt/helpers.hpp"
 #include "imgui.h"
+#include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
 #include "ui_survive_level_up_components.hpp"
 
 namespace game2d {
@@ -73,17 +75,26 @@ update_ui_survive_level_up_system(entt::registry& r)
       const auto& players_view = r.view<PlayerComponent>();
       for (const auto& [e, player_c] : players_view.each()) {
         auto& bullet_damage_c = r.get_or_emplace<BulletDamage>(e);
-        bullet_damage_c.dmg += 5;
+        bullet_damage_c.damage += 5;
       }
 
       //
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button("Not impl", ImVec2(-FLT_MIN, -FLT_MIN))) {
+    if (ImGui::Button("+1 Bullet Pierce", ImVec2(-FLT_MIN, -FLT_MIN))) {
       sxp_c.xp = 0;
       sxp_c.level++;
       sxp_c.xp_for_next_level += 5; // 5 harder every time
+
+      const auto stat = UpgradeableStat::BULLET_PIERCE;
+      const auto stat_key = std::string(magic_enum::enum_name(stat));
+
+      const auto& players_view = r.view<StatModifierComponent>();
+      for (const auto& [e, stat_c] : players_view.each()) {
+        int mod_val = 1;
+        stat_c.add(std::make_shared<StatFlatIncrease>(mod_val, stat_key));
+      }
 
       //
     }

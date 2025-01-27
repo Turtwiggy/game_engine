@@ -203,8 +203,8 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   int sdl_controllers_used = 0;
 
-  const auto& view = r.view<InputComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, i] : view.each()) {
+  const auto& view = r.view<InputComponent, TransformComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, i, t_c] : view.each()) {
     //
     i.lx = 0.0f;
     i.ly = 0.0f;
@@ -214,10 +214,16 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
 
     // set rx based on mouse input if selected
     if (const auto* keyboard_c = r.try_get<KeyboardComponent>(e)) {
-      const auto raw_dir = glm::vec2{ mouse_pos.x, mouse_pos.y } - get_position(r, e);
-      const auto nrm_dir = engine::normalize_safe(raw_dir);
-      i.rx += nrm_dir.x;
-      i.ry += nrm_dir.y;
+
+      // Add a deadzone to stop weird jitter when mouse is too close
+      const auto d = glm::vec2{ mouse_pos.x, mouse_pos.y } - glm::vec2{ t_c.position.x, t_c.position.y };
+      const float d2 = d.x * d.x + d.y * d.y;
+      auto nrm_dir = glm::vec2(0, 0);
+      if (d2 > keyboard_c->keyboard_deadzone_sqr)
+        nrm_dir = engine::normalize_safe(d);
+
+      i.rx = nrm_dir.x;
+      i.ry = nrm_dir.y;
       i.shoot |= get_mouse_lmb_held();
       i.ly += get_key_held(input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
       i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
