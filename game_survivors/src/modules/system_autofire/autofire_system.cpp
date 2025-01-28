@@ -6,6 +6,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
@@ -75,21 +76,17 @@ public:
   }
 };
 
-float
-cross(glm::vec2 a, glm::vec2 b)
-{
-  return a.x * b.y - b.x * a.y;
-};
-
 // puts an angle in the range [0, 2π]
 float
 clamp_axis(float angle)
 {
   // range: [-2PI, 2PI]
   angle = std::fmod(angle, engine::TWO_PI);
+
   // range: [0, 2PI]
   if (angle < 0.0f)
     angle += engine::TWO_PI;
+
   return angle;
 };
 
@@ -197,6 +194,14 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     // tgt_s.size = { 16, 16 };
     // tgt_s.col = parent_col;
     // draw_sprite(r, tgt_s);
+
+    // debug the adj tgt pos
+    Sprite adj_tgt_s;
+    adj_tgt_s.pos = adj_tgt_pos;
+    adj_tgt_s.sprite = "CROSSHAIR_2";
+    adj_tgt_s.size = { 16, 16 };
+    adj_tgt_s.col = parent_col;
+    draw_sprite(r, adj_tgt_s);
 
     // Clamp the adjusted target pos
     // to a circle radius around your player

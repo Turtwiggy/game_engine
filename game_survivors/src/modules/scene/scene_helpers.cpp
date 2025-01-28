@@ -96,6 +96,9 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 
+  // Apply some drag, bro
+  r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75);
+
   // TODO: come up with something better
   if (hull_key == "Dinghy")
     set_sprite(r, e, "hull_dinghy");
@@ -131,7 +134,12 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<StatModifierComponent>(e);
 
   // Spawn the weapons...
-  for (const auto& hardpoint_data : hull.hardpoints) {
+  for (auto& hardpoint_data : hull.hardpoints) {
+
+    // HACK: overrode all arcs to 360 degrees. i.e. full coverage
+    hardpoint_data.arc = 360;
+    hardpoint_data.arc_mid = 0;
+
     auto weapon_e = spawn_weapon(r, e, hardpoint_data);
     r.emplace<AutofireComponent>(weapon_e);
 
@@ -143,8 +151,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     HardpointComponent hardpoint_c;
     HardpointData hardpoint_data;
     hardpoint_data.key = "manual";
-    hardpoint_data.arc = 360;
-    hardpoint_data.arc = 0;
+    hardpoint_data.arc = 359;
+    hardpoint_data.arc_mid = 0;
     hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
     hardpoint_data.y_rel_tl = size.y / 2;
 

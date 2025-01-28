@@ -86,8 +86,13 @@ update_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
     const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
 
-    const glm::vec2 move_vel = (l_nrm_dir * body_c.base_speed);
-    body_c.body->SetLinearVelocity({ move_vel.x, move_vel.y });
+    const float mass = body_c.body->GetMass();
+
+    // Apply more force the more your mass
+    const glm::vec2 move_vel = (mass * l_nrm_dir * 1.0F);
+
+    // body_c.body->SetLinearVelocity({ move_vel.x, move_vel.y });
+    body_c.body->ApplyLinearImpulseToCenter({ move_vel.x, move_vel.y }, true);
 
     //
     // set rot here as the body itself doesnt rotate with movement_direct
@@ -95,7 +100,7 @@ update_movement_direct(entt::registry& r, const uint64_t ms_dt)
     //
     if (glm::length(l_nrm_dir) <= 0.0f)
       continue;
-    const float speed = 30.0f; // higher number = faster to destination
+    const float speed = 10.0f; // higher number = faster to destination
     const float max_angle = 30.0f * engine::Deg2Rad;
 
     const float cur_angle = std::fmod(body_c.body->GetAngle(), engine::TWO_PI);

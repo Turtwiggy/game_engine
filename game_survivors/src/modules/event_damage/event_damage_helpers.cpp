@@ -2,18 +2,12 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
-#include "modules/event_permadeath/event_permadeath_components.hpp"
-#include "modules/events/events_components.hpp"
-#include "modules/screenshake/components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>
-
-#include <format>
 
 namespace game2d {
 

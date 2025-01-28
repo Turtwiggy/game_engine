@@ -20,6 +20,11 @@ struct BulletPierce
   int pierced = 0;
 };
 
+struct BulletSpeed
+{
+  int speed = 250;
+};
+
 // How many bullets to fire every time a bullet is fired?
 struct WeaponProjectiles
 {
