@@ -9,7 +9,7 @@
     }
   },
   {
-    "name": "MSYS2 gcc/g++",
+    "name": "UCRT64 gcc/g++",
     "compilers": {
       "C": "C:/Software/msys64/ucrt64/bin/gcc.exe",
       "CXX": "C:/Software/msys64/ucrt64/bin/g++.exe"

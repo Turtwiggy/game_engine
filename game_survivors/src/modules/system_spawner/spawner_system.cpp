@@ -2,6 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
@@ -32,8 +33,17 @@ spawn_enemy(entt::registry& r, std::string key, int hp)
   auto e = spawn(r, key);
   r.emplace<EnemyComponent>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
-  r.emplace_or_replace<HealthComponent>(e, hp, hp);
   // r.emplace<SpriteOutline>(e);
+
+  // get a random position around target player?
+  // TODO: : it should be a larger zone considering all players
+  const auto& target_t = r.get<TransformComponent>(target_e);
+  const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
+  give_life(r, e, rnd_pos, { 16, 16 });
+
+  auto fixture_e = get_fixture_by_tag(r, e, "core");
+  r.emplace<HealthComponent>(fixture_e, hp, hp);
+  r.emplace<DefenceComponent>(fixture_e);
 
   // move at player, this gotta be changed for more interesting types
   r.emplace<DynamicTargetComponent>(e, target_e);
@@ -41,16 +51,10 @@ spawn_enemy(entt::registry& r, std::string key, int hp)
 
   auto& callbacks_c = r.get<OnDeathCallbacks>(e);
   auto drop_xp_callback = [](entt::registry& r, const entt::entity e) {
-    SDL_Log("Calling drop_xp_on_death_callback()");
+    // SDL_Log("Calling drop_xp_on_death_callback()");
     drop_xp_on_death_callback(r, e);
   };
   callbacks_c.callbacks.push_back(drop_xp_callback);
-
-  // get a random position around target player?
-  // TODO: : it should be a larger zone considering all players
-  const auto& target_t = r.get<TransformComponent>(target_e);
-  const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
-  give_life(r, e, rnd_pos, { 16, 16 });
 
   return e;
 };

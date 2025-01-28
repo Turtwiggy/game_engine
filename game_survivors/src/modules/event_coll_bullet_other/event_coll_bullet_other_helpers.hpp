@@ -7,6 +7,6 @@
 namespace game2d {
 
 void
-handle_bullet_enemy_coll(entt::registry& r, const OnCollisionEnter& evt);
+handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& evt);
 
 } // namespace game2d

@@ -2,6 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
@@ -24,7 +25,7 @@ additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
     r.emplace<RequestHitScaleComponent>(to_e);
 
   // .. screenshake
-  create_empty<RequestScreenshakeComponent>(r);
+  // create_empty<RequestScreenshakeComponent>(r);
 };
 
 int
@@ -54,11 +55,12 @@ calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
 void
 handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 {
-  const auto to_e = evt.to;
+  auto to_e = evt.to;
 
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
-    SDL_Log("handle_damage_event(): to_e has no HealthComponent");
+    const auto& tag_c = r.get<TagComponent>(to_e);
+    SDL_Log("handle_damage_event(): %s has no HealthComponent", tag_c.tag.c_str());
     return;
   }
 
@@ -66,26 +68,31 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   // log evt
   const auto b_name = std::string(r.get<TagComponent>(to_e).tag);
-  const auto message = std::format("({}) damaged for {}", b_name, damage);
-  SDL_Log("%s", message.c_str());
+  // const auto message = std::format("({}) damaged for {}", b_name, damage);
+  // SDL_Log("%s", message.c_str());
 
   // apply damage
   hp->hp -= damage;
-  additional_misc_damage_events(r, to_e);
+
+  const auto parent_e = r.get<HasParentComponent>(to_e).parent;
+  additional_misc_damage_events(r, parent_e);
 
   if (hp->hp <= 0) {
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-    dead.dead.emplace(to_e);
+    dead.dead.emplace(parent_e);
 
-    const auto str = std::format("{} died.", b_name);
+    const auto& parent_name = r.get<TagComponent>(parent_e).tag;
+    const auto str = std::format("{} died. Parent: {}", b_name, parent_name);
     SDL_Log("%s", str.c_str());
 
+    /*
     // Send death event.
     auto& evts = get_first_component<SINGLE_Events>(r);
     DeathEvent evt;
     evt.dead = to_e;
     evts.dispatcher->trigger(evt);
     evts.dispatcher->update();
+    */
   }
 };
 

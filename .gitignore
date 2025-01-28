@@ -2,11 +2,11 @@
 *.exe
 *.o
 *.log
-*.dll
 build/
 .vs/
 .cache/
 .DS_Store
+!thirdparty/sdk/*.dll
 
 # Configs
 imgui.ini

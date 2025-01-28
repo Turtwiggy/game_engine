@@ -28,9 +28,12 @@ disable_flash(entt::registry& r, entt::entity e)
 void
 update_combat_scale_on_hit_system(entt::registry& r, const float dt)
 {
-  const auto& view =
-    r.view<TransformComponent, RequestHitScaleComponent, const PhysicsBodyComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, t_c, req_c, pb_c] : view.each()) {
+  const auto& view = r.view<RequestHitScaleComponent>(entt::exclude<WaitForInitComponent>);
+
+  // note: req_e is attached to the e.g. fixture or body.
+  for (const auto& [e, req_c] : view.each()) {
+
+    auto& t_c = r.get<TransformComponent>(e);
     const auto default_size = r.get<DefaultSizeComponent>(e).size;
 
     //

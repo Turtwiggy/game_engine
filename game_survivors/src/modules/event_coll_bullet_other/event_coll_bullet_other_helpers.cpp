@@ -1,0 +1,94 @@
+#include "event_coll_bullet_other_helpers.hpp"
+
+#include "engine/actors/actor_helpers.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
+#include "modules/combat/components.hpp"
+#include "modules/event_Damage/event_damage_components.hpp"
+#include "modules/event_coll/event_coll_components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
+#include "modules/system_traits/trait_components.hpp"
+
+namespace game2d {
+
+void
+handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
+{
+  //
+  // Two fixtures have collided,
+  // If we choose FixtureOrBody::BODY, check the entt components on the body's user data e, not the fixture.
+  // If we choose FixtureOrBody::FIXTURE, check the entt components on the fixture's user data e, not the body.
+  //
+  const auto [other_e, bullet_e] = collision_of_interest<HealthComponent, BulletComponent>(
+    r, coll_evt.a, coll_evt.b, FixtureOrBody::FIXTURE, FixtureOrBody::BODY);
+
+  if (bullet_e == entt::null || other_e == entt::null)
+    return;
+
+  // Get the top-level parent, where most of the components will be
+  entt::entity other_e_parent = other_e;
+  if (auto* has_parent_c = r.try_get<HasParentComponent>(other_e))
+    other_e_parent = has_parent_c->parent;
+
+  const auto& other_e_name = r.get<TagComponent>(other_e_parent).tag;
+
+  const auto& bullet_team_c = r.get<TeamComponent>(bullet_e);
+  const auto& other_team_c = r.get<TeamComponent>(other_e_parent);
+  if (bullet_team_c.team == other_team_c.team)
+    return; // dont damage same team
+
+  // Here, a bullet has collided with something on a different team.
+  //
+
+  // Check that the bullet has not collided with this entity before.
+  auto& coll = r.get_or_emplace<CollInfo>(bullet_e).other;
+  auto it = std::find(coll.begin(), coll.end(), other_e);
+  bool bullet_already_coll_with_other = it != coll.end();
+  if (bullet_already_coll_with_other)
+    return;
+  coll.emplace(other_e);
+
+  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& bullet_damage_c = r.get<BulletDamage>(bullet_e);
+  auto& bullet_pierce_c = r.get<BulletPierce>(bullet_e);
+  auto& bullet_traits_c = r.get<TraitComponent>(bullet_e);
+  auto& other_e_hp = r.get<HealthComponent>(other_e);
+
+  // Send a damage event from the bullet to the entity
+  {
+    DamageEvent evt;
+    evt.from = entt::null;
+    evt.to = other_e;
+    evt.type = DamageType::PHYSICAL;
+    evt.amount = bullet_damage_c.damage;
+    evt.traits = bullet_traits_c.traits;
+    evts_c.dispatcher->trigger(evt);
+    evts_c.dispatcher->update();
+  }
+
+  // give bullets "pierce" as the num enemies you can hit
+  {
+    bullet_pierce_c.pierced++;
+    if (bullet_pierce_c.pierced >= bullet_pierce_c.pierce) {
+      // maximum number of enemies pierced with this bullet
+      auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+      dead.dead.emplace(bullet_e);
+    }
+  }
+
+  // Slightly knockback the enemy
+  if (other_team_c.team == AvailableTeams::enemy) {
+    auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);
+    const auto raw_dir = get_position(r, other_e_parent) - get_position(r, bullet_e);
+    const auto nrm_dir = engine::normalize_safe(raw_dir);
+    // const float knockback_amount = 25000.0f;
+    // enemy_body_c.body->ApplyLinearImpulseToCenter({ nrm_dir.x * knockback_amount, nrm_dir.y * knockback_amount }, true);
+    const float knockback_amount = 50;
+    enemy_body_c.body->SetLinearVelocity(knockback_amount * b2Vec2{ nrm_dir.x, nrm_dir.y });
+  }
+}
+
+} // namespace game2d

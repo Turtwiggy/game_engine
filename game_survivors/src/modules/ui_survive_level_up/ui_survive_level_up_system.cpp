@@ -5,7 +5,7 @@
 #include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
@@ -59,7 +59,7 @@ update_ui_survive_level_up_system(entt::registry& r)
       sxp_c.xp_for_next_level += 5; // 5 harder every time
 
       // TEMP: refill hp.
-      const auto& players_view = r.view<PlayerComponent>();
+      const auto& players_view = r.view<PlayerFixtureComponent>();
       for (const auto& [e, player_c] : players_view.each()) {
         if (auto* hp_c = r.try_get<HealthComponent>(e))
           hp_c->hp = hp_c->max_hp;

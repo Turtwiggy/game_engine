@@ -17,8 +17,6 @@
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
-#include "fmt/core.h"
-
 namespace game2d {
 using namespace std::literals;
 

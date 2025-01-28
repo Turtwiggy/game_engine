@@ -13,6 +13,17 @@
 - cmake e.g. `choco install cmake`, `brew install cmake`, `sudo apt-get install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`, `sudo apt-get install ninja-build`
 
+- MSYS2 (UCRT64) e.g.
+
+```
+pacman -S \
+  mingw-w64-ucrt-x86_64-cmake \
+  mingw-w64-ucrt-x86_64-ninja \
+  mingw-w64-ucrt-x86_64-gcc
+
+Note: When select a kit via vscode, choose "UCRT64 gcc/g++", and update your gcc paths in .vscode/cmake-kits.json
+```
+
 Windows
 
 ```bash

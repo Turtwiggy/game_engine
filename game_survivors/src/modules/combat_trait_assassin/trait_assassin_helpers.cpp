@@ -29,9 +29,9 @@ handle_damage_event__trait_assassin(entt::registry& r, const DamageEvent& evt)
   float threshold = 0.20; // 20%
   int previous_hp = glm::min(hp_c.hp + damage, hp_c.max_hp);
   int threshold_hp = hp_c.max_hp * threshold;
+  bool assassinated = previous_hp <= threshold_hp && damage > 0;
 
-  if (previous_hp <= threshold_hp && damage > 0) {
-    // SDL_Log("¬¬ ASSASSINATED ¬¬");
+  if (assassinated) {
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
     dead.dead.emplace(to_e);
   }

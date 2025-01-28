@@ -3,7 +3,7 @@
 
 #include "events_components.hpp"
 #include "modules/combat_trait_assassin/trait_assassin_helpers.hpp"
-#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_helpers.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_helpers.hpp"
 #include "modules/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
@@ -19,7 +19,7 @@ init_events_system(entt::registry& r)
   auto& ed = get_first_component<SINGLE_Events>(r);
 
   // link event => function
-  ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_enemy_coll>(r);
+  ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_other_coll>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_xp>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enemy_coll_enter>(r);
   ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_enemy_coll_exit>(r);

@@ -3,6 +3,7 @@
 #include "entt/entt.hpp"
 
 #include <functional>
+#include <queue>
 #include <unordered_set>
 
 namespace game2d {
@@ -23,7 +24,7 @@ struct EntityTimedLifecycle
 
 struct SINGLE_EntityBinComponent
 {
-  std::unordered_set<entt::entity> dead; // to destroy next fixed update
+  std::queue<entt::entity> dead; // to destroy next fixed update
 };
 
 // Alternative:

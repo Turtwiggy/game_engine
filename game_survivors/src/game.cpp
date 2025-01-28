@@ -4,7 +4,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/system.hpp"
-#include "engine/lifecycle/system.hpp"
+#include "engine/lifecycle/lifecycle_system.hpp"
 #include "engine/physics/system.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"

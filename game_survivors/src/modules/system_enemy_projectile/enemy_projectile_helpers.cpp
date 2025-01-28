@@ -1,7 +1,7 @@
 #include "enemy_projectile_helpers.hpp"
 
 #include "modules/actor_enemy/components.hpp"
-#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 

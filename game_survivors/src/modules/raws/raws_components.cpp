@@ -238,7 +238,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         PhysicsFixtureComponent fixture_c;
         fixture_c.body = body;
         fixture_c.fixture = fixture;
-        auto fixture_e = create_empty<PhysicsFixtureComponent>(r);
+        auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
         r.emplace_or_replace<TagComponent>(fixture_e, fix.tag);
         r.emplace<HasParentComponent>(fixture_e, e); // link fixture => body
         body_c.fixtures.push_back(fixture_e);        // link body => fixture
@@ -291,15 +291,14 @@ spawn(entt::registry& r, const std::string& key)
   r.emplace<ItemKey>(e, key);
   // r.emplace<Item>(e, templ);
 
-  bool big_explode = false;
-
   std::vector<Trait> traits;
-  if (templ.traits.has_value()) {
+  if (templ.traits.has_value())
     traits = templ.traits.value();
-  }
 
   // Store traits on a per-entity basis as well
   r.emplace<TraitComponent>(e, TraitComponent{ traits });
+
+  bool big_explode = false;
 
   for (const auto& trait : traits) {
     if (trait.key == "direct") {
@@ -331,10 +330,6 @@ spawn(entt::registry& r, const std::string& key)
     callbacks_c.callbacks.push_back(spawn_particles_callback);
   }
 
-  if (templ.stats.has_value())
-    r.emplace<HealthComponent>(e, templ.stats->hp, templ.stats->max_hp);
-
-  r.emplace<DefenceComponent>(e, 0); // should be determined by equipment
   r.emplace<InputComponent>(e);
 
   return e;

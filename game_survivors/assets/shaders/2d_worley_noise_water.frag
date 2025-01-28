@@ -141,7 +141,7 @@ void main()
 	float t = fworley(uv * iResolution.xy / 1500.0);
 	// t *= exp(-length2(abs(0.7*uv - 1.0))); // add gradient
 
-	t *= d < 0.0 ? abs(d) : 0.0;
+	t *= d < 0.0 ? abs(d) * 0.85 : 0.0;
 	t *= 0.2;
 	// t = min(0.6, t);
 

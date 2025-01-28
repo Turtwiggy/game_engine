@@ -9,11 +9,12 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
-#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
@@ -66,8 +67,10 @@ public:
   bool is_enemy(b2Body* body)
   {
     const entt::entity e = (entt::entity)body->GetUserData().pointer;
-    if (auto* team_c = r.try_get<TeamComponent>(e))
-      return team_c->team == AvailableTeams::enemy;
+    // if (auto* team_c = r.try_get<TeamComponent>(e))
+    //   return team_c->team == AvailableTeams::enemy;
+    if (auto* enemy_c = r.try_get<EnemyComponent>(e))
+      return true;
     return false;
   }
 };

@@ -59,7 +59,7 @@ collision_of_interest(entt::registry& r,
   }
 
   if (fob_a == FixtureOrBody::BODY && fob_b == FixtureOrBody::FIXTURE) {
-    SDL_Log("(Body)(Fixture) coll not impl");
+    SDL_Log("(Body)(Fixture) not impl, but (Fixture)(Body) is");
     exit(1);
   }
 

@@ -2,11 +2,12 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/physics/helpers.hpp"
 #include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
@@ -42,12 +43,12 @@ update_ui_survive_health_system(entt::registry& r)
 
   ImGui::Begin("health", NULL, flags);
 
-  const auto& group = r.group<PlayerComponent, HealthComponent, DefaultColour>();
+  const auto& group = r.group<PlayerComponent, DefaultColour>();
 
   // sort by player number
   group.sort<PlayerComponent>([](const auto& a, const auto& b) { return a.idx < b.idx; });
 
-  for (const auto [e, player_c, hp_c, col_c] : group.each()) {
+  for (const auto [e, player_c, col_c] : group.each()) {
 
     const auto im_col =
       ImVec4{ col_c.colour.r / 255.0f, col_c.colour.g / 255.0f, col_c.colour.b / 255.0f, col_c.colour.a / 255.0f };
@@ -62,6 +63,8 @@ update_ui_survive_health_system(entt::registry& r)
     ImGui::Text("P%i", player_c.idx);
     ImGui::SameLine();
 
+    const auto fixture_e = get_fixture_by_tag(r, e, "player");
+    const auto& hp_c = r.get<HealthComponent>(fixture_e);
     std::string hp_label = std::format("HP: {}/{}", hp_c.hp, hp_c.max_hp);
     ImGui::Text("%s", hp_label.c_str());
 

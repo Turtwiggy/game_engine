@@ -20,7 +20,7 @@
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
-#include "modules/event_coll_bullet_enemy/event_coll_bullet_enemy_components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -79,7 +79,6 @@ spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
 entt::entity
 spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key)
 {
-
   const auto e = spawn(r, key);
 
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
@@ -119,9 +118,10 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#0096ff")); // blue
   set_colour(r, e, r.get<DefaultColour>(e).colour);
 
-  // player fixture
   auto player_fixture_e = get_fixture_by_tag(r, e, "player");
   r.emplace<PlayerFixtureComponent>(player_fixture_e);
+  r.emplace<HealthComponent>(player_fixture_e, 10, 10);
+  r.emplace<DefenceComponent>(player_fixture_e, 0);
 
   // xp_zone fixture
   auto fixture_e = get_fixture_by_tag(r, e, "xp_zone");
@@ -135,7 +135,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     auto weapon_e = spawn_weapon(r, e, hardpoint_data);
     r.emplace<AutofireComponent>(weapon_e);
 
-    // break; // one weapon for the moment
+    // break; // one weapon
   }
 
   // Spawn a manual weapon

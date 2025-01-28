@@ -24,7 +24,7 @@ update_ui_scene_select_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoBackground;
+  // flags |= ImGuiWindowFlags_NoBackground;
 
   const auto x_pos = (6 / 12.0f);
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
@@ -37,6 +37,7 @@ update_ui_scene_select_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
 
   ImGui::Begin("Hull", NULL, flags);
 
@@ -86,7 +87,7 @@ update_ui_scene_select_system(entt::registry& r)
   }
 
   ImGui::End();
-  ImGui::PopStyleVar(3);
+  ImGui::PopStyleVar(4);
 }
 
 } // namespace game2d

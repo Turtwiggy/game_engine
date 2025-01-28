@@ -4,6 +4,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/components.hpp"
+#include "engine/physics/helpers.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/events/events_components.hpp"
@@ -20,33 +21,34 @@ public:
   entt::registry& r;
   float nearestDistanceSquared = std::numeric_limits<float>::max();
 
+  entt::entity self;
   std::vector<entt::entity> enemies;
 
-  EnemyInRangeCallback(entt::registry& r_ref)
-    : r(r_ref) {};
+  EnemyInRangeCallback(entt::registry& r_ref, entt::entity e)
+    : r(r_ref)
+    , self(e) {};
 
   bool ReportFixture(b2Fixture* fixture) override
   {
     b2Body* body = fixture->GetBody();
+    const auto e = (entt::entity)body->GetUserData().pointer;
+
+    if (e == self)
+      return true; // continue query
 
     if (!is_enemy(body))
       return true;
 
-    auto e = (entt::entity)body->GetUserData().pointer;
     enemies.push_back(e);
 
     return true; // Continue the query
   }
 
-  // Example placeholder for identifying enemies
   bool is_enemy(b2Body* body)
   {
     const entt::entity e = (entt::entity)body->GetUserData().pointer;
-    bool is_null = e == entt::null;
-    bool is_valid = r.valid(e);
-    if (is_null || !is_valid)
+    if (e == entt::null || !r.valid(e))
       return false;
-    auto& tag_c = r.get<TagComponent>(e);
     return r.get<TeamComponent>(e).team == AvailableTeams::enemy;
   }
 };
@@ -57,14 +59,15 @@ enemies_in_range(entt::registry& r, entt::entity e, float radius)
   const auto phys_e = get_first<SINGLE_Physics>(r);
   if (phys_e == entt ::null)
     return {};
-  auto& phys_c = r.get<SINGLE_Physics>(phys_e);
 
   const auto pos = get_position(r, e);
 
-  EnemyInRangeCallback callback(r);
+  EnemyInRangeCallback callback(r, e);
   b2AABB aabb;
   aabb.lowerBound = b2Vec2{ pos.x, pos.y } - b2Vec2{ radius, radius };
   aabb.upperBound = b2Vec2{ pos.x, pos.y } + b2Vec2{ radius, radius };
+
+  auto& phys_c = r.get<SINGLE_Physics>(phys_e);
   phys_c.world->QueryAABB(&callback, aabb);
 
   return callback.enemies;
@@ -75,18 +78,22 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
 {
   auto& callbacks_c = r.get<OnDeathCallbacks>(e);
 
-  // TODO: deal damage in area around you
+  // deal damage in area around you
   auto explode_on_death = [](entt::registry& r, entt::entity e) {
     GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
     // n.b.: radius so half
     auto enemies = enemies_in_range(r, e, explosion_radius);
+    SDL_Log("%s", std::format("Exploder died, hitting: {}", enemies.size()).c_str());
 
-    for (const auto& other_e : enemies) {
+    for (const auto other_e : enemies) {
+
+      // Note: specifying the fixture to damage here seems wrong
+      auto core_e = get_fixture_by_tag(r, other_e, "core");
 
       DamageEvent evt;
       evt.from = entt::null; // likely dead
-      evt.to = other_e;
+      evt.to = core_e;
       evt.type = DamageType::PHYSICAL;
       evt.amount = 100; // todo: replace with "correct" damage for explosion
       evt.traits = {};

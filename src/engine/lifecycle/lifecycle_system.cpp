@@ -1,9 +1,10 @@
 // header
-#include "system.hpp"
+#include "lifecycle_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/components.hpp"
+#include <unordered_set>
 
 namespace game2d {
 
@@ -20,25 +21,42 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
 
-  // destroy all dead objects
-  //
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
-  for (const auto& e : dead.dead) {
-    // Death callback
+
+  // Death callbacks.
+  // OnDeathCallbacks can cause more dead.dead entities
+  std::unordered_set<entt::entity> uniquely_dead;
+  while (!dead.dead.empty()) {
+    const auto e = dead.dead.front();
+    dead.dead.pop();
+
+    // Skip entities that are already in uniquely_dead
+    if (uniquely_dead.find(e) != uniquely_dead.end())
+      continue;
+
     if (auto* callback = r.try_get<OnDeathCallbacks>(e))
       for (const auto& cb : callback->callbacks)
         cb(r, e);
 
+    uniquely_dead.emplace(e);
+  }
+
+  // A destroyed fixture belonging to a body; destroy the parent when the fixture dies.
+  for (const auto e : uniquely_dead) {
+    if (auto* fixture_c = r.try_get<PhysicsFixtureComponent>(e)) {
+      const auto parent_e = r.get<HasParentComponent>(e).parent;
+      uniquely_dead.emplace(parent_e);
+    }
+  }
+
+  for (const auto e : uniquely_dead) {
     // Update physics
     if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
       physics_c.world->DestroyBody(pb->body);
-  }
-
-  for (const auto e : dead.dead) {
+    // Update entt
     if (r.valid(e))
       r.destroy(e);
   }
-  dead.dead.clear();
 
   // process create requests
   const auto requests = r.view<WaitForInitComponent>();
