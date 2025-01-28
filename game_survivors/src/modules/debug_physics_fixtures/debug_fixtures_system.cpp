@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 
 namespace game2d {

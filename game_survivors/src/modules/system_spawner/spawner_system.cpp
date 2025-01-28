@@ -2,7 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/helpers.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"

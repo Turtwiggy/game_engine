@@ -5,7 +5,7 @@
 #include "engine/events/components.hpp"
 #include "engine/events/system.hpp"
 #include "engine/lifecycle/lifecycle_system.hpp"
-#include "engine/physics/system.hpp"
+#include "engine/physics/physics_system.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"

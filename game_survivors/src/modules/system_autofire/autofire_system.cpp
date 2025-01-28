@@ -7,7 +7,7 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/colour/components.hpp"

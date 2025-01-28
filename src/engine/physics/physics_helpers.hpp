@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components.hpp"
+#include "engine/physics/physics_components.hpp"
 
 #include <entt/entt.hpp>
 

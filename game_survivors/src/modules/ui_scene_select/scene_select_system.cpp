@@ -35,9 +35,9 @@ update_ui_scene_select_system(entt::registry& r)
   const ImVec2 size = { 120.0f, 40.0f };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f);
 
   ImGui::Begin("Hull", NULL, flags);
 
@@ -64,16 +64,8 @@ update_ui_scene_select_system(entt::registry& r)
 
   for (const auto& hull_data : sorted_hulls) {
 
-    // Name
-    ImGui::Text("%s", hull_data.name.c_str());
-
-    // Description
-    ImGui::SameLine();
-    ImGui::TextColored(text_col, "%s", hull_data.desc.c_str());
-
     // Select
     auto label = std::format("Select##{}", hull_data.name);
-    ImGui::SameLine();
     if (ImGui::Button(label.c_str())) {
 
       // create data with selected hull
@@ -84,6 +76,19 @@ update_ui_scene_select_system(entt::registry& r)
 
       move_to_scene_start(r, Scene::survive);
     }
+
+    // Name
+    ImGui::SameLine();
+    ImGui::Text("%s", hull_data.name.c_str());
+
+    // Description
+    ImGui::SameLine();
+    ImGui::TextColored(text_col, "%s", hull_data.desc.c_str());
+
+    // const float button_width = 60.0f;
+    // float wrapWidth = ImGui::GetContentRegionAvail().x - button_width;
+    // ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrapWidth);
+    // ImGui::PopTextWrapPos();
   }
 
   ImGui::End();

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/entt/helpers.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 

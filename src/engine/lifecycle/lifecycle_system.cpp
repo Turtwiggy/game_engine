@@ -3,7 +3,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include <unordered_set>
 
 namespace game2d {

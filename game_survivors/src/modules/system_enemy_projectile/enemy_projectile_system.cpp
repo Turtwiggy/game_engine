@@ -2,7 +2,7 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"

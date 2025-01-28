@@ -8,7 +8,7 @@
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"

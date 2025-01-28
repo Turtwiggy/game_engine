@@ -1,8 +1,8 @@
-#include "system.hpp"
+#include "engine/physics/physics_system.hpp"
 
-#include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 
 namespace game2d {

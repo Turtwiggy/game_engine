@@ -1,7 +1,7 @@
-#include "helpers.hpp"
+#include "engine/physics/physics_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
 
@@ -10,6 +10,7 @@
 #include <box2d/b2_contact.h>
 #include <box2d/b2_world_callbacks.h>
 #include <format>
+#include <stdexcept>
 
 namespace game2d {
 
@@ -68,6 +69,7 @@ get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
   }
 
   SDL_Log("missing get_fixture_by_tag(): %s", tag.c_str());
+  throw std::runtime_error("missing get_fixture_by_tag()");
   exit(1); // explode
 
   return entt::null;

@@ -72,10 +72,12 @@ update_ui_survive_level_up_system(entt::registry& r)
       sxp_c.level++;
       sxp_c.xp_for_next_level += 5; // 5 harder every time
 
-      const auto& players_view = r.view<PlayerComponent>();
-      for (const auto& [e, player_c] : players_view.each()) {
-        auto& bullet_damage_c = r.get_or_emplace<BulletDamage>(e);
-        bullet_damage_c.damage += 5;
+      const auto& players_view = r.view<PlayerComponent, HasWeaponsComponent>();
+      for (const auto& [e, player_c, has_weps_c] : players_view.each()) {
+        for (const auto wep_e : has_weps_c.weapons) {
+          auto& bullet_damage_c = r.get<BulletDamage>(wep_e);
+          bullet_damage_c.damage += 5;
+        }
       }
 
       //

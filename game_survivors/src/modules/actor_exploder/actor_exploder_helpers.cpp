@@ -3,8 +3,10 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/components.hpp"
-#include "engine/physics/helpers.hpp"
+#include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
+#include "engine/renderer/transform.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/events/events_components.hpp"
@@ -37,7 +39,7 @@ public:
       return true; // continue query
 
     if (!is_enemy(body))
-      return true;
+      return true; // continue query
 
     enemies.push_back(e);
 
@@ -49,7 +51,12 @@ public:
     const entt::entity e = (entt::entity)body->GetUserData().pointer;
     if (e == entt::null || !r.valid(e))
       return false;
-    return r.get<TeamComponent>(e).team == AvailableTeams::enemy;
+
+    const bool enemy = r.try_get<EnemyComponent>(e) != nullptr;
+    return enemy;
+
+    // bullets have TeamComponent on
+    // return r.get<TeamComponent>(e).team == AvailableTeams::enemy;
   }
 };
 
@@ -87,6 +94,8 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
     SDL_Log("%s", std::format("Exploder died, hitting: {}", enemies.size()).c_str());
 
     for (const auto other_e : enemies) {
+      // const auto& tag_c = r.get<TagComponent>(other_e);
+      // const auto& tag = tag_c.tag;
 
       // Note: specifying the fixture to damage here seems wrong
       auto core_e = get_fixture_by_tag(r, other_e, "core");

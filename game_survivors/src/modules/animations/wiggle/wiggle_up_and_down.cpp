@@ -1,7 +1,7 @@
 #include "wiggle_up_and_down.hpp"
 
 #include "components.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 
 namespace game2d {

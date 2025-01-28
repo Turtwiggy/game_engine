@@ -2,7 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
@@ -81,9 +81,9 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
     dead.dead.emplace(parent_e);
 
-    const auto& parent_name = r.get<TagComponent>(parent_e).tag;
-    const auto str = std::format("{} died. Parent: {}", b_name, parent_name);
-    SDL_Log("%s", str.c_str());
+    // const auto& parent_name = r.get<TagComponent>(parent_e).tag;
+    // const auto str = std::format("{} died. Parent: {}", b_name, parent_name);
+    // SDL_Log("%s", str.c_str());
 
     /*
     // Send death event.

@@ -5,8 +5,8 @@
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
-#include "engine/physics/helpers.hpp"
+#include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 

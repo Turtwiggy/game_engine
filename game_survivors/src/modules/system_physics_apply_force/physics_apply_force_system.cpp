@@ -2,7 +2,7 @@
 
 #include "components.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 
 #include <SDL2/SDL_log.h>

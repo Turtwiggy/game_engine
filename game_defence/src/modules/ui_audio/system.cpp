@@ -6,7 +6,6 @@
 
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_log.h>
-#include <format>
 #include <imgui.h>
 #include <magic_enum.hpp>
 
