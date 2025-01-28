@@ -71,17 +71,20 @@ update_ui_survive_health_system(entt::registry& r)
     const auto& weps_c = r.get<HasWeaponsComponent>(e);
     for (const auto wep_e : weps_c.weapons) {
 
+      const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
       const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
       const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
       const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
       const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
 
       auto& upgrades_c = r.get<StatModifierComponent>(e);
+      const auto key_bullet_speed = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
       const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
       const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
       const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
       const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
 
+      const int mod_bspeed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
       const int mod_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
       const int mod_pierce = upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
       const int mod_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
@@ -93,6 +96,7 @@ update_ui_survive_health_system(entt::registry& r)
       ImGui::SameLine(); ImGui::Text("Pierce: %i", mod_pierce);
       ImGui::SameLine(); ImGui::Text("Projectiles: %i", mod_projectiles);
       ImGui::SameLine(); ImGui::Text("Spread: %i", mod_spread);
+      ImGui::SameLine(); ImGui::Text("BSpeed: %i", mod_bspeed);
       // clang-format on
     }
 

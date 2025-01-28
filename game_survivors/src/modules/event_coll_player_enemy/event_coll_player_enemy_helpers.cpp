@@ -14,6 +14,8 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
 
+#include <magic_enum.hpp>
+
 namespace game2d {
 
 void
@@ -27,8 +29,8 @@ handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
   if (!item_c.traits.has_value())
     return; // entity has no traits
 
-  std::string exlosive_trait = "explode";
-  auto find_trait = [&](const Trait& t) { return t.key == exlosive_trait; };
+  auto explosive_trait = AquirableTrait::EXPLODE;
+  auto find_trait = [&](const TraitOnDisk& t) { return t.key == std::string(magic_enum::enum_name(explosive_trait)); };
   auto it = std::find_if(item_c.traits.value().begin(), item_c.traits.value().end(), find_trait);
   if (it == item_c.traits.value().end())
     return; // entity has no explode trait

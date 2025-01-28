@@ -17,8 +17,6 @@ enum class UpgradeableStat
   count,
 };
 
-const std::string trait_assassin_key = "assassin";
-
 // Loaded Data
 
 struct Effects

@@ -70,6 +70,7 @@ spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
   r.emplace<WeaponSpread>(wep_e);
   r.emplace<BulletDamage>(wep_e);
   r.emplace<BulletPierce>(wep_e, 1);
+  r.emplace<BulletSpeed>(wep_e, 250);
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
@@ -93,7 +94,6 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<SpriteOutline>(e);
   r.emplace<MovementDirectComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
-  r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 
   // Apply some drag, bro

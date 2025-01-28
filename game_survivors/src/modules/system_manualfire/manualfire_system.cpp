@@ -81,8 +81,8 @@ update_manualfire_system(entt::registry& r)
     reset_cooldown(cooldown_c);
 
     // TODO: implement same functionality as system autofire
-
     int bullet_damage = r.get<BulletDamage>(wep_e).damage;
+    int bullet_speed = r.get<BulletSpeed>(wep_e).speed;
 
     BulletDef bullet_def;
     bullet_def.key = "bullet_default";
@@ -90,13 +90,13 @@ update_manualfire_system(entt::registry& r)
     bullet_def.size = { 6, 6 };
     bullet_def.team = AvailableTeams::player;
     bullet_def.damage = bullet_damage;
-    bullet_def.speed = 250;
+    bullet_def.speed = bullet_speed;
     bullet_def.lifecycle = 3 * 1000;
     const auto bullet_e = spawn_projectile(r, bullet_def);
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
-    body_c.body->SetLinearVelocity(b2Vec2{ body_c.base_speed * nrm_dir.x, body_c.base_speed * nrm_dir.y });
+    body_c.body->SetLinearVelocity(b2Vec2{ bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y });
   }
 }
 

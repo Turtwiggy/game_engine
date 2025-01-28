@@ -21,7 +21,7 @@ struct Sprite
 struct SINGLE_ImSprite
 {
   EntityPool pool;
-  int cached = 1;
+  int cached = 50;
   int used = 0;
 };
 

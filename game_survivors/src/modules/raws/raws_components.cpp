@@ -9,6 +9,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "magic_enum.hpp"
 #include "modules/actor_exploder/actor_exploder_helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
@@ -20,6 +21,7 @@
 #include "modules/system_enemy_projectile/enemy_projectile_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
+#include "modules/system_traits/trait_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 
 #include <box2d/b2_body.h>
@@ -291,17 +293,25 @@ spawn(entt::registry& r, const std::string& key)
   r.emplace<ItemKey>(e, key);
   // r.emplace<Item>(e, templ);
 
-  std::vector<Trait> traits;
+  std::vector<TraitOnDisk> traits;
   if (templ.traits.has_value())
     traits = templ.traits.value();
 
   // Store traits on a per-entity basis as well
-  r.emplace<TraitComponent>(e, TraitComponent{ traits });
+
+  TraitComponent trait_c;
+  for (const auto& t : traits) {
+    const AquirableTrait typed_t = magic_enum::enum_cast<AquirableTrait>(t.key).value();
+    trait_c.traits.push_back(typed_t);
+  }
+  r.emplace<TraitComponent>(e, trait_c);
 
   bool big_explode = false;
 
-  for (const auto& trait : traits) {
-    if (trait.key == "direct") {
+  for (const auto& trait_str : traits) {
+    const auto trait_enum = magic_enum::enum_cast<AquirableTrait>(trait_str.key).value();
+
+    if (trait_enum == AquirableTrait::DIRECT) {
       ApplyForceToDynamicTarget tgt_c;
       tgt_c.orbit = false;
       tgt_c.reduce_thrusters = false;
@@ -309,10 +319,10 @@ spawn(entt::registry& r, const std::string& key)
       r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
       //
     }
-    if (trait.key == "projectile") {
+    if (trait_enum == AquirableTrait::PROJECTILE) {
       add_projectile_enemy_components(r, e);
     }
-    if (trait.key == "explode") {
+    if (trait_enum == AquirableTrait::EXPLODE) {
       add_explode_on_death_callback(r, e);
       big_explode = true;
     }

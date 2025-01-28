@@ -5,7 +5,6 @@
 #include "modules/combat/components.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/system_traits/trait_helpers.hpp"
-#include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <SDL2/SDL_log.h>
 
@@ -17,7 +16,8 @@ handle_damage_event__trait_assassin(entt::registry& r, const DamageEvent& evt)
   const auto from_e = evt.from;
   const auto to_e = evt.to;
 
-  if (!has_trait(r, evt.traits, trait_assassin_key))
+  auto trait = AquirableTrait::ASSASSIN;
+  if (!has_trait(r, evt.traits, trait))
     return;
 
   // Kill the enemy if it took damage while <20% hp.

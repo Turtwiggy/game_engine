@@ -112,24 +112,21 @@
       "display_name": "Shotgun",
       "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": "white" },
-      "combat": { "damage": 3, "range": 2, "type": "cone" },
-      "traits": [ {"key": "push", "amount": 1} ]
+      "combat": { "damage": 3, "range": 2, "type": "cone" }
     },
     {
       "name": "hook",
       "display_name": "Hook",
       "display_desc": "Need the Hook, Captain?",
       "renderable": { "sprite": "HOOK_36_5", "colour": "white" },
-      "combat": { "damage": 1,  "range": 4, "type": "line" },
-      "traits": [ {"key": "pull", "amount": 1} ]
+      "combat": { "damage": 1,  "range": 4, "type": "line" }
     },
     {
       "name": "boat_default_weapon",
       "display_name": "default_weapon",
       "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "boat_weapon_1", "colour": "white" },
-      "combat": { "damage": 3, "range": 2, "type": "cone" },
-      "traits": [ {"key": "push", "amount": 1} ]
+      "combat": { "damage": 3, "range": 2, "type": "cone" }
     },
     // header: scrap tier armour
     //
@@ -206,28 +203,28 @@
     {
       "name": "actor_enemy_melee",
       "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
-      "traits": [ {"key": "direct" } ],
+      "traits": [ {"key": "DIRECT" } ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_melee_2",
       "renderable": { "sprite": "TURTLE_27_5", "colour": "magenta" },
-      "traits": [ {"key": "direct"} ],
+      "traits": [ {"key": "DIRECT"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_exploder",
       "renderable": { "sprite": "CRAB_25_5", "colour": "gold_yellow" },
-      "traits": [ {"key": "direct"}, {"key": "explode"} ],
+      "traits": [ {"key": "DIRECT"}, {"key": "EXPLODE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_projectile",
       "renderable": { "sprite": "SNAKE_28_8", "colour": "green" },
-      "traits": [ {"key": "projectile"} ],
+      "traits": [ {"key": "PROJECTILE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
     },

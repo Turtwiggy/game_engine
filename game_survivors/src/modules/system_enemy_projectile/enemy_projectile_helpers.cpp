@@ -22,7 +22,8 @@ add_projectile_enemy_components(entt::registry& r, entt::entity e)
   // TODO: give the enemy a weapon, dont attach these components to enemy?
   r.emplace<CooldownComponent>(e, CooldownComponent{ 2.0f, 0.0 });
   r.emplace<BulletDamage>(e, BulletDamage{ 1 });
-  r.emplace<BulletPierce>(e, 1);
+  r.emplace<BulletPierce>(e, BulletPierce{ 1 });
+  r.emplace<BulletSpeed>(e, BulletSpeed{ 50 });
   // r.emplace<WeaponSpread>(wep_e);
   // r.emplace<WeaponProjectiles>(wep_e, 1);
 }

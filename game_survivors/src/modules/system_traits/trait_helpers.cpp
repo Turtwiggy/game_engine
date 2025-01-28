@@ -7,11 +7,10 @@
 namespace game2d {
 
 bool
-has_trait(entt::registry& r, const std::vector<Trait>& traits, const std::string& key)
+has_trait(entt::registry& r, const std::vector<AquirableTrait>& traits_vec, const AquirableTrait& t)
 {
-  const auto find_trait = [&key](const Trait& t) { return t.key == key; };
-  auto it = std::find_if(traits.begin(), traits.end(), find_trait);
-  return (it != traits.end());
+  auto it = std::find(traits_vec.begin(), traits_vec.end(), t);
+  return it != traits_vec.end();
 };
 
 } // namespace game2d

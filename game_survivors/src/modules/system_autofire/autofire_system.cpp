@@ -6,7 +6,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
@@ -258,7 +257,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
 #endif
 
     // Defaults
-    const int val_bullet_speed = 250;
+    const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
     const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
     const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
     const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
@@ -271,7 +270,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
     const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
 
-    const int mod_speed = upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
+    const int mod_speed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
     const int mod_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
     const int mod_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
     const int mod_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
@@ -305,8 +304,10 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     for (int i = 0; i < mod_projectiles; i++) {
       auto bullet_e = spawn_projectile(r, bullet_def);
       auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
+
       const auto bullet_dir = engine::angle_radians_to_direction(angles_rad[i]);
-      body_c.body->SetLinearVelocity(b2Vec2{ body_c.base_speed * bullet_dir.x, body_c.base_speed * bullet_dir.y });
+      const auto bullet_vel = b2Vec2{ mod_speed * bullet_dir.x, mod_speed * bullet_dir.y };
+      body_c.body->SetLinearVelocity(bullet_vel);
     }
   }
 }

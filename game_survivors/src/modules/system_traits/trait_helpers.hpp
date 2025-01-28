@@ -4,11 +4,9 @@
 
 #include <entt/entt.hpp>
 
-#include <string>
-
 namespace game2d {
 
 bool
-has_trait(entt::registry& r, const std::vector<Trait>& traits, const std::string& key);
+has_trait(entt::registry& r, const std::vector<AquirableTrait>& traits, const AquirableTrait& t);
 
 } // namespace game2d

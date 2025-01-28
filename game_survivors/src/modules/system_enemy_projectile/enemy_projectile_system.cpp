@@ -36,6 +36,7 @@ update_enemy_projectile_system(entt::registry& r)
     const auto nrm_dir = engine::normalize_safe(raw_dir);
 
     // int bullet_damage = r.get<BulletDamage>(e).damage;
+    int bullet_speed = r.get<BulletSpeed>(e).speed;
 
     BulletDef bullet_def;
     bullet_def.key = "bullet_default";
@@ -44,7 +45,7 @@ update_enemy_projectile_system(entt::registry& r)
     bullet_def.team = AvailableTeams::enemy;
     bullet_def.damage = 1; // TODO: make enemy bullet correct damage
     bullet_def.pierce = 1;
-    bullet_def.speed = 50.0f;
+    bullet_def.speed = bullet_speed;
     bullet_def.lifecycle = 10 * 1000;
     // bullet_def.trailts = // no traits for enemies?
     const auto bullet_e = spawn_projectile(r, bullet_def);
@@ -53,7 +54,7 @@ update_enemy_projectile_system(entt::registry& r)
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
-    body_c.body->SetLinearVelocity({ body_c.base_speed * nrm_dir.x, body_c.base_speed * nrm_dir.y });
+    body_c.body->SetLinearVelocity({ bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y });
   }
 }
 
