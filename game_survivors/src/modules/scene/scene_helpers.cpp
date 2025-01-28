@@ -64,13 +64,17 @@ spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
   // child <=> parent
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e });
 
-  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ 0.5f, 0.5f });
+  // weapon stats
+  float firerate = 0.5;
   r.emplace<WeaponComponent>(wep_e);
-  r.emplace<WeaponProjectiles>(wep_e, 1);
-  r.emplace<WeaponSpread>(wep_e);
-  r.emplace<BulletDamage>(wep_e);
+  r.emplace<WeaponProjectiles>(wep_e, WeaponProjectiles{ 1 });
+  r.emplace<WeaponSpread>(wep_e, WeaponSpread{ 30 });
+  r.emplace<WeaponFirerate>(wep_e, WeaponFirerate{ firerate });
+  r.emplace<BulletDamage>(wep_e, 10);
   r.emplace<BulletPierce>(wep_e, 1);
   r.emplace<BulletSpeed>(wep_e, 250);
+  r.emplace<BulletKnockback>(wep_e, 50);
+  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ firerate, firerate });
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   set_colour(r, wep_e, r.get<DefaultColour>(e).colour);

@@ -256,25 +256,33 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     // draw_line(generate_line(you_pos, you_pos + 100.0f * limited_dir, 4.0f));
 #endif
 
-    // Defaults
-    const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
-    const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
-    const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
-    const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
-    const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
-
     auto& upgrades_c = r.get<StatModifierComponent>(p);
     const auto key_bullet_speed = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
     const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
     const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
+    const auto key_bullet_knockback = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_KNOCKBACK));
+    const auto key_weapon_firerate = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_FIRERATE));
     const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
     const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
 
-    const int mod_speed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
-    const int mod_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
-    const int mod_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
-    const int mod_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
-    const int mod_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
+    const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
+    const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
+    const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
+    const auto val_bullet_knockback = r.get<BulletKnockback>(wep_e).knockback_force;
+    const auto val_weapon_firerate = r.get<WeaponFirerate>(wep_e).seconds_between_shots;
+    const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
+    const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
+
+    const auto mod_speed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
+    const auto mod_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
+    const auto mod_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
+    const auto mod_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
+    const auto mod_firerate = upgrades_c.apply_modifiers(val_weapon_firerate, key_weapon_firerate);
+    const auto mod_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
+    const auto mod_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
+
+    // update firerate with modified value.
+    cooldown_c.time_max = mod_firerate;
 
     if (cooldown_c.time > 0.0f)
       continue;
@@ -288,6 +296,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     bullet_def.damage = mod_damage;
     bullet_def.pierce = mod_pierce;
     bullet_def.speed = mod_speed;
+    bullet_def.knockback_force = mod_knockback;
     bullet_def.lifecycle = 3 * 1000;
     bullet_def.traits = r.get<TraitComponent>(p).traits; // traits from wep's parent, not wep
 

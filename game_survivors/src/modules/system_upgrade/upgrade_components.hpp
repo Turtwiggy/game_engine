@@ -11,8 +11,18 @@ enum class UpgradeableStat
   BULLET_SPEED = 0,
   BULLET_DAMAGE,
   BULLET_PIERCE,
+  BULLET_KNOCKBACK,
+
+  WEAPON_FIRERATE,
   WEAPON_PROJECTILES,
   WEAPON_SPREAD,
+
+  ACTOR_MAX_HEALTH,
+
+  // if you have the missile trait,
+  // peridically summon in missiles.
+  // MISSILE_RADIUS,
+  // MISSILE_DAMAGE,
 
   count,
 };

@@ -447,8 +447,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 #if defined(_DEBUG)
   // reload all shaders
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_0))
+  if (get_key_down(input, SDL_SCANCODE_0)) {
+    SDL_Log("(DEBUG) Reloading shaders");
     rebind(r, ri);
+  }
 #endif
 
   const auto s_splash = std::vector<Scene>{ Scene::splashscreen };

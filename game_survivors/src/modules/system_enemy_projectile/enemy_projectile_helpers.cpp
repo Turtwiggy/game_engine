@@ -24,6 +24,7 @@ add_projectile_enemy_components(entt::registry& r, entt::entity e)
   r.emplace<BulletDamage>(e, BulletDamage{ 1 });
   r.emplace<BulletPierce>(e, BulletPierce{ 1 });
   r.emplace<BulletSpeed>(e, BulletSpeed{ 50 });
+  // r.emplace<BulletKnockback>(e, BulletKnockback{ 50 });
   // r.emplace<WeaponSpread>(wep_e);
   // r.emplace<WeaponProjectiles>(wep_e, 1);
 }

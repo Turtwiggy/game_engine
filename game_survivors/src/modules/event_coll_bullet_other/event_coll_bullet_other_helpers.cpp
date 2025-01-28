@@ -52,10 +52,14 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   coll.emplace(other_e);
 
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
-  auto& bullet_damage_c = r.get<BulletDamage>(bullet_e);
+
+  // not: these values have already been
+  // modified with upgrades at the point they were created
+  const auto& bullet_traits_c = r.get<TraitComponent>(bullet_e);
+  const auto& bullet_damage_c = r.get<BulletDamage>(bullet_e);
+  const auto& bullet_knockback_c = r.get<BulletKnockback>(bullet_e);
+  const auto& other_e_hp = r.get<HealthComponent>(other_e);
   auto& bullet_pierce_c = r.get<BulletPierce>(bullet_e);
-  auto& bullet_traits_c = r.get<TraitComponent>(bullet_e);
-  auto& other_e_hp = r.get<HealthComponent>(other_e);
 
   // Send a damage event from the bullet to the entity
   {
@@ -81,13 +85,14 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 
   // Slightly knockback the enemy
   if (other_team_c.team == AvailableTeams::enemy) {
+
     auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);
     const auto raw_dir = get_position(r, other_e_parent) - get_position(r, bullet_e);
     const auto nrm_dir = engine::normalize_safe(raw_dir);
     // const float knockback_amount = 25000.0f;
     // enemy_body_c.body->ApplyLinearImpulseToCenter({ nrm_dir.x * knockback_amount, nrm_dir.y * knockback_amount }, true);
-    const float knockback_amount = 50;
-    enemy_body_c.body->SetLinearVelocity(knockback_amount * b2Vec2{ nrm_dir.x, nrm_dir.y });
+    const float knockback_force = bullet_knockback_c.knockback_force;
+    enemy_body_c.body->SetLinearVelocity(knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
   }
 }
 

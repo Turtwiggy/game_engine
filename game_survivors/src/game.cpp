@@ -43,6 +43,7 @@
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
+#include "modules/system_upgrade_max_hp/upgrade_max_hp_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/ui_colours_system.hpp"
@@ -242,6 +243,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   bool pause = require_pause(r);
 
   update_ship_draw_arcs_system(r);
+  update_upgrade_max_hp_system(r);
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {

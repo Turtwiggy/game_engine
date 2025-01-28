@@ -30,7 +30,7 @@ update_ui_upgrades_system(entt::registry& r)
       stat_mode = static_cast<UpgradeableStat>(combo_out.selected);
   }
   const auto modifier = std::string(magic_enum::enum_name(stat_mode));
-  static float mod_val = 10;
+  static float mod_val = 1.0f;
   imgui_draw_float("mod_val", mod_val);
   const bool add_flat = ImGui::Button("Add Flat");
   const bool add_percent = ImGui::Button("Add Percentage");

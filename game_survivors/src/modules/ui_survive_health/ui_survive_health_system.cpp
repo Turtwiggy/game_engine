@@ -69,35 +69,46 @@ update_ui_survive_health_system(entt::registry& r)
     ImGui::Text("%s", hp_label.c_str());
 
     const auto& weps_c = r.get<HasWeaponsComponent>(e);
-    for (const auto wep_e : weps_c.weapons) {
 
-      const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
-      const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
-      const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
-      const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
-      const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
+    for (const auto wep_e : weps_c.weapons) {
 
       auto& upgrades_c = r.get<StatModifierComponent>(e);
       const auto key_bullet_speed = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
       const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
       const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
+      const auto key_bullet_knockback = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_KNOCKBACK));
+      const auto key_weapon_firerate = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_FIRERATE));
       const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
       const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
 
-      const int mod_bspeed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
-      const int mod_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
-      const int mod_pierce = upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
-      const int mod_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
-      const int mod_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
+      const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
+      const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
+      const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
+      const auto val_bullet_knockback = r.get<BulletKnockback>(wep_e).knockback_force;
+      const auto val_weapon_firerate = r.get<WeaponFirerate>(wep_e).seconds_between_shots;
+      const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
+      const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
+
+      const auto mod_bul_speed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
+      const auto mod_bul_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
+      const auto mod_bul_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
+      const auto mod_bul_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
+      const auto mod_wep_firerate = upgrades_c.apply_modifiers(val_weapon_firerate, key_weapon_firerate);
+      const auto mod_wep_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
+      const auto mod_wep_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
 
       // clang-format off
       ImGui::Text("Weapon...");
-      ImGui::SameLine(); ImGui::Text("DMG: %i", mod_damage); 
-      ImGui::SameLine(); ImGui::Text("Pierce: %i", mod_pierce);
-      ImGui::SameLine(); ImGui::Text("Projectiles: %i", mod_projectiles);
-      ImGui::SameLine(); ImGui::Text("Spread: %i", mod_spread);
-      ImGui::SameLine(); ImGui::Text("BSpeed: %i", mod_bspeed);
+      ImGui::SameLine(); ImGui::Text("b_speed %i", mod_bul_speed);
+      ImGui::SameLine(); ImGui::Text("b_damage %i", mod_bul_damage);
+      ImGui::SameLine(); ImGui::Text("b_pierce %i", mod_bul_pierce);
+      ImGui::SameLine(); ImGui::Text("b_knockback %i", mod_bul_knockback);
+      ImGui::SameLine(); ImGui::Text("w_firerate %f", mod_wep_firerate);
+      ImGui::SameLine(); ImGui::Text("w_projectiles %i", mod_wep_projectiles);
+      ImGui::SameLine(); ImGui::Text("w_spread %i", mod_wep_spread);
       // clang-format on
+
+      break; // show ui for only first weapon
     }
 
     /*

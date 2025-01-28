@@ -25,6 +25,16 @@ struct BulletSpeed
   int speed = 250;
 };
 
+struct BulletKnockback
+{
+  int knockback_force = 50;
+};
+
+struct WeaponFirerate
+{
+  float seconds_between_shots = 0.5f;
+};
+
 // How many bullets to fire every time a bullet is fired?
 struct WeaponProjectiles
 {

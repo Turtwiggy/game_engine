@@ -27,6 +27,7 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def)
   r.emplace<BulletDamage>(bullet_e, bullet_def.damage);
   r.emplace<BulletPierce>(bullet_e, bullet_def.pierce);
   r.emplace<BulletSpeed>(bullet_e, bullet_def.speed);
+  r.emplace<BulletKnockback>(bullet_e, bullet_def.knockback_force);
 
   set_z_index(r, bullet_e, ZLayer::PROJECTILE);
 

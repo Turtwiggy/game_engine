@@ -18,6 +18,7 @@ struct BulletDef
   int pierce = 1;
   int speed = 250;
   int lifecycle = 3 * 1000;
+  int knockback_force = 50;
   std::vector<AquirableTrait> traits;
 };
 
