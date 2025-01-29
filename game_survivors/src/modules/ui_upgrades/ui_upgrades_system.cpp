@@ -1,10 +1,14 @@
 #include "ui_upgrades_system.hpp"
 
+#include "engine/entt/helpers.hpp"
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/event_upgrade/event_upgrade_components.hpp"
+#include "modules/events/events_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade/upgrade_helpers.hpp"
 
 #include <imgui.h>
 
@@ -15,10 +19,48 @@ namespace game2d {
 void
 update_ui_upgrades_system(entt::registry& r)
 {
+  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
+  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+
   ImGui::Begin("Upgrades");
 
-  ImGui::SeparatorText("Modifier Config");
+  ImGui::SeparatorText("Upgrades");
 
+  //
+  // Convert upgrades to vec<std::string> of their keys, and display them in wombocombo
+  //
+
+  static int index = 0;
+  auto keys = available_upgrade_names(r);
+  {
+    WomboComboIn combo_in(keys);
+    combo_in.label = "upgrades";
+    combo_in.current_index = static_cast<int>(index);
+    WomboComboOut combo_out = draw_wombo_combo(combo_in);
+    if (combo_in.current_index != combo_out.selected)
+      index = combo_out.selected;
+  }
+
+  //
+  // display the selected upgrade info
+  //
+  if (up_c.upgrades.size() > 0) {
+    Upgrade& u = up_c.upgrades[index];
+
+    std::string desc = generate_description(u);
+    ImGui::Text("%s", desc.c_str());
+
+    std::string label = "Aquire##" + u.name;
+    if (ImGui::Button(label.c_str())) {
+      // send event, me thinks
+      UpgradeEvent evt;
+      evt.upgrade = u;
+      evts_c.dispatcher->trigger(evt);
+      evts_c.dispatcher->update();
+    }
+  }
+
+  ImGui::SeparatorText("Modifier Config");
   static auto stat_mode = UpgradeableStat::BULLET_DAMAGE;
   static auto stat_modes = engine::enum_class_to_vec_str<UpgradeableStat>();
   {
@@ -33,10 +75,10 @@ update_ui_upgrades_system(entt::registry& r)
   static float mod_val = 1.0f;
   imgui_draw_float("mod_val", mod_val);
   const bool add_flat = ImGui::Button("Add Flat");
+  ImGui::SameLine();
   const bool add_percent = ImGui::Button("Add Percentage");
 
   ImGui::SeparatorText("Trait Config");
-
   static auto trait_mode = AquirableTrait::ASSASSIN;
   static auto trait_modes = engine::enum_class_to_vec_str<AquirableTrait>();
   {
@@ -67,7 +109,7 @@ update_ui_upgrades_system(entt::registry& r)
       stat_c.add(std::make_shared<StatPercentIncrease>(mod_val, modifier));
 
     if (add_trait)
-      traits_c.traits.push_back(trait_mode);
+      traits_c.traits.emplace(trait_mode);
   }
 
   ImGui::End();

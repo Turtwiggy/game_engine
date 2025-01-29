@@ -61,18 +61,26 @@ update_ui_survive_health_system(entt::registry& r)
     ImGui::SetCursorPosY(spacing.y + icon_size.y * player_c.idx);
 
     ImGui::Text("P%i", player_c.idx);
-    ImGui::SameLine();
 
     const auto fixture_e = get_fixture_by_tag(r, e, "player");
     const auto& hp_c = r.get<HealthComponent>(fixture_e);
     std::string hp_label = std::format("HP: {}/{}", hp_c.hp, hp_c.max_hp);
+    ImGui::SameLine();
     ImGui::Text("%s", hp_label.c_str());
+
+    ImGui::NewLine();
+    ImGui::Text("Upgrades...");
+    const auto& upgrade_c = r.get_or_emplace<UpgradeComponent>(e);
+    for (const auto& upgrade : upgrade_c.aquired_upgrades)
+      ImGui::Text("%s", upgrade.c_str());
 
     const auto& weps_c = r.get<HasWeaponsComponent>(e);
 
     for (const auto wep_e : weps_c.weapons) {
 
       auto& upgrades_c = r.get<StatModifierComponent>(e);
+      const auto key_bullet_bounce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_BOUNCE));
+      const auto key_bullet_size = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SIZE));
       const auto key_bullet_speed = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
       const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
       const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
@@ -81,6 +89,8 @@ update_ui_survive_health_system(entt::registry& r)
       const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
       const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
 
+      const auto val_bullet_bounce = r.get<BulletBounce>(wep_e).bounces_left;
+      const auto val_bullet_size = r.get<BulletSize>(wep_e).size;
       const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
       const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
       const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
@@ -89,6 +99,8 @@ update_ui_survive_health_system(entt::registry& r)
       const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
       const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
 
+      const auto mod_bul_bounce = (int)upgrades_c.apply_modifiers(val_bullet_bounce, key_bullet_bounce);
+      const auto mod_bul_size_x = upgrades_c.apply_modifiers(val_bullet_size.x, key_bullet_size); // use x
       const auto mod_bul_speed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
       const auto mod_bul_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
       const auto mod_bul_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
@@ -98,14 +110,17 @@ update_ui_survive_health_system(entt::registry& r)
       const auto mod_wep_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
 
       // clang-format off
+      ImGui::NewLine();
       ImGui::Text("Weapon...");
-      ImGui::SameLine(); ImGui::Text("b_speed %i", mod_bul_speed);
-      ImGui::SameLine(); ImGui::Text("b_damage %i", mod_bul_damage);
-      ImGui::SameLine(); ImGui::Text("b_pierce %i", mod_bul_pierce);
-      ImGui::SameLine(); ImGui::Text("b_knockback %i", mod_bul_knockback);
-      ImGui::SameLine(); ImGui::Text("w_firerate %f", mod_wep_firerate);
-      ImGui::SameLine(); ImGui::Text("w_projectiles %i", mod_wep_projectiles);
-      ImGui::SameLine(); ImGui::Text("w_spread %i", mod_wep_spread);
+      ImGui::Text("b_bounce %i", mod_bul_bounce); 
+      ImGui::Text("b_size_x %f", mod_bul_size_x); 
+      ImGui::Text("b_speed %i", mod_bul_speed); 
+      ImGui::Text("b_damage %i", mod_bul_damage); 
+      ImGui::Text("b_pierce %i", mod_bul_pierce); 
+      ImGui::Text("b_knockback %i", mod_bul_knockback); 
+      ImGui::Text("w_firerate %f", mod_wep_firerate); 
+      ImGui::Text("w_projectiles %i", mod_wep_projectiles); 
+      ImGui::Text("w_spread %i", mod_wep_spread);
       // clang-format on
 
       break; // show ui for only first weapon

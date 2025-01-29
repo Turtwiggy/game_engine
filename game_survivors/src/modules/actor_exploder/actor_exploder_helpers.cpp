@@ -86,7 +86,7 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
   auto& callbacks_c = r.get<OnDeathCallbacks>(e);
 
   // deal damage in area around you
-  auto explode_on_death = [](entt::registry& r, entt::entity e) {
+  const auto explode_on_death = [](entt::registry& r, entt::entity e) {
     GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
     // n.b.: radius so half
@@ -105,14 +105,12 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
       evt.to = core_e;
       evt.type = DamageType::PHYSICAL;
       evt.amount = 100; // todo: replace with "correct" damage for explosion
-      evt.traits = {};
       evts_c.dispatcher->trigger(evt);
       evts_c.dispatcher->update();
 
       // Send explosion damage event
     }
   };
-
   callbacks_c.callbacks.push_back(explode_on_death);
 
   // Big explosion when ded

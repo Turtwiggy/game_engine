@@ -43,6 +43,8 @@
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade/upgrade_helpers.hpp"
 #include "modules/system_upgrade_max_hp/upgrade_max_hp_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -136,6 +138,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_DebugMenuBar>(r);
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
+  create_persistent<SINGLE_Upgrades>(r, load_upgrades("assets/raws/upgrades.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
 
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);

@@ -1,0 +1,12 @@
+#pragma once
+
+#include "modules/event_shoot/event_shoot_components.hpp"
+
+#include <entt/entt.hpp>
+
+namespace game2d {
+
+void
+handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt);
+
+} // namespace game2d

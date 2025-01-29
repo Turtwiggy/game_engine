@@ -5,6 +5,8 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
+#include "modules/event_permadeath/event_permadeath_components.hpp"
+#include "modules/events/events_components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>
@@ -27,7 +29,7 @@ calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
 {
   const auto amount = evt.amount;
   const auto type = evt.type;
-  const auto e = evt.to;
+  const auto e = evt.to; // Note: evt.to is a fixture
 
   int amount_final = amount;
 
@@ -79,14 +81,13 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     // const auto str = std::format("{} died. Parent: {}", b_name, parent_name);
     // SDL_Log("%s", str.c_str());
 
-    /*
     // Send death event.
     auto& evts = get_first_component<SINGLE_Events>(r);
-    DeathEvent evt;
-    evt.dead = to_e;
-    evts.dispatcher->trigger(evt);
+    DeathEvent d_evt;
+    d_evt.killed_by = evt.from;
+    d_evt.dead = r.get<HasParentComponent>(evt.to).parent; // parent not fixture
+    evts.dispatcher->trigger(d_evt);
     evts.dispatcher->update();
-    */
   }
 };
 

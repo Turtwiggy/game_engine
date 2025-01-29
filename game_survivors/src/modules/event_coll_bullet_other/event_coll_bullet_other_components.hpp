@@ -1,12 +1,24 @@
 #pragma once
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 namespace game2d {
 
 struct BulletComponent
 {
   bool placeholder = true;
+};
+
+// when you collide with an enemy, reverse your vel
+struct BulletBounce
+{
+  int bounces_left = 0;
+};
+
+struct BulletSize
+{
+  glm::vec2 size{ 6, 6 };
 };
 
 struct BulletDamage

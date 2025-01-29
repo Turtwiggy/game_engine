@@ -70,11 +70,15 @@ spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
   r.emplace<WeaponProjectiles>(wep_e, WeaponProjectiles{ 1 });
   r.emplace<WeaponSpread>(wep_e, WeaponSpread{ 30 });
   r.emplace<WeaponFirerate>(wep_e, WeaponFirerate{ firerate });
+  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ firerate, firerate });
+
+  // bullets that the weapon fires
   r.emplace<BulletDamage>(wep_e, 10);
   r.emplace<BulletPierce>(wep_e, 1);
+  r.emplace<BulletSize>(wep_e, BulletSize{ { 6, 6 } });
   r.emplace<BulletSpeed>(wep_e, 250);
   r.emplace<BulletKnockback>(wep_e, 50);
-  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ firerate, firerate });
+  r.emplace<BulletBounce>(wep_e, 0); // no bounce by default
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   set_colour(r, wep_e, r.get<DefaultColour>(e).colour);

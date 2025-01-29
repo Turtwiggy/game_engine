@@ -2,11 +2,15 @@
 #include "engine/entt/helpers.hpp"
 
 #include "events_components.hpp"
-#include "modules/combat_trait_assassin/trait_assassin_helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_helpers.hpp"
 #include "modules/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
+#include "modules/event_shoot/event_shoot_components.hpp"
+#include "modules/event_trait_assassin/trait_assassin_helpers.hpp"
+#include "modules/event_trait_fanfire/trait_fanfire_helpers.hpp"
+#include "modules/event_trait_splinter/trait_splinter_helpers.hpp"
+#include "modules/event_upgrade/event_upgrade_helpers.hpp"
 
 namespace game2d {
 
@@ -27,6 +31,12 @@ init_events_system(entt::registry& r)
   // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event__trait_assassin>(r);
+
+  ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_fanfire>(r);
+
+  ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__trait_splinter>(r);
+
+  ed.dispatcher->sink<UpgradeEvent>().connect<&handle_upgrade_event>(r);
 }
 
 void

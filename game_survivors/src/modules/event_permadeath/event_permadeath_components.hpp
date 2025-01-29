@@ -6,6 +6,7 @@ namespace game2d {
 
 struct DeathEvent
 {
+  entt::entity killed_by = entt::null;
   entt::entity dead = entt::null;
 };
 

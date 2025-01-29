@@ -34,10 +34,14 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     if (uniquely_dead.find(e) != uniquely_dead.end())
       continue;
 
-    if (auto* callback = r.try_get<OnDeathCallbacks>(e))
+    if (auto* callback = r.try_get<OnDeathCallbacks>(e)) {
+
+      // if (callback->callbacks.size() > 2)
+      //   int k = 1;
+
       for (const auto& cb : callback->callbacks)
         cb(r, e);
-
+    }
     uniquely_dead.emplace(e);
   }
 

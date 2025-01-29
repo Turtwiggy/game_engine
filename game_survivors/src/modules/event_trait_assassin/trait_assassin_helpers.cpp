@@ -16,8 +16,13 @@ handle_damage_event__trait_assassin(entt::registry& r, const DamageEvent& evt)
   const auto from_e = evt.from;
   const auto to_e = evt.to;
 
+  if (from_e == entt::null || to_e == entt::null)
+    return;
+  auto* trait_c = r.try_get<TraitComponent>(from_e);
+  if (!trait_c)
+    return;
   auto trait = AquirableTrait::ASSASSIN;
-  if (!has_trait(r, evt.traits, trait))
+  if (!has_trait(r, trait_c->traits, trait))
     return;
 
   // Kill the enemy if it took damage while <20% hp.

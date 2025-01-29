@@ -18,7 +18,6 @@ struct DamageEvent
   entt::entity to = entt::null;
   int amount = 0;
   DamageType type = DamageType::PHYSICAL;
-  std::vector<AquirableTrait> traits;
 };
 
 } // namespace game2d

@@ -8,7 +8,8 @@ namespace game2d {
 enum class AquirableTrait
 {
   ASSASSIN = 0,
-  // BOUNCY_BULLET, // TODO
+  SPLINTER,
+  FAN_FIRE,
 
   EXPLODE,    // on death
   DIRECT,     // ai type
@@ -26,7 +27,7 @@ struct TraitOnDisk
 
 struct TraitComponent
 {
-  std::vector<AquirableTrait> traits;
+  std::unordered_set<AquirableTrait> traits;
 };
 
 } // namespace game2d

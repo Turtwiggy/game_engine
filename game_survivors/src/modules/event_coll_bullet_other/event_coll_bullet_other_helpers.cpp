@@ -53,7 +53,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
-  // not: these values have already been
+  // note: these values have already been
   // modified with upgrades at the point they were created
   const auto& bullet_traits_c = r.get<TraitComponent>(bullet_e);
   const auto& bullet_damage_c = r.get<BulletDamage>(bullet_e);
@@ -64,11 +64,10 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   // Send a damage event from the bullet to the entity
   {
     DamageEvent evt;
-    evt.from = entt::null;
+    evt.from = bullet_e;
     evt.to = other_e;
     evt.type = DamageType::PHYSICAL;
     evt.amount = bullet_damage_c.damage;
-    evt.traits = bullet_traits_c.traits;
     evts_c.dispatcher->trigger(evt);
     evts_c.dispatcher->update();
   }
@@ -83,14 +82,21 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
     }
   }
 
-  // Slightly knockback the enemy
-  if (other_team_c.team == AvailableTeams::enemy) {
+  // Reverse yo velocity
+  // Note: this should work as bullets only collide once with enemies.
+  if (auto* bullet_bounce_c = r.try_get<BulletBounce>(bullet_e)) {
+    if (bullet_bounce_c->bounces_left > 0) {
+      auto& bullet_body_c = r.get<PhysicsBodyComponent>(bullet_e);
+      bullet_body_c.body->SetLinearVelocity(-1.0 * bullet_body_c.body->GetLinearVelocity());
+      bullet_bounce_c->bounces_left--;
+    }
+  }
 
+  // Knockback the enemy
+  if (other_team_c.team == AvailableTeams::enemy) {
     auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);
     const auto raw_dir = get_position(r, other_e_parent) - get_position(r, bullet_e);
     const auto nrm_dir = engine::normalize_safe(raw_dir);
-    // const float knockback_amount = 25000.0f;
-    // enemy_body_c.body->ApplyLinearImpulseToCenter({ nrm_dir.x * knockback_amount, nrm_dir.y * knockback_amount }, true);
     const float knockback_force = bullet_knockback_c.knockback_force;
     enemy_body_c.body->SetLinearVelocity(knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
   }

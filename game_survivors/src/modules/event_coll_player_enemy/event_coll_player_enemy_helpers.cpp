@@ -49,7 +49,6 @@ handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
   evt.to = core_e;
   evt.type = DamageType::PHYSICAL;
   evt.amount = core_c.max_hp;
-  evt.traits = {};
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();
 }
@@ -91,7 +90,6 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   evt.to = player_fixture_e;
   evt.type = DamageType::PHYSICAL;
   evt.amount = 1; // todo: replace with "correct" damage for enemy
-  evt.traits = {};
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();
 
@@ -119,7 +117,6 @@ handle_player_enemy_coll_exit(entt::registry& r, const OnCollisionExit& coll_evt
   const auto& it = std::find(coll.other.begin(), coll.other.end(), player_fixture_e);
   if (it != coll.other.end())
     coll.other.erase(it); // erase col
-
   //
 };
 

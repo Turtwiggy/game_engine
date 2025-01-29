@@ -268,9 +268,6 @@ remove_life(entt::registry& r, const entt::entity e)
   if (auto* timer_c = r.try_get<EntityTimedLifecycle>(e))
     r.remove<EntityTimedLifecycle>(e);
 
-  if (auto* callback_c = r.try_get<OnDeathCallbacks>(e))
-    r.remove<OnDeathCallbacks>(e);
-
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
     auto& physics_c = get_first_component<SINGLE_Physics>(r);
     physics_c.world->DestroyBody(pb->body);
@@ -302,7 +299,7 @@ spawn(entt::registry& r, const std::string& key)
   TraitComponent trait_c;
   for (const auto& t : traits) {
     const AquirableTrait typed_t = magic_enum::enum_cast<AquirableTrait>(t.key).value();
-    trait_c.traits.push_back(typed_t);
+    trait_c.traits.emplace(typed_t);
   }
   r.emplace<TraitComponent>(e, trait_c);
 
