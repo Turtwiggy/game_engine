@@ -1,10 +1,7 @@
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
 [![Windows](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml/badge.svg)](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml)
-
 [![Mac](https://github.com/Turtwiggy/game_engine/actions/workflows/mac.yml/badge.svg)](https://github.com/Turtwiggy/game_engine/actions/workflows/mac.yml)
-
 [![Linux](https://github.com/Turtwiggy/game_engine/actions/workflows/linux.yml/badge.svg)](https://github.com/Turtwiggy/game_engine/actions/workflows/linux.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### Install prerequisites
 
