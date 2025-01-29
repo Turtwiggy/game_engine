@@ -167,7 +167,7 @@ update_ship_draw_arcs_system(entt::registry& r)
     float zone_radius = (50) / zoom;
     const auto screenspace = worldspace_to_screenspace(r, pos);
     auto col = r.get<DefaultColour>(p).colour;
-    col.a = (int)(0.2f * 255);
+    col.a = (int)(0.12f * 255);
     const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
     // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
     DrawArc(screenspace, zone_radius, 0, 360, 2, im_col, true);

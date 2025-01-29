@@ -11,16 +11,16 @@
 namespace game2d {
 
 entt::entity
-spawn_projectile(entt::registry& r, const BulletDef& bullet_def)
+spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
 {
   auto parent_e = bullet_def.parent_e;
 
   auto bullet_e = spawn(r, bullet_def.key);
-  give_life(r, bullet_e, get_position(r, parent_e), bullet_def.size);
+  give_life(r, bullet_e, pos, bullet_def.size);
+  r.emplace<HasParentComponent>(bullet_e, HasParentComponent{ parent_e });
 
   r.emplace<TeamComponent>(bullet_e, bullet_def.team);
   r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);
-  r.emplace<HasParentComponent>(bullet_e, parent_e);
   r.emplace<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);
 
   r.emplace<BulletComponent>(bullet_e);

@@ -25,40 +25,40 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
 
   if (from_e == entt::null || to_e == entt::null)
     return;
+
   auto* trait_c = r.try_get<TraitComponent>(from_e);
   if (!trait_c)
     return;
+
   auto trait = AquirableTrait::SPLINTER;
   if (!has_trait(r, trait_c->traits, trait))
     return;
 
-  const auto splinter_callback = [from_e, to_e](entt::registry& r, const entt::entity e) {
+  const auto splinter_callback = [from_e](entt::registry& r, const entt::entity dead_e) {
     // Spawn 3 bullets in each 360/3 degrees apart, and
     // each of them deals 10% damage of the current player BulletDamage
 
-    // TODO: a crash is occuring here. work out why.
-
     const auto player_bullet_e = from_e;
+
     const auto wep_e = r.get<HasParentComponent>(player_bullet_e).parent;
-    const auto& wep_tag = r.get<TagComponent>(wep_e).tag;
-
     const auto par_e = r.get<HasParentComponent>(wep_e).parent;
-    const auto& par_tag = r.get<TagComponent>(par_e).tag;
 
-    int projectiles = 3;
+    if (!r.valid(par_e) || par_e == entt::null)
+      return; // parently probably died
 
-    // Note: use the stats from the parent to spawn the bullets,
-    // but then set the parent to the entity that is about to die.
+    // Note: count the bullet as one of the player's bullets.
     BulletDef bul_def = get_bullet_def(r, par_e, wep_e);
-    bul_def.damage *= 0.1; // deal 10% damage
-    bul_def.parent_e = to_e;
+    bul_def.damage *= 0.1;   // deal 10% damage
     bul_def.size = { 4, 4 }; // splinter bullets slightly smaller
 
+    constexpr int projectiles = 3;
     const auto random_dir = engine::rand_det_s(rnd_dir.rng, 0.0f, engine::TWO_PI);
     const auto angles_rad = generate_angles(random_dir, projectiles, engine::TWO_PI);
 
     for (const auto& a : angles_rad) {
-      const auto bullet_e = spawn_projectile(r, bul_def);
+      auto pos = get_position(r, dead_e);
+
+      const auto bullet_e = spawn_projectile(r, bul_def, pos);
       auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
       const auto bullet_dir = engine::angle_radians_to_direction(a);
       const auto bullet_vel = bul_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };

@@ -218,9 +218,12 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
     // If the weapon has enough weapon spread (e.g. 90 degrees)
     // It could still shoot at the limited angles.
+
+    auto pos = get_position(r, wep_e);
+
     const auto angles_rad = generate_angles(shoot_angle, wep_def.projectiles, wep_def.spread_deg * engine::Deg2Rad);
     for (int i = 0; i < wep_def.projectiles; i++) {
-      auto bullet_e = spawn_projectile(r, bul_def);
+      auto bullet_e = spawn_projectile(r, bul_def, pos);
       auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
 
       const auto bullet_dir = engine::angle_radians_to_direction(angles_rad[i]);

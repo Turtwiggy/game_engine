@@ -82,10 +82,10 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     // SDL_Log("%s", str.c_str());
 
     // Send death event.
-    auto& evts = get_first_component<SINGLE_Events>(r);
     DeathEvent d_evt;
     d_evt.killed_by = evt.from;
     d_evt.dead = r.get<HasParentComponent>(evt.to).parent; // parent not fixture
+    auto& evts = get_first_component<SINGLE_Events>(r);
     evts.dispatcher->trigger(d_evt);
     evts.dispatcher->update();
   }

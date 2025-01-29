@@ -32,24 +32,25 @@ update_enemy_projectile_system(entt::registry& r)
     // BULLETS: MAKE EM LARGE AND SLOW
     //
 
-    const auto raw_dir = get_position(r, target_e) - get_position(r, e);
+    const auto pos = get_position(r, e);
+    const auto raw_dir = get_position(r, target_e) - pos;
     const auto nrm_dir = engine::normalize_safe(raw_dir);
 
     // int bullet_damage = r.get<BulletDamage>(e).damage;
     int bullet_speed = r.get<BulletSpeed>(e).speed;
     auto bullet_size = r.get<BulletSize>(e).size;
 
-    BulletDef bullet_def;
+    BulletDef bullet_def(e); // note: not a weapon parent, but an enemy
     bullet_def.key = "bullet_default";
-    bullet_def.parent_e = e; // note: not a weapon parent, but an enemy
     bullet_def.size = bullet_size;
     bullet_def.team = AvailableTeams::enemy;
     bullet_def.damage = 1; // TODO: make enemy bullet correct damage
     bullet_def.pierce = 1;
     bullet_def.speed = bullet_speed;
     bullet_def.lifecycle = 10 * 1000;
-    // bullet_def.trailts = // no traits for enemies?
-    const auto bullet_e = spawn_projectile(r, bullet_def);
+    // bullet_def.traits = // no traits for enemies?
+
+    const auto bullet_e = spawn_projectile(r, bullet_def, pos);
     set_colour(r, bullet_e, hex_to_srgb("#00c420"));
     // set_sprite(r, bullet_e, "FIREWORK");
 

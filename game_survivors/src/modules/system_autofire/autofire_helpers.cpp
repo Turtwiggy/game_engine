@@ -4,12 +4,13 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 
+#include <SDL2/SDL_Log.h>
 #include <magic_enum.hpp>
 
 namespace game2d {
 
 std::vector<float>
-generate_angles(float dir, int bullets, float spread_rad)
+generate_angles(const float dir, const int bullets, const float spread_rad)
 {
   if (bullets == 0)
     return {};
@@ -84,9 +85,13 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto mod_bul_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
   const auto mod_bul_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
 
-  BulletDef bullet_def;
+  if (wep_e == entt::null || par_e == entt::null) {
+    SDL_Log("Error creating BulletDef; invalid parents");
+    exit(1); // crash
+  }
+
+  BulletDef bullet_def(wep_e);
   bullet_def.key = "bullet_default";
-  bullet_def.parent_e = wep_e;
   bullet_def.team = AvailableTeams::player;
   bullet_def.size = { mod_bul_size_x, mod_bul_size_x };
   bullet_def.damage = mod_bul_damage;

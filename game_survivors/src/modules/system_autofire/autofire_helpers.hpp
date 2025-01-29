@@ -7,7 +7,7 @@
 namespace game2d {
 
 std::vector<float>
-generate_angles(float dir, int bullets, float spread_rad);
+generate_angles(const float dir, const int bullets, const float spread_rad);
 
 WeaponDef
 get_weapon_def(entt::registry& r, entt::entity par_e, entt::entity wep_e);

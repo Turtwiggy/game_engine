@@ -123,6 +123,31 @@ update_ui_survive_level_up_system(entt::registry& r)
   ImGui::SameLine();
   ImGui::TextColored(text_col, "%s", "Full HP");
 
+  // TEMP: increase hp option
+  if (ImGui::Button("Aquire##IncreaseHp")) {
+    const auto stat = UpgradeableStat::ACTOR_MAX_HEALTH;
+    const auto stat_key = std::string(magic_enum::enum_name(stat));
+    int max_hp_amount = 5;
+
+    const auto& players_view = r.view<StatModifierComponent>();
+    for (const auto& [e, stat_c] : players_view.each())
+      stat_c.add(std::make_shared<StatFlatIncrease>(max_hp_amount, stat_key));
+
+    close_ui();
+  }
+  ImGui::SameLine();
+  ImGui::TextColored(text_col, "%s", "+5 Max HP");
+
+  // TEMP: collect all xp
+  if (ImGui::Button("Aquire##CollectAllXp")) {
+
+    // TODO: impl this
+
+    close_ui();
+  }
+  ImGui::SameLine();
+  ImGui::TextColored(text_col, "%s", "Collect all XP on the map. (NOT IMPL)");
+
   /*
   if (ImGui::BeginTable(label.c_str(), 3)) {
     ImGui::TableNextRow();

@@ -3,6 +3,7 @@
 #include "modules/combat/components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 
+#include <SDL2/SDL_log.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -21,6 +22,16 @@ struct BulletDef
   int knockback_force = 50;
   int bounces = 0;
   std::vector<AquirableTrait> traits;
+
+  BulletDef() = delete;
+  BulletDef(entt::entity parent)
+    : parent_e(parent)
+  {
+    if (parent == entt::null) {
+      SDL_Log("Invalid Bullet Parent");
+      exit(1); // crash app
+    }
+  };
 };
 
 struct WeaponDef
