@@ -32,7 +32,7 @@ jobs:
         id: runvcpkg-windows
         with:
           vcpkgDirectory: "${{ github.workspace }}/thirdparty/vcpkg"
-          vcpkgJsonGlob: "**/game_defence_tests/vcpkg.json"
+          vcpkgJsonGlob: "**/game_survivors_tests/vcpkg.json"
           runVcpkgInstall: true
 
       - name: get-windows-compiler
@@ -44,23 +44,23 @@ jobs:
           cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: build-tests
-        run: cmake --build build --config Release --target game_defence_tests
+        run: cmake --build build --config Release --target game_survivors_tests
 
       - name: run-tests
-        run: ./build/game_defence_tests/game_defence_tests.exe | findstr -i "pass"
+        run: ./build/game_survivors_tests/game_survivors_tests.exe | findstr -i "pass"
 
       - name: build-game
-        run: cmake --build build --config Release --target game_defence
+        run: cmake --build build --config Release --target game_survivors
 
       - name: copy-game-assets
         run: |
-          cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
-          rm -r ./build/game_defence/CMakeFiles
-          rm ./build/game_defence/*.cmake 
-          rm ./build/game_defence/*.manifest
+          cp -r ${{ github.workspace }}/game_survivors/assets ./build/game_survivors/
+          rm -r ./build/game_survivors/CMakeFiles
+          rm ./build/game_survivors/*.cmake 
+          rm ./build/game_survivors/*.manifest
 
       - name: release-game
         uses: actions/upload-artifact@v3
         with:
-          name: game_defence-${{ matrix.os }}
-          path: ./build/game_defence
+          name: game_survivors-${{ matrix.os }}
+          path: ./build/game_survivors
