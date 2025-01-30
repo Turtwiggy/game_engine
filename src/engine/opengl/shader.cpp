@@ -335,25 +335,23 @@ Shader::get_uniform_binding_location(const std::string& name) const
   return params[0];
 }
 
-int
-Shader::get_compute_buffer_bind_location(const std::string& name) const
-{
-  int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
-  int params[1];
-  GLenum props[1] = { GL_BUFFER_BINDING };
-  glGetProgramResourceiv(ID, GL_SHADER_STORAGE_BLOCK, index, 1, props, 1, NULL, params);
-  return params[0];
-}
+// int
+// Shader::get_compute_buffer_bind_location(const std::string& name) const
+// {
+//   int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
+//   int params[1];
+//   GLenum props[1] = { GL_BUFFER_BINDING };
+//   glGetProgramResourceiv(ID, GL_SHADER_STORAGE_BLOCK, index, 1, props, 1, NULL, params);
+//   return params[0];
+// }
 
-void
-Shader::set_compute_buffer_bind_location(const std::string& name)
-{
-  int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
-
-  int location = get_compute_buffer_bind_location(name);
-
-  glShaderStorageBlockBinding(ID, index, location);
-}
+// void
+// Shader::set_compute_buffer_bind_location(const std::string& name)
+// {
+//   int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
+//   int location = get_compute_buffer_bind_location(name);
+//   glShaderStorageBlockBinding(ID, index, location);
+// }
 
 void
 Shader::set_uniform_block_binding(const std::string& uniform_name, int binding)

@@ -6,11 +6,6 @@ using namespace game2d;
 #include "engine/opengl/util.hpp"
 using namespace engine;
 
-#if defined(__EMSCRIPTEN__)
-#include "engine/deps/opengl.hpp"
-#include <emscripten.h>
-#endif
-
 #if defined(_MSC_VER)
 #include <optick.h>
 #endif

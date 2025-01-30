@@ -5,7 +5,6 @@ function(find_packages)
   else()
     # packages not supported or needed by emscripten
     # find_package(GameNetworkingSockets CONFIG REQUIRED)
-    find_package(GLEW REQUIRED)
     find_package(SDL2 CONFIG REQUIRED)
   endif()
 
@@ -22,7 +21,6 @@ function(link_libs project)
   else()
     # target_link_libraries(game_defence_tests PRIVATE GameNetworkingSockets::shared)
     target_link_libraries(${project} PRIVATE SDL2::SDL2 SDL2::SDL2main)
-    target_link_libraries(${project} PRIVATE GLEW::GLEW)
     target_link_libraries(${project} PRIVATE $<IF:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>,SDL2_mixer::SDL2_mixer,SDL2_mixer::SDL2_mixer-static>)
   endif()
 

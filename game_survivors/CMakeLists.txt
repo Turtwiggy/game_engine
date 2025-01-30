@@ -35,6 +35,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
   ${OPTICK_SOURCE}
+  ${CMAKE_SOURCE_DIR}/thirdparty/glad/include/glad/glad.c
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_survivors/src/*.cpp
 )
@@ -81,6 +82,7 @@ target_include_directories(game_survivors PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
   ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
+  ${CMAKE_SOURCE_DIR}/thirdparty/glad/include
 )
 
 # rename executable

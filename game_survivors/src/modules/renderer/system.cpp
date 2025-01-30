@@ -466,6 +466,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   if (showing_grid_updated) {
     ri.mix_lighting_and_scene.bind();
     ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
+    showing_grid_updated = false;
   }
 
   for (auto& pass : ri.passes) {

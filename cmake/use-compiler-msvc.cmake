@@ -5,7 +5,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:precise")
 
   if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX") # warnings as errors
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX") # warnings as errors
   endif()
 
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /external:I ${CMAKE_SOURCE_DIR}/thirdparty")

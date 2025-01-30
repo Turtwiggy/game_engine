@@ -18,6 +18,10 @@ pacman -S \
   mingw-w64-ucrt-x86_64-ninja \
   mingw-w64-ucrt-x86_64-gcc
 
+or
+
+pacman -S mingw-w64-ucrt-x86_64-toolchain
+
 Note: When select a kit via vscode, choose "UCRT64 gcc/g++", and update your gcc paths in .vscode/cmake-kits.json
 ```
 

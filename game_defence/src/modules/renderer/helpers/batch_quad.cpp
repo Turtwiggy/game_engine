@@ -14,6 +14,7 @@ namespace engine {
 
 namespace quad_renderer {
 
+/*
 template<typename T>
 GLM_FUNC_QUALIFIER glm::mat<4, 4, T, glm::defaultp>
 yaw_pitch_roll(T const& yaw, T const& pitch, T const& roll)
@@ -44,6 +45,7 @@ yaw_pitch_roll(T const& yaw, T const& pitch, T const& roll)
   Result[3][3] = static_cast<T>(1);
   return Result;
 };
+*/
 
 void
 QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
@@ -59,6 +61,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   const float tex_unit = static_cast<float>(r.tex_unit);
   const glm::vec4 colour = { r.colour.r, r.colour.g, r.colour.b, r.colour.a };
 
+  const float angle = r.yaw_pitch_roll_radians.z;
   const glm::vec2& pos = r.pos_tl;
   const glm::vec2& size = r.size;
   // const glm::vec2 center = r.pos_tl + (0.5f * size);
@@ -66,7 +69,9 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(pos.x, pos.y, 0.0f));
   model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-  model *= yaw_pitch_roll(r.yaw_pitch_roll_radians.x, r.yaw_pitch_roll_radians.y, r.yaw_pitch_roll_radians.z);
+  if (angle != 0.0f)
+    model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+  // model *= yaw_pitch_roll(r.yaw_pitch_roll_radians.x, r.yaw_pitch_roll_radians.y, r.yaw_pitch_roll_radians.z);
   model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
   model = glm::scale(model, glm::vec3(size, 1.0f));
 
