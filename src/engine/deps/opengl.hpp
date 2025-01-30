@@ -6,7 +6,10 @@
 #include <emscripten.h>
 
 #else
-#include <GL/glew.h>
+
+// glad.dav1d.de
+#include <glad/glad.h>
+
 #endif
 
 //
