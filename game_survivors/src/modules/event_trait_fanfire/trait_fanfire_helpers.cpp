@@ -58,8 +58,8 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
 
   const auto& player_col = r.get<DefaultColour>(from_e).colour;
   const auto angles_rad = generate_angles(0, fanfire_c.projectiles_to_fanfire, engine::TWO_PI);
+  auto pos = get_position(r, from_e);
   for (const auto& a : angles_rad) {
-    auto pos = get_position(r, from_e);
 
     const auto bullet_e = spawn_projectile(r, bul_def, pos);
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);

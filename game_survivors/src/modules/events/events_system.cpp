@@ -12,6 +12,10 @@
 #include "modules/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/event_upgrade/event_upgrade_helpers.hpp"
 
+#if defined(_MSC_VER)
+#include <optick.h>
+#endif
+
 namespace game2d {
 
 static entt::dispatcher dispatcher;
@@ -42,6 +46,10 @@ init_events_system(entt::registry& r)
 void
 update_events_system(entt::registry& r)
 {
+#if defined(_MSC_VER)
+  OPTICK_EVENT();
+#endif
+
   const auto dispatcher_e = get_first<SINGLE_Events>(r);
   if (dispatcher_e == entt::null)
     return;

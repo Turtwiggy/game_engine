@@ -7,9 +7,9 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/event_Damage/event_damage_components.hpp"
 #include "modules/event_coll/event_coll_components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
+#include "modules/event_damage/event_damage_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 
 namespace game2d {

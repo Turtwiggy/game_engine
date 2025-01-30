@@ -132,9 +132,8 @@ setup_linear_main_update(entt::registry& r)
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_BLEND);
+    // glEnable(GL_DEPTH_TEST);
 
     // set the positions of the units with circles units & update TBO
     const int N_MAX_CIRCLES = 100;
@@ -172,16 +171,14 @@ setup_linear_main_update(entt::registry& r)
       auto group = r.group<TransformComponent, SpriteComponent>();
 
       // sort by z-index; adds ~0.5ms
-      group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
-        const auto& a = group.get<TransformComponent>(lhs);
-        const auto& b = group.get<TransformComponent>(rhs);
-
-        if (a.z_index != b.z_index)
-          return a.z_index < b.z_index;
-
-        // sort by eid if the layers are the same
-        return lhs < rhs;
-      });
+      // group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
+      //   const auto& a = group.get<TransformComponent>(lhs);
+      //   const auto& b = group.get<TransformComponent>(rhs);
+      //   if (a.z_index != b.z_index)
+      //     return a.z_index < b.z_index;
+      //   // sort by eid if the layers are the same
+      //   return lhs < rhs;
+      // });
 
       for (const auto& [e, transform, sc] : group.each()) {
 

@@ -239,19 +239,19 @@ void
 QuadRenderer::reset_quad_vert_count()
 {
   data.quad_vertex = 0;
-}
+};
 
 void
 QuadRenderer::end_frame()
 {
   data.draw_calls = 0;
-}
+};
 
 int
-QuadRenderer::draw_calls()
+QuadRenderer::draw_calls() const
 {
   return data.draw_calls;
-}
+};
 
 } // namespace quad_renderer
 

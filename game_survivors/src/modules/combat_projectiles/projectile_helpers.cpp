@@ -2,6 +2,7 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "modules/colour/components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
@@ -36,6 +37,7 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   bullet_trait_c.traits.insert(bullet_def.traits.begin(), bullet_def.traits.end());
 
   set_z_index(r, bullet_e, ZLayer::PROJECTILE);
+  set_colour(r, bullet_e, r.get<DefaultColour>(parent_e).colour);
 
   return bullet_e;
 }

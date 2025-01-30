@@ -25,10 +25,10 @@ struct AttackIdComponent
   AttackIdComponent() { id = global_attack_id++; }
 };
 
-struct DefenceComponent
-{
-  int armour = 0;
-};
+// struct DefenceComponent
+// {
+//   int armour = 0;
+// };
 
 struct DefenceHitListComponent
 {

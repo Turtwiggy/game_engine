@@ -8,6 +8,10 @@
 #include <SDL2/SDL_log.h>
 #include <box2d/b2_math.h>
 
+#if defined(_MSC_VER)
+#include <optick.h>
+#endif
+
 namespace game2d {
 
 b2Vec2
@@ -44,6 +48,10 @@ calculate_desired_velocity(b2Body* a_body, b2Body* b_body, const ApplyForceToDyn
 void
 update_physics_apply_force_system(entt::registry& r)
 {
+#if defined(_MSC_VER)
+  OPTICK_EVENT();
+#endif
+
   // Force to DynamicTarget
   {
     const auto& view =

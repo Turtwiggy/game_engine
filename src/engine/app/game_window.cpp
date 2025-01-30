@@ -125,15 +125,11 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
   if (gl_context == NULL) {
     SDL_Log("%s", std::format("OpenGL context could not be created! SDL Error: {}", SDL_GetError()).c_str());
-
   } else {
 #if !defined(__EMSCRIPTEN__)
-    // Initialize GLEW
-    glewExperimental = GL_TRUE;
-    GLenum glewError = glewInit();
-    if (glewError != GLEW_OK) {
-      const GLubyte* err = glewGetErrorString(glewError);
-      SDL_Log("%s", std::format("Error initializing GLEW! {}", reinterpret_cast<const char*>(err)).c_str());
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+      SDL_Log("Failed to initalize GLAD\n");
+      exit(1); // crash
     }
 #endif
   }
@@ -520,7 +516,7 @@ GameWindow::set_icon(const std::string& path)
   } else
     SDL_Log("%s", std::format("unable to load icon...").c_str());
 
-    //
+  //
 #endif
 }
 

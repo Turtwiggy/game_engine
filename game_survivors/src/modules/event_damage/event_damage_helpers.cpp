@@ -35,8 +35,8 @@ calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
 
   if (type == DamageType::PHYSICAL) {
     int defence_amount = 0;
-    if (auto* defence_c = r.try_get<DefenceComponent>(e))
-      defence_amount = defence_c->armour;
+    // if (auto* defence_c = r.try_get<DefenceComponent>(e))
+    //   defence_amount = defence_c->armour;
     amount_final -= defence_amount;
   }
 

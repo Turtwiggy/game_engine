@@ -1,9 +1,0 @@
-box2d
-glm
-gtest
-sdl2
-sdl2-mixer[core,mpg123]
-stb
-nlohmann-json
---triplet
-x64-uwp-clang

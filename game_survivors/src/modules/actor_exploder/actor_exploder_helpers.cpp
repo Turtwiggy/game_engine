@@ -74,7 +74,7 @@ enemies_in_range(entt::registry& r, entt::entity e, float radius)
   aabb.lowerBound = b2Vec2{ pos.x, pos.y } - b2Vec2{ radius, radius };
   aabb.upperBound = b2Vec2{ pos.x, pos.y } + b2Vec2{ radius, radius };
 
-  auto& phys_c = r.get<SINGLE_Physics>(phys_e);
+  const auto& phys_c = r.get<SINGLE_Physics>(phys_e);
   phys_c.world->QueryAABB(&callback, aabb);
 
   return callback.enemies;
@@ -91,7 +91,7 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
 
     // n.b.: radius so half
     auto enemies = enemies_in_range(r, e, explosion_radius);
-    SDL_Log("%s", std::format("Exploder died, hitting: {}", enemies.size()).c_str());
+    // SDL_Log("%s", std::format("Exploder died, hitting: {}", enemies.size()).c_str());
 
     for (const auto other_e : enemies) {
       // const auto& tag_c = r.get<TagComponent>(other_e);

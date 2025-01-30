@@ -92,7 +92,11 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
 
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
   ShipHullData hull = get_hull(hulls_c, hull_key).value();
-  r.emplace<ShipHullComponent>(e, ShipHullComponent{ hull });
+
+  // ShipHullComponent hull_c;
+  // hull_c.data = hull;
+  // r.emplace<ShipHullComponent>(e, hull_c);
+
   const auto size = glm::vec2{ hull.width, hull.height };
 
   give_life(r, e, pos, size);
@@ -132,7 +136,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   auto player_fixture_e = get_fixture_by_tag(r, e, "player");
   r.emplace<PlayerFixtureComponent>(player_fixture_e);
   r.emplace<HealthComponent>(player_fixture_e, 10, 10);
-  r.emplace<DefenceComponent>(player_fixture_e, 0);
+  // r.emplace<DefenceComponent>(player_fixture_e, 0);
 
   // xp_zone fixture
   auto fixture_e = get_fixture_by_tag(r, e, "xp_zone");
@@ -296,10 +300,6 @@ void
 move_to_scene_additive(entt::registry& r, const Scene& s)
 {
   audio::sdl_mixer::stop_all_audio(r);
-
-  //
-  //
-  //
 
   const auto scene_name = std::string(magic_enum::enum_name(s));
   SDL_Log("%s", std::format("additive scene. scene set to: {}", scene_name).c_str());

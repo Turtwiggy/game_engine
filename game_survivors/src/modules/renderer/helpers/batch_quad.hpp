@@ -76,10 +76,10 @@ public:
   void reset_quad_vert_count();
   void end_frame();
 
-  int draw_calls();
+  int draw_calls() const;
 
 private:
-  constexpr static int max_quad = 2000;
+  constexpr static int max_quad = 20'000;
   constexpr static int max_quad_vert_count = max_quad * 4;
   constexpr static int max_quad_index_count = max_quad * 6;
 };

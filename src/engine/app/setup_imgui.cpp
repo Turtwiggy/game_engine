@@ -11,8 +11,6 @@
 #include <SDL2/SDL_syswm.h>
 // clang-format on
 
-#include "engine/deps/opengl.hpp"
-
 namespace engine {
 
 ImGui_Manager::~ImGui_Manager()

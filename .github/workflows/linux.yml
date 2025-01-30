@@ -74,7 +74,7 @@ jobs:
           chmod +x ./build/game_defence/solar_warfare
 
       - name: release-game
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: game_defence-${{ matrix.os }}
           path: ./build/game_defence

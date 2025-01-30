@@ -299,7 +299,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   glEnable(GL_MULTISAMPLE);
 #endif
 
-  glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -456,18 +456,18 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
   const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
 
-  static bool showing_grid = false;
-  static bool showing_grid_updated = true;
-  const bool show_grid = get_first<Effect_GridComponent>(r) != entt::null;
-  if (show_grid && !showing_grid)
-    showing_grid_updated = true;
-  if (!show_grid && showing_grid)
-    showing_grid_updated = true;
-  if (showing_grid_updated) {
-    ri.mix_lighting_and_scene.bind();
-    ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
-    showing_grid_updated = false;
-  }
+  // static bool showing_grid = false;
+  // static bool showing_grid_updated = true;
+  // const bool show_grid = get_first<Effect_GridComponent>(r) != entt::null;
+  // if (show_grid && !showing_grid)
+  //   showing_grid_updated = true;
+  // if (!show_grid && showing_grid)
+  //   showing_grid_updated = true;
+  // if (showing_grid_updated) {
+  //   ri.mix_lighting_and_scene.bind();
+  //   ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
+  //   showing_grid_updated = false;
+  // }
 
   for (auto& pass : ri.passes) {
     const auto pass_name = std::string(magic_enum::enum_name(pass.pass));

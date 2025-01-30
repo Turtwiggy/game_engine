@@ -23,7 +23,6 @@
 #include "modules/events/events_system.hpp"
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
@@ -117,10 +116,10 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   // hide default cursor
   if (custom_mouse_cursor) {
-    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-    auto result = SDL_ShowCursor(SDL_DISABLE);
-    if (result < 0)
-      SDL_Log("Failed to hide system cursor: %s", SDL_GetError());
+    // io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+    // auto result = SDL_ShowCursor(SDL_DISABLE);
+    // if (result < 0)
+    //   SDL_Log("Failed to hide system cursor: %s", SDL_GetError());
   }
 
   {
@@ -272,7 +271,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_ui_fps_counter_system(r);
   update_ui_pause_menu_system(app, r);
-  update_ui_worldspace_text_system(r);
+  // update_ui_worldspace_text_system(r);
 
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
@@ -345,23 +344,30 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   // draw a custom mouse cursor
   if (custom_mouse_cursor) {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    const auto half_wh = ImVec2{ 0.5f * ri.viewport_size_render_at.x, 0.5f * ri.viewport_size_render_at.y };
-    const auto pos = ImVec2(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
-    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-    const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
-    const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
-    ImVec2 tl{ 0.0f, 0.0f };
-    ImVec2 br{ 1.0f, 1.0f };
-    const auto result = convert_sprite_to_uv(r, "CURSOR_0");
-    std::tie(tl, br) = result;
-    const auto size = ImVec2{ 32, 32 };
-    const ImVec2 cursor_tl{ pos.x - (size.x / 2.0f), pos.y - (size.y / 2.0f) };
-    const ImVec2 cursor_br{ pos.x + (size.x / 2.0f), pos.y + (size.y / 2.0f) };
-    draw_list->AddImage(im_id, cursor_tl, cursor_br, tl, br);
+    // const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    // const auto half_wh = ImVec2{ 0.5f * ri.viewport_size_render_at.x, 0.5f * ri.viewport_size_render_at.y };
+    // const auto pos = ImVec2(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
+    // ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+    // const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
+    // const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+    // ImVec2 tl{ 0.0f, 0.0f };
+    // ImVec2 br{ 1.0f, 1.0f };
+    // const auto result = convert_sprite_to_uv(r, "CURSOR_0");
+    // std::tie(tl, br) = result;
+    // const auto size = ImVec2{ 32, 32 };
+    // const ImVec2 cursor_tl{ pos.x - (size.x / 2.0f), pos.y - (size.y / 2.0f) };
+    // const ImVec2 cursor_br{ pos.x + (size.x / 2.0f), pos.y + (size.y / 2.0f) };
+    // draw_list->AddImage(im_id, cursor_tl, cursor_br, tl, br);
   }
 
   update_render_system(r, dt, mouse_pos);
+
+#if defined(_DEBUG)
+  auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+  ImGui::Begin("RenderCalls");
+  ImGui::Text("DrawCalls: %i", ri_c.renderer.draw_calls());
+  ImGui::End();
+#endif
 
   end_frame_render_system(r);
 };

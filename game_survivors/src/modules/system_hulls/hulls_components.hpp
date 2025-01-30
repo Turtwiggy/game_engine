@@ -2,7 +2,6 @@
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
-#include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 
 namespace game2d {
@@ -77,7 +76,8 @@ struct HardpointComponent
 
 struct ShipHullComponent
 {
-  ShipHullData data;
+  bool placeholder = true;
+  // ShipHullData data;
 };
 
 // data loaded from assets/raws/hulls...

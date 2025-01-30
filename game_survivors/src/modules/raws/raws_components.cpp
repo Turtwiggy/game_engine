@@ -157,7 +157,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
     // Create a physics body.
     //
-    auto& physics_c = get_first_component<SINGLE_Physics>(r);
+    const auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
     // Bodies are built using the following steps:
     // Define a body with position, damping, etc.
@@ -269,7 +269,7 @@ remove_life(entt::registry& r, const entt::entity e)
     r.remove<EntityTimedLifecycle>(e);
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
-    auto& physics_c = get_first_component<SINGLE_Physics>(r);
+    const auto& physics_c = get_first_component<SINGLE_Physics>(r);
     physics_c.world->DestroyBody(pb->body);
     r.remove<PhysicsBodyComponent>(e);
   }

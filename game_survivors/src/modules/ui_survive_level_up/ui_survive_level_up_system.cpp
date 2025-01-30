@@ -1,6 +1,7 @@
 #include "modules/ui_survive_level_up/ui_survive_level_up_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
@@ -42,8 +43,10 @@ update_ui_survive_level_up_system(entt::registry& r)
   bool level_up_required = sxp_c.xp >= sxp_c.xp_for_next_level;
 
 #if defined(_DEBUG)
-  if (ImGui::Button("GiveXp"))
-    sxp_c.xp += 34;
+  ImGui::Begin("DebugLevelUp");
+  if (ImGui::Button("LevelUp"))
+    sxp_c.xp += sxp_c.xp_for_next_level;
+  ImGui::End();
 #endif
 
   uiup_c.require_level_up = level_up_required;
@@ -128,25 +131,45 @@ update_ui_survive_level_up_system(entt::registry& r)
     const auto stat = UpgradeableStat::ACTOR_MAX_HEALTH;
     const auto stat_key = std::string(magic_enum::enum_name(stat));
     int max_hp_amount = 5;
-
     const auto& players_view = r.view<StatModifierComponent>();
     for (const auto& [e, stat_c] : players_view.each())
       stat_c.add(std::make_shared<StatFlatIncrease>(max_hp_amount, stat_key));
-
     close_ui();
   }
   ImGui::SameLine();
   ImGui::TextColored(text_col, "%s", "+5 Max HP");
 
+  // TEMP: increase damage option
+  if (ImGui::Button("Aquire##IncreaseDamage")) {
+    const auto stat = UpgradeableStat::BULLET_DAMAGE;
+    const auto stat_key = std::string(magic_enum::enum_name(stat));
+    const int amount = 10;
+    const auto& players_view = r.view<StatModifierComponent>();
+    for (const auto& [e, stat_c] : players_view.each())
+      stat_c.add(std::make_shared<StatFlatIncrease>(amount, stat_key));
+    close_ui();
+  }
+  ImGui::SameLine();
+  ImGui::TextColored(text_col, "%s", "+10 Bullet Damage");
+
   // TEMP: collect all xp
   if (ImGui::Button("Aquire##CollectAllXp")) {
 
-    // TODO: impl this
+    const auto& xp_view = r.view<XpComponent>();
+    auto& xp_c = get_first_component<SINGLE_XpComponent>(r);
+    int xp_amount = xp_view.size();
+    xp_c.xp += xp_amount;
+
+    // Kill all the xp...
+    auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+
+    for (const auto& [e, xp_c] : xp_view.each())
+      dead.dead.emplace(e);
 
     close_ui();
   }
   ImGui::SameLine();
-  ImGui::TextColored(text_col, "%s", "Collect all XP on the map. (NOT IMPL)");
+  ImGui::TextColored(text_col, "%s", "Collect all XP on the map.");
 
   /*
   if (ImGui::BeginTable(label.c_str(), 3)) {

@@ -39,7 +39,6 @@ update_ui_debug_spawner_system(entt::registry& r)
     if (get_key_down(input_c, SDL_SCANCODE_MINUS))
       cooldown_c.time -= 20;
   }
-
 #endif
 
   ImGui::Begin("DebugSpawner");

@@ -19,3 +19,6 @@
 [submodule "thirdparty/assimp"]
 	path = thirdparty/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "thirdparty/box2d"]
+	path = thirdparty/box2d
+	url = https://github.com/erincatto/box2d

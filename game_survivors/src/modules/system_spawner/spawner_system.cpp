@@ -43,7 +43,7 @@ spawn_enemy(entt::registry& r, std::string key, int hp)
 
   auto fixture_e = get_fixture_by_tag(r, e, "core");
   r.emplace<HealthComponent>(fixture_e, hp, hp);
-  r.emplace<DefenceComponent>(fixture_e);
+  // r.emplace<DefenceComponent>(fixture_e);
 
   // move at player, this gotta be changed for more interesting types
   r.emplace<DynamicTargetComponent>(e, target_e);

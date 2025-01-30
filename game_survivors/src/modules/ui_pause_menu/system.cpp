@@ -12,6 +12,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 
@@ -39,6 +40,7 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
 
   auto& input = get_first_component<SINGLE_InputComponent>(r);
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   static bool open = false;
 

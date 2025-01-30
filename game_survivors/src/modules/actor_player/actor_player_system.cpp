@@ -24,6 +24,10 @@
 
 #include <imgui.h>
 
+#if defined(_MSC_VER)
+#include <optick.h>
+#endif
+
 namespace game2d {
 
 // https://www.youtube.com/watch?v=LSNQuFEDOyQ
@@ -278,10 +282,13 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
 void
 fixed_update_player_controller_system(entt::registry& r, const uint64_t ms_dt, const glm::ivec2& mouse_pos)
 {
+#if defined(_MSC_VER)
+  OPTICK_EVENT();
+#endif
+
   // What happens if multiple fixedupdate() before?
 
   update_movement_direct(r, ms_dt);
-
   // update_movement_asteroids(r, ms_dt);
   // update_movement_jetpack(r);
 };

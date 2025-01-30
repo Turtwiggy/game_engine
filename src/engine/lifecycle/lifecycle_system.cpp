@@ -6,11 +6,20 @@
 #include "engine/physics/physics_components.hpp"
 #include <unordered_set>
 
+#if defined(_MSC_VER)
+#include <optick.h>
+#endif
+
 namespace game2d {
 
 void
 update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
+#if defined(_MSC_VER)
+  OPTICK_EVENT();
+#endif
+
+  const auto& physics_c = get_first_component<SINGLE_Physics>(r);
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   // update all components with timed lifecycle
@@ -20,8 +29,6 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       dead.dead.emplace(entity);
     lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
-
-  auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
   // Death callbacks.
   // OnDeathCallbacks can cause more dead.dead entities
