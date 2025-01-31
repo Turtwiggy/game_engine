@@ -49,20 +49,24 @@ namespace game2d {
 
 glm::vec2 weapon_size = { 5, 10 };
 
-entt::entity
-spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
+void
+connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 {
-  const auto wep_e = spawn(r, "boat_default_weapon");
-  give_life(r, wep_e, get_position(r, e), weapon_size);
-  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-  r.emplace<HardpointComponent>(wep_e, HardpointComponent{ data });
-
-  // parent <=> child
   auto& weapons_c = r.get_or_emplace<HasWeaponsComponent>(e);
   weapons_c.weapons.push_back(wep_e);
-
-  // child <=> parent
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e });
+
+  set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
+  set_position(r, wep_e, get_position(r, e));
+};
+
+entt::entity
+spawn_weapon(entt::registry& r, const HardpointData& data)
+{
+  const auto wep_e = spawn(r, "boat_default_weapon");
+  give_life(r, wep_e, { 0, 0 }, weapon_size);
+  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
+  r.emplace<HardpointComponent>(wep_e, HardpointComponent{ data });
 
   // weapon stats
   float firerate = 0.5;
@@ -81,24 +85,43 @@ spawn_weapon(entt::registry& r, entt::entity e, const HardpointData& data)
   r.emplace<BulletBounce>(wep_e, 0); // no bounce by default
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-  set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
   return wep_e;
 };
 
 entt::entity
 spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key)
 {
-  const auto e = spawn(r, key);
-
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
   ShipHullData hull = get_hull(hulls_c, hull_key).value();
-
-  // ShipHullComponent hull_c;
-  // hull_c.data = hull;
-  // r.emplace<ShipHullComponent>(e, hull_c);
-
   const auto size = glm::vec2{ hull.width, hull.height };
 
+  std::vector<entt::entity> weapons;
+
+  // Spawn the weapons...
+  for (auto& hardpoint_data : hull.hardpoints) {
+    // HACK: overrode all arcs to 360 degrees. i.e. full coverage
+    hardpoint_data.arc = 360;
+    hardpoint_data.arc_mid = 0;
+    auto weapon_e = spawn_weapon(r, hardpoint_data);
+    r.emplace<AutofireComponent>(weapon_e);
+    weapons.push_back(weapon_e);
+  }
+
+  // Spawn a manual weapon
+  {
+    HardpointComponent hardpoint_c;
+    HardpointData hardpoint_data;
+    hardpoint_data.key = "manual";
+    hardpoint_data.arc = 359;
+    hardpoint_data.arc_mid = 0;
+    hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
+    hardpoint_data.y_rel_tl = size.y / 2;
+    auto weapon_e = spawn_weapon(r, hardpoint_data);
+    r.emplace<ManualfireComponent>(weapon_e);
+    weapons.push_back(weapon_e);
+  }
+
+  const auto e = spawn(r, key);
   give_life(r, e, pos, size);
   r.emplace<PlayerComponent>(e, num);
   r.emplace<CameraFollow>(e);
@@ -145,32 +168,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   // upgrades...
   r.emplace<StatModifierComponent>(e);
 
-  // Spawn the weapons...
-  for (auto& hardpoint_data : hull.hardpoints) {
-
-    // HACK: overrode all arcs to 360 degrees. i.e. full coverage
-    hardpoint_data.arc = 360;
-    hardpoint_data.arc_mid = 0;
-
-    auto weapon_e = spawn_weapon(r, e, hardpoint_data);
-    r.emplace<AutofireComponent>(weapon_e);
-
-    // break; // one weapon
-  }
-
-  // Spawn a manual weapon
-  {
-    HardpointComponent hardpoint_c;
-    HardpointData hardpoint_data;
-    hardpoint_data.key = "manual";
-    hardpoint_data.arc = 359;
-    hardpoint_data.arc_mid = 0;
-    hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
-    hardpoint_data.y_rel_tl = size.y / 2;
-
-    auto weapon_e = spawn_weapon(r, e, hardpoint_data);
-    r.emplace<ManualfireComponent>(weapon_e);
-  }
+  for (const auto& wep_e : weapons)
+    connect_parent_and_weapon(r, e, wep_e);
 
   return e;
 };
