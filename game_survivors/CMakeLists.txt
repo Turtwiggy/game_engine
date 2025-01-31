@@ -64,9 +64,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     message("Copying steam .dll next to .exe")
     set(dst ${CMAKE_CURRENT_BINARY_DIR})
     add_custom_command(TARGET game_survivors POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy
-      ${steam_lib}/steam_api64.dll
-      $<TARGET_FILE_DIR:game_survivors>
+      COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Checking if steam.api64.dll exists..."
+      COMMAND if not exist "$<TARGET_FILE_DIR:game_survivors>/steam_api64.dll"(
+      COMMAND ${CMAKE_COMMAND} -E copy ${steam_lib}/steam_api64.dll $<TARGET_FILE_DIR:game_survivors>
+      )
+      COMMENT "Copy steam_api64.dll if it doesn't exist"
     )
   endif()
 endif()

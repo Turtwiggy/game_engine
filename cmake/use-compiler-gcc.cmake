@@ -14,16 +14,16 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   endif()
 
   # Use lld as the linker
-  # set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/lld.exe")
-  # set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
-  # set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=lld")
-  # set(CMAKE_MODULE_LINKER_FLAGS "-fuse-ld=lld")
+  set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/lld.exe")
+  set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+  set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=lld")
+  set(CMAKE_MODULE_LINKER_FLAGS "-fuse-ld=lld")
+
   # set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/ld.bfd.exe")
+  # set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/ld.exe")
   # set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=bfd") # ld linker
   # set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=bfd") # ld linker
   # set(CMAKE_MODULE_LINKER_FLAGS "-fuse-ld=bfd") # ld linker
-  set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/ld.exe")
-
   execute_process(
     COMMAND ${CMAKE_LINKER} --version
     OUTPUT_VARIABLE LINKER_VERSION
@@ -56,9 +56,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   # MinGW/GCC specific flags
   if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Using g++ compiler, enabling -pg for profiling")
-    add_compile_options(-pg)
-    add_link_options(-pg)
 
+    # add_compile_options(-pg)
+    # add_link_options(-pg)
     #
     # pacman -S mingw-w64-ucrt-x86_64-python-pip
     # pacman -S mingw-w64-ucrt-x86_64-graphviz
