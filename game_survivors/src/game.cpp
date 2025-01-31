@@ -48,20 +48,20 @@
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/ui_colours_system.hpp"
-#include "modules/ui_combat_damage_numbers/ui_combat_damage_numbers_system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_system.hpp"
 #include "modules/ui_debug_spawner/ui_debug_spawner_system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
-#include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
 #include "modules/ui_input_steam/ui_input_steam_system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_survive_health/ui_survive_health_system.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
@@ -69,7 +69,6 @@
 #include "modules/ui_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_upgrades/ui_upgrades_system.hpp"
-#include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -145,6 +144,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   init_steam(r);
   init_steam_input(r);
   create_persistent<SteamOverlayManager>(r);
+  create_persistent<SINGLE_SteamControllerGameState>(r);
 
   move_to_scene_start(r, Scene::splashscreen);
 };
@@ -230,6 +230,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   begin_frame_sprite(r);
 
   SteamAPI_RunCallbacks();
+
   update_input_system(app, r); // sets update_since_last_fixed_update
   update_steam_input(r);
   update_camera_system(r, dt);
@@ -271,10 +272,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_ui_fps_counter_system(r);
   update_ui_pause_menu_system(app, r);
+  update_ui_scene_main_menu_playerjoin_system(r);
   // update_ui_worldspace_text_system(r);
 
-  if (scene.s == Scene::menu)
+  if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
+  }
 
   if (scene.s == Scene::select)
     update_ui_scene_select_system(r);
@@ -291,7 +294,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #if defined(_DEBUG)
   static bool show_settings_ui = true;
 #else
-  static bool show_settings_ui = true;
+  static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
     update_ui_debug_menubar_system(r);

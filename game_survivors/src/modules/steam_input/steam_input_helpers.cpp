@@ -5,6 +5,7 @@
 
 #include <steam/isteaminput.h>
 #include <steam/steam_api.h>
+#include <steam/steam_api_common.h>
 #include <steam/steam_api_flat.h>
 
 namespace game2d {
@@ -26,6 +27,32 @@ namespace game2d {
 // Step 3.1: The steam input api
 // https://partner.steamgames.com/doc/features/steam_controller/getting_started_for_devs#implement_steam_input
 
+class ControllerEvents
+{
+public:
+  ControllerEvents()
+    : m_connected_callback(this, &ControllerEvents::OnControllerConnected)
+    , m_disconnected_callback(this, &ControllerEvents::OnControllerDisconnected) {};
+  ~ControllerEvents() {};
+
+  STEAM_CALLBACK(ControllerEvents, OnControllerConnected, SteamInputDeviceConnected_t, m_connected_callback);
+  STEAM_CALLBACK(ControllerEvents, OnControllerDisconnected, SteamInputDeviceDisconnected_t, m_disconnected_callback);
+};
+
+void
+ControllerEvents::OnControllerConnected(SteamInputDeviceConnected_t* pCallback)
+{
+  InputHandle_t disconnectedControllerHandle = pCallback->m_ulConnectedDeviceHandle;
+  SDL_Log("(callback) Controller connect event.");
+}
+
+void
+ControllerEvents::OnControllerDisconnected(SteamInputDeviceDisconnected_t* pCallback)
+{
+  InputHandle_t disconnectedControllerHandle = pCallback->m_ulDisconnectedDeviceHandle;
+  SDL_Log("(callback) Controller disconnect event.");
+}
+
 void
 init_steam_input_actions(entt::registry& r)
 {
@@ -34,13 +61,14 @@ init_steam_input_actions(entt::registry& r)
   auto& analog_action_handles = steam_c.analog_action_handles;
   auto& action_set_handles = steam_c.action_set_handles;
 
-  digital_action_handles[(int)DA::Action_GameUp] = SteamInput()->GetDigitalActionHandle("action_up");
-  digital_action_handles[(int)DA::Action_GameDown] = SteamInput()->GetDigitalActionHandle("action_down");
-  digital_action_handles[(int)DA::Action_GameLeft] = SteamInput()->GetDigitalActionHandle("action_left");
-  digital_action_handles[(int)DA::Action_GameRight] = SteamInput()->GetDigitalActionHandle("action_right");
-  digital_action_handles[(int)DA::Action_GameShoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
-  digital_action_handles[(int)DA::Action_GameCancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
-  digital_action_handles[(int)DA::Action_GameMenu] = SteamInput()->GetDigitalActionHandle("action_menu");
+  digital_action_handles[(int)DA::Game_Up] = SteamInput()->GetDigitalActionHandle("action_up");
+  digital_action_handles[(int)DA::Game_Down] = SteamInput()->GetDigitalActionHandle("action_down");
+  digital_action_handles[(int)DA::Game_Left] = SteamInput()->GetDigitalActionHandle("action_left");
+  digital_action_handles[(int)DA::Game_Right] = SteamInput()->GetDigitalActionHandle("action_right");
+  digital_action_handles[(int)DA::Game_Shoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
+  digital_action_handles[(int)DA::Game_Cancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
+  digital_action_handles[(int)DA::Game_Menu] = SteamInput()->GetDigitalActionHandle("action_menu");
+  digital_action_handles[(int)DA::Game_Join] = SteamInput()->GetDigitalActionHandle("action_join");
 
   digital_action_handles[(int)DA::Menu_Up] = SteamInput()->GetDigitalActionHandle("menu_up");
   digital_action_handles[(int)DA::Menu_Down] = SteamInput()->GetDigitalActionHandle("menu_down");
@@ -48,6 +76,8 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Menu_Right] = SteamInput()->GetDigitalActionHandle("menu_right");
   digital_action_handles[(int)DA::Menu_Select] = SteamInput()->GetDigitalActionHandle("menu_select");
   digital_action_handles[(int)DA::Menu_Cancel] = SteamInput()->GetDigitalActionHandle("menu_cancel");
+  digital_action_handles[(int)DA::Menu_JoinSlot] = SteamInput()->GetDigitalActionHandle("menu_join_slot");
+  digital_action_handles[(int)DA::Menu_LeaveSlot] = SteamInput()->GetDigitalActionHandle("menu_leave_slot");
 
   analog_action_handles[(int)AA::LAnalogControls] = SteamInput()->GetAnalogActionHandle("l_analog");
   analog_action_handles[(int)AA::RAnalogControls] = SteamInput()->GetAnalogActionHandle("r_analog");
@@ -59,6 +89,10 @@ init_steam_input_actions(entt::registry& r)
   // m_ControllerActionSetHandles[actionSet_Layer_Thrust] = SteamInput()->GetActionSetHandle( "thrust_action_layer" );
 
   // clang-format on
+
+  // Each controller will generate a device connected event.
+  SteamAPI_ISteamInput_EnableDeviceCallbacks(SteamAPI_SteamInput());
+  static ControllerEvents eve; // Gotta be a better way?
 };
 
 void
@@ -104,7 +138,6 @@ void
 update_steam_input_handles(entt::registry& r)
 {
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-
   steam_c.n_active = SteamInput()->GetConnectedControllers(steam_c.handles.data());
 };
 
@@ -115,38 +148,6 @@ update_steam_input(entt::registry& r)
 
   // check connect/disconnects
   update_steam_input_handles(r);
-};
-
-std::vector<InputHandle_t>
-unassigned_steam_input_handles(entt::registry& r)
-{
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-  const auto& handles = steam_c.handles;
-  auto& assigned = steam_c.assigned_handles;
-
-  auto non_zero = [&](InputHandle_t h) { return h != 0; };
-  auto non_zero_handles = handles | std::views::filter(non_zero);
-
-  // Find handles that haven't been assigned.
-  auto is_unassigned = [&](InputHandle_t h) { return std::ranges::find(assigned, h) == assigned.end(); };
-  auto unassigned_view = non_zero_handles | std::views::filter(is_unassigned);
-
-  return std::vector(unassigned_view.begin(), unassigned_view.end());
-};
-
-std::optional<InputHandle_t>
-aquire_unused_steam_input_handle(entt::registry& r)
-{
-  auto unassigned_handles = unassigned_steam_input_handles(r);
-  if (unassigned_handles.size() == 0)
-    return std::nullopt;
-
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-
-  // assign the first
-  auto h = unassigned_handles[0];
-  steam_c.assigned_handles.push_back(h);
-  return h;
 };
 
 bool

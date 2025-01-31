@@ -11,13 +11,14 @@ namespace game2d {
 
 enum class DigitalAction
 {
-  Action_GameUp = 0,
-  Action_GameDown,
-  Action_GameLeft,
-  Action_GameRight,
-  Action_GameShoot,
-  Action_GameCancel,
-  Action_GameMenu,
+  Game_Up = 0,
+  Game_Down,
+  Game_Left,
+  Game_Right,
+  Game_Shoot,
+  Game_Cancel,
+  Game_Menu,
+  Game_Join,
 
   Menu_Up,
   Menu_Down,
@@ -25,6 +26,8 @@ enum class DigitalAction
   Menu_Right,
   Menu_Select,
   Menu_Cancel,
+  Menu_JoinSlot,
+  Menu_LeaveSlot,
 
   count,
 };
@@ -57,7 +60,6 @@ struct SINGLE_SteamControllers
 
   int n_active = 0;
   std::vector<InputHandle_t> handles;
-  std::vector<InputHandle_t> assigned_handles; // handles assigned to players
 
   SINGLE_SteamControllers()
   {

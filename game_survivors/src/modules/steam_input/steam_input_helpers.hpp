@@ -5,8 +5,6 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-#include <optional>
-
 namespace game2d {
 
 void
@@ -28,10 +26,7 @@ controller_axis(entt::registry& r, InputHandle_t handle, AA aAction);
 
 //
 
-std::vector<InputHandle_t>
-unassigned_steam_input_handles(entt::registry& r);
-
-std::optional<InputHandle_t>
-aquire_unused_steam_input_handle(entt::registry& r);
+void
+set_steam_controller_action_set(entt::registry& r, InputHandle_t handle, AS set);
 
 } // namespace game2d

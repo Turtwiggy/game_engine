@@ -104,14 +104,14 @@ update_input_system(engine::SINGLE_Application& app, entt::registry& r)
         SDL_Log("%s", std::format("TODO: process joyhat button press").c_str());
       }
 
-      if (e.type == SDL_JOYDEVICEADDED) {
-        SDL_Log("%s", std::format("controller added").c_str());
-        process_controller_added(input);
-      }
-      if (e.type == SDL_JOYDEVICEREMOVED) {
-        SDL_Log("%s", std::format("controller removed").c_str());
-        process_controller_removed(input);
-      }
+      // if (e.type == SDL_JOYDEVICEADDED) {
+      //   SDL_Log("%s", std::format("(SDL2) controller added").c_str());
+      //   process_controller_added(input);
+      // }
+      // if (e.type == SDL_JOYDEVICEREMOVED) {
+      //   SDL_Log("%s", std::format("(SDL2) controller removed").c_str());
+      //   process_controller_removed(input);
+      // }
 
       if (e.type == SDL_AUDIODEVICEADDED) {
         SDL_Log("%s", std::format("audio device added. iscapture: {}", e.adevice.iscapture).c_str());

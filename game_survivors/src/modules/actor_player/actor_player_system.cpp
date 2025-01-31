@@ -258,18 +258,14 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
 
     if (auto* controller_c = r.try_get<SteamControllerComponent>(e)) {
 
-      // Assign handle => player
-      if (controller_c->handle == 0) {
-        auto handle = aquire_unused_steam_input_handle(r);
-        if (!handle.has_value())
-          continue;
-        controller_c->handle = handle.value();
-      }
+      // Handle assigned via menu
+      if (controller_c->handle == 0)
+        continue;
 
       const auto handle = controller_c->handle;
       const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
       const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
-      const auto shoot = controller_button_held(steam_c, handle, DA::Action_GameShoot);
+      const auto shoot = controller_button_held(steam_c, handle, DA::Game_Shoot);
       i.lx += l_analog.x;
       i.ly += -l_analog.y; // flip y
       i.rx += r_analog.x;

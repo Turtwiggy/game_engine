@@ -10,6 +10,7 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <imgui.h>
@@ -43,12 +44,12 @@ update_ui_survive_health_system(entt::registry& r)
 
   ImGui::Begin("health", NULL, flags);
 
-  const auto& group = r.group<PlayerComponent, DefaultColour>();
+  const auto& view = r.view<PlayerComponent, DefaultColour>();
 
   // sort by player number
-  group.sort<PlayerComponent>([](const auto& a, const auto& b) { return a.idx < b.idx; });
+  // group.sort<PlayerComponent>([](const auto& a, const auto& b) { return a.idx < b.idx; });
 
-  for (const auto [e, player_c, col_c] : group.each()) {
+  for (const auto [e, player_c, col_c] : view.each()) {
 
     const auto im_col =
       ImVec4{ col_c.colour.r / 255.0f, col_c.colour.g / 255.0f, col_c.colour.b / 255.0f, col_c.colour.a / 255.0f };
@@ -78,49 +79,21 @@ update_ui_survive_health_system(entt::registry& r)
 
     for (const auto wep_e : weps_c.weapons) {
 
-      auto& upgrades_c = r.get<StatModifierComponent>(e);
-      const auto key_bullet_bounce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_BOUNCE));
-      const auto key_bullet_size = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SIZE));
-      const auto key_bullet_speed = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SPEED));
-      const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
-      const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
-      const auto key_bullet_knockback = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_KNOCKBACK));
-      const auto key_weapon_firerate = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_FIRERATE));
-      const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
-      const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
-
-      const auto val_bullet_bounce = r.get<BulletBounce>(wep_e).bounces_left;
-      const auto val_bullet_size = r.get<BulletSize>(wep_e).size;
-      const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
-      const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
-      const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
-      const auto val_bullet_knockback = r.get<BulletKnockback>(wep_e).knockback_force;
-      const auto val_weapon_firerate = r.get<WeaponFirerate>(wep_e).seconds_between_shots;
-      const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
-      const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
-
-      const auto mod_bul_bounce = (int)upgrades_c.apply_modifiers(val_bullet_bounce, key_bullet_bounce);
-      const auto mod_bul_size_x = upgrades_c.apply_modifiers(val_bullet_size.x, key_bullet_size); // use x
-      const auto mod_bul_speed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
-      const auto mod_bul_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
-      const auto mod_bul_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
-      const auto mod_bul_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
-      const auto mod_wep_firerate = upgrades_c.apply_modifiers(val_weapon_firerate, key_weapon_firerate);
-      const auto mod_wep_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
-      const auto mod_wep_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
+      const auto bul_def = get_bullet_def(r, e, wep_e);
+      const auto wep_def = get_weapon_def(r, e, wep_e);
 
       // clang-format off
       ImGui::NewLine();
       ImGui::Text("Weapon...");
-      ImGui::Text("b_bounce %i", mod_bul_bounce); 
-      ImGui::Text("b_size_x %f", mod_bul_size_x); 
-      ImGui::Text("b_speed %i", mod_bul_speed); 
-      ImGui::Text("b_damage %i", mod_bul_damage); 
-      ImGui::Text("b_pierce %i", mod_bul_pierce); 
-      ImGui::Text("b_knockback %i", mod_bul_knockback); 
-      ImGui::Text("w_firerate %f", mod_wep_firerate); 
-      ImGui::Text("w_projectiles %i", mod_wep_projectiles); 
-      ImGui::Text("w_spread %i", mod_wep_spread);
+      ImGui::Text("b_bounce %i", bul_def.bounces); 
+      ImGui::Text("b_size_x %f", bul_def.size.x); 
+      ImGui::Text("b_speed %i", bul_def.speed); 
+      ImGui::Text("b_damage %i", bul_def.damage); 
+      ImGui::Text("b_pierce %i", bul_def.pierce); 
+      ImGui::Text("b_knockback %i", bul_def.knockback_force); 
+      ImGui::Text("w_firerate %f", wep_def.firerate); 
+      ImGui::Text("w_projectiles %i", wep_def.projectiles); 
+      ImGui::Text("w_spread %i", wep_def.spread_deg);
       // clang-format on
 
       break; // show ui for only first weapon

@@ -225,11 +225,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto units = load_units(r);
     std::for_each(units.begin(), units.end(), [&r](const auto& u) { add_unit_to_entt(r, u); });
 
-    // TEMP: clear assigned controller handles?
-    // this is annoying for players
-    auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-    steam_c.assigned_handles.clear();
-
     // auto e = create_empty<TransformComponent>(r);
     // r.emplace<SpriteComponent>(e);
     // set_sprite(r, e, "STUDIO_TEXT_LOGO");

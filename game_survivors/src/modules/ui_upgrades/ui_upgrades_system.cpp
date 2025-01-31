@@ -10,6 +10,8 @@
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade/upgrade_helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 #include <imgui.h>
 
@@ -23,7 +25,11 @@ update_ui_upgrades_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
-  ImGui::Begin("Upgrades");
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto state = gesert_menubar_state(menu_c, "Upgrades");
+  if (!state.enabled)
+    return;
+  ImGui::Begin(state.name.c_str());
 
   ImGui::SeparatorText("Upgrades");
 

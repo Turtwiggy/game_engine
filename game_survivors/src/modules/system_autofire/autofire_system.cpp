@@ -86,7 +86,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
 
   static float lead_amount = 0.4f;
 #if defined(_DEBUG)
-  imgui_draw_float("shot lead amount", lead_amount);
+  // imgui_draw_float("shot lead amount", lead_amount);
 #endif
 
   const auto& view = r.view<TransformComponent,

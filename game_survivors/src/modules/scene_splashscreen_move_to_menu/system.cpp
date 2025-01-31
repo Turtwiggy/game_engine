@@ -22,7 +22,8 @@ update_scene_splashscreen_move_to_menu_system(entt::registry& r, const float dt)
   if (!audio.loaded)
     return; // wait for sounds to be loaded
 
-  // After X seconds, move to menu
+  // After X seconds, move to menu,
+  // or when audio is loaded and a key is mashed
   data.time_on_splashscreen_seconds -= dt;
   if (data.time_on_splashscreen_seconds <= 0.0f || input.unprocessed_inputs.size() > 0)
     move_to_scene_start(r, Scene::menu);
