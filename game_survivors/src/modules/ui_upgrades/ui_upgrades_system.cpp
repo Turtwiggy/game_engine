@@ -4,6 +4,7 @@
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
@@ -29,7 +30,6 @@ update_ui_upgrades_system(entt::registry& r)
   //
   // Convert upgrades to vec<std::string> of their keys, and display them in wombocombo
   //
-
   static int index = 0;
   auto keys = available_upgrade_names(r);
   {
@@ -52,11 +52,26 @@ update_ui_upgrades_system(entt::registry& r)
 
     std::string label = "Aquire##" + u.name;
     if (ImGui::Button(label.c_str())) {
-      // send event, me thinks
-      UpgradeEvent evt;
-      evt.upgrade = u;
-      evts_c.dispatcher->trigger(evt);
-      evts_c.dispatcher->update();
+      for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+        // send event, me thinks
+        UpgradeEvent evt;
+        evt.e = e;
+        evt.upgrade = u;
+        evts_c.dispatcher->trigger(evt);
+        evts_c.dispatcher->update();
+      }
+    }
+  }
+
+  if (ImGui::Button("AquireAll")) {
+    for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+      for (const auto& u : up_c.upgrades) {
+        UpgradeEvent evt;
+        evt.e = e;
+        evt.upgrade = u;
+        evts_c.dispatcher->trigger(evt);
+        evts_c.dispatcher->update();
+      }
     }
   }
 

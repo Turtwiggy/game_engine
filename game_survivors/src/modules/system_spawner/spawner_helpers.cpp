@@ -21,66 +21,56 @@ exploder_data()
   EnemySpawnData exploder;
   exploder.enemy_key = "actor_enemy_exploder";
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(1); // 19:00
-    wave.wave_end_seconds = min_to_sec(2);   // 18:00
-    wave.hp = 30;
-    wave.max_allowed = 2;
-    wave.number_per_spawn = 1;
-    wave.spawn_cooldown = 4;
+  EnemySpawnWave wave0;
+  EnemySpawnWave wave1;
+  EnemySpawnWave wave2;
+  EnemySpawnWave wave3;
+  EnemySpawnWave wave4;
 
-    exploder.waves.push_back(wave);
-  }
+  wave0.wave_start_seconds = min_to_sec(1); // 19:00
+  wave0.wave_end_seconds = min_to_sec(2);   // 18:00
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(2); // 18:00
-    wave.wave_end_seconds = min_to_sec(6);   // 14:00
-    wave.hp = 30;
-    wave.max_allowed = 10;
-    wave.number_per_spawn = 1;
-    wave.spawn_cooldown = 1;
+  wave1.wave_start_seconds = min_to_sec(2) + 1; // 18:00
+  wave1.wave_end_seconds = min_to_sec(6);       // 14:00
 
-    exploder.waves.push_back(wave);
-  }
+  wave2.wave_start_seconds = min_to_sec(7);
+  wave2.wave_end_seconds = min_to_sec(9);
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(7);
-    wave.wave_end_seconds = min_to_sec(9);
-    wave.hp = 60;
-    wave.max_allowed = 1;
-    wave.number_per_spawn = 1;
-    wave.spawn_cooldown = 1;
+  wave3.wave_start_seconds = min_to_sec(11);
+  wave3.wave_end_seconds = min_to_sec(13);
 
-    exploder.waves.push_back(wave);
-  }
+  wave4.wave_start_seconds = min_to_sec(15);
+  wave4.wave_end_seconds = min_to_sec(16);
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(11);
-    wave.wave_end_seconds = min_to_sec(13);
-    wave.hp = 240;
-    wave.max_allowed = 4;
-    wave.number_per_spawn = 2;
-    wave.spawn_cooldown = 1;
+  wave0.hp = 30;
+  wave1.hp = 30;
+  wave2.hp = 60;
+  wave3.hp = 240;
+  wave4.hp = 400;
 
-    exploder.waves.push_back(wave);
-  }
+  wave0.max_allowed = 2;
+  wave1.max_allowed = 10;
+  wave2.max_allowed = 1;
+  wave3.max_allowed = 4;
+  wave4.max_allowed = 20;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(15);
-    wave.wave_end_seconds = min_to_sec(16);
-    wave.hp = 400;
-    wave.max_allowed = 20;
-    wave.number_per_spawn = 2;
-    wave.spawn_cooldown = 1;
+  wave0.number_per_spawn = 1;
+  wave1.number_per_spawn = 2;
+  wave2.number_per_spawn = 1;
+  wave3.number_per_spawn = 2;
+  wave4.number_per_spawn = 2;
 
-    exploder.waves.push_back(wave);
-  }
+  wave0.spawn_cooldown = 4;
+  wave1.spawn_cooldown = 5;
+  wave2.spawn_cooldown = 1;
+  wave3.spawn_cooldown = 1;
+  wave4.spawn_cooldown = 1;
 
+  exploder.waves.push_back(wave0);
+  exploder.waves.push_back(wave1);
+  exploder.waves.push_back(wave2);
+  exploder.waves.push_back(wave3);
+  exploder.waves.push_back(wave4);
   return exploder;
 };
 
@@ -90,77 +80,60 @@ melee_enemy_1()
   EnemySpawnData data;
   data.enemy_key = "actor_enemy_melee";
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(0);
-    wave.wave_end_seconds = min_to_sec(1);
-    wave.hp = 24;
-    wave.max_allowed = 20;
-    wave.number_per_spawn = 4;
-    wave.spawn_cooldown = 3;
+  EnemySpawnWave wave0;
+  EnemySpawnWave wave1;
+  EnemySpawnWave wave2;
+  EnemySpawnWave wave3;
+  EnemySpawnWave wave4;
+  EnemySpawnWave wave5;
 
-    data.waves.push_back(wave);
-  }
+  wave0.wave_start_seconds = min_to_sec(0);
+  wave0.wave_end_seconds = min_to_sec(1);
+  wave1.wave_start_seconds = min_to_sec(1) + 1;
+  wave1.wave_end_seconds = min_to_sec(2);
+  wave2.wave_start_seconds = min_to_sec(2) + 1;
+  wave2.wave_end_seconds = min_to_sec(6);
+  wave3.wave_start_seconds = min_to_sec(6) + 1;
+  wave3.wave_end_seconds = min_to_sec(8);
+  wave4.wave_start_seconds = min_to_sec(8);
+  wave4.wave_end_seconds = min_to_sec(10);
+  wave5.wave_start_seconds = min_to_sec(16);
+  wave5.wave_end_seconds = min_to_sec(18);
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(1);
-    wave.wave_end_seconds = min_to_sec(2);
-    wave.hp = 24;
-    wave.max_allowed = 50;
-    wave.number_per_spawn = 10;
-    wave.spawn_cooldown = 4;
+  wave0.hp = 24;
+  wave1.hp = 24;
+  wave2.hp = 30;
+  wave3.hp = 60;
+  wave4.hp = 80;
+  wave5.hp = 250;
 
-    data.waves.push_back(wave);
-  }
+  wave0.max_allowed = 20;
+  wave1.max_allowed = 50;
+  wave2.max_allowed = 200;
+  wave3.max_allowed = 400;
+  wave4.max_allowed = 600;
+  wave5.max_allowed = 600;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(2);
-    wave.wave_end_seconds = min_to_sec(6);
-    wave.hp = 30;
-    wave.max_allowed = 200;
-    wave.number_per_spawn = 7;
-    wave.spawn_cooldown = 2;
+  wave0.number_per_spawn = 4;
+  wave1.number_per_spawn = 10;
+  wave2.number_per_spawn = 7;
+  wave3.number_per_spawn = 12;
+  wave4.number_per_spawn = 16;
+  wave5.number_per_spawn = 26;
 
-    data.waves.push_back(wave);
-  }
+  wave0.spawn_cooldown = 3;
+  wave1.spawn_cooldown = 4;
+  wave2.spawn_cooldown = 2;
+  wave3.spawn_cooldown = 2;
+  wave4.spawn_cooldown = 1;
+  wave5.spawn_cooldown = 1;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(6);
-    wave.wave_end_seconds = min_to_sec(8);
-    wave.hp = 60;
-    wave.max_allowed = 400;
-    wave.number_per_spawn = 12;
-    wave.spawn_cooldown = 2;
-
-    data.waves.push_back(wave);
-  }
-
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(8);
-    wave.wave_end_seconds = min_to_sec(10);
-    wave.hp = 80;
-    wave.max_allowed = 600;
-    wave.number_per_spawn = 16;
-    wave.spawn_cooldown = 1;
-
-    data.waves.push_back(wave);
-  }
-
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(16);
-    wave.wave_end_seconds = min_to_sec(18);
-    wave.hp = 250;
-    wave.max_allowed = 600;
-    wave.number_per_spawn = 26;
-    wave.spawn_cooldown = 1;
-
-    data.waves.push_back(wave);
-  }
+  data.waves.push_back(wave0);
+  data.waves.push_back(wave1);
+  data.waves.push_back(wave2);
+  data.waves.push_back(wave3);
+  data.waves.push_back(wave4);
+  data.waves.push_back(wave5);
 
   return data;
 };
@@ -171,53 +144,44 @@ melee_enemy_2()
   EnemySpawnData data;
   data.enemy_key = "actor_enemy_melee_2";
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(10) + 5;
-    wave.wave_end_seconds = min_to_sec(11);
-    wave.hp = 200;
-    wave.max_allowed = 30;
-    wave.number_per_spawn = 3;
-    wave.spawn_cooldown = 1;
+  EnemySpawnWave wave0;
+  EnemySpawnWave wave1;
+  EnemySpawnWave wave2;
+  EnemySpawnWave wave3;
 
-    data.waves.push_back(wave);
-  }
+  wave0.wave_start_seconds = min_to_sec(10) + 5;
+  wave0.wave_end_seconds = min_to_sec(11);
+  wave1.wave_start_seconds = min_to_sec(11) + 1;
+  wave1.wave_end_seconds = min_to_sec(13);
+  wave2.wave_start_seconds = min_to_sec(13);
+  wave2.wave_end_seconds = min_to_sec(14) + 55;
+  wave3.wave_start_seconds = min_to_sec(18);
+  wave3.wave_end_seconds = min_to_sec(19) + 59;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(11);
-    wave.wave_end_seconds = min_to_sec(13);
-    wave.hp = 250;
-    wave.max_allowed = 100;
-    wave.number_per_spawn = 5;
-    wave.spawn_cooldown = 1;
+  wave0.hp = 200;
+  wave1.hp = 250;
+  wave2.hp = 400;
+  wave3.hp = 500;
 
-    data.waves.push_back(wave);
-  }
+  wave0.max_allowed = 30;
+  wave1.max_allowed = 100;
+  wave2.max_allowed = 300;
+  wave3.max_allowed = 300;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(13);
-    wave.wave_end_seconds = min_to_sec(14) + 55;
-    wave.hp = 400;
-    wave.max_allowed = 300;
-    wave.number_per_spawn = 14;
-    wave.spawn_cooldown = 1;
+  wave0.number_per_spawn = 3;
+  wave1.number_per_spawn = 5;
+  wave2.number_per_spawn = 14;
+  wave3.number_per_spawn = 20;
 
-    data.waves.push_back(wave);
-  }
+  wave0.spawn_cooldown = 1;
+  wave1.spawn_cooldown = 1;
+  wave2.spawn_cooldown = 1;
+  wave3.spawn_cooldown = 1;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(18);
-    wave.wave_end_seconds = min_to_sec(19) + 59;
-    wave.hp = 500;
-    wave.max_allowed = 300;
-    wave.number_per_spawn = 20;
-    wave.spawn_cooldown = 1;
-
-    data.waves.push_back(wave);
-  }
+  data.waves.push_back(wave0);
+  data.waves.push_back(wave1);
+  data.waves.push_back(wave2);
+  data.waves.push_back(wave3);
 
   return data;
 };
@@ -228,53 +192,39 @@ projectile_enemy()
   EnemySpawnData data;
   data.enemy_key = "actor_enemy_projectile";
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(6);
-    wave.wave_end_seconds = min_to_sec(8);
-    wave.hp = 400;
-    wave.max_allowed = 2;
-    wave.number_per_spawn = 2;
-    wave.spawn_cooldown = 10;
+  EnemySpawnWave wave0;
+  EnemySpawnWave wave1;
+  EnemySpawnWave wave2;
+  EnemySpawnWave wave3;
 
-    data.waves.push_back(wave);
-  }
+  wave0.wave_start_seconds = min_to_sec(6);
+  wave0.wave_end_seconds = min_to_sec(8);
+  wave1.wave_start_seconds = min_to_sec(11);
+  wave1.wave_end_seconds = min_to_sec(13);
+  wave2.wave_start_seconds = min_to_sec(15);
+  wave2.wave_end_seconds = min_to_sec(16);
+  wave3.wave_start_seconds = min_to_sec(18);
+  wave3.wave_end_seconds = min_to_sec(19) + 59;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(11);
-    wave.wave_end_seconds = min_to_sec(13);
-    wave.hp = 200;
-    wave.max_allowed = 12;
-    wave.number_per_spawn = 2;
-    wave.spawn_cooldown = 1;
+  wave0.hp = 400;
+  wave1.hp = 200;
+  wave2.hp = 300;
+  wave3.hp = 500;
 
-    data.waves.push_back(wave);
-  }
+  wave0.max_allowed = 2;
+  wave1.max_allowed = 12;
+  wave2.max_allowed = 16;
+  wave3.max_allowed = 10;
 
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(15);
-    wave.wave_end_seconds = min_to_sec(16);
-    wave.hp = 300;
-    wave.max_allowed = 16;
-    wave.number_per_spawn = 2;
-    wave.spawn_cooldown = 1;
+  wave0.number_per_spawn = 2;
+  wave1.number_per_spawn = 2;
+  wave2.number_per_spawn = 2;
+  wave3.number_per_spawn = 1;
 
-    data.waves.push_back(wave);
-  }
-
-  {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(18);
-    wave.wave_end_seconds = min_to_sec(19) + 59;
-    wave.hp = 500;
-    wave.max_allowed = 10;
-    wave.number_per_spawn = 1;
-    wave.spawn_cooldown = 1;
-
-    data.waves.push_back(wave);
-  }
+  wave0.spawn_cooldown = 10;
+  wave1.spawn_cooldown = 1;
+  wave2.spawn_cooldown = 1;
+  wave3.spawn_cooldown = 1;
 
   return data;
 };

@@ -259,7 +259,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // inputs => players
     r.emplace<KeyboardComponent>(p1);
-    // r.emplace<SteamControllerComponent>(p1);
+    r.emplace<SteamControllerComponent>(p1);
     // r.emplace<SteamControllerComponent>(p2);
     // r.emplace<SteamControllerComponent>(p3);
     // r.emplace<SteamControllerComponent>(p4);

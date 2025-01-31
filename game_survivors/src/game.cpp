@@ -284,22 +284,14 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_health_system(r);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_level_up_system(r);
-  }
-
-  if (scene.s != Scene::menu && scene.s != Scene::splashscreen) {
-    update_ui_combat_damage_numbers_system(r, dt, mouse_pos);
-    update_ui_gameover_system(r);
-#if defined(_DEBUG)
-    update_ui_colours_system(r);
-    update_ui_debug_spawner_system(r);
-    update_ui_raws_system(r);
-#endif
+    // update_ui_combat_damage_numbers_system(r, dt, mouse_pos);
+    // update_ui_gameover_system(r);
   }
 
 #if defined(_DEBUG)
   static bool show_settings_ui = true;
 #else
-  static bool show_settings_ui = false;
+  static bool show_settings_ui = true;
 #endif
   if (show_settings_ui) {
     update_ui_debug_menubar_system(r);
@@ -326,6 +318,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     if (ui_steam_state.enabled)
       update_ui_steam_input_system(r);
 
+    update_ui_colours_system(r);
+    update_ui_debug_spawner_system(r);
+    update_ui_raws_system(r);
     update_ui_upgrades_system(r);
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);

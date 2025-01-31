@@ -31,7 +31,6 @@ void
 update_ui_gameover_system(entt::registry& r)
 {
   // Work out if game is over?
-
   return; // system disabled for the moment
 
   int enemies = 0;

@@ -63,10 +63,11 @@ std::unordered_map<std::string, int>
 get_live_enemies_map(entt::registry& r)
 {
   // How many of each enemies do we currently have?
-  const auto& enemies_view = r.view<EnemyComponent, Item>();
+  const auto& enemies_view = r.view<EnemyComponent, ItemKey>();
+
   std::unordered_map<std::string, int> enemy_to_amount;
   for (const auto& [e, enemy_c, item_c] : enemies_view.each())
-    enemy_to_amount[item_c.name] += 1;
+    enemy_to_amount[item_c.key] += 1;
   return enemy_to_amount;
 }
 

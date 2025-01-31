@@ -7,6 +7,7 @@ namespace game2d {
 
 struct UpgradeEvent
 {
+  entt::entity e = entt::null;
   Upgrade upgrade;
 };
 

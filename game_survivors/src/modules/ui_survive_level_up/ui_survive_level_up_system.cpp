@@ -12,6 +12,8 @@
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade/upgrade_helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "ui_survive_level_up_components.hpp"
 
 #include "imgui.h"
@@ -42,12 +44,16 @@ update_ui_survive_level_up_system(entt::registry& r)
 
   bool level_up_required = sxp_c.xp >= sxp_c.xp_for_next_level;
 
-#if defined(_DEBUG)
-  ImGui::Begin("DebugLevelUp");
-  if (ImGui::Button("LevelUp"))
-    sxp_c.xp += sxp_c.xp_for_next_level;
-  ImGui::End();
-#endif
+  {
+    auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+    auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
+    if (cheat_levelup_state.enabled) {
+      ImGui::Begin("CheatLevelUp");
+      if (ImGui::Button("LevelUp"))
+        sxp_c.xp += sxp_c.xp_for_next_level;
+      ImGui::End();
+    }
+  }
 
   uiup_c.require_level_up = level_up_required;
   if (!level_up_required)
@@ -86,10 +92,9 @@ update_ui_survive_level_up_system(entt::registry& r)
 
   const auto& view = r.view<PlayerComponent, StatModifierComponent, TraitComponent>();
   for (const auto& [e, player_c, stat_c, trait_c] : view.each()) {
-
     auto& upgrade_c = r.get_or_emplace<UpgradeComponent>(e);
     auto& aquired_upgrades = upgrade_c.aquired_upgrades;
-    auto diff = difference(available_upgrades, aquired_upgrades);
+    const auto diff = difference(available_upgrades, aquired_upgrades);
 
     for (const std::string& u : diff) {
       auto upgrade = find_upgrade(r, u);
@@ -97,11 +102,11 @@ update_ui_survive_level_up_system(entt::registry& r)
       std::string label = "Aquire##" + u;
       if (ImGui::Button(label.c_str())) {
         UpgradeEvent evt;
+        evt.e = e;
         evt.upgrade = upgrade;
         evts_c.dispatcher->trigger(evt);
         evts_c.dispatcher->update();
 
-        aquired_upgrades.push_back(upgrade.name);
         close_ui();
       }
 
@@ -153,7 +158,7 @@ update_ui_survive_level_up_system(entt::registry& r)
   ImGui::TextColored(text_col, "%s", "+10 Bullet Damage");
 
   // TEMP: collect all xp
-  if (ImGui::Button("Aquire##CollectAllXp")) {
+  if (ImGui::Button("Aquire##CollectAllXp (BROKEN)")) {
 
     const auto& xp_view = r.view<XpComponent>();
     auto& xp_c = get_first_component<SINGLE_XpComponent>(r);

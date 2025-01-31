@@ -26,20 +26,18 @@ update_ui_debug_spawner_system(entt::registry& r)
   auto& cooldown_c = r.get<CooldownComponent>(timer_e);
   auto& input_c = get_first_component<SINGLE_InputComponent>(r);
 
-#if defined(_DEBUG)
   if (get_key_held(input_c, SDL_SCANCODE_LSHIFT)) {
     // todo: go to next/previous wave
     if (get_key_down(input_c, SDL_SCANCODE_EQUALS))
-      cooldown_c.time += 20;
+      cooldown_c.time += 60;
     if (get_key_down(input_c, SDL_SCANCODE_MINUS))
-      cooldown_c.time -= 20;
+      cooldown_c.time -= 60;
   } else {
     if (get_key_down(input_c, SDL_SCANCODE_EQUALS))
       cooldown_c.time += 20;
     if (get_key_down(input_c, SDL_SCANCODE_MINUS))
       cooldown_c.time -= 20;
   }
-#endif
 
   ImGui::Begin("DebugSpawner");
 
