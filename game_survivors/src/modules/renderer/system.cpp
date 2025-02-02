@@ -69,10 +69,13 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   const auto& wh = ri.viewport_size_render_at;
 
+  // Super sampling, innit
+  const glm::vec2 double_wh = { 2.0 * wh.x, 2.0f * wh.y };
+
   for (RenderPass& rp : ri.passes) {
     for (const auto& tex : rp.texs) {
       engine::bind_tex(tex.tex_id.id);
-      engine::update_bound_texture_size(ri.viewport_size_render_at);
+      engine::update_bound_texture_size(double_wh);
       engine::unbind_tex();
     }
   }
@@ -129,7 +132,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.bind();
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
-  ri.water.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.water.set_vec2("viewport_wh", wh);
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -145,7 +148,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
   ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
-  ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
   for (const auto& tex : ri.user_textures) {
     const std::string key = "tex_" + clean_path(tex.path);
     SDL_Log("%s", std::format("user tex key: {}", key).c_str());
@@ -163,7 +165,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
   // for (const auto& tex : ri.user_textures)
   //   ri.outline.set_int("tex_" + clean_path(tex.path), tex.tex_unit.unit);
-  // ri.outline.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
 
   ri.crt.reload(r);
@@ -172,7 +173,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.crt.set_bool("is_fullscreen", true);
   ri.crt.set_mat4("projection", camera.projection);
   ri.crt.set_int("tex_to_crt", tex_unit_mix_lighting_and_scene);
-  ri.crt.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.crt.set_vec2("viewport_wh", double_wh);
 
   ri.lighting_emitters_and_occluders.reload(r);
   ri.lighting_emitters_and_occluders.bind();
@@ -205,10 +206,10 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_bool("add_grid", false);
-  ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
+  ri.mix_lighting_and_scene.set_vec2("viewport_wh", double_wh);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
@@ -261,11 +262,14 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   // ri.passes.push_back(RenderPass(PassName::bloom));
 
+  // Super sampling, innit
+  auto double_fbo_size = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
+
   for (auto& rp : ri.passes) {
     // if (rp.pass == PassName::jump_flood)
     //   rp.setup(fbo_size, 2);
     // else
-    rp.setup(fbo_size);
+    rp.setup(double_fbo_size);
   }
 
   // Load user textures
@@ -421,7 +425,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   if (check_if_viewport_resize(ri))
     rebind(r, ri);
 
-  const auto viewport_wh = ri.viewport_size_render_at;
+  // const auto viewport_wh = ri.viewport_size_render_at;
+  const auto double_wh = glm::vec2{ 2.0f * ri.viewport_size_render_at.x, 2.0f * ri.viewport_size_render_at.y };
 
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -473,9 +478,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
     const auto& pass_enum = pass.pass;
 
-    const auto& wh = ri.viewport_size_render_at;
     Framebuffer::bind_fbo(pass.fbos[0]);
-    RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+    RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
@@ -485,6 +489,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   // Default: render_texture_to_imgui
   // Render the last renderpass texture to the final output
   {
+    // last stage, dont double the framebuffer
+    const auto viewport_wh = ri.viewport_size_render_at;
+
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
     RenderCommand::set_clear_colour_srgb(black);

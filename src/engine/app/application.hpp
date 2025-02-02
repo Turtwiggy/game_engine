@@ -16,8 +16,8 @@ struct SINGLE_Application
   ImGui_Manager imgui;
 
   bool running = true;
-  uint64_t frame_start_time = 0;
-  uint64_t ms_since_launch = 0;
+  uint64_t start_ms = 0;
+  uint64_t frame_s = 0;
 };
 
 void

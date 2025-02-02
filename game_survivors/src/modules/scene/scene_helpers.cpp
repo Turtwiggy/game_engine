@@ -102,8 +102,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   // Spawn the weapons...
   for (auto& hardpoint_data : hull.hardpoints) {
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
-    hardpoint_data.arc = 360;
-    hardpoint_data.arc_mid = 0;
+    // hardpoint_data.arc = 360;
+    // hardpoint_data.arc_mid = 0;
     auto weapon_e = spawn_weapon(r, hardpoint_data);
     r.emplace<AutofireComponent>(weapon_e);
     weapons.push_back(weapon_e);
@@ -134,7 +134,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 
   // Apply some drag, bro
-  r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75);
+  r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75f);
 
   // TODO: come up with something better
   if (hull_key == "Dinghy")
@@ -245,7 +245,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       // create a ton of sprites for a sprite-stacked entity
       // sprites are from top to bottom
       // TODO: replace with config info
-      const int sprites_for_total_sprite = 7;
+      const int sprites_for_total_sprite = 5;
       const auto tex_unit = search_for_texture_unit_by_texture_path(ri_c, "spritestack_dinghy").value();
 
       entt::entity root_entity = entt::null;
@@ -269,6 +269,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
           r.emplace<CameraFollow>(e);
           r.emplace<SteamControllerComponent>(e);
           r.emplace<KeyboardComponent>(e);
+          spawn_particle_emitter(r, "anything", { 0, 1 }, e);
+          r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75f);
           spawn_e = e;
         }
 

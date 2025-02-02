@@ -13,6 +13,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/system_autofire/autofire_helpers.hpp"
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_log.h>
@@ -20,6 +21,7 @@
 #include <SDL_scancode.h>
 #include <box2d/b2_math.h>
 #include <box2d/box2d.h>
+#include <cmath>
 #include <glm/glm.hpp>
 
 #include <imgui.h>
@@ -99,17 +101,17 @@ update_movement_direct(entt::registry& r, const uint64_t ms_dt)
     body_c.body->ApplyLinearImpulseToCenter({ move_vel.x, move_vel.y }, true);
 
     //
-    // set rot here as the body itself doesnt rotate with movement_direct
-    // this functionality is equivilent to look_in_direction_of_movemen t
+    // Set Rotation
     //
-    if (glm::length(l_nrm_dir) <= 0.0f)
-      continue;
+
     const float speed = 10.0f; // higher number = faster to destination
     const float max_angle = 30.0f * engine::Deg2Rad;
 
-    const float cur_angle = std::fmod(body_c.body->GetAngle(), engine::TWO_PI);
-    const float wrapped_cur_angle = (cur_angle < 0.0f) ? cur_angle + engine::TWO_PI : cur_angle;
-    const float new_angle = engine::dir_to_angle_radians(l_nrm_dir);
+    const auto cur_angle = body_c.body->GetAngle();
+    const float wrapped_cur_angle = clamp_axis(cur_angle);
+
+    const auto cur_vel = body_c.body->GetLinearVelocity();
+    const float new_angle = engine::dir_to_angle_radians({ cur_vel.x, cur_vel.y });
 
     // Calculate angle diff
     float angle_diff = new_angle - wrapped_cur_angle;
@@ -121,6 +123,8 @@ update_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float clamped_angle_diff = glm::clamp(angle_diff, -max_angle, max_angle);
     const float tgt_angle = wrapped_cur_angle + clamped_angle_diff;
     const float fin_angle = exp_decay(wrapped_cur_angle, tgt_angle, speed, dt);
+
+    // SDL_Log("cur: %f tgt: %f, new: %f", cur_angle, tgt_angle, new_angle);
 
     body_c.body->SetTransform(body_c.body->GetPosition(), fin_angle);
   }

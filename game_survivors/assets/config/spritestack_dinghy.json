@@ -2,16 +2,17 @@
   "spritesheet": {
     "name": "spritemap_dinghy0",
     "px_total": 32,
-    "py_total": 72,
+    "py_total": 90,
     "px": 32,
     "py": 18,
     "nx": 1,
-    "ny": 4
+    "ny": 5
   },
   "sprites": [
     { "name": "dinghyframe_0", "frames": [ { "x": 0, "y": 0 } ], "angle": 180.0  },
     { "name": "dinghyframe_1", "frames": [ { "x": 0, "y": 1 } ], "angle": 180.0  },
     { "name": "dinghyframe_2", "frames": [ { "x": 0, "y": 2 } ], "angle": 180.0  },
-    { "name": "dinghyframe_3", "frames": [ { "x": 0, "y": 3 } ], "angle": 180.0  }
+    { "name": "dinghyframe_3", "frames": [ { "x": 0, "y": 3 } ], "angle": 180.0  },
+    { "name": "dinghyframe_4", "frames": [ { "x": 0, "y": 4 } ], "angle": 180.0  }
   ]
 }

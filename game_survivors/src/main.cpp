@@ -88,11 +88,14 @@ main_loop(void* arg)
   engine::start_frame(app);
   launch_thread_after_x_frames();
 
-  const uint64_t new_time = SDL_GetTicks64();
-  uint64_t frame_time = new_time - cur_time;
+  const uint64_t now = SDL_GetTicks64();
+  app.start_ms = now;
+  app.frame_s = SDL_GetPerformanceCounter();
+
+  uint64_t frame_time = now - cur_time;
   if (frame_time > 250)
     frame_time = 250; // avoid spiral
-  cur_time = new_time;
+  cur_time = now;
 
   milliseconds_accumulator_since_last_tick += frame_time;
 

@@ -129,29 +129,29 @@ update_ship_draw_arcs_system(entt::registry& r)
     // when load in, convert to engine, where 90 is down, 270 is up
     const auto mid = hardpoint_c.data.arc_mid;
     const auto arc = hardpoint_c.data.arc;
-    // const auto half_arc_radians = (arc / 2.0f) * engine::Deg2Rad;
+    const auto half_arc_radians = (arc / 2.0f) * engine::Deg2Rad;
     const auto adj_arc_mid = engine::angle_degrees_flip_y_axis(mid);
     const auto adj_arc_mid_rad = adj_arc_mid * engine::Deg2Rad;
-    // const auto tl_offset = glm::vec2{ hardpoint_c.data.x_rel_tl, hardpoint_c.data.y_rel_tl };
+    const auto tl_offset = glm::vec2{ hardpoint_c.data.x_rel_tl, hardpoint_c.data.y_rel_tl };
 
     // gunpoint base
     const float fwd = t_c.rotation_radians.z; // parents dir, could be gun dir?
-    // const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
-    // const auto tl = pos - (0.5f * size);
-    // const auto rel_tl = (tl - pos) + tl_offset;
-    // const auto rotated_point = engine::rotate_point(rel_tl, fwd);
-    // const auto hardpoint_pos = pos + rotated_point;
+    const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
+    const auto tl = pos - (0.5f * size);
+    const auto rel_tl = (tl - pos) + tl_offset;
+    const auto rotated_point = engine::rotate_point(rel_tl, fwd);
+    const auto hardpoint_pos = pos + rotated_point;
 
     // direction gunpoint is facing
     const float angle = fwd + adj_arc_mid_rad;
-    // const float angle_l = fwd + adj_arc_mid_rad - half_arc_radians;
-    // const float angle_r = fwd + adj_arc_mid_rad + half_arc_radians;
-    // const auto dir_l = engine::angle_radians_to_direction(angle_l);
-    // const auto dir = engine::angle_radians_to_direction(angle);
-    // const auto dir_r = engine::angle_radians_to_direction(angle_r);
-    // hardpoint_c.dir_arc_left = dir_l;
-    // hardpoint_c.dir_arc_center = dir;
-    // hardpoint_c.dir_arc_right = dir_r;
+    const float angle_l = fwd + adj_arc_mid_rad - half_arc_radians;
+    const float angle_r = fwd + adj_arc_mid_rad + half_arc_radians;
+    const auto dir_l = engine::angle_radians_to_direction(angle_l);
+    const auto dir = engine::angle_radians_to_direction(angle);
+    const auto dir_r = engine::angle_radians_to_direction(angle_r);
+    hardpoint_c.dir_arc_left = dir_l;
+    hardpoint_c.dir_arc_center = dir;
+    hardpoint_c.dir_arc_right = dir_r;
 
     if (arc >= 360) {
       const float epsilon = 0.001f;
@@ -173,13 +173,14 @@ update_ship_draw_arcs_system(entt::registry& r)
     DrawArc(screenspace, zone_radius, 0, 360, 2, im_col, true);
 
     // draw the gun arc.
-    // float thickness = 2;
+    float thickness = 2;
     // float radius = (50 + entity_to_guncount[p] * 2) / zoom;
-    // auto col = r.get<DefaultColour>(p).colour;
-    // col.a = (int)(1.0f * 255);
-    // const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
-    // float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
-    // DrawArc(screenspace, radius, center_angle_deg, arc, thickness, im_col, true);
+    float radius = (50 + 2) / zoom;
+    auto arc_col = r.get<DefaultColour>(p).colour;
+    col.a = (int)(1.0f * 255);
+    const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
+    float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
+    DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);
 
     // draw the arc where the gun cant shoot.
     // float thickness = 0.5;
