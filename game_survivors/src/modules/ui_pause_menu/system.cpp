@@ -12,8 +12,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/scene/components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 
 #include <SDL2/SDL_mixer.h>
@@ -126,10 +125,10 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
     if (ImGui::InputInt("Target FPS", &i0))
       app.fps_limit = static_cast<float>(i0);
 
-    ImGui::SeparatorText("Screen Size");
+    std::string separator_label =
+      std::format("Screen Size ({}, {})", ri.viewport_size_current.x, ri.viewport_size_current.y);
+    ImGui::SeparatorText(separator_label.c_str());
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    ImGui::Text("Current: %i %i", ri.viewport_size_current.x, ri.viewport_size_current.y);
-    ImGui::Text("Current (render at): %i %i", ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
 
     struct Resolution
     {
@@ -230,12 +229,13 @@ update_ui_pause_menu_system(engine::SINGLE_Application& app, entt::registry& r)
       }
     }
 
-    // Toggle CRT effect
+    ImGui::SeparatorText("Effects");
+
     auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
-    ImGui::Checkbox("Effect: CRT", &crt_c.enabled);
+    ImGui::Checkbox("CRT", &crt_c.enabled);
 
     static bool grid_effect = true;
-    ImGui::Checkbox("Effect: Grid", &grid_effect);
+    ImGui::Checkbox("Grid", &grid_effect);
     const auto grid_e = get_first<Effect_GridComponent>(r);
     if (grid_effect == true && grid_e == entt::null)
       create_empty<Effect_GridComponent>(r);

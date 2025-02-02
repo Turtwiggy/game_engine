@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_enemy_projectile_system(entt::registry& r);
+update_ui_imgui_colours_system(entt::registry& r);
 
 } // namespace game2d

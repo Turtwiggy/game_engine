@@ -18,7 +18,6 @@ in VS_OUT
 // e.g. "uniform sampler2D tex_monochrome_transparent_packed"
 {{ generate_user_samplers }}
 
-uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
 
 #define _SUPERSAMPLING_2X2_RGSS

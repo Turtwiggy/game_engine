@@ -12,11 +12,7 @@ update_ui_fps_counter_system(entt::registry& r)
   const bool show_fps_counter = true;
   if (show_fps_counter) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    static auto pos = glm::vec2{ 0, ri.viewport_size_render_at.y - (ImGui::GetFontSize() * 2.0f) }; // bl
-
-    // ImGui::Begin("DebugFps");
-    // imgui_draw_vec2("fps_pos", pos);
-    // ImGui::End();
+    const auto pos = glm::vec2{ 0, ri.viewport_size_render_at.y - (ImGui::GetFontSize() * 2.0f) }; // bl
 
     ImGui::SetNextWindowPos(ImVec2{ pos.x, pos.y }, ImGuiCond_Always, { 0, 0 });
 

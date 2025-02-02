@@ -10,11 +10,12 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "magic_enum.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_exploder/actor_exploder_helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
-#include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
@@ -256,6 +257,74 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     transform_c.scale.y = size.y;
   }
 
+  // add_traits()
+  {
+    std::vector<TraitOnDisk> traits;
+    if (t.traits.has_value())
+      traits = t.traits.value();
+
+    // Store traits on a per-entity basis as well
+    TraitComponent trait_c;
+    for (const auto& t : traits) {
+      const AquirableTrait typed_t = magic_enum::enum_cast<AquirableTrait>(t.key).value();
+      trait_c.traits.emplace(typed_t);
+    }
+    r.emplace<TraitComponent>(e, trait_c);
+
+    bool big_explode = false;
+
+    for (const auto& trait_str : traits) {
+      const auto trait_enum = magic_enum::enum_cast<AquirableTrait>(trait_str.key).value();
+
+      if (trait_enum == AquirableTrait::DIRECT) {
+        ApplyForceToDynamicTarget tgt_c;
+        tgt_c.orbit = false;
+        tgt_c.reduce_thrusters = false;
+        tgt_c.speed = 50.0f;
+        r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
+        r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
+      }
+
+      if (trait_enum == AquirableTrait::PROJECTILE) {
+        r.emplace<ProjectileEnemyComponent>(e);
+
+        ApplyForceToDynamicTarget tgt_c;
+        tgt_c.orbit = true;
+        tgt_c.reduce_thrusters = true;
+        tgt_c.speed = 50.0f;
+        tgt_c.distance_to_reduce_thrust = 600; // distance to shoot from
+        r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
+        r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
+
+        // TODO: give the enemy a weapon, dont attach these components to enemy?
+        r.emplace<CooldownComponent>(e, CooldownComponent{ 2.0f, 0.0 });
+        r.emplace<BulletDamage>(e, BulletDamage{ 1 });
+        r.emplace<BulletPierce>(e, BulletPierce{ 1 });
+        r.emplace<BulletSpeed>(e, BulletSpeed{ 50 });
+        r.emplace<BulletSize>(e, BulletSize{ { 18, 18 } });
+        // r.emplace<BulletKnockback>(e, BulletKnockback{ 50 });
+        // r.emplace<WeaponSpread>(wep_e);
+        // r.emplace<WeaponProjectiles>(wep_e, 1);
+      }
+      if (trait_enum == AquirableTrait::EXPLODE) {
+        add_explode_on_death_callback(r, e);
+        big_explode = true;
+      }
+    }
+
+    // Spawn particles on death
+    if (!big_explode) {
+      auto& callbacks_c = r.get<OnDeathCallbacks>(e);
+      const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
+        RequestToSpawnParticles request;
+        request.key = "default_explode";
+        request.position = get_position(r, e);
+        create_empty<RequestToSpawnParticles>(r, request);
+      };
+      callbacks_c.callbacks.push_back(spawn_particles_callback);
+    }
+  }
+
   r.emplace<DefaultSizeComponent>(e, size);
 };
 
@@ -289,53 +358,6 @@ spawn(entt::registry& r, const std::string& key)
   r.emplace<OnDeathCallbacks>(e);
   r.emplace<ItemKey>(e, key);
   // r.emplace<Item>(e, templ);
-
-  std::vector<TraitOnDisk> traits;
-  if (templ.traits.has_value())
-    traits = templ.traits.value();
-
-  // Store traits on a per-entity basis as well
-
-  TraitComponent trait_c;
-  for (const auto& t : traits) {
-    const AquirableTrait typed_t = magic_enum::enum_cast<AquirableTrait>(t.key).value();
-    trait_c.traits.emplace(typed_t);
-  }
-  r.emplace<TraitComponent>(e, trait_c);
-
-  bool big_explode = false;
-
-  for (const auto& trait_str : traits) {
-    const auto trait_enum = magic_enum::enum_cast<AquirableTrait>(trait_str.key).value();
-
-    if (trait_enum == AquirableTrait::DIRECT) {
-      ApplyForceToDynamicTarget tgt_c;
-      tgt_c.orbit = false;
-      tgt_c.reduce_thrusters = false;
-      tgt_c.speed = 100.0f;
-      r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
-      //
-    }
-    if (trait_enum == AquirableTrait::PROJECTILE) {
-      add_projectile_enemy_components(r, e);
-    }
-    if (trait_enum == AquirableTrait::EXPLODE) {
-      add_explode_on_death_callback(r, e);
-      big_explode = true;
-    }
-  }
-
-  // Spawn particles on death
-  if (!big_explode) {
-    auto& callbacks_c = r.get<OnDeathCallbacks>(e);
-    const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
-      RequestToSpawnParticles request;
-      request.key = "default_explode";
-      request.position = get_position(r, e);
-      create_empty<RequestToSpawnParticles>(r, request);
-    };
-    callbacks_c.callbacks.push_back(spawn_particles_callback);
-  }
 
   r.emplace<InputComponent>(e);
 

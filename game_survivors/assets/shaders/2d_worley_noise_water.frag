@@ -66,7 +66,7 @@ float fworley(vec2 p) {
 							sqrt(
 								sqrt(
 									// worley(p * 100.0 + 0.03*time)
-									worley(p *- 10.0 + 0.03*time)
+									worley(p * -10.0 + 0.03*time)
 								)
 							)
 						)

@@ -266,10 +266,10 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
       const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
       const auto shoot = controller_button_held(steam_c, handle, DA::Game_Shoot);
-      i.lx += l_analog.x;
-      i.ly += -l_analog.y; // flip y
-      i.rx += r_analog.x;
-      i.ry += -r_analog.y; // flip y
+      i.lx = l_analog.x;
+      i.ly = -l_analog.y; // flip y
+      i.rx = r_analog.x;
+      i.ry = -r_analog.y; // flip y
       i.shoot |= shoot;
     }
   }

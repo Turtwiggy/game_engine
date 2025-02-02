@@ -342,28 +342,26 @@ vec2 v_uv = fs_in.v_uv;
     // sdf grid	
     vec3 grid_col = vec3(0.0f);
     if(add_grid) {
-        {
-            float gridsize = tilesize / zoom; // pixels
-            vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
-            vec2 camera_uv = camera_uv_screen / zoom; 
-            float aspect_y = viewport_wh.y / viewport_wh.x;
-            
-            vec2 grid_uv = (2.0 * v_uv - 1.0);
-            grid_uv += camera_uv;
-            grid_uv.y *= aspect_y;
+        float gridsize = tilesize / zoom; // pixels
+        vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
+        vec2 camera_uv = camera_uv_screen / zoom; 
+        float aspect_y = viewport_wh.y / viewport_wh.x;
+        
+        vec2 grid_uv = (2.0 * v_uv - 1.0);
+        grid_uv += camera_uv;
+        grid_uv.y *= aspect_y;
 
-            vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * grid_uv;
+        vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * grid_uv;
 
-            // if the gridsize gets too small and the gridwidth isnt large enough, 
-            // the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
-            // float grid_width = 0.02; 
-            float grid_width = 0.04; 
-            float margin = 0.5;
-            if(abs(sdGrid(p_grid, margin)) >= grid_width)
-                grid_col = vec3(0.0);// background
-            else
-                grid_col = vec3(0.04); // line
-        }
+        // if the gridsize gets too small and the gridwidth isnt large enough, 
+        // the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
+        // float grid_width = 0.02; 
+        float grid_width = 0.04; 
+        float margin = 0.5;
+        if(abs(sdGrid(p_grid, margin)) >= grid_width)
+            grid_col = vec3(0.0);// background
+        else
+            grid_col = vec3(0.04); // line
     }
 
     vec4 scene_lin = texture(tex_scene_0, v_uv);

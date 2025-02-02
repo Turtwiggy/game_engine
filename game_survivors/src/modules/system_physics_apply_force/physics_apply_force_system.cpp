@@ -75,9 +75,10 @@ update_physics_apply_force_system(entt::registry& r)
       const b2Vec2 desired_vel = calculate_desired_velocity(a_body, b_body, req_c);
 
       // Calculate the velocity error
-      const float proportional_gain = 100.0f;
+      const float mass = body_c.body->GetMass();
+      const float proportional_gain = 10.0f;
       const b2Vec2 vel_err = desired_vel - cur_vel;
-      const b2Vec2 force = proportional_gain * vel_err;
+      const b2Vec2 force = mass * (proportional_gain * vel_err);
 
       // Could also clamp force here...
       // to stop exTrEmE forces

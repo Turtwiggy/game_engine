@@ -1,20 +1,15 @@
-#include "system.hpp"
+#include "spritestack_system.hpp"
 
-#include "components.hpp"
+#include "spritestack_components.hpp"
+
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
-#include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/lerp_to_target/components.hpp"
-
 
 #include <entt/entt.hpp>
-#include <glm/gtx/compatibility.hpp> // lerp
 #include <imgui.h>
 
 namespace game2d {
@@ -22,14 +17,14 @@ namespace game2d {
 void
 update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
+  // TODO: replace with spritesheet info
   static float scale_up_by = 1.0f;
-  static int sprite_height = -6;
-  static int sprite_scale_x = 16;
-  static int sprite_scale_y = 16;
-  static int parallax_offset_amount = 6;
+  static int sprite_height = 1;
+  static int sprite_scale_x = 32;
+  static int sprite_scale_y = 18;
+  static int parallax_offset_amount = 0;
 
-  static bool debug_spritestack = false;
-  ImGui::Begin("DebugSpriteStack", &debug_spritestack);
+  ImGui::Begin("DebugSpriteStack");
   imgui_draw_float("scale", scale_up_by);
   imgui_draw_int("sprite_height", sprite_height);
   imgui_draw_int("sprite_scale_x", sprite_scale_x);
@@ -50,23 +45,23 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
       // set position to parents position
       t.position = sprite_parent_transform.position;
       // set rotation to parents rotation
-      t.rotation_radians.z = sprite_parent_transform.rotation_radians.z - engine::HALF_PI;
+      t.rotation_radians.z = sprite_parent_transform.rotation_radians.z;
     }
 
-    t.position.y += int(scale_up_by) * (sprite_height * idx);
+    t.position.y += scale_up_by * (sprite_height * idx);
 
     t.scale = { sprite_scale_x, sprite_scale_y, 1.0f };
 
     // adjust colour
     // float percent = ((ssc.spritestack_total - 1) - ssc.spritestack_index);
-    sprite.colour.a = (ssc.spritestack_index + 1.0f) / float(ssc.spritestack_total);
+    // sprite.colour.a = (ssc.spritestack_index + 1.0f) / float(ssc.spritestack_total);
 
     // parallax effect
-    const glm::vec2 dir_raw = camera_pos - glm::vec2{ t.position.x, t.position.y };
-    const glm::vec2 dir_nrm = engine::normalize_safe(dir_raw);
-    const glm::vec2 offset = { -dir_nrm.x * idx * parallax_offset_amount, -dir_nrm.y * idx * parallax_offset_amount };
-    t.position.x += offset.x;
-    t.position.y += offset.y;
+    // const glm::vec2 dir_raw = camera_pos - glm::vec2{ t.position.x, t.position.y };
+    // const glm::vec2 dir_nrm = engine::normalize_safe(dir_raw);
+    // const glm::vec2 offset = { -dir_nrm.x * idx * parallax_offset_amount, -dir_nrm.y * idx * parallax_offset_amount };
+    // t.position.x += offset.x;
+    // t.position.y += offset.y;
   }
 
   ImGui::End();

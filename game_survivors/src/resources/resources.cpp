@@ -28,6 +28,7 @@ get_default_textures()
   // add_tex("ship_small_rusty.png", "spritemap_ship_small_rusty.json");
   add_tex("animation_idle.png", "spritemap_animation_idle.json");
   add_tex("junkers.png", "spritemap_junkers.json");
+  add_tex("spritestack_dinghy.png", "spritestack_dinghy.json");
 
   return ri;
 };

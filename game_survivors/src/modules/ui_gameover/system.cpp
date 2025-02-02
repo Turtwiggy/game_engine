@@ -4,7 +4,7 @@
 #include "modules/combat/components.hpp"
 #include "modules/persistent/helpers.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/scene/components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 

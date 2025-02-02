@@ -24,7 +24,7 @@
 #include "modules/raws/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
-#include "modules/scene/components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
@@ -42,6 +42,7 @@
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
+#include "modules/system_spritestack/spritestack_system.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade/upgrade_helpers.hpp"
 #include "modules/system_upgrade_max_hp/upgrade_max_hp_system.hpp"
@@ -55,6 +56,7 @@
 #include "modules/ui_debug_spawner/ui_debug_spawner_system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_imgui_colours/ui_imgui_colours.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
 #include "modules/ui_input_steam/ui_input_steam_system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
@@ -264,6 +266,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);
     update_enemy_projectile_system(r);
+    update_sprite_spritestack_system(r, dt);
   }
 
 #if defined(_DEBUG)
@@ -298,6 +301,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #endif
   if (show_settings_ui) {
     update_ui_debug_menubar_system(r);
+    update_ui_imgui_colours_system(r);
 
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
 

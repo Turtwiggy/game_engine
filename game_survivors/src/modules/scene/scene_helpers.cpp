@@ -1,6 +1,5 @@
 #include "scene_helpers.hpp"
 
-#include "components.hpp"
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/audio/audio_components.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
@@ -23,6 +22,7 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/raws/raws_components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
@@ -35,9 +35,11 @@
 #include "modules/system_manualfire/manualfire_components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
+#include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
@@ -171,6 +173,9 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   for (const auto& wep_e : weapons)
     connect_parent_and_weapon(r, e, wep_e);
 
+  // This is more like which controller should control this player
+  r.emplace<SteamControllerComponent>(e);
+
   return e;
 };
 
@@ -232,6 +237,60 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // set_position(r, e, { 0, 0 }); // center
   }
 
+  if (s == Scene::spritestack) {
+    auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+
+    // create a spritestack for testing
+    {
+      // create a ton of sprites for a sprite-stacked entity
+      // sprites are from top to bottom
+      // TODO: replace with config info
+      const int sprites_for_total_sprite = 7;
+      const auto tex_unit = search_for_texture_unit_by_texture_path(ri_c, "spritestack_dinghy").value();
+
+      entt::entity root_entity = entt::null;
+      glm::vec2 pos{ 0, 0 };
+
+      for (int i = 0; i < sprites_for_total_sprite; i++) {
+        const auto i_as_str = std::to_string(i);
+
+        entt::entity spawn_e = entt::null;
+
+        if (i == 0) {
+          const auto e = spawn(r, "actor_player");
+          root_entity = e;
+
+          // Trial: move spritestack
+          give_life(r, e, pos, { 32, 18 });
+          r.emplace<PlayerComponent>(e, 0);
+          r.emplace<MovementDirectComponent>(e);
+          r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
+          r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
+          r.emplace<CameraFollow>(e);
+          r.emplace<SteamControllerComponent>(e);
+          r.emplace<KeyboardComponent>(e);
+          spawn_e = e;
+        }
+
+        else {
+          const auto sprite_e = create_transform(r, i_as_str);
+          r.emplace<SpriteComponent>(sprite_e);
+          r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
+          spawn_e = sprite_e;
+        }
+        set_sprite(r, spawn_e, "dinghyframe_"s + i_as_str);
+
+        SpritestackComponent spritestack_c(i);
+        spritestack_c.spritestack_total = sprites_for_total_sprite;
+        if (i > 0)
+          spritestack_c.root = root_entity;
+        r.emplace<SpritestackComponent>(spawn_e, spritestack_c);
+      }
+    }
+
+    //
+  }
+
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
     create_empty<Effect_GridComponent>(r);
@@ -246,17 +305,19 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     }
 
     // players
-    const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0, hull_key);
-    // const auto p2 = spawn_player(r, "actor_player", { 16, 0 }, 1, hull_key);
-    // const auto p3 = spawn_player(r, "actor_player", { 0, 16 }, 2, hull_key);
-    // const auto p4 = spawn_player(r, "actor_player", { 16, 16 }, 3, hull_key);
+    // TODO: replace this player spawn system to a more dynamic
+    // spawn system that lets players join halfway through
+    const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
+    for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
+      auto handle = controller_ui.handles[i];
+      if (handle == 0)
+        continue;
+      const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0, hull_key);
 
-    // inputs => players
-    r.emplace<KeyboardComponent>(p1);
-    r.emplace<SteamControllerComponent>(p1);
-    // r.emplace<SteamControllerComponent>(p2);
-    // r.emplace<SteamControllerComponent>(p3);
-    // r.emplace<SteamControllerComponent>(p4);
+      // Note: if the steamcontroller has a handle, controller overwrites keyboard
+      if (i == 0)
+        r.emplace<KeyboardComponent>(p1);
+    }
 
     // The survive timer that various spawners read from
     float seconds = 20 * 60;

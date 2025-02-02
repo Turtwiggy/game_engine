@@ -35,9 +35,6 @@ update_ui_scene_select_system(entt::registry& r)
   const ImVec2 size = { 120.0f, 40.0f };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f);
 
   ImGui::Begin("Hull", NULL, flags);
 
@@ -92,7 +89,7 @@ update_ui_scene_select_system(entt::registry& r)
   }
 
   ImGui::End();
-  ImGui::PopStyleVar(4);
+  ImGui::PopStyleVar(1);
 }
 
 } // namespace game2d

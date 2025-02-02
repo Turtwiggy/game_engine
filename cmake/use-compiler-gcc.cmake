@@ -11,16 +11,14 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
     # set(CMAKE_CXX_FLAGS_INIT "-L C:/Software/msys64/ucrt64/lib")
     # set(CMAKE_INCLUDE_PATH "C:/Software/msys64/ucrt64/include")
     # set(CMAKE_LIBRARY_PATH "C:/Software/msys64/ucrt64/lib")
+    # set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/ld.bfd.exe")
+    set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/ld.lld.exe")
   endif()
 
-  # Use lld as the linker
-  set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/lld.exe")
   set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
   set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=lld")
   set(CMAKE_MODULE_LINKER_FLAGS "-fuse-ld=lld")
 
-  # set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/ld.bfd.exe")
-  # set(CMAKE_LINKER "C:/Software/msys64/ucrt64/bin/ld.exe")
   # set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=bfd") # ld linker
   # set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=bfd") # ld linker
   # set(CMAKE_MODULE_LINKER_FLAGS "-fuse-ld=bfd") # ld linker
@@ -50,6 +48,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-maybe-uninitialized")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch -Werror")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wformat -Wextra")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
   set(LD_FLAGS "${LD_FLAGS} -static")
   message("LD_FLAGS:${LD_FLAGS}")
 

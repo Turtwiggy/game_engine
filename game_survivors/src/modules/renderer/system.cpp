@@ -20,7 +20,7 @@
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
-#include "modules/scene/components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "renderpass/passes.hpp"
 
 #if defined(_MSC_VER)

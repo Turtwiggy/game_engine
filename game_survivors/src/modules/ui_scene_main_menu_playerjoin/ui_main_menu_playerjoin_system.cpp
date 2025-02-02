@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/scene/components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
@@ -95,33 +95,26 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
-  // flags |= ImGuiWindowFlags_NoTitleBar;
+  flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   // flags |= ImGuiWindowFlags_NoBackground;
 
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.0f);
+  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
+  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
+  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (9 / 12.0f));
+  const float pos_y = viewport_pos.y + viewport_size_half.y;
+  const auto pos = ImVec2(pos_x, pos_y);
+  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-  // left third centered
-  // const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  // const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
-  // const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (11 / 12.0f));
-  // // const float pos_y = viewport_pos.y + viewport_size_half.y;
-  // const float pos_y = 0;
-  // const auto pos = ImVec2(pos_x, pos_y);
-  // ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-
-  ImGui::Begin("Join the game!", NULL, flags);
+  ImGui::Begin("Players", NULL, flags);
 
   // There's a bug where the action handles aren't non-zero until a config is done loading. Soon config
   // information will be available immediately. Until then try to init as long as the handles are invalid.
   const auto& digital_action_handles = steam_c.digital_action_handles;
   if (digital_action_handles[(int)DA::Game_Up] == 0) {
     init_steam_input_actions(r);
-    ImGui::Text("SteamInput not loaded...");
+    ImGui::Text("SteamInput not detected, or no controllers plugged in!");
     ImGui::End();
-    ImGui::PopStyleVar(3);
     return;
   }
 
@@ -153,8 +146,9 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
       const char* keyname = SteamInput()->GetStringForActionOrigin(origin);
       join_key_map[handle] = keyname;
     }
+
     if (!join_key_map.contains(handle))
-      join_key_map[handle] = "unknown";
+      join_key_map[handle] = "Loading...";
 
     auto b_join = controller_button_held(steam_c, handle, DA::Menu_JoinSlot);
     if (b_join) {
@@ -192,7 +186,8 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
     if (joined && connected) {
       ImGui::SameLine();
-      ImGui::Text("Connected. %zu", ui_c.handles[i]);
+      // ImGui::Text("Connected. %zu", ui_c.handles[i]);
+      ImGui::Text("Connected.");
       continue;
     }
 
@@ -205,14 +200,13 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
     auto unassigned_handle = free_controllers[next_free_controller];
     auto unassigned_handle_joinkey = join_key_map[unassigned_handle];
-    std::string str = std::format("Press {} join.", unassigned_handle_joinkey);
+    std::string str = std::format("Press {} to join.", unassigned_handle_joinkey);
 
     ImGui::SameLine();
     ImGui::Text("%s", str.c_str());
   }
 
   ImGui::End();
-  ImGui::PopStyleVar(3);
 
   // HACK: assign ui to components
   {

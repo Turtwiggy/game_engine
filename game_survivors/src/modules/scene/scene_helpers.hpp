@@ -1,9 +1,8 @@
 #pragma once
 
-#include "components.hpp"
+#include "scene_components.hpp"
 
 #include "entt/entt.hpp"
-#include <glm/glm.hpp>
 
 namespace game2d {
 

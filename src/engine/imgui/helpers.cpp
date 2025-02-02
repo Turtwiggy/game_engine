@@ -11,6 +11,7 @@
 #include <vector>
 
 namespace game2d {
+using namespace std::literals;
 
 WomboComboOut
 draw_wombo_combo(const WomboComboIn& in)
@@ -31,7 +32,7 @@ draw_wombo_combo(const WomboComboIn& in)
 
   const std::string combo_preview_value = items[in.current_index];
 
-  if (ImGui::BeginCombo(label.c_str(), combo_preview_value.c_str(), 0)) {
+  if (ImGui::BeginCombo(("##"s + label).c_str(), combo_preview_value.c_str(), 0)) {
     for (size_t n = 0; n < items.size(); n++) {
       const bool is_selected = (cur_idx == n);
 

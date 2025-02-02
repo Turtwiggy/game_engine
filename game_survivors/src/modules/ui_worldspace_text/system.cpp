@@ -21,9 +21,7 @@ update_ui_worldspace_text_system(entt::registry& r)
   const auto zoom = camera_c.zoom_nonlinear;
   const ImVec2 zoom_vec = { zoom, zoom };
 
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 4.0f, 4.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
 
   const auto& view = r.view<TransformComponent, WorldspaceTextComponent>();
@@ -63,7 +61,7 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGui::End();
   }
 
-  ImGui::PopStyleVar(4);
+  ImGui::PopStyleVar(2);
 }
 
 } // namespace game2d

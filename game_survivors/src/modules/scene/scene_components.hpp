@@ -8,6 +8,7 @@ enum class Scene
   menu,
   select,
   survive,
+  spritestack,
 
   test, // used by tests
   count
