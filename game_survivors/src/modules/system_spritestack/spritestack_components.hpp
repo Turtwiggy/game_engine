@@ -12,7 +12,7 @@ struct SpritestackComponent
   int spritestack_total = 0;
 
   SpritestackComponent(int index)
-    : spritestack_index(index){};
+    : spritestack_index(index) {};
 };
 
 struct RotateOnSpotComponent

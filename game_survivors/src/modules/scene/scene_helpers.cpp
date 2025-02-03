@@ -244,15 +244,19 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     {
       // create a ton of sprites for a sprite-stacked entity
       // sprites are from top to bottom
-      // TODO: replace with config info
-      const int sprites_for_total_sprite = 5;
-      const auto tex_unit = search_for_texture_unit_by_texture_path(ri_c, "spritestack_dinghy").value();
+      // const auto sprite = "dinghy";
+      // const auto sprite = "rhib";
+      const auto sprite = "PBR";
+      const auto& anims = get_first_component<SINGLE_Animations>(r);
+      const auto [spritesheet, anim] = find_animation(anims, sprite + "_0"s);
+      const int sprites_for_total_sprite = spritesheet.ny;
 
       entt::entity root_entity = entt::null;
       glm::vec2 pos{ 0, 0 };
 
       for (int i = 0; i < sprites_for_total_sprite; i++) {
         const auto i_as_str = std::to_string(i);
+        const auto tag_str = sprite + "_"s + i_as_str;
 
         entt::entity spawn_e = entt::null;
 
@@ -277,10 +281,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
         else {
           const auto sprite_e = create_transform(r, i_as_str);
           r.emplace<SpriteComponent>(sprite_e);
-          r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
           spawn_e = sprite_e;
         }
-        set_sprite(r, spawn_e, "dinghyframe_"s + i_as_str);
+
+        set_sprite(r, spawn_e, sprite + "_"s + i_as_str);
+        r.get<TagComponent>(spawn_e).tag = tag_str;
 
         SpritestackComponent spritestack_c(i);
         spritestack_c.spritestack_total = sprites_for_total_sprite;

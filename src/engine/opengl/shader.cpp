@@ -178,7 +178,8 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
         if (i == 0) {
           // std::string l1 = "out_colour *= tex2dss()";
           std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
-          std::string l1 = "out_colour *= tex2dss(" + key + ", sprite_uv, bias, aa_scale);\n";
+          // std::string l1 = "out_colour *= tex2dss(" + key + ", sprite_uv, bias, aa_scale);\n";
+          std::string l1 = "out_colour *= texture(" + key + ", sprite_uv);\n";
           // std::string l2 = "return;\n";
           std::string l3 = "}\n";
           generated.append(l0);

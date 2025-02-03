@@ -29,6 +29,8 @@ get_default_textures()
   add_tex("animation_idle.png", "spritemap_animation_idle.json");
   add_tex("junkers.png", "spritemap_junkers.json");
   add_tex("spritestack_dinghy.png", "spritestack_dinghy.json");
+  add_tex("spritestack_rhib.png", "spritestack_rhib.json");
+  add_tex("spritestack_pbr.png", "spritestack_pbr.json");
 
   return ri;
 };

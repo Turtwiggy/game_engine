@@ -7,6 +7,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/renderer/transform.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/renderer/components.hpp"
@@ -51,6 +53,7 @@ struct UboData
   float time = 0;
   float zoom = 0;
   float tilesize = 50;
+  glm::vec3 player_positions[4];
 };
 
 int
@@ -425,6 +428,15 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   if (check_if_viewport_resize(ri))
     rebind(r, ri);
 
+#if defined(_DEBUG)
+  // reload all shaders
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_0)) {
+    SDL_Log("(DEBUG) Reloading shaders");
+    rebind(r, ri);
+  }
+#endif
+
   // const auto viewport_wh = ri.viewport_size_render_at;
   const auto double_wh = glm::vec2{ 2.0f * ri.viewport_size_render_at.x, 2.0f * ri.viewport_size_render_at.y };
 
@@ -442,21 +454,15 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   auto grid_e = get_first<Effect_GridComponent>(r);
   if (grid_e != entt::null)
     data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
+  const auto& players_view = r.view<PlayerComponent, TransformComponent>();
+  for (int i = 0; const auto& [e, player_c, t_c] : players_view.each())
+    data.player_positions[i++] = t_c.position;
 
   // Note: this updates the entire array.
   // We could update only the parts that change
   glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-#if defined(_DEBUG)
-  // reload all shaders
-  const auto& input = get_first_component<SINGLE_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_0)) {
-    SDL_Log("(DEBUG) Reloading shaders");
-    rebind(r, ri);
-  }
-#endif
 
   const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
   const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();

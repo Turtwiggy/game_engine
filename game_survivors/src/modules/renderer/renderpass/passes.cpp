@@ -136,6 +136,7 @@ setup_linear_main_update(entt::registry& r)
     // glEnable(GL_DEPTH_TEST);
 
     // set the positions of the units with circles units & update TBO
+    /*
     const int N_MAX_CIRCLES = 100;
     {
       static std::vector<CircleComponent> points(N_MAX_CIRCLES);
@@ -162,6 +163,7 @@ setup_linear_main_update(entt::registry& r)
       // glBindTexture(GL_TEXTURE_2D, ri.renderer.data.TEX);
       // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, num_cols, num_rows, GL_RGBA, GL_FLOAT, points.data());
     }
+    */
 
     // Render some quads
     {

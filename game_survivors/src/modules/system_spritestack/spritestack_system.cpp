@@ -1,5 +1,6 @@
 #include "spritestack_system.hpp"
 
+#include "engine/sprites/helpers.hpp"
 #include "spritestack_components.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -18,25 +19,33 @@ void
 update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
   // TODO: replace with spritesheet info
-  static float scale_up_by = 1.0f;
+
+  // note: values of 1 seem to distort the spritestack, but add depth
+  // because it SHOULD be in top-down perspective
+  // values of 0 are just top down perspective,
+  // so a value of 0-1 is recommended between these two.
+  static float scale_up_by = 0.6f;
   static int sprite_height = 1;
-  static int sprite_scale_x = 32;
-  static int sprite_scale_y = 18;
+
   static int parallax_offset_amount = 0;
 
   ImGui::Begin("DebugSpriteStack");
   imgui_draw_float("scale", scale_up_by);
   imgui_draw_int("sprite_height", sprite_height);
-  imgui_draw_int("sprite_scale_x", sprite_scale_x);
-  imgui_draw_int("sprite_scale_y", sprite_scale_y);
   imgui_draw_int("parallax_offset_amount", parallax_offset_amount);
 
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto camera_pos = get_position(r, camera_e);
 
-  const auto& view = r.view<TransformComponent, SpritestackComponent, SpriteComponent>();
-  for (const auto& [e, t, ssc, sprite] : view.each()) {
+  const auto& view = r.view<TransformComponent, SpritestackComponent, SpriteComponent, TagComponent>();
+  for (const auto& [e, t, ssc, sprite, tag_c] : view.each()) {
     const auto idx = ssc.spritestack_index;
+
+    const auto& anims = get_first_component<SINGLE_Animations>(r);
+    const auto [spritesheet, anim] = find_animation(anims, tag_c.tag);
+
+    const int sprite_scale_x = spritesheet.px;
+    const int sprite_scale_y = spritesheet.py;
 
     // Set position for each child sprite
     if (ssc.root != entt::null) {

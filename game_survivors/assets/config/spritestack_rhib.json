@@ -1,0 +1,31 @@
+{
+  "spritesheet": {
+    "name": "rhib",
+    "px_total": 55,
+    "py_total": 540,
+    "px": 55,
+    "py": 30,
+    "nx": 1,
+    "ny": 18
+  },
+  "sprites": [
+    { "name": "rhib_0", "frames": [ { "x": 0, "y": 0 } ], "angle": 180 },
+    { "name": "rhib_1", "frames": [ { "x": 0, "y": 1 } ], "angle": 180 },
+    { "name": "rhib_2", "frames": [ { "x": 0, "y": 2 } ], "angle": 180 },
+    { "name": "rhib_3", "frames": [ { "x": 0, "y": 3 } ], "angle": 180 },
+    { "name": "rhib_4", "frames": [ { "x": 0, "y": 4 } ], "angle": 180 },
+    { "name": "rhib_5", "frames": [ { "x": 0, "y": 5 } ], "angle": 180 },
+    { "name": "rhib_6", "frames": [ { "x": 0, "y": 6 } ], "angle": 180 },
+    { "name": "rhib_7", "frames": [ { "x": 0, "y": 7 } ], "angle": 180 },
+    { "name": "rhib_8", "frames": [ { "x": 0, "y": 8 } ], "angle": 180 },
+    { "name": "rhib_9", "frames": [ { "x": 0, "y": 9 } ], "angle": 180 },
+    { "name": "rhib_10", "frames": [ { "x": 0, "y": 10 } ], "angle": 180 },
+    { "name": "rhib_11", "frames": [ { "x": 0, "y": 11 } ], "angle": 180 },
+    { "name": "rhib_12", "frames": [ { "x": 0, "y": 12 } ], "angle": 180 },
+    { "name": "rhib_13", "frames": [ { "x": 0, "y": 13 } ], "angle": 180 },
+    { "name": "rhib_14", "frames": [ { "x": 0, "y": 14 } ], "angle": 180 },
+    { "name": "rhib_15", "frames": [ { "x": 0, "y": 15 } ], "angle": 180 },
+    { "name": "rhib_16", "frames": [ { "x": 0, "y": 16 } ], "angle": 180 },
+    { "name": "rhib_17", "frames": [ { "x": 0, "y": 17 } ], "angle": 180 }
+  ]
+}

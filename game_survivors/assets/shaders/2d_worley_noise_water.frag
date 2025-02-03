@@ -3,6 +3,7 @@
 
 // based on: 
 // https://www.shadertoy.com/view/llS3RK
+// ibreakdownshaders.blogspot.com
 
 out vec4 out_colour;
 
@@ -24,6 +25,7 @@ layout(std140) uniform Data {
   float time;
   float zoom;
   float tilesize;
+	vec3[4] player_positions;
 };
 
 uniform vec2 viewport_wh;
@@ -37,41 +39,70 @@ float length2(vec2 p){
 float noise(vec2 p){
 	return fract(sin(fract(sin(p.x) * (43.13311)) + p.y) * 31.0011);
 }
+vec2 hash(vec2 P)
+{
+ 	return fract(cos(P*mat2(-64.2,71.3,81.4,-29.8))*8321.3); 
+}
+vec2 hash2( vec2 p )
+{
+	// texture based white noise
+	// return textureLod( iChannel0, (p+0.5)/256.0, 0.0 ).xy;
 
-float worley(vec2 p) {
-    //Set our distance to infinity
-	float d = 1e30;
-    //For the 9 surrounding grid points
-	for (int xo = -1; xo <= 1; ++xo) {
-		for (int yo = -1; yo <= 1; ++yo) {
-            //Floor our vec2 and add an offset to create our point
-			vec2 tp = floor(p) + vec2(xo, yo);
-            //Calculate the minimum distance for this grid point
-            //Mix in the noise value too!
-			d = min(d, length2(p - tp - noise(tp)));
-		}
+	// procedural white noise	
+	return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
+}
+
+float worley(vec2 p, vec2 other_p) {
+
+	float d = 1.; 
+	vec2 ip = floor(p);
+	vec2 fp = fract(p);
+
+
+	for(int xo = -1; xo<=1; xo++)
+	for(int yo = -1; yo<=1; yo++)
+	{
+		// Set a point as a grid-like structure
+		vec2 tp = ip + vec2(xo, yo) ;
+
+		// float dist = distance(hash(tp)+vec2(xo, yo), fp);
+		float dist = length2(p - tp - noise(tp));
+
+		d = min(d,dist);
 	}
+
+	// vec2 to_p = p - other_p;
+	// float scale = 0.5; // larger value = smaller ring
+	// float mouse_dist = length2(to_p)*scale;
+	// d = min(d, mouse_dist);
+
+	// Round out the edges.
+	// original: 
+	// return 3.0*exp(-4.0*abs(2.0*d - 1.0));
+	// shadertoy:
 	return 3.0*exp(-4.0*abs(2.5*d - 1.0));
 }
 
-float fworley(vec2 p) {
+float fworley(vec2 p, vec2 pp) {
 	// Stack noise layers 
-	return 
-	sqrt(
-		sqrt(
-			sqrt(
-				worley(p*5.0 + 0.05*time) *
-					sqrt(
-						worley(p * 50.0 + 0.12 + -0.1*time)) *
-							sqrt(
-								sqrt(
-									// worley(p * 100.0 + 0.03*time)
-									worley(p * -10.0 + 0.03*time)
-								)
-							)
-						)
-					)
-			);
+
+	// Spreading out the light can be done by taking repeated roots.
+	// This changes the peaking function to a much more smooth one.
+
+	float a_scale = 5; // sparse
+	float a_time = 0.05*time;
+	float b_scale = 50; // dense
+	float b_flat = 0.12;
+	float b_time = -0.1*time;
+	float c_scale = -10; // dense
+	float c_time = -0.03*time;
+
+	float a = worley(p*a_scale + 					a_time, pp*a_scale+a_time); 			
+	float b = worley(p*b_scale + b_flat + b_time, vec2(1, 1));
+	float c = worley(p*c_scale + 				  c_time, vec2(1, 1));
+	float d = sqrt(sqrt(sqrt( a * sqrt(b) * sqrt(sqrt(c)) )));
+
+	return d;
 }
 
 float sdfCircle( in vec2 p, in float r ) 
@@ -79,10 +110,6 @@ float sdfCircle( in vec2 p, in float r )
     return length(p)-r;
 }
       
-// vec2 center = iResolution.xy * 0.5;
-// vec2 p = ((fragCoord - center) * zoom + center + vec2(0.5));
-
-
 void main()
 {
 	vec2 v_uv = fs_in.v_uv;
@@ -101,10 +128,9 @@ void main()
 	vec2 screen_min = camera_pos - half_wh; // e.g. -960, -540 for 1920x1080
 	vec2 screen_max = camera_pos + half_wh; // e.g. 960, 540 for 1920x1080
 
-	float d = 0;
+	float d = 0.0;
+	float aspect_x = viewport_wh.x / viewport_wh.y;
 	{
-		float aspect_x = viewport_wh.x / viewport_wh.y;
-
 		// convert uv to -1 and 1
 		vec2 tmp_uv = -(2.0 * v_uv - 1.0);
 		tmp_uv.x *= aspect_x;
@@ -122,10 +148,8 @@ void main()
 
 		d = sdfCircle(p, size / (aspect_x * 100.0f));
 		
-		// vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
-		// out_colour.rgb = col;
-	}
 
+	}
 
 	vec2 uv = v_uv; // uv between 0 and 1
 	
@@ -135,18 +159,59 @@ void main()
 	uv += 0.5;
 
 	vec2 camera_uv_screenspace = camera_pos / viewport_wh; // [0, 1]
-	// vec2 camera_uv_clipspace = camera_uv_screenspace * 2.0 - 1.0; // [-1, 1]
 	uv += camera_uv_screenspace;
+	uv.x *= aspect_x;
 
-	float t = fworley(uv * iResolution.xy / 1500.0);
-	// t *= exp(-length2(abs(0.7*uv - 1.0))); // add gradient
+	vec3 worldspace_pos = player_positions[0].xyz; 
+	vec4 clipspace_pos = projection_zoomed * view * vec4(worldspace_pos.xyz, 1.0);
+	vec3 ndc_pos = clipspace_pos.xyz / clipspace_pos.w;
+	vec2 screenspace_pos = vec2(
+		(ndc_pos.x + 1.0) + 0.5 * viewport_wh.x,   // [0, screen_w]
+		(1.0 - ndc_pos.y) + 0.5 * viewport_wh.y	   // [0, screen_h]
+	);
+	vec2 screenspace = screenspace_pos / viewport_wh;
+	vec2 screenspace_adj = screenspace;
+	screenspace_adj += camera_uv_screenspace;
+	screenspace_adj.x *= aspect_x;
 
-	t *= d < 0.0 ? abs(d) * 0.85 : 0.0;
-	t *= 0.2;
-	// t = min(0.6, t);
+	vec2 scale = vec2(viewport_wh.x / 1500.0);
+  float t = fworley(uv*scale, screenspace_adj*scale);
 
-	vec3 col = t * vec3(0.1, 1.1*t, pow(t, 0.5-t));
+	vec2 hmm_uv = v_uv;
+	hmm_uv.y = 1 - hmm_uv.y;
+	// hmm_uv /= 1.2;
+
+
+	// inside distances only
+	d = clamp(d, -1, 1); 
+
+	// hmm_uv.y = clamp(hmm_uv.y, 0.8, 0.4);
+	// t *= d < 0.0 ? abs(d) * 0.85 : t;
+	t *= abs(d);
+	// t *= 0.1;
+	// t = clamp(t, 0.5, 0.6);
+
+	// Multiply intensity values by a colour curve based off the uv
+	t *= exp(-length2(abs(0.7*hmm_uv - 1.0))); // add gradient
+	
+	vec3 col= vec3(0.0);
+	if( d < 0 ){ // safe-zone
+		float r = 0.05;
+		float g = min(1.1*t, 1.0);
+		float b = min(pow(t, 0.75-t), 1.0); // colour curve
+		col = sqrt(sqrt(t)) * vec3(r, g, b);
+	} else {
+		float r = min(pow(t, 1.0-t), 1.0); // colour curve
+		float g = min(1.1*t, 1.0);
+		float b = 0.05;
+		col = sqrt(sqrt(t)) * vec3(r, g, b);
+	}
+
+	// vec3 col = vec3(r, g, b);
 	out_colour.rgb = col;
+
+	// vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
+	// out_colour.rgb = col;
 
 	out_colour.a = 1.0f;
 }

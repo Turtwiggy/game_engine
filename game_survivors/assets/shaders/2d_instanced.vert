@@ -1,8 +1,6 @@
 // version prepended to file when loaded by engine.
 //
 
-
-
 layout(location = 0) in vec4 vertex; // xy and uv
 // layout(location = 1) in vec4 pos_and_size;
 layout(location = 1) in vec4 colour;
@@ -12,8 +10,7 @@ layout(location = 4) in float tex_unit;
 layout(location = 5) in vec4 parallax; // xy: translational offset. wz: rotation
 layout(location = 6) in mat4 model;
 
-out VS_OUT 
-{
+out VS_OUT {
   vec2 v_uv;
   vec4 v_colour;
   vec2 v_sprite_pos;
@@ -34,6 +31,7 @@ layout(std140) uniform Data {
   float time;
   float zoom;
   float tilesize;
+  vec3[4] player_positions;
 };
 
 uniform mat4 projection;
@@ -42,43 +40,26 @@ uniform bool do_zoom;
 
 mat4 parallax_rotation_matrix(vec2 rotation) {
 
-  mat4 x_rot_mat = mat4(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, cos(rotation.x), -sin(rotation.x), 0.0,
-    0.0, sin(rotation.x), cos(rotation.x), 0.0,
-    0.0, 0.0, 0.0, 1.0
-  );
+  mat4 x_rot_mat = mat4(1.0, 0.0, 0.0, 0.0, 0.0, cos(rotation.x), -sin(rotation.x), 0.0, 0.0, sin(rotation.x), cos(rotation.x), 0.0, 0.0, 0.0, 0.0, 1.0);
 
-  mat4 y_rot_mat = mat4(
-    cos(rotation.y), 0.0, sin(rotation.y), 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    -sin(rotation.y), 0.0, cos(rotation.y), 0.0,
-    0.0, 0.0, 0.0, 1.0
-  );
+  mat4 y_rot_mat = mat4(cos(rotation.y), 0.0, sin(rotation.y), 0.0, 0.0, 1.0, 0.0, 0.0, -sin(rotation.y), 0.0, cos(rotation.y), 0.0, 0.0, 0.0, 0.0, 1.0);
 
   return y_rot_mat * x_rot_mat;
 }
 
-mat4 parallax_offset_matrix(vec2 offset){
-  mat4 offset_mat = mat4(
-      1.0, 0.0, 0.0, 0.0,
-      0.0, 1.0, 0.0, 0.0,
-      0.0, 0.0, 1.0, 0.0,
-      offset.x, offset.y, 0.0, 1.0
-  );
+mat4 parallax_offset_matrix(vec2 offset) {
+  mat4 offset_mat = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, offset.x, offset.y, 0.0, 1.0);
   return offset_mat;
 }
 
-void
-main()
-{
+void main() {
   vs_out.v_uv = vertex.zw;
   vs_out.v_colour = colour;
   vs_out.v_sprite_pos = sprite_pos.xy;
   vs_out.v_sprite_wh = sprite_width_and_max.xy;
   vs_out.v_sprite_max = sprite_width_and_max.zw;
   vs_out.v_tex_unit = tex_unit;
-  vs_out.v_vertex = vec4( model * vec4(vertex.xy, 1.0, 1.0)).xy;
+  vs_out.v_vertex = vec4(model * vec4(vertex.xy, 1.0, 1.0)).xy;
 
   mat4 final_view = is_fullscreen ? mat4(1.0) : view;
   mat4 final_proj = do_zoom ? projection_zoomed : projection;

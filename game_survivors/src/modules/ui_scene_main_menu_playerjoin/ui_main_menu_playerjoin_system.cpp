@@ -93,6 +93,9 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
 
+  if (scene_c.s != Scene::menu)
+    return;
+
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
