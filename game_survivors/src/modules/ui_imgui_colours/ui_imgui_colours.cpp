@@ -1,5 +1,9 @@
 #include "ui_imgui_colours.hpp"
 
+#include "engine/entt/helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
+
 #include "imgui.h"
 
 namespace game2d {
@@ -7,6 +11,11 @@ namespace game2d {
 void
 update_ui_imgui_colours_system(entt::registry& r)
 {
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  const auto& ui_state = gesert_menubar_state(menu_c, "Colour Editor");
+  if (!ui_state.enabled)
+    return;
+
   ImGui::Begin("Colour Editor");
 
   // CINDER IMGUI

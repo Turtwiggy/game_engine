@@ -1,6 +1,8 @@
 #include "spritestack_system.hpp"
 
 #include "engine/sprites/helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "spritestack_components.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -18,7 +20,8 @@ namespace game2d {
 void
 update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
-  // TODO: replace with spritesheet info
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  const auto& ui_state = gesert_menubar_state(menu_c, "(Debug) Spritestack");
 
   // note: values of 1 seem to distort the spritestack, but add depth
   // because it SHOULD be in top-down perspective
@@ -29,10 +32,12 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
 
   static int parallax_offset_amount = 0;
 
-  ImGui::Begin("DebugSpriteStack");
-  imgui_draw_float("scale", scale_up_by);
-  imgui_draw_int("sprite_height", sprite_height);
-  imgui_draw_int("parallax_offset_amount", parallax_offset_amount);
+  if (ui_state.enabled) {
+    ImGui::Begin("DebugSpriteStack");
+    imgui_draw_float("scale", scale_up_by);
+    imgui_draw_int("sprite_height", sprite_height);
+    imgui_draw_int("parallax_offset_amount", parallax_offset_amount);
+  }
 
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto camera_pos = get_position(r, camera_e);
@@ -73,7 +78,8 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
     // t.position.y += offset.y;
   }
 
-  ImGui::End();
+  if (ui_state.enabled)
+    ImGui::End();
 }
 
 } // namespace game2d

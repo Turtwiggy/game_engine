@@ -181,7 +181,7 @@
       "renderable": { "sprite": "EMPTY", "colour": "white" },
       "combat": { "damage": 3, "range": 2, "type": "unknown" },
       "phys_body": { "is_bullet": true, "is_static": false },
-      "phys_fixtures": [ { "tag": "bullet", "type": "box", "is_sensor": true } ]
+      "phys_fixtures": [ { "tag": "fixture_bullet", "type": "box", "is_sensor": true } ]
     },
     {
       "name": "xp",
@@ -189,15 +189,15 @@
       "display_desc": "Delicious experience. num num num num.",
       "renderable": { "sprite": "GEM", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": true },
-      "phys_fixtures": [ { "tag": "xp", "type": "box", "is_sensor": true } ]
+      "phys_fixtures": [ { "tag": "fixture_xp", "type": "box", "is_sensor": true } ]
     },
     {
       "name": "actor_player",
       "renderable": { "sprite": "hull_dinghy", "colour":  "white" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [
-        { "tag": "player", "type": "box", "is_sensor": false },
-        { "tag": "xp_zone", "type": "circle", "radius": 50, "is_sensor": true, "density": 0.0 }
+        { "tag": "fixture_player", "type": "box", "is_sensor": false },
+        { "tag": "fixture_xp_zone", "type": "circle", "radius": 50, "is_sensor": true, "density": 0.0 }
       ]
     },
     {
@@ -205,34 +205,34 @@
       "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
       "traits": [ {"key": "DIRECT" } ],
       "phys_body": { "is_bullet": false, "is_static": false },
-      "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_melee_2",
       "renderable": { "sprite": "TURTLE_27_5", "colour": "magenta" },
       "traits": [ {"key": "DIRECT"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
-      "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_exploder",
       "renderable": { "sprite": "CRAB_25_5", "colour": "gold_yellow" },
       "traits": [ {"key": "DIRECT"}, {"key": "EXPLODE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
-      "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_projectile",
       "renderable": { "sprite": "SNAKE_28_8", "colour": "green" },
       "traits": [ {"key": "PROJECTILE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
-      "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_rocks",
       "renderable": { "sprite": "TREE_0_1", "colour": "red" },
       "phys_body": { "is_bullet": false, "is_static": true },
-      "phys_fixtures": [ { "tag": "core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     }
   ],
   "powerups": [

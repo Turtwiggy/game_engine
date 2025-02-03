@@ -41,9 +41,9 @@ create_empty(entt::registry& r, const std::optional<T>& val = std::nullopt)
   // type identification on require at least one virtual function.
   // If you want type information to work on a class for which you don't
   // really want any virtual functions, make the destructor virtual.
-  // const std::string name = typeid(T).name();
-  // const std::string tag = cleanup_tag_str(name);
-  const std::string tag = "empty";
+  const std::string name = typeid(T).name();
+  const std::string tag = cleanup_tag_str(name);
+  // const std::string tag = "empty";
 
   const auto e = r.create();
   r.emplace<TagComponent>(e, tag);
@@ -79,8 +79,8 @@ get_first_component(entt::registry& r)
   const auto e = get_first<T>(r);
 
   if (e == entt::null) {
-    // const std::string name = typeid(T).name();
-    std::string name = "unknown";
+    const std::string name = typeid(T).name();
+    // std::string name = "unknown";
     const std::string err = std::format("get_first_component<{}>() missing", name);
     SDL_Log("%s", std::format("Error: {}", err).c_str());
     throw std::runtime_error(err);

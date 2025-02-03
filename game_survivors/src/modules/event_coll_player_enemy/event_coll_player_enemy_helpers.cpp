@@ -41,7 +41,7 @@ handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
   // Kill the enemy, and that should trigger the explode-on-death callback
   //
 
-  auto core_e = get_fixture_by_tag(r, enemy_e, "core");
+  auto core_e = get_fixture_by_tag(r, enemy_e, "fixture_core");
   const auto& core_c = r.get<HealthComponent>(core_e);
 
   DamageEvent evt;

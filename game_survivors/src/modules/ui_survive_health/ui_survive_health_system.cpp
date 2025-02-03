@@ -63,7 +63,7 @@ update_ui_survive_health_system(entt::registry& r)
 
     ImGui::Text("P%i", player_c.idx);
 
-    const auto fixture_e = get_fixture_by_tag(r, e, "player");
+    const auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
     const auto& hp_c = r.get<HealthComponent>(fixture_e);
     std::string hp_label = std::format("HP: {}/{}", hp_c.hp, hp_c.max_hp);
     ImGui::SameLine();

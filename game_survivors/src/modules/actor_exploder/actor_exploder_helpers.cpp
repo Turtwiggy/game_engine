@@ -98,7 +98,7 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
       // const auto& tag = tag_c.tag;
 
       // Note: specifying the fixture to damage here seems wrong
-      auto core_e = get_fixture_by_tag(r, other_e, "core");
+      auto core_e = get_fixture_by_tag(r, other_e, "fixture_core");
 
       DamageEvent evt;
       evt.from = entt::null; // likely dead

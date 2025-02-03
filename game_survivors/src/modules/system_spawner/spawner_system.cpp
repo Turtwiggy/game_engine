@@ -41,7 +41,7 @@ spawn_enemy(entt::registry& r, std::string key, int hp)
   const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
   give_life(r, e, rnd_pos, { 32, 32 });
 
-  auto fixture_e = get_fixture_by_tag(r, e, "core");
+  auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
   r.emplace<HealthComponent>(fixture_e, hp, hp);
   // r.emplace<DefenceComponent>(fixture_e);
 

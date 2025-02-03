@@ -158,13 +158,13 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#0096ff")); // blue
   set_colour(r, e, r.get<DefaultColour>(e).colour);
 
-  auto player_fixture_e = get_fixture_by_tag(r, e, "player");
+  auto player_fixture_e = get_fixture_by_tag(r, e, "fixture_player");
   r.emplace<PlayerFixtureComponent>(player_fixture_e);
   r.emplace<HealthComponent>(player_fixture_e, 10, 10);
   // r.emplace<DefenceComponent>(player_fixture_e, 0);
 
   // xp_zone fixture
-  auto fixture_e = get_fixture_by_tag(r, e, "xp_zone");
+  auto fixture_e = get_fixture_by_tag(r, e, "fixture_xp_zone");
   r.emplace<XpZoneComponent>(fixture_e);
 
   // upgrades...

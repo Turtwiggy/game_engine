@@ -27,6 +27,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
   view.each([&dead, &milliseconds_dt](auto entity, auto& lifecycle) {
     if (lifecycle.milliseconds_alive > lifecycle.milliseconds_alive_max)
       dead.dead.emplace(entity);
+
     lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
 
@@ -42,21 +43,24 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       continue;
 
     if (auto* callback = r.try_get<OnDeathCallbacks>(e)) {
-
-      // if (callback->callbacks.size() > 2)
-      //   int k = 1;
-
       for (const auto& cb : callback->callbacks)
         cb(r, e);
     }
     uniquely_dead.emplace(e);
   }
 
-  // A destroyed fixture belonging to a body; destroy the parent when the fixture dies.
   for (const auto e : uniquely_dead) {
+    // A destroyed fixture belonging to a body;
+    // destroy the parent when the fixture dies.
     if (auto* fixture_c = r.try_get<PhysicsFixtureComponent>(e)) {
       const auto parent_e = r.get<HasParentComponent>(e).parent;
       uniquely_dead.emplace(parent_e);
+    }
+    // A destroyed parent might have fixtures;
+    // destroy the fixtures when the parent dies.
+    if (auto* body_c = r.try_get<PhysicsBodyComponent>(e)) {
+      for (const auto fix_e : body_c->fixtures)
+        uniquely_dead.emplace(fix_e);
     }
   }
 
@@ -64,9 +68,9 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     // Update physics
     if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
       physics_c.world->DestroyBody(pb->body);
+
     // Update entt
-    if (r.valid(e))
-      r.destroy(e);
+    r.destroy(e);
   }
 
   // process create requests

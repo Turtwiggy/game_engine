@@ -365,10 +365,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_render_system(r, dt, mouse_pos);
 
 #if defined(_DEBUG)
-  auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
-  ImGui::Begin("RenderCalls");
-  ImGui::Text("DrawCalls: %i", ri_c.renderer.draw_calls());
-  ImGui::End();
+  // auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+  // ImGui::Begin("RenderCalls");
+  // ImGui::Text("DrawCalls: %i", ri_c.renderer.draw_calls());
+  // ImGui::End();
 #endif
 
   end_frame_render_system(r);
