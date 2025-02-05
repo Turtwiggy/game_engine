@@ -2,11 +2,16 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 
+#include <magic_enum.hpp>
 #include <steam/isteaminput.h>
 #include <steam/steam_api.h>
 #include <steam/steam_api_common.h>
 #include <steam/steam_api_flat.h>
+
+#include <ranges>
+#include <unordered_map>
 
 namespace game2d {
 
@@ -65,19 +70,18 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Game_Down] = SteamInput()->GetDigitalActionHandle("action_down");
   digital_action_handles[(int)DA::Game_Left] = SteamInput()->GetDigitalActionHandle("action_left");
   digital_action_handles[(int)DA::Game_Right] = SteamInput()->GetDigitalActionHandle("action_right");
-  digital_action_handles[(int)DA::Game_Shoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
+  digital_action_handles[(int)DA::Game_Pause] = SteamInput()->GetDigitalActionHandle("action_pause");
+  digital_action_handles[(int)DA::Game_Select] = SteamInput()->GetDigitalActionHandle("action_select");
   digital_action_handles[(int)DA::Game_Cancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
-  digital_action_handles[(int)DA::Game_Menu] = SteamInput()->GetDigitalActionHandle("action_menu");
-  digital_action_handles[(int)DA::Game_Join] = SteamInput()->GetDigitalActionHandle("action_join");
+  digital_action_handles[(int)DA::Game_Shoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
 
   digital_action_handles[(int)DA::Menu_Up] = SteamInput()->GetDigitalActionHandle("menu_up");
   digital_action_handles[(int)DA::Menu_Down] = SteamInput()->GetDigitalActionHandle("menu_down");
   digital_action_handles[(int)DA::Menu_Left] = SteamInput()->GetDigitalActionHandle("menu_left");
   digital_action_handles[(int)DA::Menu_Right] = SteamInput()->GetDigitalActionHandle("menu_right");
+  digital_action_handles[(int)DA::Menu_Pause] = SteamInput()->GetDigitalActionHandle("menu_pause");
   digital_action_handles[(int)DA::Menu_Select] = SteamInput()->GetDigitalActionHandle("menu_select");
   digital_action_handles[(int)DA::Menu_Cancel] = SteamInput()->GetDigitalActionHandle("menu_cancel");
-  digital_action_handles[(int)DA::Menu_JoinSlot] = SteamInput()->GetDigitalActionHandle("menu_join_slot");
-  digital_action_handles[(int)DA::Menu_LeaveSlot] = SteamInput()->GetDigitalActionHandle("menu_leave_slot");
 
   analog_action_handles[(int)AA::LAnalogControls] = SteamInput()->GetAnalogActionHandle("l_analog");
   analog_action_handles[(int)AA::RAnalogControls] = SteamInput()->GetAnalogActionHandle("r_analog");
@@ -142,16 +146,65 @@ update_steam_input_handles(entt::registry& r)
 };
 
 void
+generate_button_down(SINGLE_SteamControllers& steam_c, InputHandle_t handle)
+{
+  const auto you_held = steam_c.last_frame_held[handle]; // copy
+
+  // set all as unheld
+  steam_c.last_frame_held[handle].clear();
+
+  std::vector<DA> newly_down;
+
+  for (int i = 0; i < static_cast<int>(DA::count); i++) {
+    const auto act = magic_enum::enum_cast<DA>(i).value();
+
+    // Get the current state of the button
+    const bool held = controller_button_held(steam_c, handle, act);
+    const bool held_last_frame = std::find(you_held.begin(), you_held.end(), act) != you_held.end();
+
+    // Generate button down events.
+    if (held && !held_last_frame)
+      newly_down.push_back(act);
+
+    // Now, set the button as held
+    if (held)
+      steam_c.last_frame_held[handle].push_back(act);
+  }
+
+  steam_c.this_frame_down[handle] = newly_down;
+};
+
+void
 update_steam_input(entt::registry& r)
 {
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
 
   // check connect/disconnects
   update_steam_input_handles(r);
+
+  // Generate button held states for all the handles.
+  steam_c.this_frame_down.clear();
+  for (int h = 0; h < steam_c.n_active; h++)
+    generate_button_down(steam_c, steam_c.handles[h]);
 };
 
 bool
-controller_button_held(SINGLE_SteamControllers steam_c, InputHandle_t handle, DA dwAction)
+controller_button_down(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dwAction)
+{
+  if (handle == 0)
+    return false;
+  const std::unordered_map<InputHandle_t, std::vector<DA>>& all_down = steam_c.this_frame_down;
+
+  if (!all_down.contains(handle))
+    return false;
+  const auto& you_down = all_down.at(handle);
+
+  const auto it = std::find(you_down.begin(), you_down.end(), dwAction);
+  return it != std::end(you_down);
+};
+
+bool
+controller_button_held(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dwAction)
 {
   if (handle == 0)
     return false;
@@ -189,16 +242,24 @@ controller_axis(entt::registry& r, InputHandle_t handle, AA aAction)
 };
 
 void
-set_steam_controller_action_set(entt::registry& r, InputHandle_t handle, AS set)
+set_steam_controller_action_set(SINGLE_SteamControllers& steam_c, InputHandle_t handle, AS set)
 {
   if (handle == 0)
     return;
 
-  const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& sets = steam_c.action_set_handles;
 
   // This call is low-overhead and can be called repeatedly from game code that is active in a specific mode.
   SteamInput()->ActivateActionSet(handle, sets[(int)set]);
+};
+
+void
+set_all_steam_controller_action_set(SINGLE_SteamControllers& steam_c, AS set)
+{
+  for (int j = 0; j < steam_c.n_active; j++) {
+    auto handle = steam_c.handles[j];
+    set_steam_controller_action_set(steam_c, handle, set);
+  }
 };
 
 void
@@ -242,6 +303,14 @@ is_action_set_layer_active(entt::registry& r, InputHandle_t handle, AS set_layer
   }
 
   return false;
+};
+
+std::vector<InputHandle_t>
+non_zero_handles(const std::vector<InputHandle_t>& handles)
+{
+  auto non_zero = [](const InputHandle_t h) { return h != 0; };
+  auto non_zero_handles = handles | std::views::filter(non_zero);
+  return std::vector(non_zero_handles.begin(), non_zero_handles.end());
 };
 
 } // namespace game2d

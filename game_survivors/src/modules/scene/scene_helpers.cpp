@@ -28,6 +28,7 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/sprites/sprite_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
@@ -38,7 +39,7 @@
 #include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
@@ -244,9 +245,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     {
       // create a ton of sprites for a sprite-stacked entity
       // sprites are from top to bottom
-      // const auto sprite = "dinghy";
+      const auto sprite = "dinghy";
       // const auto sprite = "rhib";
-      const auto sprite = "PBR";
+      // const auto sprite = "PBR";
+      // const auto sprite = "anglerfish";
       const auto& anims = get_first_component<SINGLE_Animations>(r);
       const auto [spritesheet, anim] = find_animation(anims, sprite + "_0"s);
       const int sprites_for_total_sprite = spritesheet.ny;
@@ -298,6 +300,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     //
   }
 
+  if (s == Scene::select) {
+    create_empty<SINGLE_SelectSceneData>(r);
+  }
+
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
     create_empty<Effect_GridComponent>(r);
@@ -320,6 +326,9 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       if (handle == 0)
         continue;
       const auto p1 = spawn_player(r, "actor_player", { 0, 0 }, 0, hull_key);
+
+      // assign handle
+      r.get<SteamControllerComponent>(p1).handle = handle;
 
       // Note: if the steamcontroller has a handle, controller overwrites keyboard
       if (i == 0)

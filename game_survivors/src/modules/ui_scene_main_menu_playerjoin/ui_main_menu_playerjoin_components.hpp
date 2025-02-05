@@ -9,6 +9,7 @@ struct SINGLE_SteamControllerGameState
 {
   int players = 4;
   std::vector<InputHandle_t> handles;
+  std::vector<InputHandle_t> handles_joined_this_frame;
 
   SINGLE_SteamControllerGameState() { handles.resize(players, 0); };
 };

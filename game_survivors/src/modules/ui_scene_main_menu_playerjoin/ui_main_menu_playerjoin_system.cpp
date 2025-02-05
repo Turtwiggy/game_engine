@@ -1,89 +1,19 @@
 #include "ui_main_menu_playerjoin_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 
 #include <imgui.h>
 #include <steam/isteaminput.h>
 #include <steam/steam_api_common.h>
 
-#include <ranges>
-
 namespace game2d {
 using namespace std::literals;
-
-std::vector<InputHandle_t>
-non_zero_handles(const std::vector<InputHandle_t>& handles)
-{
-  auto non_zero = [](const InputHandle_t h) { return h != 0; };
-  auto non_zero_handles = handles | std::views::filter(non_zero);
-  return std::vector(non_zero_handles.begin(), non_zero_handles.end());
-};
-
-bool
-handle_is_connected(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle)
-{
-  if (handle == 0)
-    return false;
-  auto it = std::find(steam_c.handles.begin(), steam_c.handles.end(), handle);
-  return it != steam_c.handles.end();
-};
-
-bool
-handle_is_joined(const SINGLE_SteamControllerGameState& ui_c, const InputHandle_t handle)
-{
-  if (handle == 0)
-    return false;
-  auto it = std::find(ui_c.handles.begin(), ui_c.handles.end(), handle);
-  return it != ui_c.handles.end();
-};
-
-void
-assign_handle_to_ui(SINGLE_SteamControllerGameState& ui_c, InputHandle_t handle)
-{
-  if (handle_is_joined(ui_c, handle))
-    return;
-
-  for (int i = 0; i < ui_c.players; i++) {
-    if (ui_c.handles[i] != 0)
-      continue;
-    ui_c.handles[i] = handle;
-    break;
-  }
-};
-
-void
-unassign_handle_from_ui(SINGLE_SteamControllerGameState& ui_c, InputHandle_t handle)
-{
-  if (!handle_is_joined(ui_c, handle))
-    return;
-  auto it = std::find(ui_c.handles.begin(), ui_c.handles.end(), handle);
-  const auto idx = static_cast<int>(it - ui_c.handles.begin());
-  ui_c.handles[idx] = 0;
-};
-
-std::vector<InputHandle_t>
-connected_but_not_joined_controllers(const SINGLE_SteamControllers& steam_c, const SINGLE_SteamControllerGameState& ui_c)
-{
-  std::vector<InputHandle_t> connected_but_not_joined;
-  for (int i = 0; i < steam_c.n_active; i++) {
-    const InputHandle_t handle = steam_c.handles[i];
-    const bool connected = handle_is_connected(steam_c, handle);
-    const bool joined = handle_is_joined(ui_c, handle);
-    if (connected && !joined)
-      connected_but_not_joined.push_back(steam_c.handles[i]);
-  }
-  return connected_but_not_joined;
-};
-
-//
-// update
-//
 
 void
 update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
@@ -95,6 +25,18 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
   if (scene_c.s != Scene::menu)
     return;
+
+  // Set action key set
+  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_MenuControls);
+
+  //
+  // Clear the handles that have joined this frame
+  // Reason: prevent clicking join, and then because
+  // "get_button_down" would be true again,
+  // the "play" button would immediately be clicked,
+  // which I doubt is the users intention
+  //
+  ui_c.handles_joined_this_frame.clear();
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
@@ -131,7 +73,6 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
     const InputHandle_t handle = steam_c.handles[i];
     if (handle == 0)
       continue;
-    set_steam_controller_action_set(r, handle, AS::ActionSet_MenuControls);
 
     // ActionSet
     const auto& actionset_handles = steam_c.action_set_handles;
@@ -139,7 +80,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
     // DigitalAction
     const auto& digital_action_handles = steam_c.digital_action_handles;
-    const auto h = digital_action_handles[(int)DA::Menu_JoinSlot];
+    const auto h = digital_action_handles[(int)DA::Menu_Select];
 
     EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
     const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
@@ -153,29 +94,25 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
     if (!join_key_map.contains(handle))
       join_key_map[handle] = "Loading...";
 
-    auto b_join = controller_button_held(steam_c, handle, DA::Menu_JoinSlot);
+    auto b_join = controller_button_down(steam_c, handle, DA::Menu_Select);
     if (b_join) {
       assign_handle_to_ui(ui_c, handle);
       continue;
     }
 
-    // HACK: dont let unjoin if in survive scene?
-    // if (scene_c.s != Scene::survive) {
-    auto b_leave = controller_button_held(steam_c, handle, DA::Menu_LeaveSlot);
+    auto b_leave = controller_button_down(steam_c, handle, DA::Menu_Cancel);
     if (b_leave) {
       unassign_handle_from_ui(ui_c, handle);
       continue;
     }
-    // }
   }
 
   // i.e. "waiting to assign"
   const auto free_controllers = connected_but_not_joined_controllers(steam_c, ui_c);
-  auto next_free_controller = (int)free_controllers.size();
+  int next_free_controller = 0;
 
   for (int i = 0; i < 4; i++) {
-    std::string txt = ("P" + std::to_string(i));
-    ImGui::Text("%s", txt.c_str());
+    ImGui::Text("%s", ("P"s + std::to_string(i)).c_str());
 
     const auto handle = ui_c.handles[i];
     const bool connected = handle_is_connected(steam_c, handle);
@@ -194,44 +131,22 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
       continue;
     }
 
-    next_free_controller--;
-    if (next_free_controller < 0) {
+    bool all_assigned = next_free_controller >= (int)free_controllers.size();
+    if (free_controllers.size() == 0 || all_assigned) {
       ImGui::SameLine();
       ImGui::Text("N/A");
       continue; // no more free controllers
     }
 
-    auto unassigned_handle = free_controllers[next_free_controller];
-    auto unassigned_handle_joinkey = join_key_map[unassigned_handle];
-    std::string str = std::format("Press {} to join.", unassigned_handle_joinkey);
+    const auto unassigned_handle = free_controllers[next_free_controller++];
+    const auto unassigned_handle_joinkey = join_key_map[unassigned_handle];
+    const auto str = std::format("Press '{}' to join.", unassigned_handle_joinkey);
 
     ImGui::SameLine();
     ImGui::Text("%s", str.c_str());
   }
 
   ImGui::End();
-
-  // HACK: assign ui to components
-  {
-    const auto& group = r.group<PlayerComponent>();
-
-    group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
-      const auto& a = group.get<PlayerComponent>(lhs);
-      const auto& b = group.get<PlayerComponent>(rhs);
-      return a.idx < b.idx;
-    });
-
-    int i = 0;
-    for (const auto& [e, player_c] : group.each()) {
-      auto& steam_controller_c = r.get<SteamControllerComponent>(e);
-      steam_controller_c.handle = ui_c.handles[i];
-      i++;
-    }
-
-    // Reset the rest of the components?
-    // for (; i < 4; i++) {
-    // }
-  }
 }
 
 } // namespace game2d

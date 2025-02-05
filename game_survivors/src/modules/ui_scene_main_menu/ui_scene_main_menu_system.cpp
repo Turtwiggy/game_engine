@@ -1,6 +1,6 @@
-#include "system.hpp"
+#include "ui_scene_main_menu_system.hpp"
 
-#include "components.hpp"
+#include "ui_scene_main_menu_components.hpp"
 
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
@@ -10,6 +10,10 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 
 #include <SDL_keycode.h>
 #include <SDL_scancode.h>
@@ -23,42 +27,19 @@ namespace game2d {
 using namespace std::literals;
 
 void
-push_button_complete_colours()
-{
-  // Active state: Green
-  ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.33f, 0.6f, 0.6f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.33f, 0.7f, 0.7f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.33f, 0.8f, 0.8f));
-};
-
-void
-push_button_incomplete_colours()
-{
-  // Inactive state: red
-  ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 0.6f, 0.6f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.7f, 0.7f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 0.8f, 0.8f));
-};
-
-void
 update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
-  const auto& input = get_first_component<SINGLE_InputComponent>(r);
-  // const auto& controllers = input.controllers;
+  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
+  GET_FIRST_OR_RETURN(SINGLE_MainMenuUI, r, ui_e, ui)
+  GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoBackground;
-
-  // center
-  // const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-  // const auto& viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
-  // const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
-  // ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
   // left third centered
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
@@ -69,21 +50,34 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   ImGui::Begin("Main Menu", nullptr, flags);
 
-  // Controller to update UI
-  // if (controllers.size() > 0) {
-  //   auto* c = controllers[0];
-  //   if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X))
-  //     selected++;
-  //   if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y))
-  //     selected--;
-  //   if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A))
-  //     do_ui_action = true;
-  // }
-
   static int selected = 0;
   bool do_ui_action = false;
 
-  // Debug selected with keyboard
+  //
+  // Update menu via controller
+  // Note: not assigned yet to SteamControllerComponent
+  //
+
+  const auto nz_handles = non_zero_handles(steam_gs_c.handles);
+
+  for (int i = 0; i < (int)nz_handles.size(); i++) {
+    const auto handle = nz_handles[i];
+
+    if (handle_joined_this_frame(steam_gs_c, handle))
+      continue; // prevent immediately doing do_ui_action
+
+    if (controller_button_down(steam_c, handle, DA::Menu_Up))
+      selected--;
+    if (controller_button_down(steam_c, handle, DA::Menu_Down))
+      selected++;
+    if (controller_button_down(steam_c, handle, DA::Menu_Select))
+      do_ui_action = true;
+  }
+
+  //
+  // Update menu via keyboard (debug, mostly)
+  //
+
   if (get_key_down(input, SDL_SCANCODE_KP_MINUS))
     selected--;
   if (get_key_down(input, SDL_SCANCODE_KP_PLUS))

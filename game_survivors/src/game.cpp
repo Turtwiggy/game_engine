@@ -59,12 +59,13 @@
 #include "modules/ui_imgui_colours/ui_imgui_colours.hpp"
 #include "modules/ui_input/ui_input_system.hpp"
 #include "modules/ui_input_steam/ui_input_steam_system.hpp"
-#include "modules/ui_pause_menu/system.hpp"
+#include "modules/ui_pause_menu/pause_system.hpp"
 #include "modules/ui_raws/system.hpp"
-#include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
+#include "modules/ui_scene_survive/scene_survive_system.hpp"
 #include "modules/ui_survive_health/ui_survive_health_system.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_survive_level_up/ui_survive_level_up_system.hpp"
@@ -110,10 +111,16 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   // Fonts
   ImGuiIO& io = ImGui::GetIO();
   io.Fonts->AddFontDefault();
+
   // font for survive timer
   ImFontConfig fontConfig;
-  fontConfig.PixelSnapH = true; // Ensure pixel alignment
+  fontConfig.PixelSnapH = true;
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
+
+  // font for countdown timer
+  ImFontConfig countdown_config;
+  countdown_config.PixelSnapH = true;
+  io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 128.0f, &countdown_config);
 
   // hide default cursor
   if (custom_mouse_cursor) {
@@ -283,9 +290,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
   if (scene.s == Scene::select)
-    update_ui_scene_select_system(r);
+    update_ui_scene_select_system(r, dt);
 
   if (scene.s == Scene::survive) {
+    update_ui_scene_survive_system(r);
     update_ui_survive_timer_system(r);
     update_ui_survive_health_system(r);
     update_ui_survive_xp_bar_system(r);

@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_scene_select_system(entt::registry& r, const float dt);
+update_ui_scene_survive_system(entt::registry& r);
 
 } // namespace game2d

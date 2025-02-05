@@ -6,7 +6,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
-#include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 
 #include <imgui.h>
 

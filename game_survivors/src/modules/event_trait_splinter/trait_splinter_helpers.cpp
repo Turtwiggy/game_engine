@@ -41,6 +41,8 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
     const auto player_bullet_e = from_e;
 
     const auto wep_e = r.get<HasParentComponent>(player_bullet_e).parent;
+
+    // TODO: work out why this caused a crash
     const auto par_e = r.get<HasParentComponent>(wep_e).parent;
 
     if (!r.valid(par_e) || par_e == entt::null)

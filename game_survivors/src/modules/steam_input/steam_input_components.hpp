@@ -3,6 +3,7 @@
 #include <steam/isteaminput.h>
 #include <steam/steam_api.h>
 
+#include <unordered_map>
 #include <vector>
 
 namespace game2d {
@@ -15,19 +16,18 @@ enum class DigitalAction
   Game_Down,
   Game_Left,
   Game_Right,
-  Game_Shoot,
+  Game_Pause,
+  Game_Select,
   Game_Cancel,
-  Game_Menu,
-  Game_Join,
+  Game_Shoot,
 
   Menu_Up,
   Menu_Down,
   Menu_Left,
   Menu_Right,
+  Menu_Pause,
   Menu_Select,
   Menu_Cancel,
-  Menu_JoinSlot,
-  Menu_LeaveSlot,
 
   count,
 };
@@ -61,6 +61,10 @@ struct SINGLE_SteamControllers
   int n_active = 0;
   std::vector<InputHandle_t> handles;
 
+  // needed to generate button down state
+  std::unordered_map<InputHandle_t, std::vector<DA>> last_frame_held;
+  std::unordered_map<InputHandle_t, std::vector<DA>> this_frame_down;
+
   SINGLE_SteamControllers()
   {
     handles.resize(STEAM_CONTROLLER_MAX_COUNT);
@@ -71,8 +75,6 @@ struct SINGLE_SteamControllers
       analog_action_handles[i] = 0;
     for (int i = 0; i < static_cast<int>(AS::count); i++)
       action_set_handles[i] = 0;
-
-    // active_controller_handle = 0;
   }
 };
 
