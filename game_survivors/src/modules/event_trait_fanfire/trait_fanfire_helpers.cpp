@@ -3,11 +3,12 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
-#include "modules/colour/components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
+#include "modules/core_colour/components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_traits/trait_helpers.hpp"
+
 
 #include <SDL2/SDL_log.h>
 

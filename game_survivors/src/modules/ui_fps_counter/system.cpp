@@ -2,7 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "imgui.h"
-#include "modules/renderer/components.hpp"
+#include "modules/core_renderer/components.hpp"
 
 namespace game2d {
 

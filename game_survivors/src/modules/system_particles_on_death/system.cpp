@@ -2,7 +2,7 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "modules/raws/raws_components.hpp"
+#include "modules/core_raws/raws_components.hpp"
 #include "modules/system_particles/components.hpp"
 
 namespace game2d {

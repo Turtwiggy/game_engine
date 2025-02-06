@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
+#include "modules/core_collisions/resolve_collisions_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <box2d/b2_circle_shape.h>

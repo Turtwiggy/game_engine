@@ -5,11 +5,12 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/helpers.hpp"
+#include "modules/core_raws/raws_components.hpp"
+#include "modules/core_renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+
 
 namespace game2d {
 

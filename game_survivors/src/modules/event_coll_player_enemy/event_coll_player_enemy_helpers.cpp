@@ -9,10 +9,10 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/core_collisions/resolve_collisions_helpers.hpp"
+#include "modules/core_raws/raws_components.hpp"
 #include "modules/event_coll/event_coll_components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
 
 #include <magic_enum.hpp>
 

@@ -10,16 +10,17 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/colour/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
+#include "modules/core_colour/components.hpp"
+#include "modules/core_events/events_components.hpp"
+#include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/event_shoot/event_shoot_components.hpp"
-#include "modules/events/events_components.hpp"
-#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
+
 
 #include <box2d/b2_collision.h>
 #include <magic_enum.hpp>

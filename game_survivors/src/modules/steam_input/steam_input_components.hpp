@@ -21,13 +21,13 @@ enum class DigitalAction
   Game_Cancel,
   Game_Shoot,
 
-  Menu_Up,
-  Menu_Down,
-  Menu_Left,
-  Menu_Right,
-  Menu_Pause,
-  Menu_Select,
-  Menu_Cancel,
+  // Menu_Up,
+  // Menu_Down,
+  // Menu_Left,
+  // Menu_Right,
+  // Menu_Pause,
+  // Menu_Select,
+  // Menu_Cancel,
 
   count,
 };
@@ -43,7 +43,7 @@ enum class AnalogAction
 enum class ActionSet
 {
   ActionSet_GameControls = 0,
-  ActionSet_MenuControls,
+  // ActionSet_MenuControls,
 
   count,
 };

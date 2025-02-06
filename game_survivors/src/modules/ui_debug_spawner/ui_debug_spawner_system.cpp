@@ -8,7 +8,7 @@
 #include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-#include "modules/ui_survive_timer/ui_survive_timer_components.hpp"
+#include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 
 #include <imgui.h>
 

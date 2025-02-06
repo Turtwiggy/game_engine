@@ -4,7 +4,7 @@
 #include "engine/physics/physics_components.hpp"
 
 #include "imgui.h"
-#include "modules/renderer/components.hpp"
+#include "modules/core_renderer/components.hpp"
 
 namespace game2d {
 

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
+#include "modules/core_collisions/resolve_collisions_helpers.hpp"
 
 #include <entt/entt.hpp>
 

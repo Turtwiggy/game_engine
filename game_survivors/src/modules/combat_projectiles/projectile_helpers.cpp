@@ -2,12 +2,13 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "modules/colour/components.hpp"
+#include "modules/core_colour/components.hpp"
+#include "modules/core_raws/raws_components.hpp"
+#include "modules/core_renderer/components.hpp"
+#include "modules/core_renderer/helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/system_traits/trait_components.hpp"
+
 
 namespace game2d {
 

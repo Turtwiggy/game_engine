@@ -10,25 +10,25 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
-#include "modules/animations/rotate_system.hpp"
-#include "modules/animations/wiggle/wiggle_up_and_down.hpp"
-#include "modules/animator/animator_system.hpp"
-#include "modules/camera/camera_system.hpp"
-#include "modules/camera/helpers.hpp"
-#include "modules/camera/orthographic.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
-#include "modules/debug_physics_fixtures/debug_fixtures_system.hpp"
+#include "modules/controller_input_open_ui/controller_input_open_ui_system.hpp"
+#include "modules/core_animations/rotate_system.hpp"
+#include "modules/core_animations/wiggle/wiggle_up_and_down.hpp"
+#include "modules/core_animator/animator_system.hpp"
+#include "modules/core_camera/camera_system.hpp"
+#include "modules/core_camera/helpers.hpp"
+#include "modules/core_camera/orthographic.hpp"
+#include "modules/core_events/events_system.hpp"
+#include "modules/core_raws/raws_components.hpp"
+#include "modules/core_renderer/components.hpp"
+#include "modules/core_renderer/system.hpp"
+#include "modules/core_scene/scene_components.hpp"
+#include "modules/core_scene/scene_helpers.hpp"
+#include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
-#include "modules/events/events_system.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/system.hpp"
-#include "modules/scene/scene_components.hpp"
-#include "modules/scene/scene_helpers.hpp"
-#include "modules/scene_splashscreen_move_to_menu/system.hpp"
-#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/steam/steam_helpers.hpp"
+#include "modules/steam_debug_ui/steam_debug_ui_system.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
@@ -41,6 +41,7 @@
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
+#include "modules/system_scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
 #include "modules/system_spritestack/spritestack_system.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
@@ -49,29 +50,29 @@
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/ui_colours_system.hpp"
-#include "modules/ui_controllers/system.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_system.hpp"
 #include "modules/ui_debug_spawner/ui_debug_spawner_system.hpp"
+#include "modules/ui_debug_upgrades/ui_debug_upgrades_system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_imgui_colours/ui_imgui_colours.hpp"
-#include "modules/ui_input/ui_input_system.hpp"
-#include "modules/ui_input_steam/ui_input_steam_system.hpp"
-#include "modules/ui_pause_menu/pause_system.hpp"
-#include "modules/ui_raws/system.hpp"
+#include "modules/ui_popup_options/ui_popup_options_system.hpp"
+#include "modules/ui_popup_pause/ui_popup_pause_system.hpp"
+#include "modules/ui_raws/ui_raws_system.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
-#include "modules/ui_survive_health/ui_survive_health_system.hpp"
-#include "modules/ui_survive_level_up/ui_survive_level_up_components.hpp"
-#include "modules/ui_survive_level_up/ui_survive_level_up_system.hpp"
-#include "modules/ui_survive_timer/ui_survive_timer_system.hpp"
-#include "modules/ui_survive_xp_bar/ui_survive_xp_bar_system.hpp"
-#include "modules/ui_upgrades/ui_upgrades_system.hpp"
+#include "modules/ui_scene_survive_health/ui_survive_health_system.hpp"
+#include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
+#include "modules/ui_scene_survive_level_up/ui_survive_level_up_system.hpp"
+#include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
+#include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
+#include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
+#include "modules/ui_sdl2_input/ui_sdl2_input_system.hpp"
 #include "resources/resources.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -240,8 +241,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   SteamAPI_RunCallbacks();
 
-  update_input_system(app, r); // sets update_since_last_fixed_update
+  update_sdl_event_system(app, r); // sets update_since_last_fixed_update
   update_steam_input(r);
+  update_controller_input_open_ui_system(r);
   update_camera_system(r, dt);
   update_audio_system(r);
   update_events_system(r); // dispatch events
@@ -281,12 +283,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #endif
 
   update_ui_fps_counter_system(r);
-  update_ui_pause_menu_system(app, r);
-  update_ui_scene_main_menu_playerjoin_system(r);
+  update_ui_popup_pause_system(app, r);
+  update_ui_popup_options_system(r);
   // update_ui_worldspace_text_system(r);
 
   if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
+    update_ui_scene_main_menu_playerjoin_system(r);
   }
 
   if (scene.s == Scene::select)
@@ -309,6 +312,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #endif
   if (show_settings_ui) {
     update_ui_debug_menubar_system(r);
+    update_ui_debug_upgrades_system(r);
     update_ui_imgui_colours_system(r);
 
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
@@ -327,16 +331,15 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
     auto sdl2_input_state = gesert_menubar_state(menu_c, "SDL2 Input");
     if (sdl2_input_state.enabled)
-      update_ui_input_system(r);
+      update_ui_sdl2_input_system(r);
 
     auto ui_steam_state = gesert_menubar_state(menu_c, "Steam");
     if (ui_steam_state.enabled)
-      update_ui_steam_input_system(r);
+      update_steam_debug_ui_system(r);
 
     update_ui_colours_system(r);
     update_ui_debug_spawner_system(r);
     update_ui_raws_system(r);
-    update_ui_upgrades_system(r);
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
   }

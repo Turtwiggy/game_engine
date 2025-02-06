@@ -3,8 +3,8 @@
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "modules/events/events_components.hpp"
-#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
+// #include "modules/core_collisions/resolve_collisions_helpers.hpp"
+// #include "modules/core_events/events_components.hpp"
 
 #include <SDL2/SDL_log.h>
 
@@ -94,13 +94,13 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   remove_entity_from_map(r, mapinfo_opt.value());
   add_entity_to_map(r, src_e, dst_idx);
 
-  GridPositionChangedEvent evt;
-  evt.e = src_e;
-  evt.dst_idx = dst_idx;
-  const auto& evts = get_first_component<SINGLE_Events>(r);
-  evts.dispatcher->trigger(evt);
-  evts.dispatcher->update();
-  SDL_Log("moved... %i[%i] to %i", mapinfo_opt->idx_in_map, mapinfo_opt->idx_in_map_tile, dst_idx);
+  // GridPositionChangedEvent evt;
+  // evt.e = src_e;
+  // evt.dst_idx = dst_idx;
+  // const auto& evts = get_first_component<SINGLE_Events>(r);
+  // evts.dispatcher->trigger(evt);
+  // evts.dispatcher->update();
+  // SDL_Log("moved... %i[%i] to %i", mapinfo_opt->idx_in_map, mapinfo_opt->idx_in_map_tile, dst_idx);
 
   return true;
 

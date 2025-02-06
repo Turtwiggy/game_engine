@@ -7,7 +7,7 @@
 #include "engine/io/path.hpp"
 
 // this probably shouldnt be here
-#include "modules/renderer/components.hpp"
+#include "modules/core_renderer/components.hpp"
 
 // other library headers
 #include "engine/deps/opengl.hpp"

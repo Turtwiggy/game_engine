@@ -4,8 +4,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "imgui.h"
-#include "modules/camera/orthographic.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core_camera/orthographic.hpp"
+#include "modules/core_renderer/components.hpp"
 
 namespace game2d {
 using namespace std::literals;

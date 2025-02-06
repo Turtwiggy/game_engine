@@ -1,7 +1,7 @@
 #include "ui_debug_menubar_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core_renderer/components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 
 #include "imgui.h"

@@ -5,7 +5,6 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "modules/renderer/components.hpp"
 
 namespace game2d {
 

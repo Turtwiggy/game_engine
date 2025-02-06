@@ -10,7 +10,7 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
-#include "modules/camera/orthographic.hpp"
+#include "modules/core_camera/orthographic.hpp"
 
 #include <entt/entt.hpp>
 #include <imgui.h>

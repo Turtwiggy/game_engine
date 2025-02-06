@@ -1,18 +1,21 @@
 #include "scene_select_system.hpp"
 
-#include "engine/imgui/helpers.hpp"
-#include "engine/sprites/helpers.hpp"
-#include "modules/renderer/helpers.hpp"
-#include "modules/system_hulls/hulls_components.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "scene_select_components.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/scene/scene_helpers.hpp"
+#include "engine/sprites/helpers.hpp"
+#include "modules/core_renderer/components.hpp"
+#include "modules/core_renderer/helpers.hpp"
+#include "modules/core_scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/system_hulls/hulls_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 
+#include <SDL_scancode.h>
+#include <algorithm>
 #include <imgui.h>
 #include <stdexcept>
 
@@ -24,7 +27,7 @@ inc_or_dec_choice(int& i, int dir, const int max)
   i += dir;
   i = i < 0 ? max - 1 : i;
   i %= max;
-}
+};
 
 // Display all the hulls,
 // and the player can select one
@@ -35,18 +38,14 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, data_e, data_c)
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c)
+  GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c)
 
   if (data_c.menu_to_select_scene_buffer_frame) {
     data_c.menu_to_select_scene_buffer_frame = false;
     return;
   }
 
-  // Set as in a menu
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_MenuControls);
-
-  //
-  // Update menu via controller
-  //
+  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
 
   // auto connected = steam_c.handles
   // auto assigned = ui_c.handles
@@ -61,6 +60,13 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
 
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
   const int available_hulls = hulls_c.hulls.size();
+  if (available_hulls == 0) {
+    throw std::runtime_error("No hulls in SINGLE_Hulls()");
+    exit(1); // crash
+    return;
+  }
+
+  bool someone_pressed_back = false;
 
   for (int i = 0; i < (int)nz_handles.size(); i++) {
     //
@@ -71,35 +77,36 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     auto& hull_choice = data_c.player_index_to_hull[i];
 
     if (!hull_choice.confirmed) {
-      if (controller_button_down(steam_c, handle, DA::Menu_Left))
+      if (controller_button_down(steam_c, handle, DA::Game_Left))
         inc_or_dec_choice(hull_choice.idx, -1, available_hulls);
-      if (controller_button_down(steam_c, handle, DA::Menu_Right))
+      if (controller_button_down(steam_c, handle, DA::Game_Right))
         inc_or_dec_choice(hull_choice.idx, 1, available_hulls);
     }
 
     // Confirm Ship
-    if (controller_button_down(steam_c, handle, DA::Menu_Select))
+    if (controller_button_down(steam_c, handle, DA::Game_Select))
       hull_choice.confirmed = !hull_choice.confirmed;
 
-    bool back_pressed = controller_button_down(steam_c, handle, DA::Menu_Cancel);
+    const bool you_pressed_back = controller_button_down(steam_c, handle, DA::Game_Cancel);
 
     // Unready the player
-    if (back_pressed && hull_choice.confirmed) {
-      hull_choice.confirmed = false;
-      continue;
+    if (you_pressed_back) {
+      if (hull_choice.confirmed)
+        hull_choice.confirmed = false;
+      else
+        someone_pressed_back = true;
     }
-    // Back to menu
-    else if (back_pressed && !hull_choice.confirmed) {
-      move_to_scene_start(r, Scene::menu);
-      return;
-    }
-
-    i++;
   }
 
-  if (available_hulls == 0) {
-    throw std::runtime_error("No hulls in SINGLE_Hulls()");
-    exit(1); // crash
+  const auto& c = data_c.player_index_to_hull;
+  const auto confirmed = [](const HullChoice& choice) { return choice.confirmed; };
+  const auto everyone_confirmed = std::all_of(c.begin(), c.end(), confirmed);
+  const auto someone_confirmed = std::any_of(c.begin(), c.end(), confirmed);
+  const auto noone_confirmed = std::none_of(c.begin(), c.end(), confirmed);
+
+  // someone_pressed_back |= get_key_down(input_c, SDL_SCANCODE_ESCAPE);
+  if (someone_pressed_back && noone_confirmed) {
+    move_to_scene_start(r, Scene::menu);
     return;
   }
 
@@ -124,10 +131,6 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   const auto button_size = ImVec2{ button_size_w, button_size_w };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
-  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
 
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
@@ -236,10 +239,6 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     ImGui::End();
   }
 
-  const auto& c = data_c.player_index_to_hull;
-  const auto confirmed = [](const HullChoice& choice) { return choice.confirmed; };
-  const auto everyone_confirmed = std::all_of(c.begin(), c.end(), confirmed);
-
   // Start a countdown..
   if (everyone_confirmed)
     data_c.countdown -= dt;
@@ -294,7 +293,6 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   }
 
   ImGui::PopStyleVar(1);
-  // ImGui::PopStyleVar(4);
 }
 
 } // namespace game2d

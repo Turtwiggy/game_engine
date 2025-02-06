@@ -3,8 +3,9 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/core_raws/raws_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
-#include "modules/raws/raws_components.hpp"
+
 
 namespace game2d {
 

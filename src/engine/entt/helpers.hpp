@@ -120,6 +120,18 @@ remove_if_exists(entt::registry& r, const entt::entity e)
   return false;
 };
 
+// get or insert
+template<class T>
+T&
+gesert_component(entt::registry& r)
+{
+  if (get_first<T>(r) == entt::null) {
+    auto e = create_empty<T>(r);
+    return r.get<T>(e);
+  }
+  return get_first_component<T>(r);
+};
+
 template<typename View, typename Predicate>
 std::vector<entt::entity>
 filter_view(View view, Predicate pred)

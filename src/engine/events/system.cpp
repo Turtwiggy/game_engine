@@ -27,7 +27,7 @@ init_input_system(entt::registry& r)
 };
 
 void
-update_input_system(engine::SINGLE_Application& app, entt::registry& r)
+update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
 {
   auto& input = get_first_component<SINGLE_InputComponent>(r);
   input.update_since_last_fixed_update = true;

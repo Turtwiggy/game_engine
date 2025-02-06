@@ -1,6 +1,5 @@
 #include "modules/actor_player/actor_player_system.hpp"
 
-#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/controller.hpp"
@@ -83,7 +82,7 @@ update_movement_jetpack(entt::registry& r)
 };
 
 void
-update_movement_direct(entt::registry& r, const uint64_t ms_dt)
+fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
 
@@ -288,7 +287,7 @@ fixed_update_player_controller_system(entt::registry& r, const uint64_t ms_dt, c
 
   // What happens if multiple fixedupdate() before?
 
-  update_movement_direct(r, ms_dt);
+  fixedupdate_movement_direct(r, ms_dt);
   // update_movement_asteroids(r, ms_dt);
   // update_movement_jetpack(r);
 };

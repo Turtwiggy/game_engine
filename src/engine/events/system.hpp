@@ -10,6 +10,6 @@ void
 init_input_system(entt::registry& r);
 
 void
-update_input_system(engine::SINGLE_Application& app, entt::registry& r);
+update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r);
 
 } // namespace game2d

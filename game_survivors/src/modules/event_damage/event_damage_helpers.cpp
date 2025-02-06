@@ -5,8 +5,8 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
-#include "modules/event_permadeath/event_permadeath_components.hpp"
-#include "modules/events/events_components.hpp"
+#include "modules/core_events/events_components.hpp"
+#include "modules/event_death/components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>

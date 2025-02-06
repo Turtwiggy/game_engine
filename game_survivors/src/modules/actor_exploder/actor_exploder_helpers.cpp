@@ -8,9 +8,10 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/core_events/events_components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
-#include "modules/events/events_components.hpp"
 #include "modules/system_particles/components.hpp"
+
 
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_world_callbacks.h>

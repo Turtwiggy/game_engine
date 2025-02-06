@@ -6,9 +6,9 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/camera/orthographic.hpp"
-#include "modules/colour/components.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core_camera/orthographic.hpp"
+#include "modules/core_colour/components.hpp"
+#include "modules/core_renderer/components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
 

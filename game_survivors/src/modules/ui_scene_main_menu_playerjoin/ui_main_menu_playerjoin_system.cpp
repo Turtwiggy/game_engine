@@ -1,8 +1,8 @@
 #include "ui_main_menu_playerjoin_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/scene/scene_components.hpp"
+#include "modules/core_renderer/components.hpp"
+#include "modules/core_scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
@@ -27,7 +27,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
     return;
 
   // Set action key set
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_MenuControls);
+  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
 
   //
   // Clear the handles that have joined this frame
@@ -76,11 +76,11 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
     // ActionSet
     const auto& actionset_handles = steam_c.action_set_handles;
-    const auto as = actionset_handles[(int)AS::ActionSet_MenuControls];
+    const auto as = actionset_handles[(int)AS::ActionSet_GameControls];
 
     // DigitalAction
     const auto& digital_action_handles = steam_c.digital_action_handles;
-    const auto h = digital_action_handles[(int)DA::Menu_Select];
+    const auto h = digital_action_handles[(int)DA::Game_Select];
 
     EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
     const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
@@ -94,13 +94,13 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
     if (!join_key_map.contains(handle))
       join_key_map[handle] = "Loading...";
 
-    auto b_join = controller_button_down(steam_c, handle, DA::Menu_Select);
+    auto b_join = controller_button_down(steam_c, handle, DA::Game_Select);
     if (b_join) {
       assign_handle_to_ui(ui_c, handle);
       continue;
     }
 
-    auto b_leave = controller_button_down(steam_c, handle, DA::Menu_Cancel);
+    auto b_leave = controller_button_down(steam_c, handle, DA::Game_Cancel);
     if (b_leave) {
       unassign_handle_from_ui(ui_c, handle);
       continue;

@@ -4,7 +4,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "event_coll_player_xp_components.hpp"
-#include "modules/resolve_collisions/resolve_collisions_helpers.hpp"
+#include "modules/core_collisions/resolve_collisions_helpers.hpp"
 
 namespace game2d {
 

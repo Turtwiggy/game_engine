@@ -6,20 +6,21 @@
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
+#include "modules/core_colour/components.hpp"
+#include "modules/core_raws/raws_components.hpp"
+#include "modules/core_renderer/components.hpp"
+#include "modules/core_renderer/helpers.hpp"
+#include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
-#include "modules/sprites/sprite_helpers.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
 #include "modules/system_manualfire/manualfire_components.hpp"
+
 
 namespace game2d {
 

@@ -5,8 +5,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/io/settings.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
+#include "modules/core_renderer/components.hpp"
+#include "modules/core_renderer/helpers.hpp"
 
 #include "imgui.h"
 

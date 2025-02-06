@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core_renderer/components.hpp"
 #include "spawner_components.hpp"
 
 namespace game2d {

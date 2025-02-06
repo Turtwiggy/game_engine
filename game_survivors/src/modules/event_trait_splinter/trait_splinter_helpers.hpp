@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/event_permadeath/event_permadeath_components.hpp"
+#include "modules/event_death/components.hpp"
 
 #include <entt/entt.hpp>
 

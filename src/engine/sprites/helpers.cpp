@@ -3,8 +3,8 @@
 
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
+#include "modules/core_renderer/components.hpp"
+#include "modules/core_renderer/helpers.hpp"
 
 // other libs
 #include <entt/entt.hpp>
