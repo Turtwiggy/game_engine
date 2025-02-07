@@ -19,17 +19,18 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
-#include "modules/core_events/events_system.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/system.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
+#include "modules/events/events_system.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam/steam_helpers.hpp"
 #include "modules/steam_debug_ui/steam_debug_ui_system.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
 #include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
@@ -276,6 +277,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);
     update_enemy_projectile_system(r);
+    update_alpha_based_on_lifecycle_system(r);
   }
 
 #if defined(_DEBUG)
@@ -329,9 +331,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     if (sdl2_controller_state.enabled)
       update_ui_controller_system(r);
 
-    auto sdl2_input_state = gesert_menubar_state(menu_c, "SDL2 Input");
-    if (sdl2_input_state.enabled)
-      update_ui_sdl2_input_system(r);
+    // auto sdl2_input_state = gesert_menubar_state(menu_c, "SDL2 Input");
+    // if (sdl2_input_state.enabled)
+    //   update_ui_sdl2_input_system(r);
 
     auto ui_steam_state = gesert_menubar_state(menu_c, "Steam");
     if (ui_steam_state.enabled)

@@ -10,6 +10,8 @@
 #include <box2d/b2_contact.h>
 #include <box2d/b2_world_callbacks.h>
 #include <format>
+#include <functional>
+#include <limits>
 #include <stdexcept>
 
 namespace game2d {
@@ -57,6 +59,18 @@ emplace_or_replace_physics_world(entt::registry& r)
 };
 
 entt::entity
+get_fixture(entt::registry& r, entt::entity e)
+{
+  const auto& body_c = r.get<PhysicsBodyComponent>(e);
+  for (const entt::entity fix_e : body_c.fixtures)
+    return fix_e;
+
+  SDL_Log("missing get_fixture() fixture");
+  throw std::runtime_error("missing get_fixture_by_tag()");
+  return entt::null;
+};
+
+entt::entity
 get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
 {
   const auto& body_c = r.get<PhysicsBodyComponent>(e);
@@ -73,6 +87,88 @@ get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
   exit(1); // explode
 
   return entt::null;
+};
+
+class SearchAreaCallback : public b2QueryCallback
+{
+public:
+  float nearest_distance_squared = std::numeric_limits<float>::max();
+  std::vector<entt::entity> results;
+
+  // Something hit the matching criteria
+  bool ReportFixture(b2Fixture* fixture) override
+  {
+    auto* body = fixture->GetBody();
+    auto body_e = (entt::entity)body->GetUserData().pointer;
+    results.push_back(body_e);
+    return true; // keep going to find all fixtures in query area
+  };
+};
+
+class FilteredSearchAreaCallback : public b2QueryCallback
+{
+public:
+  float nearest_distance_squared = std::numeric_limits<float>::max();
+  std::vector<std::pair<int, entt::entity>> results; // distance to the entity
+
+  b2Vec2 position;
+  entt::registry& r;
+  const std::function<bool(entt::registry&, entt::entity)>& cond;
+
+  FilteredSearchAreaCallback(entt::registry& r,
+                             const b2Vec2& center,
+                             const std::function<bool(entt::registry&, entt::entity)>& cond)
+    : position(center)
+    , r(r)
+    , cond(cond) {};
+
+  // Something hit the matching criteria
+  bool ReportFixture(b2Fixture* fixture) override
+  {
+    auto* body = fixture->GetBody();
+    auto body_e = (entt::entity)body->GetUserData().pointer;
+
+    // Filter the fixtures
+    if (cond(r, body_e)) {
+      const b2Vec2 diff = body->GetPosition() - position;
+      const float d2 = diff.LengthSquared();
+      results.push_back({ d2, body_e });
+    }
+
+    return true; // keep going to find all fixtures in query area
+  };
+};
+
+std::vector<entt::entity>
+get_all_in_area(entt::registry& r, glm::vec2 center, float d)
+{
+  SearchAreaCallback callback;
+  b2AABB aabb;
+  aabb.lowerBound = b2Vec2{ center.x - d, center.y - d };
+  aabb.upperBound = b2Vec2{ center.x + d, center.y + d };
+
+  const auto& physics_c = get_first_component<SINGLE_Physics>(r);
+  physics_c.world->QueryAABB(&callback, aabb);
+
+  return callback.results;
+};
+
+std::vector<std::pair<int, entt::entity>>
+get_all_in_area_filtered(entt::registry& r,
+                         const glm::vec2 center,
+                         const float d,
+                         const std::function<bool(entt::registry&, entt::entity)>& cond)
+{
+  FilteredSearchAreaCallback callback(r, { center.x, center.y }, cond);
+
+  b2AABB aabb;
+  aabb.lowerBound = b2Vec2{ center.x - d, center.y - d };
+  aabb.upperBound = b2Vec2{ center.x + d, center.y + d };
+
+  const auto& physics_c = get_first_component<SINGLE_Physics>(r);
+  physics_c.world->QueryAABB(&callback, aabb);
+
+  return callback.results;
 };
 
 /*

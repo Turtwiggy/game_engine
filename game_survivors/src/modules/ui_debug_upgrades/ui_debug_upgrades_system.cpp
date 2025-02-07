@@ -5,13 +5,14 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/core_events/events_components.hpp"
 #include "modules/event_upgrade/event_upgrade_components.hpp"
+#include "modules/events/events_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade/upgrade_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
+
 
 #include <imgui.h>
 

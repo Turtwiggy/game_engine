@@ -197,7 +197,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [
         { "tag": "fixture_player", "type": "box", "is_sensor": false },
-        { "tag": "fixture_xp_zone", "type": "circle", "radius": 50, "is_sensor": true, "density": 0.0 }
+        { "tag": "fixture_xp_zone", "type": "circle", "radius": 50, "is_sensor": true }
       ]
     },
     {
@@ -233,6 +233,10 @@
       "renderable": { "sprite": "TREE_0_1", "colour": "red" },
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+    },
+    {
+      "name": "effect_thunder",
+      "renderable": { "sprite": "LIGHTNING_0", "colour": "gold_yellow" }
     }
   ],
   "powerups": [

@@ -9,15 +9,14 @@
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_traits/trait_helpers.hpp"
 
-
 #include <SDL2/SDL_log.h>
 
 namespace game2d {
 
 struct FanfireTraitComponent
 {
-  int shots_until_fanfire = 20;
-  int shots_until_fanfire_left = 20;
+  int shots_until_fanfire = 10;
+  int shots_until_fanfire_left = 10;
 
   int projectiles_to_fanfire = 10;
 };
@@ -28,25 +27,21 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   const auto from_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
 
-  if (from_e == entt::null)
-    return;
-  if (wep_e == entt::null)
+  if (from_e == entt::null || wep_e == entt::null)
     return;
 
   const auto* trait_c = r.try_get<TraitComponent>(from_e);
   if (!trait_c)
     return;
 
-  auto trait = AquirableTrait::FAN_FIRE;
+  const auto trait = AquirableTrait::FAN_FIRE;
   if (!has_trait(r, trait_c->traits, trait))
     return;
-
-  // SDL_Log("one of player's gun shot");
 
   auto& fanfire_c = r.get_or_emplace<FanfireTraitComponent>(from_e);
   fanfire_c.shots_until_fanfire_left -= 1;
 
-  // Fanfire limit: number of shots
+  // activation: based on number of shots fired
   if (fanfire_c.shots_until_fanfire_left > 0)
     return;
   fanfire_c.shots_until_fanfire_left = fanfire_c.shots_until_fanfire;

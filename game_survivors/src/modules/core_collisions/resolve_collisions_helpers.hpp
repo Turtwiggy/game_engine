@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/core_events/events_components.hpp"
+#include "modules/events/events_components.hpp"
 
 #include <box2d/b2_contact.h>
 #include <box2d/b2_world_callbacks.h>

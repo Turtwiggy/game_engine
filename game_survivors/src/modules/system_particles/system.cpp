@@ -11,7 +11,6 @@
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
-
 namespace game2d {
 
 void
@@ -85,8 +84,9 @@ update_particle_system(entt::registry& r, const float dt)
     if (t >= 1.0f)
       t = 1.0f;
 
-    const float amount = engine::lerp(a, b, t);
-    transform.scale = { static_cast<int>(amount), static_cast<int>(amount), 1 };
+    const float amount_x = engine::lerp(a.x, b.x, t);
+    const float amount_y = engine::lerp(a.y, b.y, t);
+    transform.scale = { amount_x, amount_y, 1 };
 
     scale.timer += dt;
 

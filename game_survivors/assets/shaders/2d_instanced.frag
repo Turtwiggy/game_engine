@@ -97,7 +97,7 @@ void
 main()
 {
   vec2 v_uv = fs_in.v_uv;
-  vec4 v_colour= fs_in.v_colour;
+  vec4 v_colour = fs_in.v_colour;
   vec2 v_sprite_pos = fs_in.v_sprite_pos;
   vec2 v_sprite_wh = fs_in.v_sprite_wh;
   vec2 v_sprite_max = fs_in.v_sprite_max;
@@ -131,4 +131,5 @@ main()
     out_colour = v_colour;
     return;
   }
+
 }

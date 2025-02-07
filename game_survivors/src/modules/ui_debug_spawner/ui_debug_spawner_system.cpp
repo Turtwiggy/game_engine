@@ -54,7 +54,11 @@ update_ui_debug_spawner_system(entt::registry& r)
 
     std::string wave_label = std::format("Wave {}", data_c.enemy_key);
     ImGui::SeparatorText(wave_label.c_str());
-    ImGui::Text("Alive: %i", enemy_to_amount.at(data_c.enemy_key));
+
+    if (enemy_to_amount.contains(data_c.enemy_key))
+      ImGui::Text("Alive: %i", enemy_to_amount.at(data_c.enemy_key));
+    else
+      ImGui::Text("Alive: 0");
 
     if (!w_opt.has_value()) {
       ImGui::Text("Wave: no wave data");

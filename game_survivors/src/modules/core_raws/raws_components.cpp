@@ -17,6 +17,7 @@
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
+#include "modules/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_enemy_projectile/enemy_projectile_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
@@ -132,10 +133,17 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       anim_c.playing_animation_name = "REF_IDLE";
       anim_c.duration = 0.9f;
 
-      // offset animation
+      // offset animation so all idles not the same
       static engine::RandomState anim_rnd(0);
       anim_c.timer = engine::rand_det_s(anim_rnd.rng, 0.0f, anim_c.duration);
 
+      r.emplace<SpriteAnimationState>(e, anim_c);
+    }
+    if (t.renderable.sprite == "LIGHTNING_0") {
+      SpriteAnimationState anim_c;
+      anim_c.playing_animation_name = "LIGHTNING_0";
+      anim_c.duration = 0.25f;
+      anim_c.looping = true;
       r.emplace<SpriteAnimationState>(e, anim_c);
     }
 
@@ -376,15 +384,15 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec
 
   Particle pdesc;
   pdesc.time_to_live_ms = 1 * 1000;
-  pdesc.start_size = 6;
-  pdesc.end_size = 2;
+  pdesc.start_size = { 6, 6 };
+  pdesc.end_size = { 2, 2 };
   if (key.find("default_explode") != std::string::npos) {
-    pdesc.start_size = 16;
-    pdesc.end_size = 4;
+    pdesc.start_size = { 16, 16 };
+    pdesc.end_size = { 4, 4 };
   }
   if (key.find("death_exploder") != std::string::npos) {
-    pdesc.start_size = explosion_radius * 2;
-    pdesc.end_size = explosion_radius * 1;
+    pdesc.start_size = { explosion_radius * 2, explosion_radius * 2 };
+    pdesc.end_size = { explosion_radius * 1, explosion_radius * 1 };
   }
 
   // which particle to spawn?
@@ -423,6 +431,9 @@ spawn_particle(entt::registry& r, const std::string& key, const Particle& desc)
 
   r.emplace<EntityTimedLifecycle>(e, desc.time_to_live_ms);
   r.emplace<VelocityComponent>(e, VelocityComponent{ desc.velocity.x, desc.velocity.y });
+
+  if (desc.fade)
+    r.emplace<SetAlphaBasedOnLifecycleComponent>(e);
 
   // WARNING: random rotation here
   static engine::RandomState rnd(0);

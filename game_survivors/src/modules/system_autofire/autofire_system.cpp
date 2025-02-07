@@ -8,14 +8,15 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core_colour/components.hpp"
-#include "modules/core_events/events_components.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/event_shoot/event_shoot_components.hpp"
+#include "modules/events/events_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
@@ -24,55 +25,9 @@
 #include <box2d/b2_collision.h>
 #include <magic_enum.hpp>
 
+#include <algorithm>
+
 namespace game2d {
-
-class NearestEnemyCallback : public b2QueryCallback
-{
-public:
-  entt::registry& r;
-  float nearestDistanceSquared = std::numeric_limits<float>::max();
-  b2Vec2 position;
-
-  b2Body* nearestEnemy = nullptr;
-  entt::entity nearest_e = entt::null;
-
-  NearestEnemyCallback(entt::registry& r_ref, const b2Vec2& pos)
-    : r(r_ref)
-    , position(pos)
-  {
-  }
-
-  bool ReportFixture(b2Fixture* fixture) override
-  {
-    b2Body* body = fixture->GetBody();
-
-    if (!is_enemy(body))
-      return true;
-
-    // Calculate the distance squared (avoiding sqrt for performance)
-    b2Vec2 diff = body->GetPosition() - position;
-    float distanceSquared = diff.LengthSquared();
-
-    if (distanceSquared < nearestDistanceSquared) {
-      nearestDistanceSquared = distanceSquared;
-      nearestEnemy = body;
-      nearest_e = (entt::entity)body->GetUserData().pointer;
-    }
-
-    return true; // Continue the query
-  }
-
-  // Example placeholder for identifying enemies
-  bool is_enemy(b2Body* body)
-  {
-    const entt::entity e = (entt::entity)body->GetUserData().pointer;
-    // if (auto* team_c = r.try_get<TeamComponent>(e))
-    //   return team_c->team == AvailableTeams::enemy;
-    if (auto* enemy_c = r.try_get<EnemyComponent>(e))
-      return true;
-    return false;
-  }
-};
 
 void
 update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
@@ -81,8 +36,6 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-
-  const float search_radius = 500.0f; // for nearest enemy
 
   static float lead_amount = 0.4f;
 #if defined(_DEBUG)
@@ -107,14 +60,20 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     const auto& parent_col = r.get<DefaultColour>(p).colour;
 
     // get closest enemy
-    NearestEnemyCallback callback(r, b2Vec2{ parent_t.position.x, parent_t.position.y });
-    b2AABB aabb;
-    aabb.lowerBound = b2Vec2{ parent_t.position.x, parent_t.position.y } - b2Vec2{ search_radius, search_radius };
-    aabb.upperBound = b2Vec2{ parent_t.position.x, parent_t.position.y } + b2Vec2{ search_radius, search_radius };
-    phys_c.world->QueryAABB(&callback, aabb);
-    auto nearest_e = callback.nearest_e;
-    if (nearest_e == entt::null)
+    const auto center = glm::vec2{ parent_t.position.x, parent_t.position.y };
+    const auto search_radius = 500.0f; // for nearest enemy
+
+    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [](entt::registry& r, entt::entity e) -> bool {
+      return r.try_get<EnemyComponent>(e) != nullptr;
+    };
+    auto enemies = get_all_in_area_filtered(r, center, search_radius, is_enemy);
+    if (enemies.size() == 0)
       continue;
+
+    // Get the nearest enemy
+    auto sort_by_distance = [](const auto& a, const auto& b) { return a.first < b.first; };
+    std::sort(enemies.begin(), enemies.end(), sort_by_distance);
+    auto nearest_e = enemies[0].second;
 
     const auto you_pos = glm::vec2{ parent_t.position.x, parent_t.position.y };
     const auto tgt_pos = get_position(r, nearest_e);
@@ -227,7 +186,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     }
 
     // Some traits fire on nth shots
-    // Note; this adds a shoot event for every gun
+    // Every time a weapon fires, send a shoot event.
     ShootEvent shoot_evt;
     shoot_evt.parent_e = p;
     shoot_evt.weapon_e = wep_e;

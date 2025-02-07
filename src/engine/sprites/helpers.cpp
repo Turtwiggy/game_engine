@@ -93,7 +93,7 @@ find_animation(const SINGLE_Animations& anims, const std::string& name)
       return { spritesheet, *s };
   }
 
-  const std::string err = std::format("config error: sprite not found:", name);
+  const std::string err = std::format("config error: sprite not found: {}", name);
   throw std::runtime_error(err);
   exit(1); // explode!
 }

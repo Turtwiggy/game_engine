@@ -8,6 +8,7 @@
 #include "modules/event_damage/event_damage_helpers.hpp"
 #include "modules/event_shoot/event_shoot_components.hpp"
 #include "modules/event_trait_assassin/trait_assassin_helpers.hpp"
+#include "modules/event_trait_electromancy/trait_electromancy_helpers.hpp"
 #include "modules/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/event_upgrade/event_upgrade_helpers.hpp"
@@ -36,6 +37,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event__trait_assassin>(r);
 
+  ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_electromancy>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_fanfire>(r);
 
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__trait_splinter>(r);

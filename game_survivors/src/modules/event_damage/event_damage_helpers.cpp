@@ -5,11 +5,12 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
-#include "modules/core_events/events_components.hpp"
 #include "modules/event_death/components.hpp"
+#include "modules/events/events_components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>
+#include <stdexcept>
 
 namespace game2d {
 
@@ -56,7 +57,9 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
     const auto& tag_c = r.get<TagComponent>(to_e);
-    SDL_Log("handle_damage_event(): %s has no HealthComponent", tag_c.tag.c_str());
+    auto err = std::format("handle_damage_event(): {} has no HealthComponent", tag_c.tag);
+    SDL_Log("%s", err.c_str());
+    throw std::runtime_error(err);
     return;
   }
 
@@ -83,7 +86,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
     // Send death event.
     DeathEvent d_evt;
-    d_evt.killed_by = evt.from;
+    d_evt.killed_by = evt.from;                            // can be entt::null
     d_evt.dead = r.get<HasParentComponent>(evt.to).parent; // parent not fixture
     auto& evts = get_first_component<SINGLE_Events>(r);
     evts.dispatcher->trigger(d_evt);

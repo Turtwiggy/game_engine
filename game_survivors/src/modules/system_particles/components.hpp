@@ -8,10 +8,12 @@ namespace game2d {
 struct Particle
 {
   int time_to_live_ms = 3 * 1000;
-  float start_size = 10;
-  float end_size = 10;
+  glm::vec2 start_size = { 10, 10 };
+  glm::vec2 end_size = { 10, 10 };
   glm::vec2 position{ 0, 0 }; // seems wrong
   glm::vec2 velocity{ 0, 0 };
+  bool fade = true;
+
   // not implemented
   // engine::SRGBColour start_colour;
   // engine::SRGBColour end_colour;
@@ -44,8 +46,8 @@ struct ScaleOverTimeComponent
 {
   float timer = 0.0f;
   float seconds_until_complete = 3.0f;
-  float start_size = 16.0f;
-  float end_size = 0.0f;
+  glm::vec2 start_size = { 16.0f, 16.0f };
+  glm::vec2 end_size = { 0.0f, 0.0f };
 };
 
 // the emitter that spawns the particle

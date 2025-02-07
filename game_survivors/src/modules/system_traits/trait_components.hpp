@@ -10,6 +10,7 @@ enum class AquirableTrait
   ASSASSIN = 0,
   SPLINTER,
   FAN_FIRE,
+  ELECTROMANCY,
 
   EXPLODE,    // on death
   DIRECT,     // ai type
