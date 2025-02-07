@@ -8,7 +8,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
-#include "modules/core_scene/scene_helpers.hpp"
+#include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_hulls/hulls_components.hpp"

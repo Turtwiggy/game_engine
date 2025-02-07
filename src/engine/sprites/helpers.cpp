@@ -14,6 +14,7 @@
 #include <SDL2/SDL_log.h>
 #include <format>
 #include <fstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -92,7 +93,8 @@ find_animation(const SINGLE_Animations& anims, const std::string& name)
       return { spritesheet, *s };
   }
 
-  SDL_Log("%s", std::format("CONFIG ERROR: sprite not found: {}", name).c_str());
+  const std::string err = std::format("config error: sprite not found:", name);
+  throw std::runtime_error(err);
   exit(1); // explode!
 }
 

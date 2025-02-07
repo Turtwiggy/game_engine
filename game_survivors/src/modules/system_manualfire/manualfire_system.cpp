@@ -54,7 +54,7 @@ update_manualfire_system(entt::registry& r)
     Sprite s;
     s.pos = tgt_pos;
     s.sprite = "CROSSHAIR_1";
-    s.size = { 16, 16 };
+    s.size = (glm::dot(input, input) > 0) ? glm::vec2{ 16, 16 } : glm::vec2{ 0.0f, 0.0f };
     s.col = parent_col;
     draw_sprite(r, s);
 

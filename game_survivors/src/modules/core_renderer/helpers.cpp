@@ -145,7 +145,7 @@ search_for_texture_unit_by_texture_path(const SINGLE_RendererInfo& ri, const std
 
   const std::string err = std::format("search_for_texture_unit_by_texture_path() missing {}", search);
   SDL_Log("%s", std::format("Error: {}", err).c_str());
-  throw std::runtime_error("err");
+  throw std::runtime_error(err);
 
   return std::nullopt;
 };
@@ -162,7 +162,7 @@ search_for_texture_id_by_texture_path(const SINGLE_RendererInfo& ri, const std::
 
   const std::string err = std::format("search_for_texture_id_by_texture_path() missing {}", search);
   SDL_Log("%s", std::format("Error: {}", err).c_str());
-  throw std::runtime_error("err");
+  throw std::runtime_error(err);
 
   return std::nullopt;
 };
@@ -179,7 +179,7 @@ search_for_texture_unit_by_spritesheet_path(const SINGLE_RendererInfo& ri, const
 
   const std::string err = std::format("search_for_texture_unit_by_spritesheet_path() missing {}", search);
   SDL_Log("%s", std::format("Error: {}", err).c_str());
-  throw std::runtime_error("err");
+  throw std::runtime_error(err);
 
   return std::nullopt;
 };

@@ -22,7 +22,7 @@
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
-#include "modules/core_scene/scene_components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "renderpass/passes.hpp"
 
 #if defined(_MSC_VER)

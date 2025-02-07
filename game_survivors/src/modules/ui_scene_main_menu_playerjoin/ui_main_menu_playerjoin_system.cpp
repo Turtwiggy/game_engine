@@ -2,7 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
-#include "modules/core_scene/scene_components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"

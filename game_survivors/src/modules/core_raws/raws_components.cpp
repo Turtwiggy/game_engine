@@ -307,6 +307,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         // r.emplace<WeaponSpread>(wep_e);
         // r.emplace<WeaponProjectiles>(wep_e, 1);
       }
+
       if (trait_enum == AquirableTrait::EXPLODE) {
         add_explode_on_death_callback(r, e);
         big_explode = true;

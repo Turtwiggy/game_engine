@@ -7,6 +7,7 @@ namespace game2d {
 struct SpritestackComponent
 {
   entt::entity root = entt::null; // root of spritestack
+  std::string tag = "";
 
   int spritestack_index = 0;
   int spritestack_total = 0;

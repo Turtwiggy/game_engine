@@ -1,5 +1,6 @@
 #include "spritestack_system.hpp"
 
+#include "engine/lifecycle/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
@@ -22,6 +23,7 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
   const auto& ui_state = gesert_menubar_state(menu_c, "(Debug) Spritestack");
+  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   // note: values of 1 seem to distort the spritestack, but add depth
   // because it SHOULD be in top-down perspective
@@ -33,7 +35,7 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
   static int parallax_offset_amount = 0;
 
   if (ui_state.enabled) {
-    ImGui::Begin("DebugSpriteStack");
+    ImGui::Begin("Debug Spritestack");
     imgui_draw_float("scale", scale_up_by);
     imgui_draw_int("sprite_height", sprite_height);
     imgui_draw_int("parallax_offset_amount", parallax_offset_amount);
@@ -42,22 +44,30 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto camera_pos = get_position(r, camera_e);
 
-  const auto& view = r.view<TransformComponent, SpritestackComponent, SpriteComponent, TagComponent>();
-  for (const auto& [e, t, ssc, sprite, tag_c] : view.each()) {
+  const auto& view = r.view<TransformComponent, SpritestackComponent, SpriteComponent>();
+  for (const auto& [e, t, ssc, sprite] : view.each()) {
     const auto idx = ssc.spritestack_index;
 
+    // HACK: parent is ded. How to cleanup spritestacks?
+    if (!r.valid(ssc.root) || ssc.root == entt::null) {
+      dead.dead.emplace(e);
+      continue;
+    }
+
     const auto& anims = get_first_component<SINGLE_Animations>(r);
-    const auto [spritesheet, anim] = find_animation(anims, tag_c.tag);
+    const auto [spritesheet, anim] = find_animation(anims, ssc.tag);
 
     const int sprite_scale_x = spritesheet.px;
     const int sprite_scale_y = spritesheet.py;
 
     // Set position for each child sprite
-    if (ssc.root != entt::null) {
+    if (ssc.spritestack_index != 0) {
       const auto sprite_parent = ssc.root;
       const auto& sprite_parent_transform = r.get<TransformComponent>(sprite_parent);
+
       // set position to parents position
       t.position = sprite_parent_transform.position;
+
       // set rotation to parents rotation
       t.rotation_radians.z = sprite_parent_transform.rotation_radians.z;
     }

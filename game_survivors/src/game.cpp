@@ -23,10 +23,10 @@
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/system.hpp"
-#include "modules/core_scene/scene_components.hpp"
-#include "modules/core_scene/scene_helpers.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
+#include "modules/scene/scene_components.hpp"
+#include "modules/scene/scene_helpers.hpp"
 #include "modules/steam/steam_helpers.hpp"
 #include "modules/steam_debug_ui/steam_debug_ui_system.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
@@ -258,6 +258,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_ship_draw_arcs_system(r);
   update_upgrade_max_hp_system(r);
+  update_sprite_spritestack_system(r, dt);
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
@@ -275,7 +276,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);
     update_enemy_projectile_system(r);
-    update_sprite_spritestack_system(r, dt);
   }
 
 #if defined(_DEBUG)

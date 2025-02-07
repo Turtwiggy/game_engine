@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/core_scene/scene_components.hpp"
+#include "modules/scene/scene_components.hpp"
 
 #include "entt/entt.hpp"
 

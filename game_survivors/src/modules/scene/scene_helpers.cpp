@@ -45,11 +45,10 @@
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 
+#include <iostream>
 #include <magic_enum.hpp>
 
 namespace game2d {
-
-glm::vec2 weapon_size = { 5, 10 };
 
 void
 connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
@@ -65,6 +64,8 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 entt::entity
 spawn_weapon(entt::registry& r, const HardpointData& data)
 {
+  glm::vec2 weapon_size = { 3, 6 };
+
   const auto wep_e = spawn(r, "boat_default_weapon");
   give_life(r, wep_e, { 0, 0 }, weapon_size);
   r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
@@ -90,6 +91,87 @@ spawn_weapon(entt::registry& r, const HardpointData& data)
   return wep_e;
 };
 
+bool
+add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
+{
+  std::vector<std::string> supported_spritestacks{
+    "dinghy",
+    "rhib",
+    "pbr",
+  };
+
+  // i.e. which layer makes mose sense to have as the hitbox?
+  std::vector<int> spritestack_base_layer{
+    1,
+    9,
+    26,
+  };
+
+  auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);
+  if (it == supported_spritestacks.end())
+    return false; // oops! spritestack not implemented
+  const auto idx = static_cast<int>(it - supported_spritestacks.begin());
+
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto [spritesheet, anim] = find_animation(anims, sprite + "_0"s);
+  const int sprites_for_total_sprite = spritesheet.ny;
+
+  entt::entity root_entity = entt::null;
+  glm::vec2 pos{ 0, 0 };
+
+  //
+  // iterate from e.g. [-26, 12] for a ydepth of 38, where the center is 26 now
+  //
+
+  const int root_spritestack_img_idx = -spritestack_base_layer[idx];
+  const int max = sprites_for_total_sprite + root_spritestack_img_idx;
+  int counter = 0; // iterate through the spritestack frames
+
+  for (int i = root_spritestack_img_idx; i < max; i++) {
+    const auto i_as_str = std::to_string(counter++);
+    const auto tag_str = sprite + "_"s + i_as_str;
+
+    entt::entity spawned_e = entt::null;
+
+    // this sets the SpriteComponent on the player
+    if (i == 0)
+      spawned_e = e;
+
+    else {
+      const auto sprite_e = create_transform(r, i_as_str);
+      spawned_e = sprite_e;
+    }
+
+    // needs to be emplaced in order to maintain spritestack
+    r.emplace<SpriteComponent>(spawned_e);
+
+    set_sprite(r, spawned_e, sprite + "_"s + i_as_str);
+
+    //
+    // i goes from e.g. [-26, 12] on a 38 ydepth.
+    // that works pretty well for z-index, where 0 represents "default"
+    // however, z-index is sorted a.z_idx < b.z_idx,
+    // but here i represents a sprite index, where -26 is the top sprite, not bottom.
+    // hence, flip it, yo
+    //
+    // e.g. -26 should be 26
+    // e.g. 0 should be 0
+    // e.g. 12 should be -12
+    //
+    const int flipped_i = -1 * i;
+    auto& t_c = r.get<TransformComponent>(spawned_e);
+    t_c.z_index = flipped_i;
+
+    SpritestackComponent spritestack_c(i);
+    spritestack_c.spritestack_total = sprites_for_total_sprite;
+    spritestack_c.root = e;
+    spritestack_c.tag = tag_str;
+    r.emplace<SpritestackComponent>(spawned_e, spritestack_c);
+  }
+
+  return true;
+};
+
 entt::entity
 spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key)
 {
@@ -100,7 +182,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   std::vector<entt::entity> weapons;
 
   // Spawn the weapons...
-  for (auto& hardpoint_data : hull.hardpoints) {
+  for (const auto& hardpoint_data : hull.hardpoints) {
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
     // hardpoint_data.arc = 360;
     // hardpoint_data.arc_mid = 0;
@@ -128,25 +210,39 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<PlayerComponent>(e, num);
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
-  r.emplace<SpriteOutline>(e);
   r.emplace<MovementDirectComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
+  // r.emplace<SpriteOutline>(e);
   spawn_particle_emitter(r, "anything", { 0, 1 }, e);
 
   // Apply some drag, bro
   r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75f);
 
-  // TODO: come up with something better
-  if (hull_key == "Dinghy")
-    set_sprite(r, e, "hull_dinghy");
-  if (hull_key == "RHIB")
-    set_sprite(r, e, "hull_rhib");
-  if (hull_key == "Constitution")
-    set_sprite(r, e, "hull_constitution");
-  if (hull_key == "PBR")
-    set_sprite(r, e, "hull_pbr");
-  if (hull_key == "Trimanan")
-    set_sprite(r, e, "hull_trimanan");
+  // This semes insane, wtf
+  std::string hull_lower = "";
+  std::transform(
+    hull_key.begin(), hull_key.end(), std::back_inserter(hull_lower), [](const auto& c) { return std::tolower(c); });
+
+  // TODO: come up with something better to set sprites
+
+  // If a spritestack is implemented, use that.
+  r.remove<SpriteComponent>(e);
+  if (add_spritestack(r, e, hull_lower))
+    bool placeholder = true;
+  else {
+    SDL_Log("WARNING: not using spritestack model -- not impl");
+    r.emplace<SpriteComponent>(e);
+    if (hull_key == "Dinghy")
+      set_sprite(r, e, "hull_dinghy");
+    if (hull_key == "RHIB")
+      set_sprite(r, e, "hull_rhib");
+    if (hull_key == "Constitution")
+      set_sprite(r, e, "hull_constitution");
+    if (hull_key == "PBR")
+      set_sprite(r, e, "hull_pbr");
+    if (hull_key == "Trimanan")
+      set_sprite(r, e, "hull_trimanan");
+  };
 
   if (num == 0)
     r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#cfc041")); // gold_yellow
@@ -235,68 +331,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // set_sprite(r, e, "STUDIO_TEXT_LOGO");
     // set_size(r, e, { 512, 256 });
     // set_position(r, e, { 0, 0 }); // center
-  }
-
-  if (s == Scene::spritestack) {
-    auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
-
-    // create a spritestack for testing
-    {
-      // create a ton of sprites for a sprite-stacked entity
-      // sprites are from top to bottom
-      const auto sprite = "dinghy";
-      // const auto sprite = "rhib";
-      // const auto sprite = "PBR";
-      // const auto sprite = "anglerfish";
-      const auto& anims = get_first_component<SINGLE_Animations>(r);
-      const auto [spritesheet, anim] = find_animation(anims, sprite + "_0"s);
-      const int sprites_for_total_sprite = spritesheet.ny;
-
-      entt::entity root_entity = entt::null;
-      glm::vec2 pos{ 0, 0 };
-
-      for (int i = 0; i < sprites_for_total_sprite; i++) {
-        const auto i_as_str = std::to_string(i);
-        const auto tag_str = sprite + "_"s + i_as_str;
-
-        entt::entity spawn_e = entt::null;
-
-        if (i == 0) {
-          const auto e = spawn(r, "actor_player");
-          root_entity = e;
-
-          // Trial: move spritestack
-          give_life(r, e, pos, { 32, 18 });
-          r.emplace<PlayerComponent>(e, 0);
-          r.emplace<MovementDirectComponent>(e);
-          r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
-          r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
-          r.emplace<CameraFollow>(e);
-          r.emplace<SteamControllerComponent>(e);
-          r.emplace<KeyboardComponent>(e);
-          spawn_particle_emitter(r, "anything", { 0, 1 }, e);
-          r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75f);
-          spawn_e = e;
-        }
-
-        else {
-          const auto sprite_e = create_transform(r, i_as_str);
-          r.emplace<SpriteComponent>(sprite_e);
-          spawn_e = sprite_e;
-        }
-
-        set_sprite(r, spawn_e, sprite + "_"s + i_as_str);
-        r.get<TagComponent>(spawn_e).tag = tag_str;
-
-        SpritestackComponent spritestack_c(i);
-        spritestack_c.spritestack_total = sprites_for_total_sprite;
-        if (i > 0)
-          spritestack_c.root = root_entity;
-        r.emplace<SpritestackComponent>(spawn_e, spritestack_c);
-      }
-    }
-
-    //
   }
 
   if (s == Scene::select) {

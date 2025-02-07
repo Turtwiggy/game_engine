@@ -5,8 +5,8 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
-#include "modules/core_scene/scene_components.hpp"
-#include "modules/core_scene/scene_helpers.hpp"
+#include "modules/scene/scene_components.hpp"
+#include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
@@ -75,20 +75,6 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   };
   if (selectable_button(a_def))
     move_to_scene_start(r, Scene::select);
-
-#if defined(_DEBUG)
-  ImGui::NewLine();
-
-  auto b_def = SelectableButtonDef{
-    .label = "SpriteStack",
-    .size = size,
-    .index = index++,
-    .input = do_act,
-    .sel_index = selected,
-  };
-  if (selectable_button(b_def))
-    move_to_scene_start(r, Scene::spritestack);
-#endif
 
   ImGui::NewLine();
   auto c_def = SelectableButtonDef{
