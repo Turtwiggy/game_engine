@@ -16,10 +16,6 @@ update_upgrade_max_hp_system(entt::registry& r)
 
     // Check the parent for the stat modifier
     auto parent_e = parent_c.parent;
-
-    if (!r.valid(parent_e))
-      continue; // you probably died
-
     auto& upgrades_c = r.get<StatModifierComponent>(parent_e);
 
     const auto key_max_hp = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_MAX_HEALTH));

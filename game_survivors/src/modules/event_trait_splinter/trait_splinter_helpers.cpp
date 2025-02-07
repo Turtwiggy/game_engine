@@ -39,14 +39,12 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
     // each of them deals 10% damage of the current player BulletDamage
 
     const auto player_bullet_e = from_e;
-
     const auto wep_e = r.get<HasParentComponent>(player_bullet_e).parent;
 
-    // TODO: work out why this caused a crash
-    const auto par_e = r.get<HasParentComponent>(wep_e).parent;
+    if (!r.valid(wep_e) || wep_e == entt::null)
+      return; // The bullet is alive, but the parent is dead.
 
-    if (!r.valid(par_e) || par_e == entt::null)
-      return; // parently probably died
+    const auto par_e = r.get<HasParentComponent>(wep_e).parent;
 
     // Note: count the bullet as one of the player's bullets.
     BulletDef bul_def = get_bullet_def(r, par_e, wep_e);

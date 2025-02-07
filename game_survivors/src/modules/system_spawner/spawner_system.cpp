@@ -36,10 +36,10 @@ spawn_enemy(entt::registry& r, std::string key, int hp)
   // r.emplace<SpriteOutline>(e);
 
   // get a random position around target player?
-  // TODO: : it should be a larger zone considering all players
+  // TODO: should be a larger zone considering all players?
   const auto& target_t = r.get<TransformComponent>(target_e);
   const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
-  give_life(r, e, rnd_pos, { 32, 32 });
+  give_life(r, e, rnd_pos, { 20, 20 });
 
   auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
   r.emplace<HealthComponent>(fixture_e, hp, hp);
@@ -58,18 +58,6 @@ spawn_enemy(entt::registry& r, std::string key, int hp)
 
   return e;
 };
-
-std::unordered_map<std::string, int>
-get_live_enemies_map(entt::registry& r)
-{
-  // How many of each enemies do we currently have?
-  const auto& enemies_view = r.view<EnemyComponent, ItemKey>();
-
-  std::unordered_map<std::string, int> enemy_to_amount;
-  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
-    enemy_to_amount[item_c.key] += 1;
-  return enemy_to_amount;
-}
 
 void
 update_spawner_system(entt::registry& r)

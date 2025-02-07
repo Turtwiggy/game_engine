@@ -14,7 +14,7 @@ message("game_survivors: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_survivors: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+if("${CMAKE_BUILD_TYPE}" MATCHES "")
   message("CMAKE_BUILD_TYPE was empty... setting to debug")
   set(CMAKE_BUILD_TYPE Debug)
   message("game_survivors: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
@@ -41,7 +41,7 @@ file(GLOB_RECURSE SRC_FILES
 )
 
 # Main executable
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND WIN32)
+if("${CMAKE_BUILD_TYPE}" MATCHES Release AND WIN32)
   # "The WIN32 argument instructs the compiler to build a
   # Windows GUI app, which doesn't show a console."
   add_executable(game_survivors WIN32 ${SRC_FILES} assets/textures/resource.rc)
@@ -54,7 +54,7 @@ endif()
 link_libs(game_survivors)
 
 # Link steam api
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
   # Link steam_api[64].lib
   set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
   target_link_libraries(game_survivors PRIVATE ${steam_lib}/steam_api64.lib)
@@ -98,11 +98,11 @@ else()
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
   set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include)
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
   set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/arm64-osx/include)
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES Linux)
   set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include)
 endif()
 
@@ -125,7 +125,7 @@ ENDIF()
 # actions for building release. Github actins will
 # copy over the /assets folder in the release mode,
 # and would fail if this symlink was created here.
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   message("creating symlink...")
   set(src ${CMAKE_SOURCE_DIR}/game_survivors/assets)
 

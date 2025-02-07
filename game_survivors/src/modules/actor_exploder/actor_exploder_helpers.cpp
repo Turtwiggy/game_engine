@@ -12,7 +12,6 @@
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/system_particles/components.hpp"
 
-
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_world_callbacks.h>
 
@@ -64,10 +63,6 @@ public:
 std::vector<entt::entity>
 enemies_in_range(entt::registry& r, entt::entity e, float radius)
 {
-  const auto phys_e = get_first<SINGLE_Physics>(r);
-  if (phys_e == entt ::null)
-    return {};
-
   const auto pos = get_position(r, e);
 
   EnemyInRangeCallback callback(r, e);
@@ -75,7 +70,7 @@ enemies_in_range(entt::registry& r, entt::entity e, float radius)
   aabb.lowerBound = b2Vec2{ pos.x, pos.y } - b2Vec2{ radius, radius };
   aabb.upperBound = b2Vec2{ pos.x, pos.y } + b2Vec2{ radius, radius };
 
-  const auto& phys_c = r.get<SINGLE_Physics>(phys_e);
+  const auto& phys_c = get_first_component<SINGLE_Physics>(r);
   phys_c.world->QueryAABB(&callback, aabb);
 
   return callback.enemies;

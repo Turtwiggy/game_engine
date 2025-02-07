@@ -29,8 +29,8 @@ using namespace engine;
 #include <thread>
 
 // fixed tick
-static constexpr int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
-// static constexpr int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
+// static constexpr int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
+static constexpr int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
 static uint64_t cur_time = 0;
 static uint64_t milliseconds_accumulator_since_last_tick = 0;
 
@@ -154,7 +154,7 @@ main(int argc, char* argv[])
   name += " [RELEASE]";
 #endif
 #if defined(__MINGW32__)
-  name += "[MINGW]";
+  name += "[g++]";
 #endif
 #if defined(_MSC_VER)
   name += "[MSVC]";

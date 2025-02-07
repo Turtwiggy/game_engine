@@ -21,7 +21,6 @@
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
 
-
 #include <box2d/b2_collision.h>
 #include <magic_enum.hpp>
 
@@ -99,16 +98,11 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
 
   for (const auto& [wep_e, wep_t, wep_c, parent_c, arc_c, autofire_c, cooldown_c] : view.each()) {
 
-    const auto p = parent_c.parent;
-    if (p == entt::null || !r.valid(p)) {
-      dead.dead.emplace(wep_e); // kill this parentless entity (soz)
-      continue;
-    }
-
     // if (cooldown_c.time > 0.0f)
     //   continue;
     // reset_cooldown(cooldown_c);
 
+    const auto p = parent_c.parent;
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
 

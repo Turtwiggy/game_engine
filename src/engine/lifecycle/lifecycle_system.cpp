@@ -4,6 +4,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "modules/combat/components.hpp"
 #include <unordered_set>
 
 #if defined(_MSC_VER)
@@ -32,7 +33,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
   });
 
   // Death callbacks.
-  // OnDeathCallbacks can cause more dead.dead entities
+  // OnDeathCallbacks can cause more dead.dead entities (explosions)
   std::unordered_set<entt::entity> uniquely_dead;
   while (!dead.dead.empty()) {
     const auto e = dead.dead.front();
@@ -46,6 +47,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       for (const auto& cb : callback->callbacks)
         cb(r, e);
     }
+
     uniquely_dead.emplace(e);
   }
 
@@ -62,6 +64,13 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       for (const auto fix_e : body_c->fixtures)
         uniquely_dead.emplace(fix_e);
     }
+
+    // Destroy all the weapons
+    if (auto* wep_c = r.try_get<HasWeaponsComponent>(e))
+      for (const auto wep_e : wep_c->weapons)
+        uniquely_dead.emplace(wep_e);
+
+    //
   }
 
   for (const auto e : uniquely_dead) {

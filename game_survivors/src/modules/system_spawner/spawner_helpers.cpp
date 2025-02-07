@@ -2,7 +2,9 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "spawner_components.hpp"
 
@@ -226,6 +228,11 @@ projectile_enemy()
   wave2.spawn_cooldown = 1;
   wave3.spawn_cooldown = 1;
 
+  data.waves.push_back(wave0);
+  data.waves.push_back(wave1);
+  data.waves.push_back(wave2);
+  data.waves.push_back(wave3);
+
   return data;
 };
 
@@ -272,6 +279,18 @@ rnd_position_around_point(entt::registry& r, const glm::ivec2 center, float radi
   float spawn_x = center.x + dir.x * distance;
   float spawn_y = center.y + dir.y * distance;
   return { spawn_x, spawn_y };
+};
+
+std::unordered_map<std::string, int>
+get_live_enemies_map(entt::registry& r)
+{
+  // How many of each enemies do we currently have?
+  const auto& enemies_view = r.view<EnemyComponent, ItemKey>();
+
+  std::unordered_map<std::string, int> enemy_to_amount;
+  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
+    enemy_to_amount[item_c.key] += 1;
+  return enemy_to_amount;
 };
 
 } // namespace game2d

@@ -60,7 +60,7 @@ entt::entity
 get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
 {
   const auto& body_c = r.get<PhysicsBodyComponent>(e);
-  for (const auto& fix_e : body_c.fixtures) {
+  for (const entt::entity fix_e : body_c.fixtures) {
     const auto& fix_c = r.get<PhysicsFixtureComponent>(fix_e);
     const auto* b2_fixture = fix_c.fixture;
     const auto& fix_tag = r.get<TagComponent>(fix_e);

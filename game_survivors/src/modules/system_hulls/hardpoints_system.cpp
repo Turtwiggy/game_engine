@@ -114,10 +114,6 @@ update_ship_draw_arcs_system(entt::registry& r)
   for (const auto& [e, parent_c, hardpoint_c, weapon_t, autofire_c] : view.each()) {
 
     const auto p = parent_c.parent;
-    if (p == entt::null || !r.valid(p)) {
-      dead.dead.emplace(e); // kill this parentless entity (soz)
-      continue;
-    }
 
     auto eid = static_cast<uint32_t>(e);
     ImGui::PushID(eid);

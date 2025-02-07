@@ -61,7 +61,7 @@ update_physics_apply_force_system(entt::registry& r)
       // check your target hasn't died
       const auto target_e = target_c.target;
       if (target_e == entt::null || !r.valid(target_e)) {
-        SDL_Log("Your target invalid. Should regarget.");
+        SDL_Log("Target invalid. Should retarget.");
         r.remove<PhysicsDynamicTarget>(e);
         continue;
       }

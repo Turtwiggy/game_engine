@@ -4,6 +4,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
@@ -20,7 +21,6 @@
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_hulls/hulls_components.hpp"
 #include "modules/system_manualfire/manualfire_components.hpp"
-
 
 namespace game2d {
 
@@ -39,11 +39,6 @@ update_manualfire_system(entt::registry& r)
   for (const auto& [wep_e, wep_t, wep_c, parent_c, arc_c, manualfire_c, cooldown_c] : view.each()) {
 
     const auto p = parent_c.parent;
-    if (p == entt::null || !r.valid(p)) {
-      dead.dead.emplace(wep_e); // kill this parentless entity (soz)
-      continue;
-    }
-
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
     const auto& parent_input_c = r.get<InputComponent>(p);
@@ -96,9 +91,13 @@ update_manualfire_system(entt::registry& r)
     const auto pos = gun_pos;
     const auto bullet_e = spawn_projectile(r, bullet_def, pos);
 
-    // set velocity
+    // Get your current velocity
+    const auto& p_body = r.get<PhysicsBodyComponent>(p).body;
+    const auto& p_vel = p_body->GetLinearVelocity();
+
+    // set velocity (add parents velocity)
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
-    body_c.body->SetLinearVelocity(b2Vec2{ bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y });
+    body_c.body->SetLinearVelocity(b2Vec2{ bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y } + p_vel);
   }
 }
 

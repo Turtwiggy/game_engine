@@ -31,4 +31,7 @@ get_random_player_target(entt::registry& r);
 glm::ivec2
 rnd_position_around_point(entt::registry& r, const glm::ivec2 center, float radius = 500);
 
+std::unordered_map<std::string, int>
+get_live_enemies_map(entt::registry& r);
+
 } // namespace game2d

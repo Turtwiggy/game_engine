@@ -36,7 +36,7 @@ add_executable(game_survivors_tests ${TEST_SRC_FILES})
 link_libs(game_survivors_tests)
 
 # Link steam api
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
   # Link steam_api[64].lib
   set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
   target_link_libraries(game_survivors_tests PRIVATE ${steam_lib}/steam_api64.lib)
@@ -67,16 +67,16 @@ target_include_directories(game_survivors_tests PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
 )
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
   set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include)
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
   set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/arm64-osx/include)
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES Linux)
   set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include)
 endif()
 
 # Code coverage
-if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE MATCHES Debug)
   message("setting code coverage options...")
   target_compile_options(game_survivors_tests PRIVATE --coverage) # -O0 and -g should already be set
   target_link_options(game_survivors_tests PRIVATE --coverage)

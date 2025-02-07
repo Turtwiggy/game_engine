@@ -46,12 +46,15 @@ update_ui_debug_spawner_system(entt::registry& r)
   const int seconds_from_start = cooldown_c.time_max - (int)cooldown_c.time;
   ImGui::Text("Seconds from start: %i", seconds_from_start);
 
+  const auto enemy_to_amount = get_live_enemies_map(r);
+
   const auto& view = r.view<EnemySpawnData, CooldownComponent>();
   for (const auto [e, data_c, cooldown_c] : view.each()) {
     const auto w_opt = get_wave_from_time(data_c, seconds_from_start);
 
     std::string wave_label = std::format("Wave {}", data_c.enemy_key);
     ImGui::SeparatorText(wave_label.c_str());
+    ImGui::Text("Alive: %i", enemy_to_amount[data_c.enemy_key]);
 
     if (!w_opt.has_value()) {
       ImGui::Text("Wave: no wave data");
