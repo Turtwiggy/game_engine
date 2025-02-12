@@ -18,9 +18,9 @@ struct BulletDef
   AvailableTeams team = AvailableTeams::neutral;
   int damage = 0;
   int pierce = 1;
-  int speed = 250;
+  float speed = 1.0f; // m/s
   int lifecycle = 3 * 1000;
-  int knockback_force = 50;
+  int knockback_force = 1;
   int bounces = 0;
   std::vector<AquirableTrait> traits;
 

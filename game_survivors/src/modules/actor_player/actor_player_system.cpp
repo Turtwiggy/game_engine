@@ -39,49 +39,6 @@ const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
 };
 
 void
-update_movement_jetpack(entt::registry& r)
-{
-  const float rotation_speed = 1.5f;
-  const float speed = 100.0f;
-
-  const float max_force = 100.0f;
-  const float proportional_gain = 10000.0f;
-  const bool clamp_max_force = false;
-
-  const auto& view = r.view<const InputComponent, const MovementJetpackComponent, PhysicsBodyComponent>();
-  for (const auto& [e, input_c, movetype_c, body_c] : view.each()) {
-    body_c.body->SetLinearDamping(1.0f);
-
-    // rotate
-    body_c.body->SetAngularVelocity(input_c.lx * rotation_speed);
-
-    const float epsilon = 0.0001f;
-    if (glm::abs(input_c.ly) - epsilon <= 0.0f)
-      continue; // no input, dont move
-
-    // -engine::HALF_PI so that the angle is not from the left side, but from the feet
-    const float angle = body_c.body->GetAngle() - engine::HALF_PI;
-    const auto dir = engine::angle_radians_to_direction(angle);
-    const b2Vec2 tgt_vel = b2Vec2(dir.x * speed, dir.y * speed);
-
-    const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
-    const b2Vec2 vel_err = tgt_vel - cur_vel;
-    b2Vec2 force = proportional_gain * vel_err;
-
-    if (clamp_max_force) {
-      float force_magnitude_sq = force.LengthSquared();
-      float max_force_mag_sq = max_force * max_force;
-      if (force_magnitude_sq > max_force_mag_sq) {
-        float force_mag = glm::sqrt(force_magnitude_sq);
-        force *= (max_force / force_mag);
-      }
-    }
-
-    body_c.body->ApplyForceToCenter(force, true);
-  }
-};
-
-void
 fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
@@ -94,10 +51,9 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float mass = body_c.body->GetMass();
 
     // Apply more force the more your mass
-    const glm::vec2 move_vel = (mass * l_nrm_dir * 1.0F);
-
-    // body_c.body->SetLinearVelocity({ move_vel.x, move_vel.y });
-    body_c.body->ApplyLinearImpulseToCenter({ move_vel.x, move_vel.y }, true);
+    const auto move_vel = (mass * l_nrm_dir * 1.0F);
+    const auto move_vel_in_meters = b2Vec2{ move_vel.x / PIXELS_PER_METER, move_vel.y / PIXELS_PER_METER };
+    body_c.body->ApplyLinearImpulseToCenter(move_vel_in_meters, true);
 
     //
     // Set Rotation
@@ -126,85 +82,6 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     // SDL_Log("cur: %f tgt: %f, new: %f", cur_angle, tgt_angle, new_angle);
 
     body_c.body->SetTransform(body_c.body->GetPosition(), fin_angle);
-  }
-};
-
-void
-update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
-{
-  const auto& view =
-    r.view<const InputComponent, const MovementAsteroidsComponent, PhysicsBodyComponent, const TransformComponent>();
-  for (const auto& [e, input_c, movetype_c, body_c, transform_c] : view.each()) {
-
-    // rotation_speed: how fast ship can look left/right
-    // speed: how fast ship travels
-    const float rotation_speed = 1.5f;
-    const float speed = 100.0f;
-
-    // A constant that determines how strongly the force is applied in response to the velocity error.
-    // A higher value means more aggressive correction.
-    const float max_force = 1000.0f;
-    const float proportional_gain = 10000.0f;
-    const bool clamp_max_force = false;
-
-    // Choosing Between Torque and Angular Impulse:
-    // Torque:
-    // Applies a continuous force causing gradual rotation.
-    // Good for simulating forces like engines or motors.
-    // Angular Impulse:
-    // Applies an instantaneous change in rotational velocity.
-    // Useful for sudden rotational effects, like impacts or quick spins.
-    if (movetype_c.able_to_change_dir)
-      body_c.body->SetAngularVelocity(input_c.lx * rotation_speed);
-
-    if (movetype_c.able_to_change_thrust) {
-      // if (input_c.ly > 0)
-      //   movetype_c.thrust -= thrust_change * (ms_dt / 1000.0f);
-      // if (input_c.ly < 0)
-      //   movetype_c.thrust += thrust_change * (ms_dt / 1000.0f);
-    }
-    // movetype_c.thrust = glm::min(movetype_c.thrust, 200.0f);
-    // movetype_c.thrust = glm::max(movetype_c.thrust, 1.0f);
-
-    const auto dir = engine::angle_radians_to_direction(transform_c.rotation_radians.z);
-    const b2Vec2 tgt_vel = b2Vec2(dir.x * speed, dir.y * speed);
-
-    /*
-    When aiming to achieve and maintain a specific velocity for a dynamic object (like a spaceship)
-    you should use a control approach that adjusts the force applied based on the difference between the current velocity
-    and the desired velocity.
-    This is typically done using a form of proportional control,
-    which is a fundamental concept in control systems.
-    */
-    const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
-    const b2Vec2 vel_err = tgt_vel - cur_vel;
-    b2Vec2 force = proportional_gain * vel_err;
-
-    // Clamp the force magnitude to avoid excessive values.
-    // Game-feel wise, if clamp is yes:
-    // ship feels more "physics-y", because it takes a little longer to turn
-    // Game-feel wise, if clamp is no:
-    // ship is more responsive beause large force values can be applied.
-    // Kinda feels more like a car than a thruster-powered spaceship
-    if (clamp_max_force) {
-      float force_magnitude_sq = force.LengthSquared();
-      float max_force_mag_sq = max_force * max_force;
-      if (force_magnitude_sq > max_force_mag_sq) {
-        float force_mag = glm::sqrt(force_magnitude_sq);
-        force *= (max_force / force_mag);
-      }
-    }
-
-    /*
-      For more sophisticated control, you might consider implementing a PID
-      (Proportional - Integral - Derivative) controller,
-      which takes into account not only the current error(proportional control)
-      but also the accumulated error over time(integral control) and
-      the rate of change of the error(derivative control).
-      This can provide smoother and more stable control in some cases.
-    */
-
-    body_c.body->ApplyForceToCenter(force, true);
   }
 };
 
@@ -288,8 +165,6 @@ fixed_update_player_controller_system(entt::registry& r, const uint64_t ms_dt, c
   // What happens if multiple fixedupdate() before?
 
   fixedupdate_movement_direct(r, ms_dt);
-  // update_movement_asteroids(r, ms_dt);
-  // update_movement_jetpack(r);
 };
 
 } // namespace game2d

@@ -11,6 +11,13 @@
 namespace game2d {
 using namespace nlohmann;
 
+//
+// Box2d uses (m) and m/s
+// it works best with bodies between size of 0.1 and 1.0.
+// Box2d has an upper speed limit of 120m/s
+//
+const float PIXELS_PER_METER = 64.0f;
+
 struct PhysicsBodyDef
 {
   bool is_bullet = false;
@@ -34,7 +41,7 @@ struct PhysicsFixtureDef
   float restitution = 1.0f;
 
   // optionals... for circle
-  float radius = 0.0f;
+  float radius_in_pixels = 0.0f;
 
   friend void to_json(nlohmann ::json& j, const PhysicsFixtureDef& t)
   {
@@ -44,7 +51,7 @@ struct PhysicsFixtureDef
     j["density"] = t.density;
     j["friction"] = t.friction;
     j["restitution"] = t.restitution;
-    j["radius"] = t.radius;
+    j["radius"] = t.radius_in_pixels;
   }
   friend void from_json(const nlohmann ::json& j, PhysicsFixtureDef& t)
   {
@@ -58,7 +65,7 @@ struct PhysicsFixtureDef
     if (j.contains("restitution"))
       j.at("restitution").get_to(t.restitution);
     if (j.contains("radius"))
-      j.at("radius").get_to(t.radius);
+      j.at("radius").get_to(t.radius_in_pixels);
   };
 };
 

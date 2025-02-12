@@ -225,10 +225,15 @@ update_ui_hierarchy_system(entt::registry& r)
     }
 
     if (auto* pb = r.try_get<PhysicsBodyComponent>(eid)) {
-      const auto& pos = pb->body->GetPosition();
-      float tmp_x = pos.x;
-      float tmp_y = pos.y;
-      imgui_draw_vec2("Physics Pos: ", tmp_x, tmp_y);
+      const auto& pos_m = pb->body->GetPosition();
+      float tmp_x = pos_m.x;
+      float tmp_y = pos_m.y;
+      imgui_draw_vec2("Physics Pos (in meters): ", tmp_x, tmp_y);
+
+      const auto pos = glm::vec2{ pos_m.x * PIXELS_PER_METER, pos_m.y * PIXELS_PER_METER };
+      tmp_x = pos.x;
+      tmp_y = pos.y;
+      imgui_draw_vec2("Physics Pos (in pixels): ", tmp_x, tmp_y);
 
       const glm::vec2 size = get_size(r, eid);
       tmp_x = size.x;

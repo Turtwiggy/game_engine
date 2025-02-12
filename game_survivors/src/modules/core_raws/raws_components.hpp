@@ -196,9 +196,6 @@ struct Raws
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, colours, items);
 };
 
-//
-//
-
 const int default_size = 32;
 
 Raws

@@ -18,7 +18,7 @@ struct ApplyForceInDirectionComponent
 // combine with: DynamicTargetComponent
 struct ApplyForceToDynamicTarget
 {
-  float speed = 100.0f;
+  float speed = 1.0f;
 
   // orbit tries to avoid direct collision by
   // adding a perpendicular force the closer you get

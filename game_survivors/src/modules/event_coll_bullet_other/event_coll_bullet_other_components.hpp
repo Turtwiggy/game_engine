@@ -34,7 +34,7 @@ struct BulletPierce
 
 struct BulletSpeed
 {
-  int speed = 250;
+  float speed = 1.0f; // m/s
 };
 
 struct BulletKnockback

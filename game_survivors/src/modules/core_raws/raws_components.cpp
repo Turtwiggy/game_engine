@@ -28,6 +28,7 @@
 #include <box2d/b2_body.h>
 #include <box2d/b2_dynamic_tree.h>
 #include <box2d/b2_fixture.h>
+#include <glm/fwd.hpp>
 #include <magic_enum.hpp>
 
 #include <fstream>
@@ -175,8 +176,11 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     // Define fixtures with a shape, friction, density, etc.
     // Create fixtures on the body.
 
+    const b2Vec2 pos_in_meters = b2Vec2{ pos.x / PIXELS_PER_METER, pos.y / PIXELS_PER_METER };
+    const b2Vec2 size_in_meters = b2Vec2{ size.x / PIXELS_PER_METER, size.y / PIXELS_PER_METER };
+
     b2BodyDef body_def;
-    body_def.position.Set(pos.x, pos.y);
+    body_def.position.Set(pos_in_meters.x, pos_in_meters.y);
     body_def.angle = 0.0f;
     body_def.fixedRotation = true;
     body_def.bullet = is_bullet;
@@ -227,7 +231,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
         if (type == "circle") {
           b2CircleShape circle;
-          circle.m_radius = fix.radius;
+          circle.m_radius = fix.radius_in_pixels / PIXELS_PER_METER;
           fixture_def.shape = &circle;
           fixture = body->CreateFixture(&fixture_def);
           // SDL_Log("creating circle fixture..");
@@ -235,7 +239,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
         if (type == "box") {
           b2PolygonShape box;
-          box.SetAsBox(size.x / 2.0f, size.y / 2.0f);
+          box.SetAsBox(size_in_meters.x / 2.0f, size_in_meters.y / 2.0f);
           fixture_def.shape = &box;
           fixture = body->CreateFixture(&fixture_def);
           // SDL_Log("creating box fixture..");
@@ -289,7 +293,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = false;
         tgt_c.reduce_thrusters = false;
-        tgt_c.speed = 50.0f;
+        tgt_c.speed = 1.0f; // m/s
         r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
       }
@@ -300,7 +304,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = true;
         tgt_c.reduce_thrusters = true;
-        tgt_c.speed = 50.0f;
+        tgt_c.speed = 1.0f;                    // m/s
         tgt_c.distance_to_reduce_thrust = 600; // distance to shoot from
         r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
@@ -309,7 +313,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         r.emplace<CooldownComponent>(e, CooldownComponent{ 2.0f, 0.0 });
         r.emplace<BulletDamage>(e, BulletDamage{ 1 });
         r.emplace<BulletPierce>(e, BulletPierce{ 1 });
-        r.emplace<BulletSpeed>(e, BulletSpeed{ 50 });
+        r.emplace<BulletSpeed>(e, BulletSpeed{ 1.0f });
         r.emplace<BulletSize>(e, BulletSize{ { 18, 18 } });
         // r.emplace<BulletKnockback>(e, BulletKnockback{ 50 });
         // r.emplace<WeaponSpread>(wep_e);

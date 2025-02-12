@@ -12,7 +12,6 @@
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 
-
 #include <imgui.h>
 #include <magic_enum.hpp>
 
@@ -88,7 +87,7 @@ update_ui_survive_health_system(entt::registry& r)
       ImGui::Text("Weapon...");
       ImGui::Text("b_bounce %i", bul_def.bounces); 
       ImGui::Text("b_size_x %f", bul_def.size.x); 
-      ImGui::Text("b_speed %i", bul_def.speed); 
+      ImGui::Text("b_speed %f", bul_def.speed); 
       ImGui::Text("b_damage %i", bul_def.damage); 
       ImGui::Text("b_pierce %i", bul_def.pierce); 
       ImGui::Text("b_knockback %i", bul_def.knockback_force); 

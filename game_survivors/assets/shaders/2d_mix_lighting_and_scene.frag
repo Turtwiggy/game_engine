@@ -124,191 +124,6 @@ float opSmoothUnion( float d1, float d2, float k )
     return min(d1, d2) - h*h*0.25/k;
 }
 
-//
-// blending modes...
-//
-
-vec3 multiply(in vec3 src, in vec3 dst)
-{
-    return src * dst;
-}
-
-vec3 screen(in vec3 src, in vec3 dst)
-{
-    return src + dst - src * dst;
-}
-
-vec3 overlay(in vec3 src, in vec3 dst)
-{
-    return mix(2.0 * src * dst, 1.0 - 2.0 * (1.0 - src) * (1.0-dst), step(0.5, dst));
-}
-
-vec3 hardlight(in vec3 src, in vec3 dst)
-{
-    return mix(2.0 * src * dst,  1.0 - 2.0 * (1.0 - src) * (1.0-dst), step(0.5, src));
-}
-
-vec3 softlight(in vec3 src, in vec3 dst)
-{
-    return mix(dst - (1.0 - 2.0 * src) * dst * (1.0 - dst), 
-               mix(dst + ( 2.0 * src - 1.0 ) * (sqrt(dst) - dst),
-                   dst + (2.0 * src - 1.0) * dst * ((16.0 * dst - 12.0) * dst + 3.0),
-                   step(0.5, src) * (1.0 - step(0.25, dst))),
-               step(0.5, src));
-}
-
-vec3 colorDodge(in vec3 src, in vec3 dst)
-{
-    return step(0.0, dst) * mix(min(vec3(1.0), dst/ (1.0 - src)), vec3(1.0), step(1.0, src)); 
-}
-
-vec3 colorBurn(in vec3 src, in vec3 dst)
-{
-    return mix(step(0.0, src) * (1.0 - min(vec3(1.0), (1.0 - dst) / src)),
-        vec3(1.0), step(1.0, dst));
-}
-
-vec3 linearDodge(in vec3 src, in vec3 dst)
-{
-    return clamp(src.xyz + dst.xyz, 0.0, 1.0);
-}
-
-vec3 linearBurn(in vec3 src, in vec3 dst)
-{
-    return clamp(src.xyz + dst.xyz - 1.0, 0.0, 1.0);
-}
-
-vec3 vividLight(in vec3 src, in vec3 dst)
-{
-    return mix(max(vec3(0.0), 1.0 - min(vec3(1.0), (1.0 - dst) / (2.0 * src))),
-               min(vec3(1.0), dst / (2.0 * (1.0 - src))),
-               step(0.5, src));
-}
-
-vec3 linearLight(in vec3 src, in vec3 dst)
-{
-    return clamp(2.0 * src + dst - 1.0, 0.0, 1.0);;
-}
-
-vec3 pinLight(in vec3 src, in vec3 dst)
-{
-    return mix(mix(2.0 * src, dst, step(0.5 * dst, src)),
-        max(vec3(0.0), 2.0 * src - 1.0), 
-        step(dst, (2.0 * src - 1.0))
-    );
-}
-
-vec3 hardMix(in vec3 src, in vec3 dst)
-{
-    return step(1.0, src + dst);
-}
-
-vec3 subtract(in vec3 src, in vec3 dst)
-{
-    return dst - src;
-}
-
-vec3 divide(in vec3 src, in vec3 dst)
-{
-    return dst / src;
-}
-
-vec3 addition(vec3 src, vec3 dst)
-{
-    return src + dst;
-}
-
-vec3 difference(in vec3 src, in vec3 dst )
-{
-    return abs(dst - src);   
-}
-
-vec3 darken(in vec3 src, in vec3 dst)
-{
-    return min(src, dst);
-}
-
-vec3 lighten(in vec3 src, in vec3 dst)
-{
-    return max(src, dst);
-}
-
-vec3 invert(in vec3 src, in vec3 dst)
-{
-    return 1.0 - dst;
-}
-
-vec3 invertRGB(in vec3 src, in vec3 dst)
-{
-    return src * (1.0 - dst);
-}
-
-vec3 source(in vec3 src, in vec3 dst)
-{
-    return src;
-}
-
-vec3 dest(in vec3 src, in vec3 dst)
-{
-    return dst;
-}
-
-// Branchless RGB2HSL implementation from : https://www.shadertoy.com/view/MsKGRW
-vec3 rgb2hsl( in vec3 c )
-{
-    const float epsilon = 0.00000001;
-    float cmin = min( c.r, min( c.g, c.b ) );
-    float cmax = max( c.r, max( c.g, c.b ) );
-    float cd   = cmax - cmin;
-    vec3 hsl = vec3(0.0);
-    hsl.z = (cmax + cmin) / 2.0;
-    hsl.y = mix(cd / (cmax + cmin + epsilon), cd / (epsilon + 2.0 - (cmax + cmin)), step(0.5, hsl.z));
-
-    vec3 a = vec3(1.0 - step(epsilon, abs(cmax - c)));
-    a = mix(vec3(a.x, 0.0, a.z), a, step(0.5, 2.0 - a.x - a.y));
-    a = mix(vec3(a.x, a.y, 0.0), a, step(0.5, 2.0 - a.x - a.z));
-    a = mix(vec3(a.x, a.y, 0.0), a, step(0.5, 2.0 - a.y - a.z));
-    
-    hsl.x = dot( vec3(0.0, 2.0, 4.0) + ((c.gbr - c.brg) / (epsilon + cd)), a );
-    hsl.x = (hsl.x + (1.0 - step(0.0, hsl.x) ) * 6.0 ) / 6.0;
-    return hsl;
-}
-
-// HSL2RGB thanks to IQ : https://www.shadertoy.com/view/lsS3Wc
-vec3 hsl2rgb(in vec3 c)
-{
-    vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
-    return c.z + c.y * (rgb-0.5)*(1.0-abs(2.0*c.z-1.0));
-}
-
-vec3 hue(in vec3 src, in vec3 dst)
-{
-    vec3 dstHSL = rgb2hsl(dst);
-    vec3 srcHSL = rgb2hsl(src);
-    return hsl2rgb(vec3(srcHSL.r, dstHSL.gb));
-}
-
-vec3 saturation(in vec3 src, in vec3 dst)
-{
-    vec3 dstHSL = rgb2hsl(dst);
-    vec3 srcHSL = rgb2hsl(src);
-    return hsl2rgb(vec3(dstHSL.r, srcHSL.g, dstHSL.b));
-}
-
-vec3 color(in vec3 src, in vec3 dst)
-{
-    vec3 dstHSL = rgb2hsl(dst);
-    vec3 srcHSL = rgb2hsl(src);
-    return hsl2rgb(vec3(srcHSL.rg, dstHSL.b));
-}
-
-vec3 luminosity(in vec3 src, in vec3 dst)
-{
-    vec3 dstHSL = rgb2hsl(dst);
-    vec3 srcHSL = rgb2hsl(src);
-    return hsl2rgb(vec3(dstHSL.rg, srcHSL.b));
-}
-
 vec3 Tonemap_ACES(const vec3 x) {
     // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
     const float a = 2.51;
@@ -321,76 +136,79 @@ vec3 Tonemap_ACES(const vec3 x) {
 
 void main()
 {
-vec2 v_uv = fs_in.v_uv;
+  vec2 v_uv = fs_in.v_uv;
   vec4 v_colour= fs_in.v_colour;
   vec2 v_sprite_pos = fs_in.v_sprite_pos;
   vec2 v_sprite_wh = fs_in.v_sprite_wh;
   vec2 v_sprite_max = fs_in.v_sprite_max;
+  vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
   out_color.a = 1.0f;
-    
+  
   // fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
   // iResolution : is a vec2 with an X value of 640 and a Y value of 360
   vec2 fragCoord = (v_uv * viewport_wh);
   vec2 iResolution = viewport_wh;
-    vec2 center = iResolution.xy * 0.5;
-    vec2 p = ((fragCoord - center) * zoom + center + vec2(0.5));
+  vec2 half_wh = viewport_wh * 0.5;
+	vec2 screen_min = camera_pos - half_wh; // e.g. -960, -540 for 1920x1080
+	vec2 screen_max = camera_pos + half_wh; // e.g. 960, 540 for 1920x1080
 
-    vec2 half_wh = viewport_wh / 2.0;
-    vec2 screen_min = camera_pos - half_wh; // e.g. -960
+  // sdf grid	
+  vec3 grid_col = vec3(0.0f);
+  if(add_grid) {
     
-    // sdf grid	
-    vec3 grid_col = vec3(0.0f);
-    if(add_grid) {
-        float gridsize = tilesize / zoom; // pixels
-        vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
-        vec2 camera_uv = camera_uv_screen / zoom; 
-        float aspect_y = viewport_wh.y / viewport_wh.x;
-        
-        vec2 grid_uv = (2.0 * v_uv - 1.0);
-        grid_uv += camera_uv;
-        grid_uv.y *= aspect_y;
-
-        vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * grid_uv;
-
-        // if the gridsize gets too small and the gridwidth isnt large enough, 
-        // the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
-        // float grid_width = 0.02; 
-        float grid_width = 0.04; 
-        float margin = 0.5;
-        if(abs(sdGrid(p_grid, margin)) >= grid_width)
-            grid_col = vec3(0.0);// background
-        else
-            grid_col = vec3(0.04); // line
-    }
-
-    vec4 scene_lin = texture(tex_scene_0, v_uv);
-    vec4 outline_col = texture(tex_outline, v_uv);
-
-    vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
-    vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
-
-    if (length(scene_lin.rgb) > 0.0) {
-        out_color.rgb = srgb_final;
-    } else {
-        out_color.rgb = srgb_water;
-    }
+    float aspect_y = viewport_wh.y / viewport_wh.x;
+    float grid_size = 50.0;
     
-    // ACES tonemap
-    // out_color.rgb = Tonemap_ACES(out_color.rgb);
+    // shift uv to [-0.5, 0.5] to add uvs surrouding the camera position
+    vec2 uv = v_uv - 0.5;
+    uv *= zoom;
+    
+    // the camera position moves, acting as uv that increases/decreases
+    vec2 camera_uv_screen = camera_pos + (uv * viewport_wh);
+    camera_uv_screen /= viewport_wh;
 
-    if(outline_col.r > 0.0f)
-        out_color.rgb = vec3(1.0, 1.0, 1.0);
+    vec2 grid_uv = camera_uv_screen;
+    vec2 grid_p = ( viewport_wh / grid_size ) * grid_uv;
 
-    out_color.rgb += grid_col;
+    // if the gridsize gets too small and the gridwidth isnt large enough, 
+    // the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
+    float grid_width = 0.02; 
+    float margin = 0.5;
+    if(abs(sdGrid(grid_p, margin)) >= grid_width)
+        grid_col = vec3(0.0);// background
+    else
+        grid_col = vec3(0.04); // line
+  }
 
-    // vignette
-    // vec2 vig_uv = fragCoord.xy / iResolution.xy;
-    // vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
-    // float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
-    // vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
-    // out_color.rgb *= vig;
 
-    out_color.a = 1.0f;
+  vec4 scene_lin = texture(tex_scene_0, v_uv);
+  vec4 outline_col = texture(tex_outline, v_uv);
+
+  vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+  vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
+
+  if (length(scene_lin.rgb) > 0.0) {
+      out_color.rgb = srgb_final;
+  } else {
+      out_color.rgb = srgb_water;
+  }
+  
+  // ACES tonemap
+  // out_color.rgb = Tonemap_ACES(out_color.rgb);
+
+  if(outline_col.r > 0.0f)
+      out_color.rgb = vec3(1.0, 1.0, 1.0);
+
+  out_color.rgb += grid_col;
+
+  // vignette
+  // vec2 vig_uv = fragCoord.xy / iResolution.xy;
+  // vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
+  // float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
+  // vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
+  // out_color.rgb *= vig;
+
+  out_color.a = 1.0f;
 }

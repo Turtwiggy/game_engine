@@ -4,10 +4,12 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/core_collisions/resolve_collisions_helpers.hpp"
+#include "physics_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <box2d/b2_circle_shape.h>
 #include <box2d/b2_contact.h>
+#include <box2d/b2_math.h>
 #include <box2d/b2_world_callbacks.h>
 #include <format>
 #include <functional>
@@ -140,12 +142,12 @@ public:
 };
 
 std::vector<entt::entity>
-get_all_in_area(entt::registry& r, glm::vec2 center, float d)
+get_all_in_area(entt::registry& r, glm::vec2 center, float d_in_meters)
 {
   SearchAreaCallback callback;
   b2AABB aabb;
-  aabb.lowerBound = b2Vec2{ center.x - d, center.y - d };
-  aabb.upperBound = b2Vec2{ center.x + d, center.y + d };
+  aabb.lowerBound = b2Vec2{ center.x - d_in_meters, center.y - d_in_meters };
+  aabb.upperBound = b2Vec2{ center.x + d_in_meters, center.y + d_in_meters };
 
   const auto& physics_c = get_first_component<SINGLE_Physics>(r);
   physics_c.world->QueryAABB(&callback, aabb);
@@ -155,20 +157,33 @@ get_all_in_area(entt::registry& r, glm::vec2 center, float d)
 
 std::vector<std::pair<int, entt::entity>>
 get_all_in_area_filtered(entt::registry& r,
-                         const glm::vec2 center,
-                         const float d,
+                         const b2Vec2 center_in_meters,
+                         const float d_in_meters,
                          const std::function<bool(entt::registry&, entt::entity)>& cond)
 {
-  FilteredSearchAreaCallback callback(r, { center.x, center.y }, cond);
+  FilteredSearchAreaCallback callback(r, { center_in_meters.x, center_in_meters.y }, cond);
 
   b2AABB aabb;
-  aabb.lowerBound = b2Vec2{ center.x - d, center.y - d };
-  aabb.upperBound = b2Vec2{ center.x + d, center.y + d };
+  aabb.lowerBound = b2Vec2{ center_in_meters.x - d_in_meters, center_in_meters.y - d_in_meters };
+  aabb.upperBound = b2Vec2{ center_in_meters.x + d_in_meters, center_in_meters.y + d_in_meters };
 
   const auto& physics_c = get_first_component<SINGLE_Physics>(r);
   physics_c.world->QueryAABB(&callback, aabb);
 
   return callback.results;
+};
+
+glm::vec2
+meters_to_pixels(b2Vec2 meters)
+{
+  return { meters.x * PIXELS_PER_METER, meters.y * PIXELS_PER_METER };
+};
+
+b2Vec2
+pixels_to_meters(glm::vec2 pixels)
+{
+  auto p = pixels / PIXELS_PER_METER;
+  return { p.x, p.y };
 };
 
 /*

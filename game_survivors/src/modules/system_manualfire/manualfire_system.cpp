@@ -6,6 +6,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
@@ -77,19 +78,22 @@ update_manualfire_system(entt::registry& r)
     reset_cooldown(cooldown_c);
 
     // TODO: implement same functionality as system autofire
-    int bullet_damage = r.get<BulletDamage>(wep_e).damage;
-    int bullet_speed = r.get<BulletSpeed>(wep_e).speed;
+    const int bullet_damage = r.get<BulletDamage>(wep_e).damage;
+    // const int bullet_speed = r.get<BulletSpeed>(wep_e).speed;
 
     BulletDef bullet_def(wep_e);
     bullet_def.key = "bullet_default";
-    bullet_def.size = { 6, 6 };
+    bullet_def.size = { 8, 4 };
     bullet_def.team = AvailableTeams::player;
     bullet_def.damage = bullet_damage;
-    bullet_def.speed = bullet_speed;
+    bullet_def.speed = 0.1f; // m/s
     bullet_def.lifecycle = 3 * 1000;
 
     const auto pos = gun_pos;
     const auto bullet_e = spawn_projectile(r, bullet_def, pos);
+
+    // HACK: overwrite manual-bullet sprite
+    // set_sprite(r, bullet_e, "EFFECT_29_11");
 
     // Get your current velocity
     const auto& p_body = r.get<PhysicsBodyComponent>(p).body;
@@ -97,7 +101,8 @@ update_manualfire_system(entt::registry& r)
 
     // set velocity (add parents velocity)
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
-    body_c.body->SetLinearVelocity(b2Vec2{ bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y } + p_vel);
+    const auto bullet_vel = bullet_def.speed * b2Vec2{ nrm_dir.x, nrm_dir.y };
+    body_c.body->ApplyLinearImpulseToCenter(bullet_vel, true);
   }
 }
 

@@ -79,8 +79,9 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto val_bullet_knockback = r.get<BulletKnockback>(wep_e).knockback_force;
 
   const auto mod_bul_bounce = (int)upgrades_c.apply_modifiers(val_bullet_bounce, key_bullet_bounce);
-  const auto mod_bul_size_x = upgrades_c.apply_modifiers(val_bullet_size.x, key_bullet_size); // use x
-  const auto mod_bul_speed = (int)upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
+  const auto mod_bul_size_x = upgrades_c.apply_modifiers(val_bullet_size.x, key_bullet_size);
+  const auto mod_bul_size_y = upgrades_c.apply_modifiers(val_bullet_size.y, key_bullet_size);
+  const auto mod_bul_speed = upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
   const auto mod_bul_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
   const auto mod_bul_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
   const auto mod_bul_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
@@ -93,7 +94,7 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   BulletDef bullet_def(wep_e);
   bullet_def.key = "bullet_default";
   bullet_def.team = AvailableTeams::player;
-  bullet_def.size = { mod_bul_size_x, mod_bul_size_x };
+  bullet_def.size = { mod_bul_size_x, mod_bul_size_y };
   bullet_def.damage = mod_bul_damage;
   bullet_def.pierce = mod_bul_pierce;
   bullet_def.speed = mod_bul_speed;

@@ -27,9 +27,49 @@ struct ElectromancyTraitComponent
 };
 
 void
-handle_shoot_event__trait_electromancy(entt::registry& r, const ShootEvent& evt)
+do_lightning(entt::registry& r, const ElectromancyTraitComponent& data_c, const entt::entity enemy_e)
 {
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto fixture_e = get_fixture(r, enemy_e);
+
+  //
+  // Send a damage event. (immediately)
+  //
+  {
+    DamageEvent evt;
+    evt.from = entt::null; // system
+    evt.to = fixture_e;
+    evt.type = DamageType::PHYSICAL;
+    evt.amount = data_c.electricity_damage;
+    evts_c.dispatcher->trigger(evt);
+    evts_c.dispatcher->update();
+  }
+
+  //
+  // Spawn an effect
+  //
+  const auto pos = get_position(r, enemy_e);
+  const auto size = glm::vec2{ 24 * 1.5, 48 * 1.5 };
+  const auto thunder_e = spawn(r, "effect_thunder");
+  give_life(r, thunder_e, pos, size);
+
+  EntityTimedLifecycle lifecycle_c{ .milliseconds_alive_max = (int)(1 * 1000) };
+  r.emplace<EntityTimedLifecycle>(thunder_e, lifecycle_c);
+  r.emplace<SetAlphaBasedOnLifecycleComponent>(thunder_e);
+
+  ScaleOverTimeComponent sotc;
+  sotc.seconds_until_complete = lifecycle_c.milliseconds_alive_max / 1000.0f;
+  sotc.start_size = size;
+  sotc.end_size = { 0, 0 };
+  r.emplace<ScaleOverTimeComponent>(thunder_e, sotc);
+
+  r.remove<OnDeathCallbacks>(thunder_e); // you are the effect, dont spawn particles on death
+  set_z_index(r, thunder_e, ZLayer::VFX);
+};
+
+void
+handle_shoot_event__trait_electromancy(entt::registry& r, const ShootEvent& evt)
+{
 
   const auto from_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
@@ -56,13 +96,13 @@ handle_shoot_event__trait_electromancy(entt::registry& r, const ShootEvent& evt)
   // LET THERE BE THUNDER.
   // Call down a lightning strike on a nearby enemy
 
-  const auto parent_pos = get_position(r, evt.parent_e);
-  const auto search_radius = 100.0f;
+  const auto parent_pos_in_meters = pixels_to_meters(get_position(r, evt.parent_e));
+  const auto search_radius_meters = 1.0f;
 
   const auto is_enemy = [](entt::registry& r, const entt::entity e) -> bool {
     return r.try_get<EnemyComponent>(e) != nullptr;
   };
-  auto enemies = get_all_in_area_filtered(r, parent_pos, search_radius, is_enemy);
+  auto enemies = get_all_in_area_filtered(r, parent_pos_in_meters, search_radius_meters, is_enemy);
   if (enemies.size() == 0)
     return;
 
@@ -70,41 +110,8 @@ handle_shoot_event__trait_electromancy(entt::registry& r, const ShootEvent& evt)
   auto sort_by_distance = [](const auto& a, const auto& b) { return a.first < b.first; };
   std::sort(enemies.begin(), enemies.end(), sort_by_distance);
   auto nearest_e = enemies[0].second;
-  auto nearest_fixture_e = get_fixture(r, nearest_e);
 
-  //
-  // Send a damage event. (immediately)
-  //
-  {
-    DamageEvent evt;
-    evt.from = entt::null; // system
-    evt.to = nearest_fixture_e;
-    evt.type = DamageType::PHYSICAL;
-    evt.amount = data_c.electricity_damage;
-    evts_c.dispatcher->trigger(evt);
-    evts_c.dispatcher->update();
-  }
-
-  //
-  // Spawn an effect
-  //
-  const auto pos = get_position(r, nearest_e);
-  const auto size = glm::vec2{ 24 * 1.5, 48 * 1.5 };
-  const auto thunder_e = spawn(r, "effect_thunder");
-  give_life(r, thunder_e, pos, size);
-
-  EntityTimedLifecycle lifecycle_c{ .milliseconds_alive_max = (int)(1 * 1000) };
-  r.emplace<EntityTimedLifecycle>(thunder_e, lifecycle_c);
-  r.emplace<SetAlphaBasedOnLifecycleComponent>(thunder_e);
-
-  ScaleOverTimeComponent sotc;
-  sotc.seconds_until_complete = lifecycle_c.milliseconds_alive_max / 1000.0f;
-  sotc.start_size = size;
-  sotc.end_size = { 0, 0 };
-  r.emplace<ScaleOverTimeComponent>(thunder_e, sotc);
-
-  r.remove<OnDeathCallbacks>(thunder_e); // you are the effect, dont spawn particles on death
-  set_z_index(r, thunder_e, ZLayer::VFX);
+  do_lightning(r, data_c, nearest_e);
 }
 
 } // namespace game2d

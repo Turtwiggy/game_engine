@@ -52,7 +52,7 @@ vec2 hash2( vec2 p )
 	return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
 }
 
-float worley(vec2 p, vec2 other_p) {
+float worley(vec2 p) {
 
 	float d = 1.; 
 	vec2 ip = floor(p);
@@ -71,11 +71,6 @@ float worley(vec2 p, vec2 other_p) {
 		d = min(d,dist);
 	}
 
-	// vec2 to_p = p - other_p;
-	// float scale = 0.5; // larger value = smaller ring
-	// float mouse_dist = length2(to_p)*scale;
-	// d = min(d, mouse_dist);
-
 	// Round out the edges.
 	// original: 
 	// return 3.0*exp(-4.0*abs(2.0*d - 1.0));
@@ -83,23 +78,23 @@ float worley(vec2 p, vec2 other_p) {
 	return 3.0*exp(-4.0*abs(2.5*d - 1.0));
 }
 
-float fworley(vec2 p, vec2 pp) {
+float fworley(vec2 p) {
 	// Stack noise layers 
 
 	// Spreading out the light can be done by taking repeated roots.
 	// This changes the peaking function to a much more smooth one.
 
 	float a_scale = 5; // sparse
-	float a_time = 0.05*time;
+	float a_time = 0.025*time;
 	float b_scale = 50; // dense
 	float b_flat = 0.12;
 	float b_time = -0.1*time;
 	float c_scale = -10; // dense
 	float c_time = -0.03*time;
 
-	float a = worley(p*a_scale + 					a_time, pp*a_scale+a_time); 			
-	float b = worley(p*b_scale + b_flat + b_time, vec2(1, 1));
-	float c = worley(p*c_scale + 				  c_time, vec2(1, 1));
+	float a = worley(p*a_scale + 					a_time); 			
+	float b = worley(p*b_scale + b_flat + b_time);
+	float c = worley(p*c_scale + 				  c_time);
 	float d = sqrt(sqrt(sqrt( a * sqrt(b) * sqrt(sqrt(c)) )));
 
 	return d;
@@ -117,11 +112,12 @@ void main()
   vec2 v_sprite_pos = fs_in.v_sprite_pos;
   vec2 v_sprite_wh = fs_in.v_sprite_wh;
   vec2 v_sprite_max = fs_in.v_sprite_max;
+  vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
   vec2 fragCoord = v_uv * viewport_wh; // e.g. x 0>640, y 0>360
   vec2 iResolution = viewport_wh; 		 // e.g. 640, 360
-	vec2 half_wh = viewport_wh / 2.0;
+	vec2 half_wh = viewport_wh * 0.5;
 
 	// vec2 center = iResolution.xy * 0.5;
 	// vec2 p = ((fragCoord - center) * zoom + center + vec2(0.5));
@@ -132,13 +128,14 @@ void main()
 	float aspect_x = viewport_wh.x / viewport_wh.y;
 	{
 		// convert uv to -1 and 1
-		vec2 tmp_uv = -(2.0 * v_uv - 1.0);
+		// the -1 is to invert the sdf
+		vec2 tmp_uv = -1 * (2.0 * v_uv - 1.0);
 		tmp_uv.x *= aspect_x;
 		tmp_uv *= zoom;
 
-		vec2 pos = vec2(0, 0); // worldspace
-		float tilesize = 64.0;
-		float radius = 12.0;
+		vec2 pos = vec2(0, 0); // worldspace for the circle center
+		float tilesize = 50.0;
+		float radius = 8.0;
 		float size = tilesize * radius;
 
 		// convert worldspace to between -1 and 1.
@@ -147,40 +144,21 @@ void main()
 		vec2 p = tmp_uv + ss;
 
 		d = sdfCircle(p, size / (aspect_x * 100.0f));
-		
-
 	}
 
-	vec2 uv = v_uv; // uv between 0 and 1
-	
-	// Adjust for zoom, centering around (0.5, 0.5)
-	uv -= 0.5;
-	uv *= zoom; // e.g. zoom out > 1.0, zoom in with < 1.0
-	uv += 0.5;
 
-	vec2 camera_uv_screenspace = camera_pos / viewport_wh; // [0, 1]
-	uv += camera_uv_screenspace;
-	uv.x *= aspect_x;
+	vec2 uv = v_uv - 0.5;
+	uv *= zoom;
+	vec2 cam_uv = camera_pos + (uv * viewport_wh);
+	cam_uv /= viewport_wh;
+	vec2 grid_uv = cam_uv;
+	vec2 grid_p = ( viewport_wh / 1700 ) * grid_uv;
 
-	vec3 worldspace_pos = player_positions[0].xyz; 
-	vec4 clipspace_pos = projection_zoomed * view * vec4(worldspace_pos.xyz, 1.0);
-	vec3 ndc_pos = clipspace_pos.xyz / clipspace_pos.w;
-	vec2 screenspace_pos = vec2(
-		(ndc_pos.x + 1.0) + 0.5 * viewport_wh.x,   // [0, screen_w]
-		(1.0 - ndc_pos.y) + 0.5 * viewport_wh.y	   // [0, screen_h]
-	);
-	vec2 screenspace = screenspace_pos / viewport_wh;
-	vec2 screenspace_adj = screenspace;
-	screenspace_adj += camera_uv_screenspace;
-	screenspace_adj.x *= aspect_x;
+  float t = fworley(grid_p);	
 
-	vec2 scale = vec2(viewport_wh.x / 1500.0);
-  float t = fworley(uv*scale, screenspace_adj*scale);
-
-	vec2 hmm_uv = v_uv;
-	hmm_uv.y = 1 - hmm_uv.y;
+	vec2 tex_uv = v_uv; // raw texture uv
+	tex_uv.y = 1 - tex_uv.y;
 	// hmm_uv /= 1.2;
-
 
 	// inside distances only
 	d = clamp(d, -1, 1); 
@@ -192,7 +170,7 @@ void main()
 	// t = clamp(t, 0.5, 0.6);
 
 	// Multiply intensity values by a colour curve based off the uv
-	t *= exp(-length2(abs(0.7*hmm_uv - 1.0))); // add gradient
+	t *= exp(-length2(abs(0.7*tex_uv - 1.0))); // add gradient
 	
 	vec3 col= vec3(0.0);
 	if( d < 0 ){ // safe-zone

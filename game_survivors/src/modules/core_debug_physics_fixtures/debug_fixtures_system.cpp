@@ -23,7 +23,8 @@ update_debug_fixtures_system(entt::registry& r)
       if (shape->GetType() == b2Shape::e_circle) {
         const auto* circle = static_cast<const b2CircleShape*>(shape);
         const float radius = circle->m_radius;
-        const glm::vec2 pos = { body->GetPosition().x, body->GetPosition().y };
+        const auto pos_in_meters = glm::vec2{ body->GetPosition().x, body->GetPosition().y };
+        const auto pos = glm::vec2{ pos_in_meters.x * PIXELS_PER_METER, pos_in_meters.y * PIXELS_PER_METER };
 
         constexpr int segments = 32;
         constexpr float angle_step = engine::TWO_PI / segments;

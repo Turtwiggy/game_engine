@@ -100,7 +100,7 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   // ding ding, you hit. now stop and move away
   // This sets the velocity this frame,
   // but then gets taken over by physics again
-  enemy_phys.body->SetLinearVelocity(50.0f * b2Vec2{ dir.x, dir.y });
+  enemy_phys.body->SetLinearVelocity(1.0f * b2Vec2{ dir.x, dir.y });
 };
 
 void

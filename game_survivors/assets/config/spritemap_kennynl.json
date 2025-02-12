@@ -186,6 +186,7 @@
     { "name": "EFFECT_24_11", "frames": [ { "x": 24, "y": 11 } ] },
     { "name": "EFFECT_25_11", "frames": [ { "x": 25, "y": 11 } ] },
     { "name": "EFFECT_26_11", "frames": [ { "x": 26, "y": 11 } ] },
+    { "name": "EFFECT_29_11", "frames": [ { "x": 29, "y": 11 } ], "angle": 45.0 },
     { "name": "EFFECT_30_11", "frames": [ { "x": 30, "y": 11 } ] },
     { "name": "KEY_0", "frames": [ { "x": 32, "y": 11 } ] },
     { "name": "KEY_1", "frames": [ { "x": 33, "y": 11 } ] },

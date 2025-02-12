@@ -61,12 +61,14 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
 
     // get closest enemy
     const auto center = glm::vec2{ parent_t.position.x, parent_t.position.y };
-    const auto search_radius = 500.0f; // for nearest enemy
+    const auto search_radius_meters = 2.0f; // for nearest enemy
 
     const std::function<bool(entt::registry&, entt::entity)> is_enemy = [](entt::registry& r, entt::entity e) -> bool {
       return r.try_get<EnemyComponent>(e) != nullptr;
     };
-    auto enemies = get_all_in_area_filtered(r, center, search_radius, is_enemy);
+
+    const b2Vec2 center_m = pixels_to_meters(center);
+    auto enemies = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);
     if (enemies.size() == 0)
       continue;
 

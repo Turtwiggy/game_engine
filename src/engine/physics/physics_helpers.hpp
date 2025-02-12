@@ -3,6 +3,7 @@
 #include "engine/physics/physics_components.hpp"
 
 #include <entt/entt.hpp>
+#include <glm/fwd.hpp>
 
 namespace game2d {
 
@@ -20,8 +21,14 @@ get_all_in_area(entt::registry& r, glm::vec2 center, float d);
 
 std::vector<std::pair<int, entt::entity>>
 get_all_in_area_filtered(entt::registry& r,
-                         const glm::vec2 center,
+                         const b2Vec2 center_in_meters,
                          const float d,
                          const std::function<bool(entt::registry&, entt::entity)>& cond);
+
+glm::vec2
+meters_to_pixels(b2Vec2 meters);
+
+b2Vec2
+pixels_to_meters(glm::vec2 pixels);
 
 } // namespace game2d

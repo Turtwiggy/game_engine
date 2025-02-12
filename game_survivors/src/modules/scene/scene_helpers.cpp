@@ -45,7 +45,6 @@
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 
-#include <iostream>
 #include <magic_enum.hpp>
 
 namespace game2d {
@@ -82,9 +81,9 @@ spawn_weapon(entt::registry& r, const HardpointData& data)
   // bullets that the weapon fires
   r.emplace<BulletDamage>(wep_e, 10);
   r.emplace<BulletPierce>(wep_e, 1);
-  r.emplace<BulletSize>(wep_e, BulletSize{ { 6, 6 } });
-  r.emplace<BulletSpeed>(wep_e, 250);
-  r.emplace<BulletKnockback>(wep_e, 50);
+  r.emplace<BulletSize>(wep_e, BulletSize{ { 5, 2 } });
+  r.emplace<BulletSpeed>(wep_e, 1.0f);
+  r.emplace<BulletKnockback>(wep_e, 1);
   r.emplace<BulletBounce>(wep_e, 0); // no bounce by default
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
@@ -196,10 +195,12 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     HardpointComponent hardpoint_c;
     HardpointData hardpoint_data;
     hardpoint_data.key = "manual";
-    hardpoint_data.arc = 359;
+    hardpoint_data.arc = 360;
     hardpoint_data.arc_mid = 0;
-    hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
+    hardpoint_data.x_rel_tl = size.x / 2;
     hardpoint_data.y_rel_tl = size.y / 2;
+    // hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
+    // hardpoint_data.y_rel_tl = size.y / 2;
     auto weapon_e = spawn_weapon(r, hardpoint_data);
     r.emplace<ManualfireComponent>(weapon_e);
     weapons.push_back(weapon_e);
@@ -373,27 +374,17 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto survive_timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
     r.emplace<SurviveTimerComponent>(survive_timer_e);
 
-    const auto spawner_1_e = create_empty<CooldownComponent>(r);
-    r.emplace<EnemySpawnData>(spawner_1_e, exploder_data());
+    // const auto spawner_1_e = create_empty<CooldownComponent>(r);
+    // r.emplace<EnemySpawnData>(spawner_1_e, exploder_data());
 
     const auto spawner_2_e = create_empty<CooldownComponent>(r);
     r.emplace<EnemySpawnData>(spawner_2_e, melee_enemy_1());
 
-    const auto spawner_3_e = create_empty<CooldownComponent>(r);
-    r.emplace<EnemySpawnData>(spawner_3_e, melee_enemy_2());
+    // const auto spawner_3_e = create_empty<CooldownComponent>(r);
+    // r.emplace<EnemySpawnData>(spawner_3_e, melee_enemy_2());
 
-    const auto spawner_4_e = create_empty<CooldownComponent>(r);
-    r.emplace<EnemySpawnData>(spawner_4_e, projectile_enemy());
-
-    // something random
-    {
-      auto e = create_empty<TransformComponent>(r);
-      r.emplace<SpriteComponent>(e);
-      set_sprite(r, e, "random_decal");
-      set_size(r, e, { 64, 64 });
-      set_position(r, e, { -32, -32 });
-      set_z_index(r, e, ZLayer::BACKGROUND);
-    }
+    // const auto spawner_4_e = create_empty<CooldownComponent>(r);
+    // r.emplace<EnemySpawnData>(spawner_4_e, projectile_enemy());
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

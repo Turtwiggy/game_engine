@@ -3,6 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 
 #if defined(_MSC_VER)
@@ -36,9 +37,10 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
     // const auto& view = r.view<const PhysicsBodyComponent, TransformComponent>(entt::exclude<SeparateTransformAndAABB>);
     const auto& view = r.view<const PhysicsBodyComponent, TransformComponent>();
     for (const auto& [e, body_c, transform_c] : view.each()) {
-      const b2Vec2& position = body_c.body->GetPosition();
-      transform_c.position.x = position.x;
-      transform_c.position.y = position.y;
+
+      auto pos = meters_to_pixels(body_c.body->GetPosition());
+      transform_c.position.x = pos.x;
+      transform_c.position.y = pos.y;
 
       // don't update the sprite scale.
       // when the physics object rotates,

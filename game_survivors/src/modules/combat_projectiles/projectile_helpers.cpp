@@ -9,7 +9,6 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 
-
 namespace game2d {
 
 entt::entity
