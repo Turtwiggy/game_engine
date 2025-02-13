@@ -1,4 +1,4 @@
-#include "system.hpp"
+#include "particle_system.hpp"
 
 #include "components.hpp"
 #include "engine/actors/actor_helpers.hpp"
@@ -20,7 +20,7 @@ update_particle_system(entt::registry& r, const float dt)
     // per-instance? seems bad
     auto particle_description = emitter.particle_to_emit;
 
-    // instead of spawning at emitter position, spawn at parent position
+    // spawn at e
     particle_description.position = get_position(r, e);
 
     if (auto* target_c = r.try_get<DynamicTargetComponent>(e)) {
@@ -38,34 +38,35 @@ update_particle_system(entt::registry& r, const float dt)
       particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
     }
 
-    Particle p;
-    p.position = particle_description.position;
-    p.start_size = particle_description.start_size;
-    p.end_size = particle_description.end_size;
-    p.time_to_live_ms = particle_description.time_to_live_ms;
+    const auto p = Particle{
+      .time_to_live_ms = particle_description.time_to_live_ms,
+      .start_size = particle_description.start_size,
+      .end_size = particle_description.end_size,
+      .position = particle_description.position,
+    };
     const entt::entity particle_e = spawn_particle(r, "default_particle", p);
     set_z_index(r, particle_e, ZLayer::BEHIND_PLAYER);
   };
 
   // spawn the particles
   const auto& view = r.view<ParticleEmitterComponent, CooldownComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, emitter, cooldown] : view.each()) {
+  for (const auto& [particle_emitter_e, emitter, cooldown] : view.each()) {
 
     if (cooldown.time <= 0.0f) {
 
       if (emitter.spawn_all_particles_at_once) {
         for (int i = 0; i < emitter.particles_to_spawn_before_emitter_expires; i++) {
-          spawn_particle_helper(emitter, e);
+          spawn_particle_helper(emitter, particle_emitter_e);
           emitter.particles_to_spawn_before_emitter_expires--;
         }
       } else {
-        spawn_particle_helper(emitter, e);
+        spawn_particle_helper(emitter, particle_emitter_e);
         emitter.particles_to_spawn_before_emitter_expires--;
       }
 
       // limit number of particles spawned
       if (emitter.expires && emitter.particles_to_spawn_before_emitter_expires < 0) {
-        r.destroy(e); // emitter expired!
+        r.destroy(particle_emitter_e); // emitter expired!
         continue;
       }
 
@@ -90,9 +91,8 @@ update_particle_system(entt::registry& r, const float dt)
 
     scale.timer += dt;
 
-    if (scale.timer >= scale.seconds_until_complete) {
-      // particle done?
-    }
+    if (scale.timer >= scale.seconds_until_complete)
+      scale.timer = scale.seconds_until_complete; // done?
   }
 };
 

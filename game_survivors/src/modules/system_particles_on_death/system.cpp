@@ -10,7 +10,7 @@ namespace game2d {
 void
 update_spawn_particles_on_death_system(entt::registry& r)
 {
-  const auto& view = r.view<RequestToSpawnParticles>(entt::exclude<WaitForInitComponent>);
+  const auto view = r.view<const RequestToSpawnParticles>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, req] : view.each()) {
 
     const auto emitter_parent_e = create_transform(r, "emitter-parent");
@@ -18,7 +18,7 @@ update_spawn_particles_on_death_system(entt::registry& r)
     set_position(r, emitter_parent_e, req.position);
     r.emplace<EntityTimedLifecycle>(emitter_parent_e, 1 * 1000);
 
-    spawn_particle_emitter(r, req.key, req.position, emitter_parent_e);
+    spawn_particle_emitter(r, req.key, emitter_parent_e);
   }
 
   r.destroy(view.begin(), view.end()); // all requests processed

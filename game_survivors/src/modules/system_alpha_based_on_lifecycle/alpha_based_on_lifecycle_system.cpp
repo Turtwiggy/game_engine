@@ -14,7 +14,7 @@ update_alpha_based_on_lifecycle_system(entt::registry& r)
     const auto decrement = (lifecycle_c.milliseconds_alive_max - lifecycle_c.milliseconds_alive);
 
     float percent = decrement / (float)lifecycle_c.milliseconds_alive_max;
-    percent = glm::clamp(percent, 0.0f, 1.0f);
+    percent = glm::clamp(percent, 0.4f, 1.0f); // low alpha turns the sprite black
 
     sprite_c.colour.a = percent;
   }

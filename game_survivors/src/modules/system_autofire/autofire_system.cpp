@@ -49,7 +49,7 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
                             const AutofireComponent,
                             CooldownComponent>();
 
-  for (const auto& [wep_e, wep_t, wep_c, parent_c, arc_c, autofire_c, cooldown_c] : view.each()) {
+  for (const auto& [wep_e, wep_t, wep_c, parent_c, hardpoint_c, autofire_c, cooldown_c] : view.each()) {
 
     // if (cooldown_c.time > 0.0f)
     //   continue;
@@ -133,8 +133,8 @@ update_autofire_system(entt::registry& r, glm::vec2 mouse_pos)
     const auto fwd_dir = engine::angle_radians_to_direction(fwd);
 
     // GAMEPLAY: Clamp the dir between the hardpoint's calculated min_arc and max_arc
-    const auto left = arc_c.dir_arc_left;
-    const auto right = arc_c.dir_arc_right;
+    const auto left = hardpoint_c.dir_arc_left;
+    const auto right = hardpoint_c.dir_arc_right;
     const auto min = engine::dir_to_angle_radians(left);
     const auto max = engine::dir_to_angle_radians(right);
     const auto limited_angle = clamp_angle(angle, min, max);

@@ -56,7 +56,7 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
     const auto tl_offset = glm::vec2{ hardpoint_c.data.x_rel_tl, hardpoint_c.data.y_rel_tl };
     const auto& t_c = r.get<TransformComponent>(p);
     const float fwd = t_c.rotation_radians.z;
-    const auto pos = glm::vec2(t_c.position.x, t_c.position.y);
+    const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
     const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
     const auto tl = pos - (0.5f * size);
     const auto rel_tl = (tl - pos) + tl_offset;

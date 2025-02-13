@@ -218,7 +218,7 @@ update_ui_hierarchy_system(entt::registry& r)
 
     if (r.all_of<TransformComponent>(eid)) {
       auto& transform = r.get<TransformComponent>(eid);
-      imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
+      imgui_draw_vec3("Render Pos: ", transform.position.x, transform.position.y, transform.position.z);
       imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
       imgui_draw_vec3(
         "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);

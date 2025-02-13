@@ -10,9 +10,9 @@ struct SetPositionAtDynamicTarget
   glm::vec2 offset{ 0, 0 };
 };
 
-struct SetRotationAsDynamicTarget
+struct SetPositionAtDynamicTargetFromRotation
 {
-  float offset = 0.0f;
+  glm::vec2 offset{ 0, 0 };
 };
 
 // discrete will defini

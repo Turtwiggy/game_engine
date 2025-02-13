@@ -39,7 +39,7 @@
 #include "modules/system_hulls/hulls_helpers.hpp"
 #include "modules/system_manualfire/manualfire_system.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
-#include "modules/system_particles/system.hpp"
+#include "modules/system_particles/particle_system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/system_scene_splashscreen_move_to_menu/system.hpp"

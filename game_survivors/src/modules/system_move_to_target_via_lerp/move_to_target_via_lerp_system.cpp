@@ -3,9 +3,12 @@
 #include "components.hpp"
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/renderer/transform.hpp"
+#include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/system_particles/components.hpp"
 
 namespace game2d {
@@ -15,6 +18,16 @@ const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
   //
   return b + (a - b) * glm::exp(-decay * dt);
   //
+};
+
+const auto remove_dead_parents =
+  [](entt::registry& r, SINGLE_EntityBinComponent& dead, const entt::entity e, const entt::entity parent) -> bool {
+  if (parent == entt::null || !r.valid(parent)) {
+    r.emplace_or_replace<WaitForInitComponent>(e);
+    dead.dead.emplace(e);
+    return true;
+  }
+  return false;
 };
 
 void
@@ -50,55 +63,46 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
 
   // Follow your parent. // e.g. particle systems.
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  const auto remove_dead_parents = [&r, &dead](const entt::entity e, const entt::entity parent) -> bool {
-    if (parent == entt::null || !r.valid(parent)) {
-      r.emplace_or_replace<WaitForInitComponent>(e);
-      dead.dead.emplace(e);
-      return true;
-    }
-    return false;
-  };
+
   const auto& non_physics_view =
     r.view<const DynamicTargetComponent, const SetPositionAtDynamicTarget>(entt::exclude<PhysicsBodyComponent>);
   for (const auto& [e, target_c, req_c] : non_physics_view.each()) {
-    if (remove_dead_parents(e, target_c.target))
-      return;
+    if (remove_dead_parents(r, dead, e, target_c.target))
+      continue;
     const auto pos = get_position(r, target_c.target) + req_c.offset;
     set_position(r, e, pos);
   }
 
   //
   //
-  const auto& rotation_view = r.view<const DynamicTargetComponent, const SetRotationAsDynamicTarget, TransformComponent>(
-    entt::exclude<PhysicsBodyComponent>);
-  for (const auto& [e, target_c, req_c, t_c] : rotation_view.each()) {
-    if (remove_dead_parents(e, target_c.target))
-      return;
+  const auto& rotation_view =
+    r.view<const DynamicTargetComponent, const SetPositionAtDynamicTargetFromRotation, const TransformComponent>(
+      entt::exclude<PhysicsBodyComponent>);
+  for (const auto& [e, target_c, set_pos_c, emitter_t] : rotation_view.each()) {
+    if (remove_dead_parents(r, dead, e, target_c.target))
+      continue;
+    const auto p = target_c.target;
 
-    // set the angle of the helmet
-    const float angle = r.get<TransformComponent>(target_c.target).rotation_radians.z;
-    t_c.rotation_radians.z = angle;
-    // ImGui::Text("angle: %f", angle);
+    const auto tl_offset = set_pos_c.offset;
+    const auto& p_t = r.get<TransformComponent>(p);
+    const auto p_pos = glm::vec2{ p_t.position.x, p_t.position.y };
+    const auto p_size = glm::vec2{ p_t.scale.x, p_t.scale.y };
+    const float p_fwd = p_t.rotation_radians.z; // parents_dir
+    const auto p_tl = p_pos - (0.5f * p_size);
+    const auto rel_tl = (p_tl - p_pos) + tl_offset;
+    const auto rotated_point = engine::rotate_point(rel_tl, p_fwd);
+    const auto pos = p_pos + rotated_point;
 
-    // Set position as the offset due to rotation.
-    // angle: 0. dir: {1, 0}
-    // angle: PI/2(down). dir: {0, 1}
-    // angle: PI(left). dir: {-1, 0}
-    // angle: 3*PI/2(up). dir: {0, -1};
+#if defined(_DEBUG)
+    // Sprite s;
+    // s.sprite = "EMPTY";
+    // s.pos = { pos.x, pos.y };
+    // s.size = { 10, 10 };
+    // s.col = { 1.0f, 0.0f, 0.0f, 1.0f };
+    // s.z_idx = ZLayer::FOREGROUND;
+    // draw_sprite(r, s);
+#endif
 
-    // helmet: angle 0. helmet should go up.
-    // helmet: angle PI/2 helmet so go right.
-    // helmet: angle PI. helmet to go down
-    // helmet: angle 3*PI/2. helmet to go left.
-
-    const auto dir = engine::angle_radians_to_direction(angle - engine::HALF_PI);
-    // ImGui::Text("dir %f %f", dir.x, dir.y);
-
-    const auto parent_pos = get_position(r, target_c.target);
-    const auto offset = dir * req_c.offset;
-    // ImGui::Text("offset %f %f", offset.x, offset.y);
-
-    const auto pos = parent_pos + offset;
     set_position(r, e, pos);
   }
 

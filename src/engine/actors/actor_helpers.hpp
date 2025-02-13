@@ -14,7 +14,7 @@ get_position(entt::registry& r, const entt::entity e);
 get_grid_position(entt::registry& r, const entt::entity e);
 
 void
-set_position(entt::registry& r, const entt::entity e, const glm::vec2& pos_in_pixels);
+set_position(entt::registry& r, const entt::entity e, const glm::vec2 pos_in_pixels);
 
 void
 set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 grid_pos);

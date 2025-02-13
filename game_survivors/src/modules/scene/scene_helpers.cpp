@@ -32,6 +32,8 @@
 #include "modules/system_hulls/hulls_components.hpp"
 #include "modules/system_hulls/hulls_helpers.hpp"
 #include "modules/system_manualfire/manualfire_components.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/system_particles/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/system_screenshake/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
@@ -180,7 +182,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
 
   std::vector<entt::entity> weapons;
 
-  // Spawn the weapons...
+  // Spawn autofire weappons
   for (const auto& hardpoint_data : hull.hardpoints) {
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
     // hardpoint_data.arc = 360;
@@ -214,12 +216,30 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<MovementDirectComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   // r.emplace<SpriteOutline>(e);
-  spawn_particle_emitter(r, "anything", { 0, 1 }, e);
+
+  // add trail to the butt of the boat
+  if (hull_key == "Dinghy") {
+    {
+      // const auto tl_offset = glm::vec2{ 0, size/2 };
+      const auto tl_offset = glm::vec2{ 0, 0 };
+      const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-l");
+      r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
+      r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
+      spawn_particle_emitter(r, "default_trail", emitter_parent_e);
+    }
+    {
+      const auto tl_offset = glm::vec2{ 0, size.y };
+      const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-r");
+      r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
+      r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
+      spawn_particle_emitter(r, "default_trail", emitter_parent_e);
+    }
+  }
 
   // Apply some drag, bro
   r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75f);
 
-  // This semes insane, wtf
+  // make a string lowercase?????
   std::string hull_lower = "";
   std::transform(
     hull_key.begin(), hull_key.end(), std::back_inserter(hull_lower), [](const auto& c) { return std::tolower(c); });

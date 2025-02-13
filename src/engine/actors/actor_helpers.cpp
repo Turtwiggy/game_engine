@@ -31,14 +31,12 @@ get_grid_position(entt::registry& r, const entt::entity e)
 }
 
 void
-set_position(entt::registry& r, const entt::entity e, const glm::vec2& pos_in_pixels)
+set_position(entt::registry& r, const entt::entity e, const glm::vec2 pos_in_pixels)
 {
-  const auto& pos = pos_in_pixels;
-
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
-    pb->body->SetTransform(b2Vec2{ pos.x / PIXELS_PER_METER, pos.y / PIXELS_PER_METER }, 0);
+    pb->body->SetTransform(pixels_to_meters(pos_in_pixels), 0);
 
-  r.get<TransformComponent>(e).position = { pos.x, pos.y, 0.0f };
+  r.get<TransformComponent>(e).position = glm::vec3{ pos_in_pixels.x, pos_in_pixels.y, 0.0f };
 }
 
 void

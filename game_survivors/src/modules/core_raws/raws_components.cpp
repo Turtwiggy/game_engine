@@ -379,7 +379,7 @@ spawn(entt::registry& r, const std::string& key)
 };
 
 entt::entity
-spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, const entt::entity parent)
+spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::entity parent)
 {
   const auto e = create_transform(r, "particle_emitter");
 
@@ -397,6 +397,11 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec
   if (key.find("death_exploder") != std::string::npos) {
     pdesc.start_size = { explosion_radius * 2, explosion_radius * 2 };
     pdesc.end_size = { explosion_radius * 1, explosion_radius * 1 };
+  }
+  if (key.find("default_trail") != std::string::npos) {
+    pdesc.start_size = { 2, 2 };
+    pdesc.end_size = { 0, 0 };
+    pdesc.time_to_live_ms = static_cast<int>(0.5 * 1000);
   }
 
   // which particle to spawn?
@@ -419,6 +424,11 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec
   // emit: particles
   CooldownComponent cooldown;
   cooldown.time_max = 0.1f;
+
+  if (key.find("default_trail") != std::string::npos) {
+    cooldown.time_max = 1 / 30.0f; // 30 particle a a second innit
+  }
+
   cooldown.time = cooldown.time_max;
   r.emplace<CooldownComponent>(e, cooldown);
 
