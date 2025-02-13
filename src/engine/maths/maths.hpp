@@ -68,6 +68,17 @@ angle_radians_to_direction(const float angle);
 [[nodiscard]] float
 dir_to_angle_radians(const glm::vec2& dir);
 
+// puts an angle in the range [0, 2π]
+[[nodiscard]] float
+clamp_axis(float angle);
+
+// puts an angle in the range [-π, π]
+[[nodiscard]] float
+normalize_axis(float angle);
+
+[[nodiscard]] float
+clamp_angle(float rad_a, float rad_min, float rad_max);
+
 [[nodiscard]] float
 distance_squared(const glm::vec3& i);
 

@@ -30,7 +30,7 @@ generate_angles(const float dir, const int bullets, const float spread_rad)
   const float start_angle = dir - (spread_rad / 2.0f);
 
   for (int i = 0; i < bullets; i++)
-    angles.push_back(clamp_axis(start_angle + i * step));
+    angles.push_back(engine::clamp_axis(start_angle + i * step));
 
   return angles;
 };
@@ -106,48 +106,6 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   bullet_def.traits = { traits_set.begin(), traits_set.end() };
 
   return bullet_def;
-};
-
-// puts an angle in the range [0, 2π]
-float
-clamp_axis(float angle)
-{
-  // range: [-2PI, 2PI]
-  angle = std::fmod(angle, engine::TWO_PI);
-
-  // range: [0, 2PI]
-  if (angle < 0.0f)
-    angle += engine::TWO_PI;
-
-  return angle;
-};
-
-// puts an angle in the range [-π, π]
-float
-normalize_axis(float angle)
-{
-  angle = std::fmod(angle, engine::TWO_PI);
-  if (angle > engine::PI)
-    angle -= engine::TWO_PI;
-  else if (angle < -engine::PI)
-    angle += engine::TWO_PI;
-  return angle;
-};
-
-float
-clamp_angle(float rad_a, float rad_min, float rad_max)
-{
-  const float max_delta = clamp_axis(rad_max - rad_min) * 0.5;      // 0..π
-  const float midpoint = clamp_axis(rad_min + max_delta);           // 0..2π
-  const float delta_from_center = normalize_axis(rad_a - midpoint); // -π..π
-
-  if (delta_from_center > max_delta)
-    return normalize_axis(midpoint + max_delta);
-
-  if (delta_from_center < -max_delta)
-    return normalize_axis(midpoint - max_delta);
-
-  return normalize_axis(rad_a);
 };
 
 } // namespace game2d

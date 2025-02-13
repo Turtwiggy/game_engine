@@ -63,7 +63,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float max_angle = 30.0f * engine::Deg2Rad;
 
     const auto cur_angle = body_c.body->GetAngle();
-    const float wrapped_cur_angle = clamp_axis(cur_angle);
+    const float wrapped_cur_angle = engine::clamp_axis(cur_angle);
 
     const auto cur_vel = body_c.body->GetLinearVelocity();
     const float new_angle = engine::dir_to_angle_radians({ cur_vel.x, cur_vel.y });

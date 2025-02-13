@@ -1,6 +1,7 @@
 
 // header
 #include "engine/maths/maths.hpp"
+#include "modules/system_autofire/autofire_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <format>
@@ -19,6 +20,48 @@ angle_radians_to_direction(const float angle)
   return glm::vec2(glm::cos(angle), glm::sin(angle));
 };
 
+// puts an angle in the range [0, 2π]
+float
+clamp_axis(float angle)
+{
+  // range: [-2PI, 2PI]
+  angle = std::fmod(angle, engine::TWO_PI);
+
+  // range: [0, 2PI]
+  if (angle < 0.0f)
+    angle += engine::TWO_PI;
+
+  return angle;
+};
+
+// puts an angle in the range [-π, π]
+float
+normalize_axis(float angle)
+{
+  angle = std::fmod(angle, engine::TWO_PI);
+  if (angle > engine::PI)
+    angle -= engine::TWO_PI;
+  else if (angle < -engine::PI)
+    angle += engine::TWO_PI;
+  return angle;
+};
+
+float
+clamp_angle(float rad_a, float rad_min, float rad_max)
+{
+  const float max_delta = clamp_axis(rad_max - rad_min) * 0.5;      // 0..π
+  const float midpoint = clamp_axis(rad_min + max_delta);           // 0..2π
+  const float delta_from_center = normalize_axis(rad_a - midpoint); // -π..π
+
+  if (delta_from_center > max_delta)
+    return normalize_axis(midpoint + max_delta);
+
+  if (delta_from_center < -max_delta)
+    return normalize_axis(midpoint - max_delta);
+
+  return normalize_axis(rad_a);
+};
+
 // returns the angle from (WHICH) axis?
 float
 dir_to_angle_radians(const glm::vec2& dir)
@@ -26,11 +69,7 @@ dir_to_angle_radians(const glm::vec2& dir)
   // note: -y for clockwise rotation
   float angle = atan2(dir.y, dir.x);
 
-  // normalize to [0, 2PI]
-  if (angle < 0.0f)
-    angle += 2.0f * engine::PI;
-
-  return angle;
+  return clamp_axis(angle);
 };
 
 float

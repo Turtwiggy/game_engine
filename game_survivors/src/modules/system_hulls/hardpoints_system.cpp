@@ -139,9 +139,9 @@ update_ship_draw_arcs_system(entt::registry& r)
     const auto hardpoint_pos = pos + rotated_point;
 
     // direction gunpoint is facing
-    const float angle = fwd + adj_arc_mid_rad;
-    const float angle_l = fwd + adj_arc_mid_rad - half_arc_radians;
-    const float angle_r = fwd + adj_arc_mid_rad + half_arc_radians;
+    const float angle = engine::clamp_axis(fwd + adj_arc_mid_rad);
+    const float angle_l = engine::clamp_axis(fwd + adj_arc_mid_rad - half_arc_radians);
+    const float angle_r = engine::clamp_axis(fwd + adj_arc_mid_rad + half_arc_radians);
     const auto dir_l = engine::angle_radians_to_direction(angle_l);
     const auto dir = engine::angle_radians_to_direction(angle);
     const auto dir_r = engine::angle_radians_to_direction(angle_r);
@@ -151,9 +151,9 @@ update_ship_draw_arcs_system(entt::registry& r)
 
     if (arc >= 360) {
       const float epsilon = 0.001f;
-      hardpoint_c.dir_arc_left = engine::angle_radians_to_direction(angle + epsilon);
-      hardpoint_c.dir_arc_center = engine::angle_radians_to_direction(angle);
-      hardpoint_c.dir_arc_right = engine::angle_radians_to_direction(angle - epsilon);
+      hardpoint_c.dir_arc_left = engine::angle_radians_to_direction(engine::clamp_axis(angle + epsilon));
+      hardpoint_c.dir_arc_center = engine::angle_radians_to_direction(engine::clamp_axis(angle));
+      hardpoint_c.dir_arc_right = engine::angle_radians_to_direction(engine::clamp_axis(angle - epsilon));
     }
 
     // the more guns, onionskin the debug
