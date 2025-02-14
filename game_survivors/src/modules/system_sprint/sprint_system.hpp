@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_survive_health_system(entt::registry& r);
+update_sprint_system(entt::registry& r, float dt);
 
 } // namespace game2d

@@ -83,10 +83,10 @@ update_manualfire_system(entt::registry& r)
 
     BulletDef bullet_def(wep_e);
     bullet_def.key = "bullet_default";
-    bullet_def.size = { 8, 4 };
+    bullet_def.size = { 6, 4 };
     bullet_def.team = AvailableTeams::player;
     bullet_def.damage = bullet_damage;
-    bullet_def.speed = 0.1f; // m/s
+    bullet_def.speed = 0.05f; // m/s
     bullet_def.lifecycle = 3 * 1000;
 
     const auto pos = gun_pos;

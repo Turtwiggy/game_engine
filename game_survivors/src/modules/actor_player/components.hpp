@@ -20,7 +20,8 @@ struct PlayerComponent
 
 struct ActorSpeedComponent
 {
-  float speed = 1.0f;
+  float base_speed = 1.0;
+  float current_speed = 1.0; // (base+sprint)
 };
 
 // attached to the player fixture
@@ -81,6 +82,7 @@ struct InputComponent
   float rx = 0.0f;
   float ry = 0.0f;
   bool shoot = false;
+  bool sprint = false;
 };
 
 // move like asteroids

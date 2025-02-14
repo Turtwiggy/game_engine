@@ -44,6 +44,7 @@
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/system_scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
+#include "modules/system_sprint/sprint_system.hpp"
 #include "modules/system_spritestack/spritestack_system.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade/upgrade_helpers.hpp"
@@ -69,7 +70,7 @@
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
-#include "modules/ui_scene_survive_health/ui_survive_health_system.hpp"
+#include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
@@ -279,6 +280,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_spawner_system(r);
     update_enemy_projectile_system(r);
     update_alpha_based_on_lifecycle_system(r);
+    update_sprint_system(r, dt);
 
     update_upgrade_hp_max_system(r);
     update_upgrade_hp_regen_system(r, dt);
@@ -305,7 +307,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::survive) {
     update_ui_scene_survive_system(r);
     update_ui_survive_timer_system(r);
-    update_ui_survive_health_system(r);
+    update_ui_survive_info_system(r);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_level_up_system(r);
     // update_ui_combat_damage_numbers_system(r, dt, mouse_pos);

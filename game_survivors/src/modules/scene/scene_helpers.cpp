@@ -38,8 +38,10 @@
 #include "modules/system_screenshake/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
+#include "modules/system_sprint/sprint_components.hpp"
 #include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
@@ -219,6 +221,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.emplace<ActorSpeedComponent>(e, 0.01f);      // meters per second
   r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
+  r.emplace<ActorDodgeComponent>(e, 0.0f);       // dodge percent
+  r.emplace<ActorStaminaComponent>(e);
 
   // Add an xp zone with the config-defined size
   {

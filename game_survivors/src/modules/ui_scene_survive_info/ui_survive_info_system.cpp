@@ -1,4 +1,4 @@
-#include "ui_survive_health_system.hpp"
+#include "ui_survive_info_system.hpp"
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
@@ -10,7 +10,9 @@
 #include "modules/core_renderer/helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
+#include "modules/system_sprint/sprint_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 
@@ -20,7 +22,7 @@
 namespace game2d {
 
 void
-update_ui_survive_health_system(entt::registry& r)
+update_ui_survive_info_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
@@ -86,25 +88,30 @@ update_ui_survive_health_system(entt::registry& r)
       const auto key_hp_max = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_HEALTH_MAX));
       const auto key_hp_regen = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_HEALTH_REGEN));
       const auto key_speed = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_SPEED));
+      const auto key_stamina = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_STAMINA));
       const auto key_xp_zone_size = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
 
-      // const float val_dodge_chance = r.get<ActorDodgeChance>(e);.
+      const float val_dodge = r.get<ActorDodgeComponent>(e).dodge_percent;
       const float val_hp_max = 10; // todo: fix this, and fix this in the upgrade system
       const float val_hp_regen = r.get<ActorHealthRegenComponent>(e).hp_per_second;
-      const float val_speed = r.get<ActorSpeedComponent>(e).speed;
+      const float val_speed = r.get<ActorSpeedComponent>(e).current_speed;
+      const float val_stamina = r.get<ActorStaminaComponent>(e).max_stamina;
       const float val_xp_zone_size = r.get<ActorXpZoneSizeComponent>(e).radius_meters;
 
-      // const float mod_dodge_chance =
-      const float mod_speed = upgrades_c.apply_modifiers(val_speed, key_speed);
+      const float mod_dodge = upgrades_c.apply_modifiers(val_dodge, key_dodge);
       const float mod_hp_max = upgrades_c.apply_modifiers(val_hp_max, key_hp_max);
       const float mod_hp_regen = upgrades_c.apply_modifiers(val_hp_regen, key_hp_regen);
+      const float mod_speed = upgrades_c.apply_modifiers(val_speed, key_speed);
+      const float mod_stamina = upgrades_c.apply_modifiers(val_stamina, key_stamina);
       const float mod_xp_zone_size = upgrades_c.apply_modifiers(val_xp_zone_size, key_xp_zone_size);
 
-      // ImGui::Text("a_speed %f", mod_speed);
-      ImGui::Text("a_speed %0.2f", mod_speed);
+      ImGui::Text("a_dodge_percent %f", mod_dodge);
       ImGui::Text("a_hp_max %0.2f", mod_hp_max);
       ImGui::Text("a_hp_regen %0.2f", mod_hp_regen);
+      ImGui::Text("a_cur_speed %0.2f", mod_speed);
       ImGui::Text("a_xp_zone_rad %0.2f", mod_xp_zone_size);
+      ImGui::Text("a_cur_stamina %0.2f", r.get<ActorStaminaComponent>(e).cur_stamina);
+      ImGui::Text("a_mod_max_stamina %0.2f", mod_stamina);
     }
 
     const auto& weps_c = r.get<HasWeaponsComponent>(e);

@@ -55,7 +55,8 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float mass = body_c.body->GetMass();
 
     // Speed is an upgradeable stat
-    const float speed_in_meters_per_second = speed_c.speed;
+    // note: if you are sprinting, your current_speed is modified.
+    const float speed_in_meters_per_second = speed_c.current_speed;
     float speed = speed_in_meters_per_second;
     if (auto* upgrade_c = r.try_get<StatModifierComponent>(e)) {
       const auto key_actor_speed = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_SPEED));
@@ -111,6 +112,7 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
     i.rx = 0.0f;
     i.ry = 0.0f;
     i.shoot = false;
+    i.sprint = false;
 
     // set rx based on mouse input if selected
     if (const auto* keyboard_c = r.try_get<KeyboardComponent>(e)) {
@@ -124,11 +126,12 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
 
       i.rx = nrm_dir.x;
       i.ry = nrm_dir.y;
-      i.shoot |= get_mouse_lmb_held();
       i.ly += get_key_held(input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
       i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
       i.lx += get_key_held(input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
       i.lx += get_key_held(input_c, SDL_SCANCODE_D) ? 1.0f : 0.0f;
+      i.shoot |= get_mouse_lmb_held();
+      i.sprint |= get_key_held(input_c, SDL_SCANCODE_LSHIFT);
     }
 
     if (const auto* controller_c = r.try_get<SDLControllerComponent>(e)) {
@@ -157,11 +160,13 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
       const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
       const auto shoot = controller_button_held(steam_c, handle, DA::Game_Shoot);
+      const auto sprint = controller_button_held(steam_c, handle, DA::Game_Sprint);
       i.lx = l_analog.x;
       i.ly = -l_analog.y; // flip y
       i.rx = r_analog.x;
       i.ry = -r_analog.y; // flip y
       i.shoot |= shoot;
+      i.sprint |= sprint;
     }
   }
 };

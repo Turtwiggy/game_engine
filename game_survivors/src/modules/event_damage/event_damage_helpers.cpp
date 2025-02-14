@@ -2,14 +2,19 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/event_death/components.hpp"
 #include "modules/events/events_components.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>
+#include <magic_enum.hpp>
+
 #include <stdexcept>
 
 namespace game2d {
@@ -65,8 +70,28 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   const float damage = calculate_damage_to_take(r, evt);
 
+  // Check if you can dodge it.
+  const auto* stats_c = r.try_get<StatModifierComponent>(evt.to);
+  if (stats_c) {
+    const auto val = r.get<ActorDodgeComponent>(evt.to).dodge_percent;
+    const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_DODGE_CHANCE));
+    const auto mod_val = stats_c->apply_modifiers(val, key); // percent.
+
+    // roll a dice to see if you dodge it.
+    static engine::RandomState dodge_rng(0);
+    const int roll = engine::rand_det_s(dodge_rng.rng, 0, 100);
+
+    // your dodge percent is between 0 and anything
+    // system produces a value between 0 and 100
+    const bool dodged = roll < mod_val;
+    if (dodged) {
+      SDL_Log("You dodged a hit.");
+      return; // ya lucky!
+    }
+  }
+
   // log evt
-  const auto b_name = std::string(r.get<TagComponent>(to_e).tag);
+  // const auto b_name = std::string(r.get<TagComponent>(to_e).tag);
   // const auto message = std::format("({}) damaged for {}", b_name, damage);
   // SDL_Log("%s", message.c_str());
 

@@ -20,6 +20,7 @@ enum class DigitalAction
   Game_Select,
   Game_Cancel,
   Game_Shoot,
+  Game_Sprint,
 
   // Menu_Up,
   // Menu_Down,

@@ -74,6 +74,7 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Game_Select] = SteamInput()->GetDigitalActionHandle("action_select");
   digital_action_handles[(int)DA::Game_Cancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
   digital_action_handles[(int)DA::Game_Shoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
+  digital_action_handles[(int)DA::Game_Sprint] = SteamInput()->GetDigitalActionHandle("action_sprint");
 
   // digital_action_handles[(int)DA::Menu_Up] = SteamInput()->GetDigitalActionHandle("menu_up");
   // digital_action_handles[(int)DA::Menu_Down] = SteamInput()->GetDigitalActionHandle("menu_down");

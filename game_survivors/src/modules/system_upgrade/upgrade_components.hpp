@@ -12,10 +12,11 @@ using namespace nlohmann;
 
 enum class UpgradeableStat
 {
-  ACTOR_DODGE_CHANCE = 0, // todo: impl this
+  ACTOR_DODGE_CHANCE = 0,
   ACTOR_HEALTH_MAX,
   ACTOR_HEALTH_REGEN,
   ACTOR_SPEED,
+  ACTOR_STAMINA,
   ACTOR_XP_ZONE_SIZE,
 
   BULLET_BOUNCE,
@@ -24,19 +25,16 @@ enum class UpgradeableStat
   BULLET_DAMAGE,
   BULLET_KNOCKBACK,
   BULLET_PIERCE,
+  BULLET_CRIT_CHANCE, // todo: impl this
+  BULLET_CRIT_DAMAGE, // todo: impl this
 
   WEAPON_PROJECTILES,
   WEAPON_SPREAD,
-
-  // todo: impl below
-  BULLET_CRIT_CHANCE,
-  BULLET_CRIT_DAMAGE,
-
-  // todo: impl. bunch of these are related
+  WEAPON_LIFESTEAL, // todo: impl this
   WEAPON_FIRERATE,
-  WEAPON_RANGE,
-  WEAPON_RELOAD,
-  WEAPON_CLIP_SIZE,
+  WEAPON_RANGE,     // todo: impl this
+  WEAPON_RELOAD,    // todo: impl this
+  WEAPON_CLIP_SIZE, // todo: impl this
 
   // if you have the missile trait,
   // peridically summon in missiles.
