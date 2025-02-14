@@ -7,6 +7,7 @@
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
+#include "modules/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 
 namespace game2d {
@@ -40,6 +41,7 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
     .crit_damage = bullet_def.crit_damage,
   };
   r.emplace<BulletCrit>(bullet_e, crit_c);
+  r.emplace<BulletLifesteal>(bullet_e, bullet_def.lifesteal);
 
   auto& bullet_trait_c = r.get<TraitComponent>(bullet_e);
   bullet_trait_c.traits.insert(bullet_def.traits.begin(), bullet_def.traits.end());

@@ -123,7 +123,7 @@ update_ui_survive_info_system(entt::registry& r)
 
       // clang-format off
       ImGui::NewLine();
-      ImGui::Text("Weapon...");
+      ImGui::Text("Bullets...");
       ImGui::Text("b_bounce %i", bul_def.bounces); 
       ImGui::Text("b_size_x %f", bul_def.size.x); 
       ImGui::Text("b_speed %f", bul_def.speed); 
@@ -131,10 +131,21 @@ update_ui_survive_info_system(entt::registry& r)
       ImGui::Text("b_pierce %i", bul_def.pierce); 
       ImGui::Text("b_knockback %i", bul_def.knockback_force); 
       ImGui::Text("b_crit_chance %0.2f", bul_def.crit_chance); 
-      ImGui::Text("b_crit_damage %0.2f", bul_def.crit_damage); 
-      ImGui::Text("w_firerate %f", wep_def.firerate); 
+      ImGui::Text("b_crit_damage %0.2f", bul_def.crit_damage);
+      ImGui::Text("b_lifesteal %0.2f", bul_def.lifesteal);
+
+      ImGui::NewLine();
+      ImGui::Text("Weapon...");
+      ImGui::Text("w_firerate %f", wep_def.fire_rate); 
+      ImGui::Text("w_time_between_shots %f", r.get<WeaponFireRate>(wep_e).seconds_between_shots_max); 
+      ImGui::Text("w_time_between_shots_cd %f", r.get<WeaponFireRate>(wep_e).seconds_between_shots_left); 
       ImGui::Text("w_projectiles %i", wep_def.projectiles); 
       ImGui::Text("w_spread %i", wep_def.spread_deg);
+      ImGui::Text("w_bullets_max %i", wep_def.bullets_max); 
+      ImGui::Text("w_bullets_cur %i", r.get<WeaponClipSize>(wep_e).bullets_cur); 
+      ImGui::Text("w_reload_max %f", wep_def.reload_rate); 
+      ImGui::Text("w_reload_cd %f", r.get<WeaponReloadRate>(wep_e).seconds_cur); 
+      ImGui::Text("w_range %f", wep_def.range);
       // clang-format on
 
       break; // show ui for only first weapon

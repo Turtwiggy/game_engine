@@ -24,6 +24,7 @@ struct BulletDef
   int bounces = 0;
   float crit_chance = 0.0f;   // percent
   float crit_damage = 100.0f; // percent of your base damage
+  float lifesteal = 0;
   std::vector<AquirableTrait> traits;
 
   BulletDef() = delete;
@@ -39,9 +40,12 @@ struct BulletDef
 
 struct WeaponDef
 {
-  float firerate = 0.5f;
   int projectiles = 1;
   int spread_deg = 30;
+  float fire_rate = 0.5f;
+  float reload_rate = 0;
+  float range = 0;
+  int bullets_max = 0;
 };
 
 } // namespace game2d

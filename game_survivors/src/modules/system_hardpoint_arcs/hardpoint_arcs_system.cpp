@@ -1,4 +1,6 @@
-#include "hardpoints_system.hpp"
+#include "hardpoint_arcs_system.hpp"
+
+#include "modules/system_hardpoint_arcs/hulls_components.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
@@ -11,7 +13,6 @@
 #include "modules/core_colour/components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
-#include "modules/system_hulls/hulls_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 
@@ -84,7 +85,7 @@ DrawArc(const glm::vec2& screenspace_pos,
 }
 
 void
-update_ship_draw_arcs_system(entt::registry& r)
+update_hardpoint_arcs_system(entt::registry& r)
 {
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 

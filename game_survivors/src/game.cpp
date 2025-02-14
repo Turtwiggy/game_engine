@@ -35,8 +35,9 @@
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
-#include "modules/system_hulls/hardpoints_system.hpp"
-#include "modules/system_hulls/hulls_helpers.hpp"
+#include "modules/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
+#include "modules/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/system_manualfire/manualfire_system.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/particle_system.hpp"
@@ -260,15 +261,15 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // pause due to gamelogic
   bool pause = require_pause(r);
 
-  update_ship_draw_arcs_system(r);
+  update_hardpoint_arcs_system(r);
   update_sprite_spritestack_system(r, dt);
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
-    update_autofire_system(r, mouse_pos); // prefer after calculating arcs this frame
-    update_manualfire_system(r);
+    update_autofire_system(r, dt); // prefer after hardpoints_system
+    update_manualfire_system(r, dt);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);

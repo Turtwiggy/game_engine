@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_manualfire_system(entt::registry& r);
+update_manualfire_system(entt::registry& r, const float dt);
 
 } // namespace game2d

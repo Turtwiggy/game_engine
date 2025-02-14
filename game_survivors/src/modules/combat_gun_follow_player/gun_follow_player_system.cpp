@@ -6,7 +6,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "gun_follow_player_components.hpp"
-#include "modules/system_hulls/hulls_components.hpp"
+#include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
 namespace game2d {

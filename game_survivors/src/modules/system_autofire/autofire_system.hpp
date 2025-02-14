@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_autofire_system(entt::registry& r, glm::vec2 mouse_pos);
+update_autofire_system(entt::registry& r, const float dt);
 
 } // namespace game2d

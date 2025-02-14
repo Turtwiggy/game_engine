@@ -2,7 +2,7 @@
   "upgrades": [
 
     {
-      "name": "Hit Harder",
+      "name": "+Damage +Knockback",
       "effects": [
         {
           "stat": "BULLET_DAMAGE",
@@ -17,7 +17,22 @@
       ]
     },
     {
-      "name": "Hit Bigger",
+      "name": "+Speed -Spread",
+      "effects": [
+        {
+          "stat": "BULLET_SPEED",
+          "type": "stat_percent_increase",
+          "value": 30
+        },
+        {
+          "stat": "WEAPON_SPREAD",
+          "type": "stat_flat_increase",
+          "value": -15
+        }
+      ]
+    },
+    {
+      "name": "+Damage +Size",
       "effects": [
         {
           "stat": "BULLET_DAMAGE",
@@ -31,9 +46,18 @@
         }
       ]
     },
-
     {
-      "name": "Bouncy Bullets",
+      "name": "+Pierce",
+      "effects": [
+        {
+          "stat": "BULLET_PIERCE",
+          "type": "stat_flat_increase",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "+Bounce",
       "effects": [
         {
           "stat": "BULLET_BOUNCE",
@@ -42,9 +66,8 @@
         }
       ]
     },
-
     {
-      "name": "Double Up",
+      "name": "+Projectiles +Spread",
       "effects": [
         {
           "stat": "WEAPON_PROJECTILES",
@@ -63,16 +86,15 @@
     // Traits
     // 
 
-
     {
       "name": "Splinter",
-      "desc": "Enemies emit 3 bullets on death, each hitting for 10% of your bullet damage",
+      "desc": "Enemies emit 3 bullets on death, each hitting for X% of your bullet damage",
       "effects": [ {"trait": "SPLINTER" } ]
     },
 
     {
-      "name": "#1 Fan",
-      "desc": "Every X shots, shoot a fan of bullets",
+      "name": "Fan Shot",
+      "desc": "Every X shots, shoot 10 bullets around you",
       "effects": [ {"trait": "FAN_FIRE"} ]
     },
     

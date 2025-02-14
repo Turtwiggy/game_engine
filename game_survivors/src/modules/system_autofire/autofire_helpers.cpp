@@ -2,6 +2,7 @@
 
 #include "engine/maths/maths.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
+#include "modules/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <SDL2/SDL_Log.h>
@@ -43,19 +44,31 @@ get_weapon_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto key_weapon_firerate = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_FIRERATE));
   const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
   const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
+  const auto key_weapon_clip_size = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_CLIP_SIZE));
+  const auto key_weapon_reload = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RELOAD_TIME));
+  const auto key_weapon_range = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RANGE));
 
-  const auto val_weapon_firerate = r.get<WeaponFirerate>(wep_e).seconds_between_shots;
+  const auto val_weapon_firerate = r.get<WeaponFireRate>(wep_e).base_firerate;
   const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
   const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
+  const auto val_weapon_clip_size = r.get<WeaponClipSize>(wep_e).bullets_max;
+  const auto val_weapon_reload = r.get<WeaponReloadRate>(wep_e).seconds_base_max;
+  const auto val_weapon_range = r.get<WeaponRange>(wep_e).meters;
 
   const auto mod_wep_firerate = upgrades_c.apply_modifiers(val_weapon_firerate, key_weapon_firerate);
   const auto mod_wep_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);
   const auto mod_wep_spread = (int)upgrades_c.apply_modifiers(val_weapon_spread, key_weapon_spread);
+  const auto mod_wep_clip_size = upgrades_c.apply_modifiers(val_weapon_clip_size, key_weapon_clip_size);
+  const auto mod_wep_reload = upgrades_c.apply_modifiers(val_weapon_reload, key_weapon_reload);
+  const auto mod_wep_range = upgrades_c.apply_modifiers(val_weapon_range, key_weapon_range);
 
   WeaponDef weapon_def;
-  weapon_def.firerate = mod_wep_firerate;
+  weapon_def.fire_rate = mod_wep_firerate;
   weapon_def.projectiles = mod_wep_projectiles;
   weapon_def.spread_deg = mod_wep_spread;
+  weapon_def.bullets_max = mod_wep_clip_size;
+  weapon_def.reload_rate = mod_wep_reload;
+  weapon_def.range = mod_wep_range;
 
   return weapon_def;
 };
@@ -72,6 +85,7 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto key_bullet_knockback = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_KNOCKBACK));
   const auto key_bullet_crit_chance = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_CRIT_CHANCE));
   const auto key_bullet_crit_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_CRIT_DAMAGE));
+  const auto key_bullet_lifesteal = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_LIFESTEAL));
 
   const auto val_bullet_bounce = r.get<const BulletBounce>(wep_e).bounces_left;
   const auto val_bullet_size = r.get<const BulletSize>(wep_e).size;
@@ -81,6 +95,7 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto val_bullet_knockback = r.get<const BulletKnockback>(wep_e).knockback_force;
   const auto val_bullet_crit_chance = r.get<const BulletCrit>(wep_e).crit_chance;
   const auto val_bullet_crit_damage = r.get<const BulletCrit>(wep_e).crit_damage;
+  const auto val_bullet_lifesteal = r.get<const BulletLifesteal>(wep_e).percent_0_100;
 
   const auto mod_bul_bounce = (int)upgrades_c.apply_modifiers(val_bullet_bounce, key_bullet_bounce);
   const auto mod_bul_size_x = upgrades_c.apply_modifiers(val_bullet_size.x, key_bullet_size);
@@ -91,6 +106,7 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto mod_bul_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
   const auto mod_bul_crit_chance = upgrades_c.apply_modifiers(val_bullet_crit_chance, key_bullet_crit_chance);
   const auto mod_bul_crit_damage = upgrades_c.apply_modifiers(val_bullet_crit_damage, key_bullet_crit_damage);
+  const auto mod_bul_lifesteal = upgrades_c.apply_modifiers(val_bullet_lifesteal, key_bullet_lifesteal);
 
   if (wep_e == entt::null || par_e == entt::null) {
     SDL_Log("Error creating BulletDef; invalid parents");
@@ -109,6 +125,7 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   bullet_def.lifecycle = 3 * 1000;
   bullet_def.crit_chance = mod_bul_crit_chance;
   bullet_def.crit_damage = mod_bul_crit_damage;
+  bullet_def.lifesteal = mod_bul_lifesteal;
 
   auto traits_set = r.get<TraitComponent>(par_e).traits;
   bullet_def.traits = { traits_set.begin(), traits_set.end() };

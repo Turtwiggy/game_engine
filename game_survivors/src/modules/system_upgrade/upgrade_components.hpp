@@ -27,14 +27,14 @@ enum class UpgradeableStat
   BULLET_PIERCE,
   BULLET_CRIT_CHANCE,
   BULLET_CRIT_DAMAGE,
+  BULLET_LIFESTEAL, // %hp you recover when a bullet hits
 
-  WEAPON_PROJECTILES,
-  WEAPON_SPREAD,
-  WEAPON_LIFESTEAL, // todo: impl this
+  WEAPON_PROJECTILES, // how many bullets to fire per shot
+  WEAPON_SPREAD,      // at what angles
   WEAPON_FIRERATE,
-  WEAPON_RANGE,     // todo: impl this
-  WEAPON_RELOAD,    // todo: impl this
-  WEAPON_CLIP_SIZE, // todo: impl this
+  WEAPON_CLIP_SIZE,
+  WEAPON_RELOAD_TIME,
+  WEAPON_RANGE,
 
   // if you have the missile trait,
   // peridically summon in missiles.
@@ -178,7 +178,7 @@ public:
     : IStatModifier{ "stat_percent_increase", stat }
     , percent(percent_between_0_and_100) {};
 
-  float apply(float base) const override { return base * (1.0f + percent / 100.0f); }
+  float apply(float base) const override { return base * (1.0f + (percent / 100.0f)); }
 };
 
 struct StatFlatIncrease : public IStatModifier

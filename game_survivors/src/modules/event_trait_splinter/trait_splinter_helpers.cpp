@@ -4,8 +4,6 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
-#include "engine/renderer/transform.hpp"
-#include "modules/combat/components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_traits/trait_components.hpp"

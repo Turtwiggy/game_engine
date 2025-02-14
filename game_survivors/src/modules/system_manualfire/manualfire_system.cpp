@@ -18,15 +18,16 @@
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
+#include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
-#include "modules/system_hulls/hulls_components.hpp"
+#include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_manualfire/manualfire_components.hpp"
 
 namespace game2d {
 
 void
-update_manualfire_system(entt::registry& r)
+update_manualfire_system(entt::registry& r, const float dt)
 {
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
@@ -35,11 +36,27 @@ update_manualfire_system(entt::registry& r)
                             const HasParentComponent,
                             const HardpointComponent,
                             const ManualfireComponent,
-                            CooldownComponent>();
+                            WeaponClipSize,
+                            WeaponFireRate,
+                            WeaponReloadRate,
+                            WeaponRange>();
 
-  for (const auto& [wep_e, wep_t, wep_c, parent_c, arc_c, manualfire_c, cooldown_c] : view.each()) {
+  for (const auto& [wep_e,
+                    wep_t,
+                    wep_c,
+                    parent_c,
+                    arc_c,
+                    manualfire_c,
+                    weapon_clip_size_c,
+                    weapon_fire_rate_c,
+                    weapon_reload_rate_c,
+                    weapon_range_c] : view.each()) {
 
     const auto p = parent_c.parent;
+
+    // Get modded weapon values.
+    const auto wep_def = get_weapon_def(r, p, wep_e);
+
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
     const auto& parent_input_c = r.get<InputComponent>(p);
@@ -59,6 +76,16 @@ update_manualfire_system(entt::registry& r)
     s.col = parent_col;
     draw_sprite(r, s);
 
+    // if the weapon is reloading, just do that.
+    if (weapon_reload_rate_c.seconds_cur > 0.0) {
+      weapon_reload_rate_c.seconds_cur -= dt;
+      continue;
+    }
+
+    // you've reloaded
+    if (weapon_clip_size_c.bullets_cur <= 0)
+      weapon_clip_size_c.bullets_cur = wep_def.bullets_max;
+
     const auto raw_dir = (tgt_pos - gun_pos);
     const auto nrm_dir = engine::normalize_safe(raw_dir);
     const auto angle = engine::dir_to_angle_radians(nrm_dir);
@@ -67,15 +94,32 @@ update_manualfire_system(entt::registry& r)
     const float shoot_angle = engine::dir_to_angle_radians(nrm_dir);
     wep_t.rotation_radians.z = shoot_angle;
 
-    if (cooldown_c.time > 0.0f)
+    // Check if you're fire-rate limited.
+    // note: updates the _max time based on the modded firerate
+    weapon_fire_rate_c.seconds_between_shots_max = 1.0 / wep_def.fire_rate;
+    if (weapon_fire_rate_c.seconds_between_shots_left >= 0.0) {
+      weapon_fire_rate_c.seconds_between_shots_left -= dt;
       continue;
+    }
+
+    // Check the clip size.
+    if (weapon_clip_size_c.bullets_cur <= 0) { // time to reload
+      weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
+      continue;
+    }
+
+    // Check if you need to reload.
+    if (weapon_clip_size_c.bullets_cur <= 0)
+      weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
 
     // input
     const bool shoot = parent_input_c.shoot;
     if (!shoot)
       continue;
 
-    reset_cooldown(cooldown_c);
+    // Shoot a bullet! (which can be multiple projectiles)
+    weapon_clip_size_c.bullets_cur--;
+    weapon_fire_rate_c.seconds_between_shots_left = weapon_fire_rate_c.seconds_between_shots_max;
 
     // TODO: implement same functionality as system autofire
     const int bullet_damage = r.get<BulletDamage>(wep_e).damage;

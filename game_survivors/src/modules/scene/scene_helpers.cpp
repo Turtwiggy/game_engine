@@ -22,18 +22,16 @@
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
-#include "modules/effects_outline/outline_components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
-#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_cooldown/components.hpp"
-#include "modules/system_hulls/hulls_components.hpp"
-#include "modules/system_hulls/hulls_helpers.hpp"
+#include "modules/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/system_manualfire/manualfire_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/system_particles/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/system_screenshake/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
@@ -79,19 +77,24 @@ spawn_weapon(entt::registry& r, const HardpointData& data)
   // weapon stats
   float firerate = 0.5;
   r.emplace<WeaponComponent>(wep_e);
-  r.emplace<WeaponProjectiles>(wep_e, WeaponProjectiles{ 1 });
+
+  // todo: load weapons from config
   r.emplace<WeaponSpread>(wep_e, WeaponSpread{ 30 });
-  r.emplace<WeaponFirerate>(wep_e, WeaponFirerate{ firerate });
-  r.emplace<CooldownComponent>(wep_e, CooldownComponent{ firerate, firerate });
+  r.emplace<WeaponProjectiles>(wep_e, WeaponProjectiles{ 1 });
+  r.emplace<WeaponClipSize>(wep_e);
+  r.emplace<WeaponFireRate>(wep_e);
+  r.emplace<WeaponReloadRate>(wep_e);
+  r.emplace<WeaponRange>(wep_e);
 
   // bullets that the weapon fires
   r.emplace<BulletDamage>(wep_e, 10);
   r.emplace<BulletPierce>(wep_e, 1);
   r.emplace<BulletSize>(wep_e, BulletSize{ { 5, 2 } });
   r.emplace<BulletSpeed>(wep_e, 1.0f);
-  r.emplace<BulletKnockback>(wep_e, 1);
-  r.emplace<BulletBounce>(wep_e, 0); // no bounce by default
+  r.emplace<BulletKnockback>(wep_e); // no knockback by default
+  r.emplace<BulletBounce>(wep_e);    // no bounce by default
   r.emplace<BulletCrit>(wep_e);      // no crit by default
+  r.emplace<BulletLifesteal>(wep_e); // no lifesteal by default
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;
@@ -220,7 +223,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<MovementDirectComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
-  r.emplace<ActorSpeedComponent>(e, 0.01f);      // meters per second
+  r.emplace<ActorSpeedComponent>(e, 0.02f);      // meters per second
   r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
   r.emplace<ActorDodgeComponent>(e, 0.0f);       // dodge percent
   r.emplace<ActorStaminaComponent>(e);

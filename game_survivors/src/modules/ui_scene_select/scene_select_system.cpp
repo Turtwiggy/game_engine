@@ -11,7 +11,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-#include "modules/system_hulls/hulls_components.hpp"
+#include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 
 #include <SDL_scancode.h>
@@ -22,9 +22,9 @@
 namespace game2d {
 
 void
-inc_or_dec_choice(int& i, int dir, const int max)
+inc_or_dec_i_clamped(int& i, int inc, const int max)
 {
-  i += dir;
+  i += inc;
   i = i < 0 ? max - 1 : i;
   i %= max;
 };
@@ -78,9 +78,9 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
 
     if (!hull_choice.confirmed) {
       if (controller_button_down(steam_c, handle, DA::Game_Left))
-        inc_or_dec_choice(hull_choice.idx, -1, available_hulls);
+        inc_or_dec_i_clamped(hull_choice.idx, -1, available_hulls);
       if (controller_button_down(steam_c, handle, DA::Game_Right))
-        inc_or_dec_choice(hull_choice.idx, 1, available_hulls);
+        inc_or_dec_i_clamped(hull_choice.idx, 1, available_hulls);
     }
 
     // Confirm Ship
@@ -193,7 +193,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     std::string l_label = "##left"s + std::to_string(col);
     std::tie(tl, br) = convert_sprite_to_uv(r, "ARROW_LEFT");
     if (ImGui::ImageButton(l_label.c_str(), im_id, button_size, tl, br))
-      inc_or_dec_choice(data.idx, -1, available_hulls);
+      inc_or_dec_i_clamped(data.idx, -1, available_hulls);
 
     // Right Arrow
     ImGui::SameLine();
@@ -202,7 +202,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     const auto result = convert_sprite_to_uv(r, "ARROW_RIGHT");
     std::tie(tl, br) = result;
     if (ImGui::ImageButton(r_label.c_str(), im_id, button_size, tl, br))
-      inc_or_dec_choice(data.idx, 1, available_hulls);
+      inc_or_dec_i_clamped(data.idx, 1, available_hulls);
 
     // Player Info (centered)
     {

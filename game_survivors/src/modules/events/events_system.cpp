@@ -6,6 +6,7 @@
 #include "modules/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
+#include "modules/event_damage_lifesteal/lifesteal_helpers.hpp"
 #include "modules/event_shoot/event_shoot_components.hpp"
 #include "modules/event_trait_electromancy/trait_electromancy_helpers.hpp"
 #include "modules/event_trait_fanfire/trait_fanfire_helpers.hpp"
@@ -34,6 +35,7 @@ init_events_system(entt::registry& r)
 
   // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
+  ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_lifesteal>(r);
 
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_electromancy>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_fanfire>(r);
