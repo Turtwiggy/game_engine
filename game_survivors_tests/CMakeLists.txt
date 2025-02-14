@@ -20,6 +20,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE TEST_SRC_FILES
   ${IMGUI_SOURCE}
   ${OPTICK_SOURCE}
+  ${CMAKE_SOURCE_DIR}/thirdparty/glad/include/glad/glad.c
 
   # do not inlude main()
   ${CMAKE_SOURCE_DIR}/src/*.cpp
@@ -35,20 +36,26 @@ add_executable(game_survivors_tests ${TEST_SRC_FILES})
 
 link_libs(game_survivors_tests)
 
-# Link steam api
 if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
+  #
   # Link steam_api[64].lib
   set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
-  target_link_libraries(game_survivors_tests PRIVATE ${steam_lib}/steam_api64.lib)
+  target_link_libraries(game_survivors_tests PRIVATE ${steam_lib}/steam_api64.dll)
 
-  # Copy the .dll next to the .exe
-  message("Copying steam .dll next to .exe")
-  set(dst ${CMAKE_CURRENT_BINARY_DIR})
-  add_custom_command(TARGET game_survivors_tests PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${steam_lib}/steam_api64.dll
-    $<TARGET_FILE_DIR:game_survivors>
-  )
+  if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+    # Copy the .dll next to the .exe
+    if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll")
+      message("Copying steam .dll next to .exe")
+      set(dst ${CMAKE_CURRENT_BINARY_DIR})
+      add_custom_command(TARGET game_survivors_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Checking if steam.api64.dll exists..."
+        COMMAND if not exist "$<TARGET_FILE_DIR:game_survivors>/steam_api64.dll"(
+        COMMAND ${CMAKE_COMMAND} -E copy ${steam_lib}/steam_api64.dll $<TARGET_FILE_DIR:game_survivors>
+        )
+        COMMENT "Copy steam_api64.dll if it doesn't exist"
+      )
+    endif()
+  endif()
 endif()
 
 target_link_libraries(game_survivors_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
@@ -65,6 +72,7 @@ target_include_directories(game_survivors_tests PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
   ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
+  ${CMAKE_SOURCE_DIR}/thirdparty/glad/include
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
@@ -78,8 +86,9 @@ endif()
 # Code coverage
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE MATCHES Debug)
   message("setting code coverage options...")
-  target_compile_options(game_survivors_tests PRIVATE --coverage) # -O0 and -g should already be set
-  target_link_options(game_survivors_tests PRIVATE --coverage)
+
+  # target_compile_options(game_survivors_tests PRIVATE --coverage) # -O0 and -g should already be set
+  # target_link_options(game_survivors_tests PRIVATE --coverage)
 
   # find_program("" lcov)
   # C:/Software/msys64/ucrt64/bin/lcov
