@@ -130,6 +130,8 @@ update_ui_survive_info_system(entt::registry& r)
       ImGui::Text("b_damage %i", bul_def.damage); 
       ImGui::Text("b_pierce %i", bul_def.pierce); 
       ImGui::Text("b_knockback %i", bul_def.knockback_force); 
+      ImGui::Text("b_crit_chance %0.2f", bul_def.crit_chance); 
+      ImGui::Text("b_crit_damage %0.2f", bul_def.crit_damage); 
       ImGui::Text("w_firerate %f", wep_def.firerate); 
       ImGui::Text("w_projectiles %i", wep_def.projectiles); 
       ImGui::Text("w_spread %i", wep_def.spread_deg);

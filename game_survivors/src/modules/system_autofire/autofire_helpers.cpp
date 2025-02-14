@@ -70,13 +70,17 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto key_bullet_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_DAMAGE));
   const auto key_bullet_pierce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_PIERCE));
   const auto key_bullet_knockback = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_KNOCKBACK));
+  const auto key_bullet_crit_chance = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_CRIT_CHANCE));
+  const auto key_bullet_crit_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_CRIT_DAMAGE));
 
-  const auto val_bullet_bounce = r.get<BulletBounce>(wep_e).bounces_left;
-  const auto val_bullet_size = r.get<BulletSize>(wep_e).size;
-  const auto val_bullet_speed = r.get<BulletSpeed>(wep_e).speed;
-  const auto val_bullet_damage = r.get<BulletDamage>(wep_e).damage;
-  const auto val_bullet_pierce = r.get<BulletPierce>(wep_e).pierce;
-  const auto val_bullet_knockback = r.get<BulletKnockback>(wep_e).knockback_force;
+  const auto val_bullet_bounce = r.get<const BulletBounce>(wep_e).bounces_left;
+  const auto val_bullet_size = r.get<const BulletSize>(wep_e).size;
+  const auto val_bullet_speed = r.get<const BulletSpeed>(wep_e).speed;
+  const auto val_bullet_damage = r.get<const BulletDamage>(wep_e).damage;
+  const auto val_bullet_pierce = r.get<const BulletPierce>(wep_e).pierce;
+  const auto val_bullet_knockback = r.get<const BulletKnockback>(wep_e).knockback_force;
+  const auto val_bullet_crit_chance = r.get<const BulletCrit>(wep_e).crit_chance;
+  const auto val_bullet_crit_damage = r.get<const BulletCrit>(wep_e).crit_damage;
 
   const auto mod_bul_bounce = (int)upgrades_c.apply_modifiers(val_bullet_bounce, key_bullet_bounce);
   const auto mod_bul_size_x = upgrades_c.apply_modifiers(val_bullet_size.x, key_bullet_size);
@@ -85,6 +89,8 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto mod_bul_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
   const auto mod_bul_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
   const auto mod_bul_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
+  const auto mod_bul_crit_chance = upgrades_c.apply_modifiers(val_bullet_crit_chance, key_bullet_crit_chance);
+  const auto mod_bul_crit_damage = upgrades_c.apply_modifiers(val_bullet_crit_damage, key_bullet_crit_damage);
 
   if (wep_e == entt::null || par_e == entt::null) {
     SDL_Log("Error creating BulletDef; invalid parents");
@@ -101,6 +107,8 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   bullet_def.knockback_force = mod_bul_knockback;
   bullet_def.bounces = mod_bul_bounce;
   bullet_def.lifecycle = 3 * 1000;
+  bullet_def.crit_chance = mod_bul_crit_chance;
+  bullet_def.crit_damage = mod_bul_crit_damage;
 
   auto traits_set = r.get<TraitComponent>(par_e).traits;
   bullet_def.traits = { traits_set.begin(), traits_set.end() };

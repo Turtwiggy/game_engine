@@ -91,6 +91,7 @@ spawn_weapon(entt::registry& r, const HardpointData& data)
   r.emplace<BulletSpeed>(wep_e, 1.0f);
   r.emplace<BulletKnockback>(wep_e, 1);
   r.emplace<BulletBounce>(wep_e, 0); // no bounce by default
+  r.emplace<BulletCrit>(wep_e);      // no crit by default
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;

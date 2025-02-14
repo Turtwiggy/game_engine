@@ -55,7 +55,6 @@ jobs:
       - name: copy-game-assets
         run: |
           cp -r ${{ github.workspace }}/game_survivors/assets ./build/game_survivors/
-          cp ${{ github.workspace }}/thirdparty/sdk/redistributable_bin/win64/steam_api64.dll ./build/game_survivors/
           rm -r ./build/game_survivors/CMakeFiles
           rm ./build/game_survivors/*.cmake 
           rm ./build/game_survivors/*.manifest

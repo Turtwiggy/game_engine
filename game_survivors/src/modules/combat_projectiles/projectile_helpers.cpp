@@ -14,6 +14,8 @@ namespace game2d {
 entt::entity
 spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
 {
+  // note: modifiers already applied, provided via BulletDef
+
   auto parent_e = bullet_def.parent_e;
 
   auto bullet_e = spawn(r, bullet_def.key);
@@ -32,6 +34,12 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   r.emplace<BulletKnockback>(bullet_e, bullet_def.knockback_force);
   if (bullet_def.bounces > 0)
     r.emplace<BulletBounce>(bullet_e, BulletBounce{ bullet_def.bounces });
+
+  const BulletCrit crit_c = {
+    .crit_chance = bullet_def.crit_chance,
+    .crit_damage = bullet_def.crit_damage,
+  };
+  r.emplace<BulletCrit>(bullet_e, crit_c);
 
   auto& bullet_trait_c = r.get<TraitComponent>(bullet_e);
   bullet_trait_c.traits.insert(bullet_def.traits.begin(), bullet_def.traits.end());

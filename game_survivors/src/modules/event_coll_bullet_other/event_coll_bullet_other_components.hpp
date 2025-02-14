@@ -21,6 +21,12 @@ struct BulletSize
   glm::vec2 size{ 6, 6 };
 };
 
+struct BulletCrit
+{
+  float crit_chance = 0;   // percent
+  float crit_damage = 150; // percent * base damage
+};
+
 struct BulletDamage
 {
   int damage = 10;

@@ -6,8 +6,10 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_death/components.hpp"
 #include "modules/events/events_components.hpp"
+#include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 
@@ -40,10 +42,10 @@ calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
   float amount_final = amount;
 
   if (type == DamageType::PHYSICAL) {
-    int defence_amount = 0;
+    // int defence_amount = 0;
     // if (auto* defence_c = r.try_get<DefenceComponent>(e))
     //   defence_amount = defence_c->armour;
-    amount_final -= defence_amount;
+    // amount_final -= defence_amount;
   }
 
   if (type == DamageType::PURE) {
@@ -54,11 +56,56 @@ calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
   return glm::max(amount_final, 0.0f);
 };
 
+bool
+check_if_dodge(entt::registry& r, entt::entity to, engine::RandomState& rnd, const StatModifierComponent& stats_c)
+{
+  // praise be, to RNGesus
+  const int roll = engine::rand_det_s(rnd.rng, 0, 100);
+
+  const auto dodge_val = r.get<ActorDodgeComponent>(to).dodge_percent;
+  const auto dodge_key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_DODGE_CHANCE));
+  const auto dodge_mod_val = stats_c.apply_modifiers(dodge_val, dodge_key); // percent.
+
+  // your dodge percent is between 0 and anything
+  // system produces a value between 0 and 100
+  return roll < dodge_mod_val;
+};
+
+std::pair<bool, float>
+check_if_crit(entt::registry& r, const DamageEvent& evt, engine::RandomState& rnd)
+{
+  // crit info would be on the evt.from (i.e. a bullet)
+  if (evt.from == entt::null)
+    return { false, 0.0 };
+
+  const auto* bullet_crit_c = r.try_get<BulletCrit>(evt.from);
+  if (!bullet_crit_c)
+    return { false, 0.0 };
+
+  // no chance to chrit
+  if (bullet_crit_c->crit_chance <= 0.0f)
+    return { false, 0.0 };
+
+  //
+  // note: crit values have already had modifiers
+  // applied when the bullet was created
+  //
+
+  // praise be, to RNGesus
+  const int roll = engine::rand_det_s(rnd.rng, 0, 100);
+
+  const auto crit_chance_val = bullet_crit_c->crit_chance;
+  const auto crit_damage_val = bullet_crit_c->crit_damage;
+  const auto critical_hit = roll < crit_chance_val;
+  const auto critical_mul = crit_damage_val / 100.0f; // convert percent to multiplier
+  return { critical_hit, critical_mul };
+};
+
 void
 handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 {
   auto to_e = evt.to;
-
+  // note: evt.to is a fixture, not the parent with all the components on
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
     const auto& tag_c = r.get<TagComponent>(to_e);
@@ -68,26 +115,26 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     return;
   }
 
-  const float damage = calculate_damage_to_take(r, evt);
+  static engine::RandomState rnd(0);
 
-  // Check if you can dodge it.
-  const auto* stats_c = r.try_get<StatModifierComponent>(evt.to);
-  if (stats_c) {
-    const auto val = r.get<ActorDodgeComponent>(evt.to).dodge_percent;
-    const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_DODGE_CHANCE));
-    const auto mod_val = stats_c->apply_modifiers(val, key); // percent.
-
-    // roll a dice to see if you dodge it.
-    static engine::RandomState dodge_rng(0);
-    const int roll = engine::rand_det_s(dodge_rng.rng, 0, 100);
-
-    // your dodge percent is between 0 and anything
-    // system produces a value between 0 and 100
-    const bool dodged = roll < mod_val;
-    if (dodged) {
-      SDL_Log("You dodged a hit.");
-      return; // ya lucky!
+  const auto parent_e = r.get<HasParentComponent>(to_e).parent;
+  const auto* your_stats_c = r.try_get<StatModifierComponent>(parent_e);
+  if (your_stats_c) {
+    // did you dodge?
+    if (check_if_dodge(r, parent_e, rnd, *your_stats_c)) {
+      SDL_Log("something dodged");
+      return;
     }
+  }
+
+  float damage = calculate_damage_to_take(r, evt);
+
+  // did you crit?
+  const auto [crit, crit_mul] = check_if_crit(r, evt, rnd);
+  if (crit) {
+    const auto info_str = std::format("something was crit with a x{:.2f} multiplier", crit_mul);
+    SDL_Log("%s", info_str.c_str());
+    damage *= crit_mul;
   }
 
   // log evt
@@ -98,7 +145,6 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   // apply damage
   hp->hp -= damage;
 
-  const auto parent_e = r.get<HasParentComponent>(to_e).parent;
   additional_misc_damage_events(r, parent_e);
 
   if (hp->hp <= 0) {
