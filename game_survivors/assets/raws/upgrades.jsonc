@@ -1,6 +1,86 @@
 {
   "upgrades": [
 
+    {
+      "name": "Hit Harder",
+      "effects": [
+        {
+          "stat": "BULLET_DAMAGE",
+          "type": "stat_percent_increase",
+          "value": 40
+        },
+        {
+          "stat": "BULLET_KNOCKBACK",
+          "type": "stat_percent_increase",
+          "value": 20
+        }
+      ]
+    },
+    {
+      "name": "Hit Bigger",
+      "effects": [
+        {
+          "stat": "BULLET_DAMAGE",
+          "type": "stat_percent_increase",
+          "value": 40
+        },
+        {
+          "stat": "BULLET_SIZE",
+          "type": "stat_percent_increase",
+          "value": 60
+        }
+      ]
+    },
+
+    {
+      "name": "Bouncy Bullets",
+      "effects": [
+        {
+          "stat": "BULLET_BOUNCE",
+          "type": "stat_flat_increase",
+          "value": 1
+        }
+      ]
+    },
+
+    {
+      "name": "Double Up",
+      "effects": [
+        {
+          "stat": "WEAPON_PROJECTILES",
+          "type": "stat_flat_increase",
+          "value": 1
+        },
+        {
+          "stat": "WEAPON_SPREAD",
+          "type": "stat_flat_increase",
+          "value": 5 // degrees
+        }
+      ]
+    },
+
+    //
+    // Traits
+    // 
+
+
+    {
+      "name": "Splinter",
+      "desc": "Enemies emit 3 bullets on death, each hitting for 10% of your bullet damage",
+      "effects": [ {"trait": "SPLINTER" } ]
+    },
+
+    {
+      "name": "#1 Fan",
+      "desc": "Every X shots, shoot a fan of bullets",
+      "effects": [ {"trait": "FAN_FIRE"} ]
+    },
+    
+    {
+      "name": "Zeus",
+      "desc": "Every X shots, lightning hits a nearby enemy",
+      "effects": [ {"trait": "ELECTROMANCY"} ]
+    }
     
   // end array
   ] 

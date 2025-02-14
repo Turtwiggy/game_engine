@@ -68,7 +68,7 @@ update_ui_debug_spawner_system(entt::registry& r)
 
     ImGui::Text("wave_start_seconds %i", w.wave_start_seconds);
     ImGui::Text("wave_end_seconds %i", w.wave_end_seconds);
-    ImGui::Text("hp %i", w.hp);
+    ImGui::Text("hp %0.2f", w.hp);
     ImGui::Text("max_allowed %i", w.max_allowed);
     ImGui::Text("number_per_spawn %i", w.number_per_spawn);
     ImGui::Text("spawn_cooldown %i", w.spawn_cooldown);

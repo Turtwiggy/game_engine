@@ -24,6 +24,7 @@
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "raws_helpers.hpp"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_dynamic_tree.h>
@@ -63,8 +64,8 @@ load_raws(std::string path)
   std::ostringstream output;
   std::string line;
   while (std::getline(stream, line)) {
-    std::string cleaned_line = line.find("//") != std::string::npos ? "" : line;
-    output << cleaned_line << "\n";
+    const auto clean_line = remove_comment(line);
+    output << clean_line << "\n";
   }
   const std::string string_without_comments = output.str();
 
@@ -111,6 +112,48 @@ create_transform(entt::registry& r, const std::string& name)
   r.emplace<WaitForInitComponent>(e);
   r.emplace<TransformComponent>(e);
   return e;
+};
+
+b2Fixture*
+create_fixture(b2Body* body, const PhysicsFixtureDef& fix, const b2Vec2 size_in_meters)
+{
+  auto tag = fix.tag;
+  auto type = fix.type;
+  auto is_sensor = fix.is_sensor;
+  auto density = fix.density;
+  auto friction = fix.friction;
+  auto restitution = fix.restitution;
+
+  b2FixtureDef fixture_def;
+  fixture_def.friction = friction;
+  fixture_def.density = density;
+  fixture_def.restitution = restitution;
+  fixture_def.isSensor = is_sensor;
+
+  b2Fixture* fixture = nullptr;
+
+  if (type == "circle") {
+    b2CircleShape circle;
+    circle.m_radius = fix.radius_in_pixels / PIXELS_PER_METER;
+    fixture_def.shape = &circle;
+    fixture = body->CreateFixture(&fixture_def);
+    // SDL_Log("creating circle fixture..");
+  }
+
+  if (type == "box") {
+    b2PolygonShape box;
+    box.SetAsBox(size_in_meters.x / 2.0f, size_in_meters.y / 2.0f);
+    fixture_def.shape = &box;
+    fixture = body->CreateFixture(&fixture_def);
+    // SDL_Log("creating box fixture..");
+  }
+
+  if (fixture == nullptr) {
+    SDL_Log("(Error) unknown fixture type: %s", type.c_str());
+    exit(1);
+  }
+
+  return fixture;
 };
 
 void
@@ -214,41 +257,8 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       }
 
       for (const auto& fix : fixtures) {
-        auto tag = fix.tag;
-        auto type = fix.type;
-        auto is_sensor = fix.is_sensor;
-        auto density = fix.density;
-        auto friction = fix.friction;
-        auto restitution = fix.restitution;
 
-        b2FixtureDef fixture_def;
-        fixture_def.friction = friction;
-        fixture_def.density = density;
-        fixture_def.restitution = restitution;
-        fixture_def.isSensor = is_sensor;
-
-        b2Fixture* fixture = nullptr;
-
-        if (type == "circle") {
-          b2CircleShape circle;
-          circle.m_radius = fix.radius_in_pixels / PIXELS_PER_METER;
-          fixture_def.shape = &circle;
-          fixture = body->CreateFixture(&fixture_def);
-          // SDL_Log("creating circle fixture..");
-        }
-
-        if (type == "box") {
-          b2PolygonShape box;
-          box.SetAsBox(size_in_meters.x / 2.0f, size_in_meters.y / 2.0f);
-          fixture_def.shape = &box;
-          fixture = body->CreateFixture(&fixture_def);
-          // SDL_Log("creating box fixture..");
-        }
-
-        if (fixture == nullptr) {
-          SDL_Log("(Error) unknown fixture type: %s", type.c_str());
-          exit(1);
-        }
+        auto* fixture = create_fixture(body, fix, size_in_meters);
 
         // entt: create fixture representation
         PhysicsFixtureComponent fixture_c;

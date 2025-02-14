@@ -25,14 +25,14 @@ additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
   // create_empty<RequestScreenshakeComponent>(r);
 };
 
-int
+float
 calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
 {
   const auto amount = evt.amount;
   const auto type = evt.type;
   const auto e = evt.to; // Note: evt.to is a fixture
 
-  int amount_final = amount;
+  float amount_final = amount;
 
   if (type == DamageType::PHYSICAL) {
     int defence_amount = 0;
@@ -46,7 +46,7 @@ calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
   }
 
   // damage shouldnt be negative
-  return glm::max(amount_final, 0);
+  return glm::max(amount_final, 0.0f);
 };
 
 void
@@ -63,7 +63,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     return;
   }
 
-  const int damage = calculate_damage_to_take(r, evt);
+  const float damage = calculate_damage_to_take(r, evt);
 
   // log evt
   const auto b_name = std::string(r.get<TagComponent>(to_e).tag);

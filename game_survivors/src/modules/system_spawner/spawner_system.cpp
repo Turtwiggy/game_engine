@@ -23,7 +23,7 @@
 namespace game2d {
 
 entt::entity
-spawn_enemy(entt::registry& r, std::string key, int hp)
+spawn_enemy(entt::registry& r, std::string key, float hp)
 {
   // TODO: could have an "aggro meter" per player?
   auto target_e = get_random_player_target(r);
@@ -85,7 +85,7 @@ update_spawner_system(entt::registry& r)
     // configs
     const int max_allowed = wave.max_allowed;
     const int number_per_spawn = wave.number_per_spawn;
-    const int hp = wave.hp;
+    const float hp = wave.hp;
     const int cooldown = wave.spawn_cooldown;
     const std::string key = spawn_data.enemy_key;
 

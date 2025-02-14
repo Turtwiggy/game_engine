@@ -7,8 +7,7 @@ namespace game2d {
 
 enum class AquirableTrait
 {
-  ASSASSIN = 0,
-  SPLINTER,
+  SPLINTER = 0,
   FAN_FIRE,
   ELECTROMANCY,
 

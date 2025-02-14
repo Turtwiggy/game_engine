@@ -40,6 +40,8 @@
 #include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
+#include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
@@ -215,20 +217,32 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<MovementDirectComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
+  r.emplace<ActorSpeedComponent>(e, 0.01f);      // meters per second
+  r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
+
+  // Add an xp zone with the config-defined size
+  {
+    auto fixture_def = get_fixture_def_by_tag(r, e, "fixture_xp_zone");
+    ActorXpZoneSizeComponent xp_zone_c;
+    xp_zone_c.radius_meters = pixels_to_meters(fixture_def.radius_in_pixels);
+    r.emplace<ActorXpZoneSizeComponent>(e, xp_zone_c);
+  }
+
   // r.emplace<SpriteOutline>(e);
 
   // add trail to the butt of the boat
   if (hull_key == "Dinghy") {
+    const auto inset = 2.0f;
     {
       // const auto tl_offset = glm::vec2{ 0, size/2 };
-      const auto tl_offset = glm::vec2{ 0, 0 };
+      const auto tl_offset = glm::vec2{ inset, inset };
       const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-l");
       r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
       r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
       spawn_particle_emitter(r, "default_trail", emitter_parent_e);
     }
     {
-      const auto tl_offset = glm::vec2{ 0, size.y };
+      const auto tl_offset = glm::vec2{ inset, size.y - inset };
       const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-r");
       r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
       r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
@@ -277,7 +291,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
 
   auto player_fixture_e = get_fixture_by_tag(r, e, "fixture_player");
   r.emplace<PlayerFixtureComponent>(player_fixture_e);
-  r.emplace<HealthComponent>(player_fixture_e, 10, 10);
+  r.emplace<HealthComponent>(player_fixture_e, 10.0f, 10.0f);
   // r.emplace<DefenceComponent>(player_fixture_e, 0);
 
   // xp_zone fixture

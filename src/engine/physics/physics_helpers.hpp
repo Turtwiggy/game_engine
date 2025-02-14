@@ -16,6 +16,9 @@ get_fixture(entt::registry& r, entt::entity e);
 entt::entity
 get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag);
 
+PhysicsFixtureDef
+get_fixture_def_by_tag(entt::registry& r, entt::entity e, std::string tag);
+
 std::vector<entt::entity>
 get_all_in_area(entt::registry& r, glm::vec2 center, float d);
 
@@ -25,9 +28,13 @@ get_all_in_area_filtered(entt::registry& r,
                          const float d,
                          const std::function<bool(entt::registry&, entt::entity)>& cond);
 
+float
+meters_to_pixels(float meters);
 glm::vec2
 meters_to_pixels(b2Vec2 meters);
 
+float
+pixels_to_meters(float pixels);
 b2Vec2
 pixels_to_meters(glm::vec2 pixels);
 

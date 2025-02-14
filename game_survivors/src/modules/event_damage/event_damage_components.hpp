@@ -16,7 +16,7 @@ struct DamageEvent
 {
   entt::entity from = entt::null;
   entt::entity to = entt::null;
-  int amount = 0;
+  float amount = 0.0f;
   DamageType type = DamageType::PHYSICAL;
 };
 

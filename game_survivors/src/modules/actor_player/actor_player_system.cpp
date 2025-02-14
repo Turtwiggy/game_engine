@@ -9,10 +9,12 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_log.h>
@@ -43,23 +45,32 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
 
-  const auto& view = r.view<const InputComponent, const MovementDirectComponent, PhysicsBodyComponent>();
-  for (const auto& [e, input_c, movetype_c, body_c] : view.each()) {
+  const auto& view =
+    r.view<const InputComponent, const MovementDirectComponent, PhysicsBodyComponent, const ActorSpeedComponent>();
+  for (const auto& [e, input_c, movetype_c, body_c, speed_c] : view.each()) {
     const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
     const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
 
+    // Apply more force the more your mass
     const float mass = body_c.body->GetMass();
 
-    // Apply more force the more your mass
-    const auto move_vel = (mass * l_nrm_dir * 1.0F);
-    const auto move_vel_in_meters = b2Vec2{ move_vel.x / PIXELS_PER_METER, move_vel.y / PIXELS_PER_METER };
-    body_c.body->ApplyLinearImpulseToCenter(move_vel_in_meters, true);
+    // Speed is an upgradeable stat
+    const float speed_in_meters_per_second = speed_c.speed;
+    float speed = speed_in_meters_per_second;
+    if (auto* upgrade_c = r.try_get<StatModifierComponent>(e)) {
+      const auto key_actor_speed = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_SPEED));
+      speed = upgrade_c->apply_modifiers(speed_in_meters_per_second, key_actor_speed);
+    }
+
+    const b2Vec2 vel = speed * b2Vec2{ l_nrm_dir.x, l_nrm_dir.y };
+    const b2Vec2 impulse = mass * vel;
+    body_c.body->ApplyLinearImpulseToCenter(impulse, true);
 
     //
     // Set Rotation
     //
 
-    const float speed = 10.0f; // higher number = faster to destination
+    const float angle_speed = 10.0f; // higher number = faster to rotate
     const float max_angle = 30.0f * engine::Deg2Rad;
 
     const auto cur_angle = body_c.body->GetAngle();
@@ -77,7 +88,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 
     const float clamped_angle_diff = glm::clamp(angle_diff, -max_angle, max_angle);
     const float tgt_angle = wrapped_cur_angle + clamped_angle_diff;
-    const float fin_angle = exp_decay(wrapped_cur_angle, tgt_angle, speed, dt);
+    const float fin_angle = exp_decay(wrapped_cur_angle, tgt_angle, angle_speed, dt);
 
     // SDL_Log("cur: %f tgt: %f, new: %f", cur_angle, tgt_angle, new_angle);
 

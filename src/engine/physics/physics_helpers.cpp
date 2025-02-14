@@ -4,6 +4,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/core_collisions/resolve_collisions_helpers.hpp"
+#include "modules/core_raws/raws_components.hpp"
 #include "physics_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -78,7 +79,7 @@ get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
   const auto& body_c = r.get<PhysicsBodyComponent>(e);
   for (const entt::entity fix_e : body_c.fixtures) {
     const auto& fix_c = r.get<PhysicsFixtureComponent>(fix_e);
-    const auto* b2_fixture = fix_c.fixture;
+    // const auto* b2_fixture = fix_c.fixture;
     const auto& fix_tag = r.get<TagComponent>(fix_e);
     if (fix_tag.tag == tag)
       return fix_e;
@@ -89,6 +90,25 @@ get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
   exit(1); // explode
 
   return entt::null;
+};
+
+PhysicsFixtureDef
+get_fixture_def_by_tag(entt::registry& r, entt::entity e, std::string tag)
+{
+  const auto& item_key_c = r.get<ItemKey>(e);
+  const auto item_c = find_item(r, item_key_c.key);
+
+  std::optional<PhysicsFixtureDef> fixture_def_opt = std::nullopt;
+  for (const auto& fix : item_c.phys_fixtures.value())
+    if (fix.tag == tag)
+      fixture_def_opt = fix;
+
+  if (!fixture_def_opt) {
+    throw std::runtime_error("Failed to find fixture def");
+    exit(1); // crash
+  }
+
+  return fixture_def_opt.value();
 };
 
 class SearchAreaCallback : public b2QueryCallback
@@ -173,17 +193,27 @@ get_all_in_area_filtered(entt::registry& r,
   return callback.results;
 };
 
+float
+meters_to_pixels(float meters)
+{
+  return meters * PIXELS_PER_METER;
+};
 glm::vec2
 meters_to_pixels(b2Vec2 meters)
 {
   return { meters.x * PIXELS_PER_METER, meters.y * PIXELS_PER_METER };
 };
 
+float
+pixels_to_meters(float pixels)
+{
+  return pixels / PIXELS_PER_METER;
+};
 b2Vec2
 pixels_to_meters(glm::vec2 pixels)
 {
   auto p = pixels / PIXELS_PER_METER;
-  return { p.x, p.y };
+  return b2Vec2{ p.x, p.y };
 };
 
 /*

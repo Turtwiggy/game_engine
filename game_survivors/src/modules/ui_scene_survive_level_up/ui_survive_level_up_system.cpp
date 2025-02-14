@@ -19,7 +19,6 @@
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
-
 #include <imgui.h>
 #include <magic_enum.hpp>
 
@@ -192,9 +191,10 @@ update_ui_survive_level_up_system(entt::registry& r)
       .sel_index = selected,
     };
     if (selectable_button(increase_hp_def)) {
-      const auto stat = UpgradeableStat::ACTOR_MAX_HEALTH;
+      const auto stat = UpgradeableStat::ACTOR_HEALTH_MAX;
       const auto stat_key = std::string(magic_enum::enum_name(stat));
-      int max_hp_amount = 5;
+
+      const int max_hp_amount = 5;
       const auto& players_view = r.view<StatModifierComponent>();
       for (const auto& [e, stat_c] : players_view.each())
         stat_c.add(std::make_shared<StatFlatIncrease>(max_hp_amount, stat_key));

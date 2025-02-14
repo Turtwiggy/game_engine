@@ -6,7 +6,7 @@
 
 namespace game2d {
 
-int
+float
 calculate_damage_to_take(entt::registry& r, const DamageEvent& evt);
 
 void

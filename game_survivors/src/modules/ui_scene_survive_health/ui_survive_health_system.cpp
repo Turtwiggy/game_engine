@@ -11,6 +11,8 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
+#include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 
 #include <imgui.h>
 #include <magic_enum.hpp>
@@ -65,7 +67,7 @@ update_ui_survive_health_system(entt::registry& r)
 
     const auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
     const auto& hp_c = r.get<HealthComponent>(fixture_e);
-    std::string hp_label = std::format("HP: {}/{}", hp_c.hp, hp_c.max_hp);
+    const std::string hp_label = std::format("HP: {:.2f}/{:.2f}", hp_c.hp, hp_c.max_hp);
     ImGui::SameLine();
     ImGui::Text("%s", hp_label.c_str());
 
@@ -74,6 +76,36 @@ update_ui_survive_health_system(entt::registry& r)
     const auto& upgrade_c = r.get_or_emplace<UpgradeComponent>(e);
     for (const auto& upgrade : upgrade_c.aquired_upgrades)
       ImGui::Text("%s", upgrade.c_str());
+
+    ImGui::NewLine();
+    ImGui::Text("Actor...");
+    {
+      auto& upgrades_c = r.get<StatModifierComponent>(e);
+
+      const auto key_dodge = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_DODGE_CHANCE));
+      const auto key_hp_max = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_HEALTH_MAX));
+      const auto key_hp_regen = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_HEALTH_REGEN));
+      const auto key_speed = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_SPEED));
+      const auto key_xp_zone_size = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
+
+      // const float val_dodge_chance = r.get<ActorDodgeChance>(e);.
+      const float val_hp_max = 10; // todo: fix this, and fix this in the upgrade system
+      const float val_hp_regen = r.get<ActorHealthRegenComponent>(e).hp_per_second;
+      const float val_speed = r.get<ActorSpeedComponent>(e).speed;
+      const float val_xp_zone_size = r.get<ActorXpZoneSizeComponent>(e).radius_meters;
+
+      // const float mod_dodge_chance =
+      const float mod_speed = upgrades_c.apply_modifiers(val_speed, key_speed);
+      const float mod_hp_max = upgrades_c.apply_modifiers(val_hp_max, key_hp_max);
+      const float mod_hp_regen = upgrades_c.apply_modifiers(val_hp_regen, key_hp_regen);
+      const float mod_xp_zone_size = upgrades_c.apply_modifiers(val_xp_zone_size, key_xp_zone_size);
+
+      // ImGui::Text("a_speed %f", mod_speed);
+      ImGui::Text("a_speed %0.2f", mod_speed);
+      ImGui::Text("a_hp_max %0.2f", mod_hp_max);
+      ImGui::Text("a_hp_regen %0.2f", mod_hp_regen);
+      ImGui::Text("a_xp_zone_rad %0.2f", mod_xp_zone_size);
+    }
 
     const auto& weps_c = r.get<HasWeaponsComponent>(e);
 

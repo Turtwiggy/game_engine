@@ -1,6 +1,5 @@
 #pragma once
 
-#include "engine/colour/colour.hpp"
 #include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_scancode.h>
 #include <entt/entt.hpp>
@@ -17,6 +16,11 @@ namespace game2d {
 struct PlayerComponent
 {
   int idx = 0;
+};
+
+struct ActorSpeedComponent
+{
+  float speed = 1.0f;
 };
 
 // attached to the player fixture

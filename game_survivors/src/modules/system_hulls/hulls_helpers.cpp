@@ -1,6 +1,7 @@
 #include "hulls_helpers.hpp"
 
 #include "hulls_components.hpp"
+#include "modules/core_raws/raws_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
 
@@ -24,7 +25,7 @@ load_hull(std::string filepath)
   std::ostringstream output;
   std::string line;
   while (std::getline(stream, line)) {
-    std::string cleaned_line = line.find("//") != std::string::npos ? "" : line;
+    std::string cleaned_line = remove_comment(line);
     output << cleaned_line << "\n";
   }
 

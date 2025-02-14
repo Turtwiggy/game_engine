@@ -4,6 +4,7 @@
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_components.hpp"
@@ -12,7 +13,6 @@
 #include "modules/system_upgrade/upgrade_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-
 
 #include <imgui.h>
 
@@ -83,7 +83,7 @@ update_ui_debug_upgrades_system(entt::registry& r)
   }
 
   ImGui::SeparatorText("Modifier Config");
-  static auto stat_mode = UpgradeableStat::BULLET_DAMAGE;
+  static auto stat_mode = magic_enum::enum_value<UpgradeableStat>(0);
   static auto stat_modes = engine::enum_class_to_vec_str<UpgradeableStat>();
   {
     WomboComboIn combo_in(stat_modes);
@@ -101,7 +101,7 @@ update_ui_debug_upgrades_system(entt::registry& r)
   const bool add_percent = ImGui::Button("Add Percentage");
 
   ImGui::SeparatorText("Trait Config");
-  static auto trait_mode = AquirableTrait::ASSASSIN;
+  static auto trait_mode = magic_enum::enum_value<AquirableTrait>(0);
   static auto trait_modes = engine::enum_class_to_vec_str<AquirableTrait>();
   {
     WomboComboIn combo_in(trait_modes);

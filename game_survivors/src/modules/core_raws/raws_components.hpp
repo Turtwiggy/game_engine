@@ -117,8 +117,8 @@ struct Use
 
 struct Stats
 {
-  int max_hp = 100;
-  int hp = 100;
+  float max_hp = 100;
+  float hp = 100;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Stats, max_hp, hp);
 };
@@ -209,6 +209,9 @@ find_item(entt::registry& r, std::string key);
 
 entt::entity
 create_transform(entt::registry& r, const std::string& name);
+
+b2Fixture*
+create_fixture(b2Body* body, const PhysicsFixtureDef& fix, b2Vec2 size_in_meters);
 
 void
 give_life(entt::registry& r,

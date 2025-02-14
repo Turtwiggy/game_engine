@@ -47,7 +47,9 @@
 #include "modules/system_spritestack/spritestack_system.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade/upgrade_helpers.hpp"
-#include "modules/system_upgrade_max_hp/upgrade_max_hp_system.hpp"
+#include "modules/system_upgrade_hp_max/upgrade_hp_max_system.hpp"
+#include "modules/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
+#include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/ui_colours_system.hpp"
@@ -258,7 +260,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   bool pause = require_pause(r);
 
   update_ship_draw_arcs_system(r);
-  update_upgrade_max_hp_system(r);
   update_sprite_spritestack_system(r, dt);
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
@@ -278,6 +279,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_spawner_system(r);
     update_enemy_projectile_system(r);
     update_alpha_based_on_lifecycle_system(r);
+
+    update_upgrade_hp_max_system(r);
+    update_upgrade_hp_regen_system(r, dt);
+    update_upgrade_xp_zone_size_system(r);
   }
 
 #if defined(_DEBUG)

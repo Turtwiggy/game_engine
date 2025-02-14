@@ -1,6 +1,7 @@
 #include "upgrade_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/core_raws/raws_helpers.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 
@@ -29,7 +30,7 @@ load_upgrades(std::string path)
   std::ostringstream output;
   std::string line;
   while (std::getline(stream, line)) {
-    std::string cleaned_line = line.find("//") != std::string::npos ? "" : line;
+    const std::string cleaned_line = remove_comment(line);
     output << cleaned_line << "\n";
   }
   const std::string string_without_comments = output.str();
