@@ -19,7 +19,6 @@
 #include "modules/event_shoot/event_shoot_components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
-#include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 
 #include <box2d/b2_collision.h>
@@ -206,6 +205,8 @@ update_autofire_system(entt::registry& r, const float dt)
 
     // request to play audio
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_01" });
+    // request screenshake
+    // create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::SHOOT });
 
     // Spawn X amount of bullets
     // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)

@@ -31,6 +31,7 @@ layout(std140) uniform Data {
   float time;
   float zoom;
   float tilesize;
+  float screenshake_strength;
   vec3[4] player_positions;
 };
 
@@ -85,11 +86,8 @@ void main() {
   // gl_Position = projection * view * model * parallax_mat * vec4(vertex.xy, 0.0, 1.0);
   gl_Position = final_proj * final_view * model * vec4(vertex.xy, 0.0, 1.0);
 
-  // if(shake)
-  // {
-  //   // todo: translational and rotational screenshake
-  //   gl_Position.x += cos(time * 10.0f) * strength;        
-  //   gl_Position.y += cos(time * 15.0f) * strength;    
-  //   gl_Position.z *= cos(time * 100.0f) * strength; 
-  // }
+  // todo: translational and rotational screenshake
+  gl_Position.x += cos(time * 10.0f) * screenshake_strength;        
+  gl_Position.y += cos(time * 15.0f) * screenshake_strength;    
+  // gl_Position.z += cos(time * 100.0f) * screenshake_strength; 
 }

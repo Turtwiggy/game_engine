@@ -27,7 +27,8 @@ layout(std140) uniform Data {
   float time;
   float zoom;
   float tilesize;
-    vec3[4] player_positions;
+  float screenshake_strength;
+  vec3[4] player_positions;
 };
 
 #define NR_MAX_CIRCLES 100
