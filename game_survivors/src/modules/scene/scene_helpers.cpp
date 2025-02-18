@@ -418,8 +418,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto survive_timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
     r.emplace<SurviveTimerComponent>(survive_timer_e);
 
-    // const auto spawner_1_e = create_empty<CooldownComponent>(r);
-    // r.emplace<EnemySpawnData>(spawner_1_e, exploder_data());
+    const auto spawner_1_e = create_empty<CooldownComponent>(r);
+    r.emplace<EnemySpawnData>(spawner_1_e, exploder_data());
 
     const auto spawner_2_e = create_empty<CooldownComponent>(r);
     r.emplace<EnemySpawnData>(spawner_2_e, melee_enemy_1());

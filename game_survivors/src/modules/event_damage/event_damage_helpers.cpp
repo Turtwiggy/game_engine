@@ -9,6 +9,7 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_death/components.hpp"
 #include "modules/events/events_components.hpp"
+#include "modules/system_death_throes/death_throes_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
@@ -148,6 +149,21 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   additional_misc_damage_events(r, parent_e);
 
   if (hp->hp <= 0) {
+
+    // Die now, or die soon?
+    if (auto* death_throes_c = r.try_get<DeathThroesComponent>(parent_e)) {
+
+      // keep a record of what killed you.
+      if (!death_throes_c->evt_from_set) {
+        death_throes_c->evt_from_set = true;
+        death_throes_c->evt_from = evt.from;
+      }
+
+      // start dying!
+      const auto& is_dying = r.get_or_emplace<IsDyingComponent>(parent_e);
+      return;
+    }
+    // else: die now!
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
     dead.dead.emplace(parent_e);
 

@@ -57,15 +57,15 @@ get_default_audio()
   audio.sounds.push_back({ "UI_HOVER_01", path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
   audio.sounds.push_back({ "UI_SELECT_01", path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
 
-  audio.sounds.push_back(
-    { "BOMB_BLOWUP_01", path + "BLASTER_Complex_Fire_Trigger_Powerful_Deep_Release_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "XP_01", path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "XP_02", path + "UI_SCI-FI_Tone_Bright_Dry_13_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "XP_03", path + "UI_SCI-FI_Tone_Bright_Dry_14_stereo.wav", SoundType::SFX });
+
+  audio.sounds.push_back({ "SHOOT_01", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
 
   // audio.sounds.push_back({ "COMBAT_01", path + ".mp3", SoundType::BACKGROUND });
   // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
   // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });
-
-  // audio.sounds.push_back({ "ENEMY_LOCKON", path + "UI_SCI-FI_Tone_Bright_Wet_16_stereo.wav", SoundType::SFX });
-  // audio.sounds.push_back({ "ENEMY_LOCKOFF", path + "UI_SCI-FI_Tone_Bright_Wet_17_stereo.wav", SoundType::SFX });
 
   return audio;
 };

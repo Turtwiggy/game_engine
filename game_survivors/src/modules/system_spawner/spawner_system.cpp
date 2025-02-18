@@ -7,9 +7,9 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
-#include "modules/core_renderer/components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
+#include "modules/system_death_throes/death_throes_components.hpp"
 #include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
@@ -35,6 +35,9 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   r.emplace<EnemyComponent>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
   // r.emplace<SpriteOutline>(e);
+
+  if (key == "actor_enemy_exploder")
+    r.emplace<DeathThroesComponent>(e);
 
   // get a random position around target player?
   // TODO: should be a larger zone considering all players?
@@ -64,7 +67,6 @@ void
 update_spawner_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
 
   // Get info from the survive timer
   const auto& survive_timer_c = r.get<CooldownComponent>(survive_e);

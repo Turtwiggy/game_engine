@@ -405,8 +405,8 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::en
     pdesc.end_size = { 4, 4 };
   }
   if (key.find("death_exploder") != std::string::npos) {
-    pdesc.start_size = { explosion_radius * 2, explosion_radius * 2 };
-    pdesc.end_size = { explosion_radius * 1, explosion_radius * 1 };
+    pdesc.start_size = { explosion_radius_pixels * 2, explosion_radius_pixels * 2 };
+    pdesc.end_size = { explosion_radius_pixels * 1, explosion_radius_pixels * 1 };
   }
   if (key.find("default_trail") != std::string::npos) {
     pdesc.start_size = { 2, 2 };

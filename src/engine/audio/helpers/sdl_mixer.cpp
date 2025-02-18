@@ -1,4 +1,4 @@
-#include "sdl_mixer.hpp"
+#include "engine/audio/helpers/sdl_mixer.hpp"
 
 #include "engine/audio/audio_components.hpp"
 

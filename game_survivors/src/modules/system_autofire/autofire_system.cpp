@@ -2,6 +2,7 @@
 
 #include "autofire_components.hpp"
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -101,16 +102,6 @@ update_autofire_system(entt::registry& r, const float dt)
     const auto p = parent_c.parent;
     const auto wep_def = get_weapon_def(r, p, wep_e);
 
-    // if the weapon is reloading, just do that.
-    if (weapon_reload_rate_c.seconds_cur > 0.0) {
-      weapon_reload_rate_c.seconds_cur -= dt;
-      continue;
-    }
-
-    // you've reloaded
-    if (weapon_clip_size_c.bullets_cur <= 0)
-      weapon_clip_size_c.bullets_cur = wep_def.bullets_max;
-
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
 
@@ -144,18 +135,50 @@ update_autofire_system(entt::registry& r, const float dt)
     const auto tgt_vel_p = meters_to_pixels(tgt_vel_m);
     const auto smarter_tgt_pos = tgt_pos + glm::vec2{ tgt_vel_p.x * lead_amount, tgt_vel_p.y * lead_amount };
 
-    // debug the adj tgt pos
-    Sprite adj_tgt_s;
-    adj_tgt_s.pos = smarter_tgt_pos;
-    adj_tgt_s.sprite = "CROSSHAIR_2";
-    adj_tgt_s.size = { 16, 16 };
-    adj_tgt_s.col = parent_col;
-    draw_sprite(r, adj_tgt_s);
+    // A ray from the player to the smarter target position.
+    // Get the point that is slightly shorter than the full distance from player to the enemy.
+    const auto dir = engine::normalize_safe(smarter_tgt_pos - par_pos);
+    const float dst = glm::length(tgt_pos - par_pos);
+    engine::Ray ray;
+    ray.origin = { par_pos.x, par_pos.y, 0.0 };
+    ray.dir = { dir.x, dir.y, 0.0 };
+    const auto crosshair_pos = engine::ray_at(ray, 0.85f * dst);
 
-    // rotate the gun to the target
-    const auto dir_to_enemy = smarter_tgt_pos - wep_pos;
+    // debug the adj tgt pos
+    {
+      Sprite adj_tgt_s;
+      adj_tgt_s.pos = crosshair_pos;
+      adj_tgt_s.sprite = "CROSSHAIR_2";
+      adj_tgt_s.size = { 16, 16 };
+      adj_tgt_s.col = parent_col;
+      draw_sprite(r, adj_tgt_s);
+    }
+
+    // debug the actual firing target
+    {
+      Sprite adj_tgt_s;
+      adj_tgt_s.pos = smarter_tgt_pos;
+      adj_tgt_s.sprite = "CROSSHAIR_2";
+      adj_tgt_s.size = { 8, 8 };
+      adj_tgt_s.col = parent_col;
+      adj_tgt_s.col.a = 255 * 0.5f;
+      draw_sprite(r, adj_tgt_s);
+    }
+
+    // rotate the gun to the target#
+    const auto dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);
     const float shoot_angle = engine::dir_to_angle_radians(dir_to_enemy);
     wep_t.rotation_radians.z = shoot_angle;
+
+    // if the weapon is reloading, just do that.
+    if (weapon_reload_rate_c.seconds_cur > 0.0) {
+      weapon_reload_rate_c.seconds_cur -= dt;
+      continue;
+    }
+
+    // you've reloaded
+    if (weapon_clip_size_c.bullets_cur <= 0)
+      weapon_clip_size_c.bullets_cur = wep_def.bullets_max;
 
     const BulletDef bul_def = get_bullet_def(r, p, wep_e);
 
@@ -167,7 +190,7 @@ update_autofire_system(entt::registry& r, const float dt)
       continue;
     }
 
-    // Check the clip size.
+    // Check the clip size before firing.
     if (weapon_clip_size_c.bullets_cur <= 0) { // time to reload
       weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
       continue;
@@ -177,9 +200,12 @@ update_autofire_system(entt::registry& r, const float dt)
     weapon_clip_size_c.bullets_cur--;
     weapon_fire_rate_c.seconds_between_shots_left = weapon_fire_rate_c.seconds_between_shots_max;
 
-    // Check if you need to reload.
+    // Check the clip size after firing.
     if (weapon_clip_size_c.bullets_cur <= 0)
       weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
+
+    // request to play audio
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_01" });
 
     // Spawn X amount of bullets
     // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)

@@ -34,6 +34,7 @@
 #include "modules/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
 #include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
+#include "modules/system_death_throes/death_throes_system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
 #include "modules/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
@@ -43,8 +44,10 @@
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/particle_system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
+#include "modules/system_pause/pause_helpers.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/system_scene_splashscreen_move_to_menu/system.hpp"
+#include "modules/system_screenshake/system.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
 #include "modules/system_sprint/sprint_system.hpp"
 #include "modules/system_spritestack/spritestack_system.hpp"
@@ -83,7 +86,6 @@
 #include "modules/ui_sdl2_input/ui_sdl2_input_system.hpp"
 #include "resources/resources.hpp"
 
-
 #include <SDL2/SDL_log.h>
 #include <imgui.h>
 #include <steam/steam_api.h>
@@ -97,21 +99,6 @@ namespace game2d {
 using namespace std::literals;
 
 bool custom_mouse_cursor = false;
-
-bool
-require_pause(entt::registry& r)
-{
-  bool pause = false;
-
-  // pause due to needing level up
-  auto lv_up_e = get_first<SINGLE_LevelUpUI>(r);
-  if (lv_up_e != entt::null) {
-    const auto& lv_up_c = r.get<SINGLE_LevelUpUI>(lv_up_e);
-    pause |= lv_up_c.require_level_up;
-  }
-
-  return pause;
-}
 
 void
 init(engine::SINGLE_Application& app, entt::registry& r)
@@ -255,10 +242,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_steam_input(r);
   update_controller_input_open_ui_system(r);
   update_camera_system(r, dt);
-  update_audio_system(r);
+  update_audio_system(r, dt);
   update_events_system(r); // dispatch events
   update_player_controller_system(r, milliseconds_dt, mouse_pos);
-  // update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
+  update_screenshake_system(r, dt);
 
   if (scene.s == Scene::splashscreen)
     update_scene_splashscreen_move_to_menu_system(r, dt);
@@ -287,6 +274,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_enemy_projectile_system(r);
     update_alpha_based_on_lifecycle_system(r);
     update_sprint_system(r, dt);
+    update_death_throes_system(r, dt);
 
     update_upgrade_hp_max_system(r);
     update_upgrade_hp_regen_system(r, dt);

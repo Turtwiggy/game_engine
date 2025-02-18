@@ -1,6 +1,7 @@
 #include "manualfire_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
@@ -120,6 +121,9 @@ update_manualfire_system(entt::registry& r, const float dt)
     // Shoot a bullet! (which can be multiple projectiles)
     weapon_clip_size_c.bullets_cur--;
     weapon_fire_rate_c.seconds_between_shots_left = weapon_fire_rate_c.seconds_between_shots_max;
+
+    // play audio
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_01" });
 
     // TODO: implement same functionality as system autofire
     const int bullet_damage = r.get<BulletDamage>(wep_e).damage;

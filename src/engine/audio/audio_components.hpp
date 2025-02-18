@@ -63,7 +63,7 @@ struct SINGLE_AudioComponent
 
   // set volume as 10%. try not to blow out ear drums on launch.
   float volume_user = 0.1f; // between 0 and 1
-  int volume_internal = static_cast<int>(MIX_MAX_VOLUME * volume_user);
+  // int volume_internal = static_cast<int>(MIX_MAX_VOLUME * volume_user);
 
   bool mute_all = false;
   bool mute_sfx = false;

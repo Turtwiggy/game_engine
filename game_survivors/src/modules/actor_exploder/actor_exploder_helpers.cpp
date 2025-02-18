@@ -12,7 +12,6 @@
 #include "modules/events/events_components.hpp"
 #include "modules/system_particles/components.hpp"
 
-
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_world_callbacks.h>
 
@@ -61,22 +60,6 @@ public:
   }
 };
 
-std::vector<entt::entity>
-enemies_in_range(entt::registry& r, entt::entity e, float radius)
-{
-  const auto pos = get_position(r, e);
-
-  EnemyInRangeCallback callback(r, e);
-  b2AABB aabb;
-  aabb.lowerBound = b2Vec2{ pos.x, pos.y } - b2Vec2{ radius, radius };
-  aabb.upperBound = b2Vec2{ pos.x, pos.y } + b2Vec2{ radius, radius };
-
-  const auto& phys_c = get_first_component<SINGLE_Physics>(r);
-  phys_c.world->QueryAABB(&callback, aabb);
-
-  return callback.enemies;
-};
-
 void
 add_explode_on_death_callback(entt::registry& r, entt::entity e)
 {
@@ -87,10 +70,15 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
     GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
     // n.b.: radius so half
-    auto enemies = enemies_in_range(r, e, explosion_radius);
-    // SDL_Log("%s", std::format("Exploder died, hitting: {}", enemies.size()).c_str());
+    const float explosion_radius_meters = pixels_to_meters(explosion_radius_pixels);
 
-    for (const auto other_e : enemies) {
+    const b2Vec2 center_m = pixels_to_meters(get_position(r, e));
+    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [](entt::registry& r, entt::entity e) -> bool {
+      return r.try_get<EnemyComponent>(e) != nullptr;
+    };
+    auto enemies = get_all_in_area_filtered(r, center_m, explosion_radius_meters, is_enemy);
+
+    for (const auto& [d2, other_e] : enemies) {
       // const auto& tag_c = r.get<TagComponent>(other_e);
       // const auto& tag = tag_c.tag;
 

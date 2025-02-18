@@ -8,7 +8,6 @@
 #include "modules/combat_scale_on_hit/helpers.hpp"
 #include "modules/core_colour/components.hpp"
 
-
 namespace game2d {
 
 void

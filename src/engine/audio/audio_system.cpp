@@ -1,14 +1,19 @@
 #include "audio_system.hpp"
 
+// this is the engine/ directory... modules/ shouldn't be here...
+#include "game_state.hpp"
+#include "modules/system_pause/pause_helpers.hpp"
+
 #include "audio_components.hpp"
 #include "engine/audio/audio_helpers.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/maths/maths.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_log.h>
 #include <SDL2/SDL_mixer.h>
 
-#include "engine/entt/helpers.hpp"
-#include <SDL2/SDL_log.h>
 #include <entt/entt.hpp>
 #include <format>
 #include <imgui.h>
@@ -50,7 +55,7 @@ init_audio_system(entt::registry& r)
   }
 
   // request some channels
-  const int request_channels = 16;
+  const int request_channels = 64;
   Mix_AllocateChannels(request_channels);
   audio.max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
   SDL_Log("%s", std::format("Audio sources to create: {}", audio.max_audio_sources).c_str());
@@ -58,7 +63,7 @@ init_audio_system(entt::registry& r)
     create_persistent<AudioSource>(r, AudioSource(i));
 
     // set volume to user pref
-    Mix_Volume(i, audio.volume_internal);
+    Mix_Volume(i, static_cast<int>(MIX_MAX_VOLUME * audio.volume_user));
   }
 
   SDL_Log("%s", std::format("Loading audio...").c_str());
@@ -76,29 +81,31 @@ init_audio_system(entt::registry& r)
 }
 
 void
-update_audio_system(entt::registry& r)
+update_audio_system(entt::registry& r, const float dt)
 {
-  const auto audio_e = get_first<SINGLE_AudioComponent>(r);
-  if (audio_e == entt::null)
+  GET_FIRST_OR_RETURN(SINGLE_AudioComponent, r, audio_e, audio_c);
+  GET_FIRST_OR_RETURN(SINGLE_GameStateComponent, r, state_e, state_c);
+
+  // dampen music if paused
+  bool paused = state_c.state == GameState::PAUSED;
+  paused |= require_pause(r); // gameplay logic
+
+  if (!audio_c.loaded)
     return;
 
-  const auto& audio = get_first_component<SINGLE_AudioComponent>(r);
-  if (!audio.loaded)
-    return;
-
-  if (audio.sounds.size() == 0)
+  if (audio_c.sounds.size() == 0)
     return; // no sounds loaded
 
   // If muted, destroy all requests
-  if (audio.mute_all) {
+  if (audio_c.mute_all) {
     const auto& view = r.view<AudioRequestPlayEvent>();
     r.destroy(view.begin(), view.end());
   }
 
   // check if request is a sfx effect
-  for (const auto& [e, req] : r.view<AudioRequestPlayEvent>().each()) {
-    const Sound& s = get_sound(audio, req.tag);
-    if (audio.mute_sfx && s.type == SoundType::SFX)
+  for (const auto& [e, req] : r.view<const AudioRequestPlayEvent>().each()) {
+    const Sound& s = get_sound(audio_c, req.tag);
+    if (audio_c.mute_sfx && s.type == SoundType::SFX)
       r.destroy(e);
   }
 
@@ -116,6 +123,20 @@ update_audio_system(entt::registry& r)
       free_audio_sources.push_back(source);
   }
 
+  // dampen any playing audio sources.
+  static float cur_volume = 0.0;
+  if (paused) {
+    const int dampened_volume = static_cast<int>(MIX_MAX_VOLUME * audio_c.volume_user * 0.4);
+    cur_volume = engine::lerp(cur_volume, dampened_volume, dt);
+  } else {
+    const float volume = MIX_MAX_VOLUME * audio_c.volume_user;
+    cur_volume = engine::lerp(cur_volume, volume, dt);
+  }
+
+  // set user volume preference
+  for (const auto& [entity, source] : r.view<AudioSource>().each())
+    Mix_Volume(source.channel, cur_volume);
+
   if (free_audio_sources.size() == 0) {
     // SDL_Log("%s", std::format("No free audio sources! Missed request for: {}", tag).c_str());
     return;
@@ -123,7 +144,7 @@ update_audio_system(entt::registry& r)
 
   // compact duplicate audio requests
   std::map<std::string, std::vector<entt::entity>> compacted_requests;
-  for (const auto& [e, request] : r.view<AudioRequestPlayEvent>().each())
+  for (const auto& [e, request] : r.view<const AudioRequestPlayEvent>().each())
     compacted_requests[request.tag].push_back(e);
 
   // state: process request -> playing
@@ -137,7 +158,8 @@ update_audio_system(entt::registry& r)
     free_audio_sources.erase(free_audio_sources.begin());
     audio_source.state = AudioSourceState::PLAYING;
 
-    const Sound s = get_sound(audio, request.tag);
+    const Sound s = get_sound(audio_c, request.tag);
+
     const int channel = Mix_PlayChannel(audio_source.channel, s.buffer, request.looping ? -1 : 0);
     if (channel != audio_source.channel) {
       SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());

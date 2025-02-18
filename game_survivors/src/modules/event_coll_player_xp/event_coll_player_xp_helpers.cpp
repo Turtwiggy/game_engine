@@ -1,6 +1,7 @@
 
 #include "event_coll_player_xp_helpers.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "event_coll_player_xp_components.hpp"
@@ -28,7 +29,8 @@ handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
   // give xp
   sxp_c.xp++;
 
-  // TODO: play audio
+  // play audio
+  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "XP_01" });
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   dead.dead.emplace(xp_e);

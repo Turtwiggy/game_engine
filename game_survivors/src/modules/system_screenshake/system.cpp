@@ -4,32 +4,24 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
+#include "modules/system_screenshake/components.hpp"
 
 namespace game2d {
 
 void
-update_screenshake_system(entt::registry& r, const float timer, const float dt)
+update_screenshake_system(entt::registry& r, const float dt)
 {
-  // enable system if needed
-  const auto screenshake_e = get_first<SINGLE_ScreenshakeComponent>(r);
-  if (screenshake_e == entt::null)
-    return;
-  auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);
+  GET_FIRST_OR_RETURN(SINGLE_ScreenshakeComponent, r, shake_e, shake_c);
 
-  //
-  // process requests
-  //
-  const auto& view = r.view<const RequestScreenshakeComponent>();
+  const auto view = r.view<const RequestScreenshakeComponent>();
   for (const auto& [e, req] : view.each())
-    screenshake.time_left += 0.025f;
+    shake_c.time_left += 0.025f;
   r.destroy(view.begin(), view.end()); // done requests
 
-  //
-  // Do the actual screenshake
-  //
-  const bool do_screenshake = screenshake.time_left > 0;
-  screenshake.time_left -= dt;
-  screenshake.time_left = glm::max(screenshake.time_left, 0.0f);
+  // do the screenshake
+  const bool do_screenshake = shake_c.time_left > 0;
+  shake_c.time_left -= dt;
+  shake_c.time_left = glm::max(shake_c.time_left, 0.0f);
 
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   ri.instanced.bind();

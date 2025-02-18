@@ -4,7 +4,7 @@
 
 namespace game2d {
 
-void
-update_screenshake_system(entt::registry& r, const float dt);
+bool
+require_pause(entt::registry& r);
 
 } // namespace game2d

@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_screenshake_system(entt::registry& r, const float dt);
+update_death_throes_system(entt::registry& r, const float dt);
 
 } // namespace game2d
