@@ -45,7 +45,7 @@ get_weapon_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
   const auto key_weapon_spread = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_SPREAD));
   const auto key_weapon_clip_size = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_CLIP_SIZE));
-  const auto key_weapon_reload = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RELOAD_TIME));
+  const auto key_weapon_reload = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RELOAD));
   const auto key_weapon_range = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RANGE));
 
   const auto val_weapon_firerate = r.get<WeaponFireRate>(wep_e).base_firerate;

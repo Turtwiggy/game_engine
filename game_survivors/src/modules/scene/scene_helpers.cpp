@@ -107,6 +107,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     "dinghy",
     "rhib",
     "pbr",
+    "trimaran",
   };
 
   // i.e. which layer makes mose sense to have as the hitbox?
@@ -114,6 +115,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     1,
     9,
     26,
+    184, // todo: fix this number
   };
 
   auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);
@@ -283,8 +285,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
       set_sprite(r, e, "hull_constitution");
     if (hull_key == "PBR")
       set_sprite(r, e, "hull_pbr");
-    if (hull_key == "Trimanan")
-      set_sprite(r, e, "hull_trimanan");
+    if (hull_key == "Trimaran")
+      set_sprite(r, e, "hull_trimaran");
   };
 
   if (num == 0)

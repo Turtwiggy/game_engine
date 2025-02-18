@@ -1,7 +1,6 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 
 #include <optional>
@@ -16,24 +15,24 @@ enum class UpgradeableStat
   ACTOR_HEALTH_MAX,
   ACTOR_HEALTH_REGEN,
   ACTOR_SPEED,
-  ACTOR_STAMINA,
+  ACTOR_STAMINA, // seconds to sprint
   ACTOR_XP_ZONE_SIZE,
 
   BULLET_BOUNCE,
-  BULLET_SIZE,
-  BULLET_SPEED,
-  BULLET_DAMAGE,
-  BULLET_KNOCKBACK,
-  BULLET_PIERCE,
   BULLET_CRIT_CHANCE,
   BULLET_CRIT_DAMAGE,
+  BULLET_DAMAGE,
+  BULLET_KNOCKBACK,
   BULLET_LIFESTEAL, // %hp you recover when a bullet hits
+  BULLET_PIERCE,
+  BULLET_SIZE,
+  BULLET_SPEED,
 
   WEAPON_PROJECTILES, // how many bullets to fire per shot
   WEAPON_SPREAD,      // at what angles
   WEAPON_FIRERATE,
   WEAPON_CLIP_SIZE,
-  WEAPON_RELOAD_TIME,
+  WEAPON_RELOAD,
   WEAPON_RANGE,
 
   // if you have the missile trait,

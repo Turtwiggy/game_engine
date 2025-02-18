@@ -18,6 +18,7 @@
 #include "spawner_helpers.hpp"
 
 #include <SDL2/SDL_log.h>
+
 #include <unordered_map>
 
 namespace game2d {

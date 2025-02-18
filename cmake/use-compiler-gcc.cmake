@@ -54,7 +54,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
   # MinGW/GCC specific flags
   if(CMAKE_BUILD_TYPE MATCHES Debug)
-    message(STATUS "Using g++ compiler, enabling -pg for profiling")
+    # message(STATUS "Using g++ compiler, enabling -pg for profiling")
 
     # add_compile_options(-pg)
     # add_link_options(-pg)

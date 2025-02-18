@@ -39,6 +39,8 @@ difference(std::vector<std::string>& a, std::vector<std::string>& b)
 void
 update_ui_survive_level_up_system(entt::registry& r)
 {
+  return; // system disabled
+
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);

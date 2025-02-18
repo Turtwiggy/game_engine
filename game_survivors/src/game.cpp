@@ -10,6 +10,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
+#include "modules/combat/combat_helpers.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
 #include "modules/controller_input_open_ui/controller_input_open_ui_system.hpp"
@@ -60,6 +61,7 @@
 #include "modules/ui_debug_menubar/ui_debug_menubar_system.hpp"
 #include "modules/ui_debug_spawner/ui_debug_spawner_system.hpp"
 #include "modules/ui_debug_upgrades/ui_debug_upgrades_system.hpp"
+#include "modules/ui_debug_weapons/ui_debug_weapons_system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_imgui_colours/ui_imgui_colours.hpp"
@@ -75,10 +77,12 @@
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
+#include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 #include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
 #include "modules/ui_sdl2_input/ui_sdl2_input_system.hpp"
 #include "resources/resources.hpp"
+
 
 #include <SDL2/SDL_log.h>
 #include <imgui.h>
@@ -152,6 +156,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
   create_persistent<SINGLE_Upgrades>(r, load_upgrades("assets/raws/upgrades.jsonc"));
+  create_persistent<SINGLE_Weapons>(r, load_weapons("assets/raws/weapons.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
 
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
@@ -311,6 +316,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_info_system(r);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_level_up_system(r);
+    update_ui_survive_upgrade_system(r);
     // update_ui_combat_damage_numbers_system(r, dt, mouse_pos);
     // update_ui_gameover_system(r);
   }
@@ -349,6 +355,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
     update_ui_colours_system(r);
     update_ui_debug_spawner_system(r);
+    update_ui_debug_weapons_system(r);
     update_ui_raws_system(r);
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);

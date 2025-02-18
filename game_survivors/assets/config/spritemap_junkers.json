@@ -12,7 +12,7 @@
     { "name": "hull_dinghy", "frames": [ { "x": 1, "y": 0, "w": 7, "h": 4 } ] },
     { "name": "hull_rhib", "frames": [ { "x": 9, "y": 0, "w": 11, "h": 6 } ] },
     { "name": "hull_pbr", "frames": [ { "x": 34, "y": 0, "w": 17, "h": 6 } ] },
-    { "name": "hull_trimanan", "frames": [ { "x": 0, "y": 14, "w": 30, "h": 25 } ] },
+    { "name": "hull_trimaran", "frames": [ { "x": 0, "y": 14, "w": 30, "h": 25 } ] },
     { "name": "hull_constitution", "frames": [ { "x": 0, "y": 39, "w": 170, "h": 38 } ] },
 
     { "name": "boat_weapon_1", "frames": [ { "x": 1, "y": 6, "w": 1, "h": 2 } ], "angle": 90.0  },
