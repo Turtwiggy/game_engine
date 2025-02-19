@@ -42,12 +42,13 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  flags |= ImGuiWindowFlags_NoInputs;
+  flags |= ImGuiWindowFlags_NoNav;
   // flags |= ImGuiWindowFlags_NoBackground;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
-  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (9 / 12.0f));
-  const float pos_y = viewport_pos.y + viewport_size_half.y;
+  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (10 / 12.0f));
+  const float pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (11 / 12.0f));
   const auto pos = ImVec2(pos_x, pos_y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 

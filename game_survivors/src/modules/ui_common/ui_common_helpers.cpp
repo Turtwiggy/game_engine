@@ -1,4 +1,5 @@
 #include "modules/ui_common/ui_common_helpers.hpp"
+#include "imgui.h"
 
 namespace game2d {
 
@@ -47,7 +48,7 @@ selectable_button(SelectableButtonDef& def)
   const auto p_max = ImGui::GetItemRectMax();
   const float rounding = 6.0;
   const float thickness = 2.0;
-  const ImDrawFlags corners = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
+  const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
 
   // button background based on state
   if (is_clicked)

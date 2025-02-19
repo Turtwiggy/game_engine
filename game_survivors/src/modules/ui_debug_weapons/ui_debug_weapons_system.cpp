@@ -4,6 +4,8 @@
 #include "modules/combat/combat_helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 #include "magic_enum.hpp"
 #include <imgui.h>
@@ -14,6 +16,11 @@ void
 update_ui_debug_weapons_system(entt::registry& r)
 {
   const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto state = gesert_menubar_state(menu_c, "DebugWeapons");
+  if (!state.enabled)
+    return;
 
   ImGui::Begin("DebugWeapons");
 

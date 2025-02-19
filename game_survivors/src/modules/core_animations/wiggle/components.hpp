@@ -7,7 +7,7 @@ namespace game2d {
 
 struct WiggleUpAndDown
 {
-  glm::ivec2 base_position;
+  glm::vec2 base_position;
   float time = 0.0f;
   float offset = 0.0f;
 

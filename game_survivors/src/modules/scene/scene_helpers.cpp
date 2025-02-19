@@ -32,7 +32,8 @@
 #include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/system_manualfire/manualfire_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/system_scene_splashscreen_move_to_menu/components.hpp"
+#include "modules/system_scene_pressanykey_move_to_next/components.hpp"
+#include "modules/system_scene_splashscreen_move_to_next/components.hpp"
 #include "modules/system_screenshake/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
@@ -363,9 +364,24 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     set_position(r, e, { 0, 0 }); // center
   }
 
+  if (s == Scene::pressanykey) {
+    create_empty<SINGLE_PressAnykeyScene>(r);
+  }
+
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
+    // create_empty<AudioRequestPlayEvent>(r,
+    //                                     AudioRequestPlayEvent{
+    //                                       .tag = "MENU_01",
+    //                                       .looping = true,
+    //                                       .percent_of_max_user_volume = 0.25f,
+    //                                     });
+    create_empty<AudioRequestPlayEvent>(r,
+                                        AudioRequestPlayEvent{
+                                          .tag = "WATER_AMBIENCE_01",
+                                          .looping = true,
+                                          .percent_of_max_user_volume = 1.0f,
+                                        });
 
     // load player's saved units
     // const auto units = load_units(r);

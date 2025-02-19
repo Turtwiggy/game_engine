@@ -5,6 +5,7 @@ namespace game2d {
 enum class Scene
 {
   splashscreen,
+  pressanykey,
   menu,
   select,
   survive,

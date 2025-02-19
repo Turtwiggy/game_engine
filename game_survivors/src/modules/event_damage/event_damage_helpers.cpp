@@ -1,11 +1,14 @@
 #include "event_damage_helpers.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "imgui.h"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
+#include "modules/core_animations/wiggle/components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_death/components.hpp"
 #include "modules/events/events_components.hpp"
@@ -13,6 +16,8 @@
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_worldspace_text/components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>
@@ -31,6 +36,65 @@ additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
 
   // .. screenshake
   // create_empty<RequestScreenshakeComponent>(r);
+};
+
+void
+create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity parent_e)
+{
+  WorldspaceTextComponent wst_c;
+
+  wst_c.layout = [damage, crit](entt::registry& r) {
+    const auto my_non_crit_col = hex_to_srgb("#b1c9c3"); // grey
+    const auto my_crit_col = hex_to_srgb("#e99f10");     // orange
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::PushFont(io.Fonts->Fonts[3]);
+
+    const auto im_non_crit_col = ImVec4{
+      my_non_crit_col.r / 255.0f,
+      my_non_crit_col.g / 255.0f,
+      my_non_crit_col.b / 255.0f,
+      my_non_crit_col.a / 255.0f,
+    };
+
+    const auto im_crit_col = ImVec4{
+      my_crit_col.r / 255.0f,
+      my_crit_col.g / 255.0f,
+      my_crit_col.b / 255.0f,
+      my_crit_col.a / 255.0f,
+    };
+
+    std::string label = std::format("{}", (int)damage);
+
+    const auto ui_wh = ImGui::GetContentRegionAvail();
+    const auto ui_tl = ImGui::GetCursorPos();
+    const auto ui_txt_size = ImGui::CalcTextSize(label.c_str());
+    ImGui::SetCursorPosX(ui_tl.x + (ui_wh.x * 0.5) - (ui_txt_size.x * 0.5));
+    ImGui::SetCursorPosY(ui_tl.y + (ui_wh.y * 0.5) - (ui_txt_size.y * 0.5));
+
+    if (crit)
+      ImGui::TextColored(im_crit_col, "%s", label.c_str());
+    else
+      ImGui::TextColored(im_non_crit_col, "%s", label.c_str());
+
+    ImGui::PopFont();
+  };
+
+  wst_c.flags |= ImGuiWindowFlags_NoDecoration;
+  wst_c.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  wst_c.flags |= ImGuiWindowFlags_NoInputs;
+  wst_c.flags |= ImGuiWindowFlags_NoNav;
+  wst_c.flags |= ImGuiWindowFlags_NoBackground;
+  // wst_c.alpha = 0.0f;
+
+  auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);
+  r.emplace<TransformComponent>(popup_e);
+  r.emplace<EntityTimedLifecycle>(popup_e, 1 * 3000);
+  r.emplace<WiggleUpAndDown>(popup_e,
+                             WiggleUpAndDown{
+                               .base_position = get_position(r, parent_e),
+                             });
+  set_position(r, popup_e, get_position(r, parent_e));
 };
 
 float
@@ -147,6 +211,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   hp->hp -= damage;
 
   additional_misc_damage_events(r, parent_e);
+  create_damage_popup(r, damage, crit, parent_e);
 
   if (hp->hp <= 0) {
 

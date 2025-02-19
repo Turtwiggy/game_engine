@@ -46,7 +46,8 @@
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_pause/pause_helpers.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
-#include "modules/system_scene_splashscreen_move_to_menu/system.hpp"
+#include "modules/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
+#include "modules/system_scene_splashscreen_move_to_next/system.hpp"
 #include "modules/system_screenshake/system.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
 #include "modules/system_sprint/sprint_system.hpp"
@@ -74,6 +75,7 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
+#include "modules/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
 #include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
@@ -84,6 +86,7 @@
 #include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
 #include "modules/ui_sdl2_input/ui_sdl2_input_system.hpp"
+#include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -105,19 +108,29 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 {
   init_events_system(r);
 
-  // Fonts
+  // idx: 0
   ImGuiIO& io = ImGui::GetIO();
   io.Fonts->AddFontDefault();
 
-  // font for survive timer
+  // idx: 1
   ImFontConfig fontConfig;
-  fontConfig.PixelSnapH = true;
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
 
-  // font for countdown timer
+  // idx: 2
   ImFontConfig countdown_config;
-  countdown_config.PixelSnapH = true;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 128.0f, &countdown_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &countdown_config);
+
+  // idx: 3
+  ImFontConfig fingerpaint_config;
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f, &fingerpaint_config);
+
+  // idx: 4
+  ImFontConfig header_fingerpaint_config;
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &header_fingerpaint_config);
+
+  // idx: 5
+  ImFontConfig buttons_fingerpaint_config;
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 32.0f, &buttons_fingerpaint_config);
 
   // hide default cursor
   if (custom_mouse_cursor) {
@@ -247,8 +260,11 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_player_controller_system(r, milliseconds_dt, mouse_pos);
   update_screenshake_system(r, dt);
 
+  if (scene.s == Scene::pressanykey)
+    update_scene_pressanykey_move_to_next_system(r, dt);
+
   if (scene.s == Scene::splashscreen)
-    update_scene_splashscreen_move_to_menu_system(r, dt);
+    update_scene_splashscreen_move_to_next_system(r, dt);
 
   // pause due to gamelogic
   bool pause = require_pause(r);
@@ -288,7 +304,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_fps_counter_system(r);
   update_ui_popup_pause_system(app, r);
   update_ui_popup_options_system(r);
-  // update_ui_worldspace_text_system(r);
+  update_ui_worldspace_text_system(r);
+
+  if (scene.s == Scene::pressanykey)
+    update_ui_scene_press_any_key(r);
 
   if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
@@ -305,7 +324,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_level_up_system(r);
     update_ui_survive_upgrade_system(r);
-    // update_ui_combat_damage_numbers_system(r, dt, mouse_pos);
     // update_ui_gameover_system(r);
   }
 

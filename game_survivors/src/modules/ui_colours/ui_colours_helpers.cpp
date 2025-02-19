@@ -15,4 +15,10 @@ hex_to_srgb(const std::string& hex)
   return { r, g, b, 255 };
 };
 
+ImVec4
+convert_my_to_im(const engine::SRGBColour& col)
+{
+  return ImVec4{ col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, col.a / 255.0f };
+};
+
 } // namespace game2d
