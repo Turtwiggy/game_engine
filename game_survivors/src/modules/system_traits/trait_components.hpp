@@ -11,9 +11,11 @@ enum class AquirableTrait
   FAN_FIRE,
   ELECTROMANCY,
 
-  EXPLODE,    // on death
-  DIRECT,     // ai type
-  PROJECTILE, // ai type
+  EXPLODE,       // on death
+  DIRECT,        // ai type
+  ARC_ANGLE,     // ai type
+  KEEP_DISTANCE, // ai type
+  PROJECTILE,    // ai type
 
   count,
 };

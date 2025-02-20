@@ -43,6 +43,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     if (uniquely_dead.find(e) != uniquely_dead.end())
       continue;
 
+    // do callbacks.
     if (auto* callback = r.try_get<OnDeathCallbacks>(e)) {
       for (const auto& cb : callback->callbacks)
         cb(r, e);

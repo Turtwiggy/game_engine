@@ -225,11 +225,12 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<MovementDirectComponent>(e);
-  r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.emplace<ActorSpeedComponent>(e, 0.02f);      // meters per second
   r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
   r.emplace<ActorDodgeComponent>(e, 0.0f);       // dodge percent
   r.emplace<ActorStaminaComponent>(e);
+  r.emplace<RotateToVelocityComponent>(e);
+  r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
 
   // Add an xp zone with the config-defined size
   {
@@ -370,12 +371,14 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
+
     // create_empty<AudioRequestPlayEvent>(r,
     //                                     AudioRequestPlayEvent{
     //                                       .tag = "MENU_01",
     //                                       .looping = true,
     //                                       .percent_of_max_user_volume = 0.25f,
     //                                     });
+
     create_empty<AudioRequestPlayEvent>(r,
                                         AudioRequestPlayEvent{
                                           .tag = "WATER_AMBIENCE_01",
@@ -395,6 +398,14 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::select) {
+
+    create_empty<AudioRequestPlayEvent>(r,
+                                        AudioRequestPlayEvent{
+                                          .tag = "SELECT_01",
+                                          .looping = true,
+                                          .percent_of_max_user_volume = 1.0f,
+                                        });
+
     create_empty<SINGLE_SelectSceneData>(r);
   }
 
@@ -434,17 +445,30 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto survive_timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
     r.emplace<SurviveTimerComponent>(survive_timer_e);
 
-    const auto spawner_1_e = create_empty<CooldownComponent>(r);
-    r.emplace<EnemySpawnData>(spawner_1_e, exploder_data());
-
-    const auto spawner_2_e = create_empty<CooldownComponent>(r);
-    r.emplace<EnemySpawnData>(spawner_2_e, melee_enemy_1());
-
-    // const auto spawner_3_e = create_empty<CooldownComponent>(r);
-    // r.emplace<EnemySpawnData>(spawner_3_e, melee_enemy_2());
-
-    // const auto spawner_4_e = create_empty<CooldownComponent>(r);
-    // r.emplace<EnemySpawnData>(spawner_4_e, projectile_enemy());
+    {
+      const auto spawner_e = create_empty<CooldownComponent>(r);
+      r.emplace<EnemySpawnData>(spawner_e, melee_enemy_1());
+    }
+    {
+      const auto spawner_e = create_empty<CooldownComponent>(r);
+      r.emplace<EnemySpawnData>(spawner_e, melee_enemy_2());
+    }
+    {
+      const auto spawner_e = create_empty<CooldownComponent>(r);
+      r.emplace<EnemySpawnData>(spawner_e, melee_enemy_3());
+    }
+    {
+      const auto spawner_e = create_empty<CooldownComponent>(r);
+      r.emplace<EnemySpawnData>(spawner_e, exploder_data());
+    }
+    {
+      const auto spawner_e = create_empty<CooldownComponent>(r);
+      r.emplace<EnemySpawnData>(spawner_e, projectile_enemy());
+    }
+    {
+      const auto spawner_e = create_empty<CooldownComponent>(r);
+      r.emplace<EnemySpawnData>(spawner_e, swarmlord_enemy());
+    }
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

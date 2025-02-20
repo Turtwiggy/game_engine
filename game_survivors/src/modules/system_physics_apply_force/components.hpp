@@ -35,4 +35,9 @@ struct ApplyForceToStaticTarget
   bool placeholder = true;
 };
 
+struct ApplyForceToApproachTargetFromAngle
+{
+  float angle_rad = 0.0f;
+};
+
 } // namespace game2d

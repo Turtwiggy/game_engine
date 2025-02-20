@@ -74,7 +74,6 @@ struct PhysicsFixtureDef
 struct PhysicsBodyComponent
 {
   b2Body* body = nullptr;
-  float base_speed = 10; // influences linear velocity
 
   std::vector<entt::entity> fixtures{};
 };

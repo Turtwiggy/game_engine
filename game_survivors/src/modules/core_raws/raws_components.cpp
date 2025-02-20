@@ -308,16 +308,29 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
       }
 
-      if (trait_enum == AquirableTrait::PROJECTILE) {
-        r.emplace<ProjectileEnemyComponent>(e);
+      if (trait_enum == AquirableTrait::ARC_ANGLE) {
+        // generate a random angle to approach from
+        static engine::RandomState angle_rnd(0);
+        const float angle = engine::rand_det_s(angle_rnd.rng, 0.0f, engine::TWO_PI);
+        r.emplace<ApplyForceToApproachTargetFromAngle>(e, angle);
+        r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
 
+        const auto angle_str = std::format("Creating enemy... approaching from {}", angle);
+        SDL_Log("%s", angle_str.c_str());
+      }
+
+      if (trait_enum == AquirableTrait::KEEP_DISTANCE) {
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = true;
         tgt_c.reduce_thrusters = true;
-        tgt_c.speed = 1.0f;                    // m/s
-        tgt_c.distance_to_reduce_thrust = 600; // distance to shoot from
+        tgt_c.speed = 0.001f;                  // m/s
+        tgt_c.distance_to_reduce_thrust = 7.5; // meters to shoot from
         r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
+      }
+
+      if (trait_enum == AquirableTrait::PROJECTILE) {
+        r.emplace<ProjectileEnemyComponent>(e);
 
         // TODO: give the enemy a weapon, dont attach these components to enemy?
         r.emplace<CooldownComponent>(e, CooldownComponent{ 2.0f, 0.0 });
@@ -341,7 +354,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       auto& callbacks_c = r.get<OnDeathCallbacks>(e);
       const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
         RequestToSpawnParticles request;
-        request.key = "default_explode";
+        request.key = "enemy_death";
         request.position = get_position(r, e);
         create_empty<RequestToSpawnParticles>(r, request);
       };
@@ -404,6 +417,11 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::en
     pdesc.start_size = { 16, 16 };
     pdesc.end_size = { 4, 4 };
   }
+  if (key.find("enemy_death") != std::string::npos) {
+    pdesc.start_size = { 16, 16 };
+    pdesc.end_size = { 0, 0 };
+    pdesc.start_colour = hex_to_srgb("#a64a2e"); // dark red
+  }
   if (key.find("death_exploder") != std::string::npos) {
     pdesc.start_size = { explosion_radius_pixels * 2, explosion_radius_pixels * 2 };
     pdesc.end_size = { explosion_radius_pixels * 1, explosion_radius_pixels * 1 };
@@ -423,6 +441,12 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::en
     pedesc.random_velocity = true;
     pedesc.spawn_all_particles_at_once = true;
   }
+  if (key.find("enemy_death") != std::string::npos) {
+    pedesc.expires = true;
+    pedesc.particles_to_spawn_before_emitter_expires = 6;
+    pedesc.random_velocity = true;
+    pedesc.spawn_all_particles_at_once = true;
+  }
   if (key.find("death_exploder") != std::string::npos) {
     pedesc.expires = true;
     pedesc.particles_to_spawn_before_emitter_expires = 10;
@@ -436,7 +460,7 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::en
   cooldown.time_max = 0.1f;
 
   if (key.find("default_trail") != std::string::npos) {
-    cooldown.time_max = 1 / 30.0f; // 30 particle a a second innit
+    cooldown.time_max = 1 / 30.0f; // 30 particle-a-second innit
   }
 
   cooldown.time = cooldown.time_max;
@@ -471,8 +495,9 @@ spawn_particle(entt::registry& r, const std::string& key, const Particle& desc)
   sotc.end_size = desc.end_size;
   r.emplace<ScaleOverTimeComponent>(e, sotc);
 
-  if (auto* col = r.try_get<DefaultColour>(e))
-    set_colour(r, e, col->colour);
+  // if (auto* col = r.try_get<DefaultColour>(e))
+  //   set_colour(r, e, col->colour);
+  set_colour(r, e, desc.start_colour);
 
   set_position(r, e, desc.position);
   return e;

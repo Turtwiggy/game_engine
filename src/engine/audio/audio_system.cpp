@@ -40,7 +40,6 @@ init_audio_system(entt::registry& r)
   int device_index = 0;
   const char* device_name = SDL_GetAudioDeviceName(device_index, 0);
   if (device_name == nullptr) {
-
     SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
     audio.loaded = true;
     return; // no available devices
@@ -164,6 +163,10 @@ update_audio_system(entt::registry& r, const float dt)
     if (channel != audio_source.channel) {
       SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());
     }
+
+    // Set channel volume
+    // const float volume = MIX_MAX_VOLUME * audio_c.volume_user * request.percent_of_max_user_volume;
+    // Mix_Volume(channel, volume);
 
     // process request
     r.destroy(entities.begin(), entities.end());

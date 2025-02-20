@@ -5,6 +5,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/system_cooldown/components.hpp"
@@ -36,14 +37,27 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
   // r.emplace<SpriteOutline>(e);
 
-  if (key == "actor_enemy_exploder")
+  if (key == "actor_enemy_exploder") {
     r.emplace<DeathThroesComponent>(e);
+  }
+  if (key == "actor_enemy_melee_1") {
+    r.emplace<RotateToVelocityComponent>(e);
+    r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
+  }
+  if (key == "actor_enemy_melee_2") {
+    // note: anything with ARC_ANGLE wants an ActorSpeedComponent
+    r.emplace<ActorSpeedComponent>(e, 0.015f);
+  }
+  if (key == "actor_enemy_melee_3") {
+    // note: anything with ARC_ANGLE wants an ActorSpeedComponent
+    r.emplace<ActorSpeedComponent>(e, 0.015f);
+  }
 
   // get a random position around target player?
   // TODO: should be a larger zone considering all players?
   const auto& target_t = r.get<TransformComponent>(target_e);
   const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
-  give_life(r, e, rnd_pos, { 20, 20 });
+  give_life(r, e, rnd_pos, { 32, 32 });
 
   auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
   r.emplace<HealthComponent>(fixture_e, hp, hp);
@@ -86,11 +100,11 @@ update_spawner_system(entt::registry& r)
     const auto wave = wave_opt.value();
 
     // configs
-    const int max_allowed = wave.max_allowed;
-    const int number_per_spawn = wave.number_per_spawn;
-    const float hp = wave.hp;
-    const int cooldown = wave.spawn_cooldown;
-    const std::string key = spawn_data.enemy_key;
+    const auto max_allowed = wave.max_allowed;
+    const auto number_per_spawn = wave.number_per_spawn;
+    const auto hp = wave.hp;
+    const auto cooldown = wave.spawn_cooldown;
+    const auto key = spawn_data.enemy_key;
 
     // live data
     const int enemies = enemy_to_amount[key];

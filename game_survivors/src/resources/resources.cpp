@@ -50,7 +50,9 @@ get_default_audio()
   audio.sounds.push_back({ "SHOTGUN_RELOAD_01", path + "RELOAD_Pump_stereo.wav", SoundType::SFX });
   audio.sounds.push_back({ "TAKE_DAMAGE_01", path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
 
-  audio.sounds.push_back({ "MENU_01", path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back(
+    { "WATER_AMBIENCE_01", path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.wav", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "SELECT_01", path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_01", path + "lady-of-the-80.mp3", SoundType::BACKGROUND });
   // audio.sounds.push_back({ "GAME_02", path + "lady-of-the-80.mp3", SoundType::BACKGROUND });
 
@@ -60,9 +62,6 @@ get_default_audio()
   audio.sounds.push_back({ "XP_01", path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo.wav", SoundType::SFX });
   // audio.sounds.push_back({ "XP_02", path + "UI_SCI-FI_Tone_Bright_Dry_13_stereo.wav", SoundType::SFX });
   // audio.sounds.push_back({ "XP_03", path + "UI_SCI-FI_Tone_Bright_Dry_14_stereo.wav", SoundType::SFX });
-
-  audio.sounds.push_back(
-    { "WATER_AMBIENCE_01", path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.wav", SoundType::BACKGROUND });
 
   audio.sounds.push_back({ "SHOOT_01", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
 

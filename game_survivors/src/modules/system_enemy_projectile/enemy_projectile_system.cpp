@@ -6,10 +6,12 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
+#include "modules/core_animations/rotate_components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
+#include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 
 namespace game2d {
@@ -40,7 +42,7 @@ update_enemy_projectile_system(entt::registry& r)
     auto bullet_size = r.get<BulletSize>(e).size;
 
     BulletDef bullet_def(e); // note: not a weapon parent, but an enemy
-    bullet_def.key = "bullet_default";
+    bullet_def.key = "bullet_archerfish";
     bullet_def.size = bullet_size;
     bullet_def.team = AvailableTeams::enemy;
     bullet_def.damage = 1; // TODO: make enemy bullet correct damage
@@ -56,6 +58,12 @@ update_enemy_projectile_system(entt::registry& r)
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
     body_c.body->SetLinearVelocity({ bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y });
+
+    // get the enemies bullets to spin
+    r.remove<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);
+
+    AnimationRotate rotate_c{ .speed = 3.0f };
+    r.emplace<AnimationRotate>(bullet_e, rotate_c);
   }
 }
 

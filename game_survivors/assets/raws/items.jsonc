@@ -184,6 +184,15 @@
       "phys_fixtures": [ { "tag": "fixture_bullet", "type": "box", "is_sensor": true } ]
     },
     {
+      "name": "bullet_archerfish",
+      "display_name": "Bullet",
+      "display_desc": "Bullet that Archerfish shoots",
+      "renderable": { "sprite": "FOOD_FISH", "colour": "white" },
+      "combat": { "damage": 1, "range": 2, "type": "unknown" },
+      "phys_body": { "is_bullet": true, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_bullet", "type": "box", "is_sensor": true } ]
+    },
+    {
       "name": "xp",
       "display_name": "XP",
       "display_desc": "Delicious experience. num num num num.",
@@ -201,36 +210,50 @@
       ]
     },
     {
-      "name": "actor_enemy_melee",
-      "renderable": { "sprite": "SCORPION_24_5", "colour": "red" },
+      "name": "actor_enemy_melee_1",
+      "renderable": { "sprite": "HORSESHOE_CRAB", "colour": "red" },
       "traits": [ {"key": "DIRECT" } ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_melee_2",
-      "renderable": { "sprite": "TURTLE_27_5", "colour": "magenta" },
-      "traits": [ {"key": "DIRECT"} ],
+      "renderable": { "sprite": "HERMIT_CRAB", "colour": "magenta" },
+      "traits": [ {"key": "ARC_ANGLE"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+    },
+    {
+      "name": "actor_enemy_melee_3",
+      "renderable": { "sprite": "RED_CLAW_CRAB", "colour": "white" },
+      "traits": [ {"key": "ARC_ANGLE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_exploder",
-      "renderable": { "sprite": "CRAB_25_5", "colour": "gold_yellow" },
+      "renderable": { "sprite": "PUFFERFISH", "colour": "gold_yellow" },
       "traits": [ {"key": "DIRECT"}, {"key": "EXPLODE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_projectile",
-      "renderable": { "sprite": "SNAKE_28_8", "colour": "green" },
-      "traits": [ {"key": "PROJECTILE"} ],
+      "renderable": { "sprite": "ARCHERFISH", "colour": "green" },
+      "traits": [ {"key": "KEEP_DISTANCE"}, {"key": "PROJECTILE"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+    },
+    {
+      "name": "actor_enemy_swarmlord",
+      "renderable": { "sprite": "JELLYFISH", "colour": "dark_magenta" },
+      "traits": [ {"key": "KEEP_DISTANCE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_rocks",
-      "renderable": { "sprite": "TREE_0_1", "colour": "red" },
+      "renderable": { "sprite": "TREE_0_1", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },

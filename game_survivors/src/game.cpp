@@ -336,6 +336,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_debug_menubar_system(r);
     update_ui_debug_upgrades_system(r);
     update_ui_imgui_colours_system(r);
+    update_physics_apply_force_debug_ui(r);
 
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
 

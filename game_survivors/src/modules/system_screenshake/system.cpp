@@ -16,7 +16,7 @@ struct ScreenshakeData
 };
 
 const std::unordered_map<ScreenshakeType, ScreenshakeData> screenshake_amounts{
-  { ScreenshakeType::EXPLODE, ScreenshakeData{ .length = 0.04f, .strength = 0.005 } },
+  { ScreenshakeType::EXPLODE, ScreenshakeData{ .length = 0.04f, .strength = 0.004 } },
   { ScreenshakeType::SHOOT, ScreenshakeData{ .length = 0.01f, .strength = 0.002f } },
 };
 

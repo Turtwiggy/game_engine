@@ -35,13 +35,15 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   r.emplace<BulletKnockback>(bullet_e, bullet_def.knockback_force);
   if (bullet_def.bounces > 0)
     r.emplace<BulletBounce>(bullet_e, BulletBounce{ bullet_def.bounces });
-
-  const BulletCrit crit_c = {
-    .crit_chance = bullet_def.crit_chance,
-    .crit_damage = bullet_def.crit_damage,
-  };
-  r.emplace<BulletCrit>(bullet_e, crit_c);
-  r.emplace<BulletLifesteal>(bullet_e, bullet_def.lifesteal);
+  if (bullet_def.lifesteal > 0)
+    r.emplace<BulletLifesteal>(bullet_e, bullet_def.lifesteal);
+  if (bullet_def.crit_chance > 0) {
+    const BulletCrit crit_c = {
+      .crit_chance = bullet_def.crit_chance,
+      .crit_damage = bullet_def.crit_damage,
+    };
+    r.emplace<BulletCrit>(bullet_e, crit_c);
+  }
 
   auto& bullet_trait_c = r.get<TraitComponent>(bullet_e);
   bullet_trait_c.traits.insert(bullet_def.traits.begin(), bullet_def.traits.end());

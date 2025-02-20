@@ -12,6 +12,9 @@ struct AudioRequestPlayEvent
 {
   std::string tag;
   bool looping = false;
+
+  // all things in balance...
+  float percent_of_max_user_volume = 1.0f;
 };
 
 // classes to support System()
@@ -61,8 +64,8 @@ struct SINGLE_AudioComponent
   // set after requesting channels
   int max_audio_sources = -1;
 
-  // set volume as 10%. try not to blow out ear drums on launch.
-  float volume_user = 0.1f; // between 0 and 1
+  // set volume as 25%. try not to blow out ear drums on launch.
+  float volume_user = 0.25f; // between 0 and 1
   // int volume_internal = static_cast<int>(MIX_MAX_VOLUME * volume_user);
 
   bool mute_all = false;

@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_log.h>
+#include <SDL_mixer.h>
 #include <imgui.h>
 #include <magic_enum.hpp>
 
@@ -50,17 +51,24 @@ update_ui_audio_system(entt::registry& r)
 
       // Close old device, if exists
       if (audio.captured_device_id != -1) {
+        SDL_Log("Closing old audio device.");
         SDL_CloseAudioDevice(audio.captured_device_id);
         audio.captured_device_id = -1;
       }
 
       // Open new device
+      SDL_Log("Opening new audio device.");
       SDL_AudioSpec spec;
       spec.freq = MIX_DEFAULT_FREQUENCY;
       spec.format = MIX_DEFAULT_FORMAT;
       spec.channels = MIX_DEFAULT_CHANNELS;
       int chunk_size = 2048;
       audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, NULL, 0);
+
+      if (audio.captured_device_id == -1)
+        SDL_Log("%s", std::format("Tried to capture audio device; failed.").c_str());
+      else
+        SDL_Log("%s", std::format("Tried to capture audio device; success.").c_str());
     }
   }
   ImGui::NewLine();
@@ -84,6 +92,11 @@ update_ui_audio_system(entt::registry& r)
 
     const auto type_name = std::string(magic_enum::enum_name(source.state));
     ImGui::Text("%s", type_name.c_str());
+
+    ImGui::SameLine();
+    const auto vol = Mix_Volume(source.channel, -1);
+    ImGui::Text(", Vol: %i", vol);
+
     //
   }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/colour/colour.hpp"
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -13,9 +14,9 @@ struct Particle
   glm::vec2 position{ 0, 0 }; // seems wrong
   glm::vec2 velocity{ 0, 0 };
   bool fade = true;
+  engine::SRGBColour start_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 
   // not implemented
-  // engine::SRGBColour start_colour;
   // engine::SRGBColour end_colour;
 };
 

@@ -246,6 +246,8 @@
 
     { "name": "WALL_10_17", "frames": [ { "x": 10, "y": 17 } ] },
 
+    { "name": "FOOD_FISH", "frames": [ { "x": 33, "y": 17 } ] },
+
     { "name": "TEXT_0", "frames": [ { "x": 35, "y": 17 } ] },
     { "name": "TEXT_1", "frames": [ { "x": 36, "y": 17 } ] },
     { "name": "TEXT_2", "frames": [ { "x": 37, "y": 17 } ] },

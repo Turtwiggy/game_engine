@@ -74,6 +74,11 @@ struct MovementDirectComponent
   bool placeholder = true;
 };
 
+struct RotateToVelocityComponent
+{
+  bool placeholder = true;
+};
+
 //
 struct InputComponent
 {
