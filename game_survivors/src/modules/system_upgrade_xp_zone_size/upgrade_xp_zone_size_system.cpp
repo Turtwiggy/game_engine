@@ -54,7 +54,7 @@ update_upgrade_xp_zone_size_system(entt::registry& r)
       // create with the new size
       auto fixture_def = get_fixture_def_by_tag(r, e, "fixture_xp_zone");
       fixture_def.size.clear(); // removes default value
-      fixture_def.size.push_back({ val_mod, 0 });
+      fixture_def.size.push_back({ meters_to_pixels(val_mod), 0 });
       auto* new_fixture = create_fixture(fixture_c.body, fixture_def, { 0, 0 });
 
       // box2d: give link to entt

@@ -6,9 +6,9 @@
       "waves": [
         { "span":{"start": 0, "stop": 1}, "hp": 20, "max": 40, "num_per_spawn": 5 },
         { "span":{"start": 1, "stop": 2}, "hp": 20, "max": 50,"num_per_spawn": 5 },
-        { "span":{"start": 2, "stop": 6}, "hp": 50, "max": 30, "num_per_spawn": 6 }
+        { "span":{"start": 2, "stop": 6}, "hp": 50, "max": 30, "num_per_spawn": 6 },
         // { "span":{"start": 6, "stop": 8}, "hp": 75, "max": 70, "num_per_spawn": 8 },
-        // { "span":{"start": 8, "stop": 10}, "hp": 100, "max": 80, "num_per_spawn": 10 }
+        { "span":{"start": 5, "stop": 200}, "hp": 100, "max": 80, "num_per_spawn": 10 }
       ]
     },
     {

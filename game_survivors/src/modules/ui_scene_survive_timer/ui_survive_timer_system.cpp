@@ -27,8 +27,8 @@ update_ui_survive_timer_system(entt::registry& r)
     const int minutes = static_cast<int>(cooldown_c.time) / 60;
 
     // countup minutes
-    const int cu_minutes = 20 - minutes;
-    const int cu_seconds = 60 - seconds;
+    const int cu_minutes = 19 - minutes;
+    const int cu_seconds = 59 - seconds;
 
     const auto display = std::format("{:02}:{:02}", cu_minutes, cu_seconds);
     const auto len = ImGui::CalcTextSize(display.c_str());

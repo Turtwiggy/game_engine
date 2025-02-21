@@ -13,6 +13,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat/combat_helpers.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core_camera/components.hpp"
@@ -43,6 +44,7 @@
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_debug_weapons/ui_debug_weapons_helpers.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
@@ -217,6 +219,10 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     r.emplace<ManualfireComponent>(weapon_e);
     weapons.push_back(weapon_e);
   }
+
+  // HACK: equip specoific weapon
+  const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+  equip_weapon(r, weps_c.weapons[0]); // heavy_pistol
 
   const auto e = spawn(r, key);
   give_life(r, e, pos, size);
