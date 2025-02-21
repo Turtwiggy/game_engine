@@ -1,4 +1,10 @@
 #include "modules/ui_worldspace_text/helpers.hpp"
+#include "engine/actors/actor_helpers.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "modules/core_animations/wiggle/components.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_worldspace_text/components.hpp"
 
 namespace game2d {
 
@@ -29,5 +35,49 @@ split_string_nearest_space(const std::string& str, const int& len)
 
   return results;
 };
+
+void
+create_popup(entt::registry& r, glm::vec2 pos, std::string text)
+{
+  WorldspaceTextComponent wst_c;
+
+  wst_c.layout = [text](entt::registry& r) {
+    const auto text_col = hex_to_srgb("#ffffff");
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::PushFont(io.Fonts->Fonts[3]);
+
+    const auto im_crit_col = ImVec4{
+      text_col.r / 255.0f,
+      text_col.g / 255.0f,
+      text_col.b / 255.0f,
+      text_col.a / 255.0f,
+    };
+
+    std::string label = std::format("{}", text);
+
+    const auto ui_wh = ImGui::GetContentRegionAvail();
+    const auto ui_tl = ImGui::GetCursorPos();
+    const auto ui_txt_size = ImGui::CalcTextSize(label.c_str());
+    ImGui::SetCursorPosX(ui_tl.x + (ui_wh.x * 0.5) - (ui_txt_size.x * 0.5));
+    ImGui::SetCursorPosY(ui_tl.y + (ui_wh.y * 0.5) - (ui_txt_size.y * 0.5));
+
+    ImGui::TextColored(im_crit_col, "%s", label.c_str());
+
+    ImGui::PopFont();
+  };
+
+  wst_c.flags |= ImGuiWindowFlags_NoDecoration;
+  wst_c.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  wst_c.flags |= ImGuiWindowFlags_NoInputs;
+  wst_c.flags |= ImGuiWindowFlags_NoNav;
+  wst_c.flags |= ImGuiWindowFlags_NoBackground;
+
+  auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);
+  r.emplace<TransformComponent>(popup_e);
+  r.emplace<EntityTimedLifecycle>(popup_e, 1 * 3000);
+  r.emplace<WiggleUpAndDown>(popup_e, WiggleUpAndDown{ .base_position = pos });
+  set_position(r, popup_e, pos);
+}
 
 } // namespace game2d

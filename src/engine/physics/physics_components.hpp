@@ -28,6 +28,13 @@ struct PhysicsBodyDef
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PhysicsBodyDef, is_bullet, is_static, linear_damping, angular_damping);
 };
 
+struct vec2f
+{
+  float x;
+  float y;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(vec2f, x, y);
+};
+
 struct PhysicsFixtureDef
 {
   // required...
@@ -39,9 +46,8 @@ struct PhysicsFixtureDef
   float density = 1.0f;
   float friction = 0.0f;
   float restitution = 1.0f;
-
-  // optionals... for circle
-  float radius_in_pixels = 0.0f;
+  std::vector<vec2f> offset;
+  std::vector<vec2f> size;
 
   friend void to_json(nlohmann ::json& j, const PhysicsFixtureDef& t)
   {
@@ -51,7 +57,8 @@ struct PhysicsFixtureDef
     j["density"] = t.density;
     j["friction"] = t.friction;
     j["restitution"] = t.restitution;
-    j["radius"] = t.radius_in_pixels;
+    j["offset"] = t.offset;
+    j["size"] = t.size;
   }
   friend void from_json(const nlohmann ::json& j, PhysicsFixtureDef& t)
   {
@@ -64,8 +71,10 @@ struct PhysicsFixtureDef
       j.at("friction").get_to(t.friction);
     if (j.contains("restitution"))
       j.at("restitution").get_to(t.restitution);
-    if (j.contains("radius"))
-      j.at("radius").get_to(t.radius_in_pixels);
+    if (j.contains("offset"))
+      j.at("offset").get_to(t.offset);
+    if (j.contains("size"))
+      j.at("size").get_to(t.size);
   };
 };
 

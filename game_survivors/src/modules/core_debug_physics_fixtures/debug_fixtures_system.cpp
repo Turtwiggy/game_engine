@@ -4,6 +4,7 @@
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
 
 namespace game2d {
@@ -22,9 +23,10 @@ update_debug_fixtures_system(entt::registry& r)
 
       if (shape->GetType() == b2Shape::e_circle) {
         const auto* circle = static_cast<const b2CircleShape*>(shape);
-        const float radius = circle->m_radius;
-        const auto pos_in_meters = glm::vec2{ body->GetPosition().x, body->GetPosition().y };
-        const auto pos = glm::vec2{ pos_in_meters.x * PIXELS_PER_METER, pos_in_meters.y * PIXELS_PER_METER };
+        const float radius_m = circle->m_radius;
+        const float radius = meters_to_pixels(radius_m);
+        const auto pos_m = b2Vec2{ body->GetPosition().x, body->GetPosition().y };
+        const auto pos = meters_to_pixels(pos_m);
 
         constexpr int segments = 32;
         constexpr float angle_step = engine::TWO_PI / segments;
@@ -41,7 +43,8 @@ update_debug_fixtures_system(entt::registry& r)
           s.pos = line.position;
           s.size = line.scale;
           s.z_rotation = line.rotation;
-          s.col.a = 1.0f * 255;
+          s.col.a = 0.5f * 255;
+          s.z_idx = ZLayer::BACKGROUND;
           draw_sprite(r, s);
 
           prev_vert = cur_vert;
@@ -49,7 +52,6 @@ update_debug_fixtures_system(entt::registry& r)
       }
 
       else if (shape->GetType() == b2Shape::e_polygon) {
-        continue; // disable polygon debugging
 
         const auto* polygon = static_cast<const b2PolygonShape*>(shape);
 
@@ -58,14 +60,16 @@ update_debug_fixtures_system(entt::registry& r)
         polygon->ComputeAABB(&aabb, transform, 0);
 
         // Calculate size and position
-        b2Vec2 size = aabb.upperBound - aabb.lowerBound;
-        b2Vec2 center = 0.5f * (aabb.upperBound + aabb.lowerBound);
+        const auto size_m = aabb.upperBound - aabb.lowerBound;
+        const auto center_m = 0.5f * (aabb.upperBound + aabb.lowerBound);
 
         // Create the sprite
         Sprite s;
         s.sprite = "EMPTY";
-        s.pos = { center.x, center.y };
-        s.size = { size.x, size.y };
+        s.pos = meters_to_pixels(center_m);
+        s.size = meters_to_pixels(size_m);
+        s.col.a = 0.5f * 255;
+        s.z_idx = ZLayer::BACKGROUND;
         draw_sprite(r, s);
       }
     }

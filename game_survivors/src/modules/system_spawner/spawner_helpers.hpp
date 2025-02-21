@@ -9,34 +9,11 @@
 
 namespace game2d {
 
+SINGLE_Spawners
+load_spawns(std::string directory);
+
 int
 min_to_sec(int min);
-
-//
-// todo: replace below with configs
-//
-
-EnemySpawnData
-melee_enemy_1();
-
-EnemySpawnData
-melee_enemy_2();
-
-EnemySpawnData
-melee_enemy_3();
-
-EnemySpawnData
-exploder_data();
-
-EnemySpawnData
-projectile_enemy();
-
-EnemySpawnData
-swarmlord_enemy();
-
-//
-//
-//
 
 std::optional<EnemySpawnWave>
 get_wave_from_time(const EnemySpawnData& data, int seconds_from_start);

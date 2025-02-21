@@ -2,7 +2,6 @@
 
 #include "engine/maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/event_upgrade/event_upgrade_components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
@@ -25,7 +24,7 @@ namespace game2d {
 auto close_ui = [](SINGLE_XpComponent& sxp_c) {
   sxp_c.xp = 0;
   sxp_c.level++;
-  sxp_c.xp_for_next_level += 5; // 5 harder every time
+  sxp_c.xp_for_next_level += 2; // 2 harder every time
 };
 
 enum class Rarity
@@ -68,8 +67,13 @@ sum_array_values()
   return sum;
 };
 
-// static engine::RandomState roll_rnd(0);
-static engine::RandomState roll_rnd;
+#if defined(_DEBUG)
+// static engine::RandomState roll_rnd(0); // same roll every time
+static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
+#else
+static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
+#endif
+
 void
 generate_upgrades_for_players(entt::registry& r)
 {
@@ -88,7 +92,7 @@ generate_upgrades_for_players(entt::registry& r)
     UpgradeableStat::BULLET_DAMAGE,
     UpgradeableStat::BULLET_KNOCKBACK,
     UpgradeableStat::BULLET_LIFESTEAL,   // %hp you recover when a bullet hits
-    // UpgradeableStat::BULLET_PIERCE,
+    UpgradeableStat::BULLET_PIERCE,
     UpgradeableStat::BULLET_SIZE,
     UpgradeableStat::BULLET_SPEED,
 
@@ -163,16 +167,16 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
   }
   if (upgrade == UpgradeableStat::ACTOR_HEALTH_REGEN) {
     if (rarity == Rarity::COMMON)
-      amount = 0.1;
+      amount = 0.03;
     if (rarity == Rarity::UNCOMMON)
-      amount = 0.2;
+      amount = 0.1;
     if (rarity == Rarity::RARE)
-      amount = 0.3;
+      amount = 0.15;
     if (rarity == Rarity::LEGENDARY)
-      amount = 0.4;
+      amount = 0.25;
     if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 0.5;
-    return { amount, "stat_percent_increase" };
+      amount = 0.4;
+    return { amount, "stat_flat_increase" };
   }
   if (upgrade == UpgradeableStat::ACTOR_SPEED) {
     if (rarity == Rarity::COMMON)
@@ -267,6 +271,19 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
     return { amount, "stat_flat_increase" };
   }
   if (upgrade == UpgradeableStat::BULLET_LIFESTEAL) {
+    if (rarity == Rarity::COMMON)
+      amount = 1;
+    if (rarity == Rarity::UNCOMMON)
+      amount = 2;
+    if (rarity == Rarity::RARE)
+      amount = 3;
+    if (rarity == Rarity::LEGENDARY)
+      amount = 4;
+    if (rarity == Rarity::SUPER_LEGENDARY)
+      amount = 5;
+    return { amount, "stat_flat_increase" };
+  }
+  if (upgrade == UpgradeableStat::BULLET_PIERCE) {
     if (rarity == Rarity::COMMON)
       amount = 1;
     if (rarity == Rarity::UNCOMMON)

@@ -20,6 +20,7 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
+#include "modules/core_debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/system.hpp"
@@ -49,6 +50,8 @@
 #include "modules/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/system.hpp"
 #include "modules/system_screenshake/system.hpp"
+#include "modules/system_spawner/spawner_components.hpp"
+#include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
 #include "modules/system_sprint/sprint_system.hpp"
 #include "modules/system_spritestack/spritestack_system.hpp"
@@ -157,6 +160,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
   create_persistent<SINGLE_Upgrades>(r, load_upgrades("assets/raws/upgrades.jsonc"));
   create_persistent<SINGLE_Weapons>(r, load_weapons("assets/raws/weapons.jsonc"));
+  create_persistent<SINGLE_Spawners>(r, load_spawns("assets/raws/spawns.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
 
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
@@ -277,7 +281,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
     update_autofire_system(r, dt); // prefer after hardpoints_system
-    update_manualfire_system(r, dt);
+    // update_manualfire_system(r, dt);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_distance_check_system(r);

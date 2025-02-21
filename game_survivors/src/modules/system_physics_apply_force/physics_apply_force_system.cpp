@@ -1,11 +1,9 @@
 #include "physics_apply_force_system.hpp"
 
 #include "components.hpp"
-#include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
-#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
@@ -20,35 +18,79 @@
 
 namespace game2d {
 
-b2Vec2
+// vertex at vx, vy
+// x-axis roots at r1, r2
+auto parabola = [](float x, float r1, float r2, float vx, float vy) -> float {
+  // r1 = -10, r2 = 10, vx = 0, vy = 1;
+  const auto scale = vy / ((vx - r1) * (vx - r2));
+  const auto y = scale * (x - r1) * (x - r2);
+  return y;
+};
+
+glm::vec2
+apply_inside_out_force(const ApplyForceToDynamicTarget& req, glm::vec2 nrm_dir, float distance)
+{
+  const auto counter_dir = -nrm_dir;
+  const auto distance_from_orbit_ring = glm::abs(req.distance_to_reduce_thrust - distance);
+
+  // note: clamp the distance from orbit_ring to a curve
+  // if distance_from_orbit_ring is negative, you're outside.
+  const float error_dst = 3;
+  const auto x = glm::clamp(distance_from_orbit_ring, -error_dst, error_dst);
+
+  // scale dst to -1 to 1, e.g.
+  // where -5 is y=0
+  // where 0 is y=1
+  // where 5 is y=0
+  const float modified_x = parabola(x, -error_dst, error_dst, 0, 1);
+
+  // when distance is 0, apply no force
+  // when distance is at boundary, apply max force val is (1.0)
+  // therefore, take the 1.0 - modified_x
+  const float inv_modified_x = 1.0 - modified_x;
+
+  return counter_dir * inv_modified_x;
+};
+
+glm::vec2
 calculate_desired_velocity(b2Body* a_body, b2Body* b_body, const ApplyForceToDynamicTarget& req)
 {
-  b2Vec2 dir = b_body->GetPosition() - a_body->GetPosition();
+  auto b_pos = b_body->GetPosition();
+  auto a_pos = a_body->GetPosition();
 
-  // distance from target
-  const float distance = dir.Length();
-  dir.Normalize();
+  b2Vec2 dir_b2d = b_pos - a_pos;
+  const auto raw_dir = glm::vec2{ dir_b2d.x, dir_b2d.y };
+  const auto nrm_dir = engine::normalize_safe(raw_dir);
 
   // full-speed ahead!
-  if (distance > req.distance_to_reduce_thrust || !req.reduce_thrusters)
-    // return b_body->GetLinearVelocity() + req.speed * dir;
-    return req.speed * dir;
+  if (!req.reduce_thrusters)
+    return req.speed * nrm_dir;
+
+  // full-speed ahead!
+  const float distance = glm::length(raw_dir);
+  if (distance > req.distance_to_reduce_thrust)
+    return req.speed * nrm_dir;
 
   // Adjust the desired vel to account for target's velocity,
   // reduce speed the closer to the target you get
-  const float percent = (distance / req.distance_to_reduce_thrust);
-  const b2Vec2 reduced_vel = percent * req.speed * dir;
+  const float percent = glm::clamp((distance / req.distance_to_reduce_thrust), 0.0f, 1.0f);
+  const glm::vec2 reduced_vel = percent * req.speed * nrm_dir;
 
   // try adding perpendcular vel to make it orbit
   // the closer you get, the stronger the orbit vel becomes
   // in order to try and prevent crash
-  b2Vec2 orbit_vel{ 0.0f, 0.0f };
+  glm::vec2 orbit_vel{ 0.0f, 0.0f };
   if (req.orbit) {
-    const b2Vec2 perp = { -dir.y, dir.x };
+    const auto perp = glm::vec2{ -nrm_dir.y, nrm_dir.x };
     orbit_vel = (1 - percent) * req.speed * perp;
+
+    // If you're too close, apply a push-out force.
+    // orbit_vel += 0.1f * req.speed * apply_inside_out_force(req, nrm_dir, distance);
   }
 
-  return b_body->GetLinearVelocity() + reduced_vel + orbit_vel;
+  const auto b_vel_b2d = b_body->GetLinearVelocity();
+  const auto b_vel = glm::vec2(b_vel_b2d.x, b_vel_b2d.y);
+  return b_vel + reduced_vel + orbit_vel;
 };
 
 #if defined(_DEBUG)
@@ -65,6 +107,14 @@ struct DebugApproachDir
   glm::vec2 flankpoint;
 };
 static std::vector<DebugApproachDir> debug_instances;
+
+struct DebugVelocityError
+{
+  glm::vec2 tgt_vel;
+  glm::vec2 cur_vel;
+};
+static std::vector<DebugVelocityError> debug_vel_instances;
+
 #endif
 
 void
@@ -75,6 +125,9 @@ update_physics_apply_force_system(entt::registry& r)
 #endif
 
   // Force to DynamicTarget
+#if defined(_DEBUG)
+  debug_vel_instances.clear();
+#endif
   {
     const auto& view =
       r.view<PhysicsBodyComponent, TransformComponent, const ApplyForceToDynamicTarget, const PhysicsDynamicTarget>();
@@ -94,24 +147,24 @@ update_physics_apply_force_system(entt::registry& r)
       const auto cur_vel = a_body->GetLinearVelocity();
 
       // Compute the desired velocity of your spaceship.
-      const b2Vec2 desired_vel = calculate_desired_velocity(a_body, b_body, req_c);
+      const auto desired_vel = calculate_desired_velocity(a_body, b_body, req_c);
+
+      // debug_vel_instances.push_back(DebugVelocityError{
+      //   .tgt_vel = { desired_vel.x, desired_vel.y },
+      //   .cur_vel = { cur_vel.x, cur_vel.y },
+      // });
 
       // Calculate the velocity error
       const float mass = body_c.body->GetMass();
-      const float proportional_gain = 10.0f;
-      const b2Vec2 vel_err = desired_vel - cur_vel;
-      const b2Vec2 force = mass * (proportional_gain * vel_err);
+      const float rate_of_change = 1.0f;
+      const b2Vec2 vel_err = b2Vec2{ desired_vel.x, desired_vel.y } - cur_vel;
+      const b2Vec2 force = mass * (rate_of_change * vel_err);
 
       // Could also clamp force here...
       // to stop exTrEmE forces
 
       // Apply the force
       a_body->ApplyForceToCenter(force, true);
-
-      // Set ship angle as velocity
-      const auto& vel = body_c.body->GetLinearVelocity();
-      const float angle = engine::dir_to_angle_radians({ vel.x, vel.y });
-      body_c.body->SetTransform(body_c.body->GetPosition(), angle);
     }
   }
 
@@ -205,17 +258,17 @@ update_physics_apply_force_system(entt::registry& r)
       body_c.body->ApplyLinearImpulseToCenter(impulse, true);
 
 #if defined(_DEBUG)
-      debug_instances.push_back({
-        .pos = meters_to_pixels(you_body->GetPosition()),
-        .normal = cur_dir_normal,
-        .nrm_dir = nrm_dir,
-        .per_approach_dir = approach_dir,
-        .angle_error_non_abs = angle_error_non_abs,
-        .angle_error_adj = angle_error_adj,
-        .distance = d,
-        .midpoint = meters_to_pixels({ midpoint.x, midpoint.y }),
-        .flankpoint = meters_to_pixels({ flankpoint.x, flankpoint.y }),
-      });
+      // debug_instances.push_back({
+      //   .pos = meters_to_pixels(you_body->GetPosition()),
+      //   .normal = cur_dir_normal,
+      //   .nrm_dir = nrm_dir,
+      //   .per_approach_dir = approach_dir,
+      //   .angle_error_non_abs = angle_error_non_abs,
+      //   .angle_error_adj = angle_error_adj,
+      //   .distance = d,
+      //   .midpoint = meters_to_pixels({ midpoint.x, midpoint.y }),
+      //   .flankpoint = meters_to_pixels({ flankpoint.x, flankpoint.y }),
+      // });
 #endif
     }
   }
@@ -267,6 +320,14 @@ update_physics_apply_force_debug_ui(entt::registry& r)
     }
   }
   // ImGui::End();
+
+  // ImGui::Begin("DebugVel");
+  // for (const auto& d : debug_vel_instances) {
+  //   ImGui::Text("CurVel %f %f", d.cur_vel.x, d.cur_vel.y);
+  //   ImGui::Text("TgtVel %f %f", d.tgt_vel.x, d.tgt_vel.y);
+  // }
+  // ImGui::End();
+
 #endif
 }
 

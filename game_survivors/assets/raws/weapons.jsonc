@@ -9,7 +9,7 @@
         "WEAPON_FIRERATE": 1.25 , // per second
         "WEAPON_RELOAD": 3      , // seconds
         "WEAPON_RANGE": 5.0     , // meters
-        "BULLET_DAMAGE": 70     ,
+        "BULLET_DAMAGE": 12     ,
         "BULLET_KNOCKBACK": 0   , // force
         "BULLET_PIERCE": 12     
       }
@@ -23,7 +23,7 @@
         "WEAPON_FIRERATE": 2.0   , // per second
         "WEAPON_RELOAD": 4       , // seconds
         "WEAPON_RANGE": 1.5      , // meters
-        "BULLET_DAMAGE": 60      ,
+        "BULLET_DAMAGE": 10      ,
         "BULLET_KNOCKBACK": 0.3  , // force
         "BULLET_PIERCE": 3       
       }
@@ -37,7 +37,7 @@
         "WEAPON_FIRERATE": 10.0  , // per second
         "WEAPON_RELOAD": 1       , // seconds
         "WEAPON_RANGE": 1.5      , // meters
-        "BULLET_DAMAGE": 20      ,
+        "BULLET_DAMAGE": 4      ,
         "BULLET_KNOCKBACK": 0.3  , // force
         "BULLET_PIERCE": 3       
       }

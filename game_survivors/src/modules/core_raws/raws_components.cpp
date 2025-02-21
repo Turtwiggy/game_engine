@@ -6,6 +6,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -124,6 +125,14 @@ create_fixture(b2Body* body, const PhysicsFixtureDef& fix, const b2Vec2 size_in_
   auto friction = fix.friction;
   auto restitution = fix.restitution;
 
+  b2Vec2 offset{ 0, 0 };
+  if (fix.offset.size() > 0)
+    offset = pixels_to_meters({ fix.offset[0].x, fix.offset[0].y });
+
+  b2Vec2 size = size_in_meters;
+  if (fix.size.size() > 0)
+    size = pixels_to_meters({ fix.size[0].x, fix.size[0].y });
+
   b2FixtureDef fixture_def;
   fixture_def.friction = friction;
   fixture_def.density = density;
@@ -134,7 +143,8 @@ create_fixture(b2Body* body, const PhysicsFixtureDef& fix, const b2Vec2 size_in_
 
   if (type == "circle") {
     b2CircleShape circle;
-    circle.m_radius = fix.radius_in_pixels / PIXELS_PER_METER;
+    circle.m_radius = size.x;
+    circle.m_p.Set(offset.x, offset.y);
     fixture_def.shape = &circle;
     fixture = body->CreateFixture(&fixture_def);
     // SDL_Log("creating circle fixture..");
@@ -142,7 +152,7 @@ create_fixture(b2Body* body, const PhysicsFixtureDef& fix, const b2Vec2 size_in_
 
   if (type == "box") {
     b2PolygonShape box;
-    box.SetAsBox(size_in_meters.x / 2.0f, size_in_meters.y / 2.0f);
+    box.SetAsBox(size.x / 2.0f, size.y / 2.0f, offset, 0.0f);
     fixture_def.shape = &box;
     fixture = body->CreateFixture(&fixture_def);
     // SDL_Log("creating box fixture..");
@@ -259,6 +269,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       for (const auto& fix : fixtures) {
 
         auto* fixture = create_fixture(body, fix, size_in_meters);
+        // SDL_Log("Created fixture... %s", fix.tag.c_str());
 
         // entt: create fixture representation
         PhysicsFixtureComponent fixture_c;
@@ -310,21 +321,28 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
       if (trait_enum == AquirableTrait::ARC_ANGLE) {
         // generate a random angle to approach from
-        static engine::RandomState angle_rnd(0);
+
+#if defined(_DEBUG)
+        // static engine::RandomState angle_rnd(0); // same roll every time
+        static engine::RandomState angle_rnd(engine::get_system_time_for_seed());
+#else
+        static engine::RandomState angle_rnd(engine::get_system_time_for_seed());
+#endif
+
         const float angle = engine::rand_det_s(angle_rnd.rng, 0.0f, engine::TWO_PI);
         r.emplace<ApplyForceToApproachTargetFromAngle>(e, angle);
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
 
-        const auto angle_str = std::format("Creating enemy... approaching from {}", angle);
-        SDL_Log("%s", angle_str.c_str());
+        // const auto angle_str = std::format("Creating enemy... approaching from {}", angle);
+        // SDL_Log("%s", angle_str.c_str());
       }
 
       if (trait_enum == AquirableTrait::KEEP_DISTANCE) {
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = true;
         tgt_c.reduce_thrusters = true;
-        tgt_c.speed = 0.001f;                  // m/s
-        tgt_c.distance_to_reduce_thrust = 7.5; // meters to shoot from
+        tgt_c.speed = 1.0f;                    // m/s
+        tgt_c.distance_to_reduce_thrust = 6.0; // meters to shoot from
         r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
       }

@@ -180,13 +180,14 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     return;
   }
 
-  static engine::RandomState rnd(0);
+  static engine::RandomState dodge_rnd(0);
+  static engine::RandomState crit_rnd(0);
 
   const auto parent_e = r.get<HasParentComponent>(to_e).parent;
   const auto* your_stats_c = r.try_get<StatModifierComponent>(parent_e);
   if (your_stats_c) {
     // did you dodge?
-    if (check_if_dodge(r, parent_e, rnd, *your_stats_c)) {
+    if (check_if_dodge(r, parent_e, dodge_rnd, *your_stats_c)) {
       SDL_Log("something dodged");
       return;
     }
@@ -195,7 +196,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   float damage = calculate_damage_to_take(r, evt);
 
   // did you crit?
-  const auto [crit, crit_mul] = check_if_crit(r, evt, rnd);
+  const auto [crit, crit_mul] = check_if_crit(r, evt, crit_rnd);
   if (crit) {
     const auto info_str = std::format("something was crit with a x{:.2f} multiplier", crit_mul);
     SDL_Log("%s", info_str.c_str());

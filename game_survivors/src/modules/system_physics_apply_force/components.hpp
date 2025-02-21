@@ -27,7 +27,7 @@ struct ApplyForceToDynamicTarget
   // this cuts thrusters when within a distance threshold
   // to stop maximum force impact
   bool reduce_thrusters = true;
-  float distance_to_reduce_thrust = 400;
+  float distance_to_reduce_thrust = 6;
 };
 
 struct ApplyForceToStaticTarget

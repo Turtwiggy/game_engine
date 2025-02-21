@@ -36,7 +36,6 @@
 #include "modules/system_scene_splashscreen_move_to_next/components.hpp"
 #include "modules/system_screenshake/components.hpp"
 #include "modules/system_spawner/spawner_components.hpp"
-#include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/system_sprint/sprint_components.hpp"
 #include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
@@ -236,7 +235,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   {
     auto fixture_def = get_fixture_def_by_tag(r, e, "fixture_xp_zone");
     ActorXpZoneSizeComponent xp_zone_c;
-    xp_zone_c.radius_meters = pixels_to_meters(fixture_def.radius_in_pixels);
+    xp_zone_c.radius_meters = pixels_to_meters(fixture_def.size[0].x);
     r.emplace<ActorXpZoneSizeComponent>(e, xp_zone_c);
   }
 
@@ -445,29 +444,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto survive_timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
     r.emplace<SurviveTimerComponent>(survive_timer_e);
 
-    {
+    // populate spawners from configs
+    const auto spawn_c = get_first_component<SINGLE_Spawners>(r);
+    for (const auto& spawns : spawn_c.spawns) {
       const auto spawner_e = create_empty<CooldownComponent>(r);
-      r.emplace<EnemySpawnData>(spawner_e, melee_enemy_1());
-    }
-    {
-      const auto spawner_e = create_empty<CooldownComponent>(r);
-      r.emplace<EnemySpawnData>(spawner_e, melee_enemy_2());
-    }
-    {
-      const auto spawner_e = create_empty<CooldownComponent>(r);
-      r.emplace<EnemySpawnData>(spawner_e, melee_enemy_3());
-    }
-    {
-      const auto spawner_e = create_empty<CooldownComponent>(r);
-      r.emplace<EnemySpawnData>(spawner_e, exploder_data());
-    }
-    {
-      const auto spawner_e = create_empty<CooldownComponent>(r);
-      r.emplace<EnemySpawnData>(spawner_e, projectile_enemy());
-    }
-    {
-      const auto spawner_e = create_empty<CooldownComponent>(r);
-      r.emplace<EnemySpawnData>(spawner_e, swarmlord_enemy());
+      r.emplace<EnemySpawnData>(spawner_e, spawns);
     }
   }
 

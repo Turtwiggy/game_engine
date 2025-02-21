@@ -13,7 +13,7 @@ struct XpComponent
 struct SINGLE_XpComponent
 {
   int xp = 0;
-  int xp_for_next_level = 20;
+  int xp_for_next_level = 10;
   int level = 1;
 };
 

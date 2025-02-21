@@ -206,7 +206,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [
         { "tag": "fixture_player", "type": "box", "is_sensor": false },
-        { "tag": "fixture_xp_zone", "type": "circle", "radius": 50, "is_sensor": true }
+        { "tag": "fixture_xp_zone", "type": "circle","is_sensor": true, "size": [{"x":50, "y": 0}] }
       ]
     },
     {
@@ -216,19 +216,27 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
+    // hermit crab
     {
       "name": "actor_enemy_melee_2",
       "renderable": { "sprite": "HERMIT_CRAB", "colour": "magenta" },
       "traits": [ {"key": "ARC_ANGLE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
-      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ 
+        { "tag": "fixture_core", "type": "box", "is_sensor": false, "offset":[{"x":0, "y":8}], "size": [{"x":32, "y": 16}]},
+        { "tag": "shield", "type": "box", "is_sensor": false, "offset":[{"x":0, "y":-8}], "size": [{"x":32, "y": 16}]}
+      ]
     },
+    // red claw crab
     {
       "name": "actor_enemy_melee_3",
       "renderable": { "sprite": "RED_CLAW_CRAB", "colour": "white" },
       "traits": [ {"key": "ARC_ANGLE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
-      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ 
+        { "tag": "fixture_core", "type": "box", "is_sensor": false, "offset":[{"x":-8, "y":0}], "size": [{"x":16, "y": 32}]},
+        { "tag": "shield", "type": "box", "is_sensor": false, "offset":[{"x":8, "y":0}], "size": [{"x":16, "y": 32}]}
+      ]
     },
     {
       "name": "actor_enemy_exploder",
@@ -251,6 +259,28 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
+    {
+      "name": "actor_enemy_grower",
+      "renderable": { "sprite": "SEA_URCHIN", "colour": "red" },
+      "traits": [ ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
+    {
+      "name": "actor_enemy_charger",
+      "renderable": { "sprite": "SEA_HORSE", "colour": "red" },
+      "traits": [ {"key": "DIRECT" } ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+    },
+    {
+      "name": "actor_destructable",
+      "renderable": { "sprite": "OYSTER", "colour": "red" },
+      "traits": [ ],
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+    },
+
     {
       "name": "actor_enemy_rocks",
       "renderable": { "sprite": "TREE_0_1", "colour": "white" },

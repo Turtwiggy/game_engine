@@ -52,11 +52,11 @@ update_ui_debug_spawner_system(entt::registry& r)
   for (const auto [e, data_c, cooldown_c] : view.each()) {
     const auto w_opt = get_wave_from_time(data_c, seconds_from_start);
 
-    std::string wave_label = std::format("Wave {}", data_c.enemy_key);
+    std::string wave_label = std::format("Wave {}", data_c.key);
     ImGui::SeparatorText(wave_label.c_str());
 
-    if (enemy_to_amount.contains(data_c.enemy_key))
-      ImGui::Text("Alive: %i", enemy_to_amount.at(data_c.enemy_key));
+    if (enemy_to_amount.contains(data_c.key))
+      ImGui::Text("Alive: %i", enemy_to_amount.at(data_c.key));
     else
       ImGui::Text("Alive: 0");
 
@@ -66,12 +66,12 @@ update_ui_debug_spawner_system(entt::registry& r)
     }
     auto& w = w_opt.value();
 
-    ImGui::Text("wave_start_seconds %i", w.wave_start_seconds);
-    ImGui::Text("wave_end_seconds %i", w.wave_end_seconds);
+    ImGui::Text("wave_start_seconds %i", min_to_sec(w.span.start));
+    ImGui::Text("wave_stop_seconds %i", min_to_sec(w.span.stop));
     ImGui::Text("hp %0.2f", w.hp);
-    ImGui::Text("max_allowed %i", w.max_allowed);
-    ImGui::Text("number_per_spawn %i", w.number_per_spawn);
-    ImGui::Text("spawn_cooldown %i", w.spawn_cooldown);
+    ImGui::Text("max_allowed %i", w.max);
+    ImGui::Text("number_per_spawn %i", w.num_per_spawn);
+    ImGui::Text("spawn_cooldown %f", w.spawn_cooldown.value());
   }
 
   ImGui::End();

@@ -21,10 +21,16 @@ update_ui_survive_timer_system(entt::registry& r)
   ImGui::PushFont(io.Fonts->Fonts[1]); // Use the larger font (index 1)
 
   for (const auto& [e, timer_c, cooldown_c] : r.view<const SurviveTimerComponent, const CooldownComponent>().each()) {
+
+    // countdown
     const int seconds = static_cast<int>(cooldown_c.time) % 60;
     const int minutes = static_cast<int>(cooldown_c.time) / 60;
 
-    const auto display = std::format("{:02}:{:02}", minutes, seconds);
+    // countup minutes
+    const int cu_minutes = 20 - minutes;
+    const int cu_seconds = 60 - seconds;
+
+    const auto display = std::format("{:02}:{:02}", cu_minutes, cu_seconds);
     const auto len = ImGui::CalcTextSize(display.c_str());
     const auto padding = ImGui::GetStyle().WindowPadding;
     const auto space = 8;

@@ -5,10 +5,39 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
+#include "modules/core_raws/raws_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "spawner_components.hpp"
 
+#include <fstream>
+#include <sstream>
+
 namespace game2d {
+
+SINGLE_Spawners
+load_spawns(std::string filepath)
+{
+  SDL_Log("loading spawns... %s", filepath.c_str());
+
+  // load from disk
+  std::ifstream t(filepath);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  const std::string data_with_comments = buffer.str();
+
+  // remove comments from .jsonc file
+  std::istringstream stream(data_with_comments);
+  std::ostringstream output;
+  std::string line;
+  while (std::getline(stream, line)) {
+    std::string cleaned_line = remove_comment(line);
+    output << cleaned_line << "\n";
+  }
+
+  const std::string string_without_comments = output.str();
+  nlohmann::json root = nlohmann::json::parse(string_without_comments);
+  return root.get<SINGLE_Spawners>();
+};
 
 int
 min_to_sec(int min)
@@ -16,419 +45,12 @@ min_to_sec(int min)
   return min * 60;
 };
 
-EnemySpawnData
-melee_enemy_1()
-{
-  EnemySpawnData data;
-  data.enemy_key = "actor_enemy_melee_1";
-
-  // EnemySpawnWave wave0;
-  // wave0.wave_start_seconds = min_to_sec(0);
-  // wave0.wave_end_seconds = min_to_sec(1);
-  // wave0.hp = 25;
-  // wave0.max_allowed = 1;
-  // wave0.number_per_spawn = 1;
-  // data.waves.push_back(wave0);
-
-  for (int i = 0; i < 20; i++) {
-    EnemySpawnWave wave0;
-    wave0.wave_start_seconds = min_to_sec(i + 0);
-    wave0.wave_end_seconds = min_to_sec(i + 1);
-
-    // scales from [w0: 25, w2: 50, w3: 75] every minute. max hp = 20*25 = 500
-    // wave0.hp = (i + 1) * 25;
-    wave0.hp = (i + 1) * 5; // 20*5 = 100
-
-    // scales from [w0: 4, w2: 8, w3: 12] every minute. max_allowed = 20*4 = 80
-    wave0.max_allowed = (i + 1) * 4;
-
-    // todo: increase cooldown... down to 0.1?
-    wave0.spawn_cooldown = 1;
-
-    data.waves.push_back(wave0);
-  }
-
-  // EnemySpawnWave wave0;
-  // EnemySpawnWave wave1;
-  // EnemySpawnWave wave2;
-  // EnemySpawnWave wave3;
-  // EnemySpawnWave wave4;
-  // EnemySpawnWave wave5;
-
-  // wave0.wave_start_seconds = min_to_sec(0);
-  // wave0.wave_end_seconds = min_to_sec(1);
-
-  // wave1.wave_start_seconds = min_to_sec(1) + 1;
-  // wave1.wave_end_seconds = min_to_sec(2);
-
-  // wave2.wave_start_seconds = min_to_sec(2) + 1;
-  // wave2.wave_end_seconds = min_to_sec(6);
-
-  // wave3.wave_start_seconds = min_to_sec(6) + 1;
-  // wave3.wave_end_seconds = min_to_sec(8);
-
-  // wave4.wave_start_seconds = min_to_sec(8);
-  // wave4.wave_end_seconds = min_to_sec(10);
-
-  // wave5.wave_start_seconds = min_to_sec(16);
-  // wave5.wave_end_seconds = min_to_sec(18);
-
-  // wave0.hp = 24;
-  // wave1.hp = 24;
-  // wave2.hp = 30;
-  // wave3.hp = 60;
-  // wave4.hp = 80;
-  // wave5.hp = 250;
-
-  // wave0.max_allowed = 20;
-  // wave1.max_allowed = 50;
-  // wave2.max_allowed = 200;
-  // wave3.max_allowed = 400;
-  // wave4.max_allowed = 600;
-  // wave5.max_allowed = 600;
-
-  // wave0.number_per_spawn = 4;
-  // wave1.number_per_spawn = 10;
-  // wave2.number_per_spawn = 7;
-  // wave3.number_per_spawn = 12;
-  // wave4.number_per_spawn = 16;
-  // wave5.number_per_spawn = 26;
-
-  // wave0.spawn_cooldown = 3;
-  // wave1.spawn_cooldown = 4;
-  // wave2.spawn_cooldown = 2;
-  // wave3.spawn_cooldown = 2;
-  // wave4.spawn_cooldown = 1;
-  // wave5.spawn_cooldown = 1;
-
-  // data.waves.push_back(wave0);
-  // data.waves.push_back(wave1);
-  // data.waves.push_back(wave2);
-  // data.waves.push_back(wave3);
-  // data.waves.push_back(wave4);
-  // data.waves.push_back(wave5);
-
-  return data;
-};
-
-EnemySpawnData
-melee_enemy_2()
-{
-  EnemySpawnData data;
-  data.enemy_key = "actor_enemy_melee_2";
-
-  for (int i = 0; i < 20; i++) {
-    EnemySpawnWave wave0;
-    wave0.wave_start_seconds = min_to_sec(i + 0);
-    wave0.wave_end_seconds = min_to_sec(i + 1);
-
-    // scales from [w0: 25, w2: 50, w3: 75] every minute. max hp = 20*25 = 500
-    // wave0.hp = (i + 1) * 25;
-    wave0.hp = (i + 1) * 5; // 20*5 = 100
-
-    // scales from [w0: 4, w2: 8, w3: 12] every minute. max_allowed = 20*4 = 80
-    wave0.max_allowed = (i + 1) * 4;
-
-    // todo: increase cooldown... down to 0.1?
-    wave0.spawn_cooldown = 1;
-
-    data.waves.push_back(wave0);
-  }
-
-  return data;
-
-  /*
-  EnemySpawnWave wave0;
-  EnemySpawnWave wave1;
-  EnemySpawnWave wave2;
-  EnemySpawnWave wave3;
-
-  wave0.wave_start_seconds = min_to_sec(10) + 5;
-  wave0.wave_end_seconds = min_to_sec(11);
-  wave1.wave_start_seconds = min_to_sec(11) + 1;
-  wave1.wave_end_seconds = min_to_sec(13);
-  wave2.wave_start_seconds = min_to_sec(13);
-  wave2.wave_end_seconds = min_to_sec(14) + 55;
-  wave3.wave_start_seconds = min_to_sec(18);
-  wave3.wave_end_seconds = min_to_sec(19) + 59;
-
-  wave0.hp = 200;
-  wave1.hp = 250;
-  wave2.hp = 400;
-  wave3.hp = 500;
-
-  wave0.max_allowed = 30;
-  wave1.max_allowed = 100;
-  wave2.max_allowed = 300;
-  wave3.max_allowed = 300;
-
-  wave0.number_per_spawn = 3;
-  wave1.number_per_spawn = 5;
-  wave2.number_per_spawn = 14;
-  wave3.number_per_spawn = 20;
-
-  wave0.spawn_cooldown = 1;
-  wave1.spawn_cooldown = 1;
-  wave2.spawn_cooldown = 1;
-  wave3.spawn_cooldown = 1;
-
-  data.waves.push_back(wave0);
-  data.waves.push_back(wave1);
-  data.waves.push_back(wave2);
-  data.waves.push_back(wave3);
-
-  return data;
-  */
-};
-
-EnemySpawnData
-melee_enemy_3()
-{
-  EnemySpawnData data;
-  data.enemy_key = "actor_enemy_melee_3";
-
-  for (int i = 0; i < 20; i++) {
-    EnemySpawnWave wave0;
-    wave0.wave_start_seconds = min_to_sec(i + 0);
-    wave0.wave_end_seconds = min_to_sec(i + 1);
-
-    // scales from [w0: 25, w2: 50, w3: 75] every minute. max hp = 20*25 = 500
-    // wave0.hp = (i + 1) * 25;
-    wave0.hp = (i + 1) * 5; // 20*5 = 100
-
-    // scales from [w0: 4, w2: 8, w3: 12] every minute. max_allowed = 20*4 = 80
-    wave0.max_allowed = (i + 1) * 4;
-
-    // todo: increase cooldown... down to 0.1?
-    wave0.spawn_cooldown = 1;
-
-    data.waves.push_back(wave0);
-  }
-
-  return data;
-
-  /*
-  EnemySpawnWave wave0;
-  EnemySpawnWave wave1;
-  EnemySpawnWave wave2;
-  EnemySpawnWave wave3;
-
-  wave0.wave_start_seconds = min_to_sec(10) + 5;
-  wave0.wave_end_seconds = min_to_sec(11);
-  wave1.wave_start_seconds = min_to_sec(11) + 1;
-  wave1.wave_end_seconds = min_to_sec(13);
-  wave2.wave_start_seconds = min_to_sec(13);
-  wave2.wave_end_seconds = min_to_sec(14) + 55;
-  wave3.wave_start_seconds = min_to_sec(18);
-  wave3.wave_end_seconds = min_to_sec(19) + 59;
-
-  wave0.hp = 200;
-  wave1.hp = 250;
-  wave2.hp = 400;
-  wave3.hp = 500;
-
-  wave0.max_allowed = 30;
-  wave1.max_allowed = 100;
-  wave2.max_allowed = 300;
-  wave3.max_allowed = 300;
-
-  wave0.number_per_spawn = 3;
-  wave1.number_per_spawn = 5;
-  wave2.number_per_spawn = 14;
-  wave3.number_per_spawn = 20;
-
-  wave0.spawn_cooldown = 1;
-  wave1.spawn_cooldown = 1;
-  wave2.spawn_cooldown = 1;
-  wave3.spawn_cooldown = 1;
-
-  data.waves.push_back(wave0);
-  data.waves.push_back(wave1);
-  data.waves.push_back(wave2);
-  data.waves.push_back(wave3);
-
-  return data;
-  */
-};
-
-EnemySpawnData
-exploder_data()
-{
-  // actor_enemy_exploder
-  EnemySpawnData data;
-  data.enemy_key = "actor_enemy_exploder";
-
-  for (int i = 0; i < 20; i++) {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(i + 0);
-    wave.wave_end_seconds = min_to_sec(i + 1);
-
-    // scales from [w0: 25, w2: 50, w3: 75] every minute. max hp = 20*25 = 500
-    // wave0.hp = (i + 1) * 25;
-    wave.hp = (i + 1) * 5; // 20*5 = 100
-
-    // scales from [w0: 1, w2: 2, w3: 3] every minute. max_allowed = 20*4 = 80
-    wave.max_allowed = (i + 1);
-
-    wave.spawn_cooldown = 1;
-    data.waves.push_back(wave);
-  }
-
-  /*
-
-  EnemySpawnWave wave0;
-  EnemySpawnWave wave1;
-  EnemySpawnWave wave2;
-  EnemySpawnWave wave3;
-  EnemySpawnWave wave4;
-
-  wave0.wave_start_seconds = min_to_sec(1); // 19:00
-  wave0.wave_end_seconds = min_to_sec(2);   // 18:00
-
-  wave1.wave_start_seconds = min_to_sec(2) + 1; // 18:00
-  wave1.wave_end_seconds = min_to_sec(6);       // 14:00
-
-  wave2.wave_start_seconds = min_to_sec(7);
-  wave2.wave_end_seconds = min_to_sec(9);
-
-  wave3.wave_start_seconds = min_to_sec(11);
-  wave3.wave_end_seconds = min_to_sec(13);
-
-  wave4.wave_start_seconds = min_to_sec(15);
-  wave4.wave_end_seconds = min_to_sec(16);
-
-  wave0.hp = 30;
-  wave1.hp = 30;
-  wave2.hp = 60;
-  wave3.hp = 240;
-  wave4.hp = 400;
-
-  wave0.max_allowed = 2;
-  wave1.max_allowed = 10;
-  wave2.max_allowed = 1;
-  wave3.max_allowed = 4;
-  wave4.max_allowed = 20;
-
-  wave0.number_per_spawn = 1;
-  wave1.number_per_spawn = 2;
-  wave2.number_per_spawn = 1;
-  wave3.number_per_spawn = 2;
-  wave4.number_per_spawn = 2;
-
-  wave0.spawn_cooldown = 4;
-  wave1.spawn_cooldown = 5;
-  wave2.spawn_cooldown = 1;
-  wave3.spawn_cooldown = 1;
-  wave4.spawn_cooldown = 1;
-
-  exploder.waves.push_back(wave0);
-  exploder.waves.push_back(wave1);
-  exploder.waves.push_back(wave2);
-  exploder.waves.push_back(wave3);
-  exploder.waves.push_back(wave4);
-  */
-
-  return data;
-};
-
-EnemySpawnData
-projectile_enemy()
-{
-  EnemySpawnData data;
-  data.enemy_key = "actor_enemy_projectile";
-
-  for (int i = 0; i < 20; i++) {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(i + 0);
-    wave.wave_end_seconds = min_to_sec(i + 1);
-
-    // scales from [w0: 25, w2: 50, w3: 75] every minute. max hp = 20*25 = 500
-    // wave0.hp = (i + 1) * 25;
-    wave.hp = (i + 1) * 5; // 20*5 = 100
-
-    // scales from [w0: 1, w2: 2, w3: 3] every minute. max_allowed = 20*4 = 80
-    wave.max_allowed = (i + 1);
-
-    wave.spawn_cooldown = 1;
-    data.waves.push_back(wave);
-  }
-
-  /*
-
-  EnemySpawnWave wave0;
-  EnemySpawnWave wave1;
-  EnemySpawnWave wave2;
-  EnemySpawnWave wave3;
-
-  wave0.wave_start_seconds = min_to_sec(6);
-  wave0.wave_end_seconds = min_to_sec(8);
-  wave1.wave_start_seconds = min_to_sec(11);
-  wave1.wave_end_seconds = min_to_sec(13);
-  wave2.wave_start_seconds = min_to_sec(15);
-  wave2.wave_end_seconds = min_to_sec(16);
-  wave3.wave_start_seconds = min_to_sec(18);
-  wave3.wave_end_seconds = min_to_sec(19) + 59;
-
-  wave0.hp = 400;
-  wave1.hp = 200;
-  wave2.hp = 300;
-  wave3.hp = 500;
-
-  wave0.max_allowed = 2;
-  wave1.max_allowed = 12;
-  wave2.max_allowed = 16;
-  wave3.max_allowed = 10;
-
-  wave0.number_per_spawn = 2;
-  wave1.number_per_spawn = 2;
-  wave2.number_per_spawn = 2;
-  wave3.number_per_spawn = 1;
-
-  wave0.spawn_cooldown = 10;
-  wave1.spawn_cooldown = 1;
-  wave2.spawn_cooldown = 1;
-  wave3.spawn_cooldown = 1;
-
-  data.waves.push_back(wave0);
-  data.waves.push_back(wave1);
-  data.waves.push_back(wave2);
-  data.waves.push_back(wave3);
-  */
-
-  return data;
-};
-
-EnemySpawnData
-swarmlord_enemy()
-{
-  EnemySpawnData data;
-  data.enemy_key = "actor_enemy_swarmlord";
-
-  for (int i = 0; i < 20; i++) {
-    EnemySpawnWave wave;
-    wave.wave_start_seconds = min_to_sec(i + 0);
-    wave.wave_end_seconds = min_to_sec(i + 1);
-
-    // scales from [w0: 25, w2: 50, w3: 75] every minute. max hp = 20*25 = 500
-    // wave0.hp = (i + 1) * 25;
-    wave.hp = (i + 1) * 5; // 20*5 = 100
-
-    // scales from [w0: 1, w2: 2, w3: 3] every minute. max_allowed = 20*4 = 80
-    wave.max_allowed = (i + 1);
-
-    wave.spawn_cooldown = 1;
-    data.waves.push_back(wave);
-  }
-
-  return data;
-};
-
 std::optional<EnemySpawnWave>
 get_wave_from_time(const EnemySpawnData& data, int seconds_from_start)
 {
   for (const auto& wave : data.waves) {
-    const bool in_lower_bound = seconds_from_start >= wave.wave_start_seconds;
-    const bool in_upper_bound = seconds_from_start < wave.wave_end_seconds;
+    const bool in_lower_bound = seconds_from_start >= min_to_sec(wave.span.start);
+    const bool in_upper_bound = seconds_from_start < min_to_sec(wave.span.stop);
     if (in_lower_bound && in_upper_bound)
       return wave;
   }
@@ -452,7 +74,14 @@ glm::ivec2
 rnd_position_around_point(entt::registry& r, const glm::ivec2 center)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  static engine::RandomState rnd(0);
+
+#if defined(_DEBUG)
+  // static engine::RandomState rnd(0);
+  static engine::RandomState rnd(engine::get_system_time_for_seed());
+#else
+  static engine::RandomState rnd(engine::get_system_time_for_seed());
+#endif
+
   const float rnd_val_0 = engine::rand_01(rnd.rng);
 
   // generate a random angle 0 to 2PI

@@ -138,4 +138,7 @@ round_to_nearest_axis(const glm::vec2& v);
 float
 angle_degrees_flip_y_axis(float angle_degrees);
 
+[[nodiscard]] int
+get_system_time_for_seed();
+
 } // namespace engine
