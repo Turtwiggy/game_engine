@@ -210,6 +210,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   // apply damage
   hp->hp -= damage;
+  // SDL_Log("Something took damage");
 
   additional_misc_damage_events(r, parent_e);
   create_damage_popup(r, damage, crit, parent_e);

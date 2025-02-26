@@ -406,6 +406,13 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     create_empty<AudioRequestPlayEvent>(r,
                                         AudioRequestPlayEvent{
+                                          .tag = "WATER_AMBIENCE_01",
+                                          .looping = true,
+                                          .percent_of_max_user_volume = 1.0f,
+                                        });
+
+    create_empty<AudioRequestPlayEvent>(r,
+                                        AudioRequestPlayEvent{
                                           .tag = "SELECT_01",
                                           .looping = true,
                                           .percent_of_max_user_volume = 1.0f,
@@ -415,7 +422,15 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::survive) {
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true });
+
+    create_empty<AudioRequestPlayEvent>(r,
+                                        AudioRequestPlayEvent{
+                                          .tag = "WATER_AMBIENCE_01",
+                                          .looping = true,
+                                          .percent_of_max_user_volume = 1.0f,
+                                        });
+
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true, 0.1f });
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);

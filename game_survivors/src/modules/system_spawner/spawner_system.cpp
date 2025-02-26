@@ -90,6 +90,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // oyster = actor_destructable
 
   auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
+  r.emplace<EnemyComponent>(fixture_e); // duplicate enemy component on fixture?
   r.emplace<HealthComponent>(fixture_e, hp, hp);
   // r.emplace<DefenceComponent>(fixture_e);
 

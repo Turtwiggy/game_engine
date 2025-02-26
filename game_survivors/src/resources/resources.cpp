@@ -53,7 +53,8 @@ get_default_audio()
   audio.sounds.push_back(
     { "WATER_AMBIENCE_01", path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.wav", SoundType::BACKGROUND });
   audio.sounds.push_back({ "SELECT_01", path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back({ "GAME_01", path + "lady-of-the-80.mp3", SoundType::BACKGROUND });
+  // audio.sounds.push_back({ "GAME_01", path + "lady-of-the-80.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "GAME_01", path + "sergepavkin_smooth-waters.mp3", SoundType::BACKGROUND });
   // audio.sounds.push_back({ "GAME_02", path + "lady-of-the-80.mp3", SoundType::BACKGROUND });
 
   audio.sounds.push_back({ "UI_HOVER_01", path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });

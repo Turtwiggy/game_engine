@@ -14,12 +14,6 @@ message("game_survivors: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_survivors: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
-if("${CMAKE_BUILD_TYPE}" MATCHES "")
-  message("CMAKE_BUILD_TYPE was empty... setting to debug")
-  set(CMAKE_BUILD_TYPE Debug)
-  message("game_survivors: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-endif()
-
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-clang.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
@@ -56,19 +50,16 @@ link_libs(game_survivors)
 # Link steam api
 if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
   # Link steam_api[64].lib
-  set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
-  target_link_libraries(game_survivors PRIVATE ${steam_lib}/steam_api64.lib)
+  set(steam_dll_dst ${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll)
+  set(steam_dll_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64/steam_api64.dll)
+  set(steam_lib_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64/steam_api64.lib)
+  target_link_libraries(game_survivors PRIVATE ${steam_lib_src})
 
   # Copy the .dll next to the .exe
-  if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll")
+  if(NOT EXISTS ${steam_dll_dst})
     message("Copying steam .dll next to .exe")
-    set(dst ${CMAKE_CURRENT_BINARY_DIR})
-    add_custom_command(TARGET game_survivors POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Checking if steam.api64.dll exists..."
-      COMMAND if not exist "$<TARGET_FILE_DIR:game_survivors>/steam_api64.dll"(
-      COMMAND ${CMAKE_COMMAND} -E copy ${steam_lib}/steam_api64.dll $<TARGET_FILE_DIR:game_survivors>
-      )
-      COMMENT "Copy steam_api64.dll if it doesn't exist"
+    add_custom_command(TARGET game_survivors_tests POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${steam_dll_src} ${steam_dll_dst}
     )
   endif()
 endif()

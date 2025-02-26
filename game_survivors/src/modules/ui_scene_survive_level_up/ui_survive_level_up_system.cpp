@@ -248,7 +248,6 @@ update_ui_survive_level_up_system(entt::registry& r)
 
       // Kill all the xp...
       auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-
       for (const auto& [e, xp_c] : xp_view.each())
         dead.dead.emplace(e);
 

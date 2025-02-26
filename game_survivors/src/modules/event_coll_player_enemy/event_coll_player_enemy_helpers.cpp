@@ -56,22 +56,14 @@ handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
 void
 handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_evt)
 {
-  //
-  // Two fixtures have collided,
-  // If we choose FixtureOrBody::BODY, check the entt components on the body's user data e, not the fixture.
-  // If we choose FixtureOrBody::FIXTURE, check the entt components on the fixture's user data e, not the body.
-  //
-
   // PlayerFixtureComponent will be on the fixture level
   // TeamComponent will be on the body level
-  const auto [player_fixture_e, enemy_e] = collision_of_interest<PlayerFixtureComponent, EnemyComponent>(
-    r, coll_evt.a, coll_evt.b, FixtureOrBody::FIXTURE, FixtureOrBody::BODY);
-
-  if (player_fixture_e == entt::null || enemy_e == entt::null)
+  const auto [player_fixture_e, enemy_fixture_e] = coll<PlayerFixtureComponent, EnemyComponent>(r, coll_evt.a, coll_evt.b);
+  if (player_fixture_e == entt::null || enemy_fixture_e == entt::null)
     return;
 
   // if the enemy is already colliding with the player, dont damage again
-  auto& coll = r.get_or_emplace<CollInfo>(enemy_e).other;
+  auto& coll = r.get_or_emplace<CollInfo>(enemy_fixture_e).other;
   auto it = std::find(coll.begin(), coll.end(), player_fixture_e);
   if (it != coll.end())
     return;
@@ -80,13 +72,14 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
   auto player_parent_e = r.get<HasParentComponent>(player_fixture_e).parent;
+  auto enemy_parent_e = r.get<HasParentComponent>(enemy_fixture_e).parent;
 
   // explode on contact with enemies with the "explode" trait
-  handle_player_enemy_explosive_coll(r, enemy_e);
+  handle_player_enemy_explosive_coll(r, enemy_parent_e);
 
   // deal damage to the player for the collision
   DamageEvent evt;
-  evt.from = enemy_e;
+  evt.from = enemy_parent_e;
   evt.to = player_fixture_e;
   evt.type = DamageType::PHYSICAL;
   evt.amount = 1; // todo: replace with "correct" damage for enemy
@@ -94,8 +87,8 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   evts_c.dispatcher->update();
 
   // Apply a force in the direction away from the player to the enemy
-  const auto dir = engine::normalize_safe(get_position(r, enemy_e) - get_position(r, player_parent_e));
-  const auto& enemy_phys = r.get<PhysicsBodyComponent>(enemy_e);
+  const auto dir = engine::normalize_safe(get_position(r, enemy_parent_e) - get_position(r, player_parent_e));
+  const auto& enemy_phys = r.get<PhysicsBodyComponent>(enemy_parent_e);
 
   // ding ding, you hit. now stop and move away
   // This sets the velocity this frame,
@@ -106,14 +99,12 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
 void
 handle_player_enemy_coll_exit(entt::registry& r, const OnCollisionExit& coll_evt)
 {
-  const auto [player_fixture_e, enemy_e] = collision_of_interest<PlayerFixtureComponent, EnemyComponent>(
-    r, coll_evt.a, coll_evt.b, FixtureOrBody::FIXTURE, FixtureOrBody::BODY);
-
-  if (player_fixture_e == entt::null || enemy_e == entt::null)
+  const auto [player_fixture_e, enemy_fixture_e] = coll<PlayerFixtureComponent, EnemyComponent>(r, coll_evt.a, coll_evt.b);
+  if (player_fixture_e == entt::null || enemy_fixture_e == entt::null)
     return;
 
   // The enemy has left the player. remove the player from it.
-  auto& coll = r.get_or_emplace<CollInfo>(enemy_e);
+  auto& coll = r.get_or_emplace<CollInfo>(enemy_fixture_e);
   const auto& it = std::find(coll.other.begin(), coll.other.end(), player_fixture_e);
   if (it != coll.other.end())
     coll.other.erase(it); // erase col

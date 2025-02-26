@@ -2,6 +2,7 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "modules/core_colour/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
@@ -23,11 +24,13 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   give_life(r, bullet_e, pos, bullet_def.size);
   r.emplace<HasParentComponent>(bullet_e, HasParentComponent{ parent_e });
 
+  auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
+  r.emplace<BulletComponent>(fixture_e);
+
   r.emplace<TeamComponent>(bullet_e, bullet_def.team);
   r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);
   r.emplace<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);
 
-  r.emplace<BulletComponent>(bullet_e);
   r.emplace<BulletDamage>(bullet_e, bullet_def.damage);
   r.emplace<BulletPierce>(bullet_e, bullet_def.pierce);
   r.emplace<BulletSize>(bullet_e, bullet_def.size);

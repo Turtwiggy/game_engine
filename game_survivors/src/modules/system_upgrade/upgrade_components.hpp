@@ -153,12 +153,13 @@ public:
       if (modifier->stat != stat)
         continue;
 
-      // This approach stacks the modifiers
-      // result = modifier->apply(result);
+      // multiply the result
+      if (modifier->modifier == "stat_percent_increase")
+        result *= modifier->apply(result);
 
-      // This approach adds increases to the base
-      float modified = modifier->apply(base);
-      result += modified - base;
+      // add the flat number
+      if (modifier->modifier == "stat_flat_increase")
+        result += modifier->apply(base);
     }
 
     return result;
@@ -177,7 +178,7 @@ public:
     : IStatModifier{ "stat_percent_increase", stat }
     , percent(percent_between_0_and_100) {};
 
-  float apply(float base) const override { return base * (1.0f + (percent / 100.0f)); }
+  float apply(float base) const override { return (1.0f + (percent / 100.0f)); }
 };
 
 struct StatFlatIncrease : public IStatModifier
@@ -190,7 +191,7 @@ public:
     : IStatModifier{ "stat_flat_increase", stat }
     , increase(increase) {};
 
-  float apply(float base) const override { return base + increase; }
+  float apply(float base) const override { return increase; }
 };
 
 } // namespace game2d

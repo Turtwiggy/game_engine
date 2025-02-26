@@ -20,7 +20,6 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_components.hpp"
 #include "modules/system_cooldown/components.hpp"
-#include "modules/system_enemy_projectile/enemy_projectile_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_traits/trait_components.hpp"
