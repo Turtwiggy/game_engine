@@ -9,6 +9,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
+#include "modules/actor_enemy_grower/enemy_grower_system.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
 #include "modules/actor_swarmlord/enemy_swarmlord_system.hpp"
 #include "modules/combat/combat_helpers.hpp"
@@ -294,7 +295,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_spawner_system(r);
     update_alpha_based_on_lifecycle_system(r);
     update_sprint_system(r, dt);
+
     update_death_throes_system(r, dt);
+    update_enemy_grower_system(r, dt);
     update_enemy_projectile_system(r);
     update_enemy_swarmlord_system(r);
 

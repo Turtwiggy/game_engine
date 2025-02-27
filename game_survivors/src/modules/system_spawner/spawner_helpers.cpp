@@ -1,5 +1,6 @@
 #include "spawner_helpers.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -70,14 +71,12 @@ get_random_player_target(entt::registry& r)
   return players_view[rnd];
 };
 
-glm::ivec2
-rnd_position_around_point(entt::registry& r, const glm::ivec2 center)
+glm::vec2
+rnd_position_around_point(entt::registry& r, const glm::ivec2 center, float radius_min, float radius_max)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-
 #if defined(_DEBUG)
-  // static engine::RandomState rnd(0);
-  static engine::RandomState rnd(engine::get_system_time_for_seed());
+  static engine::RandomState rnd(0);
+  // static engine::RandomState rnd(engine::get_system_time_for_seed());
 #else
   static engine::RandomState rnd(engine::get_system_time_for_seed());
 #endif
@@ -87,14 +86,42 @@ rnd_position_around_point(entt::registry& r, const glm::ivec2 center)
   // generate a random angle 0 to 2PI
   float angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
 
-  // generate a random distance outside the radius
-  float radius = std::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
-  float distance = radius;
+  // generate a random distance from 0 to radius
+  float distance = engine::rand_det_s(rnd.rng, radius_min, radius_max);
 
   const auto dir = engine::angle_radians_to_direction(angle);
   float spawn_x = center.x + dir.x * distance;
   float spawn_y = center.y + dir.y * distance;
   return { spawn_x, spawn_y };
+};
+
+glm::vec2
+rnd_position_in_map_but_not_inside_players(entt::registry& r)
+{
+  int attempts = 3;
+  auto candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, 700.0f);
+
+  for (int i = 0; i < attempts; i++) {
+    bool valid = true;
+
+    auto view = r.view<const PlayerComponent>();
+    for (const auto& [e, player_c] : view.each()) {
+      auto d = get_position(r, e) - candidate;
+      const float d2 = d.x * d.x + d.y * d.y;
+      SDL_Log("d2: %f", d2);
+
+      constexpr int buffer_size_sqr = 32 * 32;
+      constexpr int player_size_sqr = 32 * 32;
+      if (d2 < (player_size_sqr + buffer_size_sqr))
+        valid = false; // candidate invalid. try again.
+    }
+
+    if (valid)
+      break;
+    candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, 700.0f);
+  }
+
+  return candidate;
 };
 
 std::unordered_map<std::string, int>

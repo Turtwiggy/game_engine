@@ -43,8 +43,8 @@ get_hierarchy(entt::registry& r)
     if (tag == nullptr)
       throw std::runtime_error("Non-tagged entity.");
 
-    if (auto* has_parent = r.try_get<HasParentComponent>(e)) {
-      auto parent_e = has_parent->parent;
+    if (const auto* has_parent = r.try_get<HasParentComponent>(e)) {
+      const auto parent_e = has_parent->parent;
       //
       // Insert or init
       //
@@ -55,11 +55,10 @@ get_hierarchy(entt::registry& r)
 
       continue;
     }
-    //
-    // Already added by child, or init
-    //
+    // Already added by child
     if (parent_to_children.contains(e))
       continue;
+    // init empty
     parent_to_children[e] = {};
   }
 
@@ -69,10 +68,10 @@ get_hierarchy(entt::registry& r)
 void
 draw_hierarchy(entt::registry& r, const std::vector<Category>& categories, entt::entity& selected_e)
 {
-  // GET_FIRST_OR_RETURN(SINGLE_DebugMenuBar, r, menu_e, menu_c);
-  // auto h_menu_state = gesert_menubar_state(menu_c, "Hierarchy");
-  // if (!h_menu_state.enabled)
-  //   return;
+  GET_FIRST_OR_RETURN(SINGLE_DebugMenuBar, r, menu_e, menu_c);
+  auto h_menu_state = gesert_menubar_state(menu_c, "Hierarchy");
+  if (!h_menu_state.enabled)
+    return;
 
   // Filter the Hierarchy
   static std::string filter = "";

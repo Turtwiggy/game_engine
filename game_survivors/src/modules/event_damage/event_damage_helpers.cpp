@@ -24,8 +24,6 @@
 #include <glm/glm.hpp>
 #include <magic_enum.hpp>
 
-#include <stdexcept>
-
 namespace game2d {
 
 void
@@ -172,9 +170,9 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   // note: evt.to is a fixture, not the parent with all the components on
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
-    const auto& tag_c = r.get<TagComponent>(to_e);
-    auto err = std::format("handle_damage_event(): {} has no HealthComponent", tag_c.tag);
-    SDL_Log("%s", err.c_str());
+    // const auto& tag_c = r.get<TagComponent>(to_e);
+    // auto err = std::format("handle_damage_event(): {} has no HealthComponent", tag_c.tag);
+    // SDL_Log("%s", err.c_str());
     // throw std::runtime_error(err);
     return;
   }

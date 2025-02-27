@@ -14,6 +14,11 @@ gesert_menubar_state(SINGLE_DebugMenuBar& state, std::string label)
     menubar.enabled = false;
     menubar.name = label;
     state.windows.push_back(menubar);
+
+    // sort based on name.
+    auto alphabetically = [](const MenuBar& a, const MenuBar& b) { return a.name[0] < b.name[0]; };
+    std::sort(state.windows.begin(), state.windows.end(), alphabetically);
+
     return menubar;
   }
   return *it;

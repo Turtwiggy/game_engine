@@ -270,7 +270,7 @@
       "name": "actor_enemy_grower",
       "renderable": { "sprite": "SEA_URCHIN", "colour": "red" },
       "traits": [ ],
-      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
     {

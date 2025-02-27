@@ -94,7 +94,7 @@ spawn_weapon(entt::registry& r, const HardpointData& data)
   r.emplace<BulletSize>(wep_e, BulletSize{ { 5, 2 } });
   r.emplace<BulletSpeed>(wep_e, 1.0f);
   r.emplace<BulletKnockback>(wep_e); // no knockback by default
-  r.emplace<BulletBounce>(wep_e);    // no bounce by default
+  r.emplace<BulletBounce>(wep_e, 1); // 1 bounce by default
   r.emplace<BulletCrit>(wep_e);      // no crit by default
   r.emplace<BulletLifesteal>(wep_e); // no lifesteal by default
 

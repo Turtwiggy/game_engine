@@ -10,11 +10,13 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_enemy_grower/enemy_grower_components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/core_colour/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
+#include "modules/core_renderer/components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_death_throes/death_throes_components.hpp"
@@ -34,30 +36,34 @@ namespace game2d {
 entt::entity
 spawn_enemy(entt::registry& r, std::string key, float hp)
 {
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+
   // TODO: could have an "aggro meter" per player?
   auto target_e = get_random_player_target(r);
   if (target_e == entt::null)
     return entt::null;
+
+  // get a random position around target player?
+  // TODO: should be a larger zone considering all players?
+  const auto& target_t = r.get<TransformComponent>(target_e);
+
+  const auto target_pos = glm::vec2{ target_t.position.x, target_t.position.y };
+  const float screen_max = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  const auto rnd_pos_around_player = rnd_position_around_point(r, target_pos, screen_max, screen_max);
+  const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players(r);
 
   auto e = spawn(r, key);
   r.emplace<EnemyComponent>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
   // r.emplace<SpriteOutline>(e);
 
-  // get a random position around target player?
-  // TODO: should be a larger zone considering all players?
-  const auto& target_t = r.get<TransformComponent>(target_e);
-  const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
-
   auto enemy_size = glm::vec2{ 32, 32 };
   if (key == "actor_enemy_swarmlord_minion")
     enemy_size = { 16, 16 };
+  if (key == "actor_enemy_grower")
+    enemy_size = { 0, 0 };
 
-  give_life(r, e, rnd_pos, enemy_size);
-
-  //
-  // per-enemy tweaks
-  //
+  give_life(r, e, rnd_pos_around_player, enemy_size);
 
   // pufferfish
   if (key == "actor_enemy_exploder") {
@@ -149,13 +155,29 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.emplace<SwarmLordComponent>(e);
   }
 
-  // sea urchin actor_enemy_grower
-  // sea horse actor_enemy_charger
-  // oyster = actor_destructable
+  // sea urchin
+  if (key == "actor_enemy_grower") {
+    r.emplace<GrowerComponent>(e);
+    set_position(r, e, rnd_pos_inside_map);
+  }
+
+  // sea horse
+  if (key == "actor_enemy_charger") {
+  }
+
+  if (key == "actor_destructable") {
+    //
+  }
 
   auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
   r.emplace<EnemyComponent>(fixture_e); // duplicate enemy component on fixture?
   r.emplace<HealthComponent>(fixture_e, hp, hp);
+
+  if (key == "actor_enemy_grower") {
+    // A grower's health is it's size, not a healthcomponent
+    r.remove<HealthComponent>(fixture_e);
+  }
+
   // r.emplace<DefenceComponent>(fixture_e);
 
   // move at player, this gotta be changed for more interesting types
