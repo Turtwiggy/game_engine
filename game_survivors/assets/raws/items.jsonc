@@ -275,8 +275,8 @@
     },
     {
       "name": "actor_enemy_charger",
-      "renderable": { "sprite": "SEA_HORSE", "colour": "red" },
-      "traits": [ {"key": "DIRECT" } ],
+      "renderable": { "sprite": "SEA_HORSE", "colour": "orange" },
+      "traits": [ {"key": "CHARGE" } ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },

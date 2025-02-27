@@ -16,6 +16,7 @@ enum class AquirableTrait
   ARC_ANGLE,     // ai type
   KEEP_DISTANCE, // ai type
   PROJECTILE,    // ai type
+  CHARGE,        // ai type
 
   count,
 };

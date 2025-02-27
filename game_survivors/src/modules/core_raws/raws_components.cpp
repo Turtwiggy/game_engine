@@ -11,6 +11,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_enemy_charger/enemy_charger_components.hpp"
 #include "modules/actor_exploder/actor_exploder_helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
@@ -343,6 +344,11 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       if (trait_enum == AquirableTrait::EXPLODE) {
         add_explode_on_death_callback(r, e);
         big_explode = true;
+      }
+
+      if (trait_enum == AquirableTrait::CHARGE) {
+        r.emplace<ChargerEnemyComponent>(e);
+        r.emplace<CooldownComponent>(e);
       }
     }
 
