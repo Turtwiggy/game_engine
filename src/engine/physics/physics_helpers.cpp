@@ -12,6 +12,7 @@
 #include <box2d/b2_contact.h>
 #include <box2d/b2_math.h>
 #include <box2d/b2_world_callbacks.h>
+
 #include <format>
 #include <functional>
 #include <limits>
@@ -115,14 +116,14 @@ class SearchAreaCallback : public b2QueryCallback
 {
 public:
   float nearest_distance_squared = std::numeric_limits<float>::max();
-  std::vector<entt::entity> results;
+  std::unordered_set<entt::entity> results;
 
   // Something hit the matching criteria
   bool ReportFixture(b2Fixture* fixture) override
   {
     auto* body = fixture->GetBody();
     auto body_e = (entt::entity)body->GetUserData().pointer;
-    results.push_back(body_e);
+    results.emplace(body_e);
     return true; // keep going to find all fixtures in query area
   };
 };
@@ -131,7 +132,7 @@ class FilteredSearchAreaCallback : public b2QueryCallback
 {
 public:
   float nearest_distance_squared = std::numeric_limits<float>::max();
-  std::vector<std::pair<int, entt::entity>> results; // distance to the entity
+  std::unordered_set<std::pair<int, entt::entity>, pair_hash> results; // distance to the entity
 
   b2Vec2 position;
   entt::registry& r;
@@ -154,14 +155,15 @@ public:
     if (cond(r, body_e)) {
       const b2Vec2 diff = body->GetPosition() - position;
       const float d2 = diff.LengthSquared();
-      results.push_back({ d2, body_e });
+      std::pair<int, entt::entity> result = { d2, body_e };
+      results.emplace(result);
     }
 
     return true; // keep going to find all fixtures in query area
   };
 };
 
-std::vector<entt::entity>
+std::unordered_set<entt::entity>
 get_all_in_area(entt::registry& r, glm::vec2 center, float d_in_meters)
 {
   SearchAreaCallback callback;
@@ -175,7 +177,7 @@ get_all_in_area(entt::registry& r, glm::vec2 center, float d_in_meters)
   return callback.results;
 };
 
-std::vector<std::pair<int, entt::entity>>
+std::unordered_set<std::pair<int, entt::entity>, pair_hash>
 get_all_in_area_filtered(entt::registry& r,
                          const b2Vec2 center_in_meters,
                          const float d_in_meters,

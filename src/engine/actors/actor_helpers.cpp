@@ -9,15 +9,16 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
+#include <box2d/b2_math.h>
 
 namespace game2d {
 
 glm::vec2
 get_position(entt::registry& r, const entt::entity e)
 {
-  if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
+  if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
     return meters_to_pixels(pb->body->GetPosition());
-  }
+
   const auto& t = r.get<TransformComponent>(e);
   return { t.position.x, t.position.y };
 };
@@ -60,6 +61,19 @@ set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir)
 }
 
 glm::vec2
+get_fixture_size(entt::registry& r, const entt::entity fixture_e)
+{
+  const auto& fixture_c = r.get<PhysicsFixtureComponent>(fixture_e);
+  const auto* fixture = fixture_c.fixture;
+
+  const auto aabb = fixture->GetAABB(0);
+  const float width = aabb.upperBound.x - aabb.lowerBound.x;
+  const float height = aabb.upperBound.y - aabb.lowerBound.y;
+
+  return meters_to_pixels({ width, height });
+};
+
+glm::vec2
 get_size(entt::registry& r, const entt::entity e)
 {
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
@@ -69,7 +83,6 @@ get_size(entt::registry& r, const entt::entity e)
 
     for (const b2Fixture* fixture = pb->body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
       const b2Shape* shape = fixture->GetShape();
-
       // Get the number of vertices
       int32 childCount = shape->GetChildCount();
       for (int32 i = 0; i < childCount; ++i) {

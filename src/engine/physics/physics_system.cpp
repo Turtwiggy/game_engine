@@ -1,6 +1,8 @@
 #include "engine/physics/physics_system.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
@@ -50,6 +52,22 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
       // transform_c.scale.y = size.y;
     }
   }
+
+  {
+    const auto view = r.view<const PhysicsFixtureComponent, TransformComponent>();
+    for (const auto& [e, fixture_c, transform_c] : view.each()) {
+      const auto parent_e = r.get<HasParentComponent>(e).parent;
+      const auto parent_pos_pixels = get_position(r, parent_e);
+
+      // const auto aabb = fixture_c.fixture->GetAABB(0);
+      // const auto offset = meters_to_pixels(aabb.GetCenter() - fixture_c.body->GetWorldCenter());
+      // transform_c.position.x = parent_pos_pixels.x + offset.x;
+      // transform_c.position.y = parent_pos_pixels.y + offset.y;
+      transform_c.position.x = parent_pos_pixels.x;
+      transform_c.position.y = parent_pos_pixels.y;
+    }
+  }
+
   {
     const auto& view =
       r.view<const PhysicsBodyComponent, TransformComponent, const SetTransformRotationBasedOnPhysicsBody>();

@@ -61,21 +61,21 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   const auto& bullet_knockback_c = r.get<BulletKnockback>(bullet_e_parent);
   auto& bullet_pierce_c = r.get<BulletPierce>(bullet_e_parent);
 
+  //
+  // Send a damage event from the bullet to the other entity
+  //
+  {
+    DamageEvent evt;
+    evt.from = bullet_e_parent;
+    evt.to = other_fixture_e;
+    evt.type = DamageType::PHYSICAL;
+    evt.amount = bullet_damage_c.damage;
+    evts_c.dispatcher->trigger(evt);
+    evts_c.dispatcher->update();
+  }
+
   auto* hp_c = r.try_get<HealthComponent>(other_fixture_e);
   if (hp_c) {
-    //
-    // Send a damage event from the bullet to the other entity
-    //
-    {
-      DamageEvent evt;
-      evt.from = bullet_e_parent;
-      evt.to = other_fixture_e;
-      evt.type = DamageType::PHYSICAL;
-      evt.amount = bullet_damage_c.damage;
-      evts_c.dispatcher->trigger(evt);
-      evts_c.dispatcher->update();
-    }
-
     //
     // give bullets "pierce" as the num enemies you can hit
     //

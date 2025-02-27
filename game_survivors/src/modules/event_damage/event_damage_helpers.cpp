@@ -18,6 +18,7 @@
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
+#include "modules/ui_worldspace_text/helpers.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>
@@ -26,17 +27,6 @@
 #include <stdexcept>
 
 namespace game2d {
-
-void
-additional_misc_damage_events(entt::registry& r, const entt::entity to_e)
-{
-  // .. pop & flash
-  if (r.try_get<RequestHitScaleComponent>(to_e) == nullptr)
-    r.emplace<RequestHitScaleComponent>(to_e);
-
-  // .. screenshake
-  // create_empty<RequestScreenshakeComponent>(r);
-};
 
 void
 create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity parent_e)
@@ -169,26 +159,34 @@ check_if_crit(entt::registry& r, const DamageEvent& evt, engine::RandomState& rn
 void
 handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 {
-  auto to_e = evt.to;
+  const auto to_e = evt.to;
+  const auto parent_e = r.get<HasParentComponent>(to_e).parent;
+
+  // .. pop & flash the fixture
+  if (const auto* t_c = r.try_get<TransformComponent>(to_e))
+    r.emplace_or_replace<RequestHitScaleComponent>(to_e);
+  // .. pop & flash the parent transform
+  else
+    r.emplace_or_replace<RequestHitScaleComponent>(parent_e);
+
   // note: evt.to is a fixture, not the parent with all the components on
   auto* hp = r.try_get<HealthComponent>(to_e);
   if (!hp) {
     const auto& tag_c = r.get<TagComponent>(to_e);
     auto err = std::format("handle_damage_event(): {} has no HealthComponent", tag_c.tag);
     SDL_Log("%s", err.c_str());
-    throw std::runtime_error(err);
+    // throw std::runtime_error(err);
     return;
   }
 
   static engine::RandomState dodge_rnd(0);
   static engine::RandomState crit_rnd(0);
 
-  const auto parent_e = r.get<HasParentComponent>(to_e).parent;
   const auto* your_stats_c = r.try_get<StatModifierComponent>(parent_e);
   if (your_stats_c) {
     // did you dodge?
     if (check_if_dodge(r, parent_e, dodge_rnd, *your_stats_c)) {
-      SDL_Log("something dodged");
+      create_popup(r, get_position(r, parent_e), "0");
       return;
     }
   }
@@ -212,7 +210,6 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   hp->hp -= damage;
   // SDL_Log("Something took damage");
 
-  additional_misc_damage_events(r, parent_e);
   create_damage_popup(r, damage, crit, parent_e);
 
   if (hp->hp <= 0) {

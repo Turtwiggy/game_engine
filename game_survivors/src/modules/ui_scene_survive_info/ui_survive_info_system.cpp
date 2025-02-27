@@ -24,6 +24,8 @@ namespace game2d {
 void
 update_ui_survive_info_system(entt::registry& r)
 {
+  return; // disabled system
+
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));

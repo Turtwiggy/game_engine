@@ -150,10 +150,8 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     if (i == 0)
       spawned_e = e;
 
-    else {
-      const auto sprite_e = create_transform(r, i_as_str);
-      spawned_e = sprite_e;
-    }
+    else
+      spawned_e = create_transform(r, tag_str);
 
     // needs to be emplaced in order to maintain spritestack
     r.emplace<SpriteComponent>(spawned_e);

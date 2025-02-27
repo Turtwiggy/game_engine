@@ -3,6 +3,7 @@
 #include "engine/renderer/transform.hpp"
 
 #include <SDL2/SDL_log.h>
+#include <cctype>
 #include <entt/entt.hpp>
 
 #include <format>
@@ -21,12 +22,37 @@ inline std::string
 cleanup_tag_str(const std::string& s)
 {
   // cleanup the generated tag...
-  std::string cleanedup_tag = s;
-  const std::string search_str = "struct game2d::";
-  const std::size_t pos = cleanedup_tag.find(search_str);
-  if (pos != std::string::npos)
-    cleanedup_tag = cleanedup_tag.substr(pos + search_str.length());
-  return cleanedup_tag;
+  // std::string cleanedup_tag = s;
+  // const std::string search_str = "struct game2d::";
+  // const std::size_t pos = cleanedup_tag.find(search_str);
+  // if (pos != std::string::npos)
+  //   cleanedup_tag = cleanedup_tag.substr(pos + search_str.length());
+
+  std::string clean_tag = s;
+
+#if defined(__MINGW32__)
+  // demangle
+
+  // remove the namespace
+  const std::string prefix = "N6game2d";
+  if (clean_tag.find(prefix) != 0)
+    return clean_tag;
+  clean_tag = clean_tag.substr(prefix.size());
+
+  // remove the numbers (that represent length)
+  size_t end = 0;
+  while (end < clean_tag.size() && std::isdigit(clean_tag[end]))
+    end++;
+  int length = std::stoi(clean_tag.substr(0, end));
+  clean_tag = clean_tag.substr(end, length);
+
+  // Remove the trailing 'E' if present
+  if (!clean_tag.empty() && clean_tag.back() == 'E')
+    clean_tag.pop_back();
+
+#endif
+
+  return clean_tag;
 };
 
 template<class T>
@@ -41,6 +67,7 @@ create_empty(entt::registry& r, const std::optional<T>& val = std::nullopt)
   // type identification on require at least one virtual function.
   // If you want type information to work on a class for which you don't
   // really want any virtual functions, make the destructor virtual.
+
   const std::string name = typeid(T).name();
   const std::string tag = cleanup_tag_str(name);
   // const std::string tag = "empty";

@@ -23,6 +23,9 @@ void
 set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir);
 
 [[nodiscard]] glm::vec2
+get_fixture_size(entt::registry& r, const entt::entity fixture_e);
+
+[[nodiscard]] glm::vec2
 get_size(entt::registry& r, const entt::entity e);
 
 void

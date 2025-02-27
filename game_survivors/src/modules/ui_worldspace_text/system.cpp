@@ -29,7 +29,6 @@ worldspace_to_screenspace(entt::registry& r, const glm::vec2& pos_in_pixels)
 void
 update_ui_worldspace_text_system(entt::registry& r)
 {
-
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
 
@@ -53,6 +52,7 @@ update_ui_worldspace_text_system(entt::registry& r)
     flags |= wst_c.flags;
     if (wst_c.size.x == 0.0f && wst_c.size.y == 0.0f)
       flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
     ImGui::Begin(beginlabel.c_str(), NULL, flags);
     ImGui::PushID(eid);
 

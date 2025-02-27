@@ -10,6 +10,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
+#include "modules/actor_swarmlord/enemy_swarmlord_system.hpp"
 #include "modules/combat/combat_helpers.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
@@ -291,10 +292,11 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_spawn_particles_on_death_system(r);
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r);
-    update_enemy_projectile_system(r);
     update_alpha_based_on_lifecycle_system(r);
     update_sprint_system(r, dt);
     update_death_throes_system(r, dt);
+    update_enemy_projectile_system(r);
+    update_enemy_swarmlord_system(r);
 
     update_upgrade_hp_max_system(r);
     update_upgrade_hp_regen_system(r, dt);

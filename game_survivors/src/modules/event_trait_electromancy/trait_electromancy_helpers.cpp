@@ -4,6 +4,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/sprites/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/helpers.hpp"
@@ -52,6 +53,12 @@ do_lightning(entt::registry& r, const ElectromancyTraitComponent& data_c, const 
   const auto size = glm::vec2{ 24 * 1.5, 48 * 1.5 };
   const auto thunder_e = spawn(r, "effect_thunder");
   give_life(r, thunder_e, pos, size);
+
+  SpriteAnimationState anim_c;
+  anim_c.playing_animation_name = "LIGHTNING_0";
+  anim_c.duration = 0.25f;
+  anim_c.looping = true;
+  r.emplace<SpriteAnimationState>(thunder_e, anim_c);
 
   EntityTimedLifecycle lifecycle_c{ .milliseconds_alive_max = (int)(1 * 1000) };
   r.emplace<EntityTimedLifecycle>(thunder_e, lifecycle_c);
@@ -108,8 +115,9 @@ handle_shoot_event__trait_electromancy(entt::registry& r, const ShootEvent& evt)
 
   // Get the nearest enemy
   auto sort_by_distance = [](const auto& a, const auto& b) { return a.first < b.first; };
-  std::sort(enemies.begin(), enemies.end(), sort_by_distance);
-  auto nearest_e = enemies[0].second;
+  std::vector<std::pair<int, entt::entity>> e_vec{ enemies.begin(), enemies.end() };
+  std::sort(e_vec.begin(), e_vec.end(), sort_by_distance);
+  auto nearest_e = e_vec[0].second;
 
   do_lightning(r, data_c, nearest_e);
 }

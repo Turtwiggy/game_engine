@@ -111,11 +111,12 @@ update_autofire_system(entt::registry& r, const float dt)
       return r.try_get<EnemyComponent>(e) != nullptr;
     };
     const b2Vec2 center_m = pixels_to_meters(wep_pos);
-    auto enemies = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);
-    if (enemies.size() == 0)
+    auto enemies_map = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);
+    if (enemies_map.size() == 0)
       continue;
 
     // Filter by angle that this weapon can shoot
+    std::vector<std::pair<int, entt::entity>> enemies = { enemies_map.begin(), enemies_map.end() };
     filter_enemies_by_shoot_angle(r, enemies, hardpoint_c, wep_pos);
     if (enemies.size() == 0)
       continue;

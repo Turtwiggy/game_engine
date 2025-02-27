@@ -5,7 +5,21 @@
 #include <entt/entt.hpp>
 #include <glm/fwd.hpp>
 
+#include <unordered_set>
+#include <utility>
+
 namespace game2d {
+
+struct pair_hash
+{
+  template<typename T1, typename T2>
+  std::size_t operator()(const std::pair<T1, T2>& p) const
+  {
+    const auto hash1 = std::hash<T1>{}(p.first);
+    const auto hash2 = std::hash<T2>{}(p.second);
+    return hash1 ^ (hash2 << 1); // Combine hashes
+  }
+};
 
 void
 emplace_or_replace_physics_world(entt::registry& r);
@@ -19,10 +33,10 @@ get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag);
 PhysicsFixtureDef
 get_fixture_def_by_tag(entt::registry& r, entt::entity e, std::string tag);
 
-std::vector<entt::entity>
+std::unordered_set<entt::entity>
 get_all_in_area(entt::registry& r, glm::vec2 center, float d);
 
-std::vector<std::pair<int, entt::entity>>
+std::unordered_set<std::pair<int, entt::entity>, pair_hash>
 get_all_in_area_filtered(entt::registry& r,
                          const b2Vec2 center_in_meters,
                          const float d,

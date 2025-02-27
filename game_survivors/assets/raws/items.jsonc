@@ -260,6 +260,13 @@
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
     {
+      "name": "actor_enemy_swarmlord_minion",
+      "renderable": { "sprite": "JELLYFISH", "colour": "dark_magenta" },
+      "traits": [ {"key": "DIRECT"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+    },
+    {
       "name": "actor_enemy_grower",
       "renderable": { "sprite": "SEA_URCHIN", "colour": "red" },
       "traits": [ ],

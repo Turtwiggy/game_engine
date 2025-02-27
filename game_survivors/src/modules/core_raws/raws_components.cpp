@@ -177,38 +177,18 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
   // create_transform()
   {
-    r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, t.renderable.sprite);
-
-    // add a looping idle_anim
-    if (t.renderable.sprite == "REF_IDLE") {
-      SpriteAnimationState anim_c;
-      anim_c.playing_animation_name = "REF_IDLE";
-      anim_c.duration = 0.9f;
-
-      // offset animation so all idles not the same
-      static engine::RandomState anim_rnd(0);
-      anim_c.timer = engine::rand_det_s(anim_rnd.rng, 0.0f, anim_c.duration);
-
-      r.emplace<SpriteAnimationState>(e, anim_c);
-    }
-    if (t.renderable.sprite == "LIGHTNING_0") {
-      SpriteAnimationState anim_c;
-      anim_c.playing_animation_name = "LIGHTNING_0";
-      anim_c.duration = 0.25f;
-      anim_c.looping = true;
-      r.emplace<SpriteAnimationState>(e, anim_c);
-    }
-
     const auto col = colour_tag_to_colour(raws, t.renderable.colour);
+
+    r.emplace<SpriteComponent>(e);
     r.emplace<DefaultColour>(e, col);
+    r.emplace<TransformComponent>(e,
+                                  TransformComponent{
+                                    .position = { pos.x, pos.y, 0.0f },
+                                    .scale = { size.x, size.y, 0.0f },
+                                  });
+
     set_colour(r, e, col);
-
-    TransformComponent tf;
-    tf.position = { pos.x, pos.y, 0.0f };
-    tf.scale = { size.x, size.y, 0.0f };
-    r.emplace<TransformComponent>(e, tf);
-
+    set_sprite(r, e, t.renderable.sprite);
     set_z_index(r, e, ZLayer::DEFAULT);
   }
 
@@ -228,8 +208,8 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     // Define fixtures with a shape, friction, density, etc.
     // Create fixtures on the body.
 
-    const b2Vec2 pos_in_meters = b2Vec2{ pos.x / PIXELS_PER_METER, pos.y / PIXELS_PER_METER };
-    const b2Vec2 size_in_meters = b2Vec2{ size.x / PIXELS_PER_METER, size.y / PIXELS_PER_METER };
+    const b2Vec2 pos_in_meters = pixels_to_meters(pos);
+    const b2Vec2 size_in_meters = pixels_to_meters(size);
 
     b2BodyDef body_def;
     body_def.position.Set(pos_in_meters.x, pos_in_meters.y);
@@ -265,9 +245,9 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         exit(1);
       }
 
-      for (const auto& fix : fixtures) {
+      for (const PhysicsFixtureDef& data : fixtures) {
 
-        auto* fixture = create_fixture(body, fix, size_in_meters);
+        auto* fixture = create_fixture(body, data, size_in_meters);
         // SDL_Log("Created fixture... %s", fix.tag.c_str());
 
         // entt: create fixture representation
@@ -275,7 +255,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         fixture_c.body = body;
         fixture_c.fixture = fixture;
         auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
-        r.emplace_or_replace<TagComponent>(fixture_e, fix.tag);
+        r.emplace_or_replace<TagComponent>(fixture_e, data.tag);
         r.emplace<HasParentComponent>(fixture_e, e); // link fixture => body
         body_c.fixtures.push_back(fixture_e);        // link body => fixture
 

@@ -7,6 +7,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/events/events_components.hpp"
@@ -73,27 +74,38 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
     const float explosion_radius_meters = pixels_to_meters(explosion_radius_pixels);
 
     const b2Vec2 center_m = pixels_to_meters(get_position(r, e));
-    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [](entt::registry& r, entt::entity e) -> bool {
-      return r.try_get<EnemyComponent>(e) != nullptr;
+    const std::function<bool(entt::registry&, entt::entity)> filter_criteria = [](entt::registry& r,
+                                                                                  entt::entity e) -> bool {
+      bool valid_target = false;
+      valid_target |= r.try_get<EnemyComponent>(e) != nullptr;
+      valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
+      return valid_target;
     };
-    auto enemies = get_all_in_area_filtered(r, center_m, explosion_radius_meters, is_enemy);
+    const auto things_with_health = get_all_in_area_filtered(r, center_m, explosion_radius_meters, filter_criteria);
 
-    for (const auto& [d2, other_e] : enemies) {
-      // const auto& tag_c = r.get<TagComponent>(other_e);
-      // const auto& tag = tag_c.tag;
+    for (const auto& [d2, parent_e] : things_with_health) {
+      if (parent_e == e)
+        continue; // dont damage self; you're already dead
 
-      // Note: specifying the fixture to damage here seems wrong
-      auto core_e = get_fixture_by_tag(r, other_e, "fixture_core");
+      const bool is_player = r.try_get<PlayerComponent>(parent_e);
+      const auto& tag_c = r.get<TagComponent>(parent_e);
+      SDL_Log("Exploooosion! hit: %s", tag_c.tag.c_str());
 
-      DamageEvent evt;
-      evt.from = entt::null; // likely dead
-      evt.to = core_e;
-      evt.type = DamageType::PHYSICAL;
-      evt.amount = 100; // todo: replace with "correct" damage for explosion
-      evts_c.dispatcher->trigger(evt);
-      evts_c.dispatcher->update();
+      auto& pb_c = r.get<PhysicsBodyComponent>(parent_e);
+      for (const entt::entity fixture_e : pb_c.fixtures) {
+        const bool has_hp = r.try_get<HealthComponent>(fixture_e);
+        if (!has_hp)
+          continue; // shield or xp zone or something without health
 
-      // Send explosion damage event
+        // Send explosion damage event
+        DamageEvent evt;
+        evt.from = entt::null; // likely dead
+        evt.to = fixture_e;
+        evt.type = DamageType::PHYSICAL;
+        evt.amount = is_player ? 5 : 100; // todo: replace with "correct" damage for explosion
+        evts_c.dispatcher->trigger(evt);
+        evts_c.dispatcher->update();
+      }
     }
   };
   callbacks_c.callbacks.push_back(explode_on_death);

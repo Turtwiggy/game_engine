@@ -6,6 +6,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
+#include "hierarchy_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 // other lib headers
@@ -13,32 +14,7 @@
 #include <imgui.h>
 #include <magic_enum.hpp>
 
-#include <utility>
-
 namespace game2d {
-
-std::string
-to_lower(const std::string& str)
-{
-  std::string result = str;
-  std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
-  return result;
-}
-
-struct Category
-{
-  std::string tag;
-  bool display = true;
-};
-
-std::optional<size_t>
-get_category_idx(std::vector<Category>& cs, const std::string& s)
-{
-  const auto it = std::find_if(cs.begin(), cs.end(), [&s](const auto& other) { return other.tag == s; });
-  if (it == cs.end())
-    return std::nullopt;
-  return static_cast<size_t>(it - cs.begin());
-};
 
 void
 update_ui_hierarchy_system(entt::registry& r)
@@ -51,149 +27,87 @@ update_ui_hierarchy_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  // flags |= ImGuiDockNodeFlags_PassthruCentralNode;
-  // flags |= ImGuiWindowFlags_NoMove;
-  // flags |= ImGuiWindowFlags_NoTitleBar;
-  // flags |= ImGuiWindowFlags_NoBackground;
-  // flags |= ImGuiWindowFlags_NoResize;
-  // flags |= ImGuiDockNodeFlags_AutoHideTabBar;
-  // flags |= ImGuiDockNodeFlags_NoResize;
+
+  // Update available Categories
+  {
+    for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
+      const auto& [e] = ent_tuple;
+
+      const auto tag = to_lower(r.get<TagComponent>(e).tag);
+      const auto category_opt = get_category_idx(categories, tag);
+      if (category_opt.has_value())
+        continue;
+
+      // preset filters...
+
+      if (tag.find("inventoryslot") != std::string::npos) {
+        categories.push_back({ tag, false });
+        continue;
+      }
+
+      // note: also filters out DataParticleEmitter
+      if (tag.find("particle") != std::string::npos) {
+        categories.push_back({ tag, false });
+        continue;
+      }
+
+      if (tag.find("entity-pool-entity") != std::string::npos) {
+        categories.push_back({ tag, false });
+        continue;
+      }
+
+      if (tag.find("single_") != std::string::npos) {
+        categories.push_back({ tag, false });
+        continue;
+      }
+
+      if (tag.find("audiosource") != std::string::npos) {
+        categories.push_back({ tag, false });
+        continue;
+      }
+
+      if (tag.find("cooldowncomponent") != std::string::npos) {
+        categories.push_back({ tag, false });
+        continue;
+      }
+
+      categories.push_back({ tag });
+    }
+
+    // sort alphabetically
+    std::sort(categories.begin(), categories.end(), [](const Category& a, const Category& b) { return a.tag < b.tag; });
+  }
 
   auto cf_menu_state = gesert_menubar_state(menu_c, "Hierarchy Category Filter");
   if (cf_menu_state.enabled) {
     ImGui::Begin(cf_menu_state.name.c_str(), &cf_menu_state.enabled);
 
-    for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
-      const auto& [e] = ent_tuple;
-
-      const auto* tag = r.try_get<TagComponent>(e);
-      if (tag == nullptr)
-        continue;
-
-      const auto category_opt = get_category_idx(categories, tag->tag);
-      if (!category_opt.has_value()) {
-
-        // preset filters...
-
-        if (tag->tag.find("InventorySlot") != std::string::npos) {
-          categories.push_back({ tag->tag, false });
-          continue;
-        }
-
-        // note: also filters out DataParticleEmitter
-        if (tag->tag.find("particle") != std::string::npos) {
-          categories.push_back({ tag->tag, false });
-          continue;
-        }
-
-        categories.push_back({ tag->tag });
-      }
-    }
-
     // Display a filter for the categories
     for (auto& c : categories)
       imgui_draw_bool(c.tag, c.display);
 
-    // sort alphabetically
-    std::sort(categories.begin(), categories.end(), [](const Category& a, const Category& b) { return a.tag < b.tag; });
-
     ImGui::End();
   }
 
-  auto h_menu_state = gesert_menubar_state(menu_c, "Hierarchy");
-  if (h_menu_state.enabled) {
-    ImGui::Begin(h_menu_state.name.c_str(), NULL, flags);
-    {
-      ImGui::Text("Total alive: %zu", entities);
+  draw_hierarchy(r, categories, selected_entity);
 
-      // Filter the Hierarchy
-      static std::string filter = "";
-      bool new_filter_input = false;
-      std::string filter_input = filter;
-      imgui_draw_string("Filter", filter_input);
-      if (filter_input != filter) {
-        filter = filter_input;
-        new_filter_input = true;
-      }
+  /*
+    // optimisation: paginate the shown entities
+    static int SHOWING_INDEX = 0;
+    if (new_filter_input)
+      SHOWING_INDEX = 0;
+    const int MAX_TO_SHOW = 10;
+    std::string next_label = std::string("Next " + std::to_string(MAX_TO_SHOW));
+    std::string prev_label = std::string("prev " + std::to_string(MAX_TO_SHOW));
+    if (ImGui::Button(prev_label.c_str()))
+      SHOWING_INDEX -= 1;
+    ImGui::SameLine();
+    if (ImGui::Button(next_label.c_str()))
+      SHOWING_INDEX += 1;
 
-      // optimisation: paginate the shown entities
-      static int SHOWING_INDEX = 0;
-      if (new_filter_input)
-        SHOWING_INDEX = 0;
-      const int MAX_TO_SHOW = 10;
-      std::string next_label = std::string("Next " + std::to_string(MAX_TO_SHOW));
-      std::string prev_label = std::string("prev " + std::to_string(MAX_TO_SHOW));
-      if (ImGui::Button(prev_label.c_str()))
-        SHOWING_INDEX -= 1;
-      ImGui::SameLine();
-      if (ImGui::Button(next_label.c_str()))
-        SHOWING_INDEX += 1;
-
-      const int min_show = SHOWING_INDEX * MAX_TO_SHOW;
-      const int max_show = ((SHOWING_INDEX + 1) * MAX_TO_SHOW);
-
-      if (filter == "") {
-
-        for (int i = 0; const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
-          const auto& [e] = ent_tuple;
-
-          // optimisation; only show MAX_TO_SHOW in hierachy at one time
-          bool valid = i >= min_show && i < max_show;
-          i++;
-          if (!valid)
-            continue;
-
-          const auto* tag = r.try_get<TagComponent>(e);
-
-          if (tag == nullptr)
-            ImGui::Text("Non-tagged entity");
-          else {
-
-            // limit entry by displayed categories
-            const auto category_opt = get_category_idx(categories, tag->tag);
-            if (category_opt.has_value()) {
-              const auto category_idx = category_opt.value();
-              const auto category = categories[category_idx];
-              if (!category.display) {
-                i--; // wasnt displayed
-                continue;
-              }
-            };
-
-            imgui_draw_entity(r, tag->tag, e, selected_entity);
-          }
-        }
-      }
-
-      if (filter != "") {
-        filter = to_lower(filter);
-
-        //
-        // Show the paginated filtered entities
-        //
-        std::vector<std::pair<entt::entity, std::string>> ents;
-        for (const auto& [entity, tag] : r.view<TagComponent>().each()) {
-          if (to_lower(tag.tag).find(filter) != std::string::npos)
-            ents.push_back({ entity, tag.tag });
-        }
-
-        ImGui::Text("Showing between %i %i", min_show, max_show);
-        for (int i = 0; const auto& [entity, tag] : ents) {
-          if (i >= min_show && i <= max_show) {
-            ImGui::Text("eid: %i", static_cast<uint32_t>(entity));
-            ImGui::SameLine();
-            imgui_draw_entity(r, tag, entity, selected_entity);
-          }
-          i++;
-        }
-      }
-
-      // If select anywhere in the window, make entity unselected
-      if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-        selected_entity = entt::null;
-    }
-    ImGui::End();
-  }
+    const int min_show = SHOWING_INDEX * MAX_TO_SHOW;
+    const int max_show = ((SHOWING_INDEX + 1) * MAX_TO_SHOW);
+  }*/
 
   auto properties_menu_state = gesert_menubar_state(menu_c, "Properties");
   if (properties_menu_state.enabled) {

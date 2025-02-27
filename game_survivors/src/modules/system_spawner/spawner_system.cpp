@@ -1,13 +1,19 @@
 #include "spawner_system.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/combat_scale_on_hit/components.hpp"
+#include "modules/core_colour/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
@@ -42,7 +48,12 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // TODO: should be a larger zone considering all players?
   const auto& target_t = r.get<TransformComponent>(target_e);
   const auto rnd_pos = rnd_position_around_point(r, { target_t.position.x, target_t.position.y });
-  give_life(r, e, rnd_pos, { 32, 32 });
+
+  auto enemy_size = glm::vec2{ 32, 32 };
+  if (key == "actor_enemy_swarmlord_minion")
+    enemy_size = { 16, 16 };
+
+  give_life(r, e, rnd_pos, enemy_size);
 
   //
   // per-enemy tweaks
@@ -65,12 +76,62 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_melee_2") {
     // note: anything with ARC_ANGLE wants an ActorSpeedComponent
     r.emplace<ActorSpeedComponent>(e, 0.015f);
+
+    // remove your single sprite, and create 2 sprites.
+    // one for your legs, one for your house
+    r.remove<TransformComponent>(e);
+    r.remove<SpriteComponent>(e);
+    const auto& pb_c = r.get<PhysicsBodyComponent>(e);
+    for (int i = 0; const auto& fixture_e : pb_c.fixtures) {
+      r.emplace<TransformComponent>(fixture_e);
+      r.emplace<SpriteComponent>(fixture_e);
+      auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
+      r.emplace<DefaultColour>(fixture_e, col);
+      set_colour(r, fixture_e, col);
+
+      // const auto& item_key_c = r.get<ItemKey>(e);
+      // const auto item_c = find_item(r, item_key_c.key);
+      // const auto fixture_size = item_c.phys_fixtures.value()[i].size[0];
+      // const auto size = glm::ivec2{ fixture_size.x, fixture_size.y };
+      r.emplace<DefaultSizeComponent>(fixture_e, enemy_size);
+      set_size(r, fixture_e, enemy_size);
+
+      if (i == 0) // fixture_core
+        set_sprite(r, fixture_e, "HERMIT_CRAB_BOTTOM");
+      if (i == 1) // shield
+        set_sprite(r, fixture_e, "HERMIT_CRAB_TOP");
+
+      i++;
+    }
   }
 
   // red claw crab
   if (key == "actor_enemy_melee_3") {
     // note: anything with ARC_ANGLE wants an ActorSpeedComponent
     r.emplace<ActorSpeedComponent>(e, 0.015f);
+
+    // remove your single sprite, and create 2 sprites.
+    // one for your left half, one for your right half
+    r.remove<TransformComponent>(e);
+    r.remove<SpriteComponent>(e);
+    const auto& pb_c = r.get<PhysicsBodyComponent>(e);
+    for (int i = 0; const auto& fixture_e : pb_c.fixtures) {
+      r.emplace<TransformComponent>(fixture_e);
+      r.emplace<SpriteComponent>(fixture_e);
+      auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
+      r.emplace<DefaultColour>(fixture_e, col);
+      set_colour(r, fixture_e, col);
+
+      r.emplace<DefaultSizeComponent>(fixture_e, enemy_size);
+      set_size(r, fixture_e, enemy_size);
+
+      if (i == 0) // fixture_core
+        set_sprite(r, fixture_e, "REDCLAW_CRAB_LEFT");
+      if (i == 1) // shield
+        set_sprite(r, fixture_e, "REDCLAW_CRAB_RIGHT");
+
+      i++;
+    }
   }
 
   // archerfish
@@ -81,7 +142,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // jellyfish
   if (key == "actor_enemy_swarmlord") {
     r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust = 9.0f;
-    r.emplace<CooldownComponent>(e);
+    r.emplace<CooldownComponent>(e,
+                                 CooldownComponent{
+                                   .time_max = 7.0f,
+                                 });
     r.emplace<SwarmLordComponent>(e);
   }
 
