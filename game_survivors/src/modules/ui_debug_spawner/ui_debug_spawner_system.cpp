@@ -23,6 +23,8 @@ update_ui_debug_spawner_system(entt::registry& r)
     return;
 
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, timer_e, timer_c);
+  GET_FIRST_OR_RETURN(SINGLE_Spawners, r, disk_spawn_data_e, disk_spawn_data_c);
+
   auto& cooldown_c = r.get<CooldownComponent>(timer_e);
   auto& input_c = get_first_component<SINGLE_InputComponent>(r);
 
@@ -46,25 +48,24 @@ update_ui_debug_spawner_system(entt::registry& r)
   const int seconds_from_start = cooldown_c.time_max - (int)cooldown_c.time;
   ImGui::Text("Seconds from start: %i", seconds_from_start);
 
-  const auto enemy_to_amount = get_live_enemies_map(r);
+  for (const auto [e, data_c, cooldown_c] : r.view<EnemySpawnData, CooldownComponent>().each()) {
 
-  const auto& view = r.view<EnemySpawnData, CooldownComponent>();
-  for (const auto [e, data_c, cooldown_c] : view.each()) {
-    const auto w_opt = get_wave_from_time(data_c, seconds_from_start);
+    const std::optional<int> w_idx_opt = get_wave_index_from_time(data_c, seconds_from_start);
 
     std::string wave_label = std::format("Wave {}", data_c.key);
     ImGui::SeparatorText(wave_label.c_str());
 
-    if (enemy_to_amount.contains(data_c.key))
-      ImGui::Text("Alive: %i", enemy_to_amount.at(data_c.key));
-    else
-      ImGui::Text("Alive: 0");
-
-    if (!w_opt.has_value()) {
+    if (!w_idx_opt.has_value()) {
       ImGui::Text("Wave: no wave data");
       continue;
     }
-    auto& w = w_opt.value();
+
+    const auto wave_key = WaveKey{
+      .on_disk_spawns_index = data_c.on_disk_index,
+      .on_disk_waves_index = w_idx_opt.value(),
+    };
+    const auto on_disk_wave = disk_spawn_data_c.spawns[wave_key.on_disk_spawns_index].waves[wave_key.on_disk_waves_index];
+    const auto& w = on_disk_wave;
 
     ImGui::Text("wave_start_seconds %i", min_to_sec(w.span.start));
     ImGui::Text("wave_stop_seconds %i", min_to_sec(w.span.stop));
@@ -72,6 +73,11 @@ update_ui_debug_spawner_system(entt::registry& r)
     ImGui::Text("max_allowed %i", w.max);
     ImGui::Text("number_per_spawn %i", w.num_per_spawn);
     ImGui::Text("spawn_cooldown %f", w.spawn_cooldown.value());
+
+    if (w.num_per_wave.has_value())
+      ImGui::Text("num_per_wave %i", w.num_per_wave.value());
+    else
+      ImGui::Text("num_per_wave (infinite)");
   }
 
   ImGui::End();

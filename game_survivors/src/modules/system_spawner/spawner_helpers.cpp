@@ -3,11 +3,9 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
-#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/core_raws/raws_components.hpp"
 #include "modules/core_raws/raws_helpers.hpp"
-#include "modules/core_renderer/components.hpp"
+#include "modules/system_cooldown/components.hpp"
 #include "spawner_components.hpp"
 
 #include <fstream>
@@ -46,16 +44,31 @@ min_to_sec(int min)
   return min * 60;
 };
 
-std::optional<EnemySpawnWave>
-get_wave_from_time(const EnemySpawnData& data, int seconds_from_start)
+void
+init_spawners(entt::registry& r)
 {
-  for (const auto& wave : data.waves) {
+  create_empty<SINGLE_SpawnerLiveData>(r);
+
+  const auto& spawn_c = get_first_component<SINGLE_Spawners>(r);
+  for (auto i = 0; i < (int)spawn_c.spawns.size(); i++) {
+    const auto spawner_e = create_empty<CooldownComponent>(r);
+
+    EnemySpawnData copy_data = spawn_c.spawns[i];
+    copy_data.on_disk_index = i;
+    r.emplace<EnemySpawnData>(spawner_e, copy_data);
+  }
+}
+
+std::optional<int>
+get_wave_index_from_time(const EnemySpawnData& data, int seconds_from_start)
+{
+  for (size_t i = 0; i < data.waves.size(); i++) {
+    const auto& wave = data.waves[i];
     const bool in_lower_bound = seconds_from_start >= min_to_sec(wave.span.start);
     const bool in_upper_bound = seconds_from_start < min_to_sec(wave.span.stop);
     if (in_lower_bound && in_upper_bound)
-      return wave;
+      return (int)i;
   }
-
   return std::nullopt;
 };
 
@@ -108,7 +121,7 @@ rnd_position_in_map_but_not_inside_players(entt::registry& r)
     for (const auto& [e, player_c] : view.each()) {
       auto d = get_position(r, e) - candidate;
       const float d2 = d.x * d.x + d.y * d.y;
-      SDL_Log("d2: %f", d2);
+      // SDL_Log("d2: %f", d2);
 
       constexpr int buffer_size_sqr = 32 * 32;
       constexpr int player_size_sqr = 32 * 32;
@@ -122,18 +135,6 @@ rnd_position_in_map_but_not_inside_players(entt::registry& r)
   }
 
   return candidate;
-};
-
-std::unordered_map<std::string, int>
-get_live_enemies_map(entt::registry& r)
-{
-  // How many of each enemies do we currently have?
-  const auto& enemies_view = r.view<EnemyComponent, ItemKey>();
-
-  std::unordered_map<std::string, int> enemy_to_amount;
-  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
-    enemy_to_amount[item_c.key] += 1;
-  return enemy_to_amount;
 };
 
 } // namespace game2d

@@ -4,9 +4,13 @@
 
 #include <functional>
 #include <queue>
-#include <unordered_set>
 
 namespace game2d {
+
+struct HasChildrenComponent
+{
+  std::vector<entt::entity> children;
+};
 
 struct HasParentComponent
 {

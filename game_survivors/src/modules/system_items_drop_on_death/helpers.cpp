@@ -14,11 +14,11 @@ drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
 {
   const auto size = glm::vec2{ 8, 8 };
 
-  const auto item_e = spawn(r, "xp");
+  const auto item_e = spawn(r, "item_xp");
   give_life(r, item_e, get_position(r, e), size);
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
 
-  auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_xp");
+  auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_item");
   r.emplace<XpComponent>(fixture_e);
 
   // xp doesnt do anything on it's death

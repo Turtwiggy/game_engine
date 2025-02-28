@@ -196,8 +196,8 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
   // create_physics()
   if (t.phys_body.has_value()) {
     const auto& my_body_def = t.phys_body.value();
-    auto is_bullet = my_body_def.is_bullet;
-    auto is_static = my_body_def.is_static;
+    const auto is_bullet = my_body_def.is_bullet;
+    const auto is_static = my_body_def.is_static;
 
     // Create a physics body.
     //

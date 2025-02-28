@@ -5,6 +5,8 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/system_physics_apply_force/components.hpp"
 #include <unordered_set>
 
 #if defined(_MSC_VER)
@@ -62,14 +64,28 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     // A destroyed parent might have fixtures;
     // destroy the fixtures when the parent dies.
     if (auto* body_c = r.try_get<PhysicsBodyComponent>(e)) {
-      for (const auto fix_e : body_c->fixtures)
-        uniquely_dead.emplace(fix_e);
+      uniquely_dead.insert(body_c->fixtures.begin(), body_c->fixtures.end());
     }
 
     // Destroy all the weapons
     if (auto* wep_c = r.try_get<HasWeaponsComponent>(e))
-      for (const auto wep_e : wep_c->weapons)
-        uniquely_dead.emplace(wep_e);
+      uniquely_dead.insert(wep_c->weapons.begin(), wep_c->weapons.end());
+
+    // Destroy all the children
+    if (auto* children_c = r.try_get<HasChildrenComponent>(e))
+      uniquely_dead.insert(children_c->children.begin(), children_c->children.end());
+
+    // Check all the dynamic targets.
+    // auto target_view = r.view<DynamicTargetComponent>();
+    // for (const auto& [e, dyn_c] : target_view.each()) {
+    //   if (dyn_c.target == e)
+    //     r.remove<DynamicTargetComponent>(e); // your target died.
+    // }
+    // auto physics_view = r.view<PhysicsDynamicTarget>();
+    // for (const auto& [e, dyn_c] : physics_view.each()) {
+    //   if (dyn_c.target == e)
+    //     r.remove<DynamicTargetComponent>(e); // your target died.
+    // }
 
     //
   }

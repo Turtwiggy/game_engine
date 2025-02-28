@@ -76,7 +76,6 @@ public:
     evt.b = b;
     evts.dispatcher->trigger(evt);
     evts.dispatcher->update();
-
     // SDL_Log("(Enter) %s, %s", r.get<TagComponent>(a).tag.c_str(), r.get<TagComponent>(b).tag.c_str());
   }
 

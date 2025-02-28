@@ -38,6 +38,7 @@
 #include "modules/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
 #include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
+#include "modules/system_create_item/create_item_system.hpp"
 #include "modules/system_death_throes/death_throes_system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
@@ -238,6 +239,7 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   update_physics_apply_force_system(r);
   update_physics_system(r, milliseconds_dt);
   update_events_system(r); // dispatch events
+  update_create_item_system(r);
   fixed_update_player_controller_system(r, milliseconds_dt, mouse_pos);
 
   // fixed_input.fixed_tick += 1;

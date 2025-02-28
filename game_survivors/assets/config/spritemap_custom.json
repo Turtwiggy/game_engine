@@ -1,12 +1,12 @@
 {
   "spritesheet": {
     "name": "custom",
-    "px_total": 192,
-    "py_total": 192,
+    "px_total": 512,
+    "py_total": 512,
     "px": 16,
     "py": 16,
-    "nx": 12,
-    "ny": 12
+    "nx": 32,
+    "ny": 32
   },
   "sprites": [
     { "name": "shield_custom", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] },
@@ -34,7 +34,8 @@
 
     { "name": "SEA_URCHIN", "frames": [ { "x": 0, "y": 10, "w": 2, "h": 2 } ]},
     { "name": "SEA_HORSE", "frames": [ { "x": 2, "y": 10, "w": 2, "h": 2 } ]},
-    { "name": "OYSTER", "frames": [ { "x": 6, "y": 10, "w": 2, "h": 2 } ]}
+    { "name": "OYSTER", "frames": [ { "x": 6, "y": 10, "w": 2, "h": 2 } ]},
+    { "name": "GOLD_OUTLINE", "frames": [ { "x": 8, "y": 10, "w": 2, "h": 2 } ]}
 
   ]
 }

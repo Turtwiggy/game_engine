@@ -24,7 +24,7 @@ struct Line
 inline bool
 operator==(const Line& a, const Line& b)
 {
-  return a.p0 == b.p0 && b.p1 == b.p1;
+  return a.p0 == b.p0 && a.p1 == b.p1;
 };
 
 LineInfo

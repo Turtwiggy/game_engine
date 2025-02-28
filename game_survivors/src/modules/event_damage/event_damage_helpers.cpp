@@ -78,10 +78,7 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
   auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(popup_e);
   r.emplace<EntityTimedLifecycle>(popup_e, 1 * 3000);
-  r.emplace<WiggleUpAndDown>(popup_e,
-                             WiggleUpAndDown{
-                               .base_position = get_position(r, parent_e),
-                             });
+  r.emplace<WiggleUpAndDown>(popup_e, WiggleUpAndDown{ .base_position = get_position(r, parent_e) });
   set_position(r, popup_e, get_position(r, parent_e));
 };
 

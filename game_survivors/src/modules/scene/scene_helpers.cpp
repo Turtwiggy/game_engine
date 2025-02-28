@@ -36,7 +36,7 @@
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/components.hpp"
 #include "modules/system_screenshake/components.hpp"
-#include "modules/system_spawner/spawner_components.hpp"
+#include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/system_sprint/sprint_components.hpp"
 #include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
@@ -464,11 +464,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     r.emplace<SurviveTimerComponent>(survive_timer_e);
 
     // populate spawners from configs
-    const auto spawn_c = get_first_component<SINGLE_Spawners>(r);
-    for (const auto& spawns : spawn_c.spawns) {
-      const auto spawner_e = create_empty<CooldownComponent>(r);
-      r.emplace<EnemySpawnData>(spawner_e, spawns);
-    }
+    init_spawners(r);
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

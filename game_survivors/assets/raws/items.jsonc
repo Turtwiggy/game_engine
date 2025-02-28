@@ -192,14 +192,7 @@
       "phys_body": { "is_bullet": true, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_bullet", "type": "box", "is_sensor": true } ]
     },
-    {
-      "name": "xp",
-      "display_name": "XP",
-      "display_desc": "Delicious experience. num num num num.",
-      "renderable": { "sprite": "GEM", "colour": "white" },
-      "phys_body": { "is_bullet": false, "is_static": true },
-      "phys_fixtures": [ { "tag": "fixture_xp", "type": "box", "is_sensor": true } ]
-    },
+
     {
       "name": "actor_player",
       "renderable": { "sprite": "hull_dinghy", "colour":  "white" },
@@ -282,7 +275,7 @@
     },
     {
       "name": "actor_destructable",
-      "renderable": { "sprite": "OYSTER", "colour": "red" },
+      "renderable": { "sprite": "OYSTER", "colour": "white" },
       "traits": [ ],
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
@@ -297,6 +290,47 @@
     {
       "name": "effect_thunder",
       "renderable": { "sprite": "LIGHTNING_0", "colour": "gold_yellow" }
+    },
+
+    {
+      "name": "item_xp",
+      "display_name": "XP",
+      "display_desc": "Delicious experience. num num num num.",
+      "renderable": { "sprite": "GEM", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
+    },
+    {
+      "name": "item_gold",
+      "display_name": "Gold",
+      "display_desc": "Delicious gold. num num num num.",
+      "renderable": { "sprite": "COINPILE_1", "colour": "gold_yellow" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
+    },
+    {
+      "name": "item_hp_pack",
+      "display_name": "Health Pack",
+      "display_desc": "Delicious health. num num num num.",
+      "renderable": { "sprite": "ICON_HEART_FULL", "colour": "red" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
+    },
+    {
+      "name": "item_vacuum_orb",
+      "display_name": "Vacuum Orb",
+      "display_desc": "Delicious experience. num num num num.",
+      "renderable": { "sprite": "GLOVES_0", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
+    },
+    {
+      "name": "item_sea_mine",
+      "display_name": "Sea Mine",
+      "display_desc": "Boom!",
+      "renderable": { "sprite": "WEAPON_GRENADE", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
     }
   ],
   "powerups": [

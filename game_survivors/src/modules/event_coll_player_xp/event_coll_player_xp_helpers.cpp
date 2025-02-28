@@ -14,10 +14,7 @@ namespace game2d {
 void
 handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
 {
-  const auto& tag_a = r.get<TagComponent>(evt.a).tag;
-  const auto& tag_b = r.get<TagComponent>(evt.b).tag;
   const auto [zone_e, xp_e] = coll<XpZoneComponent, XpComponent>(r, evt.a, evt.b);
-
   if (zone_e == entt::null || xp_e == entt::null)
     return;
 

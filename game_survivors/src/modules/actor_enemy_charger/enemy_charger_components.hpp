@@ -30,7 +30,7 @@ struct ChargerEnemyComponent
 
   // START_CHARGE
   glm::vec2 start_charge_position;
-  float charge_speed = 10.0f;
+  float charge_speed = 7.0f;
 
   // CHARGE
   float d2_to_charge = 450 * 450; // squared cuz distance2 check

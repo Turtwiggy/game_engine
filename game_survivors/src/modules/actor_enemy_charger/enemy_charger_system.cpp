@@ -21,8 +21,8 @@ update_enemy_charger_system(entt::registry& r)
   // and then charge at the player.
   // once you pass your target spot... "catch your breath"
 
-  auto view = r.view<ChargerEnemyComponent, CooldownComponent>();
-  for (const auto& [e, charger_c, cooldown_c] : view.each()) {
+  auto view = r.view<ChargerEnemyComponent, CooldownComponent, const DynamicTargetComponent>();
+  for (const auto& [e, charger_c, cooldown_c, target_c] : view.each()) {
 
     if (charger_c.state == ChargerEnemyState::START_APPROACH) {
       set_colour(r, e, hex_to_srgb("#e99f10")); // orange
@@ -39,7 +39,7 @@ update_enemy_charger_system(entt::registry& r)
 
     if (charger_c.state == ChargerEnemyState::APPROACHING) {
       // check your distance from your target
-      const auto d = get_position(r, e) - get_position(r, r.get<DynamicTargetComponent>(e).target);
+      const auto d = get_position(r, e) - get_position(r, target_c.target);
       const auto d2 = d.x * d.x + d.y * d.y;
       if (d2 > charger_c.d2_to_start_charge)
         continue;
