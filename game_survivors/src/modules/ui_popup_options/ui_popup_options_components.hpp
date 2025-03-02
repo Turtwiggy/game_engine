@@ -9,4 +9,9 @@ struct RequestToShowOptionsMenu
   bool placeholder = true;
 };
 
+struct SINGLE_OptionsMenuState
+{
+  bool open = false;
+};
+
 } // namespace game2d

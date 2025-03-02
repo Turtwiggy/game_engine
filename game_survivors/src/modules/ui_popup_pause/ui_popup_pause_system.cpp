@@ -3,6 +3,7 @@
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
 
@@ -30,33 +31,41 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
+  GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, ui_e, ui_c);
 
   // TEMPORARY: input to generate open/close events
   {
+    auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+    if (scene.s == Scene::menu)
+      return; // no pause menu in main menu
     GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
     if (get_key_down(input, SDL_SCANCODE_ESCAPE))
       create_empty<RequestToShowPauseMenu>(r);
   }
 
-  static bool open = false;
-  process_requests<RequestToShowPauseMenu>(r, []() { open = true; });
+  process_requests<RequestToShowPauseMenu>(r, [&ui_c]() { ui_c.open = true; });
 
+  const bool open = ui_c.open;
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (open)
     state.state = state.state == GameState::RUNNING ? GameState::PAUSED : state.state;
   if (!open)
     state.state = state.state == GameState::PAUSED ? GameState::RUNNING : state.state;
-
   if (!open) {
-    destroy_first<SINGLE_PauseMenuState>(r);
+    ui_c.state = {}; // reset ui state
     return;
   }
 
-  auto& ui_c = gesert_component<SINGLE_PauseMenuState>(r);
+  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
+  const auto viewport_size = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
 
-  const auto half_wh = ImVec2{ ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f };
-  const auto center = ImVec2{ (float)ri.viewport_pos.x + half_wh.x, (float)ri.viewport_pos.y + half_wh.y };
+  const auto center = ImVec2{
+    (float)ri.viewport_pos.x + viewport_size_half.x,
+    (float)ri.viewport_pos.y + viewport_size_half.y,
+  };
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, { 0.5f, 0.5f });
+  ImGui::SetNextWindowBgAlpha(0.0f);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -64,11 +73,12 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoResize;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiDockNodeFlags_PassthruCentralNode;
 
-  const ImVec2 pivot = { 0.5f, 0.5f };
-  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, pivot);
-  ImGui::SetNextWindowBgAlpha(0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 10.0f, 10.0f });
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
   // Note: although technically this is in a menu,
   // to avoid weird bugs between swapping action & get_button_down,
@@ -80,8 +90,6 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   int& selected = ui_c.state.selected;
 
   ImGui::Begin("Paused", NULL, flags);
-
-  ImGui::Text("Selected: %i", selected);
 
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();
@@ -100,7 +108,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
     };
     ImGui::NewLine();
     if (selectable_button(def))
-      open = false;
+      ui_c.open = false;
   }
   {
     auto def = SelectableButtonDef{
@@ -112,7 +120,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
     };
     ImGui::NewLine();
     if (selectable_button(def)) {
-      open = false;
+      ui_c.open = false;
 
       create_empty<RequestToShowOptionsMenu>(r);
     }
@@ -129,7 +137,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
     if (selectable_button(def)) {
       move_to_scene_start(r, Scene::menu);
 
-      open = false; // unpause this menu
+      ui_c.open = false; // unpause this menu
     }
   }
   {
@@ -147,7 +155,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
 
   ui_c.state.max = index;
   ImGui::End();
-  ImGui::PopStyleVar();
+  ImGui::PopStyleVar(5);
 };
 
 } // namespace game2d

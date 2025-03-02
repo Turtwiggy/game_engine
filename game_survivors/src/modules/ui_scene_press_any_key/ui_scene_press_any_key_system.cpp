@@ -32,7 +32,7 @@ auto init_text = [](entt::registry& r) {
     ImGuiIO& io = ImGui::GetIO();
 
     auto my_greenish = hex_to_srgb("#71BBB2");
-    auto im_greenish = convert_my_to_im(my_greenish);
+    auto im_greenish = convert_my_to_im_vec(my_greenish);
 
     ImGui::PushFont(io.Fonts->Fonts[5]); // size 32
     ImGui::TextColored(im_greenish, "Press the 'Any' Key!");

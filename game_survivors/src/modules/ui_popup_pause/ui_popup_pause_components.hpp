@@ -11,6 +11,7 @@ struct RequestToShowPauseMenu
 
 struct SINGLE_PauseMenuState
 {
+  bool open = false;
   UIState state;
 };
 

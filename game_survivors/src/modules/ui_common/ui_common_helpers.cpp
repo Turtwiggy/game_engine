@@ -1,22 +1,31 @@
 #include "modules/ui_common/ui_common_helpers.hpp"
 #include "imgui.h"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 
 namespace game2d {
+
+const auto my_active_and_hovered_col = hex_to_srgb("#C9F0EB");
+const auto im_active_and_hovered_col = convert_my_to_im(my_active_and_hovered_col);
+
+const auto my_active_col = hex_to_srgb("#71BBB2");
+const auto im_active_col = convert_my_to_im(my_active_col);
+
+const auto my_inactive_col = hex_to_srgb("#497D74");
+const auto im_inactive_col = convert_my_to_im(my_inactive_col);
 
 bool
 selectable_button(SelectableButtonDef& def)
 {
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0)); // button hovered
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));  // button clicked
+
   const auto& colors = ImGui::GetStyle().Colors;
-  const auto b = ImGuiCol_Button;
-  const auto bh = ImGuiCol_ButtonHovered;
-  const auto ba = ImGuiCol_ButtonActive;
-  const auto b_col = colors[b];
-  const auto bh_col = colors[bh];
-  const auto ba_col = colors[ba];
-  const ImU32 button_col = IM_COL32(b_col.x * 255, b_col.y * 255, b_col.z * 255, b_col.w * 255);
-  const ImU32 button_hovered_col = IM_COL32(bh_col.x * 255, bh_col.y * 255, bh_col.z * 255, bh_col.w * 255);
-  const ImU32 button_clicked_col = IM_COL32(ba_col.x * 255, ba_col.y * 255, ba_col.z * 255, ba_col.w * 255);
-  const ImU32 button_outline_col = button_hovered_col;
+  const auto b_col = colors[ImGuiCol_Button];
+  const auto bh_col = colors[ImGuiCol_ButtonActive];
+  const auto ba_col = colors[ImGuiCol_ButtonActive];
+  const ImU32 button_col = IM_COL32(b_col.x * 255, b_col.y * 255, b_col.z * 255, b_col.w * 0);
+  const ImU32 button_hovered_col = IM_COL32(bh_col.x * 255, bh_col.y * 255, bh_col.z * 255, bh_col.w * 0);
+  const ImU32 button_clicked_col = IM_COL32(ba_col.x * 255, ba_col.y * 255, ba_col.z * 255, ba_col.w * 0);
 
   const auto& label = def.label;
   const auto& size = def.size;
@@ -29,7 +38,8 @@ selectable_button(SelectableButtonDef& def)
 
   draw_list->ChannelsSetCurrent(1);
 
-  ImGui::Selectable(label.c_str(), false, 0, size);
+  const std::string id = "##menuselectable" + std::to_string(def.index);
+  ImGui::Selectable(id.c_str(), false, 0, size);
 
   const bool is_hovered = ImGui::IsItemHovered();
   if (is_hovered)
@@ -46,21 +56,35 @@ selectable_button(SelectableButtonDef& def)
   draw_list->ChannelsSetCurrent(0);
   const auto p_min = ImGui::GetItemRectMin();
   const auto p_max = ImGui::GetItemRectMax();
-  const float rounding = 6.0;
+  const auto p_size = ImGui::GetItemRectSize();
+  const float rounding = 8.0;
   const float thickness = 2.0;
   const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
 
+  ImU32 colour = im_inactive_col;
+  if (is_selected && is_hovered)
+    colour = im_active_and_hovered_col;
+  else if (is_selected)
+    colour = im_active_col;
+
   // button background based on state
-  if (is_clicked)
-    ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_clicked_col, rounding);
-  else if (is_hovered)
-    ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_hovered_col, rounding);
-  else
-    ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_col, rounding);
+  // if (is_clicked)
+  //   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_clicked_col, rounding);
+  // else if (is_hovered)
+  //   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_hovered_col, rounding);
+  // else
+  //   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_col, rounding);
 
   // button outline
-  if (is_selected)
-    ImGui::GetWindowDrawList()->AddRect(p_min, p_max, button_outline_col, rounding, corners, thickness);
+  ImGui::GetWindowDrawList()->AddRect(p_min, p_max, colour, rounding, corners, thickness);
+
+  // Draw some text based on state.
+  const auto text_size = ImGui::CalcTextSize(label.c_str());
+  const auto text_pos = ImVec2{
+    p_min.x + 0.5f * (p_size.x - text_size.x),
+    p_min.y + 0.5f * (p_size.y - text_size.y),
+  };
+  ImGui::GetWindowDrawList()->AddText(text_pos, colour, label.c_str());
 
   // "commit changes"
   draw_list->ChannelsMerge();
@@ -79,6 +103,7 @@ selectable_button(SelectableButtonDef& def)
     def.input = false; // consume
   }
 
+  ImGui::PopStyleColor(2);
   return do_act;
 };
 

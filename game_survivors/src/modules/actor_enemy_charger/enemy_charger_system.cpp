@@ -11,6 +11,8 @@
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 
+#include <SDL2/SDL_log.h>
+
 namespace game2d {
 
 void
@@ -23,6 +25,12 @@ update_enemy_charger_system(entt::registry& r)
 
   auto view = r.view<ChargerEnemyComponent, CooldownComponent, const DynamicTargetComponent>();
   for (const auto& [e, charger_c, cooldown_c, target_c] : view.each()) {
+
+    if (target_c.target == entt::null || !r.valid(target_c.target)) {
+      SDL_Log("Your target is dead...");
+      r.remove<DynamicTargetComponent>(e);
+      continue;
+    }
 
     if (charger_c.state == ChargerEnemyState::START_APPROACH) {
       set_colour(r, e, hex_to_srgb("#e99f10")); // orange

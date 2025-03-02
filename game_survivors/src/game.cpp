@@ -23,7 +23,6 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
-#include "modules/core_debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/system.hpp"
@@ -45,7 +44,6 @@
 #include "modules/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
-#include "modules/system_manualfire/manualfire_system.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/particle_system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -65,6 +63,7 @@
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
 #include "modules/ui_audio/system.hpp"
+#include "modules/ui_blur/ui_blur_system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/ui_colours_system.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
@@ -76,7 +75,9 @@
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_imgui_colours/ui_imgui_colours.hpp"
+#include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_options/ui_popup_options_system.hpp"
+#include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_system.hpp"
 #include "modules/ui_raws/ui_raws_system.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
@@ -86,13 +87,11 @@
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
 #include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
-#include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 #include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
-#include "modules/ui_sdl2_input/ui_sdl2_input_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
@@ -123,21 +122,21 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   ImFontConfig fontConfig;
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
 
-  // idx: 2
+  // idx: 2 (countdown)
   ImFontConfig countdown_config;
   io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &countdown_config);
 
-  // idx: 3
+  // idx: 3 (general)
   ImFontConfig fingerpaint_config;
   io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f, &fingerpaint_config);
 
-  // idx: 4
+  // idx: 4 (header menu)
   ImFontConfig header_fingerpaint_config;
   io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &header_fingerpaint_config);
 
-  // idx: 5
+  // idx: 5 (buttons menu)
   ImFontConfig buttons_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 32.0f, &buttons_fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 50.0f, &buttons_fingerpaint_config);
 
   // hide default cursor
   if (custom_mouse_cursor) {
@@ -159,6 +158,8 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     init_render_system(app, r);
   }
 
+  create_persistent<SINGLE_PauseMenuState>(r);
+  create_persistent<SINGLE_OptionsMenuState>(r);
   create_persistent<SINGLE_DebugMenuBar>(r);
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
@@ -314,6 +315,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_debug_fixtures_system(r);
 #endif
 
+  update_ui_blur_system(r, dt);
   update_ui_fps_counter_system(r);
   update_ui_popup_pause_system(app, r);
   update_ui_popup_options_system(r);

@@ -45,15 +45,19 @@ namespace game2d {
 void
 update_ui_popup_options_system(entt::registry& r)
 {
-  static bool open = false;
+  auto& options_c = gesert_component<SINGLE_OptionsMenuState>(r);
+  bool& open = options_c.open;
 
-  process_requests<RequestToShowOptionsMenu>(r, []() { open = true; });
+  process_requests<RequestToShowOptionsMenu>(r, [&open]() { open = true; });
   if (!open)
     return;
 
   ImGui::Begin("Options Menu");
 
   ImGui::Text("Temporary");
+
+  if (ImGui::Button("Close"))
+    open = false;
 
   /*
 

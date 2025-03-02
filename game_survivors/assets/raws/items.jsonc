@@ -29,30 +29,10 @@
       "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
-      "name": "medkit",
-      "display_name": "MedKit",
-      "display_desc": "DRABC. RICE. Oh, your arm's missing?",
-      "renderable": { "sprite": "ICON_HEART_FULL", "colour": "white" },
-      "use": { "name": "heal", "select": "actor", "amount": 1, "uses": 1 }
-    },
-    {
-      "name": "lootbag",
-      "display_name": "Lootbag",
-      "display_desc": "A default bag of loot",
-      "renderable": { "sprite": "SKULL_AND_BONES", "colour": "white" },
-      "inventory": { "size": 30 }
-    },
-    {
       "name": "duck",
       "display_name": "Angry Duck",
       "display_desc": "Quuack Quack QUACK >:(",
       "renderable": { "sprite": "DUCK", "colour": "white" }
-    },
-    {
-      "name": "seed_plant",
-      "display_name": "Seed (Unknown)",
-      "display_desc": "It wants to go home.",
-      "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
     },
     {
       "name": "seed_stun",
@@ -60,67 +40,9 @@
       "display_desc": "A stunningly backwards seed.",
       "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
     },
-    {
-      "name": "scrap",
-      "display_name": "sCrap",
-      "display_desc": "A wrench through a toaster. (Resource.)",
-      "renderable": { "sprite": "SCRAP", "colour": "white" }
-    },
-    {
-      "name": "breach_charge",
-      "display_name": "C4",
-      "display_desc": "Apply to spaceship, then run.",
-      "renderable": { "sprite": "WEAPON_GRENADE", "colour": "white" },
-      "use": { "name": "explode", "select": "point" }
-    },
-    // header: weapons
+
+    // Header: actors
     //
-    {
-      "name": "scrap_knife",
-      "display_name": "Knife",
-      "display_desc": "Oi, mate! Hand over your creds!",
-      "renderable": { "sprite": "WEAPON_DAGGER_4", "colour": "white" },
-      "combat": { "damage": 2, "range": 1, "type": "area" },
-      "traits": [ {"key": "bleed"} ]
-      // "tier": "sCrap"
-    },
-    {
-      "name": "power_hammer",
-      "display_name": "Hammer",
-      "display_desc": "Originally a construction tool.",
-      "renderable": { "sprite": "WEAPON_HAMMER_38_7", "colour": "white" },
-      "combat": { "damage": 4, "range": 1, "type": "cone" }
-      // "tier": "POW3R"
-    },
-    {
-      "name": "power_sword",
-      "display_name": "Sword",
-      "display_desc": "The handle is insulated. Probably.",
-      "renderable": { "sprite": "WEAPON_QUIVER", "colour": "white" },
-      "combat": { "damage": 10, "range": 1, "type": "other_team_actor_in_range" }
-      // "tier": "POW3R"
-    },
-    {
-      "name": "pistol",
-      "display_name": "Pistol",
-      "display_desc": "SpacePiratesLtd thanks you for your business.",
-      "renderable": { "sprite": "WEAPON_PISTOL", "colour": "white" },
-      "combat": { "damage": 7, "range": 3, "type": "other_team_actor_in_range"  }
-    },
-    {
-      "name": "shotgun",
-      "display_name": "Shotgun",
-      "display_desc": "More gun is better gun.",
-      "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": "white" },
-      "combat": { "damage": 3, "range": 2, "type": "cone" }
-    },
-    {
-      "name": "hook",
-      "display_name": "Hook",
-      "display_desc": "Need the Hook, Captain?",
-      "renderable": { "sprite": "HOOK_36_5", "colour": "white" },
-      "combat": { "damage": 1,  "range": 4, "type": "line" }
-    },
     {
       "name": "boat_default_weapon",
       "display_name": "default_weapon",
@@ -128,52 +50,6 @@
       "renderable": { "sprite": "boat_weapon_1", "colour": "white" },
       "combat": { "damage": 3, "range": 2, "type": "cone" }
     },
-    // header: scrap tier armour
-    //
-    {
-      "name": "scrap_helmet",
-      "display_name": "Helmet",
-      "display_desc": "A shoddy hat.",
-      "renderable": { "sprite": "HELMET_5", "colour": "white" },
-      "defence": { "block": 3, "worn_on": "HEAD" }
-      // "tier": "sCrap"
-    },
-    {
-      "name": "scrap_core",
-      "display_name": "Core Armour",
-      "display_desc": "Poorly constructed armour.",
-      "renderable": { "sprite": "CHESTPIECE_5", "colour": "white" },
-      "defence": { "block": 5, "worn_on": "CORE" }
-      // "tier": "sCrap"
-    },
-    {
-      "name": "scrap_gloves",
-      "display_name": "Gloves",
-      "display_desc": "Gloves. Gloves! Gloves?",
-      "renderable": { "sprite": "GLOVES_4", "colour": "white" },
-      "defence": { "block": 2, "worn_on": "ARM" }
-      // "tier": "sCrap"
-    },
-    {
-      "name": "scrap_legs",
-      "display_name": "Legs",
-      "display_desc": "No captain would wear these underpants.",
-      "renderable": { "sprite": "BOOTS_1", "colour": "white" },
-      "defence": { "block": 4, "worn_on": "LEG" },
-      "commerce": { "value": 10 }
-      // "tier": "sCrap"
-    },
-
-    // {
-    //   "name": "bullet_bouncy",
-    //   "display_name": "[Bouncy] Bullet)",
-    //   "display_desc": "Bouncy ballistic material.",
-    //   "renderable": { "sprite": "AMMO_BOX", "colour": "white" },
-    //   "bullet": { "damage": 12 }
-    // },
-
-    // Header: actors
-    //
     {
       "name": "bullet_default",
       "display_name": "Bullet",
@@ -312,7 +188,7 @@
       "name": "item_hp_pack",
       "display_name": "Health Pack",
       "display_desc": "Delicious health. num num num num.",
-      "renderable": { "sprite": "ICON_HEART_FULL", "colour": "red" },
+      "renderable": { "sprite": "ICON_HEART", "colour": "red" },
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
     },
@@ -331,13 +207,6 @@
       "renderable": { "sprite": "WEAPON_GRENADE", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
-    }
-  ],
-  "powerups": [
-    {
-      "name": "empty",
-      "display_name": "empty",
-      "display_desc": "empty"
     }
   ]
 }

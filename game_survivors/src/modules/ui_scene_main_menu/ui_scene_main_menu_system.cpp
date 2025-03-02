@@ -5,6 +5,7 @@
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -27,6 +28,29 @@
 namespace game2d {
 using namespace std::literals;
 
+static glm::vec2 dropshadow_offset = { 6, 16 };
+static float dropshadow_col[4] = {
+  17 / 255.0f,
+  19 / 255.0f,
+  20 / 255.0f,
+  0.5f,
+};
+
+void
+text_with_dropshadow(std::string text, const ImVec4& col)
+{
+  const auto pos = ImGui::GetCursorPos();
+  const auto dropshadow_pos = ImVec2{ pos.x + dropshadow_offset.x, pos.y + dropshadow_offset.y };
+
+  // dropshadow first so it's below the text
+  ImGui::SetCursorPos(dropshadow_pos);
+  ImGui::TextColored(ImVec4(dropshadow_col[0], dropshadow_col[1], dropshadow_col[2], dropshadow_col[3]), "Oh Buoy!");
+
+  // then the text
+  ImGui::SetCursorPos(pos);
+  ImGui::TextColored(col, "%s", text.c_str());
+};
+
 auto init_menu = [](entt::registry& r) {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
@@ -38,23 +62,22 @@ auto init_menu = [](entt::registry& r) {
   // pos_x is 0 because camera is already at center
   const auto pos = glm::vec2(0, -viewport_size_half.y + ri.viewport_size_render_at.y * (3 / 12.0f));
 
+  const auto my_greenish = hex_to_srgb("#71BBB2");
+  const auto im_greenish = convert_my_to_im_vec(my_greenish);
+
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [](entt::registry& r) {
+  wst_c.layout = [im_greenish](entt::registry& r) {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::PushFont(io.Fonts->Fonts[4]);
 
-    auto my_greenish = hex_to_srgb("#71BBB2");
-    auto im_greenish = convert_my_to_im(my_greenish);
-    ImGui::TextColored(im_greenish, "Oh Buoy!");
+    text_with_dropshadow("Oh Buoy!", im_greenish);
 
     ImGui::PopFont();
   };
 
   wst_c.flags |= ImGuiWindowFlags_NoDecoration;
-  wst_c.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   wst_c.flags |= ImGuiWindowFlags_NoInputs;
-  wst_c.flags |= ImGuiWindowFlags_NoNav;
   wst_c.flags |= ImGuiWindowFlags_NoBackground;
 
   auto header_e = create_empty<WorldspaceTextComponent>(r, wst_c);
@@ -73,15 +96,37 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_MainMenuUI, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
 
+  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
+  const auto viewport_size = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
+
+#if defined(_DEBUG)
+  // imgui_draw_vec2("dropshadow", dropshadow_offset);
+  ImGui::ColorEdit4("dropshadow_col", dropshadow_col);
+#endif
+
   if (ui_c.one_frame_buffer) {
     ui_c.one_frame_buffer = false;
     init_menu(r);
     return;
   }
 
-  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
   ImGuiIO& io = ImGui::GetIO();
+
+  // button idx
+  ImGui::PushFont(io.Fonts->Fonts[5]);
+
+  const ImVec2 size = { 204.0f, 62.0f };
+  const ImVec2 space_between_buttons = { 0, 20 };
+
+  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 10.0f, 10.0f });
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+
+  const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
+  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.2f));
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
@@ -89,25 +134,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoBackground;
 
-  // button idx
-  ImGui::PushFont(io.Fonts->Fonts[5]);
-
-  // centered
-  const auto pos =
-    ImVec2(viewport_pos.x + (ri.viewport_size_render_at.x * (6 / 12.0f)), viewport_pos.y + viewport_size_half.y);
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-
   ImGui::Begin("Main Menu", nullptr, flags);
-
-  const ImVec2 size = { 120.0f, 40.0f };
-  const ImVec2 pivot = { 0.5f, 0.5f };
-  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, pivot);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0)); // button hovered
-  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));  // button clicked
 
   set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
   process_input_for_ui(r, ui_c.state);
@@ -126,7 +153,19 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   if (selectable_button(a_def))
     move_to_scene_start(r, Scene::select);
 
-  ImGui::NewLine();
+  ImGui::Dummy(space_between_buttons);
+  auto b_def = SelectableButtonDef{
+    .label = "Options",
+    .size = size,
+    .index = index++,
+    .input = do_act,
+    .sel_index = selected,
+  };
+  if (selectable_button(b_def)) {
+    create_empty<RequestToShowOptionsMenu>(r);
+  }
+
+  ImGui::Dummy(space_between_buttons);
   auto c_def = SelectableButtonDef{
     .label = "Exit",
     .size = size,
@@ -139,7 +178,6 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   ui_c.state.max = index;
   ImGui::PopStyleVar(5);
-  ImGui::PopStyleColor(2);
   ImGui::End();
   ImGui::PopFont();
 

@@ -16,9 +16,15 @@ hex_to_srgb(const std::string& hex)
 };
 
 ImVec4
-convert_my_to_im(const engine::SRGBColour& col)
+convert_my_to_im_vec(const engine::SRGBColour& col)
 {
   return ImVec4{ col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, col.a / 255.0f };
+};
+
+ImU32
+convert_my_to_im(const engine::SRGBColour& col)
+{
+  return IM_COL32(col.r, col.g, col.b, col.a);
 };
 
 } // namespace game2d

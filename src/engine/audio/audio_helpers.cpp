@@ -2,7 +2,6 @@
 
 #include <SDL2/SDL_log.h>
 #include <algorithm>
-#include <format>
 #include <stdexcept>
 
 namespace game2d {

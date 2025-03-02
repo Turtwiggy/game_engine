@@ -379,7 +379,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     //                                     AudioRequestPlayEvent{
     //                                       .tag = "MENU_01",
     //                                       .looping = true,
-    //                                       .percent_of_max_user_volume = 0.25f,
+    //                                       .percent_of_max_user_volume = 1.0f,
     //                                     });
 
     create_empty<AudioRequestPlayEvent>(r,
@@ -398,6 +398,18 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // set_sprite(r, e, "STUDIO_TEXT_LOGO");
     // set_size(r, e, { 512, 256 });
     // set_position(r, e, { 0, 0 }); // center
+
+    // const auto& ri_c = get_first_component<game2d::SINGLE_RendererInfo>(r);
+    // const auto viewport_half = glm::vec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
+    // const glm::vec2 pos = { ri_c.viewport_size_render_at.x - viewport_half.x,
+    //                         ri_c.viewport_size_render_at.y - viewport_half.y };
+    // const auto col = hex_to_srgb("#27445D");
+    // auto e = create_empty<TransformComponent>(r);
+    // r.emplace<SpriteComponent>(e);
+    // set_sprite(r, e, "EMPTY");
+    // set_size(r, e, ri_c.viewport_size_render_at);
+    // set_position(r, e, pos); // center
+    // set_colour(r, e, col);
   }
 
   if (s == Scene::select) {

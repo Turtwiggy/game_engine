@@ -47,7 +47,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
   // flags |= ImGuiWindowFlags_NoBackground;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (10 / 12.0f));
+  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (6 / 12.0f));
   const float pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (11 / 12.0f));
   const auto pos = ImVec2(pos_x, pos_y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -95,17 +95,20 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
     if (!join_key_map.contains(handle))
       join_key_map[handle] = "Loading...";
 
-    auto b_join = controller_button_down(steam_c, handle, DA::Game_Select);
-    if (b_join) {
-      assign_handle_to_ui(ui_c, handle);
-      continue;
-    }
+    // Just keep assigning controllers
+    assign_handle_to_ui(ui_c, handle);
 
-    auto b_leave = controller_button_down(steam_c, handle, DA::Game_Cancel);
-    if (b_leave) {
-      unassign_handle_from_ui(ui_c, handle);
-      continue;
-    }
+    // auto b_join = controller_button_down(steam_c, handle, DA::Game_Select);
+    // if (b_join) {
+    //   assign_handle_to_ui(ui_c, handle);
+    //   continue;
+    // }
+
+    // auto b_leave = controller_button_down(steam_c, handle, DA::Game_Cancel);
+    // if (b_leave) {
+    //   unassign_handle_from_ui(ui_c, handle);
+    //   continue;
+    // }
   }
 
   // i.e. "waiting to assign"
@@ -121,7 +124,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
     if (joined && !connected) {
       ImGui::SameLine();
-      ImGui::Text("Controller disconnected!");
+      ImGui::Text("Disconnected!");
       continue;
     }
 
@@ -135,7 +138,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
     bool all_assigned = next_free_controller >= (int)free_controllers.size();
     if (free_controllers.size() == 0 || all_assigned) {
       ImGui::SameLine();
-      ImGui::Text("N/A");
+      ImGui::Text("No controller.");
       continue; // no more free controllers
     }
 
