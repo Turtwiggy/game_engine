@@ -44,6 +44,8 @@
 #include "modules/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
+#include "modules/system_item_gold/gold_components.hpp"
+#include "modules/system_item_gold/gold_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
 #include "modules/system_particles/particle_system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -159,6 +161,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     init_render_system(app, r);
   }
 
+  create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
   create_persistent<SINGLE_PauseMenuState>(r);
   create_persistent<SINGLE_OptionsMenuState>(r);
   create_persistent<SINGLE_DebugMenuBar>(r);
@@ -314,6 +317,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
 #if defined(_DEBUG)
   // update_debug_fixtures_system(r);
+  update_ui_survive_weapon_system(r);
 #endif
 
   update_ui_blur_system(r, dt);
@@ -340,7 +344,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_level_up_system(r);
     update_ui_survive_upgrade_system(r);
-    update_ui_survive_weapon_system(r);
+    // update_ui_survive_weapon_system(r);
     // update_ui_gameover_system(r);
   }
 

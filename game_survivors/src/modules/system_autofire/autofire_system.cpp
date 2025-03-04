@@ -155,15 +155,15 @@ update_autofire_system(entt::registry& r, const float dt)
     }
 
     // debug the actual firing target
-    {
-      Sprite adj_tgt_s;
-      adj_tgt_s.pos = smarter_tgt_pos;
-      adj_tgt_s.sprite = "CROSSHAIR_2";
-      adj_tgt_s.size = { 8, 8 };
-      adj_tgt_s.col = parent_col;
-      adj_tgt_s.col.a = 255 * 0.5f;
-      draw_sprite(r, adj_tgt_s);
-    }
+    // {
+    //   Sprite adj_tgt_s;
+    //   adj_tgt_s.pos = smarter_tgt_pos;
+    //   adj_tgt_s.sprite = "CROSSHAIR_2";
+    //   adj_tgt_s.size = { 8, 8 };
+    //   adj_tgt_s.col = parent_col;
+    //   adj_tgt_s.col.a = 255 * 0.5f;
+    //   draw_sprite(r, adj_tgt_s);
+    // }
 
     // rotate the gun to the target#
     const auto dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);

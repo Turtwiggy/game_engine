@@ -23,7 +23,7 @@ save_string(const std::string& key, const std::string& value);
 get_string(const std::string& key);
 
 [[nodiscard]] std::string
-gesert_string(const std::string& key, const std::string& value);
+gesert_string(const std::string& key, const std::string& default_value);
 
 //
 

@@ -44,11 +44,14 @@ update_ui_survive_weapon_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
 
-  const float hp_bar_height = 18;
-  const int num_weapons = 4;
-  const int num_players = 4;
-
   const auto grime_tex_id = search_for_texture_id_by_texture_path(ri_c, "grime_bar")->id;
+  const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
+  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(grime_tex_id));
+  const auto monochrome_im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(monochrome_tex_id));
+
+  const float hp_bar_height = 18;
+  const int max_num_weapons = 4;
+  const int max_num_players = 4;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -56,8 +59,30 @@ update_ui_survive_weapon_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoBackground;
 
-  ImGui::SetNextWindowPos({ 0, (float)ri_c.viewport_size_render_at.y }, ImGuiCond_Always, { 0, 1.0 });
-  ImGui::SetNextWindowSize({ (float)ri_c.viewport_size_render_at.x, 69 });
+  static float distance_from_bottom_of_screen = 25;
+  // imgui_draw_float("distance_x", distance_from_bottom_of_screen);
+
+  const auto players_view = r.view<const PlayerComponent>();
+  const auto players_e_vec = view_to_vector_of_ents(players_view);
+  auto num_active_players = (int)players_e_vec.size();
+
+  static bool debug_ui = false;
+#if defined(_DEBUG)
+  imgui_draw_bool("debug_weapons_ui", debug_ui);
+  if (debug_ui) {
+    // static int debug_players = 3;
+    // imgui_draw_int("debug_players", debug_players);
+    // static int debug_weapons = 2;
+    // imgui_draw_int("debug_weapons", debug_weapons);
+    // num_active_players = debug_players;
+    // num_active_weapons = debug_weapons;
+  }
+#endif
+
+  const auto set_window_pos = ImVec2{ 0, (float)ri_c.viewport_size_render_at.y - distance_from_bottom_of_screen };
+  const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, 69 };
+  ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0, 1.0 });
+  ImGui::SetNextWindowSize(set_window_size);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 10.0f, 10.0f });
@@ -65,25 +90,26 @@ update_ui_survive_weapon_system(entt::registry& r)
 
   ImGui::Begin("WeaponSystemUI", nullptr, flags);
 
-  const ImVec2 window_pos = ImGui::GetWindowPos();
-  const ImVec2 window_size = ImGui::GetWindowSize();
   const float rounding = 0.0f;
 
-  const auto player_ui_w = window_size.x / num_players;
+  const ImVec2 window_pos = ImGui::GetWindowPos();
+  const ImVec2 window_size = ImGui::GetWindowSize();
+  const auto player_ui_w = window_size.x / max_num_players; // always /4
   const auto player_ui_h = window_size.y;
   auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
   auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
 
-  const auto players_view = r.view<const PlayerComponent>();
-  const auto players_e_vec = view_to_vector_of_ents(players_view);
+  // center ui...
+  player_ui_tl.x += (window_size.x) * 0.5f - (num_active_players * player_ui_w * 0.5);
+  player_ui_br.x += (window_size.x) * 0.5f - (num_active_players * player_ui_w * 0.5);
 
-  for (int i = 0; i < num_players; i++) {
+  for (int i = 0; i < max_num_players; i++) {
 
     const auto my_player_col = my_player_colours[i];
     const auto im_player_col = convert_my_to_im(my_player_col);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    if (i >= (int)players_e_vec.size()) {
+    if (i >= num_active_players) {
       // show disconnected ui?
 
       // background
@@ -97,12 +123,16 @@ update_ui_survive_weapon_system(entt::registry& r)
       continue;
     }
 
-    auto player_e = players_e_vec[i];
-    auto fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
+    const auto player_e = players_e_vec[i];
+    const auto fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
     const auto& hp_c = r.get<HealthComponent>(fixture_e);
-    const float hp_percent = hp_c.hp / (float)hp_c.max_hp;
     const int hp = hp_c.hp;
     const int max_hp = hp_c.max_hp;
+    const float hp_percent = hp / (float)max_hp;
+    if (debug_ui) {
+      // hp = 3;
+      // max_hp = 100;
+    }
 
     {
       ImVec2 p_max;
@@ -121,7 +151,6 @@ update_ui_survive_weapon_system(entt::registry& r)
       draw_list->AddRectFilled(player_ui_tl, p_max, foreground_col, rounding);
 
       // health bar textured foreground
-      const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(grime_tex_id));
       ImVec2 tex_tl{ 0.0f, 0.0f };
       ImVec2 tex_br{ hp_percent * 1.0f, 1.0f };
       draw_list->AddImage(im_id, player_ui_tl, p_max, tex_tl, tex_br);
@@ -150,12 +179,12 @@ update_ui_survive_weapon_system(entt::registry& r)
     const auto num_active_weapons = (int)weapons_e_vec.size();
 
     // gun section
-    const auto w = (player_ui_w / num_weapons);
+    const auto w = (player_ui_w / max_num_weapons);
     const auto h = (player_ui_h - hp_bar_height);
     auto pos_l = ImVec2{ player_ui_tl.x, player_ui_tl.y + hp_bar_height };
     auto pos_r = ImVec2{ player_ui_tl.x + w, player_ui_tl.y + player_ui_h };
 
-    for (int j = 0; j < num_weapons; j++) {
+    for (int j = 0; j < max_num_weapons; j++) {
       // draw_list->AddRectFilled(pos_l, pos_r, IM_COL32(0, 255 * inc, 255 * inc, 255), rounding);
 
       const auto bar_padding_x = 6;      // padding from edges each side
@@ -166,8 +195,6 @@ update_ui_survive_weapon_system(entt::registry& r)
       if (!have_gun) {
 
         // draw a padlock or something
-        const auto lock_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-        const auto lock_im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(lock_tex_id));
         ImVec2 im_tex_tl{ 0.0f, 0.0f };
         ImVec2 im_tex_br{ 1.0f, 1.0f };
         std::tie(im_tex_tl, im_tex_br) = convert_sprite_to_uv(r, "KEY_2");
@@ -184,7 +211,8 @@ update_ui_survive_weapon_system(entt::registry& r)
         icon_p_max.x += icon_size;
         icon_p_max.y += icon_size;
 
-        draw_list->AddImage(lock_im_id, icon_p_min, icon_p_max, im_tex_tl, im_tex_br);
+        const auto faded_white = IM_COL32(255, 255, 255, 128);
+        draw_list->AddImage(monochrome_im_id, icon_p_min, icon_p_max, im_tex_tl, im_tex_br, faded_white);
 
         // move horizontally
         pos_l.x += w;
@@ -195,12 +223,10 @@ update_ui_survive_weapon_system(entt::registry& r)
       // state...
       auto weapon_e = weapons_e_vec[j];
       const auto wep_def = get_weapon_def(r, player_e, weapon_e);
-
       const auto& weapon_clip_c = r.get<WeaponClipSize>(weapon_e);
       const auto& weapon_reload_c = r.get<WeaponReloadRate>(weapon_e);
       const float bullets_in_clip = weapon_clip_c.bullets_cur / (float)wep_def.bullets_max;
       const float reload_percent = weapon_reload_c.seconds_cur / (float)wep_def.reload_rate;
-
       float percent_to_display = 0.0f;
       // if we've got bullets, show your current bullets
       if (weapon_clip_c.bullets_cur > 0)
@@ -212,9 +238,6 @@ update_ui_survive_weapon_system(entt::registry& r)
 
       // draw weapon icon
       {
-        const auto weapon_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-        const auto weapon_im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(weapon_tex_id));
-
         const float avail_w = pos_r.x - pos_l.x;
         const float avail_h = pos_r.y - pos_l.y - bar_h - bar_padding_bottom;
         // const float icon_size = glm::min(avail_w, avail_h) * 0.5f;
@@ -234,7 +257,7 @@ update_ui_survive_weapon_system(entt::registry& r)
         icon_p_max.x += icon_size;
         icon_p_max.y += icon_size;
 
-        draw_list->AddImage(weapon_im_id, icon_p_min, icon_p_max, im_tex_tl, im_tex_br);
+        draw_list->AddImage(monochrome_im_id, icon_p_min, icon_p_max, im_tex_tl, im_tex_br);
         // draw_list->AddRectFilled(icon_p_min, icon_p_max, IM_COL32(255, 0, 0, 255));
       }
 

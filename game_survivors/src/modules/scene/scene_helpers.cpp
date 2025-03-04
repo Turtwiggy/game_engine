@@ -203,20 +203,20 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   }
 
   // Spawn a manual weapon
-  {
-    HardpointComponent hardpoint_c;
-    HardpointData hardpoint_data;
-    hardpoint_data.key = "manual";
-    hardpoint_data.arc = 360;
-    hardpoint_data.arc_mid = 0;
-    hardpoint_data.x_rel_tl = size.x / 2;
-    hardpoint_data.y_rel_tl = size.y / 2;
-    // hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
-    // hardpoint_data.y_rel_tl = size.y / 2;
-    auto weapon_e = spawn_weapon(r, hardpoint_data);
-    r.emplace<ManualfireComponent>(weapon_e);
-    weapons.push_back(weapon_e);
-  }
+  // {
+  //   HardpointComponent hardpoint_c;
+  //   HardpointData hardpoint_data;
+  //   hardpoint_data.key = "manual";
+  //   hardpoint_data.arc = 360;
+  //   hardpoint_data.arc_mid = 0;
+  //   hardpoint_data.x_rel_tl = size.x / 2;
+  //   hardpoint_data.y_rel_tl = size.y / 2;
+  //   // hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
+  //   // hardpoint_data.y_rel_tl = size.y / 2;
+  //   auto weapon_e = spawn_weapon(r, hardpoint_data);
+  //   r.emplace<ManualfireComponent>(weapon_e);
+  //   weapons.push_back(weapon_e);
+  // }
 
   // HACK: equip specoific weapon
   const auto& weps_c = get_first_component<SINGLE_Weapons>(r);

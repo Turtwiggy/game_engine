@@ -46,12 +46,12 @@ get_string(const std::string& key)
 };
 
 std::string
-gesert_string(const std::string& key, const std::string& value)
+gesert_string(const std::string& key, const std::string& default_value)
 {
   const auto str = get_string(key);
   if (str == std::nullopt) {
-    save_string(key, value);
-    return value;
+    save_string(key, default_value);
+    return default_value;
   }
   return str.value();
 };
