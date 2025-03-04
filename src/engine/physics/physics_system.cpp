@@ -54,9 +54,13 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
   }
 
   {
-    const auto view = r.view<const PhysicsFixtureComponent, TransformComponent>();
-    for (const auto& [e, fixture_c, transform_c] : view.each()) {
-      const auto parent_e = r.get<HasParentComponent>(e).parent;
+    const auto view = r.view<const PhysicsFixtureComponent, TransformComponent, HasParentComponent>();
+    for (const auto& [e, fixture_c, transform_c, parent_c] : view.each()) {
+      const auto parent_e = parent_c.parent;
+      if (parent_e == entt::null || !r.valid(parent_e)) {
+        r.remove<HasParentComponent>(e);
+        continue;
+      }
       const auto parent_pos_pixels = get_position(r, parent_e);
 
       // const auto aabb = fixture_c.fixture->GetAABB(0);

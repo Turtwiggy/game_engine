@@ -8,7 +8,7 @@
 namespace game2d {
 
 engine::SRGBColour
-hex_to_srgb(const std::string& hex);
+hex_to_srgb(const std::string& hex, int alpha = 255);
 
 ImVec4
 convert_my_to_im_vec(const engine::SRGBColour& col);

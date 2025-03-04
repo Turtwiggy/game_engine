@@ -90,6 +90,7 @@
 #include "modules/ui_scene_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
+#include "modules/ui_scene_survive_weapon/ui_survive_weapon_system.hpp"
 #include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
@@ -136,7 +137,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   // idx: 5 (buttons menu)
   ImFontConfig buttons_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 50.0f, &buttons_fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 40.0f, &buttons_fingerpaint_config);
 
   // hide default cursor
   if (custom_mouse_cursor) {
@@ -339,6 +340,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_level_up_system(r);
     update_ui_survive_upgrade_system(r);
+    update_ui_survive_weapon_system(r);
     // update_ui_gameover_system(r);
   }
 

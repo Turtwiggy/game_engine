@@ -27,31 +27,37 @@ update_ui_blur_system(entt::registry& r, const float dt)
 
   // temp: adjust blur.
   static float blur_amount = 0.0f;
+  const float fade_in_speed = 4.0f;
 
   // blur with main menu...
-  if (scene_c.s == Scene::menu)
-    blur_amount += dt;
+  // if (scene_c.s == Scene::menu)
+  //   blur_amount += fade_in_speed * dt;
 
   // blur with options menu...
-  else if (options_c.open)
-    blur_amount += dt;
+  if (options_c.open)
+    blur_amount += fade_in_speed * dt;
 
   // blur with pause menu...
-  else if (pause_c.open)
-    blur_amount += dt;
+  if (pause_c.open)
+    blur_amount += fade_in_speed * dt;
 
   else
     blur_amount -= dt;
 
-  blur_amount = glm::clamp(blur_amount, 0.0f, 0.5f);
+  blur_amount = glm::clamp(blur_amount, 0.0f, 1.0f);
 
-  const auto my_bg_col = hex_to_srgb("#27445D");
-  const auto im_bg_col = convert_my_to_im(my_bg_col);
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, im_bg_col);
+  // static auto my_bg_col = hex_to_srgb("#27445D");
+  // static auto im_bg_col = convert_my_to_im_vec(my_bg_col);
+  // static float im_col[4] = { im_bg_col.x, im_bg_col.y, im_bg_col.z, im_bg_col.w };
+  // ImGui::ColorEdit4("blur_col", im_col);
+  // IM_COL32(im_col[0] * 255, im_col[1] * 255, im_col[2] * 255, im_col[3] * 255)
+
+  const auto game_fade_col = IM_COL32(0, 0, 0, blur_amount * 0.5 * 255);
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, game_fade_col);
 
   ImGui::SetNextWindowSize(viewport_size, ImGuiCond_Always);
   ImGui::SetNextWindowPos(viewport_pos);
-  ImGui::SetNextWindowBgAlpha(blur_amount);
 
   ImGuiWindowFlags blur_flags = 0;
   blur_flags |= ImGuiWindowFlags_NoDecoration;
@@ -60,7 +66,6 @@ update_ui_blur_system(entt::registry& r, const float dt)
   blur_flags |= ImGuiWindowFlags_NoInputs;
 
   ImGui::Begin("Blur", nullptr, blur_flags);
-  ImGui::Text("Blur Amount: %f", blur_amount);
   ImGui::End();
 
   ImGui::PopStyleColor();

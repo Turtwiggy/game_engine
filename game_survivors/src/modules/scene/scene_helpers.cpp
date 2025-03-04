@@ -382,12 +382,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     //                                       .percent_of_max_user_volume = 1.0f,
     //                                     });
 
-    create_empty<AudioRequestPlayEvent>(r,
-                                        AudioRequestPlayEvent{
-                                          .tag = "WATER_AMBIENCE_01",
-                                          .looping = true,
-                                          .percent_of_max_user_volume = 1.0f,
-                                        });
+    // create_empty<AudioRequestPlayEvent>(r,
+    //                                     AudioRequestPlayEvent{
+    //                                       .tag = "WATER_AMBIENCE_01",
+    //                                       .looping = true,
+    //                                       .percent_of_max_user_volume = 1.0f,
+    //                                     });
 
     // load player's saved units
     // const auto units = load_units(r);
@@ -414,12 +414,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::select) {
 
-    create_empty<AudioRequestPlayEvent>(r,
-                                        AudioRequestPlayEvent{
-                                          .tag = "WATER_AMBIENCE_01",
-                                          .looping = true,
-                                          .percent_of_max_user_volume = 1.0f,
-                                        });
+    // create_empty<AudioRequestPlayEvent>(r,
+    //                                     AudioRequestPlayEvent{
+    //                                       .tag = "WATER_AMBIENCE_01",
+    //                                       .looping = true,
+    //                                       .percent_of_max_user_volume = 1.0f,
+    //                                     });
 
     create_empty<AudioRequestPlayEvent>(r,
                                         AudioRequestPlayEvent{

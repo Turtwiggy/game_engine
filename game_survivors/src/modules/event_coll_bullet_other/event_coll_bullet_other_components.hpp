@@ -85,7 +85,7 @@ struct WeaponSpread
 struct WeaponClipSize
 {
   int bullets_max = 1;
-  int bullets_cur = 1;
+  int bullets_cur = 0;
 };
 
 } // namespace game2d

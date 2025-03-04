@@ -1,0 +1,14 @@
+{
+  "spritesheet": {
+    "name": "grime_bar",
+    "px_total": 512,
+    "py_total": 32,
+    "px": 512,
+    "py": 32,
+    "nx": 1,
+    "ny": 1
+  },
+  "sprites": [
+    { "name": "GRIME_BAR", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] }
+  ]
+}

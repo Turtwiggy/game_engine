@@ -20,8 +20,8 @@ handle_player_enter_vacuum_orb(entt::registry& r, const OnCollisionEnter& evt)
   // Make them all fly to the player.
   // Give that amount of xp if the distance is < than some amount to the player
 
-  // auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  // dead.dead.emplace(item_e);
+  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+  dead.dead.emplace(item_e);
 }
 
 } // namespace game2d

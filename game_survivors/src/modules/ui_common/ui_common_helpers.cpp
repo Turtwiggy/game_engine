@@ -4,14 +4,17 @@
 
 namespace game2d {
 
-const auto my_active_and_hovered_col = hex_to_srgb("#C9F0EB");
-const auto im_active_and_hovered_col = convert_my_to_im(my_active_and_hovered_col);
-
-const auto my_active_col = hex_to_srgb("#71BBB2");
+const auto my_active_col = hex_to_srgb("#FFFFFF", 255);
 const auto im_active_col = convert_my_to_im(my_active_col);
 
-const auto my_inactive_col = hex_to_srgb("#497D74");
+const auto my_inactive_col = hex_to_srgb("#FFFFFF", 0.6 * 255);
 const auto im_inactive_col = convert_my_to_im(my_inactive_col);
+
+const auto my_active_button_background_col = hex_to_srgb("#02526D", 255);
+const auto im_active_button_background_col = convert_my_to_im(my_active_button_background_col);
+
+const auto my_inactive_button_background_col = hex_to_srgb("#02526D", 0.6 * 255);
+const auto im_inactive_button_background_col = convert_my_to_im(my_inactive_button_background_col);
 
 bool
 selectable_button(SelectableButtonDef& def)
@@ -63,9 +66,15 @@ selectable_button(SelectableButtonDef& def)
 
   ImU32 colour = im_inactive_col;
   if (is_selected && is_hovered)
-    colour = im_active_and_hovered_col;
+    colour = im_active_col;
   else if (is_selected)
     colour = im_active_col;
+
+  ImU32 button_background_col = im_inactive_button_background_col;
+  if (is_selected && is_hovered)
+    button_background_col = im_active_button_background_col;
+  else if (is_selected)
+    button_background_col = im_active_button_background_col;
 
   // button background based on state
   // if (is_clicked)
@@ -73,7 +82,7 @@ selectable_button(SelectableButtonDef& def)
   // else if (is_hovered)
   //   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_hovered_col, rounding);
   // else
-  //   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_col, rounding);
+  ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_background_col, rounding);
 
   // button outline
   ImGui::GetWindowDrawList()->AddRect(p_min, p_max, colour, rounding, corners, thickness);

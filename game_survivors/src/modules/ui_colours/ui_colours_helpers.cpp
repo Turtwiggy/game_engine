@@ -3,7 +3,7 @@
 namespace game2d {
 
 engine::SRGBColour
-hex_to_srgb(const std::string& hex)
+hex_to_srgb(const std::string& hex, int alpha)
 {
   const std::string hex_without_hash = hex.substr(hex.find("#") + 1, hex.length());
   const std::string str_r = hex_without_hash.substr(0, 2);
@@ -12,7 +12,7 @@ hex_to_srgb(const std::string& hex)
   const int r = std::stoi(str_r, 0, 16);
   const int g = std::stoi(str_g, 0, 16);
   const int b = std::stoi(str_b, 0, 16);
-  return { r, g, b, 255 };
+  return { r, g, b, alpha };
 };
 
 ImVec4

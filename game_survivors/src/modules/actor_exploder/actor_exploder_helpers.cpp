@@ -64,7 +64,7 @@ public:
 void
 add_explode_on_death_callback(entt::registry& r, entt::entity e)
 {
-  auto& callbacks_c = r.get<OnDeathCallbacks>(e);
+  auto& callbacks_c = r.get_or_emplace<OnDeathCallbacks>(e);
 
   // deal damage in area around you
   const auto explode_on_death = [](entt::registry& r, entt::entity e) {
@@ -78,7 +78,7 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
                                                                                   entt::entity e) -> bool {
       bool valid_target = false;
       valid_target |= r.try_get<EnemyComponent>(e) != nullptr;
-      valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
+      // valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
       return valid_target;
     };
     const auto things_with_health = get_all_in_area_filtered(r, center_m, explosion_radius_meters, filter_criteria);

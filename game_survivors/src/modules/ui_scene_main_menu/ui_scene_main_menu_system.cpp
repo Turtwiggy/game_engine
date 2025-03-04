@@ -1,6 +1,7 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
@@ -30,9 +31,9 @@ using namespace std::literals;
 
 static glm::vec2 dropshadow_offset = { 6, 16 };
 static float dropshadow_col[4] = {
-  17 / 255.0f,
-  19 / 255.0f,
-  20 / 255.0f,
+  30 / 255.0f,
+  50 / 255.0f,
+  60 / 255.0f,
   0.5f,
 };
 
@@ -101,8 +102,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
 
 #if defined(_DEBUG)
-  // imgui_draw_vec2("dropshadow", dropshadow_offset);
-  ImGui::ColorEdit4("dropshadow_col", dropshadow_col);
+  // imgui_draw_vec2("dropshadow_offset", dropshadow_offset);
+  // ImGui::ColorEdit4("dropshadow_col", dropshadow_col);
 #endif
 
   if (ui_c.one_frame_buffer) {
@@ -116,8 +117,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   // button idx
   ImGui::PushFont(io.Fonts->Fonts[5]);
 
-  const ImVec2 size = { 204.0f, 62.0f };
-  const ImVec2 space_between_buttons = { 0, 20 };
+  const ImVec2 button_size = { 177.0f, 50.0f };
+  const ImVec2 space_between_buttons = { 0, 16 };
 
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
@@ -145,7 +146,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   auto a_def = SelectableButtonDef{
     .label = "Play",
-    .size = size,
+    .size = button_size,
     .index = index++,
     .input = do_act,
     .sel_index = selected,
@@ -156,7 +157,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   ImGui::Dummy(space_between_buttons);
   auto b_def = SelectableButtonDef{
     .label = "Options",
-    .size = size,
+    .size = button_size,
     .index = index++,
     .input = do_act,
     .sel_index = selected,
@@ -168,7 +169,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   ImGui::Dummy(space_between_buttons);
   auto c_def = SelectableButtonDef{
     .label = "Exit",
-    .size = size,
+    .size = button_size,
     .index = index++,
     .input = do_act,
     .sel_index = selected,

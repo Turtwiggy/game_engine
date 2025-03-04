@@ -45,7 +45,6 @@ handle_death_event__treasure_enemy(entt::registry& r, const DeathEvent& evt)
 
   // Spawn some treasure.
   const auto treasure_idx = engine::rand_det_s(treasure_rnd.rng, 0, (int)TreasureOption::count);
-
   const auto treasure_enum = magic_enum::enum_value<TreasureOption>(treasure_idx);
   const auto treasure_str = std::string(magic_enum::enum_name(treasure_enum));
   SDL_Log("Treasure enemy died! Spawning treasure %s", treasure_str.c_str());

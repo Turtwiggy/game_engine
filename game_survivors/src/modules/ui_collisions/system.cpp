@@ -13,7 +13,6 @@ update_ui_collisions_system(entt::registry& r)
 {
   const auto& physics = get_first_component<SINGLE_Physics>(r);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto pos = glm::vec2{ 0, ri.viewport_size_render_at.y - (ImGui::GetFontSize() * 2.0f) }; // bl
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -22,10 +21,11 @@ update_ui_collisions_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoSavedSettings;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoInputs;
 
+  const auto pos = glm::vec2{ 0, ri.viewport_size_render_at.y - (ImGui::GetFontSize() * 2.0f) }; // bl
   const auto offset = ImVec2{ 100, 0 };
+
   ImGui::SetNextWindowPos(ImVec2{ pos.x + offset.x, pos.y }, ImGuiCond_Always, { 0, 0 });
 
   ImGui::Begin("Collisions", NULL, flags);
