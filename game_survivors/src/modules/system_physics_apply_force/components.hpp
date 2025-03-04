@@ -30,10 +30,10 @@ struct ApplyForceToDynamicTarget
   float distance_to_reduce_thrust = 6;
 };
 
-// struct ApplyForceToStaticTarget
-// {
-//   bool placeholder = true;
-// };
+struct ApplyLinearVelocityToDynamicTarget
+{
+  bool placeholder = true;
+};
 
 struct ApplyForceToApproachTargetFromAngle
 {

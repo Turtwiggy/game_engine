@@ -123,7 +123,7 @@ update_manualfire_system(entt::registry& r, const float dt)
     weapon_fire_rate_c.seconds_between_shots_left = weapon_fire_rate_c.seconds_between_shots_max;
 
     // play audio
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_01" });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_0" });
 
     // TODO: implement same functionality as system autofire
     const int bullet_damage = r.get<BulletDamage>(wep_e).damage;

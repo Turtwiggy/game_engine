@@ -102,7 +102,7 @@ selectable_button(SelectableButtonDef& def)
 
   // Do the callback for the button
   // if (is_selected && do_ui_action) {
-  //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_SELECT_01" });
+  //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_SELECT_0" });
   //   return true;
   // }
 

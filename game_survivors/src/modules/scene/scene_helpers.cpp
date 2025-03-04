@@ -375,29 +375,23 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
 
-    // create_empty<AudioRequestPlayEvent>(r,
-    //                                     AudioRequestPlayEvent{
-    //                                       .tag = "MENU_01",
-    //                                       .looping = true,
-    //                                       .percent_of_max_user_volume = 1.0f,
-    //                                     });
+    create_empty<AudioRequestPlayEvent>(r,
+                                        AudioRequestPlayEvent{
+                                          .tag = "MENU_0",
+                                          .looping = true,
+                                          .percent_of_max_user_volume = 1.0f,
+                                        });
 
-    // create_empty<AudioRequestPlayEvent>(r,
-    //                                     AudioRequestPlayEvent{
-    //                                       .tag = "WATER_AMBIENCE_01",
-    //                                       .looping = true,
-    //                                       .percent_of_max_user_volume = 1.0f,
-    //                                     });
+    create_empty<AudioRequestPlayEvent>(r,
+                                        AudioRequestPlayEvent{
+                                          .tag = "WATER_AMBIENCE_0",
+                                          .looping = true,
+                                          .percent_of_max_user_volume = 1.0f,
+                                        });
 
     // load player's saved units
     // const auto units = load_units(r);
     // std::for_each(units.begin(), units.end(), [&r](const auto& u) { add_unit_to_entt(r, u); });
-
-    // auto e = create_empty<TransformComponent>(r);
-    // r.emplace<SpriteComponent>(e);
-    // set_sprite(r, e, "STUDIO_TEXT_LOGO");
-    // set_size(r, e, { 512, 256 });
-    // set_position(r, e, { 0, 0 }); // center
 
     // const auto& ri_c = get_first_component<game2d::SINGLE_RendererInfo>(r);
     // const auto viewport_half = glm::vec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
@@ -416,14 +410,14 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // create_empty<AudioRequestPlayEvent>(r,
     //                                     AudioRequestPlayEvent{
-    //                                       .tag = "WATER_AMBIENCE_01",
+    //                                       .tag = "WATER_AMBIENCE_0",
     //                                       .looping = true,
     //                                       .percent_of_max_user_volume = 1.0f,
     //                                     });
 
     create_empty<AudioRequestPlayEvent>(r,
                                         AudioRequestPlayEvent{
-                                          .tag = "SELECT_01",
+                                          .tag = "SELECT_0",
                                           .looping = true,
                                           .percent_of_max_user_volume = 1.0f,
                                         });
@@ -435,12 +429,18 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     create_empty<AudioRequestPlayEvent>(r,
                                         AudioRequestPlayEvent{
-                                          .tag = "WATER_AMBIENCE_01",
+                                          .tag = "WATER_AMBIENCE_0",
                                           .looping = true,
                                           .percent_of_max_user_volume = 1.0f,
                                         });
 
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01", true, 0.1f });
+    create_empty<AudioRequestPlayEvent>(r,
+                                        AudioRequestPlayEvent{
+                                          .tag = "GAME_0",
+                                          .looping = true,
+                                          .percent_of_max_user_volume = 1.0f,
+                                        });
+
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);

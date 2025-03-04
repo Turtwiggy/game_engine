@@ -16,13 +16,19 @@ handle_player_enter_sea_mine(entt::registry& r, const OnCollisionEnter& evt)
     return;
 
   SDL_Log("You collided with a sea mine... exploding");
-  const auto par_e = r.get<HasParentComponent>(item_e).parent;
+
+  //
+  // use callbacks when need to update physics things,
+  // because currently collision via physics world
+  // and updating things during physics step makes physics sad
+  //
 
   // Same as exploder logic...
-  add_explode_on_death_callback(r, par_e);
+  const auto item_par_e = r.get<HasParentComponent>(item_e).parent;
+  add_explode_on_death_callback(r, item_par_e);
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  dead.dead.emplace(par_e);
+  dead.dead.emplace(item_par_e);
 }
 
 } // namespace game2d

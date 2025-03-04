@@ -189,9 +189,9 @@ update_ui_popup_options_system(entt::registry& r)
           // below is BAD.
           // const auto& s = get_first_component<SINGLE_CurrentScene>(r);
           // if (s.s == Scene::overworld)
-          //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
+          //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_0" });
           // if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
-          // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+          // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_0" });
         }
       }
 

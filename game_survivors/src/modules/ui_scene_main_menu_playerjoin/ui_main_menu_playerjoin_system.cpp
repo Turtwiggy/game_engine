@@ -47,10 +47,10 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
   // flags |= ImGuiWindowFlags_NoBackground;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (6 / 12.0f));
-  const float pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (11 / 12.0f));
+  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f));
+  const float pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (0 / 12.0f));
   const auto pos = ImVec2(pos_x, pos_y);
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 
   ImGui::Begin("Players", NULL, flags);
 

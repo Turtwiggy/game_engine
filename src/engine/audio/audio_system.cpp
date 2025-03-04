@@ -19,6 +19,7 @@
 #include <imgui.h>
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -69,7 +70,9 @@ init_audio_system(entt::registry& r)
   for (auto& file : audio.sounds) {
     auto* sound = Mix_LoadWAV(file.path.c_str());
     if (!sound) {
-      SDL_Log("%s", std::format("Failed to load sound: %s, %s", file.path.c_str(), Mix_GetError()).c_str());
+      auto err = std::format("Failed to load sound: {}, {}", file.path.c_str(), Mix_GetError());
+      SDL_Log("%s", err.c_str());
+      throw std::runtime_error(err);
       continue;
     }
     file.buffer = sound;
@@ -148,6 +151,7 @@ update_audio_system(entt::registry& r, const float dt)
 
   // state: process request -> playing
   for (const auto& [tag, entities] : compacted_requests) {
+    SDL_Log("Audio request to play... %s", tag.c_str());
 
     // assume audio request with same tag are the same
     const auto& entity = entities[0];

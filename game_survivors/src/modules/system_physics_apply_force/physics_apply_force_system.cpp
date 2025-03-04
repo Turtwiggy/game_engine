@@ -272,6 +272,34 @@ update_physics_apply_force_system(entt::registry& r)
 #endif
     }
   }
+
+  /*
+  // ApplyLinearVelocityToDynamicTarget
+  {
+    const auto& view = r.view<const ApplyLinearVelocityToDynamicTarget,
+                              PhysicsBodyComponent,
+                              const PhysicsDynamicTarget,
+                              const ActorSpeedComponent>();
+    for (const auto& [e, req_c, body_c, tgt_c, speed_c] : view.each()) {
+
+      // check your target hasn't died
+      const auto target_e = tgt_c.target;
+      if (target_e == entt::null || !r.valid(target_e)) {
+        SDL_Log("Target invalid. Should retarget.");
+        r.remove<PhysicsDynamicTarget>(e);
+        continue;
+      }
+
+      const auto& you_body = body_c.body;
+      const auto& tgt_body = r.get<PhysicsBodyComponent>(tgt_c.target).body;
+
+      const auto you_pos = glm::vec2{ you_body->GetPosition().x, you_body->GetPosition().y };
+      const auto tgt_pos = glm::vec2{ tgt_body->GetPosition().x, tgt_body->GetPosition().y };
+
+      // body_c->Se
+    }
+  }
+  */
 }
 
 void

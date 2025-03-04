@@ -205,7 +205,7 @@ update_autofire_system(entt::registry& r, const float dt)
       weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
 
     // request to play audio
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_01" });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_0" });
     // request screenshake
     // create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::SHOOT });
 

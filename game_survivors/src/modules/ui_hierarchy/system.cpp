@@ -10,6 +10,7 @@
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 // other lib headers
+#include <box2d/b2_body.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <magic_enum.hpp>
@@ -164,6 +165,14 @@ update_ui_hierarchy_system(entt::registry& r)
 
       tmp_x = pb->body->GetLinearDamping();
       imgui_draw_float("LinearDamping", tmp_x);
+
+      auto body_type = pb->body->GetType();
+      if (body_type == b2_kinematicBody)
+        ImGui::Text("Physics Type is b2_kinematicBody.");
+      if (body_type == b2_dynamicBody)
+        ImGui::Text("Physics Type is b2_dynamicBody.");
+      if (body_type == b2_staticBody)
+        ImGui::Text("Physics Type is b2_staticBody.");
 
       for (auto* fixture = pb->body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
         bool is_sensor = fixture->IsSensor();

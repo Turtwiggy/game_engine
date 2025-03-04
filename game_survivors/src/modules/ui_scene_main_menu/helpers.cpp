@@ -28,7 +28,7 @@ play_sound_if_hovered(entt::registry& r, std::vector<std::string>& hovered_butto
       hovered_buttons.clear();
 
     hovered_buttons.push_back(label);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_HOVER_01" });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_HOVER_0" });
   }
 
   // does contain hovered but it's not hovered.
