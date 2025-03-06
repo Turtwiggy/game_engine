@@ -3,6 +3,7 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actor_player/components.hpp"
@@ -172,10 +173,10 @@ update_ui_survive_weapon_system(entt::registry& r)
       draw_list->AddText(center, IM_COL32(255, 255, 255, 255), text.c_str());
     }
 
-    const auto* weapons_c = r.try_get<HasWeaponsComponent>(players_e_vec[i]);
+    const auto* weapons_c = r.try_get<HasChildrenComponent>(players_e_vec[i]);
     if (!weapons_c)
       continue;
-    const auto weapons_e_vec = weapons_c->weapons;
+    const auto weapons_e_vec = weapons_c->children;
     const auto num_active_weapons = (int)weapons_e_vec.size();
 
     // gun section

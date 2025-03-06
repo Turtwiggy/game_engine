@@ -1,0 +1,18 @@
+{
+  "spritesheet": {
+    "name": "snake",
+    "px_total": 512,
+    "py_total": 512,
+    "px": 32,
+    "py": 32,
+    "nx": 16,
+    "ny": 16
+  },
+  "sprites": [
+    { "name": "snake_head", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "snake_body_10", "frames": [ { "x": 1, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "snake_body_0", "frames": [ { "x": 2, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "snake_body_-10", "frames": [ { "x": 3, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "snake_tail", "frames": [ { "x": 4, "y": 0, "w": 1, "h": 1 } ] }
+  ]
+}

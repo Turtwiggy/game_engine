@@ -1,7 +1,7 @@
 #include "pause_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
+#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_components.hpp"
 
 namespace game2d {
 

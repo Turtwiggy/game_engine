@@ -2,6 +2,7 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
@@ -116,9 +117,8 @@ update_ui_survive_info_system(entt::registry& r)
       ImGui::Text("a_mod_max_stamina %0.2f", mod_stamina);
     }
 
-    const auto& weps_c = r.get<HasWeaponsComponent>(e);
-
-    for (const auto wep_e : weps_c.weapons) {
+    const auto& weps_c = r.get<HasChildrenComponent>(e);
+    for (const auto wep_e : weps_c.children) {
 
       const auto bul_def = get_bullet_def(r, e, wep_e);
       const auto wep_def = get_weapon_def(r, e, wep_e);

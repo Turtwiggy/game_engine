@@ -25,27 +25,26 @@ update_ui_debug_spawner_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, timer_e, timer_c);
   GET_FIRST_OR_RETURN(SINGLE_Spawners, r, disk_spawn_data_e, disk_spawn_data_c);
 
-  auto& cooldown_c = r.get<CooldownComponent>(timer_e);
   auto& input_c = get_first_component<SINGLE_InputComponent>(r);
 
   if (get_key_held(input_c, SDL_SCANCODE_LSHIFT)) {
     // todo: go to next/previous wave
     if (get_key_down(input_c, SDL_SCANCODE_EQUALS))
-      cooldown_c.time += 60;
+      timer_c.time_left_cur += 60;
     if (get_key_down(input_c, SDL_SCANCODE_MINUS))
-      cooldown_c.time -= 60;
+      timer_c.time_left_cur -= 60;
   } else {
     if (get_key_down(input_c, SDL_SCANCODE_EQUALS))
-      cooldown_c.time += 20;
+      timer_c.time_left_cur += 20;
     if (get_key_down(input_c, SDL_SCANCODE_MINUS))
-      cooldown_c.time -= 20;
+      timer_c.time_left_cur -= 20;
   }
 
   ImGui::Begin("DebugSpawner");
 
   // const int minutes = static_cast<int>(cooldown_c.time) / 60;
   // const int seconds = static_cast<int>(cooldown_c.time) % 60;
-  const int seconds_from_start = cooldown_c.time_max - (int)cooldown_c.time;
+  const int seconds_from_start = timer_c.time_left_max - timer_c.time_left_cur;
   ImGui::Text("Seconds from start: %i", seconds_from_start);
 
   for (const auto [e, data_c, cooldown_c] : r.view<EnemySpawnData, CooldownComponent>().each()) {

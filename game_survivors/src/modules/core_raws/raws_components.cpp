@@ -231,7 +231,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     body->GetUserData().pointer = (uintptr_t)e;
 
     // entt: create body representation
-    auto& body_c = r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ body });
+    auto& body_c = r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ .body = body });
 
     if (!t.phys_fixtures.has_value()) {
       SDL_Log("(Error) phys_body defined, but not phys_fixtures");
@@ -257,6 +257,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         fixture_c.fixture = fixture;
         auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
         r.emplace_or_replace<TagComponent>(fixture_e, data.tag);
+        r.emplace<ItemKey>(fixture_e, ItemKey{ key });
         r.emplace<HasParentComponent>(fixture_e, e); // link fixture => body
         body_c.fixtures.push_back(fixture_e);        // link body => fixture
 

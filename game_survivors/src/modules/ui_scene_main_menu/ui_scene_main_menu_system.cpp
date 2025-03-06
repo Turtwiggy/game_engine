@@ -154,6 +154,18 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   if (selectable_button(a_def))
     move_to_scene_start(r, Scene::select);
 
+#if defined(_DEBUG)
+  auto snake_def = SelectableButtonDef{
+    .label = "(Test) Snake",
+    .size = button_size,
+    .index = index++,
+    .input = do_act,
+    .sel_index = selected,
+  };
+  if (selectable_button(snake_def))
+    move_to_scene_start(r, Scene::procedural_snake);
+#endif
+
   ImGui::Dummy(space_between_buttons);
   auto b_def = SelectableButtonDef{
     .label = "Options",

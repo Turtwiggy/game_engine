@@ -12,6 +12,7 @@
 #include "modules/actor_enemy_charger/enemy_charger_system.hpp"
 #include "modules/actor_enemy_grower/enemy_grower_system.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
+#include "modules/actor_snake/snake_helpers.hpp"
 #include "modules/actor_swarmlord/enemy_swarmlord_system.hpp"
 #include "modules/combat/combat_helpers.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
@@ -23,6 +24,7 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
+#include "modules/core_debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/system.hpp"
@@ -88,8 +90,8 @@
 #include "modules/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
+#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
-#include "modules/ui_scene_survive_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 #include "modules/ui_scene_survive_weapon/ui_survive_weapon_system.hpp"
@@ -300,7 +302,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_particle_system(r, dt);
     update_spawn_particles_on_death_system(r);
     update_wiggle_up_and_down_system(r, dt);
-    update_spawner_system(r);
+    update_spawner_system(r, dt);
     update_alpha_based_on_lifecycle_system(r);
     update_sprint_system(r, dt);
 
@@ -309,15 +311,18 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_enemy_grower_system(r, dt);
     update_enemy_projectile_system(r);
     update_enemy_swarmlord_system(r);
+    update_snake(r, mouse_pos, dt);
 
     update_upgrade_hp_max_system(r);
     update_upgrade_hp_regen_system(r, dt);
     update_upgrade_xp_zone_size_system(r);
   }
 
+  // if (scene.s == Scene::procedural_snake)
+  // update_snake(r, mouse_pos, dt);
+
 #if defined(_DEBUG)
   // update_debug_fixtures_system(r);
-  update_ui_survive_weapon_system(r);
 #endif
 
   update_ui_blur_system(r, dt);
@@ -344,7 +349,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_level_up_system(r);
     update_ui_survive_upgrade_system(r);
-    // update_ui_survive_weapon_system(r);
+    update_ui_survive_weapon_system(r);
     // update_ui_gameover_system(r);
   }
 

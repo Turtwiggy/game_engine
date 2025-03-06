@@ -1,7 +1,10 @@
 {
   "folders": [
     {
-      "path": ".."
+      "path": "..",
+    },
+    {
+      "path": "C:/Software/Steam/controller_config"
     }
   ],
   "settings": {

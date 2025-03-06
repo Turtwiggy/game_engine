@@ -80,7 +80,7 @@ update_autofire_system(entt::registry& r, const float dt)
                            const WeaponComponent,
                            const HasParentComponent,
                            const HardpointComponent,
-                           const AutofireComponent,
+                           AutofireComponent,
                            WeaponClipSize,
                            WeaponFireRate,
                            WeaponReloadRate,
@@ -97,12 +97,22 @@ update_autofire_system(entt::registry& r, const float dt)
                     weapon_reload_rate_c,
                     weapon_range_c] : view.each()) {
 
-    // Get modded weapon values.
+    // debug the adj tgt pos
+    // make the crosshair appear to be smooth though
     const auto p = parent_c.parent;
-    const auto wep_def = get_weapon_def(r, p, wep_e);
-
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
+    {
+      Sprite adj_tgt_s;
+      adj_tgt_s.pos = autofire_c.draw_cursor_position;
+      adj_tgt_s.sprite = "CROSSHAIR_2";
+      adj_tgt_s.size = { 16, 16 };
+      adj_tgt_s.col = parent_col;
+      draw_sprite(r, adj_tgt_s);
+    }
+
+    // Get modded weapon values.
+    const auto wep_def = get_weapon_def(r, p, wep_e);
 
     // Get enemies in your weapon range
     const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
@@ -144,15 +154,9 @@ update_autofire_system(entt::registry& r, const float dt)
     ray.dir = { dir.x, dir.y, 0.0 };
     const auto crosshair_pos = engine::ray_at(ray, 0.85f * dst);
 
-    // debug the adj tgt pos
-    {
-      Sprite adj_tgt_s;
-      adj_tgt_s.pos = crosshair_pos;
-      adj_tgt_s.sprite = "CROSSHAIR_2";
-      adj_tgt_s.size = { 16, 16 };
-      adj_tgt_s.col = parent_col;
-      draw_sprite(r, adj_tgt_s);
-    }
+    // update the crosshair position
+    autofire_c.draw_cursor_position.x = lerp(autofire_c.draw_cursor_position.x, crosshair_pos.x, dt);
+    autofire_c.draw_cursor_position.y = lerp(autofire_c.draw_cursor_position.y, crosshair_pos.y, dt);
 
     // debug the actual firing target
     // {

@@ -1,8 +1,8 @@
 #include "ui_survive_timer_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/actor_snake/snake_components.hpp"
 #include "modules/core_renderer/components.hpp"
-#include "modules/system_cooldown/components.hpp"
 #include "ui_survive_timer_components.hpp"
 
 #include <imgui.h>
@@ -14,17 +14,16 @@ update_ui_survive_timer_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const glm::vec2 tr = ri.viewport_size_render_at;
-  const int distance_from_top_of_screen = 20;
 
   // Push larger font
   ImGuiIO& io = ImGui::GetIO();
   ImGui::PushFont(io.Fonts->Fonts[1]); // Use the larger font (index 1)
 
-  for (const auto& [e, timer_c, cooldown_c] : r.view<const SurviveTimerComponent, const CooldownComponent>().each()) {
+  for (const auto& [e, timer_c] : r.view<const SurviveTimerComponent>().each()) {
 
     // countdown
-    const int seconds = static_cast<int>(cooldown_c.time) % 60;
-    const int minutes = static_cast<int>(cooldown_c.time) / 60;
+    const int seconds = static_cast<int>(timer_c.time_left_cur) % 60;
+    const int minutes = static_cast<int>(timer_c.time_left_cur) / 60;
 
     // countup minutes
     const int cu_minutes = 19 - minutes;
@@ -34,9 +33,10 @@ update_ui_survive_timer_system(entt::registry& r)
     const auto len = ImGui::CalcTextSize(display.c_str());
     const auto padding = ImGui::GetStyle().WindowPadding;
     const auto space = 8;
+    const int distance_from_top_of_screen = 20;
 
-    const auto pos = ImVec2{ tr.x - len.x - padding.x - space, distance_from_top_of_screen };
-    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 0.0f, 0.0f });
+    const auto pos = ImVec2{ tr.x, distance_from_top_of_screen };
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 1.0f, 0.0f });
 
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoDecoration;

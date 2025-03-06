@@ -6,7 +6,8 @@ namespace game2d {
 
 struct SurviveTimerComponent
 {
-  bool placeholder = true;
+  float time_left_max = 20 * 60;
+  float time_left_cur = 20 * 60;
 };
 
 } // namespace game2d

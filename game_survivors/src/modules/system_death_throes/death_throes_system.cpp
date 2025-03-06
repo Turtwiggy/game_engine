@@ -37,9 +37,6 @@ update_death_throes_system(entt::registry& r, const float dt)
     if (death_c.death_throws_time_cur > 0.0f)
       continue; // continue dying
 
-    SDL_Log("Completed death throes");
-    dead.dead.emplace(e);
-
     // Send death event.
     DeathEvent d_evt;
     d_evt.killed_by = death_c.evt_from;
@@ -47,6 +44,9 @@ update_death_throes_system(entt::registry& r, const float dt)
     auto& evts = get_first_component<SINGLE_Events>(r);
     evts.dispatcher->trigger(d_evt);
     evts.dispatcher->update();
+
+    SDL_Log("Completed death throes");
+    dead.dead.emplace(e);
   }
 }
 

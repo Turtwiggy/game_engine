@@ -26,6 +26,7 @@ get_default_textures()
   add_tex("animation_idle.png", "spritemap_animation_idle.json");
   add_tex("junkers.png", "spritemap_junkers.json");
   add_tex("grime_bar.png", "spritemap_grime_bar.json");
+  add_tex("snake.png", "spritemap_snake.json");
 
   add_tex("spritestack_dinghy.png", "spritestack_dinghy.json");
   add_tex("spritestack_rhib.png", "spritestack_rhib.json");

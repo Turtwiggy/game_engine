@@ -1,4 +1,4 @@
-#include "modules/ui_scene_survive_level_up/ui_survive_level_up_system.hpp"
+#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_system.hpp"
 
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
@@ -9,7 +9,6 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/core_renderer/components.hpp"
-#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_components.hpp"

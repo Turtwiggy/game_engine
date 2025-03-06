@@ -13,6 +13,8 @@
 #include "modules/actor_enemy_grower/enemy_grower_components.hpp"
 #include "modules/actor_enemy_treasure/enemy_treasure_components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actor_snake/snake_components.hpp"
+#include "modules/actor_snake/snake_helpers.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
@@ -53,6 +55,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   const auto target_pos = glm::vec2{ target_t.position.x, target_t.position.y };
   const float screen_max = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const auto rnd_pos_around_player = rnd_position_around_point(r, target_pos, screen_max, screen_max);
+
+  // boss, so it's a bit different
+  if (key == "actor_snake")
+    return create_snake(r);
 
   auto e = spawn(r, key);
   r.emplace<EnemyComponent>(e);
@@ -220,15 +226,21 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 };
 
 void
-update_spawner_system(entt::registry& r)
+update_spawner_system(entt::registry& r, const float dt)
 {
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
   GET_FIRST_OR_RETURN(SINGLE_SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
   GET_FIRST_OR_RETURN(SINGLE_Spawners, r, disk_spawn_data_e, disk_spawn_data_c);
 
-  // Get info from the survive timer
-  const auto& survive_timer_c = r.get<CooldownComponent>(survive_e);
-  const int seconds_from_start = survive_timer_c.time_max - (int)survive_timer_c.time;
+  // dont update survive timer when theres a boss
+  const bool boss_is_alive = r.view<const BossComponent>().size() > 0;
+  if (boss_is_alive)
+    return;
+
+  // Update survive timer
+  survive_c.time_left_cur -= dt;
+  survive_c.time_left_cur = glm::max(survive_c.time_left_cur, 0.0f);
+  const int seconds_from_start = survive_c.time_left_max - survive_c.time_left_cur;
 
   // How many of each enemies do we currently have?
   const auto& enemies_view = r.view<const EnemyComponent, const ItemKey>();

@@ -40,8 +40,9 @@ get_hierarchy(entt::registry& r)
     const auto& [e] = ent_tuple;
 
     const auto* tag = r.try_get<TagComponent>(e);
-    if (tag == nullptr)
+    if (!tag) {
       throw std::runtime_error("Non-tagged entity.");
+    }
 
     if (const auto* has_parent = r.try_get<HasParentComponent>(e)) {
       const auto parent_e = has_parent->parent;
@@ -55,9 +56,11 @@ get_hierarchy(entt::registry& r)
 
       continue;
     }
+
     // Already added by child
     if (parent_to_children.contains(e))
       continue;
+
     // init empty
     parent_to_children[e] = {};
   }
@@ -94,6 +97,11 @@ draw_hierarchy(entt::registry& r, const std::vector<Category>& categories, entt:
   }
 
   for (const auto& [parent, children] : get_hierarchy(r)) {
+    if (!r.valid(parent) || parent == entt::null) {
+      ImGui::Text("INVALID-ENTITY");
+      continue;
+    }
+
     const auto& parent_tag = r.get<TagComponent>(parent).tag;
     const auto parent_tag_lower = to_lower(parent_tag);
 

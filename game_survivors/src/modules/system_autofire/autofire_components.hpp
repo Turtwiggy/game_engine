@@ -1,12 +1,12 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 namespace game2d {
 
 struct AutofireComponent
 {
-  bool placeholder = true;
+  glm::vec2 draw_cursor_position{ 0, 0 };
 };
 
 } // namespace game2d

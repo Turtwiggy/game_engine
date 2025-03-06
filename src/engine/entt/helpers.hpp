@@ -39,7 +39,7 @@ cleanup_tag_str(const std::string& s)
     return clean_tag;
   clean_tag = clean_tag.substr(prefix.size());
 
-  // remove the numbers (that represent length)
+  // remove the numbers (that represent length of the string)
   size_t end = 0;
   while (end < clean_tag.size() && std::isdigit(clean_tag[end]))
     end++;

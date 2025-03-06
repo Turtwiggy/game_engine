@@ -13,6 +13,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actor_snake/snake_helpers.hpp"
 #include "modules/combat/combat_helpers.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
@@ -48,7 +49,7 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
-#include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
+#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 
 #include <magic_enum.hpp>
@@ -58,8 +59,8 @@ namespace game2d {
 void
 connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 {
-  auto& weapons_c = r.get_or_emplace<HasWeaponsComponent>(e);
-  weapons_c.weapons.push_back(wep_e);
+  auto& weapons_c = r.get_or_emplace<HasChildrenComponent>(e);
+  weapons_c.children.push_back(wep_e);
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e });
 
   set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
@@ -471,12 +472,26 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     }
 
     // The survive timer that various spawners read from
-    float seconds = 20 * 60;
-    const auto survive_timer_e = create_empty<CooldownComponent>(r, CooldownComponent{ seconds, seconds });
-    r.emplace<SurviveTimerComponent>(survive_timer_e);
+    const auto survive_timer_e = create_empty<SurviveTimerComponent>(r);
 
     // populate spawners from configs
     init_spawners(r);
+  }
+
+  if (s == Scene::procedural_snake) {
+    create_empty<CameraFreeMove>(r);
+
+    const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, "Dinghy");
+
+    const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
+    for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
+      auto handle = controller_ui.handles[i];
+      r.get<SteamControllerComponent>(p).handle = handle;
+      break;
+    }
+
+    // create a snake yo
+    create_snake(r);
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

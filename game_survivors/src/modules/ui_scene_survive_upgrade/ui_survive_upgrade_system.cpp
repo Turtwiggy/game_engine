@@ -14,7 +14,7 @@
 #include "modules/events/events_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-#include "modules/ui_scene_survive_level_up/ui_survive_level_up_components.hpp"
+#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_components.hpp"
 
 #include <imgui.h>
 #include <magic_enum.hpp>
@@ -50,9 +50,9 @@ struct UpgradeResultsComponent
 };
 
 constexpr std::array<std::pair<Rarity, int>, 5> rarity_chance_map = { {
-  { Rarity::COMMON, 50 },
-  { Rarity::UNCOMMON, 25 },
-  { Rarity::RARE, 15 },
+  { Rarity::COMMON, 40 },
+  { Rarity::UNCOMMON, 40 },
+  { Rarity::RARE, 10 },
   { Rarity::LEGENDARY, 7 },
   { Rarity::SUPER_LEGENDARY, 3 },
 } };
@@ -75,7 +75,7 @@ static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
 #endif
 
 void
-generate_upgrades_for_players(entt::registry& r)
+update_generate_upgrades_for_players(entt::registry& r)
 {
   const std::vector<UpgradeableStat> traits_to_level_up = {
     // clang-format off
@@ -380,6 +380,30 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
   throw std::runtime_error(err_str.c_str());
 };
 
+const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
+  if (rarity == Rarity::COMMON) {
+    const auto srgb = hex_to_srgb("#b1c9c3"); //  gray
+    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
+  }
+  if (rarity == Rarity::UNCOMMON) {
+    const auto srgb = hex_to_srgb("#00c420"); //  green
+    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
+  }
+  if (rarity == Rarity::RARE) {
+    const auto srgb = hex_to_srgb("#0096ff"); //  blue
+    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
+  }
+  if (rarity == Rarity::LEGENDARY) {
+    const auto srgb = hex_to_srgb("#cfc041"); //  gold
+    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
+  }
+  if (rarity == Rarity::SUPER_LEGENDARY) {
+    const auto srgb = hex_to_srgb("#d74200"); //  red
+    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
+  }
+  return { 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
 void
 update_ui_survive_upgrade_system(entt::registry& r)
 {
@@ -432,7 +456,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   const float size_x = ImGui::CalcTextSize("Aquire").x;
   const ImVec2 size = { size_x, 13.0f };
 
-  generate_upgrades_for_players(r);
+  update_generate_upgrades_for_players(r);
 
   ImGui::Begin("Level up required!", NULL, flags);
   ImGui::Text("Level-up!");
@@ -482,29 +506,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
       // Display rarity
       ImGui::SameLine();
-      const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
-        if (rarity == Rarity::COMMON) {
-          auto srgb = hex_to_srgb("#b1c9c3"); //  gray
-          return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-        }
-        if (rarity == Rarity::UNCOMMON) {
-          auto srgb = hex_to_srgb("#00c420"); //  green
-          return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-        }
-        if (rarity == Rarity::RARE) {
-          auto srgb = hex_to_srgb("#0096ff"); //  blue
-          return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-        }
-        if (rarity == Rarity::LEGENDARY) {
-          auto srgb = hex_to_srgb("#cfc041"); //  gold
-          return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-        }
-        if (rarity == Rarity::SUPER_LEGENDARY) {
-          auto srgb = hex_to_srgb("#d74200"); //  red
-          return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-        }
-        return { 1.0f, 1.0f, 1.0f, 1.0f };
-      };
+
       auto col = rarity_to_col(rarity);
       ImGui::TextColored(col, "%s", rarity_str.c_str());
 

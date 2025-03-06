@@ -9,6 +9,7 @@ enum class Scene
   menu,
   select,
   survive,
+  procedural_snake,
 
   test, // used by tests
   count

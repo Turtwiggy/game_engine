@@ -30,7 +30,6 @@ selectable_button(SelectableButtonDef& def)
   const ImU32 button_hovered_col = IM_COL32(bh_col.x * 255, bh_col.y * 255, bh_col.z * 255, bh_col.w * 0);
   const ImU32 button_clicked_col = IM_COL32(ba_col.x * 255, ba_col.y * 255, ba_col.z * 255, ba_col.w * 0);
 
-  const auto& label = def.label;
   const auto& size = def.size;
   const auto index = def.index;
   bool do_act = false;
@@ -88,6 +87,11 @@ selectable_button(SelectableButtonDef& def)
   ImGui::GetWindowDrawList()->AddRect(p_min, p_max, colour, rounding, corners, thickness);
 
   // Draw some text based on state.
+  auto label = def.label;
+  auto pos = def.label.find("##");
+  if (pos != std::string::npos)
+    label = label.substr(0, pos);
+
   const auto text_size = ImGui::CalcTextSize(label.c_str());
   const auto text_pos = ImVec2{
     p_min.x + 0.5f * (p_size.x - text_size.x),

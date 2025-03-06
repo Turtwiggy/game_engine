@@ -48,9 +48,4 @@ struct TeamComponent
   AvailableTeams team = AvailableTeams::neutral;
 };
 
-struct HasWeaponsComponent
-{
-  std::vector<entt::entity> weapons;
-};
-
 } // namespace game2d

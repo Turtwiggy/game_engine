@@ -1,9 +1,11 @@
 #include "physics_apply_force_system.hpp"
 
 #include "components.hpp"
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
@@ -53,10 +55,10 @@ apply_inside_out_force(const ApplyForceToDynamicTarget& req, glm::vec2 nrm_dir, 
 };
 
 glm::vec2
-calculate_desired_velocity(b2Body* a_body, b2Body* b_body, const ApplyForceToDynamicTarget& req)
+calculate_desired_velocity(entt::registry& r, b2Body* a_body, entt::entity b_e, const ApplyForceToDynamicTarget& req)
 {
-  auto b_pos = b_body->GetPosition();
   auto a_pos = a_body->GetPosition();
+  auto b_pos = pixels_to_meters(get_position(r, b_e));
 
   b2Vec2 dir_b2d = b_pos - a_pos;
   const auto raw_dir = glm::vec2{ dir_b2d.x, dir_b2d.y };
@@ -88,8 +90,13 @@ calculate_desired_velocity(b2Body* a_body, b2Body* b_body, const ApplyForceToDyn
     // orbit_vel += 0.1f * req.speed * apply_inside_out_force(req, nrm_dir, distance);
   }
 
-  const auto b_vel_b2d = b_body->GetLinearVelocity();
-  const auto b_vel = glm::vec2(b_vel_b2d.x, b_vel_b2d.y);
+  // If your target is a physics object, adjust for their velocity
+  glm::vec2 b_vel{ 0, 0 };
+  if (auto* b_body_c = r.try_get<PhysicsBodyComponent>(b_e)) {
+    auto b2_b_vel = b_body_c->body->GetLinearVelocity();
+    b_vel = { b2_b_vel.x, b2_b_vel.y };
+  }
+
   return b_vel + reduced_vel + orbit_vel;
 };
 
@@ -141,13 +148,12 @@ update_physics_apply_force_system(entt::registry& r)
         continue;
       }
 
-      const auto& b_body = r.get<PhysicsBodyComponent>(target_c.target).body;
-
+      const auto b_ent = target_c.target;
       auto& a_body = body_c.body;
       const auto cur_vel = a_body->GetLinearVelocity();
 
       // Compute the desired velocity of your spaceship.
-      const auto desired_vel = calculate_desired_velocity(a_body, b_body, req_c);
+      const auto desired_vel = calculate_desired_velocity(r, a_body, b_ent, req_c);
 
       // debug_vel_instances.push_back(DebugVelocityError{
       //   .tgt_vel = { desired_vel.x, desired_vel.y },

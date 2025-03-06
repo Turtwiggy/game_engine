@@ -29,6 +29,14 @@
       "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
+      "name": "empty_with_physics",
+      "display_name": "empty_with_physics",
+      "display_desc": "empty_with_physics",
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_empty", "type": "circle", "is_sensor": true } ]
+    },
+    {
       "name": "duck",
       "display_name": "Angry Duck",
       "display_desc": "Quuack Quack QUACK >:(",
@@ -112,7 +120,7 @@
       "renderable": { "sprite": "PUFFERFISH", "colour": "gold_yellow" },
       "traits": [ {"key": "DIRECT"}, {"key": "EXPLODE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
-      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
     {
       "name": "actor_enemy_projectile",
@@ -163,6 +171,26 @@
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
     },
+
+    {
+      "name": "actor_snake_head",
+      "renderable": { "sprite": "snake_head", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+    },
+    {
+      "name": "actor_snake_body",
+      "renderable": { "sprite": "snake_body_0", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+    },
+    {
+      "name": "actor_snake_tail",
+      "renderable": { "sprite": "snake_tail", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+    },
+
     {
       "name": "effect_thunder",
       "renderable": { "sprite": "LIGHTNING_0", "colour": "gold_yellow" }
