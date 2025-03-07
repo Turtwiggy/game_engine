@@ -101,11 +101,13 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.remove<SpriteComponent>(e);
     const auto& pb_c = r.get<PhysicsBodyComponent>(e);
     for (int i = 0; const auto& fixture_e : pb_c.fixtures) {
+
       r.emplace<TransformComponent>(fixture_e);
       r.emplace<SpriteComponent>(fixture_e);
       auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
       r.emplace<DefaultColour>(fixture_e, col);
       set_colour(r, fixture_e, col);
+      set_position(r, fixture_e, rnd_pos_around_player);
 
       // const auto& item_key_c = r.get<ItemKey>(e);
       // const auto item_c = find_item(r, item_key_c.key);
@@ -139,6 +141,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
       auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
       r.emplace<DefaultColour>(fixture_e, col);
       set_colour(r, fixture_e, col);
+      set_position(r, fixture_e, rnd_pos_around_player);
 
       r.emplace<DefaultSizeComponent>(fixture_e, enemy_size);
       set_size(r, fixture_e, enemy_size);

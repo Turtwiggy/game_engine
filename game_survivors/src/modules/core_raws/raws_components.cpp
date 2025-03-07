@@ -343,7 +343,15 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       }
 
       if (trait_enum == AquirableTrait::EXPLODE) {
-        add_explode_on_death_callback(r, e);
+
+        const std::function<bool(entt::registry&, entt::entity)> filter_criteria = [](entt::registry& r,
+                                                                                      entt::entity e) -> bool {
+          bool valid_target = false;
+          valid_target |= r.try_get<EnemyComponent>(e) != nullptr;
+          valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
+          return valid_target;
+        };
+        add_explode_on_death_callback(r, e, filter_criteria);
         big_explode = true;
       }
 

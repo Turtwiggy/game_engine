@@ -3,6 +3,7 @@
 #include "event_coll_player_sea_mine_components.hpp"
 
 #include "engine/lifecycle/components.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_exploder/actor_exploder_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 
@@ -25,7 +26,13 @@ handle_player_enter_sea_mine(entt::registry& r, const OnCollisionEnter& evt)
 
   // Same as exploder logic...
   const auto item_par_e = r.get<HasParentComponent>(item_e).parent;
-  add_explode_on_death_callback(r, item_par_e);
+
+  const std::function<bool(entt::registry&, entt::entity)> filter_criteria = [](entt::registry& r, entt::entity e) -> bool {
+    bool valid_target = false;
+    valid_target |= r.try_get<EnemyComponent>(e) != nullptr;
+    return valid_target;
+  };
+  add_explode_on_death_callback(r, item_par_e, filter_criteria);
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   dead.dead.emplace(item_par_e);

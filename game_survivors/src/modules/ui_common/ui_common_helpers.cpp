@@ -41,6 +41,7 @@ selectable_button(SelectableButtonDef& def)
   draw_list->ChannelsSetCurrent(1);
 
   const std::string id = "##menuselectable" + std::to_string(def.index);
+
   ImGui::Selectable(id.c_str(), false, 0, size);
 
   const bool is_hovered = ImGui::IsItemHovered();
@@ -59,31 +60,22 @@ selectable_button(SelectableButtonDef& def)
   const auto p_min = ImGui::GetItemRectMin();
   const auto p_max = ImGui::GetItemRectMax();
   const auto p_size = ImGui::GetItemRectSize();
-  const float rounding = 8.0;
+  const float rounding = 6.0;
   const float thickness = 2.0;
-  const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
 
   ImU32 colour = im_inactive_col;
-  if (is_selected && is_hovered)
-    colour = im_active_col;
-  else if (is_selected)
+  if (is_selected)
     colour = im_active_col;
 
   ImU32 button_background_col = im_inactive_button_background_col;
-  if (is_selected && is_hovered)
-    button_background_col = im_active_button_background_col;
-  else if (is_selected)
+  if (is_selected)
     button_background_col = im_active_button_background_col;
 
   // button background based on state
-  // if (is_clicked)
-  //   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_clicked_col, rounding);
-  // else if (is_hovered)
-  //   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_hovered_col, rounding);
-  // else
   ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_background_col, rounding);
 
   // button outline
+  const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
   ImGui::GetWindowDrawList()->AddRect(p_min, p_max, colour, rounding, corners, thickness);
 
   // Draw some text based on state.

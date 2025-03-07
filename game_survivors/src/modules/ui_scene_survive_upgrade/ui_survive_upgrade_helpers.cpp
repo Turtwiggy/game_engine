@@ -59,8 +59,10 @@ get_player_e_from_idx(entt::registry& r, int player_idx)
   const auto player_es = view_to_vector_of_ents<PlayerComponent>(r);
 
   auto player_with_idx = [&r, player_idx](const entt::entity player_e) {
-    return r.get<PlayerComponent>(player_e).idx == player_idx;
+    auto& player_c = r.get<PlayerComponent>(player_e);
+    return player_c.idx == player_idx;
   };
+
   auto player_it = std::find_if(player_es.begin(), player_es.end(), player_with_idx);
   if (player_it == player_es.end())
     return entt::null; // player not joined

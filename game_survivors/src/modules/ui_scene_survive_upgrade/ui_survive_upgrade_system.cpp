@@ -7,7 +7,6 @@
 #include "modules/events/events_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
-#include "modules/system_upgrade/upgrade_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
@@ -329,8 +328,6 @@ setup_ui_based_on_upgrades(entt::registry& r,
 
     state_c.rows.push_back(RowState{ .col_name = "Aquire", .action = aquire_action });
   }
-
-  state_c.init = true;
 };
 
 void
@@ -364,8 +361,10 @@ update_ui_survive_upgrade_system(entt::registry& r)
       flags |= ImGuiWindowFlags_NoMove;
 
       ImGui::Begin("CheatLevelUp", nullptr, flags);
+
       if (ImGui::Button("LevelUp"))
         sxp_c.xp += sxp_c.xp_for_next_level;
+
       ImGui::End();
     }
   }
@@ -389,7 +388,6 @@ update_ui_survive_upgrade_system(entt::registry& r)
     // reset ui
     for (int i = 0; i < max_num_players; i++) {
       auto& state_c = ui_c.ui_states[i];
-      state_c.init = false;
       state_c.current_row_index = 0;
       state_c.rows.clear();
       state_c.new_actions.clear();
@@ -398,6 +396,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       if (player_e == entt::null)
         continue;
       auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
+
       setup_ui_based_on_upgrades(r, player_e, state_c, upgrades_c);
     }
   }
@@ -411,11 +410,16 @@ update_ui_survive_upgrade_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoBackground;
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x - 0.1f * ri_c.viewport_size_render_at.x, 200 };
   ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.5f, 0.5f });
   ImGui::SetNextWindowSize(set_window_size);
+
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
   ImGui::Begin("UpgradeUI", nullptr, flags);
 
@@ -423,32 +427,51 @@ update_ui_survive_upgrade_system(entt::registry& r)
   const ImVec2 window_size = ImGui::GetWindowSize();
   const auto player_ui_w = window_size.x / max_num_players; // always /4
   const auto player_ui_h = window_size.y;
+
+  float padding_x = 4;
+  float padding_y = 4;
   auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
   auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
     const auto player_e = get_player_e_from_idx(r, player_idx);
-    if (player_e == entt::null)
+    if (player_e == entt::null) {
+
+      // move horizontally
+      player_ui_tl.x += player_ui_w;
+      player_ui_br.x += player_ui_w;
+
       continue;
+    }
 
     const auto* upgrades_c = r.try_get<const UpgradeResultsComponent>(player_e);
-    if (!upgrades_c)
+    if (!upgrades_c) {
+
+      // move horizontally
+      player_ui_tl.x += player_ui_w;
+      player_ui_br.x += player_ui_w;
+
       continue; // this player isnt upgrading
+    }
 
     // update input
     auto& state_c = ui_c.ui_states[player_idx];
     state_c.new_actions.clear();
     process_input_for_ui(r, state_c, steam_state_c.handles[player_idx]);
 
+    auto pad_tl = ImVec2{ player_ui_tl.x + padding_x, player_ui_tl.y + padding_y };
+    auto pad_br = ImVec2{ player_ui_tl.x + player_ui_w - padding_x, player_ui_tl.y + player_ui_h - padding_y };
+
     // background
     const float inc = ((player_idx + 1) / 4.0f);
     const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
-    auto p_max = ImVec2{ player_ui_tl.x + player_ui_w, player_ui_tl.y + player_ui_h };
-    ImGui::GetWindowDrawList()->AddRectFilled(player_ui_tl, p_max, im_active_col, 6);
+    ImGui::GetWindowDrawList()->AddRectFilled(pad_tl, pad_br, im_active_col, 0);
 
     const bool do_act =
       std::find(state_c.new_actions.begin(), state_c.new_actions.end(), UIAction::SELECT) != state_c.new_actions.end();
+
+    auto y = pad_tl.y;
 
     // draw upgrades
     for (int i = 0; i < (int)state_c.rows.size(); i++) {
@@ -467,11 +490,13 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
       auto def = SelectableButtonDef{
         .label = "Aquire##" + rarity_str + "_" + upgrade_str,
-        .size = { 60, 30 },
+        .size = { 60, 24 },
         .index = i,
         .input = do_act,
         .sel_index = selected_idx,
       };
+
+      ImGui::SetCursorScreenPos({ pad_tl.x, y });
       if (selectable_button(def) || (selected && do_act)) {
         state_c.rows[i].action(); // get it
         break;
@@ -479,11 +504,12 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
       // Display rarity.
       auto rarity_col = rarity_to_col(rarity);
-      ImGui::SameLine();
+      ImGui::SetCursorScreenPos({ pad_tl.x + def.size.x, y });
       ImGui::TextColored(rarity_col, "%s", rarity_str.c_str());
 
       // Display upgrade info
-      ImGui::SameLine();
+      ImGui::SetCursorScreenPos({ pad_tl.x + def.size.x, y + 12 });
+
       if (type_str == "stat_flat_increase") {
         auto str = std::format("{} +{:.2f}", upgrade_str, amount);
         ImGui::Text("%s", str.c_str());
@@ -492,10 +518,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
         ImGui::Text("%s", str.c_str());
       }
 
-      // Display upgrade description
-      // const std::string desc = generate_description(upgrade);
-      // ImGui::SameLine();
-      // ImGui::TextColored(col, "%s", desc.c_str());
+      // move vertically
+      y += def.size.y;
     }
 
     // move horizontally
@@ -504,6 +528,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   }
 
   ImGui::End();
+  ImGui::PopStyleVar();
 }
 
 } // namespace game2d

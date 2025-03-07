@@ -62,26 +62,20 @@ public:
 };
 
 void
-add_explode_on_death_callback(entt::registry& r, entt::entity e)
+add_explode_on_death_callback(entt::registry& r,
+                              entt::entity e,
+                              const std::function<bool(entt::registry&, entt::entity)>& cond)
 {
   auto& callbacks_c = r.get_or_emplace<OnDeathCallbacks>(e);
 
   // deal damage in area around you
-  const auto explode_on_death = [](entt::registry& r, entt::entity e) {
+  const auto explode_on_death = [cond](entt::registry& r, entt::entity e) {
     GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
     // n.b.: radius so half
     const float explosion_radius_meters = pixels_to_meters(explosion_radius_pixels);
-
     const b2Vec2 center_m = pixels_to_meters(get_position(r, e));
-    const std::function<bool(entt::registry&, entt::entity)> filter_criteria = [](entt::registry& r,
-                                                                                  entt::entity e) -> bool {
-      bool valid_target = false;
-      valid_target |= r.try_get<EnemyComponent>(e) != nullptr;
-      // valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
-      return valid_target;
-    };
-    const auto things_with_health = get_all_in_area_filtered(r, center_m, explosion_radius_meters, filter_criteria);
+    const auto things_with_health = get_all_in_area_filtered(r, center_m, explosion_radius_meters, cond);
 
     for (const auto& [d2, parent_e] : things_with_health) {
       if (parent_e == e)
@@ -102,7 +96,7 @@ add_explode_on_death_callback(entt::registry& r, entt::entity e)
         evt.from = entt::null; // likely dead
         evt.to = fixture_e;
         evt.type = DamageType::PHYSICAL;
-        evt.amount = is_player ? 5 : 100; // todo: replace with "correct" damage for explosion
+        evt.amount = is_player ? 4 : 100; // todo: replace with "correct" damage for explosion
         evts_c.dispatcher->trigger(evt);
         evts_c.dispatcher->update();
       }

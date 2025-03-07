@@ -4,7 +4,6 @@
 #include "modules/combat/combat_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-#include "ui_debug_weapons_helpers.hpp"
 
 #include <imgui.h>
 

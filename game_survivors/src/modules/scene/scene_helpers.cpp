@@ -471,7 +471,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       auto weapon_str = hull_keys[i].player_gun;
       SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
 
-      const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, boat_str);
+      const auto p = spawn_player(r, "actor_player", { 0, 0 }, i, boat_str);
 
       // HACK: equip specific weapon
       bool equipped = false;

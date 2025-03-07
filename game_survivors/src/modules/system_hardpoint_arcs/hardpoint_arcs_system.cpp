@@ -165,31 +165,31 @@ update_hardpoint_arcs_system(entt::registry& r)
     // the more guns, onionskin the debug
     entity_to_guncount[p] += 1;
 
-    // draw the xp-zone arc. this shouldnt be here.
     const auto& stats_c = r.get<StatModifierComponent>(p);
-    const auto val = r.get<ActorXpZoneSizeComponent>(p).radius_meters;
-    const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
-    const auto val_mod = stats_c.apply_modifiers(val, key);
-    const auto zone_radius_p = meters_to_pixels(val_mod) / zoom;
     const auto screenspace = worldspace_to_screenspace(r, pos);
-    auto col = r.get<DefaultColour>(p).colour;
-    col.a = (int)(0.04f * 255);
-    const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
-    // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
-    DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
 
+    // draw the xp-zone arc. this shouldnt be here.
+    // const auto val = r.get<ActorXpZoneSizeComponent>(p).radius_meters;
+    // const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
+    // const auto val_mod = stats_c.apply_modifiers(val, key);
+    // const auto zone_radius_p = meters_to_pixels(val_mod) / zoom;
+    // auto col = r.get<DefaultColour>(p).colour;
+    // col.a = (int)(0.04f * 255);
+    // const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
+    // // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
+    // DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
+
+    // draw the gun arc.
     const auto range_val = r.get<WeaponRange>(weapon_e).meters;
     const auto range_key = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RANGE));
     const auto range_val_mod = stats_c.apply_modifiers(range_val, range_key);
     const auto range_radius_p = meters_to_pixels(range_val_mod) / zoom;
-
-    // draw the gun arc.
-    float thickness = 2;
+    float thickness = 1.0;
     // float radius = (50 + entity_to_guncount[p] * 2) / zoom;
     // float radius = (50 + 2) / zoom;
     float radius = range_radius_p;
     auto arc_col = r.get<DefaultColour>(p).colour;
-    arc_col.a = (int)(0.2f * 255);
+    arc_col.a = (int)(0.1f * 255);
     const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
     float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
     DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);

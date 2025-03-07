@@ -20,12 +20,19 @@ void
 process_input_for_ui_all_handles(entt::registry& r, UIState& state)
 {
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
 
   const auto nz_handles = non_zero_handles(steam_gs_c.handles);
 
   state.new_actions.clear();
-  for (int i = 0; i < (int)nz_handles.size(); i++)
-    process_input_for_ui(r, state, nz_handles[i]);
+  for (int i = 0; i < (int)nz_handles.size(); i++) {
+    auto handle = nz_handles[i];
+    const bool connected = handle_is_connected(steam_c, handle);
+    const bool joined = handle_is_joined(steam_gs_c, handle);
+
+    if (joined && connected)
+      process_input_for_ui(r, state, handle);
+  }
 };
 
 void
@@ -35,6 +42,8 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
   GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
 
+  if (handle == 0)
+    return;
   if (handle_joined_this_frame(steam_gs_c, handle))
     return; // prevent immediately doing do_ui_action
 
@@ -43,25 +52,18 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
 
   // Update menu via controller
   //
-  const auto nz_handles = non_zero_handles(steam_gs_c.handles);
-  for (int i = 0; i < (int)nz_handles.size(); i++) {
-    const auto handle = nz_handles[i];
-    if (handle_joined_this_frame(steam_gs_c, handle))
-      continue; // prevent immediately doing do_ui_action
-
-    if (controller_button_down(steam_c, handle, DA::Game_Up))
-      v_selected--;
-    if (controller_button_down(steam_c, handle, DA::Game_Down))
-      v_selected++;
-    if (controller_button_down(steam_c, handle, DA::Game_Left))
-      state.rows[v_selected].col_index--;
-    if (controller_button_down(steam_c, handle, DA::Game_Right))
-      state.rows[v_selected].col_index++;
-    if (controller_button_down(steam_c, handle, DA::Game_Select))
-      state.new_actions.push_back(UIAction::SELECT);
-    if (controller_button_down(steam_c, handle, DA::Game_Cancel))
-      state.new_actions.push_back(UIAction::BACK);
-  }
+  if (controller_button_down(steam_c, handle, DA::Game_Up))
+    v_selected--;
+  if (controller_button_down(steam_c, handle, DA::Game_Down))
+    v_selected++;
+  if (controller_button_down(steam_c, handle, DA::Game_Left))
+    state.rows[v_selected].col_index--;
+  if (controller_button_down(steam_c, handle, DA::Game_Right))
+    state.rows[v_selected].col_index++;
+  if (controller_button_down(steam_c, handle, DA::Game_Select))
+    state.new_actions.push_back(UIAction::SELECT);
+  if (controller_button_down(steam_c, handle, DA::Game_Cancel))
+    state.new_actions.push_back(UIAction::BACK);
 
   // Update menu via keyboard (debug, mostly)
   //

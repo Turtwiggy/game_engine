@@ -102,7 +102,10 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       if (!r.valid(parent_e)) {
         auto* tag_c = r.try_get<TagComponent>(e);
         auto* item_key_c = r.try_get<ItemKey>(e);
-        SDL_Log("%s has an invalid parent, key: %s", tag_c->tag.c_str(), item_key_c->key.c_str());
+        SDL_Log("%s has an invalid parent, key: %s, parent_e: %i",
+                tag_c->tag.c_str(),
+                item_key_c->key.c_str(),
+                static_cast<uint32_t>(parent_e));
         dead.dead.emplace(e);
       }
     }
