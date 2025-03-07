@@ -1,5 +1,6 @@
 #include "hardpoint_arcs_system.hpp"
 
+#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -116,11 +117,11 @@ update_hardpoint_arcs_system(entt::registry& r)
 
   const auto& view =
     r.view<const HasParentComponent, HardpointComponent, const TransformComponent, const AutofireComponent>();
-  for (const auto& [e, parent_c, hardpoint_c, weapon_t, autofire_c] : view.each()) {
+  for (const auto& [weapon_e, parent_c, hardpoint_c, weapon_t, autofire_c] : view.each()) {
 
     const auto p = parent_c.parent;
 
-    auto eid = static_cast<uint32_t>(e);
+    auto eid = static_cast<uint32_t>(weapon_e);
     ImGui::PushID(eid);
 
     const auto& t_c = r.get<TransformComponent>(p);
@@ -172,17 +173,23 @@ update_hardpoint_arcs_system(entt::registry& r)
     const auto zone_radius_p = meters_to_pixels(val_mod) / zoom;
     const auto screenspace = worldspace_to_screenspace(r, pos);
     auto col = r.get<DefaultColour>(p).colour;
-    col.a = (int)(0.12f * 255);
+    col.a = (int)(0.04f * 255);
     const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
     // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
     DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
 
+    const auto range_val = r.get<WeaponRange>(weapon_e).meters;
+    const auto range_key = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RANGE));
+    const auto range_val_mod = stats_c.apply_modifiers(range_val, range_key);
+    const auto range_radius_p = meters_to_pixels(range_val_mod) / zoom;
+
     // draw the gun arc.
     float thickness = 2;
     // float radius = (50 + entity_to_guncount[p] * 2) / zoom;
-    float radius = (50 + 2) / zoom;
+    // float radius = (50 + 2) / zoom;
+    float radius = range_radius_p;
     auto arc_col = r.get<DefaultColour>(p).colour;
-    col.a = (int)(1.0f * 255);
+    arc_col.a = (int)(0.2f * 255);
     const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
     float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
     DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);

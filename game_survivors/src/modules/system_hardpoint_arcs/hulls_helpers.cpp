@@ -58,6 +58,21 @@ load_hulls(std::string directory)
     hulls.hulls.push_back(load_hull(filepath));
   }
 
+  if (hulls.hulls.size() == 0) {
+    throw std::runtime_error("No hulls in SINGLE_Hulls()");
+    exit(1); // crash
+  }
+
+  // Sort em
+  auto sorted_hulls = hulls.hulls;
+  auto sort_by_hullsize = [](const ShipHullData& a, const ShipHullData& b) {
+    const int size_a = a.height * a.width;
+    const int size_b = b.height * b.height;
+    return size_a < size_b;
+  };
+  std::sort(sorted_hulls.begin(), sorted_hulls.end(), sort_by_hullsize);
+
+  hulls.hulls = sorted_hulls;
   return hulls;
 };
 

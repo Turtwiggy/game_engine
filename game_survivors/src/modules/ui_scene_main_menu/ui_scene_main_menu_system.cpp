@@ -135,61 +135,60 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoBackground;
 
+  // Problem statement:
+  // We want to register buttons, and each button has an action
+
+  if (!ui_c.state.init) {
+
+    auto play_action = [&r]() { move_to_scene_start(r, Scene::select); };
+    auto test_action = [&r]() { move_to_scene_start(r, Scene::procedural_snake); };
+    auto options_action = [&r]() { create_empty<RequestToShowOptionsMenu>(r); };
+    auto exit_action = [&app]() { app.running = false; };
+
+    ui_c.state.rows.push_back(RowState{ .col_name = "Play", .action = play_action });
+#if defined(_DEBUG)
+    ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });
+#endif
+    ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Exit", .action = exit_action });
+
+    ui_c.state.init = true;
+  }
+
+#if defined(_DEBUG)
+  ImGui::Text("Menu Rows: %zu", ui_c.state.rows.size());
+  for (const auto& row : ui_c.state.rows)
+    ImGui::Text("%s, idx: %i", row.col_name.c_str(), row.col_index);
+#endif
+
   ImGui::Begin("Main Menu", nullptr, flags);
 
   set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
-  process_input_for_ui(r, ui_c.state);
-  bool& do_act = ui_c.state.do_action;
-  int& selected = ui_c.state.selected;
+  process_input_for_ui_all_handles(r, ui_c.state);
 
-  int index = 0;
+  int& selected = ui_c.state.current_row_index;
+  bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
+                ui_c.state.new_actions.end();
 
-  auto a_def = SelectableButtonDef{
-    .label = "Play",
-    .size = button_size,
-    .index = index++,
-    .input = do_act,
-    .sel_index = selected,
-  };
-  if (selectable_button(a_def))
-    move_to_scene_start(r, Scene::select);
+  for (int i = 0; i < (int)ui_c.state.rows.size(); i++) {
+    if (i > 0)
+      ImGui::Dummy(space_between_buttons);
 
-#if defined(_DEBUG)
-  auto snake_def = SelectableButtonDef{
-    .label = "(Test) Snake",
-    .size = button_size,
-    .index = index++,
-    .input = do_act,
-    .sel_index = selected,
-  };
-  if (selectable_button(snake_def))
-    move_to_scene_start(r, Scene::procedural_snake);
-#endif
+    auto& row = ui_c.state.rows[i];
 
-  ImGui::Dummy(space_between_buttons);
-  auto b_def = SelectableButtonDef{
-    .label = "Options",
-    .size = button_size,
-    .index = index++,
-    .input = do_act,
-    .sel_index = selected,
-  };
-  if (selectable_button(b_def)) {
-    create_empty<RequestToShowOptionsMenu>(r);
+    auto a_def = SelectableButtonDef{
+      .label = row.col_name,
+      .size = button_size,
+      .index = i,
+      .input = do_act,
+      .sel_index = selected,
+    };
+
+    if (selectable_button(a_def))
+      row.action();
+
+    //
   }
-
-  ImGui::Dummy(space_between_buttons);
-  auto c_def = SelectableButtonDef{
-    .label = "Exit",
-    .size = button_size,
-    .index = index++,
-    .input = do_act,
-    .sel_index = selected,
-  };
-  if (selectable_button(c_def))
-    app.running = false;
-
-  ui_c.state.max = index;
   ImGui::PopStyleVar(5);
   ImGui::End();
   ImGui::PopFont();

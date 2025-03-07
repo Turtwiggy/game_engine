@@ -29,10 +29,8 @@
 #include "modules/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
-#include "modules/system_cooldown/components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
-#include "modules/system_manualfire/manualfire_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/components.hpp"
@@ -49,8 +47,8 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
-#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
+#include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 
 #include <magic_enum.hpp>
 
@@ -218,10 +216,6 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   //   r.emplace<ManualfireComponent>(weapon_e);
   //   weapons.push_back(weapon_e);
   // }
-
-  // HACK: equip specoific weapon
-  const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
-  equip_weapon(r, weps_c.weapons[0]); // heavy_pistol
 
   const auto e = spawn(r, key);
   give_life(r, e, pos, size);
@@ -446,11 +440,19 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);
 
-    std::string hull_key = "Dinghy";
+    std::vector<HullChoice> hull_keys = {
+      HullChoice{ .player_idx = 0, .player_boat = "Dinghy" },
+      HullChoice{ .player_idx = 1, .player_boat = "Dinghy" },
+      HullChoice{ .player_idx = 2, .player_boat = "Dinghy" },
+      HullChoice{ .player_idx = 3, .player_boat = "Dinghy" },
+    };
+
     auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
     if (transfer_scene_e != entt::null) {
       const auto& transfer_scene_c = r.get<SelectSceneToSurviveScene>(transfer_scene_e);
-      hull_key = transfer_scene_c.chosen_boat;
+      hull_keys.clear();
+      hull_keys = transfer_scene_c.chosen_boats;
+      r.destroy(transfer_scene_e);
     }
 
     // players
@@ -461,7 +463,30 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       auto handle = controller_ui.handles[i];
       if (handle == 0)
         continue;
-      const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, hull_key);
+
+      auto boat_str = hull_keys[i].player_boat;
+      if (boat_str == "")
+        throw std::runtime_error("boat not set");
+
+      auto weapon_str = hull_keys[i].player_gun;
+      SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
+
+      const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, boat_str);
+
+      // HACK: equip specific weapon
+      bool equipped = false;
+      const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+      for (const auto& wep : weps_c.weapons) {
+        if (wep.name != weapon_str)
+          continue;
+        SDL_Log("equipping weapon: %s", wep.name.c_str());
+        equip_weapon(r, p, wep);
+        equipped = true;
+      }
+      if (!equipped) {
+        auto err_str = std::format("could not equip weapon: {}", weapon_str);
+        throw std::runtime_error(err_str);
+      }
 
       // assign handle
       r.get<SteamControllerComponent>(p).handle = handle;

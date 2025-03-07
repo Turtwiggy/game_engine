@@ -13,6 +13,7 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_helpers/ui_helpers.hpp"
 
 #include <imgui.h>
 
@@ -32,13 +33,6 @@ const std::vector<engine::SRGBColour> my_player_colours{
 
 const auto my_hp_bar_background_col = hex_to_srgb("#15171B");
 const auto im_hp_bar_background_col = convert_my_to_im(my_hp_bar_background_col);
-
-auto view_to_vector_of_ents = [](auto view) -> std::vector<entt::entity> {
-  std::vector<entt::entity> vec;
-  for (const auto& [e, comp_c] : view.each())
-    vec.push_back(e);
-  return vec;
-};
 
 void
 update_ui_survive_weapon_system(entt::registry& r)
@@ -63,8 +57,7 @@ update_ui_survive_weapon_system(entt::registry& r)
   static float distance_from_bottom_of_screen = 25;
   // imgui_draw_float("distance_x", distance_from_bottom_of_screen);
 
-  const auto players_view = r.view<const PlayerComponent>();
-  const auto players_e_vec = view_to_vector_of_ents(players_view);
+  const auto players_e_vec = view_to_vector_of_ents<PlayerComponent>(r);
   auto num_active_players = (int)players_e_vec.size();
 
   static bool debug_ui = false;

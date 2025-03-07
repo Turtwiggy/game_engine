@@ -13,6 +13,7 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat_projectiles/projectile_helpers.hpp"
+#include "modules/core_camera/orthographic.hpp"
 #include "modules/core_colour/components.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
@@ -22,6 +23,7 @@
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 
 #include <box2d/b2_collision.h>
+#include <box2d/b2_math.h>
 #include <magic_enum.hpp>
 
 #include <algorithm>
@@ -97,19 +99,17 @@ update_autofire_system(entt::registry& r, const float dt)
                     weapon_reload_rate_c,
                     weapon_range_c] : view.each()) {
 
+    // if the weapon is reloading, just do that.
+    if (weapon_reload_rate_c.seconds_cur > 0.0) {
+      weapon_reload_rate_c.seconds_cur -= dt;
+      continue;
+    }
+
     // debug the adj tgt pos
     // make the crosshair appear to be smooth though
     const auto p = parent_c.parent;
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
-    {
-      Sprite adj_tgt_s;
-      adj_tgt_s.pos = autofire_c.draw_cursor_position;
-      adj_tgt_s.sprite = "CROSSHAIR_2";
-      adj_tgt_s.size = { 16, 16 };
-      adj_tgt_s.col = parent_col;
-      draw_sprite(r, adj_tgt_s);
-    }
 
     // Get modded weapon values.
     const auto wep_def = get_weapon_def(r, p, wep_e);
@@ -117,8 +117,17 @@ update_autofire_system(entt::registry& r, const float dt)
     // Get enemies in your weapon range
     const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
     const auto search_radius_meters = wep_def.range; // for nearest enemy
-    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [](entt::registry& r, entt::entity e) -> bool {
-      return r.try_get<EnemyComponent>(e) != nullptr;
+
+    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [&](entt::registry& r, entt::entity e) -> bool {
+      bool is_enemy = r.try_get<EnemyComponent>(e) != nullptr;
+
+      // Filter enemies in radius so it's a circle shape not a box shape.
+      const auto enemy_pos_in_meters = pixels_to_meters(get_position(r, e));
+      const auto wep_pos_in_meters = pixels_to_meters(get_position(r, wep_e));
+      const float d2 = b2DistanceSquared(wep_pos_in_meters, enemy_pos_in_meters);
+      const bool in_circle = d2 <= (search_radius_meters * search_radius_meters);
+
+      return is_enemy && in_circle;
     };
     const b2Vec2 center_m = pixels_to_meters(wep_pos);
     auto enemies_map = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);
@@ -148,15 +157,30 @@ update_autofire_system(entt::registry& r, const float dt)
     // A ray from the player to the smarter target position.
     // Get the point that is slightly shorter than the full distance from player to the enemy.
     const auto dir = engine::normalize_safe(smarter_tgt_pos - par_pos);
-    const float dst = glm::length(tgt_pos - par_pos);
+    // const float dst = glm::length(tgt_pos - par_pos);
+
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+    const auto zoom = camera_c.zoom_nonlinear;
+    const float radius = (50 + 2) / zoom;
+
     engine::Ray ray;
     ray.origin = { par_pos.x, par_pos.y, 0.0 };
     ray.dir = { dir.x, dir.y, 0.0 };
-    const auto crosshair_pos = engine::ray_at(ray, 0.85f * dst);
+    const auto crosshair_pos = engine::ray_at(ray, radius);
+
+    {
+      Sprite adj_tgt_s;
+      adj_tgt_s.pos = crosshair_pos;
+      adj_tgt_s.sprite = "CROSSHAIR_2";
+      adj_tgt_s.size = { 16, 16 };
+      adj_tgt_s.col = parent_col;
+      draw_sprite(r, adj_tgt_s);
+    }
 
     // update the crosshair position
-    autofire_c.draw_cursor_position.x = lerp(autofire_c.draw_cursor_position.x, crosshair_pos.x, dt);
-    autofire_c.draw_cursor_position.y = lerp(autofire_c.draw_cursor_position.y, crosshair_pos.y, dt);
+    // autofire_c.draw_cursor_position.x = lerp(autofire_c.draw_cursor_position.x, crosshair_pos.x, dt);
+    // autofire_c.draw_cursor_position.y = lerp(autofire_c.draw_cursor_position.y, crosshair_pos.y, dt);
 
     // debug the actual firing target
     // {
@@ -169,16 +193,10 @@ update_autofire_system(entt::registry& r, const float dt)
     //   draw_sprite(r, adj_tgt_s);
     // }
 
-    // rotate the gun to the target#
+    // rotate the gun to the target
     const auto dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);
     const float shoot_angle = engine::dir_to_angle_radians(dir_to_enemy);
     wep_t.rotation_radians.z = shoot_angle;
-
-    // if the weapon is reloading, just do that.
-    if (weapon_reload_rate_c.seconds_cur > 0.0) {
-      weapon_reload_rate_c.seconds_cur -= dt;
-      continue;
-    }
 
     // you've reloaded
     if (weapon_clip_size_c.bullets_cur <= 0)

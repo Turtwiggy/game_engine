@@ -1,61 +1,25 @@
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 
-#include "engine/maths/maths.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/system_traits/trait_components.hpp"
-#include "modules/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui_common/ui_common_helpers.hpp"
-#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
-
 #include "engine/entt/helpers.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/events/events_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade/upgrade_helpers.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_common/ui_common_helpers.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+#include "ui_survive_upgrade_helpers.hpp"
 
 #include <imgui.h>
 #include <magic_enum.hpp>
 
 namespace game2d {
-
-auto close_ui = [](SINGLE_XpComponent& sxp_c) {
-  sxp_c.xp = 0;
-  sxp_c.level++;
-  sxp_c.xp_for_next_level += 2; // 2 harder every time
-};
-
-enum class Rarity
-{
-  COMMON = 1,
-  UNCOMMON,
-  RARE,
-  LEGENDARY,
-  SUPER_LEGENDARY,
-
-  count
-};
-
-struct UpgradeRollResult
-{
-  Rarity rarity = Rarity::COMMON;
-  UpgradeableStat upgrade;
-};
-
-struct UpgradeResultsComponent
-{
-  std::vector<UpgradeRollResult> results;
-};
-
-constexpr std::array<std::pair<Rarity, int>, 5> rarity_chance_map = { {
-  { Rarity::COMMON, 40 },
-  { Rarity::UNCOMMON, 40 },
-  { Rarity::RARE, 10 },
-  { Rarity::LEGENDARY, 7 },
-  { Rarity::SUPER_LEGENDARY, 3 },
-} };
 
 // Calculate the sum of values at compile time
 constexpr int
@@ -65,72 +29,6 @@ sum_array_values()
   for (const auto& pair : rarity_chance_map)
     sum += pair.second;
   return sum;
-};
-
-#if defined(_DEBUG)
-// static engine::RandomState roll_rnd(0); // same roll every time
-static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
-#else
-static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
-#endif
-
-void
-update_generate_upgrades_for_players(entt::registry& r)
-{
-  const std::vector<UpgradeableStat> traits_to_level_up = {
-    // clang-format off
-    UpgradeableStat::ACTOR_DODGE_CHANCE,
-    UpgradeableStat::ACTOR_HEALTH_MAX,
-    UpgradeableStat::ACTOR_HEALTH_REGEN,
-    UpgradeableStat::ACTOR_SPEED,
-    UpgradeableStat::ACTOR_STAMINA,
-    UpgradeableStat::ACTOR_XP_ZONE_SIZE,
-
-    // UpgradeableStat::BULLET_BOUNCE,
-    UpgradeableStat::BULLET_CRIT_CHANCE,
-    UpgradeableStat::BULLET_CRIT_DAMAGE,
-    UpgradeableStat::BULLET_DAMAGE,
-    UpgradeableStat::BULLET_KNOCKBACK,
-    UpgradeableStat::BULLET_LIFESTEAL,   // %hp you recover when a bullet hits
-    UpgradeableStat::BULLET_PIERCE,
-    UpgradeableStat::BULLET_SIZE,
-    UpgradeableStat::BULLET_SPEED,
-
-    UpgradeableStat::WEAPON_CLIP_SIZE,
-    UpgradeableStat::WEAPON_FIRERATE,
-    // UpgradeableStat::WEAPON_PROJECTILES, // how many bullets to fire per shot
-    // UpgradeableStat::WEAPON_SPREAD,      // at what angles
-    UpgradeableStat::WEAPON_RELOAD,
-    UpgradeableStat::WEAPON_RANGE
-    // clang-format on
-  };
-
-  const auto view = r.view<PlayerComponent>(entt::exclude<UpgradeResultsComponent>);
-  for (const auto& [e, player_c] : view.each()) {
-
-    UpgradeResultsComponent results_c;
-
-    // Roll 3 times for 3 upgrades.
-    for (int i = 0; i < 3; i++) {
-      const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)traits_to_level_up.size());
-      const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
-
-      Rarity rarity = Rarity::COMMON;
-      int sum = 0;
-      for (auto [type, value] : rarity_chance_map) {
-        sum += value;
-        if (roll_rarity <= sum) {
-          rarity = type;
-          break;
-        }
-      }
-
-      const auto upgrade = traits_to_level_up[roll_value];
-      results_c.results.push_back({ .rarity = rarity, .upgrade = upgrade });
-    }
-
-    r.emplace<UpgradeResultsComponent>(e, results_c);
-  }
 };
 
 const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> std::pair<float, std::string> {
@@ -405,114 +303,187 @@ const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
 };
 
 void
+setup_ui_based_on_upgrades(entt::registry& r,
+                           entt::entity player_e,
+                           UIState& state_c,
+                           const UpgradeResultsComponent& upgrades_c)
+{
+  for (const auto& [rarity, upgrade] : upgrades_c.results) {
+
+    const auto aquire_action = [&r, player_e, rarity, upgrade]() {
+      const auto rarity_str = std::string(magic_enum::enum_name(rarity));
+      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
+      const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
+
+      auto& stats_c = r.get<StatModifierComponent>(player_e);
+      if (type_str == "stat_flat_increase")
+        stats_c.add(std::make_shared<StatFlatIncrease>(amount, upgrade_str));
+      else if (type_str == "stat_percent_increase")
+        stats_c.add(std::make_shared<StatPercentIncrease>(amount, upgrade_str));
+      else
+        throw std::runtime_error("Unknown stat type");
+
+      SDL_Log("Aquiring: %s %s", rarity_str.c_str(), upgrade_str.c_str());
+      r.remove<UpgradeResultsComponent>(player_e); // done
+    };
+
+    state_c.rows.push_back(RowState{ .col_name = "Aquire", .action = aquire_action });
+  }
+
+  state_c.init = true;
+};
+
+void
 update_ui_survive_upgrade_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri);
+  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
   GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
 
-  const bool level_up_required = sxp_c.xp >= sxp_c.xp_for_next_level;
+  // check the probabilities are mathing to 100%
+  static_assert(sum_array_values() == 100);
 
+#if defined(_DEBUG)
   // Cheats..!! CHEATSS!!! CHEEEATTTSSSSSSS!!!!!!!
   {
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
     auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
     if (cheat_levelup_state.enabled) {
-      ImGui::Begin("CheatLevelUp");
+
+      ImGui::SetNextWindowPos(ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y },
+                              ImGuiCond_Always,
+                              { 1.0f, 1.0f });
+      ImGui::SetNextWindowSize({ 200, 100 });
+
+      ImGuiWindowFlags flags = 0;
+      flags |= ImGuiWindowFlags_NoDecoration;
+      flags |= ImGuiWindowFlags_NoDocking;
+      flags |= ImGuiWindowFlags_NoMove;
+
+      ImGui::Begin("CheatLevelUp", nullptr, flags);
       if (ImGui::Button("LevelUp"))
         sxp_c.xp += sxp_c.xp_for_next_level;
       ImGui::End();
     }
   }
+#endif
 
-  ui_c.require_level_up = level_up_required;
-  if (!level_up_required)
+  const int max_num_players = 4;
+  const int num_active_players = non_zero_handles(steam_state_c.handles).size();
+  const auto text_col = ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
+
+  if (ui_c.ui_states.size() == 0)
+    ui_c.ui_states.resize(max_num_players);
+
+  if (sxp_c.xp >= sxp_c.xp_for_next_level) {
+    // consume xp
+    sxp_c.xp = 0;
+    sxp_c.level++;
+    sxp_c.xp_for_next_level += 2; // 2 harder every time
+
+    generate_upgrades_for_players(r, ui_c);
+
+    // reset ui
+    for (int i = 0; i < max_num_players; i++) {
+      auto& state_c = ui_c.ui_states[i];
+      state_c.init = false;
+      state_c.current_row_index = 0;
+      state_c.rows.clear();
+      state_c.new_actions.clear();
+
+      const auto player_e = get_player_e_from_idx(r, i);
+      if (player_e == entt::null)
+        continue;
+      auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
+      setup_ui_based_on_upgrades(r, player_e, state_c, upgrades_c);
+    }
+  }
+
+  // dont show upgrade ui
+  if (!is_choosing_upgrade(r))
     return;
-
-  // check the probabilities are mathing to 100%
-  static_assert(sum_array_values() == 100);
-
-  process_input_for_ui(r, ui_c.state);
-  bool& do_act = ui_c.state.do_action;
-  int& selected = ui_c.state.selected;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
+  flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
 
-  const auto text_col = ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
+  const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
+  const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x - 0.1f * ri_c.viewport_size_render_at.x, 200 };
+  ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.5f, 0.5f });
+  ImGui::SetNextWindowSize(set_window_size);
 
-  const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-  const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-  const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize({ 640, 360 }, ImGuiCond_Always);
+  ImGui::Begin("UpgradeUI", nullptr, flags);
 
-  int index = 0;
-  const float size_x = ImGui::CalcTextSize("Aquire").x;
-  const ImVec2 size = { size_x, 13.0f };
+  const ImVec2 window_pos = ImGui::GetWindowPos();
+  const ImVec2 window_size = ImGui::GetWindowSize();
+  const auto player_ui_w = window_size.x / max_num_players; // always /4
+  const auto player_ui_h = window_size.y;
+  auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
+  auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
 
-  update_generate_upgrades_for_players(r);
+  for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
-  ImGui::Begin("Level up required!", NULL, flags);
-  ImGui::Text("Level-up!");
+    const auto player_e = get_player_e_from_idx(r, player_idx);
+    if (player_e == entt::null)
+      continue;
 
-  const auto view =
-    r.view<const PlayerComponent, StatModifierComponent, const TraitComponent, const UpgradeResultsComponent>();
-  for (const auto& [e, player_c, stat_c, trait_c, result_c] : view.each()) {
+    const auto* upgrades_c = r.try_get<const UpgradeResultsComponent>(player_e);
+    if (!upgrades_c)
+      continue; // this player isnt upgrading
 
-    if (result_c.results.size() == 0)
-      continue; // shouldnt occur
+    // update input
+    auto& state_c = ui_c.ui_states[player_idx];
+    state_c.new_actions.clear();
+    process_input_for_ui(r, state_c, steam_state_c.handles[player_idx]);
 
-    for (const auto& [rarity, upgrade] : result_c.results) {
+    // background
+    const float inc = ((player_idx + 1) / 4.0f);
+    const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
+    auto p_max = ImVec2{ player_ui_tl.x + player_ui_w, player_ui_tl.y + player_ui_h };
+    ImGui::GetWindowDrawList()->AddRectFilled(player_ui_tl, p_max, im_active_col, 6);
+
+    const bool do_act =
+      std::find(state_c.new_actions.begin(), state_c.new_actions.end(), UIAction::SELECT) != state_c.new_actions.end();
+
+    // draw upgrades
+    for (int i = 0; i < (int)state_c.rows.size(); i++) {
+      const bool selected = state_c.current_row_index == i;
+      int& selected_idx = state_c.current_row_index;
+
+      // Upgrade info
+      const auto [rarity, upgrade] = upgrades_c->results[i];
       const auto rarity_str = std::string(magic_enum::enum_name(rarity));
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
+      const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
+
+      auto col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+      if (selected)
+        col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       auto def = SelectableButtonDef{
         .label = "Aquire##" + rarity_str + "_" + upgrade_str,
-        .size = size,
-        .index = index++,
+        .size = { 60, 30 },
+        .index = i,
         .input = do_act,
-        .sel_index = selected,
+        .sel_index = selected_idx,
       };
-
-      const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
-
-      if (selectable_button(def)) {
-        // UpgradeEvent evt;
-        // evt.e = e;
-        // evt.upgrade = upgrade;
-        // evts_c.dispatcher->trigger(evt);
-        // evts_c.dispatcher->update();
-
-        // add stats
-        if (type_str == "stat_flat_increase")
-          stat_c.add(std::make_shared<StatFlatIncrease>(amount, upgrade_str));
-        else if (type_str == "stat_percent_increase")
-          stat_c.add(std::make_shared<StatPercentIncrease>(amount, upgrade_str));
-        else
-          throw std::runtime_error("Unknown stat type");
-
-        // remove the upgrades
-        r.remove<UpgradeResultsComponent>(e);
-
-        close_ui(sxp_c);
+      if (selectable_button(def) || (selected && do_act)) {
+        state_c.rows[i].action(); // get it
         break;
       }
 
-      // Display rarity
+      // Display rarity.
+      auto rarity_col = rarity_to_col(rarity);
       ImGui::SameLine();
+      ImGui::TextColored(rarity_col, "%s", rarity_str.c_str());
 
-      auto col = rarity_to_col(rarity);
-      ImGui::TextColored(col, "%s", rarity_str.c_str());
-
+      // Display upgrade info
       ImGui::SameLine();
-
-      // Display info about the upgrade
       if (type_str == "stat_flat_increase") {
         auto str = std::format("{} +{:.2f}", upgrade_str, amount);
         ImGui::Text("%s", str.c_str());
@@ -521,14 +492,17 @@ update_ui_survive_upgrade_system(entt::registry& r)
         ImGui::Text("%s", str.c_str());
       }
 
-      // Description
-      // ImGui::SameLine();
+      // Display upgrade description
       // const std::string desc = generate_description(upgrade);
-      // ImGui::TextColored(text_col, "%s", desc.c_str());
+      // ImGui::SameLine();
+      // ImGui::TextColored(col, "%s", desc.c_str());
     }
+
+    // move horizontally
+    player_ui_tl.x += player_ui_w;
+    player_ui_br.x += player_ui_w;
   }
 
-  ui_c.state.max = index;
   ImGui::End();
 }
 

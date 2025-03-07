@@ -58,7 +58,9 @@ ImGui_Manager::initialize(GameWindow& window)
   }
 
   style.PopupBorderSize = 0;
-  style.WindowBorderSize = 1;
+  // style.WindowBorderSize = 1;
+  style.WindowBorderSize = 0;
+  style.ChildBorderSize = 0;
   style.FrameBorderSize = 0;
   style.WindowRounding = 8;
   style.WindowTitleAlign = ImVec2(0.5, 0.5);

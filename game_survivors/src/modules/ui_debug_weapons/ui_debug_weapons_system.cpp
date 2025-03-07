@@ -34,7 +34,7 @@ update_ui_debug_weapons_system(entt::registry& r)
     if (ImGui::Button(equip_label.c_str())) {
       // update your weapon stats...
       SDL_Log("Equipping... %s", wep.name.c_str());
-      equip_weapon(r, wep);
+      // equip_weapon(r, wep);
     }
   }
 

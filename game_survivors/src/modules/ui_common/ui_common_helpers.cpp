@@ -110,11 +110,9 @@ selectable_button(SelectableButtonDef& def)
   //   return true;
   // }
 
-  // consume input
-  if (def.input && is_selected) {
+  // input
+  if (def.input && is_selected)
     do_act = true;
-    def.input = false; // consume
-  }
 
   ImGui::PopStyleColor(2);
   return do_act;

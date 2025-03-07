@@ -90,7 +90,6 @@
 #include "modules/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
-#include "modules/ui_scene_survive_debug_level_up/ui_survive_level_up_system.hpp"
 #include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
@@ -347,7 +346,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_timer_system(r);
     update_ui_survive_info_system(r);
     update_ui_survive_xp_bar_system(r);
-    update_ui_survive_level_up_system(r);
     update_ui_survive_upgrade_system(r);
     update_ui_survive_weapon_system(r);
     // update_ui_gameover_system(r);

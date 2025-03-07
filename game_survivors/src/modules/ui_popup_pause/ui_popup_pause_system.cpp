@@ -3,7 +3,7 @@
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
-#include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
 
@@ -52,7 +52,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   if (!open)
     state.state = state.state == GameState::PAUSED ? GameState::RUNNING : state.state;
   if (!open) {
-    ui_c.state = {}; // reset ui state
+    ui_c.state.current_row_index = 0; // reset ui state
     return;
   }
 
@@ -80,14 +80,33 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 10.0f, 10.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
-  // Note: although technically this is in a menu,
-  // to avoid weird bugs between swapping action & get_button_down,
-  // consdier the pause menu as a Game action set.
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
+  if (!ui_c.state.init) {
 
-  process_input_for_ui(r, ui_c.state);
-  bool& do_act = ui_c.state.do_action;
-  int& selected = ui_c.state.selected;
+    auto resume_action = [&]() { ui_c.open = false; };
+    auto options_action = [&]() {
+      ui_c.open = false;
+      create_empty<RequestToShowOptionsMenu>(r);
+    };
+    auto quit_to_menu_action = [&]() {
+      ui_c.open = false;
+      move_to_scene_start(r, Scene::menu);
+    };
+    auto quit_to_desktop_action = [&]() { app.running = false; };
+
+    ui_c.state.rows.push_back(RowState{ .col_name = "Resume", .action = resume_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Quit To Menu", .action = quit_to_menu_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Quit To Desktop", .action = quit_to_desktop_action });
+
+    ui_c.state.init = true;
+  }
+
+  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
+  process_input_for_ui_all_handles(r, ui_c.state);
+
+  int& selected = ui_c.state.current_row_index;
+  bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
+                ui_c.state.new_actions.end();
 
   ImGui::Begin("Paused", NULL, flags);
 
@@ -96,64 +115,23 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
 
   const ImVec2 size = { 120.0f, 40.0f };
 
-  int index = 0;
+  for (int i = 0; i < (int)ui_c.state.rows.size(); i++) {
+    if (i > 0)
+      ImGui::NewLine();
+    auto& row = ui_c.state.rows[i];
 
-  {
-    auto def = SelectableButtonDef{
-      .label = "Resume",
+    auto a_def = SelectableButtonDef{
+      .label = row.col_name,
       .size = size,
-      .index = index++,
+      .index = i,
       .input = do_act,
       .sel_index = selected,
     };
-    ImGui::NewLine();
-    if (selectable_button(def))
-      ui_c.open = false;
-  }
-  {
-    auto def = SelectableButtonDef{
-      .label = "Options",
-      .size = size,
-      .index = index++,
-      .input = do_act,
-      .sel_index = selected,
-    };
-    ImGui::NewLine();
-    if (selectable_button(def)) {
-      ui_c.open = false;
 
-      create_empty<RequestToShowOptionsMenu>(r);
-    }
-  }
-  {
-    auto def = SelectableButtonDef{
-      .label = "Quit to Menu",
-      .size = size,
-      .index = index++,
-      .input = do_act,
-      .sel_index = selected,
-    };
-    ImGui::NewLine();
-    if (selectable_button(def)) {
-      move_to_scene_start(r, Scene::menu);
-
-      ui_c.open = false; // unpause this menu
-    }
-  }
-  {
-    auto def = SelectableButtonDef{
-      .label = "Quit to Desktop",
-      .size = size,
-      .index = index++,
-      .input = do_act,
-      .sel_index = selected,
-    };
-    ImGui::NewLine();
-    if (selectable_button(def))
-      app.running = false;
+    if (selectable_button(a_def))
+      row.action();
   }
 
-  ui_c.state.max = index;
   ImGui::End();
   ImGui::PopStyleVar(5);
 };
