@@ -1,11 +1,10 @@
+#include "pch.hpp"
+
 #include "sprint_system.hpp"
 
 #include "modules/actor_player/components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "sprint_components.hpp"
-
-#include <glm/glm.hpp>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

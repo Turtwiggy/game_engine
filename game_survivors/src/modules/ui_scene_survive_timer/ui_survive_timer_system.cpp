@@ -26,10 +26,10 @@ update_ui_survive_timer_system(entt::registry& r)
     const int minutes = static_cast<int>(timer_c.time_left_cur) / 60;
 
     // countup minutes
-    const int cu_minutes = 19 - minutes;
-    const int cu_seconds = 59 - seconds;
+    // const int cu_minutes = 19 - minutes;
+    // const int cu_seconds = 59 - seconds;
 
-    const auto display = std::format("{:02}:{:02}", cu_minutes, cu_seconds);
+    const auto display = std::format("{:02}:{:02}", minutes, seconds);
     const auto len = ImGui::CalcTextSize(display.c_str());
     const auto padding = ImGui::GetStyle().WindowPadding;
     const auto space = 8;

@@ -20,6 +20,9 @@
       { "x": 11, "y": 0, "w": 1, "h": 2 }
     ]},
 
+    { "name": "CIRCLE", "frames": [ { "x": 12, "y": 0, "w": 2, "h": 2 } ] },
+
+
     { "name": "HERMIT_CRAB_TOP", "frames": [ { "x": 0, "y": 4, "w": 2, "h": 2 } ] },
     { "name": "HERMIT_CRAB_BOTTOM", "frames": [ { "x": 2, "y": 4, "w": 2, "h": 2 } ] },
     { "name": "REDCLAW_CRAB_LEFT", "frames": [ { "x": 4, "y": 4, "w": 2, "h": 2 } ] },

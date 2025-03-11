@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "helpers.hpp"
 
 #include "components.hpp"
@@ -5,8 +7,6 @@
 #include "engine/lifecycle/components.hpp"
 // #include "modules/core_collisions/resolve_collisions_helpers.hpp"
 // #include "modules/events/events_components.hpp"
-
-#include <SDL2/SDL_log.h>
 
 namespace game2d {
 

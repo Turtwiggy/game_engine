@@ -1,12 +1,11 @@
+#include "pch.hpp"
+
 #include "autofire_helpers.hpp"
 
 #include "engine/maths/maths.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
-
-#include <SDL2/SDL_Log.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

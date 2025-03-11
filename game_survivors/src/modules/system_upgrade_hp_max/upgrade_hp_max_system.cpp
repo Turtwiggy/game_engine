@@ -1,10 +1,11 @@
-#include "upgrade_hp_max_system.hpp"
+#include "pch.hpp"
+
 #include "engine/lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "upgrade_hp_max_system.hpp"
 
-#include "magic_enum.hpp"
 
 namespace game2d {
 

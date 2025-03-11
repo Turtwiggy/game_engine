@@ -1,15 +1,11 @@
+#include "pch.hpp"
+
 #include "steam_debug_ui_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-
-#include "imgui.h"
-#include "magic_enum.hpp"
-#include <SDL_keyboard.h>
-#include <SDL_scancode.h>
-#include <steam/steam_api.h>
 
 namespace game2d {
 using DA = DigitalAction;

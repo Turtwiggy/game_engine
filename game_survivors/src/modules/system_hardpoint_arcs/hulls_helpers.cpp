@@ -1,13 +1,9 @@
+#include "pch.hpp"
+
 #include "hulls_helpers.hpp"
 
 #include "hulls_components.hpp"
 #include "modules/core_raws/raws_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
-
-#include <filesystem>
-#include <fstream>
-#include <sstream>
 
 namespace game2d {
 

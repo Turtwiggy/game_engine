@@ -1,11 +1,12 @@
-#include "modules/ui_worldspace_text/helpers.hpp"
+#include "pch.hpp"
+
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "imgui.h"
 #include "modules/core_animations/wiggle/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
+#include "modules/ui_worldspace_text/helpers.hpp"
 
 namespace game2d {
 

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -8,12 +10,6 @@
 #include "engine/sprites/components.hpp"
 #include "hierarchy_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-
-// other lib headers
-#include <box2d/b2_body.h>
-#include <glm/gtc/type_ptr.hpp>
-#include <imgui.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 
@@ -150,10 +146,10 @@ update_ui_hierarchy_system(entt::registry& r)
       tmp_y = pos.y;
       imgui_draw_vec2("Physics Pos (in pixels): ", tmp_x, tmp_y);
 
-      const glm::vec2 size = get_size(r, eid);
-      tmp_x = size.x;
-      tmp_y = size.y;
-      imgui_draw_vec2("Physics Size: ", tmp_x, tmp_y);
+      // const glm::vec2 size = get_size(r, eid);
+      // tmp_x = size.x;
+      // tmp_y = size.y;
+      // imgui_draw_vec2("Physics Size: ", tmp_x, tmp_y);
 
       const auto& vel = pb->body->GetLinearVelocity();
       tmp_x = vel.x;

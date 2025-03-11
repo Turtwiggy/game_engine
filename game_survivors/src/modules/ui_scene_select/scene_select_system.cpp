@@ -137,15 +137,19 @@ draw_player_select_box(entt::registry& r,
     return;
   }
 
-  const auto button_size_w = 20.0f;
-  const auto button_size_half = button_size_w * 0.5f;
-  const auto button_size = ImVec2{ button_size_w, button_size_w };
-  const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  // const auto button_size_w = 20.0f;
+  // const auto button_size_half = button_size_w * 0.5f;
+  // const auto button_size = ImVec2{ button_size_w, button_size_w };
+  // const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
+  // const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
 
-  auto last_xy = tl;
+  const auto text_size = ImGui::CalcTextSize("anything");
   auto& state_c = ui_c.player_ui_state[player_idx];
   auto& game_state_c = ui_c.player_choice_state[player_idx];
+
+  auto last_xy = tl;
+  last_xy.y += 0.5f * (wh.y - text_size.y);
+  last_xy.y -= 0.5f * state_c.rows.size() * text_size.y; // center
 
   for (int row_i = 0; row_i < (int)state_c.rows.size(); row_i++) {
     auto& row = state_c.rows[row_i];
@@ -160,8 +164,8 @@ draw_player_select_box(entt::registry& r,
     std::string label = "";
 
     // prepend (x) to label
-    if (selected)
-      label += "(x) ";
+    // if (selected)
+    //   label += "(x) ";
     label += std::format("{}", text);
 
     // append weapon name to label
@@ -196,13 +200,10 @@ draw_player_select_box(entt::registry& r,
       game_state_c.player_boat = hull.name;
     }
 
-    const auto text_size = ImGui::CalcTextSize(label.c_str());
-
+    last_xy.y += text_size.y;
     const auto text_pos_l = ImVec2{
       tl.x,
-      tl.y + 0.5f * (wh.y - text_size.y)              //
-        + (row_i * text_size.y)                       // adjust for multiple lines
-        - (0.5f * state_c.rows.size() * text_size.y), // center it
+      last_xy.y,
     };
 
     auto colour = IM_COL32(255, 255, 255, 126);
@@ -210,6 +211,7 @@ draw_player_select_box(entt::registry& r,
       colour = IM_COL32(255, 255, 255, 255);
 
     auto* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddText(last_xy, colour, label.c_str());
 
     // Left Arrow
     // ImGui::SetCursorScreenPos(text_pos_l);
@@ -219,9 +221,6 @@ draw_player_select_box(entt::registry& r,
     // std::tie(uv_tl, uv_br) = convert_sprite_to_uv(r, "ARROW_LEFT");
     // ImGui::ImageButton(l_label.c_str(), im_id, button_size, uv_tl, uv_br);
 
-    draw_list->AddText(text_pos_l, colour, label.c_str());
-    last_xy = text_pos_l;
-
     // hull description
     if (is_hull) {
       const auto idx = col_index;
@@ -229,14 +228,25 @@ draw_player_select_box(entt::registry& r,
       const auto& hull = hulls[idx];
       const auto desc = hull.desc;
       last_xy.y += text_size.y;
-      ImGui::GetWindowDrawList()->AddText(last_xy, IM_COL32(255, 255, 255, 255), desc.c_str());
+      ImGui::GetWindowDrawList()->AddText(last_xy, colour, desc.c_str());
     }
+
+    // weapon description
+    if (is_weapon) {
+      const auto idx = col_index;
+      const auto& weapons = weapons_c.weapons;
+      const auto& weapon = weapons[idx];
+      const auto desc = weapon.desc;
+      last_xy.y += text_size.y;
+      ImGui::GetWindowDrawList()->AddText(last_xy, colour, desc.c_str());
+    }
+
+    last_xy.y += text_size.y;
   }
 
+  last_xy.y += text_size.y;
+  last_xy.y += text_size.y;
   const auto text = std::format("Ready: {}", game_state_c.confirmed);
-  const auto text_size = ImGui::CalcTextSize(text.c_str());
-  last_xy.y += text_size.y;
-  last_xy.y += text_size.y;
   ImGui::GetWindowDrawList()->AddText(last_xy, IM_COL32(255, 255, 255, 255), text.c_str());
 }
 

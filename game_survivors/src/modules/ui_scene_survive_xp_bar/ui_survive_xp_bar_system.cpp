@@ -1,11 +1,10 @@
+#include "pch.hpp"
+
 #include "ui_survive_xp_bar_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
-
-#include <imgui.h>
 
 namespace game2d {
 

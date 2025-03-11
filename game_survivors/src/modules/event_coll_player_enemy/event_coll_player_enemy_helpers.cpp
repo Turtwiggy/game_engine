@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "event_coll_player_enemy_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -13,8 +15,6 @@
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/event_coll/event_coll_components.hpp"
 #include "modules/event_damage/event_damage_components.hpp"
-
-#include <magic_enum.hpp>
 
 namespace game2d {
 

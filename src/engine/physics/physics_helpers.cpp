@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "engine/physics/physics_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -5,18 +7,6 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/core_collisions/resolve_collisions_helpers.hpp"
 #include "modules/core_raws/raws_components.hpp"
-#include "physics_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <box2d/b2_circle_shape.h>
-#include <box2d/b2_contact.h>
-#include <box2d/b2_math.h>
-#include <box2d/b2_world_callbacks.h>
-
-#include <format>
-#include <functional>
-#include <limits>
-#include <stdexcept>
 
 namespace game2d {
 
@@ -155,7 +145,7 @@ public:
     if (cond(r, body_e)) {
       const b2Vec2 diff = body->GetPosition() - position;
       const float d2 = diff.LengthSquared();
-      std::pair<int, entt::entity> result = { d2, body_e };
+      std::pair<int, entt::entity> result = { (int)d2, body_e };
       results.emplace(result);
     }
 

@@ -2,22 +2,25 @@
   "weapons": [
   
     {
-      "name": "Heavy Pistol",
+      "name": "Deck Cannon", // heavy pistol
+      "desc": "A compact cannon that fires a single heavy round.",
       "data": {
         "WEAPON_CLIP_SIZE": 6   , // shots before reload
-        "WEAPON_PROJECTILES": 2 ,
+        "WEAPON_PROJECTILES": 1 ,
         "WEAPON_SPREAD": 5      , // degrees
         "WEAPON_FIRERATE": 1.25 , // per second
         "WEAPON_RELOAD": 3      , // seconds
         "WEAPON_RANGE": 4.0     , // meters
         "BULLET_DAMAGE": 12     ,
         "BULLET_KNOCKBACK": 0   , // force
-        "BULLET_PIERCE": 12     
+        "BULLET_PIERCE": 12     ,
+        "BULLET_SIZE": 6        
       }
     },
 
     {
-      "name": "Shotgun",
+      "name": "Grapeshot Cannon", // shotgun
+      "desc": "A short-range cannon that fires a spread of projectiles.",
       "data": {
         "WEAPON_CLIP_SIZE": 2    , // shots before reload
         "WEAPON_PROJECTILES": 7  ,
@@ -26,21 +29,24 @@
         "WEAPON_RANGE": 2.0      , // meters
         "BULLET_DAMAGE": 10      ,
         "BULLET_KNOCKBACK": 0.3  , // force
-        "BULLET_PIERCE": 3       
+        "BULLET_PIERCE": 3       ,
+        "BULLET_SIZE": 4        
       }
     },
 
     {
-      "name": "SMG",
+      "name": "Swivel Gun",
+      "desc": "A lightweight cannon that fires smaller rounds at a high rate.",
       "data": {
-        "WEAPON_CLIP_SIZE": 20   , // shots before reload
+        "WEAPON_CLIP_SIZE": 10   , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
         "WEAPON_FIRERATE": 10.0  , // per second
         "WEAPON_RELOAD": 1       , // seconds
         "WEAPON_RANGE": 2.5      , // meters
         "BULLET_DAMAGE": 4      ,
         "BULLET_KNOCKBACK": 0.3  , // force
-        "BULLET_PIERCE": 3       
+        "BULLET_PIERCE": 3       ,
+        "BULLET_SIZE": 2        
       }
     }
 

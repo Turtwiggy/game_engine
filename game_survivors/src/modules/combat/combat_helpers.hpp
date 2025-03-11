@@ -9,9 +9,10 @@ namespace game2d {
 struct WeaponData
 {
   std::string name;
+  std::string desc;
   std::unordered_map<std::string, float> data;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WeaponData, name, data);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WeaponData, name, desc, data);
 };
 
 struct SINGLE_Weapons

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "engine/events/system.hpp"
 
 #include "engine/app/application.hpp"
@@ -6,14 +8,6 @@
 #include "engine/events/helpers/controller.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/helpers/mouse.hpp"
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
-#include <imgui.h>
-
-#include <SDL2/SDL_log.h>
-#include <format>
-#include <vector>
 
 namespace game2d {
 

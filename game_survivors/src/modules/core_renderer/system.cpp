@@ -1,4 +1,5 @@
-// your header
+#include "pch.hpp"
+
 #include "system.hpp"
 
 // components/systems#
@@ -26,21 +27,7 @@
 #include "modules/system_screenshake/components.hpp"
 #include "renderpass/passes.hpp"
 
-#if defined(_MSC_VER)
-#include <optick.h>
-#endif
-
 using namespace engine;
-
-// other lib
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_Log.h>
-#include <SDL2/SDL_scancode.h>
-#include <format>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <imgui.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 using namespace std::literals;
@@ -411,10 +398,6 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 void
 update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
-#if defined(_MSC_VER)
-  OPTICK_EVENT();
-#endif
-
   static const engine::SRGBColour black(0, 0, 0, 0);
 
 #if defined(_DEBUG)

@@ -51,7 +51,7 @@ get_default_audio()
   audio.sounds.push_back({ "TAKE_DAMAGE_0", path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
 
   audio.sounds.push_back(
-    { "WATER_AMBIENCE_0", path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.wav", SoundType::BACKGROUND });
+    { "WATER_AMBIENCE_0", path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "MENU_0", path + "sergepavkin_smooth-waters.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "SELECT_0", path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_0", path + "gp_lady-of-the-80s.mp3", SoundType::BACKGROUND });

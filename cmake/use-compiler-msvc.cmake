@@ -1,8 +1,13 @@
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Bt+")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /showIncludes")
+
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d1reportTime") # debug compiler frontend???
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2cgsummary") # debug compiler backend???
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:precise")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP32")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:precise")
 
   if(${CMAKE_BUILD_TYPE} MATCHES Debug)
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX") # warnings as errors

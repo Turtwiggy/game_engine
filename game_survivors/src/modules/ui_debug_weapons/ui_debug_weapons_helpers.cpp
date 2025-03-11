@@ -1,12 +1,11 @@
+#include "pch.hpp"
+
 #include "ui_debug_weapons_helpers.hpp"
 
 #include "engine/lifecycle/components.hpp"
-#include "magic_enum.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_damage_lifesteal/lifesteal_components.hpp"
-
-#include <format>
 
 namespace game2d {
 

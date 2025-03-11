@@ -4,9 +4,9 @@
       "key": "actor_enemy_melee_1",
       "desc": "HORSESHOE_CRAB",
       "waves": [
-        { "span":{"start": 0, "stop": 1}, "hp": 10, "max": 40, "num_per_spawn": 5 },
-        { "span":{"start": 1, "stop": 2}, "hp": 20, "max": 40, "num_per_spawn": 5 },
-        { "span":{"start": 2, "stop": 5}, "hp": 30, "max": 30, "num_per_spawn": 6 }
+        // { "span":{"start": 0, "stop": 1}, "hp": 10, "max": 20, "num_per_spawn": 3 },
+        // { "span":{"start": 1, "stop": 2}, "hp": 20, "max": 30, "num_per_spawn": 3 },
+        // { "span":{"start": 2, "stop": 3}, "hp": 30, "max": 40, "num_per_spawn": 3 }
         // { "span":{"start": 5, "stop": 200}, "hp": 100, "max": 80, "num_per_spawn": 10 }
       ]
     },
@@ -14,9 +14,9 @@
       "key": "actor_enemy_exploder",
       "desc": "PUFFERFISH",
       "waves": [
-        { "span":{"start": 0, "stop": 1}, "hp": 10, "max": 4, "num_per_spawn": 2 },
-        { "span":{"start": 1, "stop": 2}, "hp": 20, "max": 4,"num_per_spawn": 2 },
-        { "span":{"start": 2, "stop": 5}, "hp": 30, "max": 3, "num_per_spawn": 1 }
+        // { "span":{"start": 0, "stop": 1}, "hp": 10, "max": 2, "num_per_spawn": 1 },
+        // { "span":{"start": 1, "stop": 2}, "hp": 20, "max": 3,"num_per_spawn": 1 },
+        // { "span":{"start": 2, "stop": 3}, "hp": 30, "max": 4, "num_per_spawn": 1 }
         // { "span":{"start": 6, "stop": 8}, "hp": 80, "max": 6, "num_per_spawn": 4 },
         // { "span":{"start": 8, "stop": 10}, "hp": 100, "max": 8, "num_per_spawn": 6 }
       ]
@@ -26,16 +26,18 @@
       "desc": "HERMIT_CRAB",
       "waves": [
         // { "span":{"start": 0, "stop": 20}, "hp": 20, "max": 1, "num_per_spawn": 1 }
-
-        { "span":{"start": 1, "stop": 2}, "hp": 20, "max": 20, "num_per_spawn": 2 },
-        { "span":{"start": 5, "stop": 6}, "hp": 20, "max": 20, "num_per_spawn": 2 }
+        // { "span":{"start": 1, "stop": 2}, "hp": 20, "max": 20, "num_per_spawn": 2 },
+        // { "span":{"start": 2, "stop": 3}, "hp": 20, "max": 20, "num_per_spawn": 2 },
+        // { "span":{"start": 3, "stop": 4}, "hp": 30, "max": 30, "num_per_spawn": 2 },
+        // { "span":{"start": 4, "stop": 5}, "hp": 30, "max": 40, "num_per_spawn": 2 }
       ]
     },
     {
       "key": "actor_enemy_melee_3",
       "desc": "REDCLAW_CRAB",
       "waves": [
-        { "span":{"start": 5, "stop": 6}, "hp": 20, "max": 20, "num_per_spawn": 2 }
+        // { "span":{"start": 3, "stop": 4}, "hp": 30, "max": 30, "num_per_spawn": 2 },
+        // { "span":{"start": 4, "stop": 5}, "hp": 30, "max": 40, "num_per_spawn": 2 }
       ]
     },
     {
@@ -57,17 +59,17 @@
       "key": "actor_enemy_grower",
       "desc": "SEA_URCHIN",
       "waves": [
-        // { "span":{"start": 0,  "stop": 5  }, "hp": 20, "max": 2, "num_per_spawn": 2 },
-        { "span":{"start": 5,  "stop": 10 }, "hp": 20, "max": 4, "num_per_spawn": 4 },
-        { "span":{"start": 10, "stop": 15 }, "hp": 20, "max": 6, "num_per_spawn": 6 },
-        { "span":{"start": 15, "stop": 20 }, "hp": 20, "max": 8, "num_per_spawn": 8 }
+        { "span":{"start": 0,  "stop": 20  }, "hp": 20, "max": 2, "num_per_spawn": 2 }
+        // { "span":{"start": 5,  "stop": 10 }, "hp": 20, "max": 4, "num_per_spawn": 4 },
+        // { "span":{"start": 10, "stop": 15 }, "hp": 20, "max": 6, "num_per_spawn": 6 },
+        // { "span":{"start": 15, "stop": 20 }, "hp": 20, "max": 8, "num_per_spawn": 8 }
       ]
     },
     {
       "key": "actor_enemy_charger",
       "desc": "SEA_HORSE",
       "waves": [
-        { "span":{"start": 0, "stop": 20}, "hp": 20, "max": 1, "num_per_spawn": 1 }
+        // { "span":{"start": 0, "stop": 20}, "hp": 20, "max": 1, "num_per_spawn": 1 }
       ]
     },
     
@@ -103,7 +105,7 @@
       "key": "actor_snake",
       "desc": "sea snake boss",
       "waves": [
-        { "span":{"start": 5,  "stop": 6}, "hp": 2000, "num_per_wave": 1, "max": 1, "num_per_spawn": 1 }
+        { "span":{"start": 5,  "stop": 6}, "hp": 4000, "num_per_wave": 1, "max": 1, "num_per_spawn": 1 }
       ]
     }
 

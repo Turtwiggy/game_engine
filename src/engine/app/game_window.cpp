@@ -1,22 +1,8 @@
+#include "pch.hpp"
 
 // header
 #include "engine/app/game_window.hpp"
 #include "engine/deps/opengl.hpp"
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_syswm.h>
-#include <SDL2/SDL_video.h>
-#include <format>
-
-#include <stdexcept>
-#include <string>
-
-#if defined(SDL_VIDEO_DRIVER_WINDOWS)
-#include "windows.h"
-#endif
-#if defined(SDL_VIDEO_DRIVER_COCOA)
-#endif
 
 namespace engine {
 using namespace std::literals;

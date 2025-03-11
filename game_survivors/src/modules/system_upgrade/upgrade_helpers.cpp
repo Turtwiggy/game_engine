@@ -1,17 +1,11 @@
+#include "pch.hpp"
+
 #include "upgrade_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "modules/core_raws/raws_helpers.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <magic_enum.hpp>
-
-#include <format>
-#include <fstream>
-#include <iomanip>
-#include <sstream>
 
 namespace game2d {
 

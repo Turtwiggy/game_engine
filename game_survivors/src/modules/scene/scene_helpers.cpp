@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "scene_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -50,8 +52,6 @@
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 
-#include <magic_enum.hpp>
-
 namespace game2d {
 
 void
@@ -90,7 +90,7 @@ spawn_weapon(entt::registry& r, const HardpointData& data)
   // bullets that the weapon fires
   r.emplace<BulletDamage>(wep_e, 10);
   r.emplace<BulletPierce>(wep_e, 1);
-  r.emplace<BulletSize>(wep_e, BulletSize{ { 5, 2 } });
+  r.emplace<BulletSize>(wep_e, BulletSize{ { 5, 5 } });
   r.emplace<BulletSpeed>(wep_e, 1.0f);
   r.emplace<BulletKnockback>(wep_e); // no knockback by default
   r.emplace<BulletBounce>(wep_e);    // 0 bounce by default
@@ -234,7 +234,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   {
     auto fixture_def = get_fixture_def_by_tag(r, e, "fixture_xp_zone");
     ActorXpZoneSizeComponent xp_zone_c;
-    xp_zone_c.radius_meters = pixels_to_meters(fixture_def.size[0].x);
+    // xp_zone_c.radius_meters = pixels_to_meters(fixture_def.size[0].x);
+    xp_zone_c.radius_meters = pixels_to_meters(size.x * 0.5f);
     r.emplace<ActorXpZoneSizeComponent>(e, xp_zone_c);
   }
 

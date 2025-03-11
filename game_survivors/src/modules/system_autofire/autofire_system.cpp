@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "autofire_system.hpp"
 
 #include "autofire_components.hpp"
@@ -24,9 +26,6 @@
 
 #include <box2d/b2_collision.h>
 #include <box2d/b2_math.h>
-#include <magic_enum.hpp>
-
-#include <algorithm>
 
 namespace game2d {
 
@@ -116,18 +115,46 @@ update_autofire_system(entt::registry& r, const float dt)
 
     // Get enemies in your weapon range
     const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
-    const auto search_radius_meters = wep_def.range; // for nearest enemy
+    const float search_radius_meters = wep_def.range; // for nearest enemy
 
-    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [&](entt::registry& r, entt::entity e) -> bool {
-      bool is_enemy = r.try_get<EnemyComponent>(e) != nullptr;
+    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [&](entt::registry& r,
+                                                                            entt::entity parent_e) -> bool {
+      bool is_enemy = r.try_get<EnemyComponent>(parent_e) != nullptr;
 
       // Filter enemies in radius so it's a circle shape not a box shape.
-      const auto enemy_pos_in_meters = pixels_to_meters(get_position(r, e));
+      const auto enemy_pos_in_meters = pixels_to_meters(get_position(r, parent_e));
       const auto wep_pos_in_meters = pixels_to_meters(get_position(r, wep_e));
-      const float d2 = b2DistanceSquared(wep_pos_in_meters, enemy_pos_in_meters);
-      const bool in_circle = d2 <= (search_radius_meters * search_radius_meters);
 
-      return is_enemy && in_circle;
+      // adjust to include enemy radius as in-range - not just center.
+      const auto enemy_size = pixels_to_meters(get_size(r, parent_e));
+      const float enemy_radius_meters = glm::max(enemy_size.x, enemy_size.y) * 0.5f;
+
+      // check for circle col...
+      const auto c1 = wep_pos_in_meters;
+      const auto c2 = enemy_pos_in_meters;
+      const auto r1 = search_radius_meters;
+      const auto r2 = enemy_radius_meters;
+      const auto d = c2 - c1;
+      const auto d2 = d.x * d.x + d.y * d.y;
+      const float rad = r1 + r2;
+      const float rad_sqr = rad * rad;
+      const bool coll = d2 <= rad_sqr;
+
+      if (is_enemy) {
+        Sprite s;
+        s.sprite = "EMPTY";
+        s.pos = meters_to_pixels(enemy_pos_in_meters);
+        s.size = { 8, 8 };
+
+        if (coll)
+          s.col = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
+        else
+          s.col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
+
+        draw_sprite(r, s);
+      }
+
+      return is_enemy && coll;
     };
     const b2Vec2 center_m = pixels_to_meters(wep_pos);
     auto enemies_map = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);

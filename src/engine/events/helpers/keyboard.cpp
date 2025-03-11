@@ -1,7 +1,7 @@
+#include "pch.hpp"
+
 // header
 #include "engine/events/helpers/keyboard.hpp"
-
-#include <algorithm>
 
 namespace game2d {
 

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "modules/effects_parallax_mouse/parallax_mouse_system.hpp"
 
 #include "modules/effects_parallax_mouse/parallax_mouse_components.hpp"
@@ -6,8 +8,6 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
-
-#include "imgui.h"
 
 namespace game2d {
 

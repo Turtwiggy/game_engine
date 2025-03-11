@@ -1,27 +1,23 @@
+#include "pch.hpp"
+
 #include "modules/ui_popup_pause/ui_popup_pause_system.hpp"
 
+#include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
-#include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
-#include "modules/ui_common/ui_common_components.hpp"
-#include "modules/ui_popup_options/ui_popup_options_components.hpp"
-#include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
-
-#include "engine/entt/helpers.hpp"
 #include "game_state.hpp"
+#include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
+#include "modules/ui_popup_options/ui_popup_options_components.hpp"
+#include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "ui_popup_pause_components.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_mixer.h>
-#include <imgui.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

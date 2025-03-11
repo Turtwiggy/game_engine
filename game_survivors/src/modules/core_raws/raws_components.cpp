@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "modules/core_raws/raws_components.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -26,16 +28,6 @@
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "raws_helpers.hpp"
-
-#include <box2d/b2_body.h>
-#include <box2d/b2_dynamic_tree.h>
-#include <box2d/b2_fixture.h>
-#include <glm/fwd.hpp>
-#include <magic_enum.hpp>
-
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
 
 namespace game2d {
 

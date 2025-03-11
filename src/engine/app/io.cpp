@@ -1,16 +1,7 @@
+#include "pch.hpp"
 
 // header
 #include "io.hpp"
-
-// other library headers
-#include <SDL2/SDL_log.h>
-#include <chrono>
-#include <format>
-#include <string>
-
-#if defined(WIN32) || defined(_WIN32)
-#include <Windows.h>
-#endif
 
 namespace engine {
 

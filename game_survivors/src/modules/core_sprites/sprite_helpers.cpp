@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "sprite_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -6,8 +8,6 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/core_renderer/helpers.hpp"
-
-#include <SDL_log.h>
 
 namespace game2d {
 

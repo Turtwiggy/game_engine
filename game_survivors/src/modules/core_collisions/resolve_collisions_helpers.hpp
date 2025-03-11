@@ -9,12 +9,6 @@
 
 namespace game2d {
 
-enum class FixtureOrBody
-{
-  FIXTURE,
-  BODY,
-};
-
 template<class A, class B>
 std::pair<entt::entity, entt::entity>
 coll(entt::registry& r, entt::entity a, entt::entity b)

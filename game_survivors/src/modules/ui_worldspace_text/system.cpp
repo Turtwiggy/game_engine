@@ -1,9 +1,10 @@
+#include "pch.hpp"
+
 #include "modules/ui_worldspace_text/system.hpp"
 
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
-#include "imgui.h"
 #include "modules/core_camera/orthographic.hpp"
 #include "modules/core_renderer/components.hpp"
 

@@ -1,17 +1,12 @@
+#include "pch.hpp"
+
 #include "treasure_enemy_death_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
-#include "magic_enum.hpp"
 #include "modules/actor_enemy_treasure/enemy_treasure_components.hpp"
-#include "modules/core_raws/raws_components.hpp"
-#include "modules/event_coll_player_hp/event_coll_player_hp_components.hpp"
-#include "modules/event_coll_player_sea_mine/event_coll_player_sea_mine_components.hpp"
-#include "modules/event_coll_player_vacuum_orb/event_coll_player_vacuum_orb_components.hpp"
 #include "modules/system_create_item/create_item_components.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <stdexcept>
 
 namespace game2d {
 

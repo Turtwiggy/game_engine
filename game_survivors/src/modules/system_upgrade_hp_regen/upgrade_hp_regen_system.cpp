@@ -1,13 +1,12 @@
+#include "pch.hpp"
+
 #include "upgrade_hp_regen_system.hpp"
 
 #include "engine/lifecycle/components.hpp"
-#include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "upgrade_hp_regen_components.hpp"
-
-#include <glm/glm.hpp>
 
 namespace game2d {
 

@@ -1,5 +1,6 @@
 #include "enemy_grower_helpers.hpp"
 
+#include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include <box2d/b2_circle_shape.h>
@@ -18,6 +19,7 @@ update_circle_fixture_size(entt::registry& r, entt::entity body_e, entt::entity 
   const float difference = glm::abs(new_radius_pixels - radius_pixels);
   if (difference < epsilon)
     return;
+  SDL_Log("Creating new circle fixture...");
 
   // update shape...
   auto& body_c = r.get<PhysicsBodyComponent>(body_e);

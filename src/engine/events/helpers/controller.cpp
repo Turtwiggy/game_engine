@@ -1,11 +1,8 @@
-// header
+#include "pch.hpp"
+
 #include "engine/events/helpers/controller.hpp"
 
 #include "engine/maths/maths.hpp"
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_log.h>
-#include <format>
 
 namespace game2d {
 

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "audio_system.hpp"
 
 // this is the engine/ directory... modules/ shouldn't be here...
@@ -8,20 +10,6 @@
 #include "engine/audio/audio_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_audio.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_mixer.h>
-
-#include <entt/entt.hpp>
-#include <format>
-#include <imgui.h>
-
-#include <map>
-#include <stdexcept>
-#include <string>
-#include <vector>
 
 namespace game2d {
 

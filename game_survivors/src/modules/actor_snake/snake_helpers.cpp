@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "snake_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -17,8 +19,6 @@
 #include <box2d/b2_distance_joint.h>
 #include <box2d/b2_math.h>
 #include <box2d/b2_revolute_joint.h>
-#include <imgui.h>
-#include <stdexcept>
 
 namespace game2d {
 
@@ -39,7 +39,6 @@ auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   // Remove targets when head dies
   dead_c.dead.emplace(snake_c.target_e_0);
   dead_c.dead.emplace(snake_c.target_e_1);
-  dead_c.dead.emplace(snake_c.target_e_2);
 
   // Kill all sections when head dies?
   entt::entity e = dead_e;
@@ -80,12 +79,13 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
 
   if (type == SectionType::HEAD) {
     SnakeData snake_c;
+
+    // create targets
     snake_c.target_e_0 = spawn(r, "empty");
-    give_life(r, snake_c.target_e_0, { 100, 100 });
+    give_life(r, snake_c.target_e_0, { 100, 100 }, { 0, 0 });
     snake_c.target_e_1 = spawn(r, "empty");
-    give_life(r, snake_c.target_e_1, { -100, -100 });
-    snake_c.target_e_2 = spawn(r, "empty");
-    give_life(r, snake_c.target_e_2, { 0, 0 });
+    give_life(r, snake_c.target_e_1, { -100, -100 }, { 0, 0 });
+
     r.emplace<SnakeData>(segment_e, snake_c);
   }
 
@@ -191,23 +191,23 @@ update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
 {
   GET_FIRST_OR_RETURN(SnakeData, r, snake_e, snake_c);
 
-  static float speed = 0.2f;
-  imgui_draw_float("circle_speed", speed);
-
+  static float circle_speed = 0.2f;
   static float snake_speed = 90.0f;
-  imgui_draw_float("snake_speed", snake_speed);
-
   static float circle_radius = 450.0f;
+
+#if defined(_DEBUG)
+  imgui_draw_float("circle_speed", circle_speed);
+  imgui_draw_float("snake_speed", snake_speed);
   ImGui::SliderFloat("circle_radius", &circle_radius, 0, 1000.0f);
+  // bool slider_changed = ImGui::SliderInt("target", &target, 0, 2);
+#endif
 
   static int target = 0;
-  bool slider_changed = ImGui::SliderInt("target", &target, 0, 2);
-
   static float angle_cw = 0.0f;
   static float angle_1 = 0.0f;
-  angle_cw += dt * speed;
+  angle_cw += dt * circle_speed;
   angle_cw = engine::clamp_axis(angle_cw);
-  angle_1 += dt * speed;
+  angle_1 += dt * circle_speed;
   angle_1 = engine::clamp_axis(angle_1);
 
   // target pos 1...
@@ -219,9 +219,6 @@ update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
   const auto dir1 = engine::angle_radians_to_direction(angle_1 - engine::PI);
   const auto pos1 = engine::ray_at({ .origin = { 0, 0, 0 }, .dir = { dir1.x, dir1.y, 0.0f } }, circle_radius);
   set_position(r, snake_c.target_e_1, { pos1.x, pos1.y });
-
-  // target pos 3...
-  set_position(r, snake_c.target_e_2, mouse_pos);
 
   // note: this is bad. just for debugging.
   auto view = r.view<ApplyForceToDynamicTarget, PhysicsDynamicTarget, BossComponent>();

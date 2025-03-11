@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -14,9 +16,6 @@
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "ui_survive_upgrade_helpers.hpp"
-
-#include <imgui.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 
@@ -156,15 +155,15 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
   }
   if (upgrade == UpgradeableStat::BULLET_KNOCKBACK) {
     if (rarity == Rarity::COMMON)
-      amount = 0.1;
+      amount = 0.1f;
     if (rarity == Rarity::UNCOMMON)
-      amount = 0.2;
+      amount = 0.2f;
     if (rarity == Rarity::RARE)
-      amount = 0.3;
+      amount = 0.3f;
     if (rarity == Rarity::LEGENDARY)
-      amount = 0.4;
+      amount = 0.4f;
     if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 0.5;
+      amount = 0.5f;
     return { amount, "stat_flat_increase" };
   }
   if (upgrade == UpgradeableStat::BULLET_LIFESTEAL) {

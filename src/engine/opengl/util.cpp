@@ -1,10 +1,9 @@
+#include "pch.hpp"
 
 // header
 #include "engine/opengl/util.hpp"
 
 #include <SDL2/SDL_log.h>
-#include <cassert>
-#include <format>
 
 namespace engine {
 

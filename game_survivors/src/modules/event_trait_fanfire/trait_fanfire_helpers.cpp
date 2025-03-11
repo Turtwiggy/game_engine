@@ -9,8 +9,6 @@
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_traits/trait_helpers.hpp"
 
-#include <SDL2/SDL_log.h>
-
 namespace game2d {
 
 struct FanfireTraitComponent

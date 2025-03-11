@@ -1,10 +1,6 @@
+#include "pch.hpp"
+
 #include "steam_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <steam/steam_api.h>
-
-#include <fstream>
-#include <string>
 
 namespace game2d {
 

@@ -1,11 +1,7 @@
+#include "pch.hpp"
 
 // header
 #include "engine/maths/maths.hpp"
-#include "modules/system_autofire/autofire_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <chrono>
-#include <format>
 
 namespace engine {
 
@@ -247,7 +243,7 @@ int
 get_system_time_for_seed()
 {
   auto now = std::chrono::high_resolution_clock::now();
-  auto seed = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+  long long seed = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
   return seed;
 };
 

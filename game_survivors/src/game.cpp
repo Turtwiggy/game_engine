@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "game.hpp"
 
 #include "engine/audio/audio_system.hpp"
@@ -24,7 +26,6 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
-#include "modules/core_debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/system.hpp"
@@ -41,7 +42,6 @@
 #include "modules/system_cooldown/cooldown_system.hpp"
 #include "modules/system_create_item/create_item_system.hpp"
 #include "modules/system_death_throes/death_throes_system.hpp"
-#include "modules/system_distance_check/system.hpp"
 #include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
 #include "modules/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
@@ -98,15 +98,6 @@
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <imgui.h>
-#include <steam/steam_api.h>
-#include <steam/steam_api_common.h>
-
-#if defined(_MSC_VER)
-#include <optick.h>
-#endif
 
 namespace game2d {
 using namespace std::literals;
@@ -209,10 +200,6 @@ duplicate_held_input(SINGLE_FixedUpdateInputHistory& fixed_input)
 void
 fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
-#if defined(_MSC_VER)
-  OPTICK_EVENT();
-#endif
-
   auto& input = get_first_component<SINGLE_InputComponent>(r);
   auto& fixed_input = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
 
@@ -254,10 +241,6 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
 void
 update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
-#if defined(_MSC_VER)
-  OPTICK_EVENT();
-#endif
-
   const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   const float dt = milliseconds_dt / 1000.0f;
   const auto mouse_pos = mouse_position_in_worldspace(r);
@@ -295,7 +278,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // update_manualfire_system(r, dt);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
-    update_distance_check_system(r);
     update_gun_follow_player_system(r, mouse_pos, dt);
     update_move_to_target_via_lerp(r, dt);
     update_particle_system(r, dt);

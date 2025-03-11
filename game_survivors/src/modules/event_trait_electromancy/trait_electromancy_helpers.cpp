@@ -2,7 +2,6 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -14,8 +13,6 @@
 #include "modules/system_particles/components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_traits/trait_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
 
 namespace game2d {
 

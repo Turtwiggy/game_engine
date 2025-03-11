@@ -3,7 +3,6 @@
 #include "engine/renderer/transform.hpp"
 
 #include <SDL2/SDL_log.h>
-#include <cctype>
 #include <entt/entt.hpp>
 
 #include <format>

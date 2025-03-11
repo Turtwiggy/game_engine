@@ -1,15 +1,11 @@
+#include "pch.hpp"
+
 #include "event_upgrade_helpers.hpp"
 
 #include "event_upgrade_components.hpp"
-#include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
-
-#include <SDL2/SDL_log.h>
-
-#include <format>
-#include <stdexcept>
 
 namespace game2d {
 

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 // header
 #include "engine/opengl/shader.hpp"
 
@@ -11,13 +13,6 @@
 
 // other library headers
 #include "engine/deps/opengl.hpp"
-#include <glm/gtc/type_ptr.hpp>
-
-// c++ standard library headers
-#include <SDL2/SDL_log.h>
-#include <format>
-#include <fstream>
-#include <sstream>
 
 namespace engine {
 using namespace std::literals;

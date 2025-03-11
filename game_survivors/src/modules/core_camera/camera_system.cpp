@@ -1,9 +1,10 @@
+#include "pch.hpp"
+
 // header
 #include "camera_system.hpp"
 
 // components/systems
 #include "components.hpp"
-#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
@@ -11,9 +12,6 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/core_camera/orthographic.hpp"
 #include "modules/core_renderer/components.hpp"
-
-#include <cmath>
-#include <glm/glm.hpp>
 
 namespace game2d {
 

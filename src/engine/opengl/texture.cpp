@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "engine/opengl/texture.hpp"
 
 #include "engine/app/io.hpp"
@@ -9,14 +11,6 @@ using namespace engine; // used for macro
 
 // other lib headers
 #include <stb_image.h>
-#include <thread>
-
-// std lib
-#include <SDL2/SDL_log.h>
-#include <algorithm>
-#include <format>
-#include <string>
-#include <utility>
 
 namespace engine {
 

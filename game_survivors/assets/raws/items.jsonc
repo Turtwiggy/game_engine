@@ -62,10 +62,10 @@
       "name": "bullet_default",
       "display_name": "Bullet",
       "display_desc": "Ballistic material",
-      "renderable": { "sprite": "EMPTY", "colour": "white" },
+      "renderable": { "sprite": "CIRCLE", "colour": "white" },
       "combat": { "damage": 3, "range": 2, "type": "unknown" },
       "phys_body": { "is_bullet": true, "is_static": false },
-      "phys_fixtures": [ { "tag": "fixture_bullet", "type": "box", "is_sensor": true } ]
+      "phys_fixtures": [ { "tag": "fixture_bullet", "type": "circle", "is_sensor": true } ]
     },
     {
       "name": "bullet_archerfish",
@@ -83,7 +83,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [
         { "tag": "fixture_player", "type": "box", "is_sensor": false },
-        { "tag": "fixture_xp_zone", "type": "circle","is_sensor": true, "size": [{"x":50, "y": 0}] }
+        { "tag": "fixture_xp_zone", "type": "circle","is_sensor": true }
       ]
     },
     {

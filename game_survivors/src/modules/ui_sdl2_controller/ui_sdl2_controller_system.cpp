@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "ui_sdl2_controller_system.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -5,11 +7,6 @@
 #include "engine/events/helpers/controller.hpp"
 
 #include <SDL2/SDL_gamecontroller.h>
-#include <imgui.h>
-
-#include <SDL2/SDL_log.h>
-#include <algorithm>
-#include <format>
 
 namespace game2d {
 

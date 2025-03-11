@@ -1,6 +1,6 @@
-#include "engine/events/helpers/fixed_update.hpp"
+#include "pch.hpp"
 
-#include <algorithm>
+#include "engine/events/helpers/fixed_update.hpp"
 
 namespace game2d {
 

@@ -1,9 +1,8 @@
+#include "pch.hpp"
+
 #include "components.hpp"
 
 #include "engine/opengl/texture.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

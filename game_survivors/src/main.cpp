@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "game.hpp"
 using namespace game2d;
 
@@ -10,23 +12,6 @@ using namespace engine;
 #include "engine/deps/opengl.hpp"
 #include <emscripten.h>
 #endif
-
-#if defined(_MSC_VER)
-#include <optick.h>
-#endif
-
-// other libs
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_timer.h>
-#include <entt/entt.hpp>
-#include <imgui.h>
-#include <steam/steam_api.h>
-
-// std lib
-#include <format>
-#include <optional>
-#include <string>
-#include <thread>
 
 // fixed tick
 // static constexpr int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
@@ -80,10 +65,6 @@ void
 main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
-
-#if defined(_MSC_VER)
-  OPTICK_FRAME("MainThread");
-#endif
 
   engine::start_frame(app);
   launch_thread_after_x_frames();
@@ -176,17 +157,9 @@ main(int argc, char* argv[])
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
 
-#if defined(_MSC_VER)
-  // OPTICK_START_CAPTURE();
-#endif
-
   while (app.running)
     main_loop(nullptr);
 
-#if defined(_MSC_VER)
-  // OPTICK_STOP_CAPTURE();
-  // OPTICK_SAVE_CAPTURE("GameCapture");
-#endif
 #endif
 
   SteamAPI_Shutdown();

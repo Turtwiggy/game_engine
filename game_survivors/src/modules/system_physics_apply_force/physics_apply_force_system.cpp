@@ -14,10 +14,6 @@
 #include <box2d/b2_math.h>
 #include <glm/ext/quaternion_geometric.hpp>
 
-#if defined(_MSC_VER)
-#include <optick.h>
-#endif
-
 namespace game2d {
 
 // vertex at vx, vy
@@ -127,10 +123,6 @@ static std::vector<DebugVelocityError> debug_vel_instances;
 void
 update_physics_apply_force_system(entt::registry& r)
 {
-#if defined(_MSC_VER)
-  OPTICK_EVENT();
-#endif
-
   // Force to DynamicTarget
 #if defined(_DEBUG)
   debug_vel_instances.clear();

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "ui_survive_info_system.hpp"
 
 #include "engine/colour/colour.hpp"
@@ -17,9 +19,6 @@
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
-
-#include <imgui.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

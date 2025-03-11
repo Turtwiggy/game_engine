@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "upgrade_xp_zone_size_system.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -7,10 +9,6 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "upgrade_xp_zone_size_components.hpp"
-
-#include <box2d/b2_fixture.h>
-#include <glm/glm.hpp>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

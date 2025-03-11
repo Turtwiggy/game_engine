@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "controller_input_update_ui_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -8,11 +10,6 @@
 #include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
-#include "steam/isteaminput.h"
-
-#include <SDL_scancode.h>
-#include <entt/entt.hpp>
-#include <stdexcept>
 
 namespace game2d {
 

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "ui_survive_weapon_system.hpp"
 
 #include "engine/colour/colour.hpp"
@@ -14,10 +16,6 @@
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_helpers/ui_helpers.hpp"
-
-#include <imgui.h>
-
-#include <format>
 
 namespace game2d {
 

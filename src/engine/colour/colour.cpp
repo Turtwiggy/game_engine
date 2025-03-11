@@ -1,7 +1,5 @@
 #include "engine/colour/colour.hpp"
 
-#include <cmath>
-
 namespace engine {
 
 // This function really should be constexpr but math pow isnt constexpr

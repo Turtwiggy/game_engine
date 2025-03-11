@@ -1,14 +1,10 @@
+#include "pch.hpp"
+
 #include "system.hpp"
 
 #include "engine/audio/audio_components.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
-
-#include <SDL2/SDL_audio.h>
-#include <SDL2/SDL_log.h>
-#include <SDL_mixer.h>
-#include <imgui.h>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

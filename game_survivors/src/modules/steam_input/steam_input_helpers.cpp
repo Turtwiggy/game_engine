@@ -1,17 +1,10 @@
+#include "pch.hpp"
+
 #include "steam_input_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-
-#include <magic_enum.hpp>
-#include <steam/isteaminput.h>
-#include <steam/steam_api.h>
-#include <steam/steam_api_common.h>
-#include <steam/steam_api_flat.h>
-
-#include <ranges>
-#include <unordered_map>
 
 namespace game2d {
 

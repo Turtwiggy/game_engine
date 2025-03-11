@@ -8,19 +8,11 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 
-#if defined(_MSC_VER)
-#include <optick.h>
-#endif
-
 namespace game2d {
 
 void
 update_physics_system(entt::registry& r, const uint64_t ms_dt)
 {
-#if defined(_MSC_VER)
-  OPTICK_EVENT();
-#endif
-
   const auto physics_e = get_first<SINGLE_Physics>(r);
   if (physics_e == entt::null)
     return;

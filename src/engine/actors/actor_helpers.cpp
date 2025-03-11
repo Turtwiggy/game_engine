@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "actor_helpers.hpp"
 
 #include "engine/colour/colour.hpp"
@@ -9,7 +11,6 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
-#include <box2d/b2_math.h>
 
 namespace game2d {
 
@@ -94,8 +95,9 @@ get_size(entt::registry& r, const entt::entity e)
 
     const float width = aabb.upperBound.x - aabb.lowerBound.x;
     const float height = aabb.upperBound.y - aabb.lowerBound.y;
-    return glm::vec2{ width, height };
+    return meters_to_pixels({ width, height });
   }
+
   const auto& transform = r.get<TransformComponent>(e);
   return { transform.scale.x, transform.scale.y };
 };

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "modules/actor_player/actor_player_system.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -9,27 +11,10 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "magic_enum.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-#include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
-
-#include <SDL2/SDL_keyboard.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_mouse.h>
-#include <SDL_scancode.h>
-#include <box2d/b2_math.h>
-#include <box2d/box2d.h>
-#include <cmath>
-#include <glm/glm.hpp>
-
-#include <imgui.h>
-
-#if defined(_MSC_VER)
-#include <optick.h>
-#endif
 
 namespace game2d {
 
@@ -176,10 +161,6 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
 void
 fixed_update_player_controller_system(entt::registry& r, const uint64_t ms_dt, const glm::ivec2& mouse_pos)
 {
-#if defined(_MSC_VER)
-  OPTICK_EVENT();
-#endif
-
   // What happens if multiple fixedupdate() before?
 
   fixedupdate_movement_direct(r, ms_dt);

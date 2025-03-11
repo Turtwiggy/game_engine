@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "event_damage_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -19,10 +21,6 @@
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ui_worldspace_text/helpers.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <glm/glm.hpp>
-#include <magic_enum.hpp>
 
 namespace game2d {
 

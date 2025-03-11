@@ -6,16 +6,15 @@ include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-clang.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-msvc.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/steam.cmake)
 
 project(game_survivors_tests VERSION 0.1.0)
 message("game_survivors_tests...")
 
-include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 find_packages()
 find_package(GTest CONFIG REQUIRED)
-
-include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 
 file(GLOB_RECURSE TEST_SRC_FILES
   ${IMGUI_SOURCE}
@@ -35,23 +34,7 @@ file(GLOB_RECURSE TEST_SRC_FILES
 add_executable(game_survivors_tests ${TEST_SRC_FILES})
 
 link_libs(game_survivors_tests)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
-  #
-  # Link steam_api[64].lib
-  set(steam_dll_dst ${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll)
-  set(steam_dll_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64/steam_api64.dll)
-  set(steam_lib_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64/steam_api64.lib)
-  target_link_libraries(game_survivors_tests PRIVATE ${steam_lib_src})
-
-  # Copy the .dll next to the .exe
-  if(NOT EXISTS ${steam_dll_dst})
-    message("Copying steam .dll next to .exe")
-    add_custom_command(TARGET game_survivors_tests POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${steam_dll_src} ${steam_dll_dst}
-    )
-  endif()
-endif()
+link_libs_steam(game_survivors_tests)
 
 target_link_libraries(game_survivors_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 

@@ -1,13 +1,11 @@
+#include "pch.hpp"
+
 #include "ui_sdl2_input_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/events/components.hpp"
 #include "modules/actor_player/components.hpp"
-
-#include "imgui.h"
-#include <SDL_keyboard.h>
-#include <format>
 
 namespace game2d {
 

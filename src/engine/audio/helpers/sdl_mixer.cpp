@@ -1,11 +1,8 @@
+#include "pch.hpp"
+
 #include "engine/audio/helpers/sdl_mixer.hpp"
 
 #include "engine/audio/audio_components.hpp"
-
-#include <SDL2/SDL_audio.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_mixer.h>
-#include <format>
 
 namespace game2d {
 

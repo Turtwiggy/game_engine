@@ -1,14 +1,6 @@
+#include "pch.hpp"
+
 #include "helpers.hpp"
-
-// other lib
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <imgui.h>
-#include <misc/cpp/imgui_stdlib.h>
-
-// std lib
-#include <string>
-#include <vector>
 
 namespace game2d {
 using namespace std::literals;

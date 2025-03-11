@@ -32,8 +32,9 @@
 	},
 	"c++ new body file": {
 		"body": [
-			"#include \"system.hpp\"",
+			"#include \"pch.hpp\"",
 			"",
+			"#include \"system.hpp\"",
 			"#include \"components.hpp\"",
 			"",
 			"namespace game2d {",

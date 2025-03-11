@@ -1,15 +1,6 @@
-// your project header
-#include "setup_imgui.hpp"
+#include "pch.hpp"
 
-// other library headers
-// clang-format off
-#include <imgui.h>
-#include <backends/imgui_impl_sdl2.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <imgui_internal.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_syswm.h>
-// clang-format on
+#include "setup_imgui.hpp"
 
 namespace engine {
 

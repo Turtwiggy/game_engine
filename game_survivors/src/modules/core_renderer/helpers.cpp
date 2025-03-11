@@ -1,16 +1,10 @@
+#include "pch.hpp"
+
 // header
 #include "helpers.hpp"
 
 #include "components.hpp"
 #include "engine/renderer/transform.hpp"
-
-#include <imgui.h>
-#include <imgui_internal.h>
-#include <magic_enum.hpp>
-
-#include <SDL2/SDL_log.h>
-#include <algorithm>
-#include <format>
 
 namespace game2d {
 using namespace engine; // used for macro

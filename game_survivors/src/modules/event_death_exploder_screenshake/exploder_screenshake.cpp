@@ -1,9 +1,8 @@
 #include "exploder_screenshake.hpp"
+
 #include "engine/entt/helpers.hpp"
 #include "modules/system_screenshake/components.hpp"
 #include "modules/system_traits/trait_components.hpp"
-
-#include <SDL2/SDL_log.h>
 
 namespace game2d {
 

@@ -1,8 +1,6 @@
-#include "audio_helpers.hpp"
+#include "pch.hpp"
 
-#include <SDL2/SDL_log.h>
-#include <algorithm>
-#include <stdexcept>
+#include "audio_helpers.hpp"
 
 namespace game2d {
 

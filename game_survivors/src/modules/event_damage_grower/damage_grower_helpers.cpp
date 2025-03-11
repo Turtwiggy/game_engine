@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "damage_grower_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -6,8 +8,6 @@
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/event_death/components.hpp"
 #include "modules/events/events_components.hpp"
-
-#include <glm/glm.hpp>
 
 namespace game2d {
 

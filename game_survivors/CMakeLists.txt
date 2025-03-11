@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.30.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Combine multiple source files into a single translation unit,
+# reducing redundant compilation.
+# set(CMAKE_UNITY_BUILD ON)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
+#
 project(game_survivors VERSION 0.1.0)
 message("game_survivors: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 message("game_survivors: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
@@ -18,56 +23,41 @@ include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-clang.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-msvc.cmake)
-
 include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/steam.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
+
 find_packages()
 
-# Add source files
-include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
-
-file(GLOB_RECURSE SRC_FILES
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
   ${IMGUI_SOURCE}
-  ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include/glad/glad.c
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_survivors/src/*.cpp
 )
 
 # Main executable
-if("${CMAKE_BUILD_TYPE}" MATCHES Release AND WIN32)
-  # "The WIN32 argument instructs the compiler to build a
-  # Windows GUI app, which doesn't show a console."
-  add_executable(game_survivors WIN32 ${SRC_FILES} assets/textures/resource.rc)
-elseif(WIN32)
-  add_executable(game_survivors ${SRC_FILES} assets/textures/resource.rc)
-else()
-  add_executable(game_survivors ${SRC_FILES})
-endif()
+# if("${CMAKE_BUILD_TYPE}" MATCHES Release AND WIN32)
+# # "The WIN32 argument instructs the compiler to build a
+# # Windows GUI app, which doesn't show a console."
+# add_executable(game_survivors WIN32 ${SRC_FILES} assets/textures/resource.rc)
+# elseif(WIN32)
+# add_executable(game_survivors ${SRC_FILES} assets/textures/resource.rc)
+# else()
+# endif()
+add_executable(game_survivors ${SRC_FILES})
+
+# Precompile headers
+set(PCH_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch.hpp)
+target_precompile_headers(game_survivors PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${PCH_FILE}>")
 
 link_libs(game_survivors)
+link_libs_steam(game_survivors)
 
-# Link steam api
-if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
-  # Link steam_api[64].lib
-  set(steam_dll_dst ${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll)
-  set(steam_dll_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64/steam_api64.dll)
-  set(steam_lib_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64/steam_api64.lib)
-  target_link_libraries(game_survivors PRIVATE ${steam_lib_src})
-
-  # Copy the .dll next to the .exe
-  if(NOT EXISTS ${steam_dll_dst})
-    message("Copying steam .dll next to .exe")
-    add_custom_command(TARGET game_survivors_tests POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${steam_dll_src} ${steam_dll_dst}
-    )
-  endif()
-endif()
-
+#
 target_include_directories(game_survivors PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
-  ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_survivors/src
@@ -118,12 +108,7 @@ ENDIF()
 if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   message("creating symlink...")
   set(src ${CMAKE_SOURCE_DIR}/game_survivors/assets)
-
-  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/Debug/assets)
-  else()
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-  endif()
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
 
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 // header
 #include "engine/sprites/helpers.hpp"
 
@@ -9,14 +11,6 @@
 // other libs
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
-
-// std libs
-#include <SDL2/SDL_log.h>
-#include <format>
-#include <fstream>
-#include <stdexcept>
-#include <string>
-#include <vector>
 
 namespace game2d {
 using json = nlohmann::json;

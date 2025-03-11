@@ -1,11 +1,11 @@
+#include "pch.hpp"
+
 #include "lifesteal_helpers.hpp"
 
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "lifesteal_components.hpp"
 #include "modules/combat/components.hpp"
-
-#include <glm/glm.hpp>
 
 namespace game2d {
 
