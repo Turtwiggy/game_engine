@@ -4,9 +4,7 @@
 
 namespace game2d {
 
-struct SINGLE_Events
-{
-  entt::dispatcher* dispatcher;
-};
+void
+update_player_out_of_bounds_system(entt::registry& r);
 
 } // namespace game2d

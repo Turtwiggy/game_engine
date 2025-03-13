@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 

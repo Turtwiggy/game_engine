@@ -1,7 +1,7 @@
 #pragma once
 
 #include "modules/event_death/components.hpp"
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

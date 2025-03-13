@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

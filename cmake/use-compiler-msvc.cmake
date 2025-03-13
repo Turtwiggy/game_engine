@@ -4,7 +4,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d1reportTime") # debug compiler frontend???
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2cgsummary") # debug compiler backend???
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP32")
 
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP32")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:precise")
@@ -16,6 +16,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /external:I ${CMAKE_SOURCE_DIR}/thirdparty")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /wd4275 /wd4251 /bigobj")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
+
+  # Enable Preprocessor output
+  # This will generate .i files in the build directory.
+  # add_compile_options(/P)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /analyze")
 
   # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /sdl /Oi /Ot /Oy /Ob2 /Zi")
 endif()

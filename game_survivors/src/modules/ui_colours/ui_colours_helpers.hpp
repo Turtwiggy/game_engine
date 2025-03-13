@@ -2,7 +2,7 @@
 
 #include "engine/colour/colour.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 #include <imgui.h>
 
 namespace game2d {

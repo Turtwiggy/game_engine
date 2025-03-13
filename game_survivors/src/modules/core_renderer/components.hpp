@@ -5,8 +5,8 @@
 #include "modules/core_renderer/helpers/batch_quad.hpp"
 
 #include "imgui.h"
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <entt/fwd.hpp>
+#include <glm/fwd.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json.hpp>
 

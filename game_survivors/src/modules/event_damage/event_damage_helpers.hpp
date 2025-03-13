@@ -2,7 +2,7 @@
 
 #include "modules/event_damage/event_damage_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

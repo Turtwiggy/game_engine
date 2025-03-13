@@ -2,7 +2,7 @@
 
 #include "entt/entt.hpp"
 
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 namespace game2d {
 

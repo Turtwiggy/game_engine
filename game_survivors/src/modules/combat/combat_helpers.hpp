@@ -1,7 +1,6 @@
 #pragma once
 
-#include "modules/system_upgrade/upgrade_components.hpp"
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 #include <nlohmann/json.hpp>
 
 namespace game2d {

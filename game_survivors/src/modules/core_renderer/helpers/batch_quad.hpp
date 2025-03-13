@@ -5,7 +5,7 @@
 #include "engine/opengl/shader.hpp"
 
 // other project headers
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 namespace engine {
 

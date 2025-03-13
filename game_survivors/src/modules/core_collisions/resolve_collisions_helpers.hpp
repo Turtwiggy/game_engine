@@ -5,7 +5,7 @@
 
 #include <box2d/b2_contact.h>
 #include <box2d/b2_world_callbacks.h>
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

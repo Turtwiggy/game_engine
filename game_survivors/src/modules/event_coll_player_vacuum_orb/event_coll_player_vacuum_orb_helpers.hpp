@@ -2,7 +2,7 @@
 
 #include "modules/core_collisions/resolve_collisions_helpers.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

@@ -2,7 +2,7 @@
 
 #include "modules/combat_projectiles/projectile_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

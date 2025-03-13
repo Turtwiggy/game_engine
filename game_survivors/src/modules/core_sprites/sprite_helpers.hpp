@@ -3,8 +3,8 @@
 #include "engine/entt/entity_pool.hpp"
 #include "modules/core_renderer/components.hpp"
 
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <entt/fwd.hpp>
+#include <glm/fwd.hpp>
 
 namespace game2d {
 

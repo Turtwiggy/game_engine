@@ -20,7 +20,7 @@
 		"body": [
 			"#pragma once",
 			"",
-			"#include <entt/entt.hpp>",
+			"#include <entt/fwd.hpp>",
 			"",
 			"namespace game2d {",
 			"",
@@ -35,7 +35,6 @@
 			"#include \"pch.hpp\"",
 			"",
 			"#include \"${1:system}.hpp\"",
-			"#include \"components.hpp\"",
 			"",
 			"namespace game2d {",
 			"",

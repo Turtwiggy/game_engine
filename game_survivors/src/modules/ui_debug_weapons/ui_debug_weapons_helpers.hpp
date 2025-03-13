@@ -1,7 +1,8 @@
 #pragma once
 
 #include "modules/combat/combat_helpers.hpp"
-#include <entt/entt.hpp>
+
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

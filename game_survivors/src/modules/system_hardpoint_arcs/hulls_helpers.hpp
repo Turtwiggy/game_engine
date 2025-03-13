@@ -2,7 +2,7 @@
 
 #include "hulls_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 #include <optional>
 

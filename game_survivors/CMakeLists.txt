@@ -27,6 +27,12 @@ include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/steam.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  # add_definitions(-DCMAKE_CXX_INCLUDE_WHAT_YOU_USE=include-what-you-use)
+  # find_program(IWYU_PATH NAMES include-what-you-use iwyu)
+  # set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "${IWYU_PATH};--driver-mode=cl;-Xiwyu;--verbose=3")
+endif()
+
 find_packages()
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
@@ -50,6 +56,7 @@ add_executable(game_survivors ${SRC_FILES})
 # Precompile headers
 set(PCH_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch.hpp)
 target_precompile_headers(game_survivors PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${PCH_FILE}>")
+set(PCH_INSTANTIATE_TEMPLATES ON)
 
 link_libs(game_survivors)
 link_libs_steam(game_survivors)
@@ -61,7 +68,7 @@ target_include_directories(game_survivors PRIVATE
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_survivors/src
-  ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
+  ${CMAKE_SOURCE_DIR}/thirdparty/entt/src
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include

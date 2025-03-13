@@ -3,7 +3,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/core_renderer/lights/components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 #include <vector>
 

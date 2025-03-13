@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "ui_scene_press_any_key_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -9,12 +11,6 @@
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <SDL_keycode.h>
-#include <SDL_scancode.h>
-#include <glm/glm.hpp>
-#include <imgui.h>
 
 namespace game2d {
 using namespace std::literals;

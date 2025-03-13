@@ -6,6 +6,7 @@
 #include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_damage_lifesteal/lifesteal_components.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
 
 namespace game2d {
 

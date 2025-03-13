@@ -49,7 +49,8 @@
 #include <box2d/b2_world_callbacks.h>
 #include <box2d/box2d.h>
 
-#include <glm/fwd.hpp>
+#include <entt/entt.hpp>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

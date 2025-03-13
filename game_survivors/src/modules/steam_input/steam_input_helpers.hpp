@@ -2,8 +2,8 @@
 
 #include "modules/steam_input/steam_input_components.hpp"
 
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <entt/fwd.hpp>
+#include <glm/fwd.hpp>
 
 namespace game2d {
 

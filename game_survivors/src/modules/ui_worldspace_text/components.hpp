@@ -1,7 +1,7 @@
 #pragma once
 
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <entt/fwd.hpp>
+#include <glm/fwd.hpp>
 #include <imgui.h>
 
 #include <functional>

@@ -3,7 +3,7 @@
 #include "modules/ui_common/ui_common_components.hpp"
 
 #include "steam/isteaminput.h"
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

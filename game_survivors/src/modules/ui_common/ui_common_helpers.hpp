@@ -2,7 +2,7 @@
 
 #include "modules/ui_common/ui_common_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 #include <functional>
 

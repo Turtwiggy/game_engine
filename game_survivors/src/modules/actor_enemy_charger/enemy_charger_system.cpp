@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "enemy_charger_system.hpp"
 
 #include "enemy_charger_components.hpp"
@@ -10,8 +12,6 @@
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
 
 namespace game2d {
 

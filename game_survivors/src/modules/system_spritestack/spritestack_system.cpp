@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "spritestack_system.hpp"
 
 #include "engine/lifecycle/components.hpp"
@@ -12,9 +14,6 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/core_camera/orthographic.hpp"
-
-#include <entt/entt.hpp>
-#include <imgui.h>
 
 namespace game2d {
 

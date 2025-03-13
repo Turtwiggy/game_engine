@@ -55,6 +55,7 @@
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_pause/pause_helpers.hpp"
 #include "modules/system_physics_apply_force/physics_apply_force_system.hpp"
+#include "modules/system_player_out_of_bounds/player_out_of_bounds_system.hpp"
 #include "modules/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/system.hpp"
 #include "modules/system_screenshake/system.hpp"
@@ -290,6 +291,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_alpha_based_on_lifecycle_system(r);
     update_sprint_system(r, dt);
     update_gameover_system(r);
+    update_player_out_of_bounds_system(r);
 
     update_death_throes_system(r, dt);
     update_enemy_charger_system(r);

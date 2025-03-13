@@ -2,7 +2,7 @@
 
 #include "event_upgrade_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

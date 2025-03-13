@@ -2,7 +2,7 @@
 
 #include "modules/system_traits/trait_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

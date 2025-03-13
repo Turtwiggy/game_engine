@@ -2,7 +2,7 @@
 
 #include "engine/app/application.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

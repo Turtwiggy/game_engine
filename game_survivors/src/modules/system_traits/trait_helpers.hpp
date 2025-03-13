@@ -2,7 +2,7 @@
 
 #include "trait_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 #include <unordered_set>
 
