@@ -4,7 +4,6 @@
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
 
-#include <format>
 #include <fstream>
 #include <optional>
 #include <sstream>

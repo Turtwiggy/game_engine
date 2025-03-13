@@ -195,6 +195,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   // note: could be in a separate file
   ui_mute_sound_icon(r);
+  ui_gold(r);
 };
 
 } // namespace game2d

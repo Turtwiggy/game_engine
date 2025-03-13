@@ -18,8 +18,8 @@ handle_player_enter_gold(entt::registry& r, const OnCollisionEnter& evt)
   const auto& evts_c = get_first_component<SINGLE_Events>(r);
   auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
 
-  gold_c.amount += 5;
-  SDL_Log("You collided with gold.. new gold: %i", gold_c.amount);
+  gold_c.temp_amount += 5;
+  SDL_Log("You collided with gold.. new gold: %i", gold_c.temp_amount);
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   dead.dead.emplace(item_e);

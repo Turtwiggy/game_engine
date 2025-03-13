@@ -33,6 +33,7 @@
 #include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
+#include "modules/system_item_gold/gold_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/components.hpp"
@@ -51,6 +52,7 @@
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+
 
 namespace game2d {
 
@@ -440,6 +442,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);
+
+    // Reset temporary gold
+    auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
+    gold_c.temp_amount = 0;
 
     std::vector<HullChoice> hull_keys = {
       HullChoice{ .player_idx = 0, .player_boat = "Dinghy" },

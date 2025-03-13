@@ -4,9 +4,11 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "engine/io/settings.hpp"
 #include "modules/scene/scene_helpers.hpp"
 
 namespace game2d {
+using namespace std::literals;
 
 void
 update_scene_splashscreen_move_to_next_system(entt::registry& r, const float dt)
@@ -18,9 +20,15 @@ update_scene_splashscreen_move_to_next_system(entt::registry& r, const float dt)
   if (audio_e == entt::null)
     return;
 
-  const auto& audio = get_first_component<SINGLE_AudioComponent>(r);
+  auto& audio = get_first_component<SINGLE_AudioComponent>(r);
   if (!audio.loaded)
     return; // wait for sounds to be loaded
+
+  // set audio state from saved disk
+  const auto disk_preference_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
+  const bool mute = disk_preference_mute;
+  audio.mute_all = mute;
+  audio.mute_sfx = mute;
 
   // After X seconds, move to menu,
   // or when audio is loaded and a key is mashed

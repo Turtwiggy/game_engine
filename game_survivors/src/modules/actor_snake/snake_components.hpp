@@ -10,6 +10,11 @@ struct BossComponent
   bool placeholder = true;
 };
 
+struct SnakeSegment
+{
+  bool placeholder = true;
+};
+
 struct SnakeData
 {
   entt::entity target_e_0 = entt::null;

@@ -140,19 +140,19 @@ update_autofire_system(entt::registry& r, const float dt)
       const float rad_sqr = rad * rad;
       const bool coll = d2 <= rad_sqr;
 
+#if defined(_DEBUG)
       if (is_enemy) {
-        Sprite s;
-        s.sprite = "EMPTY";
-        s.pos = meters_to_pixels(enemy_pos_in_meters);
-        s.size = { 8, 8 };
-
-        if (coll)
-          s.col = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
-        else
-          s.col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
-
-        draw_sprite(r, s);
+        // Sprite s;
+        // s.sprite = "EMPTY";
+        // s.pos = meters_to_pixels(enemy_pos_in_meters);
+        // s.size = { 8, 8 };
+        // if (coll)
+        //   s.col = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
+        // else
+        //   s.col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
+        // draw_sprite(r, s);
       }
+#endif
 
       return is_enemy && coll;
     };

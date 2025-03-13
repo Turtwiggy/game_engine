@@ -11,7 +11,6 @@
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
-#include "modules/system_spritestack/spritestack_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 
 namespace game2d {

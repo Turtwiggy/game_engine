@@ -15,6 +15,7 @@
 #include "modules/actor_enemy_grower/enemy_grower_system.hpp"
 #include "modules/actor_player/actor_player_system.hpp"
 #include "modules/actor_snake/snake_helpers.hpp"
+#include "modules/actor_snake_projectiles/actor_snake_projectiles_system.hpp"
 #include "modules/actor_swarmlord/enemy_swarmlord_system.hpp"
 #include "modules/combat/combat_helpers.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
@@ -43,6 +44,7 @@
 #include "modules/system_create_item/create_item_system.hpp"
 #include "modules/system_death_throes/death_throes_system.hpp"
 #include "modules/system_enemy_projectile/enemy_projectile_system.hpp"
+#include "modules/system_gameover/gameover_system.hpp"
 #include "modules/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
@@ -77,6 +79,7 @@
 #include "modules/ui_debug_upgrades/ui_debug_upgrades_system.hpp"
 #include "modules/ui_debug_weapons/ui_debug_weapons_system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
+#include "modules/ui_gameover/ui_gameover_system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_imgui_colours/ui_imgui_colours.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
@@ -286,6 +289,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_spawner_system(r, dt);
     update_alpha_based_on_lifecycle_system(r);
     update_sprint_system(r, dt);
+    update_gameover_system(r);
 
     update_death_throes_system(r, dt);
     update_enemy_charger_system(r);
@@ -293,6 +297,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_enemy_projectile_system(r);
     update_enemy_swarmlord_system(r);
     update_snake(r, mouse_pos, dt);
+    update_actor_snake_projectiles_system(r);
 
     update_upgrade_hp_max_system(r);
     update_upgrade_hp_regen_system(r, dt);
@@ -330,7 +335,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_upgrade_system(r);
     update_ui_survive_weapon_system(r);
-    // update_ui_gameover_system(r);
+    update_ui_gameover_system(r);
   }
 
 #if defined(_DEBUG)

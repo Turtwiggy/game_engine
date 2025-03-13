@@ -13,6 +13,7 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
+#include "modules/system_cooldown/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "snake_components.hpp"
 
@@ -31,6 +32,13 @@ enum class SectionType
   BODY,
   TAIL,
 };
+
+static float circle_speed = 0.2f;
+static float snake_speed = 90.0f;
+static float circle_radius = 450.0f;
+const float time_between_bullets = 2.0f;
+const float head_hp = 1000;
+const float segment_hp = 500;
 
 auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   auto& snake_c = r.get<SnakeData>(dead_e);
@@ -65,10 +73,14 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
   entt::entity segment_e = entt::null;
-  if (type == SectionType::HEAD)
+  if (type == SectionType::HEAD) {
     segment_e = spawn(r, "actor_snake_head");
-  if (type == SectionType::BODY)
+  }
+  if (type == SectionType::BODY) {
     segment_e = spawn(r, "actor_snake_body");
+    r.emplace<SnakeSegment>(segment_e);
+    r.emplace<CooldownComponent>(segment_e, CooldownComponent{ .time_max = time_between_bullets });
+  }
   if (type == SectionType::TAIL)
     segment_e = spawn(r, "actor_snake_tail");
 
@@ -109,6 +121,8 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
   //
   // Connect with Physics Joints
   //
+
+  const float hp = type == SectionType::HEAD ? head_hp : segment_hp;
 
   if (type == SectionType::HEAD) {
     // the head follows a dynamic target
@@ -152,7 +166,7 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
 
   // Add HP
   auto fixture_e = get_fixture_by_tag(r, segment_e, "fixture_core");
-  r.emplace<HealthComponent>(fixture_e, HealthComponent{ .max_hp = 100.0f, .hp = 100.0f });
+  r.emplace<HealthComponent>(fixture_e, HealthComponent{ .max_hp = hp, .hp = hp });
   r.emplace<EnemyComponent>(fixture_e); // duplicate enemy component on fixture?
   r.emplace<EnemyComponent>(segment_e);
   r.emplace<TeamComponent>(segment_e, TeamComponent{ AvailableTeams::enemy });
@@ -191,10 +205,6 @@ update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
 {
   GET_FIRST_OR_RETURN(SnakeData, r, snake_e, snake_c);
 
-  static float circle_speed = 0.2f;
-  static float snake_speed = 90.0f;
-  static float circle_radius = 450.0f;
-
 #if defined(_DEBUG)
   imgui_draw_float("circle_speed", circle_speed);
   imgui_draw_float("snake_speed", snake_speed);
@@ -220,10 +230,17 @@ update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
   const auto pos1 = engine::ray_at({ .origin = { 0, 0, 0 }, .dir = { dir1.x, dir1.y, 0.0f } }, circle_radius);
   set_position(r, snake_c.target_e_1, { pos1.x, pos1.y });
 
-  // note: this is bad. just for debugging.
+  // adjust the snake speed
   auto view = r.view<ApplyForceToDynamicTarget, PhysicsDynamicTarget, BossComponent>();
-  for (const auto& [e, force_c, target_c, boss_c] : view.each())
-    force_c.speed = snake_speed;
+  auto segments = r.view<SnakeSegment>();
+  for (const auto& [e, force_c, target_c, boss_c] : view.each()) {
+
+    // -2 because head and tail curently dont have SnakeSegment attached
+    float percent = (int)segments.size() / (float)(snake_c.snake_segments - 2);
+
+    // slow the snake down as the segments die
+    force_c.speed = percent * snake_speed;
+  }
 
   // swap targets every X seconds
   snake_c.snake_timer += dt;

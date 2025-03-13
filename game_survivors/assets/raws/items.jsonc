@@ -76,6 +76,15 @@
       "phys_body": { "is_bullet": true, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_bullet", "type": "box", "is_sensor": true } ]
     },
+    {
+      "name": "bullet_snake",
+      "display_name": "Bullet (Snake)",
+      "display_desc": "Bullet that Snake shoots",
+      "renderable": { "sprite": "CIRCLE", "colour": "white" },
+      "combat": { "damage": 1, "range": 2, "type": "unknown" },
+      "phys_body": { "is_bullet": true, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_bullet", "type": "circle", "is_sensor": true } ]
+    },
 
     {
       "name": "actor_player",
