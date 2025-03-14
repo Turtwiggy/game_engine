@@ -18,7 +18,7 @@ struct BulletDef
   int pierce = 1;
   float speed = 1.0f; // m/s
   int lifecycle = 3 * 1000;
-  int knockback_force = 1;
+  float knockback_force = 1.0f;
   int bounces = 0;
   float crit_chance = 0.0f;   // percent
   float crit_damage = 100.0f; // percent of your base damage

@@ -69,6 +69,7 @@
 #include "modules/system_upgrade_hp_max/upgrade_hp_max_system.hpp"
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
+#include "modules/system_weapon_sea_turret/weapon_sea_turret_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_blur/ui_blur_system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -102,6 +103,7 @@
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -278,7 +280,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (state.state != GameState::PAUSED && !pause) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
-    update_autofire_system(r, dt); // prefer after hardpoints_system
     // update_manualfire_system(r, dt);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
@@ -291,7 +292,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_alpha_based_on_lifecycle_system(r);
     update_sprint_system(r, dt);
     update_gameover_system(r);
-    update_player_out_of_bounds_system(r);
+    update_player_out_of_bounds_system(r, dt);
+
+    update_autofire_system(r, dt); // prefer after hardpoints_system
+    update_weapon_sea_turret_system(r, dt);
 
     update_death_throes_system(r, dt);
     update_enemy_charger_system(r);

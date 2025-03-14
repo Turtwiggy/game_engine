@@ -6,7 +6,9 @@
 
 namespace game2d {
 
+/*
 void
 equip_weapon(entt::registry& r, entt::entity e, const WeaponData& wep);
+*/
 
 } // namespace game2d

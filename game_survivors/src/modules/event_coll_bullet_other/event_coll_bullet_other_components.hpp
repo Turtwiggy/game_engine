@@ -45,7 +45,7 @@ struct BulletSpeed
 
 struct BulletKnockback
 {
-  int knockback_force = 0;
+  float knockback_force = 0.0f;
 };
 
 struct WeaponFireRate
@@ -53,7 +53,7 @@ struct WeaponFireRate
   float base_firerate = 2; // shots per second
 
   float seconds_between_shots_max = 0.5f;  // 1.0/firerate
-  float seconds_between_shots_left = 0.5f; // the cooldown
+  float seconds_between_shots_left = 0.0f; // the cooldown
 };
 
 struct WeaponReloadRate
@@ -71,7 +71,7 @@ struct WeaponProjectiles
 // Distance at which the weapon can fire.
 struct WeaponRange
 {
-  int meters = 3;
+  float meters = 3.0f;
 };
 
 // Given you're firing 1+ bullets,

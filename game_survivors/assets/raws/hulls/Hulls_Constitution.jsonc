@@ -1,5 +1,6 @@
 {
     // 0,0 top left
+    "s_key": "constitution",
     "s_name" : "Constitution",
     "s_description" : "Old Ironside!",
     "n_height_px" : 188,

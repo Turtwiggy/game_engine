@@ -25,7 +25,7 @@
 			"namespace game2d {",
 			"",
 			"void",
-			"update_X_system(entt::registry& r);",
+			"update_${1:X}_system(entt::registry& r);",
 			"",
 			"} // namespace game2d"
 		]

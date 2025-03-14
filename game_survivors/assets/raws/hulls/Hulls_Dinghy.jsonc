@@ -1,5 +1,6 @@
 {
     // 0,0 top left
+    "s_key": "dinghy",
     "s_name" : "Dinghy",
     "s_description" : "It floats",
     "n_height_px" : 18,

@@ -52,11 +52,16 @@
     // Header: actors
     //
     {
-      "name": "boat_default_weapon",
+      "name": "weapon_boat_default",
       "display_name": "default_weapon",
       "display_desc": "More gun is better gun.",
-      "renderable": { "sprite": "boat_weapon_1", "colour": "white" },
-      "combat": { "damage": 3, "range": 2, "type": "cone" }
+      "renderable": { "sprite": "boat_weapon_1", "colour": "white" }
+    },
+    {
+      "name": "weapon_sea_turret",
+      "display_name": "Sea Turret",
+      "display_desc": "More gun is better gun.",
+      "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
       "name": "bullet_default",

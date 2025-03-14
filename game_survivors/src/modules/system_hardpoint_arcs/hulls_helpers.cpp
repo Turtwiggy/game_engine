@@ -72,14 +72,4 @@ load_hulls(std::string directory)
   return hulls;
 };
 
-std::optional<ShipHullData>
-get_hull(const SINGLE_Hulls& hulls, const std::string& hull_name)
-{
-  for (const auto& h : hulls.hulls) {
-    if (h.name == hull_name)
-      return h;
-  }
-  return std::nullopt;
-};
-
 } // namespace game2d

@@ -187,7 +187,7 @@ update_hardpoint_arcs_system(entt::registry& r)
     // float radius = (50 + 2) / zoom;
     float radius = range_radius_p;
     auto arc_col = r.get<DefaultColour>(p).colour;
-    arc_col.a = (int)(0.5f * 255);
+    arc_col.a = (int)(0.3f * 255);
     const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
     float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
     DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);

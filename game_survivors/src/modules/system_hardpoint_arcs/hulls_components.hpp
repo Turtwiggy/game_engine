@@ -37,6 +37,7 @@ struct HardpointData
 
 struct ShipHullData
 {
+  std::string key;
   std::string name;
   std::string desc;
   int height = 1;
@@ -46,6 +47,7 @@ struct ShipHullData
 
   friend void to_json(nlohmann ::json& j, const ShipHullData& val)
   {
+    j["s_key"] = val.key;
     j["s_name"] = val.name;
     j["s_description"] = val.desc;
     j["n_height_px"] = val.height;
@@ -55,6 +57,7 @@ struct ShipHullData
   }
   friend void from_json(const nlohmann ::json& j, ShipHullData& val)
   {
+    j.at("s_key").get_to(val.key);
     j.at("s_name").get_to(val.name);
     j.at("s_description").get_to(val.desc);
     j.at("n_height_px").get_to(val.height);

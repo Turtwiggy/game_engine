@@ -1,5 +1,6 @@
 {
     // 0,0 top left
+    "s_key": "rhib",
     "s_name" : "RHIB",
     "s_description" : "A RHIB for your pleasure, seamen; rigid and fully inflated.",
     "n_height_px" : 30,

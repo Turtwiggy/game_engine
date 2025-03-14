@@ -146,7 +146,12 @@ main(int argc, char* argv[])
   // app.fps_limit = 25;
 #endif
 
-  app.window = GameWindow(name, DisplayMode::windowed, app.vsync);
+#if defined(_DEBUG)
+  app.window = GameWindow(name, DisplayMode::windowed_borderless, app.vsync);
+#else
+  app.window = GameWindow(name, DisplayMode::fullscreen_borderless, app.vsync);
+#endif
+
   app.imgui.initialize(app.window);
 
   game2d::init(app, game);

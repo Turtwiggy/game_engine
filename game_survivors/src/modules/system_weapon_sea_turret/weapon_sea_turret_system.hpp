@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_player_out_of_bounds_system(entt::registry& r, const float dt);
+update_weapon_sea_turret_system(entt::registry& r, const float dt);
 
 } // namespace game2d

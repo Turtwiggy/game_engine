@@ -16,25 +16,22 @@
 #include "game_state.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_snake/snake_helpers.hpp"
-#include "modules/combat/combat_helpers.hpp"
+#include "modules/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core_camera/components.hpp"
 #include "modules/core_camera/orthographic.hpp"
 #include "modules/core_colour/components.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
-#include "modules/core_renderer/helpers.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
-#include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
-#include "modules/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
+#include "modules/system_cooldown/components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
-#include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/system_player_out_of_bounds/player_out_of_bounds_components.hpp"
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/components.hpp"
 #include "modules/system_screenshake/components.hpp"
@@ -45,14 +42,13 @@
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
+#include "modules/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui_debug_weapons/ui_debug_weapons_helpers.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
-
 
 namespace game2d {
 
@@ -65,42 +61,6 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 
   set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
   set_position(r, wep_e, get_position(r, e));
-};
-
-entt::entity
-spawn_weapon(entt::registry& r, const HardpointData& data)
-{
-  glm::vec2 weapon_size = { 3, 6 };
-
-  const auto wep_e = spawn(r, "boat_default_weapon");
-  give_life(r, wep_e, { 0, 0 }, weapon_size);
-  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
-  r.emplace<HardpointComponent>(wep_e, HardpointComponent{ data });
-
-  // weapon stats
-  float firerate = 0.5;
-  r.emplace<WeaponComponent>(wep_e);
-
-  // todo: load weapons from config
-  r.emplace<WeaponSpread>(wep_e, WeaponSpread{ 30 });
-  r.emplace<WeaponProjectiles>(wep_e, WeaponProjectiles{ 1 });
-  r.emplace<WeaponClipSize>(wep_e);
-  r.emplace<WeaponFireRate>(wep_e);
-  r.emplace<WeaponReloadRate>(wep_e);
-  r.emplace<WeaponRange>(wep_e);
-
-  // bullets that the weapon fires
-  r.emplace<BulletDamage>(wep_e, 10);
-  r.emplace<BulletPierce>(wep_e, 1);
-  r.emplace<BulletSize>(wep_e, BulletSize{ { 5, 5 } });
-  r.emplace<BulletSpeed>(wep_e, 1.0f);
-  r.emplace<BulletKnockback>(wep_e); // no knockback by default
-  r.emplace<BulletBounce>(wep_e);    // 0 bounce by default
-  r.emplace<BulletCrit>(wep_e);      // no crit by default
-  r.emplace<BulletLifesteal>(wep_e); // no lifesteal by default
-
-  set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-  return wep_e;
 };
 
 bool
@@ -185,10 +145,19 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
 };
 
 entt::entity
-spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key)
+spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key, std::string weapon_key)
 {
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
-  ShipHullData hull = get_hull(hulls_c, hull_key).value();
+  const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+
+  auto get_key = []<typename T>(const std::vector<T>& data, const std::string& key) -> std::optional<T> {
+    const auto it = std::find_if(data.begin(), data.end(), [&key](const T& item) { return item.key == key; });
+    if (it == data.end())
+      return std::nullopt;
+    return (*it);
+  };
+  const ShipHullData hull = get_key(hulls_c.hulls, hull_key).value();
+  const WeaponData weapon_data = get_key(weps_c.weapons, weapon_key).value();
   const auto size = glm::vec2{ hull.width, hull.height };
 
   std::vector<entt::entity> weapons;
@@ -198,9 +167,21 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
     // hardpoint_data.arc = 360;
     // hardpoint_data.arc_mid = 0;
-    auto weapon_e = spawn_weapon(r, hardpoint_data);
-    r.emplace<AutofireComponent>(weapon_e);
+    auto weapon_e = spawn_weapon(r, weapon_data, weapon_key);
+    r.emplace<HardpointComponent>(weapon_e, HardpointComponent{ hardpoint_data });
+
+    // add weapon data, but could add a weapondatakey isntead
+    r.emplace<WeaponData>(weapon_e, weapon_data);
+
+    if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE)
+      r.emplace<AutofireComponent>(weapon_e);
+    if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
+      r.emplace<WeaponSeaTurret>(weapon_e);
+
     weapons.push_back(weapon_e);
+
+    if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
+      break; // only spawn 1 wep
   }
 
   // Spawn a manual weapon
@@ -231,6 +212,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<ActorStaminaComponent>(e);
   r.emplace<RotateToVelocityComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
+  r.emplace<OutOfBoundsTimer>(e);
 
   // Add an xp zone with the config-defined size
   {
@@ -244,7 +226,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   // r.emplace<SpriteOutline>(e);
 
   // add trail to the butt of the boat
-  if (hull_key == "Dinghy") {
+  if (hull_key == "dinghy") {
     const auto inset = 2.0f;
     {
       // const auto tl_offset = glm::vec2{ 0, size/2 };
@@ -280,15 +262,15 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   else {
     SDL_Log("WARNING: not using spritestack model -- not impl");
     r.emplace<SpriteComponent>(e);
-    if (hull_key == "Dinghy")
+    if (hull_key == "dinghy")
       set_sprite(r, e, "hull_dinghy");
-    if (hull_key == "RHIB")
+    if (hull_key == "rhib")
       set_sprite(r, e, "hull_rhib");
-    if (hull_key == "Constitution")
+    if (hull_key == "constitution")
       set_sprite(r, e, "hull_constitution");
-    if (hull_key == "PBR")
+    if (hull_key == "pbr")
       set_sprite(r, e, "hull_pbr");
-    if (hull_key == "Trimaran")
+    if (hull_key == "trimaran")
       set_sprite(r, e, "hull_trimaran");
   };
 
@@ -448,10 +430,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     gold_c.temp_amount = 0;
 
     std::vector<HullChoice> hull_keys = {
-      HullChoice{ .player_idx = 0, .player_boat = "Dinghy" },
-      HullChoice{ .player_idx = 1, .player_boat = "Dinghy" },
-      HullChoice{ .player_idx = 2, .player_boat = "Dinghy" },
-      HullChoice{ .player_idx = 3, .player_boat = "Dinghy" },
+      HullChoice{ .player_idx = 0, .player_boat = "dinghy" },
+      HullChoice{ .player_idx = 1, .player_boat = "dinghy" },
+      HullChoice{ .player_idx = 2, .player_boat = "dinghy" },
+      HullChoice{ .player_idx = 3, .player_boat = "dinghy" },
     };
 
     auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
@@ -467,33 +449,21 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // spawn system that lets players join halfway through
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
-      auto handle = controller_ui.handles[i];
+      const auto handle = controller_ui.handles[i];
       if (handle == 0)
         continue;
 
-      auto boat_str = hull_keys[i].player_boat;
+      const auto boat_str = hull_keys[i].player_boat;
       if (boat_str == "")
-        throw std::runtime_error("boat not set");
+        throw std::runtime_error("boat_str not set");
 
-      auto weapon_str = hull_keys[i].player_gun;
+      const auto weapon_str = hull_keys[i].player_gun;
+      if (weapon_str == "")
+        throw std::runtime_error("weapon_str not set");
+
       SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
 
-      const auto p = spawn_player(r, "actor_player", { 0, 0 }, i, boat_str);
-
-      // HACK: equip specific weapon
-      bool equipped = false;
-      const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
-      for (const auto& wep : weps_c.weapons) {
-        if (wep.name != weapon_str)
-          continue;
-        SDL_Log("equipping weapon: %s", wep.name.c_str());
-        equip_weapon(r, p, wep);
-        equipped = true;
-      }
-      if (!equipped) {
-        auto err_str = std::format("could not equip weapon: {}", weapon_str);
-        throw std::runtime_error(err_str);
-      }
+      const auto p = spawn_player(r, "actor_player", { 0, 0 }, i, boat_str, weapon_str);
 
       // assign handle
       r.get<SteamControllerComponent>(p).handle = handle;
@@ -513,7 +483,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::procedural_snake) {
     create_empty<CameraFreeMove>(r);
 
-    const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, "Dinghy");
+    const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, "Dinghy", "");
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {

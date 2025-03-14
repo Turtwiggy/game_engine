@@ -2,8 +2,10 @@
   "weapons": [
   
     {
+      "key": "weapon_boat_default",
       "name": "Deck Cannon", // heavy pistol
       "desc": "A compact cannon that fires a single heavy round.",
+      "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 6   , // shots before reload
         "WEAPON_PROJECTILES": 1 ,
@@ -19,8 +21,10 @@
     },
 
     {
+      "key": "weapon_boat_default",
       "name": "Grapeshot Cannon", // shotgun
       "desc": "A short-range cannon that fires a spread of projectiles.",
+      "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 2    , // shots before reload
         "WEAPON_PROJECTILES": 7  ,
@@ -35,8 +39,10 @@
     },
 
     {
+      "key": "weapon_boat_default",
       "name": "Swivel Gun",
       "desc": "A lightweight cannon that fires smaller rounds at a high rate.",
+      "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 10   , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
@@ -44,6 +50,23 @@
         "WEAPON_RELOAD": 1       , // seconds
         "WEAPON_RANGE": 2.5      , // meters
         "BULLET_DAMAGE": 4      ,
+        "BULLET_KNOCKBACK": 0.3  , // force
+        "BULLET_PIERCE": 3       ,
+        "BULLET_SIZE": 2        
+      }
+    },
+
+    {
+      "key": "weapon_sea_turret",
+      "name": "Sea-Turret-Deployer",
+      "desc": "Deploy Turrets as you move.",
+      "weapon_type": "DEPLOY",
+      "data": {
+        "WEAPON_CLIP_SIZE": 1    , // shots before reload
+        "WEAPON_FIRERATE": 0.2   , // per second
+        "WEAPON_RELOAD": 3       , // seconds
+        "WEAPON_RANGE": 4.0      , // meters
+        "BULLET_DAMAGE": 8       ,
         "BULLET_KNOCKBACK": 0.3  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 2        

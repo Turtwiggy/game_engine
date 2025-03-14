@@ -1,25 +1,19 @@
+#include "pch.hpp"
+
 #include "scene_select_system.hpp"
 
+#include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
-#include "engine/sprites/helpers.hpp"
-#include "modules/combat/combat_helpers.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
-#include "modules/core_renderer/helpers.hpp"
+#include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
-#include "scene_select_components.hpp"
-
-#include "engine/entt/helpers.hpp"
-#include "modules/core_renderer/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "scene_select_components.hpp"
 
-#include <SDL_scancode.h>
-#include <algorithm>
-#include <cstdint>
-#include <imgui.h>
 
 namespace game2d {
 
@@ -180,8 +174,8 @@ draw_player_select_box(entt::registry& r,
       const auto& weapon = weapons[idx];
       label += ": " + weapon.name;
 
-      // update state?
-      game_state_c.player_gun = weapon.name;
+      // update state? note: .key not .name
+      game_state_c.player_gun = weapon.key;
     }
 
     // append hull name to label
@@ -196,8 +190,8 @@ draw_player_select_box(entt::registry& r,
       const auto& hull = hulls[idx];
       label += ": " + hull.name;
 
-      // update state?
-      game_state_c.player_boat = hull.name;
+      // update state? note: .key not .name
+      game_state_c.player_boat = hull.key;
     }
 
     last_xy.y += text_size.y;

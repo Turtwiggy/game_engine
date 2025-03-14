@@ -57,7 +57,6 @@ public:
     b2Fixture* fixtureB = contact->GetFixtureB();
 
     if (fixtureA->GetBody() == fixtureB->GetBody()) {
-      int k = 1;
       return;
     }
 

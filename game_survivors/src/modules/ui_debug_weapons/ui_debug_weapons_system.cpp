@@ -29,11 +29,10 @@ update_ui_debug_weapons_system(entt::registry& r)
     // for (const auto& [key, val] : wep.data)
     //   ImGui::Text("%s,%f", key.c_str(), val);
 
-    const std::string equip_label = "Equip##" + wep.name;
+    const std::string equip_label = "Equip##" + wep.key;
     if (ImGui::Button(equip_label.c_str())) {
       // update your weapon stats...
-      SDL_Log("Equipping... %s", wep.name.c_str());
-      // equip_weapon(r, wep);
+      SDL_Log("Equipping... %s", wep.key.c_str());
     }
   }
 

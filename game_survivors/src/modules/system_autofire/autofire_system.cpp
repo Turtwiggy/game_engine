@@ -80,7 +80,6 @@ update_autofire_system(entt::registry& r, const float dt)
   const auto view = r.view<TransformComponent,
                            const WeaponComponent,
                            const HasParentComponent,
-                           const HardpointComponent,
                            AutofireComponent,
                            WeaponClipSize,
                            WeaponFireRate,
@@ -91,7 +90,6 @@ update_autofire_system(entt::registry& r, const float dt)
                     wep_t,
                     wep_c,
                     parent_c,
-                    hardpoint_c,
                     autofire_c,
                     weapon_clip_size_c,
                     weapon_fire_rate_c,
@@ -161,9 +159,13 @@ update_autofire_system(entt::registry& r, const float dt)
     if (enemies_map.size() == 0)
       continue;
 
-    // Filter by angle that this weapon can shoot
     std::vector<std::pair<int, entt::entity>> enemies = { enemies_map.begin(), enemies_map.end() };
-    filter_enemies_by_shoot_angle(r, enemies, hardpoint_c, wep_pos);
+
+    // Filter by angle that this weapon can shoot
+    if (auto* hardpoint_c = r.try_get<HardpointComponent>(wep_e))
+      filter_enemies_by_shoot_angle(r, enemies, *hardpoint_c, wep_pos);
+
+    // Check if enemies after all filter conditions
     if (enemies.size() == 0)
       continue;
 
@@ -197,12 +199,12 @@ update_autofire_system(entt::registry& r, const float dt)
     const auto crosshair_pos = engine::ray_at(ray, radius);
 
     {
-      Sprite adj_tgt_s;
-      adj_tgt_s.pos = crosshair_pos;
-      adj_tgt_s.sprite = "CROSSHAIR_2";
-      adj_tgt_s.size = { 16, 16 };
-      adj_tgt_s.col = parent_col;
-      draw_sprite(r, adj_tgt_s);
+      // Sprite adj_tgt_s;
+      // adj_tgt_s.pos = crosshair_pos;
+      // adj_tgt_s.sprite = "CROSSHAIR_2";
+      // adj_tgt_s.size = { 16, 16 };
+      // adj_tgt_s.col = parent_col;
+      // draw_sprite(r, adj_tgt_s);
     }
 
     // update the crosshair position
@@ -226,8 +228,10 @@ update_autofire_system(entt::registry& r, const float dt)
     wep_t.rotation_radians.z = shoot_angle;
 
     // you've reloaded
-    if (weapon_clip_size_c.bullets_cur <= 0)
+    if (weapon_clip_size_c.bullets_cur <= 0) {
       weapon_clip_size_c.bullets_cur = wep_def.bullets_max;
+      weapon_fire_rate_c.seconds_between_shots_left = 0.0f;
+    }
 
     const BulletDef bul_def = get_bullet_def(r, p, wep_e);
 

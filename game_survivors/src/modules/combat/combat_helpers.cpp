@@ -28,7 +28,13 @@ load_weapons(std::string filepath)
 
   const std::string string_without_comments = output.str();
   nlohmann::json root = nlohmann::json::parse(string_without_comments);
-  return root.get<SINGLE_Weapons>();
+
+  // validate weapon type
+  auto weapons_c = root.get<SINGLE_Weapons>();
+  for (auto& weapon : weapons_c.weapons)
+    weapon.type_as_enum = magic_enum::enum_cast<WEAPON_TYPE>(weapon.weapon_type).value();
+
+  return weapons_c;
 };
 
 } // namespace game2d
