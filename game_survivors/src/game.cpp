@@ -104,7 +104,6 @@
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-
 namespace game2d {
 using namespace std::literals;
 
@@ -167,7 +166,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
   create_persistent<SINGLE_Upgrades>(r, load_upgrades("assets/raws/upgrades.jsonc"));
   create_persistent<SINGLE_Weapons>(r, load_weapons("assets/raws/weapons.jsonc"));
-  create_persistent<SINGLE_Spawners>(r, load_spawns("assets/raws/spawns.jsonc"));
+  create_persistent<SINGLE_OnDiskSpawners>(r, load_spawns("assets/raws/spawns.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
 
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);

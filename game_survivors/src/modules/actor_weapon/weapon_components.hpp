@@ -8,7 +8,10 @@ namespace game2d {
 enum class WEAPON_TYPE
 {
   PROJECTILE,
-  DEPLOY,
+  DEPLOY, // e.g. drop turrets, grenades
+
+  // AREA, // e.g. flamethrower
+  // DRONE,
 };
 
 struct WeaponData

@@ -46,7 +46,7 @@ const std::vector<UpgradeableStat> traits_to_level_up = {
     UpgradeableStat::ACTOR_HEALTH_MAX,
     UpgradeableStat::ACTOR_HEALTH_REGEN,
     UpgradeableStat::ACTOR_SPEED,
-    UpgradeableStat::ACTOR_STAMINA,
+    // UpgradeableStat::ACTOR_STAMINA,
     UpgradeableStat::ACTOR_XP_ZONE_SIZE,
   
     // UpgradeableStat::BULLET_BOUNCE,
@@ -56,7 +56,7 @@ const std::vector<UpgradeableStat> traits_to_level_up = {
     UpgradeableStat::BULLET_KNOCKBACK,
     UpgradeableStat::BULLET_LIFESTEAL,   // %hp you recover when a bullet hits
     UpgradeableStat::BULLET_PIERCE,
-    UpgradeableStat::BULLET_SIZE,
+    // UpgradeableStat::BULLET_SIZE,
     UpgradeableStat::BULLET_SPEED,
   
     UpgradeableStat::WEAPON_CLIP_SIZE,

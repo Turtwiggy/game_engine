@@ -5,21 +5,19 @@
 #include <entt/fwd.hpp>
 #include <glm/fwd.hpp>
 
-#include <optional>
-
 namespace game2d {
 
 int
 min_to_sec(int min);
 
-SINGLE_Spawners
+SINGLE_OnDiskSpawners
 load_spawns(std::string directory);
 
 void
 init_spawners(entt::registry& r);
 
 std::optional<int>
-get_wave_index_from_time(const EnemySpawnData& data, int seconds_from_start);
+get_wave_index_from_time(const EnemySpawnsData& data, int seconds_from_start);
 
 entt::entity
 get_random_player_target(entt::registry& r);

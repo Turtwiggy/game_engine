@@ -29,7 +29,7 @@ update_gameover_system(entt::registry& r)
 
     ImGui::Text("%i %i", cu_minutes, cu_seconds);
 
-    if (cu_minutes >= 3) {
+    if (cu_minutes >= 9 && cu_seconds >= 59) {
       // you win!
       GameOverComponent gameover_c;
       gameover_c.win_condition = true;

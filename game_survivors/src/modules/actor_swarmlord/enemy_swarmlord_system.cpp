@@ -18,7 +18,8 @@ update_enemy_swarmlord_system(entt::registry& r)
     reset_cooldown(cooldown_c);
 
     // spawn some jellyfish innit
-    auto minion_e = spawn_enemy(r, "actor_enemy_swarmlord_minion", 10);
+    const int minion_hp = 10;
+    auto minion_e = spawn_enemy(r, "actor_enemy_swarmlord_minion", minion_hp);
     set_position(r, minion_e, get_position(r, e));
   }
 };

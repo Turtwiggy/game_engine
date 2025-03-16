@@ -24,7 +24,7 @@ spawn_weapon(entt::registry& r, const WeaponData& w_data, std::string key)
   // weapon stats
   r.emplace<WeaponComponent>(wep_e);
 
-  auto get_or_default = [&](std::string key, float def) -> float {
+  const auto get_or_default = [&](std::string key, float def) -> float {
     if (w_data.data.contains(key))
       return w_data.data.at(key);
     return def;

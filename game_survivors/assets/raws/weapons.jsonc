@@ -2,7 +2,7 @@
   "weapons": [
   
     {
-      "key": "weapon_boat_default",
+      "key": "weapon_deck_cannon",
       "name": "Deck Cannon", // heavy pistol
       "desc": "A compact cannon that fires a single heavy round.",
       "weapon_type": "PROJECTILE",
@@ -21,7 +21,7 @@
     },
 
     {
-      "key": "weapon_boat_default",
+      "key": "weapon_grapeshot_cannon",
       "name": "Grapeshot Cannon", // shotgun
       "desc": "A short-range cannon that fires a spread of projectiles.",
       "weapon_type": "PROJECTILE",
@@ -39,7 +39,7 @@
     },
 
     {
-      "key": "weapon_boat_default",
+      "key": "weapon_swivel_cannon",
       "name": "Swivel Gun",
       "desc": "A lightweight cannon that fires smaller rounds at a high rate.",
       "weapon_type": "PROJECTILE",
@@ -49,7 +49,7 @@
         "WEAPON_FIRERATE": 10.0  , // per second
         "WEAPON_RELOAD": 1       , // seconds
         "WEAPON_RANGE": 2.5      , // meters
-        "BULLET_DAMAGE": 4      ,
+        "BULLET_DAMAGE": 4       ,
         "BULLET_KNOCKBACK": 0.3  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 2        
@@ -69,9 +69,28 @@
         "BULLET_DAMAGE": 8       ,
         "BULLET_KNOCKBACK": 0.3  , // force
         "BULLET_PIERCE": 3       ,
-        "BULLET_SIZE": 2        
+        "BULLET_SIZE": 2         
+        // "LIFETIME": 10             // seconds
       }
     }
+
+    // {
+    //   "key": "weapon_cryo_drone",
+    //   "name": "Cryo Drone",
+    //   "desc": "Auto-Target Drone. Freeze!",
+    //   "weapon_type": "DRONE",
+    //   "data": {
+    //     "WEAPON_CLIP_SIZE": 3    , // drones
+    //     "WEAPON_FIRERATE": 6     , // drones to fire/s
+    //     "WEAPON_RELOAD": 4       , // seconds
+    //     "WEAPON_RANGE": 4.0       
+        
+        // "COLLISION_DAMAGE": 20   ,
+        // "LIFETIME": 10           , // seconds
+        // "ON_HIT": ["FREEZE"]     ,
+        // "ON_HIT_ADD_STACKS": 1   
+    //   }
+    // }
 
   // end array
   ] 

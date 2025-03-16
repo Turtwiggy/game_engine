@@ -35,11 +35,6 @@ enum class UpgradeableStat
   WEAPON_RELOAD,
   WEAPON_RANGE,
 
-  // if you have the missile trait,
-  // peridically summon in missiles.
-  // MISSILE_RADIUS,
-  // MISSILE_DAMAGE,
-
   count,
 };
 

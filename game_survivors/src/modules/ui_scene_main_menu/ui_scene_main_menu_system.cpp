@@ -143,7 +143,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
     ui_c.state.rows.push_back(RowState{ .col_name = "Play", .action = play_action });
 #if defined(_DEBUG)
-    ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });
+    // ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });
 #endif
     ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
     ui_c.state.rows.push_back(RowState{ .col_name = "Exit", .action = exit_action });
@@ -152,9 +152,12 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   }
 
 #if defined(_DEBUG)
-  ImGui::Text("Menu Rows: %zu", ui_c.state.rows.size());
-  for (const auto& row : ui_c.state.rows)
-    ImGui::Text("%s, idx: %i", row.col_name.c_str(), row.col_index);
+  static bool debug_menu = false;
+  if (debug_menu) {
+    ImGui::Text("Menu Rows: %zu", ui_c.state.rows.size());
+    for (const auto& row : ui_c.state.rows)
+      ImGui::Text("%s, idx: %i", row.col_name.c_str(), row.col_index);
+  }
 #endif
 
   ImGui::Begin("Main Menu", nullptr, flags);

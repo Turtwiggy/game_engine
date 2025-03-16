@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "spawner_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -31,10 +33,6 @@
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "spawner_components.hpp"
 #include "spawner_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
-
-#include <unordered_map>
 
 namespace game2d {
 
@@ -92,6 +90,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // hermit crab
   if (key == "actor_enemy_melee_2") {
+
     // note: anything with ARC_ANGLE wants an ActorSpeedComponent
     r.emplace<ActorSpeedComponent>(e, 0.015f);
 
@@ -169,6 +168,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
                                  });
     r.emplace<SwarmLordComponent>(e);
   }
+  if (key == "actor_enemy_swarmlord_minion") {
+    auto& force_c = r.get<ApplyForceToDynamicTarget>(e);
+    force_c.speed = 2.0f;
+  }
 
   // sea urchin
   if (key == "actor_enemy_grower") {
@@ -229,29 +232,84 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 };
 
 void
-update_spawner_system(entt::registry& r, const float dt)
+update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int>& enemy_to_amount)
 {
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
-  GET_FIRST_OR_RETURN(SINGLE_SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
-  GET_FIRST_OR_RETURN(SINGLE_Spawners, r, disk_spawn_data_e, disk_spawn_data_c);
+  GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
+  GET_FIRST_OR_RETURN(SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
 
-  // dont update survive timer when theres a boss
-  const bool boss_is_alive = r.view<const BossComponent>().size() > 0;
-  if (boss_is_alive)
-    return;
-
-  // Update survive timer
-  survive_c.time_left_cur -= dt;
-  survive_c.time_left_cur = glm::max(survive_c.time_left_cur, 0.0f);
   const int seconds_from_start = survive_c.time_left_max - survive_c.time_left_cur;
 
-  // How many of each enemies do we currently have?
-  const auto& enemies_view = r.view<const EnemyComponent, const ItemKey>();
-  std::unordered_map<std::string, int> enemy_to_amount;
-  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
-    enemy_to_amount[item_c.key] += 1;
+  for (const auto& [spawner_e, cooldown_c, wave] : r.view<CooldownComponent, const EnemyWavesData>().each()) {
+    if (cooldown_c.time > 0.0f)
+      continue;
 
-  for (const auto& [spawner_e, cooldown_c, spawn_data] : r.view<CooldownComponent, const EnemySpawnData>().each()) {
+    // Filter wave by time.
+    const bool in_lower_bound = seconds_from_start >= min_to_sec(wave.time.start);
+    const bool in_upper_bound = seconds_from_start < min_to_sec(wave.time.stop);
+    if (!in_lower_bound || !in_upper_bound)
+      continue; // not this wave.
+
+    //
+    // All the enemies that this wave wants to be spawning
+    //
+    for (int idx = 0; const auto& wave_data : wave.enemies) {
+      const auto enemy_key = wave_data.key;
+      const auto data = wave_data.data;
+
+      const WaveSpawnerWaveKey wave_key{
+        .idx_in_wave_spawner = wave.on_disk_index,
+        .idx_in_wave_spawner_enemy = idx++,
+      };
+
+      // live data
+      int enemies = 0;
+      if (enemy_to_amount.contains(enemy_key))
+        enemies = enemy_to_amount.at(enemy_key);
+      const auto has_wave_data = live_spawn_data_c.wavespawner_data.contains(wave_key);
+      if (!has_wave_data)
+        live_spawn_data_c.wavespawner_data[wave_key] = {};
+
+      // spawn conditions
+      bool allowed_to_spawn = (enemies + data.num_per_spawn) <= data.max;
+
+      // limit: if you only want to spawn X enemies this wave instead of continuous
+      if (data.num_per_wave.has_value()) {
+        const int enemies_spawned = live_spawn_data_c.wavespawner_data[wave_key].spawned;
+        allowed_to_spawn &= (enemies_spawned + data.num_per_spawn) <= data.num_per_wave.value();
+      }
+
+      if (!allowed_to_spawn)
+        continue;
+
+      // spawn the thing
+      for (int i = 0; i < data.num_per_spawn; i++) {
+        spawn_enemy(r, enemy_key, data.hp);
+        live_spawn_data_c.wavespawner_data[wave_key].spawned++;
+      }
+
+      //
+    }
+
+    // once spawned, put this mob's spawner on cooldown
+    // cooldown_c.time_max = data.spawn_cooldown.value();
+    cooldown_c.time_max = 2.0f; // time between spawner checks
+    reset_cooldown(cooldown_c);
+
+    //
+  }
+};
+
+void
+update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, int>& enemy_to_amount)
+{
+  GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
+  GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
+  GET_FIRST_OR_RETURN(SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
+
+  const int seconds_from_start = survive_c.time_left_max - survive_c.time_left_cur;
+
+  for (const auto& [spawner_e, cooldown_c, spawn_data] : r.view<CooldownComponent, const EnemySpawnsData>().each()) {
     if (cooldown_c.time > 0.0f)
       continue;
 
@@ -260,35 +318,36 @@ update_spawner_system(entt::registry& r, const float dt)
     if (!wave_opt.has_value())
       continue;
 
-    const auto wave_key = WaveKey{
-      .on_disk_spawns_index = spawn_data.on_disk_index,
-      .on_disk_waves_index = wave_opt.value(),
+    const auto wave_key = EnemySpawnerWaveKey{
+      .idx_in_enemy_spawner = spawn_data.on_disk_index,
+      .idx_in_enemy_spawner_waves = wave_opt.value(),
     };
-    const auto on_disk_wave = disk_spawn_data_c.spawns[wave_key.on_disk_spawns_index].waves[wave_key.on_disk_waves_index];
+
+    const auto on_disk_wave =
+      disk_spawn_data_c.enemy_spawner[wave_key.idx_in_enemy_spawner].waves[wave_key.idx_in_enemy_spawner_waves];
 
     // configs
-    const auto max_to_spawn_this_wave_opt = on_disk_wave.num_per_wave;
-    const auto max_allowed = on_disk_wave.max;
-    const auto number_per_spawn = on_disk_wave.num_per_spawn;
-    const auto hp = on_disk_wave.hp;
-    const auto cooldown = on_disk_wave.spawn_cooldown;
     const auto enemy_key = spawn_data.key;
+    const auto max_to_spawn_this_wave_opt = on_disk_wave.data.num_per_wave;
+    const auto max = on_disk_wave.data.max;
+    const auto number_per_spawn = on_disk_wave.data.num_per_spawn;
+    const auto hp = on_disk_wave.data.hp;
+    // const auto cooldown = on_disk_wave.data.spawn_cooldown;
 
     // live data
-    const int enemies = enemy_to_amount[enemy_key];
-    const auto has_wave_data = live_spawn_data_c.data.contains(wave_key);
+    int enemies = 0;
+    if (enemy_to_amount.contains(enemy_key))
+      enemies = enemy_to_amount.at(enemy_key);
+    const auto has_wave_data = live_spawn_data_c.enemyspawner_data.contains(wave_key);
     if (!has_wave_data)
-      live_spawn_data_c.data[wave_key] = {};
+      live_spawn_data_c.enemyspawner_data[wave_key] = {};
 
     // spawn conditions
-    bool allowed_to_spawn = true;
-    allowed_to_spawn &= cooldown_c.time <= 0.0f; // not on cooldown
-    allowed_to_spawn &= enemies < max_allowed;
-    allowed_to_spawn &= (enemies + number_per_spawn) <= max_allowed;
+    bool allowed_to_spawn = (enemies + number_per_spawn) <= max;
 
     // limit: if you only want to spawn X enemies this wave instead of continuous
     if (max_to_spawn_this_wave_opt.has_value()) {
-      const int enemies_spawned = live_spawn_data_c.data[wave_key].spawned;
+      const int enemies_spawned = live_spawn_data_c.enemyspawner_data[wave_key].spawned;
       allowed_to_spawn &= (enemies_spawned + number_per_spawn) <= max_to_spawn_this_wave_opt.value();
     }
 
@@ -298,15 +357,50 @@ update_spawner_system(entt::registry& r, const float dt)
     // spawn the thing
     for (int i = 0; i < number_per_spawn; i++) {
       spawn_enemy(r, enemy_key, hp);
-      live_spawn_data_c.data[wave_key].spawned++;
+      live_spawn_data_c.enemyspawner_data[wave_key].spawned++;
     }
 
     // once spawned, put this mob's spawner on cooldown
-    cooldown_c.time_max = cooldown.value();
+    // cooldown_c.time_max = cooldown.value();
+
+    cooldown_c.time_max = 2.0f; // time between spawner checks
     reset_cooldown(cooldown_c);
 
     // SDL_Log("spawning %i, cooldown: %i", number_per_spawn, cooldown);
   }
-}
+};
+
+void
+update_spawner_system(entt::registry& r, const float dt)
+{
+  GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
+  GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
+
+  // dont update survive timer when theres a boss
+  const bool boss_is_alive = r.view<const BossComponent>().size() > 0;
+  if (boss_is_alive)
+    return;
+
+  // Update survive timer
+  survive_c.time_left_cur -= dt;
+  survive_c.time_left_cur = glm::max(survive_c.time_left_cur, 0.0f);
+
+  // How many of each enemies do we currently have?
+  const auto& enemies_view = r.view<const EnemyComponent, const ItemKey>();
+  std::unordered_map<std::string, int> enemy_to_amount;
+  for (const auto& [e, enemy_c, item_c] : enemies_view.each())
+    enemy_to_amount[item_c.key] += 1;
+
+  //
+  // NOTE: if enemy spawner and wave spawner use the same key,
+  // then there's a bug that the enemy spawner could spawn an enemy,
+  // the number of enemies would update, but not in the enemy_to_amount map,
+  // and the wave spawner would spawn because it hasnt updated.
+  // this is currently fine as they spawn different enemy_key enemies
+  //
+
+  update_enemy_spawner(r, enemy_to_amount);
+  update_wave_spawner(r, enemy_to_amount);
+};
 
 } // namespace game2d

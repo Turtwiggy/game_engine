@@ -4,6 +4,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "modules/actor_weapon/weapon_components.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
@@ -13,7 +14,6 @@
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "scene_select_components.hpp"
-
 
 namespace game2d {
 
@@ -176,6 +176,7 @@ draw_player_select_box(entt::registry& r,
 
       // update state? note: .key not .name
       game_state_c.player_gun = weapon.key;
+      SDL_Log("Updated player gun choice: %s", game_state_c.player_gun.c_str());
     }
 
     // append hull name to label

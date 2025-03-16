@@ -43,15 +43,15 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
 )
 
 # Main executable
-# if("${CMAKE_BUILD_TYPE}" MATCHES Release AND WIN32)
-# # "The WIN32 argument instructs the compiler to build a
-# # Windows GUI app, which doesn't show a console."
-# add_executable(game_survivors WIN32 ${SRC_FILES} assets/textures/resource.rc)
-# elseif(WIN32)
-# add_executable(game_survivors ${SRC_FILES} assets/textures/resource.rc)
-# else()
-# endif()
-add_executable(game_survivors ${SRC_FILES})
+if("${CMAKE_BUILD_TYPE}" MATCHES Release AND WIN32)
+  # "The WIN32 argument instructs the compiler to build a
+  # Windows GUI app, which doesn't show a console."
+  add_executable(game_survivors WIN32 ${SRC_FILES} assets/textures/resource.rc)
+elseif(WIN32)
+  add_executable(game_survivors ${SRC_FILES} assets/textures/resource.rc)
+else()
+  add_executable(game_survivors ${SRC_FILES})
+endif()
 
 # Precompile headers
 set(PCH_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch.hpp)

@@ -87,6 +87,8 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
       amount = 50;
     return { amount, "stat_percent_increase" };
   }
+
+  /*
   if (upgrade == UpgradeableStat::ACTOR_STAMINA) {
     if (rarity == Rarity::COMMON)
       amount = 1;
@@ -100,6 +102,8 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
       amount = 5;
     return { amount, "stat_flat_increase" };
   }
+  */
+
   if (upgrade == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
     if (rarity == Rarity::COMMON)
       amount = 5;
@@ -192,6 +196,8 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
       amount = 5;
     return { amount, "stat_flat_increase" };
   }
+
+  /*
   if (upgrade == UpgradeableStat::BULLET_SIZE) {
     if (rarity == Rarity::COMMON)
       amount = 10;
@@ -205,6 +211,8 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
       amount = 50;
     return { amount, "stat_percent_increase" };
   }
+  */
+
   if (upgrade == UpgradeableStat::BULLET_SPEED) {
     if (rarity == Rarity::COMMON)
       amount = 10;

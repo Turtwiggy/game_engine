@@ -477,6 +477,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto survive_timer_e = create_empty<SurviveTimerComponent>(r);
 
     // populate spawners from configs
+    create_empty<SpawnerLiveData>(r);
     init_spawners(r);
   }
 

@@ -4,8 +4,6 @@
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 
-#include <unordered_map>
-
 namespace game2d {
 
 struct TimeSpan
@@ -16,86 +14,145 @@ struct TimeSpan
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(TimeSpan, start, stop);
 };
 
-struct EnemySpawnWave
+struct WaveData
 {
-  TimeSpan span;
   float hp = 30;
   int max = 2; // at any one time
   int num_per_spawn = 1;
   std::optional<int> num_per_wave = std::nullopt; // max to spawn for that wave
-  std::optional<float> spawn_cooldown = 2.5f;
+  // std::optional<float> spawn_cooldown = 2.5f;
 
-  friend void to_json(nlohmann ::json& j, const EnemySpawnWave& val)
+  friend void to_json(nlohmann ::json& j, const WaveData& val)
   {
-    j["span"] = val.span;
     j["hp"] = val.hp;
     j["max"] = val.max;
     j["num_per_spawn"] = val.num_per_spawn;
     if (val.num_per_wave.has_value())
       j["num_per_wave"] = val.num_per_wave.value();
-    if (val.spawn_cooldown.has_value())
-      j["spawn_cooldown"] = val.spawn_cooldown.value();
+    // if (val.spawn_cooldown.has_value())
+    //   j["spawn_cooldown"] = val.spawn_cooldown.value();
   }
-  friend void from_json(const nlohmann ::json& j, EnemySpawnWave& val)
+
+  friend void from_json(const nlohmann ::json& j, WaveData& val)
   {
-    j.at("span").get_to(val.span);
     j.at("hp").get_to(val.hp);
     j.at("max").get_to(val.max);
     j.at("num_per_spawn").get_to(val.num_per_spawn);
     if (j.contains("num_per_wave"))
       j.at("num_per_wave").get_to(val.num_per_wave.emplace());
-    if (j.contains("spawn_cooldown"))
-      j.at("spawn_cooldown").get_to(val.spawn_cooldown.emplace());
+    // if (j.contains("spawn_cooldown"))
+    //   j.at("spawn_cooldown").get_to(val.spawn_cooldown.emplace());
   };
 };
 
-struct EnemySpawnData
+//
+// Used by "waves",
+// when we want to specify what enemies a wave will contain
+//
+struct WaveEnemyType
 {
-  std::string key = "actor_enemy_exploder";
-  std::vector<EnemySpawnWave> waves;
+  std::string key;
+  WaveData data;
 
-  // index to be set when instantiated in entt,
-  // but it's the position that this data is
-  // in the SINGLE_Spawners spawns data
-  int on_disk_index = 0;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(EnemySpawnData, key, waves)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WaveEnemyType, key, data);
 };
 
-struct SINGLE_Spawners
+//
+// Used by "spawns",
+// when we want to specify an enemy type to spawn for a period of time
+//
+struct WaveEnemyTime
 {
-  std::vector<EnemySpawnData> spawns;
+  TimeSpan span;
+  WaveData data;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_Spawners, spawns);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WaveEnemyTime, span, data);
 };
 
-struct WaveKey
+//
+// Waves: A wave consists of multiple enemy types
+//
+struct EnemyWavesData
 {
-  int on_disk_spawns_index = 0; // spawns are per-enemy
-  int on_disk_waves_index = 0;  // how many waves does the enemy have
+  std::string name;
+  TimeSpan time;
+  std::vector<WaveEnemyType> enemies;
+
+  int on_disk_index = 0; // position in SINGLE_Spawners
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(EnemyWavesData, name, time, enemies)
 };
 
-bool
-operator==(const WaveKey& a, const WaveKey& b);
+//
+// Spawner: A spawner spawns one enemy over for multiple waves
+//
+struct EnemySpawnsData
+{
+  std::string key = "actor_enemy_melee_1";
+  std::vector<WaveEnemyTime> waves;
+
+  int on_disk_index = 0; // position in SINGLE_Spawners
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(EnemySpawnsData, key, waves)
+};
+
+struct SINGLE_OnDiskSpawners
+{
+  std::vector<EnemyWavesData> wave_spawner;
+  std::vector<EnemySpawnsData> enemy_spawner;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_OnDiskSpawners, wave_spawner, enemy_spawner);
+};
+
+//
+//
+//
+
+struct WaveSpawnerWaveKey
+{
+  int idx_in_wave_spawner = 0;
+  int idx_in_wave_spawner_enemy = 0;
+
+  auto operator<=>(const WaveSpawnerWaveKey&) const = default;
+};
+
+struct EnemySpawnerWaveKey
+{
+  int idx_in_enemy_spawner = 0;       // idx in enemy_spawner
+  int idx_in_enemy_spawner_waves = 0; // idx in enemy_spawner[0].waves
+
+  auto operator<=>(const EnemySpawnerWaveKey&) const = default;
+};
 
 struct WaveLiveData
 {
   int spawned = 0;
 };
 
-struct wavekey_hash
+struct enemyspawnerwavekey_hash
 {
-  std::size_t operator()(const WaveKey& key) const
+  std::size_t operator()(const EnemySpawnerWaveKey& key) const
   {
-    const auto hash1 = std::hash<int>{}(key.on_disk_spawns_index);
-    const auto hash2 = std::hash<int>{}(key.on_disk_waves_index);
+    const auto hash1 = std::hash<int>{}(key.idx_in_enemy_spawner);
+    const auto hash2 = std::hash<int>{}(key.idx_in_enemy_spawner_waves);
     return hash1 ^ (hash2 << 1);
   }
 };
 
-struct SINGLE_SpawnerLiveData
+struct wavespawnerwavekey_hash
 {
-  std::unordered_map<WaveKey, WaveLiveData, wavekey_hash> data;
+  std::size_t operator()(const WaveSpawnerWaveKey& key) const
+  {
+    const auto hash1 = std::hash<int>{}(key.idx_in_wave_spawner);
+    const auto hash2 = std::hash<int>{}(key.idx_in_wave_spawner_enemy);
+    return hash1 ^ (hash2 << 1);
+  }
+};
+
+struct SpawnerLiveData
+{
+  std::unordered_map<EnemySpawnerWaveKey, WaveLiveData, enemyspawnerwavekey_hash> enemyspawner_data;
+  std::unordered_map<WaveSpawnerWaveKey, WaveLiveData, wavespawnerwavekey_hash> wavespawner_data;
 };
 
 } // namespace game2d

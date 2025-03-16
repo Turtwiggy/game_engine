@@ -1,6 +1,5 @@
 #pragma once
 
-#include "modules/combat/combat_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
 #include <string>
 #include <vector>

@@ -118,9 +118,9 @@ update_ui_survive_weapon_system(entt::registry& r)
     const auto player_e = players_e_vec[i];
     const auto fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
     const auto& hp_c = r.get<HealthComponent>(fixture_e);
-    const int hp = hp_c.hp;
-    const int max_hp = hp_c.max_hp;
-    const float hp_percent = hp / (float)max_hp;
+    const float hp = hp_c.hp;
+    const float max_hp = hp_c.max_hp;
+    const float hp_percent = hp / max_hp;
     if (debug_ui) {
       // hp = 3;
       // max_hp = 100;
@@ -157,7 +157,7 @@ update_ui_survive_weapon_system(entt::registry& r)
       draw_list->AddRectFilled(p_min, p_max, IM_COL32(0, 0, 0, 255), rounding);
 
       // health text
-      const std::string text = std::format("HP: {} / {}", hp, max_hp);
+      const std::string text = std::format("HP: {:.2f} / {}", hp, max_hp);
       const auto text_size = ImGui::CalcTextSize(text.c_str());
       const auto bar_center = ImVec2{ player_ui_tl.x + player_ui_w * 0.5f, player_ui_tl.y + hp_bar_height * 0.5f };
       const auto center = ImVec2{ bar_center.x - text_size.x * 0.5f, bar_center.y - text_size.y * 0.5f };
@@ -189,7 +189,8 @@ update_ui_survive_weapon_system(entt::registry& r)
         // draw a padlock or something
         ImVec2 im_tex_tl{ 0.0f, 0.0f };
         ImVec2 im_tex_br{ 1.0f, 1.0f };
-        std::tie(im_tex_tl, im_tex_br) = convert_sprite_to_uv(r, "KEY_2");
+        // std::tie(im_tex_tl, im_tex_br) = convert_sprite_to_uv(r, "KEY_2");
+        std::tie(im_tex_tl, im_tex_br) = convert_sprite_to_uv(r, "EMPTY");
 
         const float avail_w = pos_r.x - pos_l.x;
         const float avail_h = pos_r.y - pos_l.y - bar_h - bar_padding_bottom;

@@ -12,7 +12,7 @@
 
 namespace game2d {
 
-SINGLE_Spawners
+SINGLE_OnDiskSpawners
 load_spawns(std::string filepath)
 {
   SDL_Log("loading spawns... %s", filepath.c_str());
@@ -34,7 +34,7 @@ load_spawns(std::string filepath)
 
   const std::string string_without_comments = output.str();
   nlohmann::json root = nlohmann::json::parse(string_without_comments);
-  return root.get<SINGLE_Spawners>();
+  return root.get<SINGLE_OnDiskSpawners>();
 };
 
 int
@@ -43,23 +43,8 @@ min_to_sec(int min)
   return min * 60;
 };
 
-void
-init_spawners(entt::registry& r)
-{
-  create_empty<SINGLE_SpawnerLiveData>(r);
-
-  const auto& spawn_c = get_first_component<SINGLE_Spawners>(r);
-  for (auto i = 0; i < (int)spawn_c.spawns.size(); i++) {
-    const auto spawner_e = create_empty<CooldownComponent>(r);
-
-    EnemySpawnData copy_data = spawn_c.spawns[i];
-    copy_data.on_disk_index = i;
-    r.emplace<EnemySpawnData>(spawner_e, copy_data);
-  }
-}
-
 std::optional<int>
-get_wave_index_from_time(const EnemySpawnData& data, int seconds_from_start)
+get_wave_index_from_time(const EnemySpawnsData& data, int seconds_from_start)
 {
   for (size_t i = 0; i < data.waves.size(); i++) {
     const auto& wave = data.waves[i];
@@ -69,6 +54,28 @@ get_wave_index_from_time(const EnemySpawnData& data, int seconds_from_start)
       return (int)i;
   }
   return std::nullopt;
+};
+
+void
+init_spawners(entt::registry& r)
+{
+  const auto& spawn_c = get_first_component<SINGLE_OnDiskSpawners>(r);
+
+  // Give every wave a cooldown component
+  for (int i = 0; i < (int)spawn_c.wave_spawner.size(); i++) {
+    const auto spawner_e = create_empty<CooldownComponent>(r);
+    auto wave = spawn_c.wave_spawner[i];
+    wave.on_disk_index = i;
+    r.emplace<EnemyWavesData>(spawner_e, wave);
+  }
+
+  // Give every spawner a cooldown component
+  for (int i = 0; i < (int)spawn_c.enemy_spawner.size(); i++) {
+    const auto spawner_e = create_empty<CooldownComponent>(r);
+    auto wave = spawn_c.enemy_spawner[i];
+    wave.on_disk_index = i;
+    r.emplace<EnemySpawnsData>(spawner_e, wave);
+  }
 };
 
 static engine::RandomState target_rnd(0);

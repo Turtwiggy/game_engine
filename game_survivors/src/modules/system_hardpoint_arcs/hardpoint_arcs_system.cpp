@@ -190,7 +190,7 @@ update_hardpoint_arcs_system(entt::registry& r)
     arc_col.a = (int)(0.3f * 255);
     const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
     float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
-    DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);
+    // DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);
 
     // draw the arc where the gun cant shoot.
     // float thickness = 0.5;
