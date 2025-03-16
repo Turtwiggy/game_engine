@@ -206,13 +206,15 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<MovementDirectComponent>(e);
-  r.emplace<ActorSpeedComponent>(e, 0.02f);      // meters per second
-  r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
-  r.emplace<ActorDodgeComponent>(e, 0.0f);       // dodge percent
-  r.emplace<ActorStaminaComponent>(e);
   r.emplace<RotateToVelocityComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.emplace<OutOfBoundsTimer>(e);
+
+  // Upgradeable stats
+  r.emplace<ActorSpeedComponent>(e, ActorSpeedComponent{ .base_speed = 0.02f, .current_speed = 0.02f }); // meters per second
+  r.emplace<ActorHealthRegenComponent>(e, 0.0f);                                                         // hp per second
+  r.emplace<ActorDodgeComponent>(e, 0.0f);                                                               // dodge percent
+  r.emplace<ActorStaminaComponent>(e);
 
   // Add an xp zone with the config-defined size
   {

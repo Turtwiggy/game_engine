@@ -289,7 +289,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r, dt);
     update_alpha_based_on_lifecycle_system(r);
-    update_sprint_system(r, dt);
+    // update_sprint_system(r, dt);
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
 
