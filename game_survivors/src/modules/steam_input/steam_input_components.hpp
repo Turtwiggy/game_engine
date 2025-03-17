@@ -21,6 +21,8 @@ enum class DigitalAction
   Game_Cancel,
   Game_Shoot,
   Game_Sprint,
+  Game_Ability1,
+  Game_Ability2,
 
   // Menu_Up,
   // Menu_Down,
@@ -65,6 +67,7 @@ struct SINGLE_SteamControllers
   // needed to generate button down state
   std::unordered_map<InputHandle_t, std::vector<DA>> last_frame_held;
   std::unordered_map<InputHandle_t, std::vector<DA>> this_frame_down;
+  std::unordered_map<InputHandle_t, std::vector<DA>> this_frame_release;
 
   SINGLE_SteamControllers()
   {

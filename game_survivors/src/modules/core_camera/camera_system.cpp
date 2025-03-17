@@ -1,3 +1,4 @@
+#include "modules/system_screenshake/components.hpp"
 #include "pch.hpp"
 
 // header
@@ -16,14 +17,49 @@
 namespace game2d {
 
 void
+update_zoom(OrthographicCamera& camera, float dt)
+{
+  auto& zoom = camera.zoom_linear;
+  auto& zoom_nonlinear = camera.zoom_nonlinear;
+
+  if (ImGui::GetIO().MouseWheel > 0.0f)
+    zoom -= 0.1f;
+  if (ImGui::GetIO().MouseWheel < 0.0f)
+    zoom += 0.1f;
+
+  // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
+  // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
+  // If zoom = -1, then 2^(-1 / 2) gives a zoom factor of ~0.707 (zooming out by 29%).
+  float new_zoom_nonlinear = glm::pow(2.0f, (zoom / 2.0f));
+  const float speed = 7.5;
+  const float zoom_in = 0.25f;
+  const float zoom_out = 2.0f;
+  zoom_nonlinear = engine::lerp(zoom_nonlinear, new_zoom_nonlinear, dt * speed);
+
+  // clamp zoomout
+  if (zoom_nonlinear > zoom_out) {
+    zoom_nonlinear = zoom_out;
+    zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
+  };
+
+  // clamp zoomin
+  if (zoom_nonlinear < zoom_in) {
+    zoom_nonlinear = zoom_in;
+    zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
+  }
+
+  // ImGui::SeparatorText("DebugCamera");
+  // ImGui::Text("zoom: %f", zoom);
+  // ImGui::Text("zoom nonlinear: %f", zoom_nonlinear);
+};
+
+void
 update_camera_system(entt::registry& r, const float dt)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
   const auto camera_ent = get_first<OrthographicCamera>(r);
 
-  const float screen_x = -ri.viewport_size_render_at.x / 2.0f;
-  const float screen_y = -ri.viewport_size_render_at.y / 2.0f;
   auto& camera = r.get<OrthographicCamera>(camera_ent);
   auto& camera_transform = r.get<TransformComponent>(camera_ent);
 
@@ -99,51 +135,26 @@ update_camera_system(entt::registry& r, const float dt)
     // camera_transform.position.z;
   }
 
+  // Add camerashake
+  const auto& screenshake_c = get_first_component<SINGLE_ScreenshakeComponent>(r);
+  const auto screenshake_amount = screenshake_c.strength;
+
+  const float screen_x = -ri.viewport_size_render_at.x * 0.5f;
+  const float screen_y = -ri.viewport_size_render_at.y * 0.5f;
+
   // calculate view after updating postiion
   TransformComponent screen_offset = camera_transform;
-  screen_offset.position.x = screen_x + screen_offset.position.x;
-  screen_offset.position.y = screen_y + screen_offset.position.y;
+  screen_offset.position.x = screen_x + screen_offset.position.x + screenshake_amount.x;
+  screen_offset.position.y = screen_y + screen_offset.position.y + screenshake_amount.y;
   camera.view = calculate_ortho_view(screen_offset, dt);
 
   // no zooming unless on the viewport
   if (!ri.viewport_hovered)
     return;
-
-  auto& zoom = camera.zoom_linear;
-  auto& zoom_nonlinear = camera.zoom_nonlinear;
-
-  if (ImGui::GetIO().MouseWheel > 0.0f)
-    zoom -= 0.1f;
-  if (ImGui::GetIO().MouseWheel < 0.0f)
-    zoom += 0.1f;
-
-  // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
-  // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
-  // If zoom = -1, then 2^(-1 / 2) gives a zoom factor of ~0.707 (zooming out by 29%).
-  float new_zoom_nonlinear = glm::pow(2.0f, (zoom / 2.0f));
-  const float speed = 7.5;
-  const float zoom_in = 0.25f;
-  const float zoom_out = 2.0f;
-  zoom_nonlinear = engine::lerp(zoom_nonlinear, new_zoom_nonlinear, dt * speed);
-
-  // clamp zoomout
-  if (zoom_nonlinear > zoom_out) {
-    zoom_nonlinear = zoom_out;
-    zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
-  };
-
-  // clamp zoomin
-  if (zoom_nonlinear < zoom_in) {
-    zoom_nonlinear = zoom_in;
-    zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
-  }
-
-  // ImGui::SeparatorText("DebugCamera");
-  // ImGui::Text("zoom: %f", zoom);
-  // ImGui::Text("zoom nonlinear: %f", zoom_nonlinear);
+  update_zoom(camera, dt);
 
   camera.projection_zoomed =
-    calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, zoom_nonlinear);
+    calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, camera.zoom_nonlinear);
 };
 
 } // namespace game2d

@@ -37,8 +37,8 @@ static float circle_speed = 0.2f;
 static float snake_speed = 90.0f;
 static float circle_radius = 450.0f;
 const float time_between_bullets = 2.0f;
-const float head_hp = 1000;
-const float segment_hp = 500;
+const float head_hp = 600;
+const float segment_hp = 400;
 
 auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   auto& snake_c = r.get<SnakeData>(dead_e);

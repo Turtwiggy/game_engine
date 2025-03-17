@@ -1,6 +1,9 @@
+#include "pch.hpp"
+
 #include "resources/resources.hpp"
 
 #include "engine/io/path.hpp"
+#include "steam/isteaminput.h"
 
 namespace game2d {
 
@@ -32,6 +35,18 @@ get_default_textures()
   add_tex("spritestack_rhib.png", "spritestack_rhib.json");
   add_tex("spritestack_pbr.png", "spritestack_pbr.json");
   add_tex("spritestack_trimaran.png", "spritestack_trimaran.json");
+
+  // const ESteamInputGlyphSize size = k_ESteamInputGlyphSize_Medium;
+  // for (int i = 0; i < k_EInputActionOrigin_Count; i++) {
+  //   const auto origin = magic_enum::enum_cast<EInputActionOrigin>(i).value();
+  //   const char* local_glyph_path = SteamInput()->GetGlyphPNGForActionOrigin(origin, size, 0);
+  //   if (!local_glyph_path)
+  //     continue;
+  //   SDL_Log("steam glpyh path = %s", local_glyph_path);
+  //   Texture tex;
+  //   tex.path = local_glyph_path;
+  //   ri.user_textures.push_back(tex);
+  // }
 
   return ri;
 };

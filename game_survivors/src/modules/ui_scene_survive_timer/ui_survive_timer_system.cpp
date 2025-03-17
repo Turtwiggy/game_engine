@@ -54,6 +54,9 @@ update_ui_survive_timer_system(entt::registry& r)
 
     ImGui::Text("%s", display.c_str());
 
+    if (r.view<BossComponent>().size() > 0)
+      ImGui::Text("Kill Steve");
+
     ImGui::End();
     ImGui::PopID();
 

@@ -3,8 +3,7 @@
 #include "components.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/events/components.hpp"
-#include "engine/events/helpers/keyboard.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "modules/system_screenshake/components.hpp"
 
 namespace game2d {
@@ -15,24 +14,25 @@ struct ScreenshakeData
   float strength = 0;
 };
 
-const std::unordered_map<ScreenshakeType, ScreenshakeData> screenshake_amounts{
-  { ScreenshakeType::EXPLODE, ScreenshakeData{ .length = 0.04f, .strength = 0.004 } },
-  { ScreenshakeType::SHOOT, ScreenshakeData{ .length = 0.01f, .strength = 0.002f } },
-};
-
 void
 update_screenshake_system(entt::registry& r, const float dt)
 {
   GET_FIRST_OR_RETURN(SINGLE_ScreenshakeComponent, r, shake_e, shake_c);
 
+#if defined(_DEBUG)
   // Debug: screenshake
-  {
-    auto& input_c = get_first_component<SINGLE_InputComponent>(r);
-    if (get_key_down(input_c, SDL_SCANCODE_KP_9))
-      create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::EXPLODE });
-    if (get_key_down(input_c, SDL_SCANCODE_KP_8))
-      create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::SHOOT });
+  static bool do_screenshake = false;
+  imgui_draw_bool("screenshake", do_screenshake);
+  if (do_screenshake) {
+    do_screenshake = false;
+    create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::EXPLODE });
   }
+#endif
+
+  const std::unordered_map<ScreenshakeType, ScreenshakeData> screenshake_amounts{
+    { ScreenshakeType::EXPLODE, ScreenshakeData{ .length = 0.04f, .strength = 0.001f } },
+    { ScreenshakeType::SHOOT, ScreenshakeData{ .length = 0.01f, .strength = 0.002f } },
+  };
 
   const auto view = r.view<const RequestScreenshakeComponent>();
   for (const auto& [e, req] : view.each()) {
@@ -42,14 +42,22 @@ update_screenshake_system(entt::registry& r, const float dt)
   }
   r.destroy(view.begin(), view.end()); // done requests
 
+  // static glm::vec2 shake{ 1.0f, 1.0f };
+  static float time = 0.0f;
+  time += dt; // time offset so screenshake looks different
+
   // do the screenshake
   if (shake_c.time_left > 0.0f) {
     shake_c.time_left -= dt;
     shake_c.time_left = glm::max(shake_c.time_left, 0.0f);
   }
 
-  if (shake_c.time_left <= 0.0f)
-    shake_c.strength = 0.0;
+  if (shake_c.time_left <= 0.0f) {
+    shake_c.strength = { 0.0f, 0.0f };
+  } else {
+    shake_c.strength.x = glm::cos(time * 10.0f) * 7.5f;
+    shake_c.strength.y = glm::cos(time * 15.0f) * 7.5f;
+  }
 };
 
 } // namespace game2d

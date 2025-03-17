@@ -21,7 +21,13 @@ handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
 
   // give xp
-  sxp_c.xp++;
+  const auto& xp_c = r.get<XpComponent>(xp_e);
+  const bool give_levelup = xp_c.levelup;
+
+  if (give_levelup)
+    sxp_c.xp += sxp_c.xp_for_next_level - sxp_c.xp; // give the rest of the level
+  else
+    sxp_c.xp++;
 
   // play audio
   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "XP_0" });

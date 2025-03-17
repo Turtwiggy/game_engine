@@ -34,7 +34,7 @@ PhysicsFixtureDef
 get_fixture_def_by_tag(entt::registry& r, entt::entity e, std::string tag);
 
 std::unordered_set<entt::entity>
-get_all_in_area(entt::registry& r, glm::vec2 center, float d);
+get_all_in_area(entt::registry& r, b2Vec2 center, float d);
 
 std::unordered_set<std::pair<int, entt::entity>, pair_hash>
 get_all_in_area_filtered(entt::registry& r,

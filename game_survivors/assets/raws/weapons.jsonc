@@ -4,11 +4,11 @@
     {
       "key": "weapon_deck_cannon",
       "name": "Deck Cannon", // heavy pistol
-      "desc": "A compact cannon that fires a single heavy round.",
+      "desc": "A compact cannon that fires heavy rounds.",
       "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 6   , // shots before reload
-        "WEAPON_PROJECTILES": 1 ,
+        "WEAPON_PROJECTILES": 2 ,
         "WEAPON_SPREAD": 5      , // degrees
         "WEAPON_FIRERATE": 1.25 , // per second
         "WEAPON_RELOAD": 3      , // seconds

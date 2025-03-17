@@ -41,7 +41,7 @@ struct UboData
   float time = 0;
   float zoom = 0;
   float tilesize = 50;
-  float screenshake_strength = 0.0f;
+  glm::vec2 screenshake{ 0, 0 };
   glm::vec3 player_positions[4];
 };
 
@@ -270,9 +270,11 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   for (Texture& tex : ri.user_textures) {
     tex.tex_unit.unit = next_tex_unit;
 
-    const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
+    const LinearTexture loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);
+    tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
+
     next_tex_unit++;
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
@@ -437,7 +439,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   data.camera_pos = { camera_t.position.x, camera_t.position.y };
   data.time = time;
   data.zoom = camera_c.zoom_nonlinear;
-  data.screenshake_strength = screenshake_c.strength;
+  data.screenshake = screenshake_c.strength;
   auto grid_e = get_first<Effect_GridComponent>(r);
   if (grid_e != entt::null)
     data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;

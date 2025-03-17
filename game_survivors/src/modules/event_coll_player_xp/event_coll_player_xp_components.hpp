@@ -6,7 +6,7 @@ namespace game2d {
 
 struct XpComponent
 {
-  bool placeholder = true;
+  bool levelup = false;
 };
 
 // Monitoring the total number of xp collected

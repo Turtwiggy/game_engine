@@ -16,9 +16,4 @@ struct SpritestackComponent
     : spritestack_index(index) {};
 };
 
-struct RotateOnSpotComponent
-{
-  bool placeholder = true;
-};
-
 } // namespace game2d

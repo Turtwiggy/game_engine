@@ -14,6 +14,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/system_ability/ability_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 
 namespace game2d {
@@ -34,6 +35,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const auto& view =
       r.view<const InputComponent, const MovementDirectComponent, PhysicsBodyComponent, const ActorSpeedComponent>();
     for (const auto& [e, input_c, movetype_c, body_c, speed_c] : view.each()) {
+
       const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
       const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
 
@@ -55,7 +57,8 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     }
   }
 
-  const auto view = r.view<const PhysicsBodyComponent, const RotateToVelocityComponent>();
+  const auto view =
+    r.view<const PhysicsBodyComponent, const RotateToVelocityComponent>(entt::exclude<LockedInSpotComponent>);
   for (const auto& [e, body_c, rotate_c] : view.each()) {
     // Set Rotation
     const float angle_speed = 10.0f; // higher number = faster to rotate

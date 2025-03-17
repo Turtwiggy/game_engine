@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/fwd.hpp>
+
 namespace game2d {
 
 struct SINGLE_ScreenshakeComponent
@@ -7,7 +9,7 @@ struct SINGLE_ScreenshakeComponent
   float time = 0.1f; // how long to do it for
   float time_left = 0.0f;
 
-  float strength = 0.0f;
+  glm::vec2 strength{ 0, 0 };
 };
 
 enum class ScreenshakeType

@@ -2,6 +2,7 @@
 
 // my libs
 #include "components.hpp"
+#include "modules/core_renderer/components.hpp"
 
 #include <entt/entt.hpp>
 #include <imgui.h>
@@ -11,7 +12,7 @@
 namespace game2d {
 
 void
-load_sprites(SINGLE_Animations& anims, const std::string& path);
+load_sprites(SINGLE_Animations& anims, const Texture& texture);
 
 std::pair<Spritesheet, SpriteAnimation>
 find_animation(const SINGLE_Animations& anims, const std::string& name);

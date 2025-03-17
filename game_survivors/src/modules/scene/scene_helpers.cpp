@@ -26,6 +26,7 @@
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/system_ability/ability_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
@@ -49,6 +50,7 @@
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+
 
 namespace game2d {
 
@@ -209,6 +211,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<RotateToVelocityComponent>(e);
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.emplace<OutOfBoundsTimer>(e);
+  r.emplace<AbilityComponent>(e);
 
   // Upgradeable stats
   r.emplace<ActorSpeedComponent>(e, ActorSpeedComponent{ .base_speed = 0.02f, .current_speed = 0.02f }); // meters per second

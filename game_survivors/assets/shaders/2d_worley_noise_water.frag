@@ -25,7 +25,7 @@ layout(std140) uniform Data {
   float time;
   float zoom;
   float tilesize;
-	float screenshake_strength;
+  vec2 screenshake;
 	vec3[4] player_positions;
 };
 

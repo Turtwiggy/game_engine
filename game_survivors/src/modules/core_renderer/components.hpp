@@ -47,6 +47,7 @@ struct Texture
   std::string spritesheet_path;
   TextureUnit tex_unit;
   TextureId tex_id;
+  glm::ivec2 size{ 0, 0 };
 
   Texture() = default;
   Texture(const std::string& p, const std::string& sp)

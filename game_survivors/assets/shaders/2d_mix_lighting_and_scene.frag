@@ -27,7 +27,7 @@ layout(std140) uniform Data {
   float time;
   float zoom;
   float tilesize;
-  float screenshake_strength;
+  vec2 screenshake;
   vec3[4] player_positions;
 };
 
@@ -200,7 +200,7 @@ void main()
   // out_color.rgb = Tonemap_ACES(out_color.rgb);
 
   if(outline_col.r > 0.0f)
-      out_color.rgb = vec3(1.0, 1.0, 1.0);
+      out_color.rgb = vec3(1.0, 0.0, 0.0);
 
   out_color.rgb += grid_col;
 

@@ -6,6 +6,7 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -24,6 +25,7 @@
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
+#include "modules/effects_outline/outline_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_death_throes/death_throes_components.hpp"
@@ -61,7 +63,19 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   auto e = spawn(r, key);
   r.emplace<EnemyComponent>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
-  // r.emplace<SpriteOutline>(e);
+
+  // Make it a variant.
+  // outline it
+  // Double the HP, but it also drops a level up.
+  static engine::RandomState variant_rng(0);
+  const bool is_variant = engine::rand_det_s(variant_rng.rng, 0, 100) < 2.0f;
+  if (is_variant) {
+    r.emplace<SpriteOutline>(e);
+    hp *= 2.0f;
+    auto& death_c = r.get<OnDeathCallbacks>(e);
+    auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
+    death_c.callbacks.push_back(drop_xp_callback);
+  }
 
   auto enemy_size = glm::vec2{ 32, 32 };
   if (key == "actor_enemy_swarmlord_minion")
@@ -71,9 +85,11 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   give_life(r, e, rnd_pos_around_player, enemy_size);
 
-  auto& callbacks_c = r.get<OnDeathCallbacks>(e);
-  auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_xp_on_death_callback(r, e); };
-  callbacks_c.callbacks.push_back(drop_xp_callback);
+  if (!is_variant) {
+    auto& callbacks_c = r.get<OnDeathCallbacks>(e);
+    auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_xp_on_death_callback(r, e); };
+    callbacks_c.callbacks.push_back(drop_xp_callback);
+  }
 
   // pufferfish
   if (key == "actor_enemy_exploder") {

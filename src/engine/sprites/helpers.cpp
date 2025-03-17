@@ -22,11 +22,10 @@ struct Frame
 };
 
 void
-load_sprites(SINGLE_Animations& anims, const std::string& path)
+load_sprites(SINGLE_Animations& anims, const Texture& texture)
 {
-#if defined(_RELEASE)
+  const auto path = texture.spritesheet_path;
   SDL_Log("%s", std::format("loading sprite config: {}", path).c_str());
-#endif
   std::ifstream f(path);
 
   // if there's an error here,
@@ -44,6 +43,9 @@ load_sprites(SINGLE_Animations& anims, const std::string& path)
   spritesheet.py = ss["py"];
   spritesheet.nx = ss["nx"];
   spritesheet.ny = ss["ny"];
+
+  if (spritesheet.px_total != texture.size.x || spritesheet.py_total != texture.size.y)
+    throw std::runtime_error("Texture Size / Spritesheet Size mismatch");
 
   std::vector<SpriteAnimation> sprites;
 

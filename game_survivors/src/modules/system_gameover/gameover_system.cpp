@@ -26,8 +26,7 @@ update_gameover_system(entt::registry& r)
 
     const int cu_minutes = (timer_c.time_left_max / 60) - 1 - minutes;
     const int cu_seconds = 59 - seconds;
-
-    ImGui::Text("%i %i", cu_minutes, cu_seconds);
+    // ImGui::Text("%i %i", cu_minutes, cu_seconds);
 
     if (cu_minutes >= 9 && cu_seconds >= 59) {
       // you win!

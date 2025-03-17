@@ -127,8 +127,7 @@
     { "name": "ARROW_1", "frames": [ { "x": 40, "y": 5 } ], "angle": -135.0 },
     { "name": "ARROW_2", "frames": [ { "x": 41, "y": 5 } ], "angle": -135.0 },
     { "name": "SHOVEL", "frames": [ { "x": 42, "y": 5 } ], "angle": -45.0 },
-    { "name": "PICKAXE", "frames": [ { "x": 42, "y": 5 } ], "angle": -30.0 },
-
+    { "name": "PICKAXE", "frames": [ { "x": 43, "y": 5 } ], "angle": -30.0 },
 
     { "name": "PERSON_30_6", "frames": [ { "x": 30, "y": 6 } ] },
     { "name": "ORC", "frames": [ { "x": 30, "y": 6 } ] },

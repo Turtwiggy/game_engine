@@ -154,12 +154,12 @@ public:
 };
 
 std::unordered_set<entt::entity>
-get_all_in_area(entt::registry& r, glm::vec2 center, float d_in_meters)
+get_all_in_area(entt::registry& r, b2Vec2 center_m, float d_in_meters)
 {
   SearchAreaCallback callback;
   b2AABB aabb;
-  aabb.lowerBound = b2Vec2{ center.x - d_in_meters, center.y - d_in_meters };
-  aabb.upperBound = b2Vec2{ center.x + d_in_meters, center.y + d_in_meters };
+  aabb.lowerBound = b2Vec2{ center_m.x - d_in_meters, center_m.y - d_in_meters };
+  aabb.upperBound = b2Vec2{ center_m.x + d_in_meters, center_m.y + d_in_meters };
 
   const auto& physics_c = get_first_component<SINGLE_Physics>(r);
   physics_c.world->QueryAABB(&callback, aabb);

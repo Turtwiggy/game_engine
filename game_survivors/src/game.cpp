@@ -38,6 +38,7 @@
 #include "modules/steam/steam_helpers.hpp"
 #include "modules/steam_debug_ui/steam_debug_ui_system.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/system_ability/ability_system.hpp"
 #include "modules/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
 #include "modules/system_autofire/autofire_system.hpp"
 #include "modules/system_cooldown/cooldown_system.hpp"
@@ -62,7 +63,6 @@
 #include "modules/system_spawner/spawner_components.hpp"
 #include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/system_spawner/spawner_system.hpp"
-#include "modules/system_sprint/sprint_system.hpp"
 #include "modules/system_spritestack/spritestack_system.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade/upgrade_helpers.hpp"
@@ -70,6 +70,7 @@
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
 #include "modules/system_weapon_sea_turret/weapon_sea_turret_system.hpp"
+#include "modules/ui_ability_system/ui_ability_system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_blur/ui_blur_system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -146,16 +147,26 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     //   SDL_Log("Failed to hide system cursor: %s", SDL_GetError());
   }
 
+  // Init steam before loading textures, because
+  // some of the button icon glyph / textures are loaded via steam.
+  init_input_system(r);
+  init_steam(r);
+  init_steam_input(r);
+  create_persistent<SteamOverlayManager>(r);
+
   {
     SINGLE_RendererInfo ri = get_default_textures();
-    SINGLE_Animations anims;
-    for (const auto& tex : ri.user_textures)
-      load_sprites(anims, tex.spritesheet_path);
-    create_persistent<SINGLE_Animations>(r, anims);
     create_persistent<SINGLE_RendererInfo>(r, ri);
     create_persistent<OrthographicCamera>(r);
     r.emplace<TransformComponent>(get_first<OrthographicCamera>(r));
-    init_render_system(app, r);
+    init_render_system(app, r); // load textures
+  }
+  {
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    SINGLE_Animations anims;
+    for (const auto& tex : ri.user_textures)
+      load_sprites(anims, tex);
+    create_persistent<SINGLE_Animations>(r, anims);
   }
 
   create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
@@ -168,12 +179,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_Weapons>(r, load_weapons("assets/raws/weapons.jsonc"));
   create_persistent<SINGLE_OnDiskSpawners>(r, load_spawns("assets/raws/spawns.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
-
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
-  init_input_system(r);
-  init_steam(r);
-  init_steam_input(r);
-  create_persistent<SteamOverlayManager>(r);
   create_persistent<SINGLE_SteamControllerGameState>(r);
 
   move_to_scene_start(r, Scene::splashscreen);
@@ -295,6 +301,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_weapon_sea_turret_system(r, dt);
+    update_ability_system(r, dt);
 
     update_death_throes_system(r, dt);
     update_enemy_charger_system(r);
@@ -341,6 +348,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_upgrade_system(r);
     update_ui_survive_weapon_system(r);
     update_ui_gameover_system(r);
+    update_ui_ability_system(r);
   }
 
 #if defined(_DEBUG)

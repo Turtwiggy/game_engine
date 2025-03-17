@@ -67,7 +67,8 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Game_Select] = SteamInput()->GetDigitalActionHandle("action_select");
   digital_action_handles[(int)DA::Game_Cancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
   digital_action_handles[(int)DA::Game_Shoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
-  digital_action_handles[(int)DA::Game_Sprint] = SteamInput()->GetDigitalActionHandle("action_sprint");
+  digital_action_handles[(int)DA::Game_Ability1] = SteamInput()->GetDigitalActionHandle("action_ability1");
+  digital_action_handles[(int)DA::Game_Ability2] = SteamInput()->GetDigitalActionHandle("action_ability2");
 
   // digital_action_handles[(int)DA::Menu_Up] = SteamInput()->GetDigitalActionHandle("menu_up");
   // digital_action_handles[(int)DA::Menu_Down] = SteamInput()->GetDigitalActionHandle("menu_down");
@@ -140,7 +141,7 @@ update_steam_input_handles(entt::registry& r)
 };
 
 void
-generate_button_down(SINGLE_SteamControllers& steam_c, InputHandle_t handle)
+generate_button_state(SINGLE_SteamControllers& steam_c, InputHandle_t handle)
 {
   const auto you_held = steam_c.last_frame_held[handle]; // copy
 
@@ -148,6 +149,7 @@ generate_button_down(SINGLE_SteamControllers& steam_c, InputHandle_t handle)
   steam_c.last_frame_held[handle].clear();
 
   std::vector<DA> newly_down;
+  std::vector<DA> newly_released;
 
   for (int i = 0; i < static_cast<int>(DA::count); i++) {
     const auto act = magic_enum::enum_cast<DA>(i).value();
@@ -160,12 +162,17 @@ generate_button_down(SINGLE_SteamControllers& steam_c, InputHandle_t handle)
     if (held && !held_last_frame)
       newly_down.push_back(act);
 
+    // Generate button release events.
+    if (!held && held_last_frame)
+      newly_released.push_back(act);
+
     // Now, set the button as held
     if (held)
       steam_c.last_frame_held[handle].push_back(act);
   }
 
   steam_c.this_frame_down[handle] = newly_down;
+  steam_c.this_frame_release[handle] = newly_released;
 };
 
 void
@@ -176,10 +183,10 @@ update_steam_input(entt::registry& r)
   // check connect/disconnects
   update_steam_input_handles(r);
 
-  // Generate button held states for all the handles.
+  // Generate button down states for all the handles.
   steam_c.this_frame_down.clear();
   for (int h = 0; h < steam_c.n_active; h++)
-    generate_button_down(steam_c, steam_c.handles[h]);
+    generate_button_state(steam_c, steam_c.handles[h]);
 };
 
 bool
@@ -215,6 +222,20 @@ controller_button_held(const SINGLE_SteamControllers& steam_c, InputHandle_t han
 
   return false;
 };
+
+bool
+controller_button_release(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dAction)
+{
+  if (handle == 0)
+    return false;
+  const std::unordered_map<InputHandle_t, std::vector<DA>>& all_release = steam_c.this_frame_release;
+  if (!all_release.contains(handle))
+    return false;
+  const auto& you_release = all_release.at(handle);
+
+  const auto it = std::find(you_release.begin(), you_release.end(), dAction);
+  return it != std::end(you_release);
+}
 
 glm::vec2
 controller_axis(entt::registry& r, InputHandle_t handle, AA aAction)

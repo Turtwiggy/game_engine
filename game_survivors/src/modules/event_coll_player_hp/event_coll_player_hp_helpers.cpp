@@ -25,7 +25,7 @@ handle_player_enter_hp(entt::registry& r, const OnCollisionEnter& evt)
   const auto par_e = r.get<HasParentComponent>(zone_e).parent;
   const auto fix_e = get_fixture_by_tag(r, par_e, "fixture_player");
   auto& hp_c = r.get<HealthComponent>(fix_e);
-  const auto amount = hp_c.max_hp * 0.2; // heal 20%
+  const auto amount = hp_c.max_hp * 1.0; // heal 100%
   hp_c.hp += amount;
   hp_c.hp = glm::min(hp_c.hp, hp_c.max_hp);
 

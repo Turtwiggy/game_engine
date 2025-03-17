@@ -47,7 +47,7 @@ main()
   int index = int(fs_in.v_tex_unit);
 
   // vec2 sprite_uv = (v_uv - v_pos)
-  vec2 texel_size = 2.0 / vec2(textureSize(tex_to_outline, 0));
+  vec2 texel_size = 3.0 / vec2(textureSize(tex_to_outline, 0));
   vec2 up = vec2(0, texel_size.y);
   vec2 rgt = vec2(texel_size.x, 0);
 

@@ -24,6 +24,9 @@ controller_button_down(const SINGLE_SteamControllers& steam_c, InputHandle_t han
 bool
 controller_button_held(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dAction);
 
+bool
+controller_button_release(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dAction);
+
 glm::vec2
 controller_axis(entt::registry& r, InputHandle_t handle, AA aAction);
 

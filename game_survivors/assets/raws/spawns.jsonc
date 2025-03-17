@@ -67,7 +67,7 @@
     {
       "name": "wave", "time": { "start": 6, "stop": 7 },
       "enemies": [
-        { "key": "actor_enemy_charger",  "data": { "hp": 40, "max": 30, "num_per_spawn": 10}}, // sea horse
+        { "key": "actor_enemy_charger",  "data": { "hp": 40, "max": 30, "num_per_spawn": 4}}, // sea horse
         { "key": "actor_enemy_exploder", "data": { "hp": 35, "max": 10, "num_per_spawn": 2}}   // puffer
       ]
     },
