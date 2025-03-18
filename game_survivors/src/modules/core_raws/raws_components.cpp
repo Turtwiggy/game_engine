@@ -343,7 +343,9 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
           valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
           return valid_target;
         };
-        add_explode_on_death_callback(r, e, filter_criteria);
+
+        const float enemy_explosion_radius_pixels = 50.0f;
+        add_explode_on_death_callback(r, e, enemy_explosion_radius_pixels, filter_criteria);
         big_explode = true;
       }
 
@@ -406,8 +408,13 @@ spawn(entt::registry& r, const std::string& key)
 };
 
 entt::entity
-spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::entity parent)
+spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
 {
+  const auto parent = req.parent;
+  if (parent == entt::null)
+    throw std::runtime_error("particle-emitter parent not set.");
+
+  const auto key = req.key;
   const auto e = create_transform(r, "particle_emitter");
 
   r.emplace<SetPositionAtDynamicTarget>(e);
@@ -427,8 +434,8 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::en
     pdesc.start_colour = hex_to_srgb("#a64a2e"); // dark red
   }
   if (key.find("death_exploder") != std::string::npos) {
-    pdesc.start_size = { explosion_radius_pixels * 2, explosion_radius_pixels * 2 };
-    pdesc.end_size = { explosion_radius_pixels * 1, explosion_radius_pixels * 1 };
+    pdesc.start_size = { req.radius * 2, req.radius * 2 };
+    pdesc.end_size = { req.radius * 1, req.radius * 1 };
   }
   if (key.find("default_trail") != std::string::npos) {
     pdesc.start_size = { 2, 2 };

@@ -1,21 +1,21 @@
 #include "pch.hpp"
 
-#include "modules/actor_player/actor_player_system.hpp"
-
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
-#include "engine/events/helpers/controller.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actor_player/actor_player_system.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_ability/ability_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 
 namespace game2d {
 
@@ -90,19 +90,14 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 void
 update_player_controller_system(entt::registry& r, const uint64_t milliseconds_dt, const glm::ivec2& mouse_pos)
 {
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   int sdl_controllers_used = 0;
 
   const auto& view = r.view<InputComponent, TransformComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, i, t_c] : view.each()) {
-    //
-    i.lx = 0.0f;
-    i.ly = 0.0f;
-    i.rx = 0.0f;
-    i.ry = 0.0f;
-    i.shoot = false;
-    i.sprint = false;
+    i = {}; // reset all inputs every frame
 
     // set rx based on mouse input if selected
     if (const auto* keyboard_c = r.try_get<KeyboardComponent>(e)) {
@@ -120,24 +115,37 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
       i.lx += get_key_held(input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
       i.lx += get_key_held(input_c, SDL_SCANCODE_D) ? 1.0f : 0.0f;
-      i.shoot |= get_mouse_lmb_held();
-      i.sprint |= get_key_held(input_c, SDL_SCANCODE_LSHIFT);
+
+      if (get_mouse_lmb_press())
+        i.ability1.push_back(ActionStateEnum::DOWN);
+      if (get_mouse_lmb_held())
+        i.ability1.push_back(ActionStateEnum::HELD);
+      if (get_mouse_lmb_release())
+        i.ability1.push_back(ActionStateEnum::RELEASE);
+      if (get_mouse_rmb_press())
+        i.ability2.push_back(ActionStateEnum::DOWN);
+      if (get_mouse_rmb_held())
+        i.ability2.push_back(ActionStateEnum::HELD);
+      if (get_mouse_rmb_release())
+        i.ability2.push_back(ActionStateEnum::RELEASE);
+
+      auto generate_actions_from_keyboard = [&input_c](std::vector<ActionStateEnum>& acts, const SDL_Scancode key) {
+        if (get_key_down(input_c, key))
+          acts.push_back(ActionStateEnum::DOWN);
+        if (get_key_held(input_c, key))
+          acts.push_back(ActionStateEnum::HELD);
+        if (get_key_up(input_c, key))
+          acts.push_back(ActionStateEnum::RELEASE);
+      };
+      generate_actions_from_keyboard(i.pause, SDL_SCANCODE_ESCAPE);
+      generate_actions_from_keyboard(i.dpad_u, SDL_SCANCODE_UP);
+      generate_actions_from_keyboard(i.dpad_d, SDL_SCANCODE_DOWN);
+      generate_actions_from_keyboard(i.dpad_l, SDL_SCANCODE_LEFT);
+      generate_actions_from_keyboard(i.dpad_r, SDL_SCANCODE_RIGHT);
     }
 
-    if (const auto* controller_c = r.try_get<SDLControllerComponent>(e)) {
-      if (sdl_controllers_used < int(input_c.controllers.size())) {
-
-        // todo: map plugged in controller idxs to player
-        // todo: dont just use idx 0
-        auto* controller = input_c.controllers[0];
-
-        i.lx += get_axis_01(controller, controller_c->c_left_stick_x);
-        i.ly += get_axis_01(controller, controller_c->c_left_stick_y);
-      }
-      // else {
-      //   SDL_Log("Not enough controllers plugged in...");
-      // }
-      sdl_controllers_used++;
+    if (auto* sdl_controller_c = r.try_get<SDLControllerComponent>(e)) {
+      // ... not impl
     }
 
     if (auto* controller_c = r.try_get<SteamControllerComponent>(e)) {
@@ -145,19 +153,38 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
       // Handle assigned via menu
       if (controller_c->handle == 0)
         continue;
+      if (handle_joined_this_frame(steam_gs_c, controller_c->handle))
+        return; // prevent immediately doing do_ui_action
 
       const auto handle = controller_c->handle;
       const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
       const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
-      const auto shoot = controller_button_held(steam_c, handle, DA::Game_Shoot);
-      const auto sprint = controller_button_held(steam_c, handle, DA::Game_Sprint);
-      i.lx = l_analog.x;
-      i.ly = -l_analog.y; // flip y
-      i.rx = r_analog.x;
-      i.ry = -r_analog.y; // flip y
-      i.shoot |= shoot;
-      i.sprint |= sprint;
+      i.lx += l_analog.x;
+      i.ly += -l_analog.y; // flip y
+      i.rx += r_analog.x;
+      i.ry += -r_analog.y; // flip y
+
+      const auto generate_actions = [&steam_c, &handle](std::vector<ActionStateEnum>& acts, const DA& da) {
+        if (controller_button_down(steam_c, handle, da))
+          acts.push_back(ActionStateEnum::DOWN);
+        if (controller_button_held(steam_c, handle, da))
+          acts.push_back(ActionStateEnum::HELD);
+        if (controller_button_release(steam_c, handle, da))
+          acts.push_back(ActionStateEnum::RELEASE);
+      };
+      generate_actions(i.pause, DA::Game_Pause);
+      generate_actions(i.ability1, DA::Game_Ability1);
+      generate_actions(i.ability2, DA::Game_Ability2);
+      generate_actions(i.dpad_u, DA::Game_Up);
+      generate_actions(i.dpad_d, DA::Game_Down);
+      generate_actions(i.dpad_l, DA::Game_Left);
+      generate_actions(i.dpad_r, DA::Game_Right);
     }
+
+    i.lx = glm::clamp(i.lx, -1.0f, 1.0f);
+    i.ly = glm::clamp(i.ly, -1.0f, 1.0f);
+    i.rx = glm::clamp(i.rx, -1.0f, 1.0f);
+    i.ry = glm::clamp(i.ry, -1.0f, 1.0f);
   }
 };
 

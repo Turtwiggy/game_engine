@@ -20,7 +20,6 @@
 #include "modules/combat/combat_helpers.hpp"
 #include "modules/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
-#include "modules/controller_input_open_ui/controller_input_open_ui_system.hpp"
 #include "modules/core_animations/rotate_system.hpp"
 #include "modules/core_animations/wiggle/wiggle_up_and_down.hpp"
 #include "modules/core_animator/animator_system.hpp"
@@ -49,6 +48,7 @@
 #include "modules/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_helpers.hpp"
+#include "modules/system_input_open_ui/input_open_ui_system.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
 #include "modules/system_item_gold/gold_helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
@@ -262,12 +262,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_sdl_event_system(app, r); // sets update_since_last_fixed_update
   update_steam_input(r);
-  update_controller_input_open_ui_system(r);
   update_camera_system(r, dt);
   update_audio_system(r, dt);
-  update_events_system(r); // dispatch events
   update_player_controller_system(r, milliseconds_dt, mouse_pos);
   update_screenshake_system(r, dt);
+  update_input_open_ui_system(r);
+  update_events_system(r); // dispatch events
 
   if (scene.s == Scene::pressanykey)
     update_scene_pressanykey_move_to_next_system(r, dt);

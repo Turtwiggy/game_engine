@@ -226,7 +226,7 @@ entt::entity
 spawn(entt::registry& r, const std::string& key);
 
 entt::entity
-spawn_particle_emitter(entt::registry& r, const std::string& key, const entt::entity parent);
+spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req);
 
 entt::entity
 spawn_particle(entt::registry& r, const std::string& key, const Particle& desc);

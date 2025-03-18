@@ -32,6 +32,7 @@
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/system_particles/components.hpp"
 #include "modules/system_player_out_of_bounds/player_out_of_bounds_components.hpp"
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/components.hpp"
@@ -47,10 +48,10 @@
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
-
 
 namespace game2d {
 
@@ -239,14 +240,22 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
       const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-l");
       r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
       r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
-      spawn_particle_emitter(r, "default_trail", emitter_parent_e);
+
+      RequestToSpawnParticles req;
+      req.key = "default_trail";
+      req.parent = emitter_parent_e;
+      spawn_particle_emitter(r, req);
     }
     {
       const auto tl_offset = glm::vec2{ inset, size.y - inset };
       const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-r");
       r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
       r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
-      spawn_particle_emitter(r, "default_trail", emitter_parent_e);
+
+      RequestToSpawnParticles req;
+      req.key = "default_trail";
+      req.parent = emitter_parent_e;
+      spawn_particle_emitter(r, req);
     }
   }
 
@@ -359,73 +368,23 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
-
-    create_empty<AudioRequestPlayEvent>(r,
-                                        AudioRequestPlayEvent{
-                                          .tag = "MENU_0",
-                                          .looping = true,
-                                          .percent_of_max_user_volume = 1.0f,
-                                        });
-
-    create_empty<AudioRequestPlayEvent>(r,
-                                        AudioRequestPlayEvent{
-                                          .tag = "WATER_AMBIENCE_0",
-                                          .looping = true,
-                                          .percent_of_max_user_volume = 1.0f,
-                                        });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
 
     // load player's saved units
     // const auto units = load_units(r);
     // std::for_each(units.begin(), units.end(), [&r](const auto& u) { add_unit_to_entt(r, u); });
-
-    // const auto& ri_c = get_first_component<game2d::SINGLE_RendererInfo>(r);
-    // const auto viewport_half = glm::vec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
-    // const glm::vec2 pos = { ri_c.viewport_size_render_at.x - viewport_half.x,
-    //                         ri_c.viewport_size_render_at.y - viewport_half.y };
-    // const auto col = hex_to_srgb("#27445D");
-    // auto e = create_empty<TransformComponent>(r);
-    // r.emplace<SpriteComponent>(e);
-    // set_sprite(r, e, "EMPTY");
-    // set_size(r, e, ri_c.viewport_size_render_at);
-    // set_position(r, e, pos); // center
-    // set_colour(r, e, col);
   }
 
   if (s == Scene::select) {
-
-    // create_empty<AudioRequestPlayEvent>(r,
-    //                                     AudioRequestPlayEvent{
-    //                                       .tag = "WATER_AMBIENCE_0",
-    //                                       .looping = true,
-    //                                       .percent_of_max_user_volume = 1.0f,
-    //                                     });
-
-    create_empty<AudioRequestPlayEvent>(r,
-                                        AudioRequestPlayEvent{
-                                          .tag = "SELECT_0",
-                                          .looping = true,
-                                          .percent_of_max_user_volume = 1.0f,
-                                        });
-
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
     create_empty<SINGLE_SelectSceneData>(r);
   }
 
   if (s == Scene::survive) {
-
-    create_empty<AudioRequestPlayEvent>(r,
-                                        AudioRequestPlayEvent{
-                                          .tag = "WATER_AMBIENCE_0",
-                                          .looping = true,
-                                          .percent_of_max_user_volume = 1.0f,
-                                        });
-
-    create_empty<AudioRequestPlayEvent>(r,
-                                        AudioRequestPlayEvent{
-                                          .tag = "GAME_0",
-                                          .looping = true,
-                                          .percent_of_max_user_volume = 1.0f,
-                                        });
-
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "GAME_0", .looping = true });
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);
@@ -453,27 +412,32 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // TODO: replace this player spawn system to a more dynamic
     // spawn system that lets players join halfway through
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
-    for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
-      const auto handle = controller_ui.handles[i];
-      if (handle == 0)
-        continue;
+    const int n_max_players = 4;
 
+    for (int i = 0; i < n_max_players; i++) {
+
+      // controller connected for players
+      const auto handle = controller_ui.handles[i];
+      const bool handle_joined = handle_is_joined(controller_ui, handle);
+
+      // note: always has 1 player using keyboard
+      if (i > 0 && !handle_joined)
+        continue; // no controller for p2-4
+
+      // validate weapons are set
       const auto boat_str = hull_keys[i].player_boat;
       if (boat_str == "")
         throw std::runtime_error("boat_str not set");
-
       const auto weapon_str = hull_keys[i].player_gun;
       if (weapon_str == "")
         throw std::runtime_error("weapon_str not set");
-
       SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
 
       const auto p = spawn_player(r, "actor_player", { 0, 0 }, i, boat_str, weapon_str);
 
-      // assign handle
-      r.get<SteamControllerComponent>(p).handle = handle;
+      if (handle_joined)
+        r.get<SteamControllerComponent>(p).handle = handle;
 
-      // Note: if the steamcontroller has a handle, controller overwrites keyboard
       if (i == 0)
         r.emplace<KeyboardComponent>(p);
     }

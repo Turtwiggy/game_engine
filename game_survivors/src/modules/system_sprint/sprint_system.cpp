@@ -19,7 +19,10 @@ update_sprint_system(entt::registry& r, float dt)
     const auto key_stamina = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_STAMINA));
     const auto mod_stamina = upgrades_c.apply_modifiers(val, key_stamina);
 
-    if (input_c.sprint)
+    bool sprint = false;
+    // if (input_c.sprint)
+
+    if (sprint)
       stamina_c.cur_stamina -= stamina_c.depletion_rate * dt;
     else
       stamina_c.cur_stamina += stamina_c.depletion_rate * dt; // increase at depletion rate?
@@ -28,7 +31,7 @@ update_sprint_system(entt::registry& r, float dt)
     stamina_c.cur_stamina = glm::clamp(stamina_c.cur_stamina, 0.0f, mod_stamina);
 
     // you're sprinting!
-    if (input_c.sprint && stamina_c.cur_stamina != 0.0f)
+    if (sprint && stamina_c.cur_stamina != 0.0f)
       speed_c.current_speed = 2.0 * speed_c.base_speed;
     // yer walkin
     else

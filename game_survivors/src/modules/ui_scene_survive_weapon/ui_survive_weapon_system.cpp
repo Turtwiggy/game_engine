@@ -15,7 +15,6 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui_helpers/ui_helpers.hpp"
 
 namespace game2d {
 

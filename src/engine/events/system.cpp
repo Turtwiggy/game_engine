@@ -164,6 +164,7 @@ update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
     }
   }
 
+  /*
   // generate HELD state for controller
   {
     for (SDL_GameController* c : input.controllers) {
@@ -217,6 +218,7 @@ update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
       generate_held_input(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
     }
   }
+  */
 };
 
 } // namespace game2d

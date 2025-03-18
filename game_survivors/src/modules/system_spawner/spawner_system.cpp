@@ -206,6 +206,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.emplace<TreasureEnemyComponent>(e);
 
     // Dont drop xp. (drop something else)
+    auto& callbacks_c = r.get<OnDeathCallbacks>(e);
     callbacks_c.callbacks.clear();
 
     const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players(r);

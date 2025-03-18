@@ -3,15 +3,12 @@
 #include "ability_components.hpp"
 #include "ability_system.hpp"
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_player/actor_player_helpers.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/steam_input/steam_input_components.hpp"
-#include "modules/steam_input/steam_input_helpers.hpp"
-#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 
 namespace game2d {
 
@@ -79,20 +76,8 @@ anchor_release(entt::registry& r, entt::entity e, const InputComponent& input_c,
 void
 update_ability_system(entt::registry& r, const float dt)
 {
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
-  const auto nz_handles = non_zero_handles(steam_gs_c.handles);
-
   for (const auto& [e, player_c, input_c, body_c, ability_c] :
        r.view<const PlayerComponent, const InputComponent, const PhysicsBodyComponent, AbilityComponent>().each()) {
-
-    auto* controller_c = r.try_get<SteamControllerComponent>(e);
-    if (!controller_c)
-      continue; // should check for keyboard
-
-    const auto handle = controller_c->handle;
-    if (handle == 0)
-      continue;
 
     if (ability_c.ability_1_cooldown_left > 0.0f)
       ability_c.ability_1_cooldown_left -= dt;
@@ -102,28 +87,32 @@ update_ability_system(entt::registry& r, const float dt)
     const bool allowed_to_use_ability_1 = ability_c.ability_1_cooldown_left <= 0.0f;
     const bool allowed_to_use_ability_2 = ability_c.ability_2_cooldown_left <= 0.0f;
 
-    if (allowed_to_use_ability_1 && controller_button_down(steam_c, handle, DA::Game_Ability1)) {
-      anchor_down(r, e);
-      ability_c.ability_1_in_progress = true;
-    }
-    if (allowed_to_use_ability_1 && controller_button_held(steam_c, handle, DA::Game_Ability1)) {
-      anchor_held(r, e, input_c, body_c);
-    }
-    if (allowed_to_use_ability_1 && controller_button_release(steam_c, handle, DA::Game_Ability1)) {
-      anchor_release(r, e, input_c, body_c);
-      ability_c.ability_1_in_progress = false;
-      ability_c.ability_1_cooldown_left = ability_c.ability_1_cooldown;
+    if (allowed_to_use_ability_1) {
+      if (has_action(input_c.ability1, ActionStateEnum::DOWN)) {
+        anchor_down(r, e);
+        ability_c.ability_1_in_progress = true;
+      }
+      if (has_action(input_c.ability1, ActionStateEnum::HELD)) {
+        anchor_held(r, e, input_c, body_c);
+      }
+      if (has_action(input_c.ability1, ActionStateEnum::RELEASE)) {
+        anchor_release(r, e, input_c, body_c);
+        ability_c.ability_1_in_progress = false;
+        ability_c.ability_1_cooldown_left = ability_c.ability_1_cooldown;
+      }
     }
 
-    if (allowed_to_use_ability_2 && controller_button_down(steam_c, handle, DA::Game_Ability2)) {
-      boop_ability(r, e);
-      ability_c.ability_2_in_progress = true;
-    }
-    if (allowed_to_use_ability_2 && controller_button_held(steam_c, handle, DA::Game_Ability2)) {
-    }
-    if (allowed_to_use_ability_2 && controller_button_release(steam_c, handle, DA::Game_Ability2)) {
-      ability_c.ability_2_in_progress = false;
-      ability_c.ability_2_cooldown_left = ability_c.ability_2_cooldown;
+    if (allowed_to_use_ability_2) {
+      if (has_action(input_c.ability2, ActionStateEnum::DOWN)) {
+        boop_ability(r, e);
+        ability_c.ability_2_in_progress = true;
+      }
+      if (has_action(input_c.ability2, ActionStateEnum::HELD)) {
+      }
+      if (has_action(input_c.ability2, ActionStateEnum::RELEASE)) {
+        ability_c.ability_2_in_progress = false;
+        ability_c.ability_2_cooldown_left = ability_c.ability_2_cooldown;
+      }
     }
   }
 }

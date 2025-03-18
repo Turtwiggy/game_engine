@@ -67,6 +67,9 @@ struct RequestToSpawnParticles
 {
   glm::ivec2 position{ 0, 0 };
   std::string key = "default_explode";
+
+  float radius = 0.0f;
+  entt::entity parent = entt::null;
 };
 
 } // namespace game2d

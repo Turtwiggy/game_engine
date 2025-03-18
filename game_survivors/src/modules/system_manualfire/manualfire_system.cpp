@@ -114,7 +114,8 @@ update_manualfire_system(entt::registry& r, const float dt)
       weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
 
     // input
-    const bool shoot = parent_input_c.shoot;
+    const bool shoot = false;
+    // parent_input_c. shoot;
     if (!shoot)
       continue;
 

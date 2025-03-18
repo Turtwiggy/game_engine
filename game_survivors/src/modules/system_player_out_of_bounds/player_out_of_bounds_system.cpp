@@ -30,9 +30,9 @@ update_player_out_of_bounds_system(entt::registry& r, const float dt)
     const auto d = get_position(r, e) - glm::vec2{ 0, 0 };
     const auto d2 = d.x * d.x + d.y * d.y;
 
-#if defined(_DEBUG)
-    ImGui::Text("%f %i", d2, map_radius_sqr);
-#endif
+    // #if defined(_DEBUG)
+    //     ImGui::Text("%f %i", d2, map_radius_sqr);
+    // #endif
 
     if (d2 < map_radius_sqr)
       continue; // in the safe-zone circle

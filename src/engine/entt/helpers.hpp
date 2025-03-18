@@ -169,6 +169,19 @@ filter_view(View view, Predicate pred)
   return result;
 };
 
+template<class T>
+std::vector<entt::entity>
+view_to_vector_of_ents(entt::registry& r)
+{
+  auto view = r.view<T>();
+
+  std::vector<entt::entity> vec;
+  for (const auto& [e, comp_c] : view.each())
+    vec.push_back(e);
+
+  return vec;
+};
+
 #define GET_FIRST_OR_RETURN(TYPE, REGISTRY, ENTITY_VAR, COMPONENT_VAR)                                                      \
   const auto ENTITY_VAR = get_first<TYPE>(REGISTRY);                                                                        \
   if (ENTITY_VAR == entt::null)                                                                                             \

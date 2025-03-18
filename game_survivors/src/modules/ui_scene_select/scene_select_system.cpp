@@ -176,7 +176,7 @@ draw_player_select_box(entt::registry& r,
 
       // update state? note: .key not .name
       game_state_c.player_gun = weapon.key;
-      SDL_Log("Updated player gun choice: %s", game_state_c.player_gun.c_str());
+      // SDL_Log("Updated player gun choice: %s", game_state_c.player_gun.c_str());
     }
 
     // append hull name to label

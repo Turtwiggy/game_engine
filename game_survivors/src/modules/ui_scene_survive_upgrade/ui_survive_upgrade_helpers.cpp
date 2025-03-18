@@ -2,9 +2,9 @@
 
 #include "ui_survive_upgrade_helpers.hpp"
 
+#include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/ui_helpers/ui_helpers.hpp"
 #include "ui_survive_upgrade_components.hpp"
 
 namespace game2d {

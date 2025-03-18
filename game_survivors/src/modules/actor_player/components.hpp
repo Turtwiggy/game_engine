@@ -80,6 +80,14 @@ struct RotateToVelocityComponent
   bool placeholder = true;
 };
 
+enum class ActionStateEnum
+{
+  NONE,
+  DOWN,
+  HELD,
+  RELEASE,
+};
+
 //
 struct InputComponent
 {
@@ -87,8 +95,13 @@ struct InputComponent
   float ly = 0.0f;
   float rx = 0.0f;
   float ry = 0.0f;
-  bool shoot = false;
-  bool sprint = false;
+  std::vector<ActionStateEnum> pause;
+  std::vector<ActionStateEnum> ability1;
+  std::vector<ActionStateEnum> ability2;
+  std::vector<ActionStateEnum> dpad_u;
+  std::vector<ActionStateEnum> dpad_d;
+  std::vector<ActionStateEnum> dpad_l;
+  std::vector<ActionStateEnum> dpad_r;
 };
 
 // move like asteroids

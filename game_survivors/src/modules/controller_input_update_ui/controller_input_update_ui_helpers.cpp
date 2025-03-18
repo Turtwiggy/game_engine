@@ -65,15 +65,15 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   // Update menu via keyboard (debug, mostly)
   //
   {
-    if (get_key_down(input, SDL_SCANCODE_DOWN))
-      v_selected--;
     if (get_key_down(input, SDL_SCANCODE_UP))
+      v_selected--;
+    if (get_key_down(input, SDL_SCANCODE_DOWN))
       v_selected++;
     if (get_key_down(input, SDL_SCANCODE_LEFT))
       state.rows[v_selected].col_index--;
     if (get_key_down(input, SDL_SCANCODE_RIGHT))
       state.rows[v_selected].col_index++;
-    if (get_key_down(input, SDL_SCANCODE_KP_ENTER))
+    if (get_key_down(input, SDL_SCANCODE_RETURN))
       state.new_actions.push_back(UIAction::SELECT);
     if (get_key_down(input, SDL_SCANCODE_KP_DECIMAL))
       state.new_actions.push_back(UIAction::BACK);
