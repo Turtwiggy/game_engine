@@ -80,9 +80,9 @@ update_ui_survive_info_system(entt::registry& r)
 
     ImGui::NewLine();
     ImGui::Text("Upgrades...");
-    const auto& upgrade_c = r.get_or_emplace<UpgradeComponent>(e);
-    for (const auto& upgrade : upgrade_c.aquired_upgrades)
-      ImGui::Text("%s", upgrade.c_str());
+    // const auto& upgrade_c = r.get_or_emplace<UpgradeComponent>(e);
+    // for (const auto& upgrade : upgrade_c.aquired_upgrades)
+    //   ImGui::Text("%s", upgrade.c_str());
 
     ImGui::NewLine();
     ImGui::Text("Actor...");

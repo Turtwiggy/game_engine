@@ -16,7 +16,13 @@ struct SINGLE_MainMenuUI
   // prevent immediately doing action when sent by other scene
   bool one_frame_buffer = true;
 
+  bool display = true;
   UIState state;
+};
+
+struct RequestToShowMainMenu
+{
+  bool placeholder = true;
 };
 
 struct MenuToNextSceneInfo

@@ -3,23 +3,22 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/imgui/helpers.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
-#include "modules/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui_popup_options/ui_popup_options_components.hpp"
-#include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
-
-#include "engine/entt/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
+#include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_scene_main_menu/helpers.hpp"
+#include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
+#include "modules/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
 namespace game2d {
@@ -48,7 +47,7 @@ text_with_dropshadow(std::string text, const ImVec4& col)
   ImGui::TextColored(col, "%s", text.c_str());
 };
 
-auto init_menu = [](entt::registry& r) {
+const auto init_menu = [](entt::registry& r) {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
 
@@ -105,8 +104,21 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   if (ui_c.one_frame_buffer) {
     ui_c.one_frame_buffer = false;
     init_menu(r);
+
+    // the main menu is the default menu, enable it
+    ui_c.display = true;
+
     return;
   }
+
+  // process requests to show menu
+  auto req_show_main_menu_view = r.view<RequestToShowMainMenu>();
+  if (req_show_main_menu_view.size() > 0)
+    ui_c.display = true;
+  r.destroy(req_show_main_menu_view.begin(), req_show_main_menu_view.end());
+
+  if (!ui_c.display)
+    return;
 
   ImGuiIO& io = ImGui::GetIO();
 
@@ -138,14 +150,22 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
     auto play_action = [&r]() { move_to_scene_start(r, Scene::select); };
     auto test_action = [&r]() { move_to_scene_start(r, Scene::procedural_snake); };
-    auto options_action = [&r]() { create_empty<RequestToShowOptionsMenu>(r); };
+    auto upgrade_action = [&r, &ui_c]() {
+      ui_c.display = false;
+      create_empty<RequestToShowUpgradesMenu>(r);
+    };
+    auto options_action = [&r, &ui_c]() {
+      ui_c.display = false;
+      create_empty<RequestToShowOptionsMenu>(r);
+    };
     auto exit_action = [&app]() { app.running = false; };
 
     ui_c.state.rows.push_back(RowState{ .col_name = "Play", .action = play_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Upgrades", .action = upgrade_action });
 #if defined(_DEBUG)
     // ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });
 #endif
-    ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
+    // ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
     ui_c.state.rows.push_back(RowState{ .col_name = "Exit", .action = exit_action });
 
     ui_c.state.init = true;
@@ -175,12 +195,17 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
     auto& row = ui_c.state.rows[i];
 
+    int col_idx = 0;
+
     auto a_def = SelectableButtonDef{
       .label = row.col_name,
       .size = button_size,
-      .index = i,
       .input = do_act,
-      .sel_index = selected,
+      .my_row_index = i,
+      .my_col_index = 0, // one col
+      .ui_row_index = ui_c.state.current_row_index,
+      .ui_col_index = col_idx, // one col
+      .ui_col_active = true,   // one col
     };
 
     if (selectable_button(a_def))
@@ -194,7 +219,6 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   // note: could be in a separate file
   ui_mute_sound_icon(r);
-  ui_gold(r);
 };
 
 } // namespace game2d

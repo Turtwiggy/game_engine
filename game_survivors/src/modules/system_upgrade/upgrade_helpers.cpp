@@ -33,35 +33,14 @@ load_upgrades(std::string path)
 
   // Parse the upgrades at load, to make sure they're all valid.
   for (const Upgrade& u : upgrades_c.upgrades) {
-    const auto& effects = u.effects;
 
-    for (const Effects& effect : effects) {
-
-      // Validate UpgradeableStat
-      if (effect.stat.has_value()) {
-        const auto& stat_raw = effect.stat.value();
-        const auto stat_enum_opt = magic_enum::enum_cast<UpgradeableStat>(stat_raw);
-        if (!stat_enum_opt.has_value()) {
-          std::string err = std::format("Unknown stat: {}", stat_raw);
-          SDL_Log("%s", err.c_str());
-          exit(1); // crash
-        }
-        const auto stat_enum = stat_enum_opt.value();
-        const auto stat_enum_key = std::string(magic_enum::enum_name(stat_enum));
-      }
-
-      // Validate Traits
-      if (effect.trait.has_value()) {
-        const auto& trait_raw = effect.trait.value();
-        const auto trait_enum_opt = magic_enum::enum_cast<AquirableTrait>(trait_raw);
-        if (!trait_enum_opt.has_value()) {
-          std::string err = std::format("Unknown trait: {}", trait_raw);
-          SDL_Log("%s", err.c_str());
-          exit(1); // crash
-        }
-        const auto trait_enum = trait_enum_opt.value();
-        const auto trait_enum_key = std::string(magic_enum::enum_name(trait_enum));
-      }
+    // validate key
+    auto key = u.key;
+    const auto stat_enum_opt = magic_enum::enum_cast<UpgradeableStat>(key);
+    if (!stat_enum_opt.has_value()) {
+      std::string err = std::format("Unknown stat: {}", key);
+      SDL_Log("%s", err.c_str());
+      exit(1); // crash
     }
   }
 
@@ -74,7 +53,7 @@ available_upgrade_names(entt::registry& r)
   const auto& up_c = get_first_component<SINGLE_Upgrades>(r);
 
   std::vector<std::string> keys;
-  const auto get_upgrade_names = [](const auto& u) { return u.name; };
+  const auto get_upgrade_names = [](const auto& u) { return u.key; };
   std::transform(up_c.upgrades.begin(), up_c.upgrades.end(), std::back_inserter(keys), get_upgrade_names);
 
   return keys;
@@ -85,7 +64,7 @@ find_upgrade(entt::registry& r, const std::string& key)
 {
   const auto& up_c = get_first_component<SINGLE_Upgrades>(r);
 
-  auto find_lambda = [&key](const Upgrade& u) { return u.name == key; };
+  auto find_lambda = [&key](const Upgrade& u) { return u.key == key; };
   auto it = std::find_if(up_c.upgrades.begin(), up_c.upgrades.end(), find_lambda);
 
   if (it == up_c.upgrades.end()) {
@@ -96,6 +75,7 @@ find_upgrade(entt::registry& r, const std::string& key)
   return *it;
 };
 
+/*
 std::string
 generate_description(const Upgrade& u)
 {
@@ -131,5 +111,6 @@ generate_description(const Upgrade& u)
 
   return desc;
 }
+*/
 
 } // namespace game2d

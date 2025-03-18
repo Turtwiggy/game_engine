@@ -9,7 +9,6 @@
 #include "engine/sprites/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
-#include "modules/system_item_gold/gold_components.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -106,9 +105,8 @@ ui_mute_sound_icon(entt::registry& r)
   audio.mute_sfx = mute;
 
   // toggle: mute to unmute
-  if (toggle_changed && mute == 0) {
+  if (toggle_changed && mute == 0)
     SDL_Log("%s", std::format("TODO: implement unmute all").c_str());
-  }
 
   // toggle: unmute to mute. stop all music.
   if (toggle_changed && mute == 1) {
@@ -118,35 +116,5 @@ ui_mute_sound_icon(entt::registry& r)
 
   ImGui::End();
 };
-
-void
-ui_gold(entt::registry& r)
-{
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-
-  // show a sound icon
-  ImGuiWindowFlags icon_flags = 0;
-  icon_flags |= ImGuiWindowFlags_NoCollapse;
-  icon_flags |= ImGuiWindowFlags_NoTitleBar;
-  icon_flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  icon_flags |= ImGuiWindowFlags_NoBackground;
-
-  const ImVec2 icon_size{ 50, 50 };
-  const auto [tl, br] = convert_sprite_to_uv(r, "COINPILE_1"s);
-
-  const float distance_from_left_of_screen = 0;
-  const float distance_from_top_of_screen = 75;
-
-  const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  ImGui::SetNextWindowPos(
-    ImVec2(viewport->WorkPos.x + distance_from_left_of_screen, viewport->WorkPos.y + distance_from_top_of_screen));
-
-  ImGui::Begin("Gold", nullptr, icon_flags);
-
-  auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
-  ImGui::Text("GOLD: %i", gold_c.amount);
-
-  ImGui::End();
-}
 
 } // namespace game2d

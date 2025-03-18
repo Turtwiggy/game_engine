@@ -12,12 +12,15 @@ struct SelectableButtonDef
 {
   std::string label;
   ImVec2 size{ 20, 20 };
-  int index = 0; // position in layout
   bool input;
 
   // layout index
   // note: hovering the selected button chan change the sel_index
-  int& sel_index;
+  int my_row_index = 0;
+  int my_col_index = 0;
+  int& ui_row_index;
+  int& ui_col_index;
+  bool ui_col_active = true;
 };
 
 struct RowState
@@ -43,8 +46,6 @@ struct UIState
 
   // vertical select
   int current_row_index = 0;
-
-  // horizontal state
   std::vector<RowState> rows;
 
   std::vector<UIAction> new_actions;

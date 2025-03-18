@@ -40,7 +40,7 @@
 
     {
       "key": "weapon_swivel_cannon",
-      "name": "Swivel Gun",
+      "name": "Swivel Gun",       // SMG-type
       "desc": "A lightweight cannon that fires smaller rounds at a high rate.",
       "weapon_type": "PROJECTILE",
       "data": {
@@ -84,7 +84,6 @@
     //     "WEAPON_FIRERATE": 6     , // drones to fire/s
     //     "WEAPON_RELOAD": 4       , // seconds
     //     "WEAPON_RANGE": 4.0       
-        
         // "COLLISION_DAMAGE": 20   ,
         // "LIFETIME": 10           , // seconds
         // "ON_HIT": ["FREEZE"]     ,

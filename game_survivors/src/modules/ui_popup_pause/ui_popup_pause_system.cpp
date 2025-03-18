@@ -100,7 +100,6 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
   process_input_for_ui_all_handles(r, ui_c.state);
 
-  int& selected = ui_c.state.current_row_index;
   bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
                 ui_c.state.new_actions.end();
 
@@ -116,12 +115,17 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
       ImGui::NewLine();
     auto& row = ui_c.state.rows[i];
 
+    int col_idx = 0;
+
     auto a_def = SelectableButtonDef{
       .label = row.col_name,
       .size = size,
-      .index = i,
       .input = do_act,
-      .sel_index = selected,
+      .my_row_index = i,
+      .my_col_index = 0, // one col
+      .ui_row_index = ui_c.state.current_row_index,
+      .ui_col_index = col_idx, // one col
+      .ui_col_active = true,   // one col
     };
 
     if (selectable_button(a_def))

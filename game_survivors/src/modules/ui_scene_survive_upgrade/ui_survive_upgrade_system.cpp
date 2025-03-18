@@ -495,12 +495,17 @@ update_ui_survive_upgrade_system(entt::registry& r)
       if (selected)
         col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
+      int col_idx = 0;
+
       auto def = SelectableButtonDef{
         .label = "Aquire##" + rarity_str + "_" + upgrade_str,
         .size = { 60, 24 },
-        .index = i,
         .input = do_act,
-        .sel_index = selected_idx,
+        .my_row_index = i,
+        .my_col_index = 0, // one col
+        .ui_row_index = ui_c.ui_states[player_idx].current_row_index,
+        .ui_col_index = col_idx, // one col
+        .ui_col_active = true,   // one col
       };
 
       ImGui::SetCursorScreenPos({ pad_tl.x, y });

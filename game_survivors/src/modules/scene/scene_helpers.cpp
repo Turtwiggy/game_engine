@@ -28,11 +28,11 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/system_ability/ability_components.hpp"
 #include "modules/system_autofire/autofire_components.hpp"
-#include "modules/system_cooldown/components.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_particles/components.hpp"
+#include "modules/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
 #include "modules/system_player_out_of_bounds/player_out_of_bounds_components.hpp"
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/system_scene_splashscreen_move_to_next/components.hpp"
@@ -49,6 +49,7 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
@@ -368,6 +369,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
+    create_empty<SINGLE_UpgradesMenuUI>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
 
@@ -448,6 +450,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // populate spawners from configs
     create_empty<SpawnerLiveData>(r);
     init_spawners(r);
+
+    load_persistent_upgrades_and_apply_to_player(r);
   }
 
   if (s == Scene::procedural_snake) {

@@ -31,7 +31,7 @@ selectable_button(SelectableButtonDef& def)
   const ImU32 button_clicked_col = IM_COL32(ba_col.x * 255, ba_col.y * 255, ba_col.z * 255, ba_col.w * 0);
 
   const auto& size = def.size;
-  const auto index = def.index;
+
   bool do_act = false;
 
   // https://github.com/ocornut/imgui/issues/4719
@@ -40,21 +40,29 @@ selectable_button(SelectableButtonDef& def)
 
   draw_list->ChannelsSetCurrent(1);
 
-  const std::string id = "##menuselectable" + std::to_string(def.index);
+  const std::string id = "##menuselectable" + std::to_string(def.my_col_index) + "_" + std::to_string(def.my_row_index);
 
   ImGui::Selectable(id.c_str(), false, 0, size);
 
+  const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+  const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
+
   const bool is_hovered = ImGui::IsItemHovered();
-  if (is_hovered)
-    def.sel_index = def.index;
+  if (is_hovered && mouse_move) {
+    def.ui_row_index = def.my_row_index;
+    def.ui_col_index = def.my_col_index;
+  }
 
   const bool is_clicked = ImGui::IsItemClicked();
   if (is_clicked) {
-    def.sel_index = def.index;
+    def.ui_row_index = def.my_row_index;
+    def.ui_col_index = def.my_col_index;
     do_act = true;
   }
 
-  const bool is_selected = def.sel_index == def.index;
+  bool is_selected = def.ui_col_active;
+  is_selected &= (def.my_col_index == def.ui_col_index);
+  is_selected &= (def.my_row_index == def.ui_row_index);
 
   draw_list->ChannelsSetCurrent(0);
   const auto p_min = ImGui::GetItemRectMin();

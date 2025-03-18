@@ -93,6 +93,7 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
+#include "modules/ui_scene_main_menu_upgrades/ui_scene_upgrades_system.hpp"
 #include "modules/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
@@ -175,7 +176,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_DebugMenuBar>(r);
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
-  create_persistent<SINGLE_Upgrades>(r, load_upgrades("assets/raws/upgrades.jsonc"));
+  create_persistent<SINGLE_Upgrades>(r, load_upgrades("assets/raws/persistent_upgrades.jsonc"));
   create_persistent<SINGLE_Weapons>(r, load_weapons("assets/raws/weapons.jsonc"));
   create_persistent<SINGLE_OnDiskSpawners>(r, load_spawns("assets/raws/spawns.jsonc"));
   create_persistent<SINGLE_EffectCrt>(r);
@@ -335,6 +336,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
     update_ui_scene_main_menu_playerjoin_system(r);
+    update_ui_scene_upgrades_system(r);
   }
 
   if (scene.s == Scene::select)

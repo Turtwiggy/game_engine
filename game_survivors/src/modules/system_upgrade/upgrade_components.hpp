@@ -1,9 +1,9 @@
 #pragma once
 
 #include <entt/fwd.hpp>
+#include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 
-#include <optional>
 #include <string>
 
 namespace game2d {
@@ -40,60 +40,21 @@ enum class UpgradeableStat
 
 // Loaded Data
 
-struct Effects
+struct UpgradeLevel
 {
-  std::optional<std::string> stat = std::nullopt;
-  std::optional<std::string> type = std::nullopt;
-  std::optional<nlohmann::json> value = std::nullopt; // number or string
-  std::optional<std::string> trait = std::nullopt;
-  // std::map<std::string, nlohmann::json> params;
+  int cost;         // cost to upgrade
+  std::string type; // stat_percent_increase or stat_flat_increase
+  float value;      // the stat value to increase by
 
-  friend void to_json(nlohmann ::json& j, const Effects& val)
-  {
-    if (val.stat.has_value())
-      j["stat"] = val.stat.value();
-    if (val.type.has_value())
-      j["type"] = val.type.value();
-    if (val.value.has_value())
-      j["value"] = val.value.value();
-    if (val.trait.has_value())
-      j["trait"] = val.trait.value();
-  }
-  friend void from_json(const nlohmann ::json& j, Effects& val)
-  {
-    if (j.contains("stat"))
-      j.at("stat").get_to(val.stat.emplace());
-    if (j.contains("type"))
-      j.at("type").get_to(val.type.emplace());
-    if (j.contains("value"))
-      j.at("value").get_to(val.value.emplace());
-    if (j.contains("trait"))
-      j.at("trait").get_to(val.trait.emplace());
-  };
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UpgradeLevel, cost, type, value);
 };
 
 struct Upgrade
 {
-  std::string name;
-  std::vector<Effects> effects;
+  std::string key;
+  std::vector<UpgradeLevel> levels;
 
-  // either a manual desc, or generate desc from the effects
-  std::optional<std::string> desc = std::nullopt;
-
-  friend void to_json(nlohmann ::json& j, const Upgrade& val)
-  {
-    j["name"] = val.name;
-    j["effects"] = val.effects;
-    if (val.desc.has_value())
-      j["desc"] = val.desc.value();
-  }
-  friend void from_json(const nlohmann ::json& j, Upgrade& val)
-  {
-    j.at("name").get_to(val.name);
-    j.at("effects").get_to(val.effects);
-    if (j.contains("desc"))
-      j.at("desc").get_to(val.desc.emplace());
-  };
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Upgrade, key, levels);
 };
 
 struct SINGLE_Upgrades
@@ -101,11 +62,6 @@ struct SINGLE_Upgrades
   std::vector<Upgrade> upgrades;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_Upgrades, upgrades);
-};
-
-struct UpgradeComponent
-{
-  std::vector<std::string> aquired_upgrades;
 };
 
 //

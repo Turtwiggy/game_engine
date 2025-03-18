@@ -47,19 +47,21 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   // state
   int& v_selected = state.current_row_index;
 
+  // TODO: replace this system with has_action, which maps both keyboard and controller
+
   // Update menu via controller
   //
   if (controller_button_down(steam_c, handle, DA::Game_Up))
     v_selected--;
-  if (controller_button_down(steam_c, handle, DA::Game_Down))
+  else if (controller_button_down(steam_c, handle, DA::Game_Down))
     v_selected++;
-  if (controller_button_down(steam_c, handle, DA::Game_Left))
+  else if (controller_button_down(steam_c, handle, DA::Game_Left))
     state.rows[v_selected].col_index--;
-  if (controller_button_down(steam_c, handle, DA::Game_Right))
+  else if (controller_button_down(steam_c, handle, DA::Game_Right))
     state.rows[v_selected].col_index++;
-  if (controller_button_down(steam_c, handle, DA::Game_Select))
+  else if (controller_button_down(steam_c, handle, DA::Game_Select))
     state.new_actions.push_back(UIAction::SELECT);
-  if (controller_button_down(steam_c, handle, DA::Game_Cancel))
+  else if (controller_button_down(steam_c, handle, DA::Game_Cancel))
     state.new_actions.push_back(UIAction::BACK);
 
   // Update menu via keyboard (debug, mostly)
@@ -67,15 +69,15 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   {
     if (get_key_down(input, SDL_SCANCODE_UP))
       v_selected--;
-    if (get_key_down(input, SDL_SCANCODE_DOWN))
+    else if (get_key_down(input, SDL_SCANCODE_DOWN))
       v_selected++;
-    if (get_key_down(input, SDL_SCANCODE_LEFT))
+    else if (get_key_down(input, SDL_SCANCODE_LEFT))
       state.rows[v_selected].col_index--;
-    if (get_key_down(input, SDL_SCANCODE_RIGHT))
+    else if (get_key_down(input, SDL_SCANCODE_RIGHT))
       state.rows[v_selected].col_index++;
-    if (get_key_down(input, SDL_SCANCODE_RETURN))
+    else if (get_key_down(input, SDL_SCANCODE_RETURN))
       state.new_actions.push_back(UIAction::SELECT);
-    if (get_key_down(input, SDL_SCANCODE_KP_DECIMAL))
+    else if (get_key_down(input, SDL_SCANCODE_KP_DECIMAL))
       state.new_actions.push_back(UIAction::BACK);
   }
 

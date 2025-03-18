@@ -12,8 +12,9 @@ namespace game2d {
 void
 handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
 {
-  SDL_Log("processing upgrade... %s", evt.upgrade.name.c_str());
+  // SDL_Log("processing upgrade... %s", evt.upgrade.name.c_str());
 
+  /*
   // Add it to the list of aquired upgrades (for ui purposes)
   auto& upgrade_c = r.get<UpgradeComponent>(evt.e);
   upgrade_c.aquired_upgrades.push_back(evt.upgrade.name);
@@ -78,6 +79,7 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
 
     //
   }
+  */
 }
 
 } // namespace game2d

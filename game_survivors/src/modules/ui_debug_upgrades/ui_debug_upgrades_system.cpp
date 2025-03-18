@@ -51,20 +51,22 @@ update_ui_debug_upgrades_system(entt::registry& r)
   if (up_c.upgrades.size() > 0) {
     Upgrade& u = up_c.upgrades[index];
 
-    std::string desc = generate_description(u);
-    ImGui::Text("%s", desc.c_str());
+    /*
+      std::string desc = generate_description(u);
+      ImGui::Text("%s", desc.c_str());
 
-    std::string label = "Aquire##" + u.name;
-    if (ImGui::Button(label.c_str())) {
-      for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
-        // send event, me thinks
-        UpgradeEvent evt;
-        evt.e = e;
-        evt.upgrade = u;
-        evts_c.dispatcher->trigger(evt);
-        evts_c.dispatcher->update();
+      std::string label = "Aquire##" + u.name;
+      if (ImGui::Button(label.c_str())) {
+        for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+          // send event, me thinks
+          UpgradeEvent evt;
+          evt.e = e;
+          evt.upgrade = u;
+          evts_c.dispatcher->trigger(evt);
+          evts_c.dispatcher->update();
+        }
       }
-    }
+    */
   }
 
   if (ImGui::Button("AquireAll")) {

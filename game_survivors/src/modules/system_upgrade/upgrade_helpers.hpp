@@ -14,7 +14,7 @@ available_upgrade_names(entt::registry& r);
 Upgrade
 find_upgrade(entt::registry& r, const std::string& key);
 
-std::string
-generate_description(const Upgrade& u);
+// std::string
+// generate_description(const Upgrade& u);
 
 } // namespace game2d
