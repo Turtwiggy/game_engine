@@ -3,6 +3,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "event_coll_player_vacuum_orb_components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 
@@ -11,8 +12,8 @@ namespace game2d {
 void
 handle_player_enter_vacuum_orb(entt::registry& r, const OnCollisionEnter& evt)
 {
-  const auto [zone_e, item_e] = coll<XpZoneComponent, ItemVacuumOrbComponent>(r, evt.a, evt.b);
-  if (zone_e == entt::null || item_e == entt::null)
+  const auto [pfixture_e, item_e] = coll<PlayerFixtureComponent, ItemVacuumOrbComponent>(r, evt.a, evt.b);
+  if (pfixture_e == entt::null || item_e == entt::null)
     return;
 
   SDL_Log("You collided with a vacuum orb");
@@ -21,8 +22,8 @@ handle_player_enter_vacuum_orb(entt::registry& r, const OnCollisionEnter& evt)
   // Make them all fly to the player.
   // Give that amount of xp if the distance is < than some amount to the player
 
-  auto vacuum_orbs_on_death = [zone_e](entt::registry& r, const entt::entity dead_e) {
-    const auto player_par_e = r.get<HasParentComponent>(zone_e).parent;
+  auto vacuum_orbs_on_death = [pfixture_e](entt::registry& r, const entt::entity dead_e) {
+    const auto player_par_e = r.get<HasParentComponent>(pfixture_e).parent;
 
     const auto xp_view = r.view<XpComponent, PhysicsFixtureComponent>();
     for (const auto& [xp_e, xp_c, fixture_c] : xp_view.each()) {

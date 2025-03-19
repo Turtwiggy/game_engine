@@ -24,6 +24,10 @@ update_upgrade_xp_zone_size_system(entt::registry& r)
     const auto val = xp_zone_c.radius_meters;
     const auto val_mod = stats_c.apply_modifiers(val, key);
 
+#if defined(_DEBUG)
+    if (val != val_mod)
+      SDL_Log("Upgrading xp zone...");
+#endif
     const auto fixture_e = get_fixture_by_tag(r, e, "fixture_xp_zone");
     update_circle_fixture_size(r, e, fixture_e, meters_to_pixels(val_mod));
   }

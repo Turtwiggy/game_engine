@@ -122,7 +122,10 @@ class FilteredSearchAreaCallback : public b2QueryCallback
 {
 public:
   float nearest_distance_squared = std::numeric_limits<float>::max();
-  std::unordered_set<std::pair<int, entt::entity>, pair_hash> results; // distance to the entity
+
+  // first val: the body_e.
+  // second val: the fixture_e that was collided with
+  std::unordered_map<entt::entity, std::vector<CollisionWithFixtureResult>> results;
 
   b2Vec2 position;
   entt::registry& r;
@@ -139,14 +142,20 @@ public:
   bool ReportFixture(b2Fixture* fixture) override
   {
     auto* body = fixture->GetBody();
-    auto body_e = (entt::entity)body->GetUserData().pointer;
+    const auto body_e = (entt::entity)body->GetUserData().pointer;
+    const auto fixture_e = (entt::entity)fixture->GetUserData().pointer;
 
     // Filter the fixtures
     if (cond(r, body_e)) {
       const b2Vec2 diff = body->GetPosition() - position;
-      const float d2 = diff.LengthSquared();
-      std::pair<int, entt::entity> result = { (int)d2, body_e };
-      results.emplace(result);
+
+      CollisionWithFixtureResult res;
+      res.d2 = diff.LengthSquared();
+      res.fixture_e = fixture_e;
+
+      if (!results.contains(body_e))
+        results[body_e] = {};
+      results[body_e].push_back(res);
     }
 
     return true; // keep going to find all fixtures in query area
@@ -167,7 +176,7 @@ get_all_in_area(entt::registry& r, b2Vec2 center_m, float d_in_meters)
   return callback.results;
 };
 
-std::unordered_set<std::pair<int, entt::entity>, pair_hash>
+std::unordered_map<entt::entity, std::vector<CollisionWithFixtureResult>>
 get_all_in_area_filtered(entt::registry& r,
                          const b2Vec2 center_in_meters,
                          const float d_in_meters,

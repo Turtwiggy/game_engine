@@ -120,7 +120,7 @@ draw_player_select_box(entt::registry& r,
   const bool player_is_joined = player_idx < num_active_players;
 
   if (!player_is_joined) {
-    const auto text_str = "Join!";
+    const auto text_str = "Connect Controller in Main Menu";
     const auto text_str_len = ImGui::CalcTextSize(text_str);
     const auto text_size = ImGui::CalcTextSize(text_str);
     const auto text_pos = ImVec2{

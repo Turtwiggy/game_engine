@@ -3,12 +3,14 @@
 #include "ability_components.hpp"
 #include "ability_system.hpp"
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/actor_player_helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat/components.hpp"
 
 namespace game2d {
 
@@ -30,13 +32,22 @@ boop_ability(entt::registry& r, entt::entity e)
   SDL_Log("Ability1: knocking back %zu things", things_with_health.size());
 
   // knock em all back!
-  for (const auto& [thing_distance, thing_e] : things_with_health) {
-    const auto raw_dir = get_position(r, thing_e) - pos;
-    const auto nrm_dir = engine::normalize_safe(raw_dir);
-    const auto& thing_body = r.get<PhysicsBodyComponent>(thing_e).body;
-    const auto mass = thing_body->GetMass();
-    const auto impuse = mass * impulse_amount;
-    thing_body->ApplyLinearImpulseToCenter(impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
+  for (const auto& [par_e, coll_fixtures] : things_with_health) {
+
+    for (const auto& fixture_coll_result : coll_fixtures) {
+      const auto fixture_e = fixture_coll_result.fixture_e;
+      const bool has_hp = r.try_get<HealthComponent>(fixture_e);
+      if (!has_hp)
+        continue; // shield or xp zone or something without health
+
+      const auto raw_dir = get_position(r, par_e) - pos;
+      const auto nrm_dir = engine::normalize_safe(raw_dir);
+      const auto& thing_body = r.get<PhysicsBodyComponent>(par_e).body;
+      const auto mass = thing_body->GetMass();
+      const auto impuse = mass * impulse_amount;
+      thing_body->ApplyLinearImpulseToCenter(impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
+      break; // if you collide with a valid fixture, apply force once.
+    }
   }
 };
 
@@ -70,7 +81,7 @@ anchor_release(entt::registry& r, entt::entity e, const InputComponent& input_c,
 
   // Give a speed boost? tokyo drifffftttttt
   const auto mass = body_c.body->GetMass();
-  body_c.body->SetLinearVelocity(100.0f * mass * speed_c.current_speed * b2Vec2{ input_c.lx, input_c.ly });
+  body_c.body->SetLinearVelocity(10.0f * mass * speed_c.current_speed * b2Vec2{ input_c.lx, input_c.ly });
 }
 
 void

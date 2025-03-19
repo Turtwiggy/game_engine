@@ -224,9 +224,12 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   // Add an xp zone with the config-defined size
   {
     auto fixture_def = get_fixture_def_by_tag(r, e, "fixture_xp_zone");
+
     ActorXpZoneSizeComponent xp_zone_c;
     // xp_zone_c.radius_meters = pixels_to_meters(fixture_def.size[0].x);
-    xp_zone_c.radius_meters = pixels_to_meters(size.x * 0.5f);
+    xp_zone_c.radius_meters = pixels_to_meters(size.x * 4.0f);
+
+    // update_circle_fixture_size(r, e, f);
     r.emplace<ActorXpZoneSizeComponent>(e, xp_zone_c);
   }
 

@@ -6,7 +6,7 @@ namespace game2d {
 
 struct GrowerComponent
 {
-  float radius_pixels = 16.0f;
+  bool placeholder = true;
 };
 
 } // namespace game2d

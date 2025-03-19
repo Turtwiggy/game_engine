@@ -1,9 +1,10 @@
+#include "pch.hpp"
+
 #include "actor_exploder_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -12,9 +13,6 @@
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/system_particles/components.hpp"
-
-#include <box2d/b2_fixture.h>
-#include <box2d/b2_world_callbacks.h>
 
 namespace game2d {
 
@@ -76,21 +74,21 @@ add_explode_on_death_callback(entt::registry& r,
     // n.b.: radius so half
     const float explosion_radius_meters = pixels_to_meters(explosion_radius_pixels);
     const b2Vec2 center_m = pixels_to_meters(get_position(r, e));
-    const auto things_with_health = get_all_in_area_filtered(r, center_m, explosion_radius_meters, cond);
+    const auto things = get_all_in_area_filtered(r, center_m, explosion_radius_meters, cond);
 
-    for (const auto& [d2, parent_e] : things_with_health) {
-      if (parent_e == e)
+    for (const auto& [par_e, colL_fixtures] : things) {
+      if (par_e == e)
         continue; // dont damage self; you're already dead
 
-      const bool is_player = r.try_get<PlayerComponent>(parent_e);
-      const auto& tag_c = r.get<TagComponent>(parent_e);
-      SDL_Log("Exploooosion! hit: %s", tag_c.tag.c_str());
-
-      auto& pb_c = r.get<PhysicsBodyComponent>(parent_e);
-      for (const entt::entity fixture_e : pb_c.fixtures) {
+      for (const auto& fixture_coll_result : colL_fixtures) {
+        const auto fixture_e = fixture_coll_result.fixture_e;
         const bool has_hp = r.try_get<HealthComponent>(fixture_e);
         if (!has_hp)
           continue; // shield or xp zone or something without health
+
+        const bool is_player = r.try_get<PlayerComponent>(par_e);
+        const auto& tag_c = r.get<TagComponent>(par_e);
+        SDL_Log("Exploooosion! hit: %s", tag_c.tag.c_str());
 
         // Send explosion damage event
         DamageEvent evt;
@@ -100,6 +98,7 @@ add_explode_on_death_callback(entt::registry& r,
         evt.amount = is_player ? 4 : 100; // todo: replace with "correct" damage for explosion
         evts_c.dispatcher->trigger(evt);
         evts_c.dispatcher->update();
+        break; // if you collide with a valid fixture, damage once
       }
     }
   };

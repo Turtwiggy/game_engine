@@ -207,6 +207,9 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   if (hp->hp <= 0) {
 
+    // clamp hp at 0
+    hp->hp = 0;
+
     // Die now, or die soon?
     if (auto* death_throes_c = r.try_get<DeathThroesComponent>(parent_e)) {
 

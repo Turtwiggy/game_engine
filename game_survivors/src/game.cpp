@@ -31,6 +31,7 @@
 #include "modules/core_renderer/system.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
+#include "modules/events/events_components.hpp"
 #include "modules/events/events_system.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
@@ -105,6 +106,7 @@
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -182,6 +184,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_EffectCrt>(r);
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
   create_persistent<SINGLE_SteamControllerGameState>(r);
+  create_persistent<SINGLE_PostFixedUpdateCallbacks>(r);
 
   move_to_scene_start(r, Scene::splashscreen);
 };

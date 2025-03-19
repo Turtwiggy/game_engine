@@ -5,15 +5,15 @@
 #include "engine/lifecycle/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_exploder/actor_exploder_helpers.hpp"
-#include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/actor_player/components.hpp"
 
 namespace game2d {
 
 void
 handle_player_enter_sea_mine(entt::registry& r, const OnCollisionEnter& evt)
 {
-  const auto [zone_e, item_e] = coll<XpZoneComponent, ItemSeaMineComponent>(r, evt.a, evt.b);
-  if (zone_e == entt::null || item_e == entt::null)
+  const auto [pfixture_e, item_e] = coll<PlayerFixtureComponent, ItemSeaMineComponent>(r, evt.a, evt.b);
+  if (pfixture_e == entt::null || item_e == entt::null)
     return;
 
   SDL_Log("You collided with a sea mine... exploding");

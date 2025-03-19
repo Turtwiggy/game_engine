@@ -1,39 +1,71 @@
+#include "pch.hpp"
 
 #include "event_coll_player_xp_helpers.hpp"
 
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/renderer/transform.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "event_coll_player_xp_components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/core_collisions/resolve_collisions_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/system_physics_apply_force/components.hpp"
 
 namespace game2d {
 
 void
 handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
 {
-  const auto [zone_e, xp_e] = coll<XpZoneComponent, XpComponent>(r, evt.a, evt.b);
-  if (zone_e == entt::null || xp_e == entt::null)
-    return;
-
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
+  GET_FIRST_OR_RETURN(SINGLE_PostFixedUpdateCallbacks, r, callbacks_e, callbacks_c);
 
-  // give xp
-  const auto& xp_c = r.get<XpComponent>(xp_e);
-  const bool give_levelup = xp_c.levelup;
+  // If your xp zone collides with xp, make it fly to the player.
+  {
+    const auto [zone_e, xp_e] = coll<XpZoneComponent, XpComponent>(r, evt.a, evt.b);
+    if (zone_e != entt::null && xp_e != entt::null) {
 
-  if (give_levelup)
-    sxp_c.xp += sxp_c.xp_for_next_level - sxp_c.xp; // give the rest of the level
-  else
-    sxp_c.xp++;
+      const std::function<void(entt::registry&)> make_xp_fly_to_player = [xp_e, zone_e](entt::registry& r) {
+        auto& fixture_c = r.get<PhysicsFixtureComponent>(xp_e);
+        const auto player_par_e = r.get<HasParentComponent>(zone_e).parent;
 
-  // play audio
-  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "XP_0" });
+        // change xp from static to dynamic.
+        fixture_c.body->SetType(b2BodyType::b2_dynamicBody);
 
-  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  dead.dead.emplace(xp_e);
+        // Add components to xp parent not fixture.
+        auto xp_parent = r.get<HasParentComponent>(xp_e).parent;
+        ApplyForceToDynamicTarget tgt_c;
+        tgt_c.orbit = false;
+        tgt_c.speed = 10.0f;
+        tgt_c.reduce_thrusters = false;
+        r.emplace_or_replace<ApplyForceToDynamicTarget>(xp_parent, tgt_c);
+        r.emplace_or_replace<PhysicsDynamicTarget>(xp_parent, player_par_e);
+      };
+
+      callbacks_c.callbacks.push_back(make_xp_fly_to_player);
+    }
+  }
+
+  // if the player body collides with x, give the xp.
+  {
+    const auto [player_fix_e, xp_e] = coll<PlayerFixtureComponent, XpComponent>(r, evt.a, evt.b);
+    if (player_fix_e != entt::null && xp_e != entt::null) {
+
+      // give xp
+      const auto& xp_c = r.get<XpComponent>(xp_e);
+      const bool give_levelup = xp_c.levelup;
+      if (give_levelup)
+        sxp_c.xp += sxp_c.xp_for_next_level - sxp_c.xp; // give the rest of the level
+      else
+        sxp_c.xp++;
+
+      auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+      dead.dead.emplace(xp_e);
+
+      // play audio
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "XP_0" });
+    }
+  }
 }
 
 } // namespace game2d

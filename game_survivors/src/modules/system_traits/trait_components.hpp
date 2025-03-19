@@ -9,7 +9,6 @@ enum class AquirableTrait
 {
   SPLINTER = 0,
   FAN_FIRE,
-  ELECTROMANCY,
 
   EXPLODE,       // on death
   DIRECT,        // ai type

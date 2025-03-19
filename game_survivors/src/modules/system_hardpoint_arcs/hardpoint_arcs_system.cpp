@@ -167,15 +167,15 @@ update_hardpoint_arcs_system(entt::registry& r)
     const auto screenspace = worldspace_to_screenspace(r, pos);
 
     // draw the xp-zone arc. this shouldnt be here.
-    // const auto val = r.get<ActorXpZoneSizeComponent>(p).radius_meters;
-    // const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
-    // const auto val_mod = stats_c.apply_modifiers(val, key);
-    // const auto zone_radius_p = meters_to_pixels(val_mod) / zoom;
-    // auto col = r.get<DefaultColour>(p).colour;
-    // col.a = (int)(0.04f * 255);
-    // const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
+    const auto val = r.get<ActorXpZoneSizeComponent>(p).radius_meters;
+    const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
+    const auto val_mod = stats_c.apply_modifiers(val, key);
+    const auto zone_radius_p = meters_to_pixels(val_mod) / zoom;
+    auto col = r.get<DefaultColour>(p).colour;
+    col.a = (int)(0.04f * 255);
+    const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
     // // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
-    // DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
+    DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
 
     // draw the gun arc.
     const auto range_val = r.get<WeaponRange>(weapon_e).meters;
@@ -190,7 +190,7 @@ update_hardpoint_arcs_system(entt::registry& r)
     arc_col.a = (int)(0.3f * 255);
     const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
     float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
-    // DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);
+    DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);
 
     // draw the arc where the gun cant shoot.
     // float thickness = 0.5;

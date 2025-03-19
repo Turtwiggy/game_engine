@@ -10,12 +10,10 @@
 #include "modules/event_coll_player_vacuum_orb/event_coll_player_vacuum_orb_helpers.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
 #include "modules/event_damage/event_damage_helpers.hpp"
-#include "modules/event_damage_grower/damage_grower_helpers.hpp"
 #include "modules/event_damage_lifesteal/lifesteal_helpers.hpp"
 #include "modules/event_death_exploder_screenshake/exploder_screenshake.hpp"
 #include "modules/event_death_treasure_enemy/treasure_enemy_death_helpers.hpp"
 #include "modules/event_shoot/event_shoot_components.hpp"
-#include "modules/event_trait_electromancy/trait_electromancy_helpers.hpp"
 #include "modules/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/event_upgrade/event_upgrade_helpers.hpp"
@@ -43,9 +41,7 @@ init_events_system(entt::registry& r)
   // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_lifesteal>(r);
-  ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event__grower>(r);
 
-  ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_electromancy>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_fanfire>(r);
 
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__trait_splinter>(r);
@@ -63,6 +59,12 @@ update_events_system(entt::registry& r)
     return;
   auto& ed = r.get<SINGLE_Events>(dispatcher_e);
   ed.dispatcher->update(); // dispatch events
+
+  // Call the callbacks for postfixedupdate callbacks
+  GET_FIRST_OR_RETURN(SINGLE_PostFixedUpdateCallbacks, r, callbacks_e, callbacks_c);
+  for (const auto& callback : callbacks_c.callbacks)
+    callback(r);
+  callbacks_c.callbacks.clear();
 };
 
 } // namespace game2d

@@ -1,9 +1,8 @@
-#include "enemy_grower_helpers.hpp"
+#include "pch.hpp"
 
-#include "engine/lifecycle/components.hpp"
+#include "enemy_grower_helpers.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/core_raws/raws_components.hpp"
-#include <box2d/b2_circle_shape.h>
 
 namespace game2d {
 
@@ -12,8 +11,8 @@ update_circle_fixture_size(entt::registry& r, entt::entity body_e, entt::entity 
 {
   auto& fix_c = r.get<PhysicsFixtureComponent>(fix_e);
   auto* shape = static_cast<const b2CircleShape*>(fix_c.fixture->GetShape());
-  const float radius = shape->m_radius;
-  const float radius_pixels = meters_to_pixels(radius);
+  const float radius_meters = shape->m_radius;
+  const float radius_pixels = meters_to_pixels(radius_meters);
 
   float epsilon = 0.001f;
   const float difference = glm::abs(new_radius_pixels - radius_pixels);

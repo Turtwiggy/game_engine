@@ -21,6 +21,12 @@ struct pair_hash
   }
 };
 
+struct CollisionWithFixtureResult
+{
+  float d2 = 0.0f;
+  entt::entity fixture_e = entt::null;
+};
+
 void
 emplace_or_replace_physics_world(entt::registry& r);
 
@@ -36,7 +42,7 @@ get_fixture_def_by_tag(entt::registry& r, entt::entity e, std::string tag);
 std::unordered_set<entt::entity>
 get_all_in_area(entt::registry& r, b2Vec2 center, float d);
 
-std::unordered_set<std::pair<int, entt::entity>, pair_hash>
+std::unordered_map<entt::entity, std::vector<CollisionWithFixtureResult>>
 get_all_in_area_filtered(entt::registry& r,
                          const b2Vec2 center_in_meters,
                          const float d,

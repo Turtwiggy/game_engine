@@ -1,10 +1,13 @@
+#include "pch.hpp"
+
 #include "enemy_grower_system.hpp"
 
 #include "enemy_grower_components.hpp"
 #include "enemy_grower_helpers.hpp"
-
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 
 namespace game2d {
@@ -14,20 +17,27 @@ update_enemy_grower_system(entt::registry& r, float dt)
 {
   static float speed = 5.0f;
 
-  const auto view = r.view<GrowerComponent, PhysicsBodyComponent, TransformComponent>();
-  for (const auto& [body_e, grower_c, body_c, t_c] : view.each()) {
-    grower_c.radius_pixels += speed * dt;
-    grower_c.radius_pixels = glm::clamp(grower_c.radius_pixels, 0.0f, 256.0f);
+  const auto view = r.view<GrowerComponent, TransformComponent>();
+  for (const auto& [body_e, grower_c, t_c] : view.each()) {
 
-    for (const entt::entity& fix_e : body_c.fixtures) {
-      update_circle_fixture_size(r, body_e, fix_e, grower_c.radius_pixels);
+    const auto fixture_e = get_fixture_by_tag(r, body_e, "fixture_core");
 
-      float rad_pixels = grower_c.radius_pixels;
-      const auto size = glm::vec2{ 2.0f * rad_pixels, 2.0f * rad_pixels };
-      t_c.scale.x = size.x;
-      t_c.scale.y = size.y;
-      r.get<DefaultSizeComponent>(body_e).size = size;
-    }
+    auto& hp_c = r.get<HealthComponent>(fixture_e);
+
+    const auto scale = [](float cur, float a_min, float a_max, float b_min, float b_max) {
+      const float percent = (cur - a_min) / (a_max - a_min);
+      return b_min + percent * (b_max - b_min);
+    };
+    const float radius_pixels = scale(hp_c.hp, 0, hp_c.max_hp, 16, 256);
+
+    // update fixture
+    update_circle_fixture_size(r, body_e, fixture_e, radius_pixels);
+
+    // update transform
+    const auto size = glm::vec2{ 2.0f * radius_pixels, 2.0f * radius_pixels };
+    t_c.scale.x = size.x;
+    t_c.scale.y = size.y;
+    r.get<DefaultSizeComponent>(body_e).size = size;
   }
 }
 

@@ -5,7 +5,6 @@
 #include "autofire_components.hpp"
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/audio/audio_components.hpp"
-#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
@@ -17,15 +16,13 @@
 #include "modules/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
 #include "modules/core_colour/components.hpp"
-#include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_shoot/event_shoot_components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 
-#include <box2d/b2_collision.h>
-#include <box2d/b2_math.h>
+#include "modules/core_sprites/sprite_helpers.hpp"
 
 namespace game2d {
 
@@ -37,8 +34,8 @@ filter_enemies_by_shoot_angle(entt::registry& r,
 {
   std::vector<std::pair<int, entt::entity>> valid_targets;
 
-  for (const auto& enemy : enemies) {
-    const auto enemy_pos = get_position(r, enemy.second);
+  for (const auto& [d2, body_e] : enemies) {
+    const auto enemy_pos = get_position(r, body_e);
 
     const auto raw_dir = enemy_pos - wep_pos;
     const auto nrm_dir = engine::normalize_safe(raw_dir);
@@ -56,9 +53,9 @@ filter_enemies_by_shoot_angle(entt::registry& r,
 
     // min > max, so max has looped round
     if (min > max && (angle >= min || angle <= max)) {
-      valid_targets.push_back(enemy);
+      valid_targets.push_back({ d2, body_e });
     } else if (angle >= min && angle <= max)
-      valid_targets.push_back(enemy);
+      valid_targets.push_back({ d2, body_e });
   }
 
   enemies = valid_targets;
@@ -159,7 +156,19 @@ update_autofire_system(entt::registry& r, const float dt)
     if (enemies_map.size() == 0)
       continue;
 
-    std::vector<std::pair<int, entt::entity>> enemies = { enemies_map.begin(), enemies_map.end() };
+    std::vector<std::pair<int, entt::entity>> enemies;
+    for (const auto& [parent_e, coll_fixtures] : enemies_map) {
+      for (const auto& fixture_coll_result : coll_fixtures) {
+        const auto fixture_e = fixture_coll_result.fixture_e;
+
+        const bool has_hp = r.try_get<HealthComponent>(fixture_e);
+        if (!has_hp)
+          continue; // shield or xp zone or something without health
+
+        enemies.push_back({ fixture_coll_result.d2, parent_e });
+        break; // you hit an enemy fixture with health; damage the enemy once.
+      }
+    }
 
     // Filter by angle that this weapon can shoot
     if (auto* hardpoint_c = r.try_get<HardpointComponent>(wep_e))

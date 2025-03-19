@@ -187,6 +187,8 @@ update_steam_input(entt::registry& r)
   steam_c.this_frame_down.clear();
   for (int h = 0; h < steam_c.n_active; h++)
     generate_button_state(steam_c, steam_c.handles[h]);
+
+  set_all_steam_controller_action_set(steam_c, AS::ActionSet_GameControls);
 };
 
 bool
@@ -205,7 +207,7 @@ controller_button_down(const SINGLE_SteamControllers& steam_c, InputHandle_t han
 };
 
 bool
-controller_button_held(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dwAction)
+controller_button_held(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DA dwAction)
 {
   if (handle == 0)
     return false;

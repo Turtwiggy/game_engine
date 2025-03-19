@@ -32,6 +32,9 @@
 #include "modules/system_items_drop_on_death/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
+#include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "spawner_components.hpp"
 #include "spawner_helpers.hpp"
@@ -193,6 +196,20 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_grower") {
     r.emplace<GrowerComponent>(e);
 
+    ActorHealthRegenComponent regen_c;
+
+    // TODO: probably move this to all enemies at some point
+
+    // regen 0.1f hp/s
+    StatModifierComponent stat_c;
+
+    const auto mod_key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_HEALTH_REGEN));
+    const auto mod_val = 0.1f;
+    stat_c.add(std::make_shared<StatFlatIncrease>(mod_val, mod_key));
+    r.emplace<StatModifierComponent>(e, stat_c);
+    r.emplace<ActorHealthRegenComponent>(e, regen_c); // parent not fixture
+    r.emplace<ActorDodgeComponent>(e, 0.0f);
+
     const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players(r);
     set_position(r, e, rnd_pos_inside_map);
   }
@@ -235,8 +252,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   r.emplace<HealthComponent>(fixture_e, hp, hp);
 
   if (key == "actor_enemy_grower") {
-    // A grower's health is it's size, not a healthcomponent
-    r.remove<HealthComponent>(fixture_e);
+    // start the grower as injured
+    auto& hp_c = r.get<HealthComponent>(fixture_e);
+    hp_c.hp = 1;
+    hp_c.max_hp = hp;
   }
 
   // r.emplace<DefenceComponent>(fixture_e);

@@ -165,7 +165,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 #if defined(_DEBUG)
     // ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });
 #endif
-    // ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
     ui_c.state.rows.push_back(RowState{ .col_name = "Exit", .action = exit_action });
 
     ui_c.state.init = true;
