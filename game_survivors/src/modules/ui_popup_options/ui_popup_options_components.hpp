@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/app/game_window.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
 #include <entt/fwd.hpp>
 #include <nlohmann/json.hpp>
@@ -33,27 +34,37 @@ struct SINGLE_OptionsMenuState
   UIState state;
 };
 
-// VIDEO_SCREEN_MODE,
-// VIDEO_RESOLUTION,
-// VIDEO_VSYNC,
+//
+// on-disk data representations
+//
 
-struct AudioMaster_OnDisk
+struct Audio_OnDisk
 {
   float value = 1.0f;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AudioMaster_OnDisk, value);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Audio_OnDisk, value);
 };
-struct AudioMusic_OnDisk
-{
-  float value = 1.0f;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AudioMusic_OnDisk, value);
+struct Video_ScreenModeOnDisk
+{
+  engine::DisplayMode screen_mode = engine::DisplayMode::windowed_borderless;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Video_ScreenModeOnDisk, screen_mode);
 };
-struct AudioSFX_OnDisk
-{
-  float value = 1.0f;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AudioSFX_OnDisk, value);
+struct Video_ResolutionOnDisk
+{
+  int w = 1920;
+  int h = 1080;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Video_ResolutionOnDisk, w, h);
+};
+
+struct Video_VsyncOnDisk
+{
+  bool enabled = true;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Video_VsyncOnDisk, enabled);
 };
 
 } // namespace game2d

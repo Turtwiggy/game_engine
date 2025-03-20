@@ -334,7 +334,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_blur_system(r, dt);
   update_ui_fps_counter_system(r);
   update_ui_popup_pause_system(app, r);
-  update_ui_popup_options_system(r);
+  update_ui_popup_options_system(app, r);
   update_ui_worldspace_text_system(r);
 
   if (scene.s == Scene::pressanykey)

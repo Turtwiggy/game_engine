@@ -68,7 +68,7 @@ init_audio_system(entt::registry& r)
 
   SDL_Log("%s", std::format("Loaded audio.").c_str());
   audio.loaded = true;
-}
+};
 
 void
 update_audio_channel_volume(const AudioSource& source, float vol_sfx, float vol_mus, bool paused)
@@ -89,7 +89,7 @@ update_audio_channel_volume(const AudioSource& source, float vol_sfx, float vol_
 
   const int volume_int = (int)volume;
   Mix_Volume(source.channel, volume_int);
-}
+};
 
 void
 update_audio_system(entt::registry& r, const float dt)

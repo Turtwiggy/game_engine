@@ -55,7 +55,7 @@ update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, e
   // set a bunch of options settings from saved options
   const auto& options_c = get_first_component<SINGLE_GameOptions>(r);
   for (const auto& option : options_c.options)
-    option->load(r);
+    option->load(app, r);
 
   // After X seconds, move to menu,
   // or when audio is loaded and a key is mashed

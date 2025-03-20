@@ -1,24 +1,33 @@
 #include "pch.hpp"
 
+#include "options_components.hpp"
+
+#include "engine/app/application.hpp"
 #include "engine/app/game_window.hpp"
 #include "engine/audio/audio_components.hpp"
-#include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/enum/enum_helpers.hpp"
-#include "engine/events/helpers/mouse.hpp"
-#include "engine/imgui/helpers.hpp"
-#include "engine/io/settings.hpp"
 #include "engine/maths/maths.hpp"
-#include "modules/core_camera/helpers.hpp"
 #include "modules/core_io/io_helpers.hpp"
-#include "modules/effect_crt/crt_components.hpp"
-#include "modules/ui_popup_options/ui_popup_options_helpers.hpp"
-#include "options_components.hpp"
 
 namespace game2d {
 
 void
-Option_AudioMasterVolume::load(entt::registry& r)
+center_window(engine::SINGLE_Application& app)
+{
+  // hack: set window pos
+  const auto size = app.window.get_size();
+  const auto half_size = glm::ivec2{ size.x * 0.5f, size.y * 0.5f };
+
+  // TODO: fix these values
+  int monitor_x = 1920;
+  int monitor_y = 1080;
+
+  const auto center = glm::ivec2{ (monitor_x * 0.5) - half_size.x, (monitor_y * 0.5) - half_size.y };
+  app.window.set_position(center.x, center.y);
+};
+
+void
+Option_AudioMasterVolume::load(engine::SINGLE_Application& app, entt::registry& r)
 {
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
@@ -28,134 +37,226 @@ Option_AudioMasterVolume::load(entt::registry& r)
   auto on_disk_val = on_disk_opt.value();
 
   // Convert the on_disk_val to your representation.
-  AudioMaster_OnDisk data;
-  on_disk_val.get_to<AudioMaster_OnDisk>(data);
-
-  // set the value
-  val = data.value;
+  Audio_OnDisk ondisk_data;
+  on_disk_val.get_to<Audio_OnDisk>(ondisk_data);
+  data = ondisk_data;
 
   // update the system.
   auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
-  audio_c.volume_master = val;
+  audio_c.volume_master = data.value;
 };
 
 void
-Option_AudioMasterVolume::update(entt::registry& r, int& hindex)
+Option_AudioMasterVolume::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
 {
   hindex = glm::clamp(hindex, 0, 10);
-  val = (float)engine::scale(hindex, 0, 10, 0.0f, 1.0f);
+  data.value = (float)engine::scale(hindex, 0, 10, 0.0f, 1.0f);
 
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
 
   // convert value to on-disk representation
-  AudioMaster_OnDisk data;
-  data.value = val;
   const nlohmann::json data_as_json = data;
-
   savefile_put_key(r, enum_as_str, data_as_json);
   savefile_save_disk(r);
-  SDL_Log("Global audio pref updated to: %f", val);
+  SDL_Log("volume_master updated to: %f", data.value);
 
   // update the audio system
   auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
-  audio_c.volume_master = val;
+  audio_c.volume_master = data.value;
 };
 
 int
 Option_AudioMasterVolume::get_hindex(entt::registry& r)
 {
   // For AudioMasterVolume, conver the float to index's 0-10.
-  return (int)engine::scale(val, 0.0f, 1.0f, 0, 10);
+  return (int)engine::scale(data.value, 0.0f, 1.0f, 0, 10);
 };
 
 std::string
 Option_AudioMasterVolume::display_val()
 {
-  return std::format("{:.2f}", val * 100.0f);
+  return std::format("{:.2f}", data.value * 100.0f);
 };
 
 //
 //
 //
 
-// if (k_mar.has_value()) {
-//   AudioMaster_OnDisk val;
-//   k_mar.value().get_to(val);
-//   audio.volume_master = val.value;
-// }
-// if (k_mus.has_value()) {
-//   AudioMusic_OnDisk val;
-//   k_mus.value().get_to(val);
-//   audio.volume_music = val.value;
-// }
-// if (k_sfx.has_value()) {
-//   AudioSFX_OnDisk val;
-//   k_sfx.value().get_to(val);
-//   audio.volume_sfx = val.value;
-// }
+void
+Option_AudioMusicVolume::load(engine::SINGLE_Application& app, entt::registry& r)
+{
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+  const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
-// set the display mode
-// engine::DisplayMode mode = engine::DisplayMode::fullscreen_borderless;
-// if (k_vsm.has_value()) {
-//   std::string enum_str = "";
-//   k_vsm->get_to(enum_str);
-//   const auto enum_val_opt = magic_enum::enum_cast<engine::DisplayMode>(enum_str);
-//   const auto enum_val = enum_val_opt.value();
-//   app.window.set_displaymode(enum_val);
-// }
+  if (!on_disk_opt.has_value())
+    return;
+  auto on_disk_val = on_disk_opt.value();
 
-// set the resolution
-// if (k_vres.has_value()) {
-//   app.window.set_size({ 1920, 1080 });
-// }
+  // Convert the on_disk_val to your representation.
+  Audio_OnDisk ondisk_data;
+  on_disk_val.get_to<Audio_OnDisk>(ondisk_data);
+  data = ondisk_data;
 
-// set vsync
-// if (k_vsync.has_value()) {
-//   app.window.set_vsync_opengl(true);
-// }
+  // update the system.
+  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
+  audio_c.volume_music = data.value;
+};
 
-/*
+void
+Option_AudioMusicVolume::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
+{
+  hindex = glm::clamp(hindex, 0, 10);
+  data.value = (float)engine::scale(hindex, 0, 10, 0.0f, 1.0f);
 
-ImGui::SeparatorText("Settings");
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
 
-static auto mode = engine::DisplayMode::windowed;
-static auto modes = engine::enum_class_to_vec_str<engine::DisplayMode>();
-// ImGui::Text("Current mode: %s", convert_enum_to_string<engine::DisplayMode>(mode).c_str());
+  // convert value to on-disk representation
+  const nlohmann::json data_as_json = data;
+  savefile_put_key(r, enum_as_str, data_as_json);
+  savefile_save_disk(r);
+  SDL_Log("volume_music updated to: %f", data.value);
 
-WomboComboIn combo_in(modes);
-combo_in.label = "Display Mode";
-combo_in.current_index = static_cast<int>(mode);
-WomboComboOut combo_out = draw_wombo_combo(combo_in);
-if (combo_in.current_index != combo_out.selected) {
-  // change display mode
-  mode = static_cast<engine::DisplayMode>(combo_out.selected);
-  app.window.set_displaymode(mode);
+  // update the audio system
+  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
+  audio_c.volume_music = data.value;
+};
 
-  // center the newly windowed window
-  if (mode == engine::DisplayMode::windowed || mode == engine::DisplayMode::windowed_borderless) {
-    SDL_DisplayMode DM;
-    SDL_GetCurrentDisplayMode(0, &DM);
-    const glm::ivec2 display_size = { DM.w, DM.h };
-    const glm::ivec2 window_size = app.window.get_size();
-    const auto pos = (display_size / 2) - (window_size / 2);
-    app.window.set_position(pos.x, pos.y);
-  }
-}
+int
+Option_AudioMusicVolume::get_hindex(entt::registry& r)
+{
+  // For AudioMasterVolume, conver the float to index's 0-10.
+  return (int)engine::scale(data.value, 0.0f, 1.0f, 0, 10);
+};
 
-static bool vsync = app.vsync;
-if (ImGui::Checkbox("VSync", &vsync))
-  app.window.set_vsync_opengl(vsync);
+std::string
+Option_AudioMusicVolume::display_val()
+{
+  return std::format("{:.2f}", data.value * 100.0f);
+};
 
-static bool limit_fps = app.limit_fps;
-if (ImGui::Checkbox("Limit FPS", &limit_fps))
-  app.limit_fps = limit_fps;
+//
+//
+//
 
-static int i0 = 60;
-if (ImGui::InputInt("Target FPS", &i0))
-  app.fps_limit = static_cast<float>(i0);
+void
+Option_AudioSFXVolume::load(engine::SINGLE_Application& app, entt::registry& r)
+{
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+  const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
-std::string separator_label = std::format("Screen Size ({}, {})", ri.viewport_size_current.x,
-ri.viewport_size_current.y); ImGui::SeparatorText(separator_label.c_str());
+  if (!on_disk_opt.has_value())
+    return;
+  auto on_disk_val = on_disk_opt.value();
+
+  // Convert the on_disk_val to your representation.
+  Audio_OnDisk ondisk_data;
+  on_disk_val.get_to<Audio_OnDisk>(ondisk_data);
+  data = ondisk_data;
+
+  // update the system.
+  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
+  audio_c.volume_sfx = data.value;
+};
+
+void
+Option_AudioSFXVolume::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
+{
+  hindex = glm::clamp(hindex, 0, 10);
+  data.value = (float)engine::scale(hindex, 0, 10, 0.0f, 1.0f);
+
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+
+  // convert value to on-disk representation
+  const nlohmann::json data_as_json = data;
+  savefile_put_key(r, enum_as_str, data_as_json);
+  savefile_save_disk(r);
+  SDL_Log("volume_music updated to: %f", data.value);
+
+  // update the audio system
+  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
+  audio_c.volume_sfx = data.value;
+};
+
+int
+Option_AudioSFXVolume::get_hindex(entt::registry& r)
+{
+  // For AudioMasterVolume, conver the float to index's 0-10.
+  return (int)engine::scale(data.value, 0.0f, 1.0f, 0, 10);
+};
+
+std::string
+Option_AudioSFXVolume::display_val()
+{
+  return std::format("{:.2f}", data.value * 100.0f);
+};
+
+//
+//
+//
+
+void
+Option_VideoScreenMode::load(engine::SINGLE_Application& app, entt::registry& r)
+{
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+  const auto on_disk_opt = savefile_get_key(r, enum_as_str);
+
+  if (!on_disk_opt.has_value())
+    return;
+  auto on_disk_val = on_disk_opt.value();
+
+  // Convert the on_disk_val to your representation.
+  Video_ScreenModeOnDisk ondisk_data;
+  on_disk_val.get_to<Video_ScreenModeOnDisk>(ondisk_data);
+  data = ondisk_data;
+
+  // update the system.
+  app.window.set_displaymode(data.screen_mode);
+
+  // set window pos
+  center_window(app);
+};
+
+void
+Option_VideoScreenMode::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
+{
+  const int n_options = (int)engine::DisplayMode::count;
+  hindex = glm::clamp(hindex, 0, n_options - 1);
+  data.screen_mode = (engine::DisplayMode)hindex;
+
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+
+  // convert value to on-disk representation
+  const nlohmann::json data_as_json = data;
+  savefile_put_key(r, enum_as_str, data_as_json);
+  savefile_save_disk(r);
+  SDL_Log("screen_mode updated to: %i", hindex);
+
+  // update system
+  // note: shouldnt update immediately.
+  app.window.set_displaymode(data.screen_mode);
+
+  // set window pos
+  center_window(app);
+};
+
+int
+Option_VideoScreenMode::get_hindex(entt::registry& r)
+{
+  // just directly convert to enum
+  return (int)data.screen_mode;
+};
+
+std::string
+Option_VideoScreenMode::display_val()
+{
+  const auto enum_val = data.screen_mode;
+  const auto enum_str = std::string(magic_enum::enum_name(enum_val));
+  return std::format("{}", enum_str);
+};
+
+//
+//
+//
 
 struct Resolution
 {
@@ -163,99 +264,133 @@ struct Resolution
   int y = 1080;
 };
 
-static std::vector<Resolution> resolutions{
+const std::vector<Resolution> resolutions{
   { 1280, 720 },
   { 1920, 1080 },
 };
 
-static std::vector<std::string> resolutions_as_str;
-static bool first_time = true;
-if (first_time) {
+void
+Option_VideoResolution::load(engine::SINGLE_Application& app, entt::registry& r)
+{
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+  const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
-  const auto convert_resolution_to_string = [](const Resolution& res) -> std::string {
-    return { std::to_string(res.x) + "x" + std::to_string(res.y) };
-  };
+  if (!on_disk_opt.has_value())
+    return;
+  auto on_disk_val = on_disk_opt.value();
 
-  // convert resolutions to string representation
-  std::transform(
-    resolutions.begin(), resolutions.end(), std::back_inserter(resolutions_as_str), convert_resolution_to_string);
+  // Convert the on_disk_val to your representation.
+  Video_ResolutionOnDisk ondisk_data;
+  on_disk_val.get_to<Video_ResolutionOnDisk>(ondisk_data);
+  data = ondisk_data;
 
-  first_time = false;
-}
+  // update the system.
+  app.window.set_size({ data.w, data.h });
 
-auto align_right_button = [](std::string label) -> bool {
-  // Align the button to the right
-  const float available_width = ImGui::GetContentRegionAvail().x;
-  const float button_width = 80.0f; // Set the desired button width
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + available_width - button_width);
-  return ImGui::Button(label.c_str(), ImVec2(button_width, 0));
+  // set window pos
+  center_window(app);
 };
 
-for (size_t i = 0; i < resolutions.size(); i++) {
-  ImGui::Text("%s", resolutions_as_str[i].c_str());
-  ImGui::SameLine();
-
-  std::string label = "Apply##" + std::to_string(i);
-  if (align_right_button(label.c_str())) {
-    app.window.set_size({ resolutions[i].x, resolutions[i].y });
-    SDL_Log("changing resolution");
-  }
-}
-
-static int custom_x = 1920;
-static int custom_y = 1080;
-
-ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x / 5.0f);
+void
+Option_VideoResolution::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
 {
-  imgui_draw_int("x", custom_x);
-  ImGui::SameLine();
-  imgui_draw_int("y", custom_y);
-  custom_x = glm::max(custom_x, 400);
-  custom_y = glm::max(custom_y, 400);
+  const int n_options = (int)resolutions.size();
+  hindex = glm::clamp(hindex, 0, n_options - 1);
+  data.w = resolutions[hindex].x;
+  data.h = resolutions[hindex].y;
 
-  ImGui::SameLine();
-  if (align_right_button("Apply##custom"))
-    app.window.set_size({ custom_x, custom_y });
-}
-ImGui::PopItemWidth();
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
 
-const auto audio_e = get_first<SINGLE_AudioComponent>(r);
-if (audio_e != entt::null) {
-  auto& audio = get_first_component<SINGLE_AudioComponent>(r);
+  // convert value to on-disk representation
+  const nlohmann::json data_as_json = data;
+  savefile_put_key(r, enum_as_str, data_as_json);
+  savefile_save_disk(r);
+  SDL_Log("resolution updated to: %i", hindex);
 
-  if (audio.loaded) {
-    ImGui::SeparatorText("Audio");
+  // update system
+  app.window.set_size({ data.w, data.h });
 
-    if (ImGui::SliderFloat("##max_volume", &audio.volume_user, 0.0f, 1.0f, "%.2f")) {
-      audio.volume_internal = static_cast<int>(MIX_MAX_VOLUME * audio.volume_user);
-      SDL_Log("%s", std::format("setting volume: {}", audio.volume_internal).c_str());
-      for (int i = 0; i < audio.max_audio_sources; i++)
-        Mix_Volume(i, audio.volume_internal);
-    }
+  // set window pos
+  center_window(app);
+};
 
-    static bool mute_all = audio.mute_all;
-    if (ImGui::Checkbox("Mute All", &mute_all)) {
-      audio.mute_all = mute_all;
-      if (audio.mute_all)
-        audio::sdl_mixer::stop_all_audio(r);
-      else {
-        // how to resume correct scene background music?
-        // a better solution would be to fade the music back in
-        // below is BAD.
-        // const auto& s = get_first_component<SINGLE_CurrentScene>(r);
-        // if (s.s == Scene::overworld)
-        //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_0" });
-        // if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
-        // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_0" });
-      }
-    }
+int
+Option_VideoResolution::get_hindex(entt::registry& r)
+{
+  // convert w and h to idx
+  auto find_res = [&](const Resolution& res) { return res.x == data.w && res.y == data.h; };
+  auto it = std::find_if(resolutions.begin(), resolutions.end(), find_res);
 
-    static bool mute_sfx = audio.mute_sfx;
-    if (ImGui::Checkbox("Mute SFX", &mute_sfx))
-      audio.mute_sfx = mute_sfx;
-  }
-}
+  if (it == resolutions.end())
+    return 0; // hmm
 
+  const auto idx = static_cast<int>(it - resolutions.begin());
+  return idx;
+};
+
+std::string
+Option_VideoResolution::display_val()
+{
+  return std::format("{}x{}", data.w, data.h);
+};
+
+//
+//
+//
+
+void
+Option_VideoVsync::load(engine::SINGLE_Application& app, entt::registry& r)
+{
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+  const auto on_disk_opt = savefile_get_key(r, enum_as_str);
+
+  if (!on_disk_opt.has_value())
+    return;
+  auto on_disk_val = on_disk_opt.value();
+
+  // Convert the on_disk_val to your representation.
+  Video_VsyncOnDisk ondisk_data;
+  on_disk_val.get_to<Video_VsyncOnDisk>(ondisk_data);
+  data = ondisk_data;
+
+  // update the system.
+  app.window.set_vsync_opengl(data.enabled);
+  SDL_Log("Vsync: %i", data.enabled);
+};
+
+void
+Option_VideoVsync::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
+{
+  // clamp hindex to 0 or 1 (false or true)
+  hindex = glm::clamp(hindex, 0, 1);
+  data.enabled = hindex;
+
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+
+  // convert value to on-disk representation
+  const nlohmann::json data_as_json = data;
+  savefile_put_key(r, enum_as_str, data_as_json);
+  savefile_save_disk(r);
+  SDL_Log("screen_mode updated to: %i", hindex);
+
+  // update system
+  app.window.set_vsync_opengl(data.enabled);
+  SDL_Log("Vsync: %i", data.enabled);
+};
+
+int
+Option_VideoVsync::get_hindex(entt::registry& r)
+{
+  return (int)data.enabled;
+};
+
+std::string
+Option_VideoVsync::display_val()
+{
+  return std::format("{}", data.enabled);
+};
+
+/*
 ImGui::SeparatorText("Effects");
 
 auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
@@ -268,7 +403,6 @@ if (grid_effect == true && grid_e == entt::null)
   create_empty<Effect_GridComponent>(r);
 if (grid_effect == false && grid_e != entt::null)
   r.destroy(grid_e);
-
 */
 
 } // namespace game2d

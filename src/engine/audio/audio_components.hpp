@@ -62,10 +62,10 @@ struct SINGLE_AudioComponent
   // set after requesting channels
   int max_audio_sources = -1;
 
+  // volumes between 0 and 1
   float volume_master = 1.0f;
   float volume_music = 1.0f;
-  float volume_sfx = 1.0f; // between 0 and 1
-  // float master_volume = 1.0f;
+  float volume_sfx = 1.0f;
 
   bool refresh_devices = true;
   std::vector<std::string> devices;

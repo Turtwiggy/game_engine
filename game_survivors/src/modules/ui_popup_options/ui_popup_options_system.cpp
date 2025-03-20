@@ -77,7 +77,7 @@ init_menu(entt::registry& r, SINGLE_OptionsMenuState& ui_c)
 }
 
 void
-update_ui_popup_options_system(entt::registry& r)
+update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   auto& ui_c = gesert_component<SINGLE_OptionsMenuState>(r);
@@ -137,6 +137,21 @@ update_ui_popup_options_system(entt::registry& r)
       .ui_col_active = true,   // one col
     };
 
+    // Hack: add seperators for categories.
+    const auto enum_val = magic_enum::enum_cast<GAME_OPTIONS>(i).value();
+    // first audio option
+    if (enum_val == GAME_OPTIONS::AUDIO_MASTER_VOLUME) {
+      ImGui::Text("Keyboard: use arrow keys (wip)");
+      ImGui::Text("Controller: use dpad");
+      ImGui::SeparatorText("Audio");
+    }
+    // first video option
+    if (enum_val == GAME_OPTIONS::VIDEO_SCREEN_MODE)
+      ImGui::SeparatorText("Video");
+    // last option
+    if (i == (int)(GAME_OPTIONS::count))
+      ImGui::SeparatorText("Menu");
+
     if (selectable_button(a_def))
       row.action();
 
@@ -144,7 +159,6 @@ update_ui_popup_options_system(entt::registry& r)
     const auto v_value_changed = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED) != acts.end();
     const auto h_value_changed = std::find(acts.begin(), acts.end(), UIAction::H_VALUE_CHANGED) != acts.end();
     const bool active = i == ui_c.state.current_row_index;
-    const auto enum_val = magic_enum::enum_cast<GAME_OPTIONS>(i).value();
 
     const auto& option = get_option(r, enum_val);
     if (option == nullptr)
@@ -153,7 +167,7 @@ update_ui_popup_options_system(entt::registry& r)
     // Update option...
     if (active && h_value_changed) {
       auto& h_value = row.col_index;
-      option->update(r, h_value);
+      option->update(app, r, h_value);
     }
 
     // Display option value to user...
