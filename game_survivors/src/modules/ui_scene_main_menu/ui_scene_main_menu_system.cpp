@@ -152,13 +152,13 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     auto upgrade_action = [&r, &ui_c]() {
       ui_c.display = false;
       ui_c.one_frame_buffer = true;
-      ui_c.state.current_row_index = 0;
+      // ui_c.state.current_row_index = 0;
       create_empty<RequestToShowUpgradesMenu>(r);
     };
     auto options_action = [&r, &ui_c]() {
       ui_c.display = false;
       ui_c.one_frame_buffer = true;
-      ui_c.state.current_row_index = 0;
+      // ui_c.state.current_row_index = 0;
       create_empty<RequestToShowOptionsMenu>(r);
     };
     auto exit_action = [&app]() { app.running = false; };

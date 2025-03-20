@@ -8,6 +8,11 @@
 
 namespace game2d {
 
+struct SINGLE_UIData
+{
+  float scaling = 1.0f;
+};
+
 struct SelectableButtonDef
 {
   std::string label;

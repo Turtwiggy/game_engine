@@ -38,7 +38,6 @@ update_gameover_system(entt::registry& r)
       // Save collected gold to disk.
       gold_c.amount += gold_c.temp_amount;
       gold_c.temp_amount = 0;
-
       savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);
       savefile_save_disk(r);
       SDL_Log("Saved new gold to disk... %i", gold_c.amount);
@@ -52,6 +51,14 @@ update_gameover_system(entt::registry& r)
     gameover_c.win_condition = false;
     gameover_c.reason = "All players dead";
     create_empty<GameOverComponent>(r, gameover_c);
+
+    // Save collected gold to disk.
+    // Even if you lose. A bit too harsh otherwise
+    gold_c.amount += gold_c.temp_amount;
+    gold_c.temp_amount = 0;
+    savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);
+    savefile_save_disk(r);
+    SDL_Log("Saved new gold to disk... %i", gold_c.amount);
   }
 }
 

@@ -55,7 +55,7 @@ void
 anchor_down(entt::registry& r, entt::entity e)
 {
   // signal state
-  r.emplace<LockedInSpotComponent>(e);
+  r.emplace_or_replace<LockedInSpotComponent>(e);
 }
 
 void
@@ -77,7 +77,8 @@ anchor_release(entt::registry& r, entt::entity e, const InputComponent& input_c,
   speed_c.current_speed = speed_c.base_speed;
 
   // remove lock
-  r.remove<LockedInSpotComponent>(e);
+  if (auto* locked_c = r.try_get<LockedInSpotComponent>(e))
+    r.remove<LockedInSpotComponent>(e);
 
   // Give a speed boost? tokyo drifffftttttt
   const auto mass = body_c.body->GetMass();

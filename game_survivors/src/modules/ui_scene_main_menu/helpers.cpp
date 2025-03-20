@@ -3,12 +3,14 @@
 #include "helpers.hpp"
 
 #include "engine/audio/audio_components.hpp"
-#include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/core_io/io_helpers.hpp"
+#include "modules/core_options/options_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
+#include "modules/ui_popup_options/ui_popup_options_components.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -37,84 +39,85 @@ play_sound_if_hovered(entt::registry& r, std::vector<std::string>& hovered_butto
 };
 
 void
-ui_mute_sound_icon(entt::registry& r) {
-  // const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+ui_mute_sound_icon(entt::registry& r)
+{
+  return; // disabled
 
-  // // show a sound icon
-  // ImGuiWindowFlags icon_flags = 0;
-  // icon_flags |= ImGuiWindowFlags_NoCollapse;
-  // icon_flags |= ImGuiWindowFlags_NoTitleBar;
-  // icon_flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  // icon_flags |= ImGuiWindowFlags_NoBackground;
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ui_c = get_first_component<SINGLE_UIData>(r);
+  const auto& options_c = get_first_component<SINGLE_GameOptions>(r);
 
-  // const float distance_from_right_of_screen = 75;
-  // const float distance_from_top_of_screen = 75;
+  const float distance_from_right_of_screen = 75;
+  const float distance_from_top_of_screen = 75;
 
-  // const ImVec2 icon_size{ 50, 50 };
-  // static ImVec2 tl{ 0.0f, 0.0f };
-  // static ImVec2 br{ 1.0f, 1.0f };
-  // const auto set_icon_state = [&](const bool muted) {
-  //   const auto [unmute_tl, unmute_br] = convert_sprite_to_uv(r, "AUDIO"s);
-  //   const auto [mute_tl, mute_br] = convert_sprite_to_uv(r, "AUDIO_MUTE"s);
-  //   if (muted) {
-  //     tl = mute_tl;
-  //     br = mute_br;
-  //   } else {
-  //     tl = unmute_tl;
-  //     br = unmute_br;
-  //   }
-  // };
+  // show a sound icon
+  ImGuiWindowFlags icon_flags = 0;
+  icon_flags |= ImGuiWindowFlags_NoCollapse;
+  icon_flags |= ImGuiWindowFlags_NoTitleBar;
+  icon_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  icon_flags |= ImGuiWindowFlags_NoBackground;
 
-  // // button state
-  // static int mute = 0;
+  ImVec2 icon_size{ 50, 50 };
+  icon_size.x *= ui_c.scaling;
+  icon_size.y *= ui_c.scaling;
 
-  // // set state from saved disk
-  // static auto disk_preference_mute = savefile_get_key(r, PLAYERPREF_MUTE).value_or("false") == "true";
-  // static bool set_from_disk = true;
-  // if (set_from_disk) {
-  //   mute = disk_preference_mute;
-  //   set_from_disk = false;
-  //   set_icon_state(mute);
+  static ImVec2 tl{ 0.0f, 0.0f };
+  static ImVec2 br{ 1.0f, 1.0f };
+  const auto set_icon_state = [&](const bool muted) {
+    const auto [unmute_tl, unmute_br] = convert_sprite_to_uv(r, "AUDIO"s);
+    const auto [mute_tl, mute_br] = convert_sprite_to_uv(r, "AUDIO_MUTE"s);
+    if (muted) {
+      tl = mute_tl;
+      br = mute_br;
+    } else {
+      tl = unmute_tl;
+      br = unmute_br;
+    }
+  };
+
+  // set state from saved disk
+  static auto disk_pref_str = std::string(magic_enum::enum_name(GAME_OPTIONS::AUDIO_MASTER_VOLUME));
+  const auto disk_mute = savefile_get_key(r, disk_pref_str);
+  bool muted = false;
+  if (disk_mute.has_value())
+    muted = disk_mute.value().get<Audio_OnDisk>().value == 0.0f;
+
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - distance_from_right_of_screen,
+                                 viewport->WorkPos.y + viewport->WorkSize.y - distance_from_top_of_screen));
+
+  ImGui::Begin("Mute Sound Icon", nullptr, icon_flags);
+
+  // draw an audio icon
+  const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
+  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+
+  // bool toggle_changed = false;
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+  // if (ImGui::ImageButton("mute-icon", im_id, icon_size, tl, br)) {
+
+  //   bool new_mute = !muted;
+  //   savefile_put_key(r, disk_pref_str, Audio_OnDisk{ 0.0f });
+  //   //   savefile_save_disk(r);
+
+  //   //   set_icon_state(mute);
+  //   //   toggle_changed = true;
   // }
 
-  // const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  // ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - distance_from_right_of_screen,
-  //                                viewport->WorkPos.y + viewport->WorkSize.y - distance_from_top_of_screen));
+  // ImGui::PopStyleVar();
 
-  // ImGui::Begin("Mute Sound Icon", nullptr, icon_flags);
+  // auto& audio = get_first_component<SINGLE_AudioComponent>(r);
 
-  // // draw an audio icon
-  // const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
-  // const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  // // toggle: mute to unmute
+  // if (toggle_changed && mute == 0)
+  //   SDL_Log("%s", std::format("TODO: implement unmute all").c_str());
 
-  // // bool toggle_changed = false;
-  // // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-
-  // // if (ImGui::ImageButton("mute-icon", im_id, icon_size, tl, br)) {
-  // //   mute = mute == 1 ? 0 : 1;
-
-  // //   savefile_put_key(r, PLAYERPREF_MUTE, mute == 1 ? "true"s : "false"s);
-  // //   savefile_save_disk(r);
-
-  // //   set_icon_state(mute);
-  // //   toggle_changed = true;
-  // // }
-
-  // // ImGui::PopStyleVar();
-
-  // // auto& audio = get_first_component<SINGLE_AudioComponent>(r);
-  // // // audio.mute_all = mute;
-  // // // audio.mute_sfx = mute;
-
-  // // // toggle: mute to unmute
-  // // if (toggle_changed && mute == 0)
-  // //   SDL_Log("%s", std::format("TODO: implement unmute all").c_str());
-
-  // // // toggle: unmute to mute. stop all music.
-  // // if (toggle_changed && mute == 1) {
-  // //   SDL_Log("%s", std::format("muted all").c_str());
-  // //   audio::sdl_mixer::stop_all_audio(r);
-  // // }
+  // // toggle: unmute to mute. stop all music.
+  // if (toggle_changed && mute == 1) {
+  //   SDL_Log("%s", std::format("muted all").c_str());
+  //   audio::sdl_mixer::stop_all_audio(r);
+  // }
 
   // ImGui::End();
 };
