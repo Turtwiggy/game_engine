@@ -4,6 +4,7 @@
 
 #include "enemy_grower_components.hpp"
 #include "enemy_grower_helpers.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -24,11 +25,7 @@ update_enemy_grower_system(entt::registry& r, float dt)
 
     auto& hp_c = r.get<HealthComponent>(fixture_e);
 
-    const auto scale = [](float cur, float a_min, float a_max, float b_min, float b_max) {
-      const float percent = (cur - a_min) / (a_max - a_min);
-      return b_min + percent * (b_max - b_min);
-    };
-    const float radius_pixels = scale(hp_c.hp, 0, hp_c.max_hp, 16, 256);
+    const float radius_pixels = engine::scale(hp_c.hp, 0, hp_c.max_hp, 16, 256);
 
     // update fixture
     update_circle_fixture_size(r, body_e, fixture_e, radius_pixels);

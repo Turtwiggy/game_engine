@@ -1,7 +1,8 @@
+#include "pch.hpp"
+
 #include "gold_helpers.hpp"
 
-#include "engine/io/settings.hpp"
-#include <string>
+#include "modules/core_io/io_helpers.hpp"
 
 namespace game2d {
 
@@ -10,8 +11,13 @@ load_gold_from_disk(entt::registry& r)
 {
   SINGLE_GoldComponent gold_c;
 
-  const auto val = gesert_string("GOLD_AMOUNT", "0");
-  gold_c.amount = std::stoi(val);
+  const auto val_opt = savefile_get_key(r, "GOLD_AMOUNT");
+  if (!val_opt.has_value())
+    return gold_c;
+  const auto val_json = val_opt.value();
+
+  int gold = 0;
+  val_json.get_to<int>(gold);
 
   const auto info_str = std::format("You have {} gold", gold_c.amount);
   SDL_Log("%s", info_str.c_str());

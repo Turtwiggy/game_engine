@@ -45,16 +45,17 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
     return; // prevent immediately doing do_ui_action
 
   // state
-  int& v_selected = state.current_row_index;
+  int v_selected = state.current_row_index;
+  int h_selected = state.rows[v_selected].col_index;
 
   // TODO: replace this system with has_action, which maps both keyboard and controller
 
   // Update menu via controller
   //
   if (controller_button_down(steam_c, handle, DA::Game_Up))
-    v_selected--;
+    state.current_row_index--;
   else if (controller_button_down(steam_c, handle, DA::Game_Down))
-    v_selected++;
+    state.current_row_index++;
   else if (controller_button_down(steam_c, handle, DA::Game_Left))
     state.rows[v_selected].col_index--;
   else if (controller_button_down(steam_c, handle, DA::Game_Right))
@@ -68,9 +69,9 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   //
   {
     if (get_key_down(input, SDL_SCANCODE_UP))
-      v_selected--;
+      state.current_row_index--;
     else if (get_key_down(input, SDL_SCANCODE_DOWN))
-      v_selected++;
+      state.current_row_index++;
     else if (get_key_down(input, SDL_SCANCODE_LEFT))
       state.rows[v_selected].col_index--;
     else if (get_key_down(input, SDL_SCANCODE_RIGHT))
@@ -81,13 +82,24 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
       state.new_actions.push_back(UIAction::BACK);
   }
 
+  const bool v_changed = v_selected != state.current_row_index;
+  const bool h_changed = h_selected != state.rows[v_selected].col_index;
+
+  // vertical changed...
+  if (v_changed)
+    state.new_actions.push_back(UIAction::V_VALUE_CHANGED);
+
+  // horizontal value changed...
+  if (!v_changed && h_changed)
+    state.new_actions.push_back(UIAction::H_VALUE_CHANGED);
+
   // clamp selected
   const int max = state.rows.size();
   if (max == 0)
     throw std::runtime_error("Error: no rows in ui. Probably setup incorrect.");
 
-  v_selected = v_selected < 0 ? max - 1 : v_selected;
-  v_selected %= max;
+  state.current_row_index = state.current_row_index < 0 ? max - 1 : state.current_row_index;
+  state.current_row_index %= max;
 }
 
 } // namespace game2d

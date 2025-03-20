@@ -1,10 +1,10 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/io/settings.hpp"
-#include "gameover_components.hpp"
 #include "gameover_system.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/core_io/io_helpers.hpp"
+#include "modules/system_gameover/gameover_components.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 
@@ -17,7 +17,7 @@ update_gameover_system(entt::registry& r)
   if (game_over_view.size() > 0)
     return; // game already ended
 
-  auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
+  GET_FIRST_OR_RETURN(SINGLE_GoldComponent, r, gold_e, gold_c);
 
   for (const auto& [e, timer_c] : r.view<const SurviveTimerComponent>().each()) {
 
@@ -38,10 +38,10 @@ update_gameover_system(entt::registry& r)
       // Save collected gold to disk.
       gold_c.amount += gold_c.temp_amount;
       gold_c.temp_amount = 0;
-      auto new_amount = std::to_string(gold_c.amount);
-      save_string("GOLD_AMOUNT", new_amount);
 
-      SDL_Log("Saved new gold to disk... %s", new_amount.c_str());
+      savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);
+      savefile_save_disk(r);
+      SDL_Log("Saved new gold to disk... %i", gold_c.amount);
     }
   }
 

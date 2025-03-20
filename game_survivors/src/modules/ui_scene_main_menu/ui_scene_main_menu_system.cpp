@@ -101,21 +101,20 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   // ImGui::ColorEdit4("dropshadow_col", dropshadow_col);
 #endif
 
-  if (ui_c.one_frame_buffer) {
-    ui_c.one_frame_buffer = false;
+  if (!ui_c.init) {
     init_menu(r);
-
-    // the main menu is the default menu, enable it
-    ui_c.display = true;
-
-    return;
+    ui_c.init = true;
   }
 
-  // process requests to show menu
-  auto req_show_main_menu_view = r.view<RequestToShowMainMenu>();
-  if (req_show_main_menu_view.size() > 0)
+  process_requests<RequestToShowMainMenu>(r, [&ui_c]() {
+    ui_c.one_frame_buffer = true;
     ui_c.display = true;
-  r.destroy(req_show_main_menu_view.begin(), req_show_main_menu_view.end());
+  });
+
+  if (ui_c.one_frame_buffer) {
+    ui_c.one_frame_buffer = false;
+    return;
+  }
 
   if (!ui_c.display)
     return;
@@ -152,10 +151,14 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     auto test_action = [&r]() { move_to_scene_start(r, Scene::procedural_snake); };
     auto upgrade_action = [&r, &ui_c]() {
       ui_c.display = false;
+      ui_c.one_frame_buffer = true;
+      ui_c.state.current_row_index = 0;
       create_empty<RequestToShowUpgradesMenu>(r);
     };
     auto options_action = [&r, &ui_c]() {
       ui_c.display = false;
+      ui_c.one_frame_buffer = true;
+      ui_c.state.current_row_index = 0;
       create_empty<RequestToShowOptionsMenu>(r);
     };
     auto exit_action = [&app]() { app.running = false; };
@@ -186,8 +189,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   process_input_for_ui_all_handles(r, ui_c.state);
 
   int& selected = ui_c.state.current_row_index;
-  bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
-                ui_c.state.new_actions.end();
+  const bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
+                      ui_c.state.new_actions.end();
 
   for (int i = 0; i < (int)ui_c.state.rows.size(); i++) {
     if (i > 0)

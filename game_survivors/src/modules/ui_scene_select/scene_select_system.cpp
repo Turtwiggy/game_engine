@@ -12,6 +12,7 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "scene_select_components.hpp"
 
@@ -93,6 +94,12 @@ update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c)
     if (!ui_state_c.init) {
       ui_state_c.rows.push_back({ .col_name = "Select Weapon", .action = []() {} });
       ui_state_c.rows.push_back({ .col_name = "Select Hull", .action = []() {} });
+
+      ui_state_c.rows.push_back({ .col_name = "To Menu", .action = [&r]() {
+                                   //
+                                   move_to_scene_start(r, Scene::menu);
+                                 } });
+
       ui_state_c.init = true;
     }
 
@@ -298,6 +305,8 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   // player_ui_tl.x += (window_size.x) * 0.5f - (num_active_players * player_ui_w * 0.5);
   // player_ui_br.x += (window_size.x) * 0.5f - (num_active_players * player_ui_w * 0.5);
 
+  bool moved_to_menu = false;
+
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
     // background
@@ -315,8 +324,18 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     const auto& a = state_c.new_actions;
     const bool player_pressed_select = std::find(a.begin(), a.end(), UIAction::SELECT) != a.end();
     const bool player_pressed_back = std::find(a.begin(), a.end(), UIAction::BACK) != a.end();
-    if (player_pressed_select)
+
+    // todo: fix this to not use magic numbers
+    const bool on_back_to_menu_button = state_c.current_row_index == 2;
+    if (player_pressed_select && on_back_to_menu_button) {
+      state_c.rows[2].action();
+      moved_to_menu = true;
+      break;
+    }
+
+    if (player_pressed_select && !on_back_to_menu_button)
       game_state_c.confirmed = true;
+
     if (player_pressed_back)
       game_state_c.confirmed = false;
 
@@ -327,6 +346,9 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
 
   ImGui::End();
   ImGui::PopStyleVar(2);
+
+  if (moved_to_menu)
+    return;
 
   //
   // Show a countdown timer when all joined players are ready

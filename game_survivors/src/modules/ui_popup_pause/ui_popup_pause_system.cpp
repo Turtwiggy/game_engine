@@ -29,11 +29,13 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, ui_e, ui_c);
 
+  // only allow pause in survive scene
+  auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  if (scene.s != Scene::survive)
+    return;
+
   // TEMPORARY: input to generate open/close events
   {
-    auto& scene = get_first_component<SINGLE_CurrentScene>(r);
-    if (scene.s == Scene::menu)
-      return; // no pause menu in main menu
     GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
     if (get_key_down(input, SDL_SCANCODE_ESCAPE))
       create_empty<RequestToShowPauseMenu>(r);

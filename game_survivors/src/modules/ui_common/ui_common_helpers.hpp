@@ -12,15 +12,13 @@ template<class T>
 void
 process_requests(entt::registry& r, const std::function<void()>& callback)
 {
-  bool has_requests = false;
   const auto& view = r.view<T>();
 
-  if (view.size() > 0)
-    has_requests = true;
-  r.destroy(view.begin(), view.end());
-
+  const bool has_requests = view.size() > 0;
   if (has_requests)
     callback();
+
+  r.destroy(view.begin(), view.end());
 };
 
 bool

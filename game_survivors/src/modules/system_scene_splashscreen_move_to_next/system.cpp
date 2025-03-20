@@ -1,5 +1,3 @@
-#include "imgui.h"
-#include "modules/core_renderer/components.hpp"
 #include "pch.hpp"
 
 #include "system.hpp"
@@ -8,7 +6,8 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
-#include "engine/io/settings.hpp"
+#include "modules/core_options/options_components.hpp"
+#include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 
 namespace game2d {
@@ -38,26 +37,25 @@ audio_warning_ui(entt::registry& r)
 }
 
 void
-update_scene_splashscreen_move_to_next_system(entt::registry& r, const float dt)
+update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, entt::registry& r, const float dt)
 {
   auto& data = get_first_component<SINGLE_SplashScreen>(r);
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
 
   const auto audio_e = get_first<SINGLE_AudioComponent>(r);
   if (audio_e == entt::null)
-    return;
+    return; // wait for it to load
 
   auto& audio = get_first_component<SINGLE_AudioComponent>(r);
   if (!audio.loaded) {
     audio_warning_ui(r);
-    return; // wait for sounds to be loaded
+    return; // wait for it to load
   }
 
-  // set audio state from saved disk
-  const auto disk_preference_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
-  const bool mute = disk_preference_mute;
-  audio.mute_all = mute;
-  audio.mute_sfx = mute;
+  // set a bunch of options settings from saved options
+  const auto& options_c = get_first_component<SINGLE_GameOptions>(r);
+  for (const auto& option : options_c.options)
+    option->load(r);
 
   // After X seconds, move to menu,
   // or when audio is loaded and a key is mashed

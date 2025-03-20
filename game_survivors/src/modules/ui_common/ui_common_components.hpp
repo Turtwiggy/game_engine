@@ -36,6 +36,8 @@ enum class UIAction
 {
   SELECT,
   BACK,
+  H_VALUE_CHANGED,
+  V_VALUE_CHANGED,
 };
 
 // Note: this is limited.

@@ -15,7 +15,7 @@ struct SINGLE_MainMenuUI
 
   // prevent immediately doing action when sent by other scene
   bool one_frame_buffer = true;
-
+  bool init = false;
   bool display = true;
   UIState state;
 };

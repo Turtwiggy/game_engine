@@ -62,8 +62,8 @@
     {"key": "WEAPON_RELOAD", "levels": []},
     {"key": "WEAPON_RANGE", "levels": []}
 
-    // Luck?
-    // Gold?
+    // Luck for stat rarity?
+    // Gold drop rate?
 
   ]
 }

@@ -12,9 +12,6 @@ struct AudioRequestPlayEvent
 {
   std::string tag;
   bool looping = false;
-
-  // all things in balance...
-  float percent_of_max_user_volume = 1.0f;
 };
 
 // classes to support System()
@@ -25,10 +22,17 @@ enum class AudioSourceState
   PLAYING,
 };
 
+enum class SoundType
+{
+  BACKGROUND,
+  SFX,
+};
+
 struct AudioSource
 {
   int channel = -1;
   AudioSourceState state = AudioSourceState::FREE;
+  SoundType sound_type = SoundType::BACKGROUND;
 
   AudioSource() = default;
   AudioSource(const int c)
@@ -38,12 +42,6 @@ struct AudioSource
 struct AudioListener
 {
   bool placeholder = true;
-};
-
-enum class SoundType
-{
-  BACKGROUND,
-  SFX,
 };
 
 struct Sound
@@ -64,12 +62,9 @@ struct SINGLE_AudioComponent
   // set after requesting channels
   int max_audio_sources = -1;
 
-  // set volume as 25%. try not to blow out ear drums on launch.
-  float volume_user = 0.25f; // between 0 and 1
-  // int volume_internal = static_cast<int>(MIX_MAX_VOLUME * volume_user);
-
-  bool mute_all = false;
-  bool mute_sfx = false;
+  float volume_master = 1.0f;
+  float volume_music = 1.0f;
+  float volume_sfx = 1.0f; // between 0 and 1
   // float master_volume = 1.0f;
 
   bool refresh_devices = true;

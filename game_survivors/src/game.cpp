@@ -26,6 +26,9 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
+#include "modules/core_io/io_components.hpp"
+#include "modules/core_io/io_helpers.hpp"
+#include "modules/core_options/options_components.hpp"
 #include "modules/core_raws/raws_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/system.hpp"
@@ -107,7 +110,6 @@
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-
 namespace game2d {
 using namespace std::literals;
 
@@ -172,7 +174,6 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     create_persistent<SINGLE_Animations>(r, anims);
   }
 
-  create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
   create_persistent<SINGLE_PauseMenuState>(r);
   create_persistent<SINGLE_OptionsMenuState>(r);
   create_persistent<SINGLE_DebugMenuBar>(r);
@@ -186,6 +187,9 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_SteamControllerGameState>(r);
   create_persistent<SINGLE_PostFixedUpdateCallbacks>(r);
 
+  create_persistent<SINGLE_GameOptions>(r);
+  create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
+  create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
   move_to_scene_start(r, Scene::splashscreen);
 };
 
@@ -277,7 +281,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_scene_pressanykey_move_to_next_system(r, dt);
 
   if (scene.s == Scene::splashscreen)
-    update_scene_splashscreen_move_to_next_system(r, dt);
+    update_scene_splashscreen_move_to_next_system(app, r, dt);
 
   // pause due to gamelogic
   bool pause = require_pause(r);

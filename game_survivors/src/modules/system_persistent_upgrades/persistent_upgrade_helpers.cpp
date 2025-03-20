@@ -1,8 +1,8 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/io/settings.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/core_io/io_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "persistent_upgrade_helpers.hpp"
 
@@ -26,9 +26,10 @@ load_persistent_upgrades_and_apply_to_player(entt::registry& r)
     const auto stat_enum = magic_enum::enum_value<UpgradeableStat>(i);
     const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
 
-    auto val_opt = get_string(stat_str);
+    const auto val_opt = savefile_get_key(r, stat_str);
     if (!val_opt.has_value())
       continue;
+    const auto val_json = val_opt.value();
     SDL_Log("You've purchased an upgrade... %s", stat_str.c_str());
 
     // Load how much the stat gives from the upgrades.
@@ -40,7 +41,10 @@ load_persistent_upgrades_and_apply_to_player(entt::registry& r)
     }
 
     const Upgrade u = (*it);
-    const int your_level = std::stoi(val_opt.value());
+
+    int your_level = 0;
+    val_json.get_to<int>(your_level);
+
     for (int lv_idx = 0; lv_idx < your_level; lv_idx++) {
       auto lv_info = u.levels[lv_idx];
 

@@ -9,7 +9,7 @@
 #include "audio_components.hpp"
 #include "engine/audio/audio_helpers.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/maths/maths.hpp"
+#include <stdexcept>
 
 namespace game2d {
 
@@ -51,7 +51,7 @@ init_audio_system(entt::registry& r)
     create_persistent<AudioSource>(r, AudioSource(i));
 
     // set volume to user pref
-    Mix_Volume(i, static_cast<int>(MIX_MAX_VOLUME * audio.volume_user));
+    Mix_Volume(i, static_cast<int>(MIX_MAX_VOLUME * audio.volume_master));
   }
 
   SDL_Log("%s", std::format("Loading audio...").c_str());
@@ -71,6 +71,27 @@ init_audio_system(entt::registry& r)
 }
 
 void
+update_audio_channel_volume(const AudioSource& source, float vol_sfx, float vol_mus, bool paused)
+{
+  const auto t = source.sound_type;
+
+  float volume = MIX_MAX_VOLUME;
+
+  if (t == SoundType::SFX)
+    volume *= vol_sfx;
+  else if (t == SoundType::BACKGROUND)
+    volume *= vol_mus;
+  else
+    throw std::runtime_error("unknown audio type");
+
+  if (paused)
+    volume *= 0.4f;
+
+  const int volume_int = (int)volume;
+  Mix_Volume(source.channel, volume_int);
+}
+
+void
 update_audio_system(entt::registry& r, const float dt)
 {
   GET_FIRST_OR_RETURN(SINGLE_AudioComponent, r, audio_e, audio_c);
@@ -86,16 +107,24 @@ update_audio_system(entt::registry& r, const float dt)
   if (audio_c.sounds.size() == 0)
     return; // no sounds loaded
 
+  // audio levels
+  const float epsilon = 0.001f;
+  const bool muted_master = audio_c.volume_master - epsilon <= 0.0f;
+  const bool muted_music = audio_c.volume_music - epsilon <= 0.0f;
+  const bool muted_sfx = audio_c.volume_sfx - epsilon <= 0.0f;
+  const float volume_music = audio_c.volume_master * audio_c.volume_music;
+  const float volume_sfx = audio_c.volume_master * audio_c.volume_sfx;
+
   // If muted, destroy all requests
-  if (audio_c.mute_all) {
-    const auto& view = r.view<AudioRequestPlayEvent>();
-    r.destroy(view.begin(), view.end());
-  }
+  // if (muted_master) {
+  //   const auto& view = r.view<AudioRequestPlayEvent>();
+  //   r.destroy(view.begin(), view.end());
+  // }
 
   // check if request is a sfx effect
   for (const auto& [e, req] : r.view<const AudioRequestPlayEvent>().each()) {
     const Sound& s = get_sound(audio_c, req.tag);
-    if (audio_c.mute_sfx && s.type == SoundType::SFX)
+    if (muted_sfx && s.type == SoundType::SFX)
       r.destroy(e);
   }
 
@@ -113,19 +142,13 @@ update_audio_system(entt::registry& r, const float dt)
       free_audio_sources.push_back(source);
   }
 
-  // dampen any playing audio sources.
-  static float cur_volume = 0.0;
-  if (paused) {
-    const int dampened_volume = static_cast<int>(MIX_MAX_VOLUME * audio_c.volume_user * 0.4);
-    cur_volume = engine::lerp(cur_volume, dampened_volume, dt);
-  } else {
-    const float volume = MIX_MAX_VOLUME * audio_c.volume_user;
-    cur_volume = engine::lerp(cur_volume, volume, dt);
+  // Update the volume of all playing sources.
+  for (const auto& [entity, source] : r.view<AudioSource>().each()) {
+    const auto is_playing = source.state == AudioSourceState::PLAYING;
+    if (!is_playing)
+      continue;
+    update_audio_channel_volume(source, volume_sfx, volume_music, paused);
   }
-
-  // set user volume preference
-  for (const auto& [entity, source] : r.view<AudioSource>().each())
-    Mix_Volume(source.channel, cur_volume);
 
   if (free_audio_sources.size() == 0) {
     // SDL_Log("%s", std::format("No free audio sources! Missed request for: {}", tag).c_str());
@@ -152,13 +175,10 @@ update_audio_system(entt::registry& r, const float dt)
     const Sound s = get_sound(audio_c, request.tag);
 
     const int channel = Mix_PlayChannel(audio_source.channel, s.buffer, request.looping ? -1 : 0);
-    if (channel != audio_source.channel) {
+    if (channel != audio_source.channel)
       SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());
-    }
-
-    // Set channel volume
-    // const float volume = MIX_MAX_VOLUME * audio_c.volume_user * request.percent_of_max_user_volume;
-    // Mix_Volume(channel, volume);
+    audio_source.sound_type = s.type;
+    update_audio_channel_volume(audio_source, volume_sfx, volume_music, paused);
 
     // process request
     r.destroy(entities.begin(), entities.end());

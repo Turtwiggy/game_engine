@@ -1,9 +1,9 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/io/settings.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
+#include "modules/core_io/io_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
@@ -37,9 +37,11 @@ purchase_upgrade(entt::registry& r, const UpgradeableStat stat)
 
   // your current level.
   std::optional<int> your_level = std::nullopt;
-  auto ondisk_val = get_string(stat_str);
-  if (ondisk_val.has_value()) {
-    your_level = std::stoi(ondisk_val.value());
+
+  const auto ondisk_opt = savefile_get_key(r, stat_str);
+  if (ondisk_opt.has_value()) {
+    const auto ondisk_json = ondisk_opt.value();
+    ondisk_json.get_to<int>(your_level.emplace());
     SDL_Log("Your current stat level is: %i", your_level.value());
   }
 
@@ -68,13 +70,15 @@ purchase_upgrade(entt::registry& r, const UpgradeableStat stat)
   }
 
   if (your_level.has_value())
-    save_string(stat_str, std::to_string(your_level.value() + 1));
+    savefile_put_key(r, stat_str, your_level.value() + 1);
   else
-    save_string(stat_str, std::to_string(1));
+    savefile_put_key(r, stat_str, 1);
 
   // Buy the skill.
   gold_c.amount -= (int)(next_ul.value().cost);
-  save_string("GOLD_AMOUNT", std::to_string(gold_c.amount));
+
+  savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);
+  savefile_save_disk(r);
 };
 
 void
@@ -171,11 +175,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
     ui_c.init = true;
   }
 
-  // process requests
-  auto reqs = r.view<RequestToShowUpgradesMenu>();
-  if (reqs.size() > 0)
-    ui_c.display = true;
-  r.destroy(reqs.begin(), reqs.end());
+  process_requests<RequestToShowUpgradesMenu>(r, [&ui_c]() { ui_c.display = true; });
 
   if (!ui_c.display)
     return;
@@ -295,9 +295,11 @@ update_ui_scene_upgrades_system(entt::registry& r)
           const auto stat_key = row.col_name;
 
           int n_stat_upgrades_aquired = 0;
-          auto on_disk_stat_level_opt = get_string(stat_key);
-          if (on_disk_stat_level_opt.has_value())
-            n_stat_upgrades_aquired = std::stoi(on_disk_stat_level_opt.value());
+          const auto on_disk_stat_level_opt = savefile_get_key(r, stat_key);
+          if (on_disk_stat_level_opt.has_value()) {
+            const nlohmann::json data = on_disk_stat_level_opt.value();
+            data.get_to(n_stat_upgrades_aquired);
+          }
 
           int n_stat_upgrades = 0;
           const auto find_by_key = [&stat_key](Upgrade& u) { return u.key == stat_key; };
@@ -357,12 +359,11 @@ update_ui_scene_upgrades_system(entt::registry& r)
     const Upgrade u = (*it);
     ImGui::Text("%s. Levels available: %zu", u.key.c_str(), u.levels.size());
 
+    // loaded on-disk values
     int your_level = 0;
-
-    // TODO: replace get_string with the loaded on-disk values
-    auto str_opt = get_string(stat_str);
+    auto str_opt = savefile_get_key(r, stat_str);
     if (str_opt.has_value())
-      your_level = std::stoi(str_opt.value());
+      str_opt->get_to(your_level);
 
     // TODO: display the current upgrade level, and future upgrade levels
     for (int i = 0; i < u.levels.size(); i++) {
