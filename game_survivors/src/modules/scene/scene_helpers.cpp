@@ -53,6 +53,7 @@
 #include "modules/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -292,14 +293,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
       set_sprite(r, e, "hull_trimaran");
   };
 
-  if (num == 0)
-    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#cfc041")); // gold_yellow
-  if (num == 1)
-    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#da5bd6")); // magenta
-  if (num == 2)
-    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#00c420")); // green
-  if (num == 3)
-    r.emplace_or_replace<DefaultColour>(e, hex_to_srgb("#0096ff")); // blue
+  // set the player colour.
+  const auto col = default_player_colours[num];
   set_colour(r, e, r.get<DefaultColour>(e).colour);
 
   auto player_fixture_e = get_fixture_by_tag(r, e, "fixture_player");

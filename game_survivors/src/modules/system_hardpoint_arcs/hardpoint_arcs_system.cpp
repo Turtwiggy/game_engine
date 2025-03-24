@@ -175,7 +175,7 @@ update_hardpoint_arcs_system(entt::registry& r)
     col.a = (int)(0.04f * 255);
     const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
     // // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
-    DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
+    // DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
 
     // draw the gun arc.
     const auto range_val = r.get<WeaponRange>(weapon_e).meters;
@@ -187,7 +187,7 @@ update_hardpoint_arcs_system(entt::registry& r)
     // float radius = (50 + 2) / zoom;
     float radius = range_radius_p;
     auto arc_col = r.get<DefaultColour>(p).colour;
-    arc_col.a = (int)(0.3f * 255);
+    arc_col.a = (int)(0.15f * 255);
     const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
     float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
     DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);

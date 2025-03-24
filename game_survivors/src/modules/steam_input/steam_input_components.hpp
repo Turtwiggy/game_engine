@@ -12,17 +12,21 @@ namespace game2d {
 
 enum class DigitalAction
 {
+  // dpad
   Game_Up = 0,
   Game_Down,
   Game_Left,
   Game_Right,
-  Game_Pause,
-  Game_Select,
-  Game_Cancel,
-  Game_Shoot,
-  Game_Sprint,
-  Game_Ability1,
-  Game_Ability2,
+
+  // inputs
+  Game_Start,
+  Game_Back,
+  Game_North,
+  Game_South,
+  Game_East,
+  Game_West,
+  Game_LB,
+  Game_RB,
 
   // Menu_Up,
   // Menu_Down,

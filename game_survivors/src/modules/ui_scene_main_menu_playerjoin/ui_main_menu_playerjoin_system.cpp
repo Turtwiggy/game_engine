@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "ui_main_menu_playerjoin_system.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -5,29 +7,314 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
+#include "modules/ui_hierarchy/hierarchy_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
-
-#include <imgui.h>
-#include <steam/isteaminput.h>
-#include <steam/steam_api_common.h>
+#include "resources/data.hpp"
 
 namespace game2d {
 using namespace std::literals;
 
+enum class ControllerState
+{
+  CONNECTED = 0,
+  DISCONNECTED,
+  NOT_CONNECTED,
+
+  count,
+};
+
+ControllerState
+get_controller_state_from_handle(InputHandle_t handle)
+{
+  return ControllerState::NOT_CONNECTED;
+};
+
+void
+draw_player_ui_box(entt::registry& r,
+                   const ImVec2 tl,
+                   const ImVec2 wh,
+                   const int player_idx,
+                   const SINGLE_SteamControllers& steam_c,
+                   const InputHandle_t handle,
+                   const ControllerState state)
+{
+  const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+
+  // data
+  const auto my_col = default_player_colours[player_idx];
+
+  float alpha = 0.9f;
+  if (state == ControllerState::NOT_CONNECTED)
+    alpha = 0.5f;
+
+  const auto im_bg_col = IM_COL32(my_col.r, my_col.g, my_col.b, 255 * alpha);
+  const auto eye_col = ImColor(0.0f, 0.0f, 0.0f, 1.0f);
+  const auto eyesocket_col = IM_COL32(0.8f * my_col.r, 0.8f * my_col.g, 0.8f * my_col.b, 1.0f * 255);
+  const auto eye_spec_col = ImColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+  // draw a circle representing an eye/analogue
+  const float eye_radius = 17.0 * ui_scale;
+  const float eye_spec_radius = 2.0f * ui_scale;
+  const float eye_offset_y = 20;
+  const ImVec2 eye_spec_offset = { 6 * ui_scale, -6 * ui_scale };
+  const float eyebrow_thickness = 8.0f * ui_scale;
+
+  // dpad
+  const float rect_rad = 6.0f * ui_scale;
+  const float rect_spacing = 1.0f * ui_scale;
+  // abxy
+  const float abxy_radius = 8.0f * ui_scale;
+  // mouth
+  const float mouth_radius_w = 10.0f * ui_scale;
+  const float mouth_radius_h = 10.0f * ui_scale;
+
+  // black separator bar
+  const float bar_size = 3.0f * ui_scale;
+
+  // set font
+  auto* draw_list = ImGui::GetWindowDrawList();
+
+  const auto add_text_centered = [&](const std::string text, const ImVec2 pos) {
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[6]);
+    const auto text_wh = ImGui::CalcTextSize(text.c_str());
+    const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
+    draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
+    ImGui::PopFont();
+  };
+
+  const auto get_button_col = [&](const DigitalAction da) -> ImColor {
+    // if active, white
+    if (controller_button_held(steam_c, handle, da))
+      return ImColor(255, 255, 255, 255);
+    // if not active, black
+    return ImColor(0, 0, 0, 255);
+  };
+
+  const auto get_str_for_da = [&](const DigitalAction da) -> std::string {
+    // DigitalAction
+    const auto& digital_action_handles = steam_c.digital_action_handles;
+    const auto h = digital_action_handles[(int)da];
+
+    // ActionSet
+    const auto& actionset_handles = steam_c.action_set_handles;
+    const auto as = actionset_handles[(int)AS::ActionSet_GameControls];
+
+    // This would return the names of the actions on steam
+    // return SteamInput()->GetStringForDigitalActionName(h);
+
+    EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
+    const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
+    if (n_origins > 0) {
+      // use the first origin keyname
+      EInputActionOrigin origin = origins[0];
+      const char* keyname = SteamInput()->GetStringForActionOrigin(origin);
+
+      // return things like "B Button";
+      const auto button_str = std::string(keyname);
+
+      // if it has button, remove that
+      const auto pos = to_lower(button_str).find(" button");
+      if (pos != std::string::npos)
+        return button_str.substr(0, pos);
+
+      return button_str;
+    }
+    return "";
+  };
+
+  // background
+  const float inc = ((player_idx + 1) / 4.0f);
+  auto p_max = ImVec2{ tl.x + wh.x, tl.y + wh.y };
+  draw_list->AddRectFilled(tl, p_max, im_bg_col, 2);
+
+  const auto add_bottom_left_text = [&](std::string text_str) -> void {
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[6]);
+
+    const auto text_str_len = ImGui::CalcTextSize(text_str.c_str());
+    const auto text_size = ImGui::CalcTextSize(text_str.c_str());
+    const auto text_offset{ ImVec2{ 4, -4 } };
+    const auto text_pos = ImVec2{
+      tl.x + text_offset.x,                         // left x
+      tl.y + wh.y + (-text_size.y) + text_offset.y, // bottom y
+    };
+
+    draw_list->AddText(text_pos, IM_COL32(0, 0, 0, 255), text_str.c_str());
+    ImGui::PopFont();
+  };
+
+  const auto show_connected_ui = [&]() {
+    //
+    // add_top_centered_text("Connected");
+    add_bottom_left_text("Connected");
+
+    // get the inputs...
+    const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
+    const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
+
+    const auto strength = ImVec2(10.0f, 10.0f);
+    const auto center = ImVec2{ tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y };
+    const auto l_center = ImVec2{ tl.x + (0.33f * wh.x), center.y + eye_offset_y };
+    const auto r_center = ImVec2{ tl.x + (0.66f * wh.x), center.y + eye_offset_y };
+    const auto l_center_input = ImVec2{ l_center.x + strength.x * l_analog.x, l_center.y + strength.y * -l_analog.y };
+    const auto r_center_input = ImVec2{ r_center.x + strength.x * r_analog.x, r_center.y + strength.y * -r_analog.y };
+
+    // stationary grey circles
+    draw_list->AddCircleFilled(l_center, eye_radius, eyesocket_col);
+    draw_list->AddCircleFilled(r_center, eye_radius, eyesocket_col);
+
+    // wiggly eyes
+    draw_list->AddCircleFilled(l_center_input, eye_radius, eye_col);
+    draw_list->AddCircleFilled(r_center_input, eye_radius, eye_col);
+
+    // wiggly eyes specular highlights
+    const ImVec2 l_center_with_specular_offset = { l_center_input.x + eye_spec_offset.x,
+                                                   l_center_input.y + eye_spec_offset.y };
+    const ImVec2 r_center_with_specular_offset = { r_center_input.x + eye_spec_offset.x,
+                                                   r_center_input.y + eye_spec_offset.y };
+    draw_list->AddCircleFilled(l_center_with_specular_offset, eye_spec_radius, eye_spec_col);
+    draw_list->AddCircleFilled(r_center_with_specular_offset, eye_spec_radius, eye_spec_col);
+
+    // draw some angry eyebrows
+    // representing the start/select button
+    const auto l_eyebrow_p1 = ImVec2{ tl.x + (2 / 6.0f * wh.x), tl.y + (1 / 3.0f * wh.y) };
+    const auto l_eyebrow_p2 = ImVec2{ tl.x + (0.48f * wh.x), tl.y + (0.5f * wh.y) };
+    const auto r_eyebrow_p1 = ImVec2{ tl.x + (4 / 6.0f * wh.x), tl.y + (1 / 3.0f * wh.y) };
+    const auto r_eyebrow_p2 = ImVec2{ tl.x + (0.52f * wh.x), tl.y + (0.5f * wh.y) };
+    draw_list->AddLine(l_eyebrow_p1, l_eyebrow_p2, get_button_col(DA::Game_Back), eyebrow_thickness);
+    draw_list->AddLine(r_eyebrow_p1, r_eyebrow_p2, get_button_col(DA::Game_Start), eyebrow_thickness);
+
+    // draw some squares for the dpad.
+    const auto dpad_center = ImVec2{ tl.x + (0.75f / 6.0f) * wh.x, tl.y + (0.5f * wh.y) };
+    const auto dpad_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y - rect_rad);
+    const auto dpad_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y + rect_rad);
+    draw_list->AddRectFilled(dpad_center_tl, dpad_center_br, IM_COL32(0, 0, 0, 255));
+
+    // dpad-left
+    {
+      const auto dpad_l_center_tl = ImVec2(dpad_center.x - 3.0f * rect_rad - rect_spacing, dpad_center.y - rect_rad);
+      const auto dpad_l_center_br = ImVec2(dpad_center.x - 1.0f * rect_rad - rect_spacing, dpad_center.y + rect_rad);
+      draw_list->AddRectFilled(dpad_l_center_tl, dpad_l_center_br, get_button_col(DA::Game_Left));
+    }
+    // dpad-right
+    {
+      const auto dpad_r_center_tl = ImVec2(dpad_center.x + 1.0f * rect_rad + rect_spacing, dpad_center.y - rect_rad);
+      const auto dpad_r_center_br = ImVec2(dpad_center.x + 3.0f * rect_rad + rect_spacing, dpad_center.y + rect_rad);
+      draw_list->AddRectFilled(dpad_r_center_tl, dpad_r_center_br, get_button_col(DA::Game_Right));
+    }
+    // dpad-up
+    {
+      const auto dpad_u_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y - 3.0f * rect_rad - rect_spacing);
+      const auto dpad_u_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y - 1.0f * rect_rad - rect_spacing);
+      draw_list->AddRectFilled(dpad_u_center_tl, dpad_u_center_br, get_button_col(DA::Game_Up));
+    }
+    // dpad-down
+    {
+      const auto dpad_d_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y + 1.0f * rect_rad + rect_spacing);
+      const auto dpad_d_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y + 3.0f * rect_rad + rect_spacing);
+      draw_list->AddRectFilled(dpad_d_center_tl, dpad_d_center_br, get_button_col(DA::Game_Down));
+    }
+
+    // lb
+    {
+      const auto lb_offset = ImVec2{ 2, 2 };
+      const auto lb_tl = ImVec2{ tl.x + (0 / 6.0f) * wh.x + lb_offset.x, tl.y + (0 / 6.0f) * wh.y + lb_offset.y };
+      const auto lb_br = ImVec2{ tl.x + (2.5f / 6.0f) * wh.x + lb_offset.x, tl.y + (1 / 6.0f) * wh.y + lb_offset.y };
+      const auto lb_center = ImVec2{ lb_tl.x + 0.5f * (lb_br.x - lb_tl.x), lb_tl.y + 0.5f * (lb_br.y - lb_tl.y) };
+      draw_list->AddRectFilled(lb_tl, lb_br, get_button_col(DA::Game_LB), 8);
+
+      const auto l_shoulder_txt = get_str_for_da(DA::Game_LB);
+      add_text_centered(l_shoulder_txt, lb_center);
+    }
+
+    // rb
+    {
+      const auto rb_offset = ImVec2{ -2, 2 };
+      const auto rb_tl = ImVec2{ tl.x + ((6 - 2.5f) / 6.0f) * wh.x + rb_offset.x, tl.y + (0 / 6.0f) * wh.y + rb_offset.y };
+      const auto rb_br = ImVec2{ tl.x + (6 / 6.0f) * wh.x + rb_offset.x, tl.y + (1 / 6.0f) * wh.y + rb_offset.y };
+      const auto rb_center = ImVec2{ rb_tl.x + 0.5f * (rb_br.x - rb_tl.x), rb_tl.y + 0.5f * (rb_br.y - rb_tl.y) };
+      draw_list->AddRectFilled(rb_tl, rb_br, get_button_col(DA::Game_RB), 8);
+
+      const auto r_shoulder_txt = get_str_for_da(DA::Game_RB);
+      add_text_centered(r_shoulder_txt, rb_center);
+    }
+
+    // ABXY
+    {
+      const auto u_pos = ImVec2(tl.x + (10.1f / 12.0f) * wh.x, tl.y + (4.8f / 12.0f) * wh.y);
+      const auto d_pos = ImVec2(tl.x + (10.4f / 12.0f) * wh.x, tl.y + (7.2f / 12.0f) * wh.y);
+      const auto l_pos = ImVec2(tl.x + (9.5f / 12.0f) * wh.x, tl.y + (6.5f / 12.0f) * wh.y);
+      const auto r_pos = ImVec2(tl.x + (11.0f / 12.0f) * wh.x, tl.y + (5.5f / 12.0f) * wh.y);
+      draw_list->AddCircleFilled(u_pos, abxy_radius, get_button_col(DA::Game_North));
+      draw_list->AddCircleFilled(d_pos, abxy_radius, get_button_col(DA::Game_South));
+      draw_list->AddCircleFilled(l_pos, abxy_radius, get_button_col(DA::Game_West));
+      draw_list->AddCircleFilled(r_pos, abxy_radius, get_button_col(DA::Game_East));
+
+      add_text_centered(get_str_for_da(DA::Game_North), u_pos);
+      add_text_centered(get_str_for_da(DA::Game_West), l_pos);
+      add_text_centered(get_str_for_da(DA::Game_East), r_pos);
+      add_text_centered(get_str_for_da(DA::Game_South), d_pos);
+    }
+
+    // mouth
+    {
+
+      const auto rb_tl = ImVec2{ tl.x + 0.5f * wh.x - mouth_radius_w, tl.y + (5 / 6.0f) * wh.y - (0.2f * mouth_radius_w) };
+      const auto rb_br = ImVec2{ tl.x + 0.5f * wh.x + mouth_radius_w, tl.y + (5 / 6.0f) * wh.y + (0.2f * mouth_radius_h) };
+      draw_list->AddRectFilled(rb_tl, rb_br, IM_COL32(0, 0, 0, 255), 8);
+    }
+  };
+
+  const auto show_disconnected_ui = [&]() {
+    //
+    // add_top_centered_text("Disconnected");
+
+    // draw half sleepy guy
+
+    add_bottom_left_text("Disconnected");
+  };
+
+  const auto show_not_connected_ui = [&]() {
+    //
+    add_bottom_left_text("Not Connected");
+
+    // todo: draw sleeping mask.
+
+    // draw sleep mask
+    const auto center = ImVec2{ tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y };
+    const auto l_center = ImVec2{ tl.x + (0.33f * wh.x), center.y + eye_offset_y };
+    const auto r_center = ImVec2{ tl.x + (0.66f * wh.x), center.y + eye_offset_y };
+    const auto mask_min = ImVec2(l_center.x, l_center.y);
+    const auto mask_max = ImVec2(r_center.y, r_center.y);
+    draw_list->AddRectFilled(mask_min, mask_max, IM_COL32(0, 0, 0, 255));
+  };
+
+  if (state == ControllerState::CONNECTED)
+    show_connected_ui();
+  if (state == ControllerState::DISCONNECTED)
+    show_disconnected_ui();
+  if (state == ControllerState::NOT_CONNECTED)
+    show_not_connected_ui();
+
+  // Draw a black bar at the bottom.
+  const auto bar_tl = ImVec2{ tl.x, tl.y + wh.y - bar_size }; // starting at the bl of the ui
+  const auto bar_br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
+  draw_list->AddRectFilled(bar_tl, bar_br, IM_COL32(0, 0, 0, 255));
+}
+
 void
 update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 {
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
-
   if (scene_c.s != Scene::menu)
     return;
 
-  // Set action key set
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& ui_scale = get_first_component<SINGLE_UIData>(r);
 
   //
   // Clear the handles that have joined this frame
@@ -39,34 +326,31 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
   ui_c.handles_joined_this_frame.clear();
 
   ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoCollapse;
-  flags |= ImGuiWindowFlags_NoTitleBar;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoNav;
-  // flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoBackground;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f));
   const float pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (0 / 12.0f));
   const auto pos = ImVec2(pos_x, pos_y);
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-
-  ImGui::Begin("Players", NULL, flags);
+  // ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+  // ImGui::Begin("Players", NULL, flags);
 
   // There's a bug where the action handles aren't non-zero until a config is done loading. Soon config
   // information will be available immediately. Until then try to init as long as the handles are invalid.
   const auto& digital_action_handles = steam_c.digital_action_handles;
   if (digital_action_handles[(int)DA::Game_Up] == 0) {
     init_steam_input_actions(r);
-    ImGui::Text("SteamInput not detected, or no controllers plugged in!");
-    ImGui::End();
+    // ImGui::Text("SteamInput not detected, or no controllers plugged in!");
+    // ImGui::End();
     return;
   }
 
-  ImGui::Text("Connected Controllers: %i", steam_c.n_active);
-  ImGui::Text("Assigned Controllers: %i", (int)non_zero_handles(ui_c.handles).size());
-  ImGui::Separator();
+  // ImGui::Text("Connected Controllers: %i", steam_c.n_active);
+  // ImGui::Text("Assigned Controllers: %i", (int)non_zero_handles(ui_c.handles).size());
+  // ImGui::Separator();
 
   static std::unordered_map<InputHandle_t, std::string> join_key_map;
 
@@ -81,7 +365,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
     // DigitalAction
     const auto& digital_action_handles = steam_c.digital_action_handles;
-    const auto h = digital_action_handles[(int)DA::Game_Select];
+    const auto h = digital_action_handles[(int)DA::Game_South];
 
     EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
     const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
@@ -116,29 +400,29 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
   int next_free_controller = 0;
 
   for (int i = 0; i < 4; i++) {
-    ImGui::Text("%s", ("P"s + std::to_string(i)).c_str());
+    // ImGui::Text("%s", ("P"s + std::to_string(i)).c_str());
 
     const auto handle = ui_c.handles[i];
     const bool connected = handle_is_connected(steam_c, handle);
     const bool joined = handle_is_joined(ui_c, handle);
 
     if (joined && !connected) {
-      ImGui::SameLine();
-      ImGui::Text("Disconnected!");
+      // ImGui::SameLine();
+      // ImGui::Text("Disconnected!");
       continue;
     }
 
     if (joined && connected) {
-      ImGui::SameLine();
+      // ImGui::SameLine();
       // ImGui::Text("Connected. %zu", ui_c.handles[i]);
-      ImGui::Text("Connected.");
+      // ImGui::Text("Connected.");
       continue;
     }
 
     bool all_assigned = next_free_controller >= (int)free_controllers.size();
     if (free_controllers.size() == 0 || all_assigned) {
-      ImGui::SameLine();
-      ImGui::Text("No controller.");
+      // ImGui::SameLine();
+      // ImGui::Text("No controller.");
       continue; // no more free controllers
     }
 
@@ -146,11 +430,73 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
     const auto unassigned_handle_joinkey = join_key_map[unassigned_handle];
     const auto str = std::format("Press '{}' to join.", unassigned_handle_joinkey);
 
-    ImGui::SameLine();
-    ImGui::Text("%s", str.c_str());
+    // ImGui::SameLine();
+    // ImGui::Text("%s", str.c_str());
   }
 
+  // ImGui::End();
+
+  // Get state for UI.
+  const int active = steam_c.n_active;
+  const auto data = ui_c;
+  const float padding_between_player_rows = 4.0f;
+  const float total_padding_y = (3 * padding_between_player_rows);
+
+  const float pos_padding_x = -8.0f * ui_scale.scaling;
+  const float pos_padding_y = 0.0f * ui_scale.scaling;
+  const float ui_pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f)) + pos_padding_x;
+  const float ui_pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (6 / 12.0f)) + pos_padding_y;
+  const auto ui_pos = ImVec2(ui_pos_x, ui_pos_y);
+  ImGui::SetNextWindowPos(ui_pos, ImGuiCond_Always, ImVec2(1.0f, 0.5f));
+
+  const float total_size_x = 260 * ui_scale.scaling;
+  const float total_size_y = 4 * 100 * ui_scale.scaling + total_padding_y;
+  ImGui::SetNextWindowSize({ total_size_x, total_size_y }, ImGuiCond_Always);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+  ImGui::Begin("ControllerUI", NULL, flags);
+
+  const ImVec2 window_pos = ImGui::GetWindowPos();
+  const ImVec2 window_size = ImGui::GetWindowSize();
+
+  const float non_padded_y = (window_size.y - total_padding_y) / 4.0;
+  const auto player_ui_w = window_size.x;
+  const auto player_ui_h = non_padded_y;
+  auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
+  auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
+
+  for (int i = 0; i < 4; i++) {
+    const auto handle = data.handles[i];
+    const bool connected = handle_is_connected(steam_c, handle);
+    const bool joined = handle_is_joined(ui_c, handle);
+
+    ControllerState ui_state = ControllerState::NOT_CONNECTED;
+    if (connected && joined)
+      ui_state = ControllerState::CONNECTED;
+    if (joined && !connected)
+      ui_state = ControllerState::DISCONNECTED;
+    if (!joined && !connected)
+      ui_state = ControllerState::NOT_CONNECTED;
+
+#if defined(_DEBUG)
+    if (i == 1)
+      draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::DISCONNECTED);
+    else if (i == 2)
+      draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::NOT_CONNECTED);
+    else
+#endif
+      draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ui_state);
+
+    // move vertically
+    player_ui_tl.y += player_ui_h + padding_between_player_rows;
+    player_ui_br.y += player_ui_h + padding_between_player_rows;
+  }
+
+  // ImGui::Text("Connected but no inputs? Please try replugging controller.");
   ImGui::End();
+  ImGui::PopStyleVar(2);
 }
 
 } // namespace game2d

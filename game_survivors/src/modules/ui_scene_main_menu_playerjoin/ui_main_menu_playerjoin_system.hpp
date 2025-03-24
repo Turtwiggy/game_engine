@@ -1,7 +1,6 @@
 #pragma once
 
 #include <entt/fwd.hpp>
-#include <steam/isteaminput.h>
 
 namespace game2d {
 

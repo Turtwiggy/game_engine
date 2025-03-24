@@ -60,9 +60,9 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
     state.rows[v_selected].col_index--;
   else if (controller_button_down(steam_c, handle, DA::Game_Right))
     state.rows[v_selected].col_index++;
-  else if (controller_button_down(steam_c, handle, DA::Game_Select))
+  else if (controller_button_down(steam_c, handle, DA::Game_South))
     state.new_actions.push_back(UIAction::SELECT);
-  else if (controller_button_down(steam_c, handle, DA::Game_Cancel))
+  else if (controller_button_down(steam_c, handle, DA::Game_East))
     state.new_actions.push_back(UIAction::BACK);
 
   // Update menu via keyboard (debug, mostly)

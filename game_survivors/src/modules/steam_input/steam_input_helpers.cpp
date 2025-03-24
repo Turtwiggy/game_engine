@@ -63,12 +63,15 @@ init_steam_input_actions(entt::registry& r)
   digital_action_handles[(int)DA::Game_Down] = SteamInput()->GetDigitalActionHandle("action_down");
   digital_action_handles[(int)DA::Game_Left] = SteamInput()->GetDigitalActionHandle("action_left");
   digital_action_handles[(int)DA::Game_Right] = SteamInput()->GetDigitalActionHandle("action_right");
-  digital_action_handles[(int)DA::Game_Pause] = SteamInput()->GetDigitalActionHandle("action_pause");
-  digital_action_handles[(int)DA::Game_Select] = SteamInput()->GetDigitalActionHandle("action_select");
-  digital_action_handles[(int)DA::Game_Cancel] = SteamInput()->GetDigitalActionHandle("action_cancel");
-  digital_action_handles[(int)DA::Game_Shoot] = SteamInput()->GetDigitalActionHandle("action_shoot");
-  digital_action_handles[(int)DA::Game_Ability1] = SteamInput()->GetDigitalActionHandle("action_ability1");
-  digital_action_handles[(int)DA::Game_Ability2] = SteamInput()->GetDigitalActionHandle("action_ability2");
+
+  digital_action_handles[(int)DA::Game_Start] = SteamInput()->GetDigitalActionHandle("game_start");
+  digital_action_handles[(int)DA::Game_Back] = SteamInput()->GetDigitalActionHandle("game_back");
+  digital_action_handles[(int)DA::Game_North] = SteamInput()->GetDigitalActionHandle("game_north");
+  digital_action_handles[(int)DA::Game_South] = SteamInput()->GetDigitalActionHandle("game_south");
+  digital_action_handles[(int)DA::Game_East] = SteamInput()->GetDigitalActionHandle("game_east");
+  digital_action_handles[(int)DA::Game_West] = SteamInput()->GetDigitalActionHandle("game_west");
+  digital_action_handles[(int)DA::Game_LB] = SteamInput()->GetDigitalActionHandle("game_lb");
+  digital_action_handles[(int)DA::Game_RB] = SteamInput()->GetDigitalActionHandle("game_rb");
 
   // digital_action_handles[(int)DA::Menu_Up] = SteamInput()->GetDigitalActionHandle("menu_up");
   // digital_action_handles[(int)DA::Menu_Down] = SteamInput()->GetDigitalActionHandle("menu_down");

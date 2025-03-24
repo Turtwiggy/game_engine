@@ -102,6 +102,11 @@ update_autofire_system(entt::registry& r, const float dt)
     // debug the adj tgt pos
     // make the crosshair appear to be smooth though
     const auto p = parent_c.parent;
+    if (p == entt::null || !r.valid(p)) {
+      r.remove<HasParentComponent>(wep_e);
+      return;
+    }
+
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
 

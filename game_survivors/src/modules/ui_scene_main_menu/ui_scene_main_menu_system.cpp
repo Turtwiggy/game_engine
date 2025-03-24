@@ -164,7 +164,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     auto exit_action = [&app]() { app.running = false; };
 
     ui_c.state.rows.push_back(RowState{ .col_name = "Play", .action = play_action });
-    ui_c.state.rows.push_back(RowState{ .col_name = "Upgrades", .action = upgrade_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Shipyard", .action = upgrade_action });
 #if defined(_DEBUG)
     // ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });
 #endif

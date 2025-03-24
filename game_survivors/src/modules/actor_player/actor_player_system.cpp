@@ -172,9 +172,9 @@ update_player_controller_system(entt::registry& r, const uint64_t milliseconds_d
         if (controller_button_release(steam_c, handle, da))
           acts.push_back(ActionStateEnum::RELEASE);
       };
-      generate_actions(i.pause, DA::Game_Pause);
-      generate_actions(i.ability1, DA::Game_Ability1);
-      generate_actions(i.ability2, DA::Game_Ability2);
+      generate_actions(i.pause, DA::Game_Start);
+      generate_actions(i.ability1, DA::Game_LB);
+      generate_actions(i.ability2, DA::Game_RB);
       generate_actions(i.dpad_u, DA::Game_Up);
       generate_actions(i.dpad_d, DA::Game_Down);
       generate_actions(i.dpad_l, DA::Game_Left);

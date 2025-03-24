@@ -130,19 +130,23 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   // idx: 2 (countdown)
   ImFontConfig countdown_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &countdown_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f * 1.2f, &countdown_config);
 
   // idx: 3 (general)
   ImFontConfig fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f, &fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f * 1.2, &fingerpaint_config);
 
   // idx: 4 (header menu)
   ImFontConfig header_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &header_fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f * 1.2f, &header_fingerpaint_config);
 
   // idx: 5 (buttons menu)
   ImFontConfig buttons_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 40.0f, &buttons_fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 40.0f * 1.2f, &buttons_fingerpaint_config);
+
+  // idx: 6 (small)
+  ImFontConfig text_small;
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 12.0f * 1.2f, &text_small);
 
   // hide default cursor
   if (custom_mouse_cursor) {
@@ -187,6 +191,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_SteamControllerGameState>(r);
   create_persistent<SINGLE_PostFixedUpdateCallbacks>(r);
 
+  create_persistent<SINGLE_UIData>(r); // todo: make a setting
   create_persistent<SINGLE_GameOptions>(r);
   create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
   create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
@@ -330,6 +335,19 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #if defined(_DEBUG)
   // update_debug_fixtures_system(r);
 #endif
+
+  // update ui scaling
+  {
+    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const float base_x = 1280;
+    const float base_y = 720;
+    const float scale = ri.viewport_size_render_at.y / base_y;
+    auto& ui_scale = get_first_component<SINGLE_UIData>(r);
+    ui_scale.scaling = scale; // scale up if e.g. 1920x1080
+#if defined(_DEBUG)
+    ImGui::Text("UI scaling: %f", ui_scale.scaling);
+#endif
+  }
 
   update_ui_blur_system(r, dt);
   update_ui_fps_counter_system(r);
