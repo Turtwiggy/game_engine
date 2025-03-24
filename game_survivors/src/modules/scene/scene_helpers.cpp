@@ -366,8 +366,13 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::menu) {
+    const int num_players = 4;
+
     create_empty<SINGLE_MainMenuUI>(r);
     create_empty<SINGLE_UpgradesMenuUI>(r);
+    SINGLE_MainMenuAnimatedData menu_anim_c;
+    menu_anim_c.data.resize(num_players);
+    create_empty<SINGLE_MainMenuAnimatedData>(r, menu_anim_c);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
 

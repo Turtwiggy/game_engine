@@ -25,10 +25,10 @@ bool
 controller_button_held(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DA dAction);
 
 bool
-controller_button_release(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dAction);
+controller_button_release(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DA dAction);
 
 glm::vec2
-controller_axis(entt::registry& r, InputHandle_t handle, AA aAction);
+controller_axis(entt::registry& r, const InputHandle_t handle, AA aAction);
 
 std::vector<InputHandle_t>
 non_zero_handles(const std::vector<InputHandle_t>& handles);

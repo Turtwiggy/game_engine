@@ -3,11 +3,12 @@
 #include "ui_main_menu_playerjoin_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/maths/maths.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_hierarchy/hierarchy_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
@@ -26,10 +27,259 @@ enum class ControllerState
   count,
 };
 
-ControllerState
-get_controller_state_from_handle(InputHandle_t handle)
+// ControllerState
+// get_controller_state_from_handle(InputHandle_t handle)
+// {
+//   return ControllerState::NOT_CONNECTED;
+// };
+
+ImColor
+get_button_col(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DigitalAction da, const int alpha)
 {
-  return ControllerState::NOT_CONNECTED;
+  // if active, white
+  if (controller_button_held(steam_c, handle, da))
+    return ImColor(255, 255, 255, alpha);
+  // if not active, black
+  return ImColor(0, 0, 0, alpha);
+};
+
+std::string
+get_str_for_da(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DigitalAction da)
+{
+  // DigitalAction
+  const auto& digital_action_handles = steam_c.digital_action_handles;
+  const auto h = digital_action_handles[(int)da];
+
+  // ActionSet
+  const auto& actionset_handles = steam_c.action_set_handles;
+  const auto as = actionset_handles[(int)AS::ActionSet_GameControls];
+
+  // This would return the names of the actions on steam
+  // return SteamInput()->GetStringForDigitalActionName(h);
+
+  EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
+  const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
+  if (n_origins > 0) {
+    // use the first origin keyname
+    EInputActionOrigin origin = origins[0];
+    const char* keyname = SteamInput()->GetStringForActionOrigin(origin);
+
+    // return things like "B Button";
+    const auto button_str = std::string(keyname);
+
+    // if it has button, remove that
+    const auto pos = to_lower(button_str).find(" button");
+    if (pos != std::string::npos)
+      return button_str.substr(0, pos);
+
+    return button_str;
+  }
+  return "";
+};
+
+void
+add_text_centered(auto* draw_list, const std::string text, const ImVec2 pos, const int alpha)
+{
+  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[6]);
+  const auto text_wh = ImGui::CalcTextSize(text.c_str());
+  const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
+  draw_list->AddText(text_pos, IM_COL32(255, 255, 255, alpha), text.c_str());
+  ImGui::PopFont();
+};
+
+void
+draw_dpad(const SINGLE_SteamControllers& steam_c,
+          const InputHandle_t handle,
+          auto* draw_list,
+          const ImVec2 tl,
+          const ImVec2 wh,
+          const float ui_scale,
+          const int alpha)
+{
+  // dpad
+  const float rect_rad = 6.0f * ui_scale;
+  const float rect_spacing = 1.0f * ui_scale;
+
+  // draw some squares for the dpad.
+  const auto dpad_center = ImVec2{ tl.x + (0.75f / 6.0f) * wh.x, tl.y + (0.5f * wh.y) };
+  const auto dpad_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y - rect_rad);
+  const auto dpad_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y + rect_rad);
+  draw_list->AddRectFilled(dpad_center_tl, dpad_center_br, IM_COL32(0, 0, 0, alpha));
+
+  // dpad-left
+  {
+    const auto dpad_l_center_tl = ImVec2(dpad_center.x - 3.0f * rect_rad - rect_spacing, dpad_center.y - rect_rad);
+    const auto dpad_l_center_br = ImVec2(dpad_center.x - 1.0f * rect_rad - rect_spacing, dpad_center.y + rect_rad);
+    draw_list->AddRectFilled(dpad_l_center_tl, dpad_l_center_br, get_button_col(steam_c, handle, DA::Game_Left, alpha));
+  }
+  // dpad-right
+  {
+    const auto dpad_r_center_tl = ImVec2(dpad_center.x + 1.0f * rect_rad + rect_spacing, dpad_center.y - rect_rad);
+    const auto dpad_r_center_br = ImVec2(dpad_center.x + 3.0f * rect_rad + rect_spacing, dpad_center.y + rect_rad);
+    draw_list->AddRectFilled(dpad_r_center_tl, dpad_r_center_br, get_button_col(steam_c, handle, DA::Game_Right, alpha));
+  }
+  // dpad-up
+  {
+    const auto dpad_u_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y - 3.0f * rect_rad - rect_spacing);
+    const auto dpad_u_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y - 1.0f * rect_rad - rect_spacing);
+    draw_list->AddRectFilled(dpad_u_center_tl, dpad_u_center_br, get_button_col(steam_c, handle, DA::Game_Up, alpha));
+  }
+  // dpad-down
+  {
+    const auto dpad_d_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y + 1.0f * rect_rad + rect_spacing);
+    const auto dpad_d_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y + 3.0f * rect_rad + rect_spacing);
+    draw_list->AddRectFilled(dpad_d_center_tl, dpad_d_center_br, get_button_col(steam_c, handle, DA::Game_Down, alpha));
+  }
+};
+
+void
+draw_abxy_buttons(const SINGLE_SteamControllers& steam_c,
+                  const InputHandle_t handle,
+                  auto* draw_list,
+                  const ImVec2 tl,
+                  const ImVec2 wh,
+                  const float ui_scale,
+                  const int alpha)
+{
+  // abxy
+  const float abxy_radius = 8.0f * ui_scale;
+
+  // ABXY
+  const auto u_pos = ImVec2(tl.x + (10.1f / 12.0f) * wh.x, tl.y + (4.8f / 12.0f) * wh.y);
+  const auto d_pos = ImVec2(tl.x + (10.4f / 12.0f) * wh.x, tl.y + (7.2f / 12.0f) * wh.y);
+  const auto l_pos = ImVec2(tl.x + (9.5f / 12.0f) * wh.x, tl.y + (6.5f / 12.0f) * wh.y);
+  const auto r_pos = ImVec2(tl.x + (11.0f / 12.0f) * wh.x, tl.y + (5.5f / 12.0f) * wh.y);
+  draw_list->AddCircleFilled(u_pos, abxy_radius, get_button_col(steam_c, handle, DA::Game_North, alpha));
+  draw_list->AddCircleFilled(d_pos, abxy_radius, get_button_col(steam_c, handle, DA::Game_South, alpha));
+  draw_list->AddCircleFilled(l_pos, abxy_radius, get_button_col(steam_c, handle, DA::Game_West, alpha));
+  draw_list->AddCircleFilled(r_pos, abxy_radius, get_button_col(steam_c, handle, DA::Game_East, alpha));
+
+  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_North), u_pos, alpha);
+  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_West), l_pos, alpha);
+  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_East), r_pos, alpha);
+  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_South), d_pos, alpha);
+};
+
+void
+draw_bumpers(const SINGLE_SteamControllers& steam_c,
+             const InputHandle_t handle,
+             auto* draw_list,
+             const ImVec2 tl,
+             const ImVec2 wh,
+             const float ui_scale,
+             const int alpha)
+{
+  const float bumper_rounding = 8;
+
+  // lb
+  {
+    const auto lb_offset = ImVec2{ 2, 2 };
+    const auto lb_tl = ImVec2{ tl.x + (0 / 6.0f) * wh.x + lb_offset.x, tl.y + (0 / 6.0f) * wh.y + lb_offset.y };
+    const auto lb_br = ImVec2{ tl.x + (2.5f / 6.0f) * wh.x + lb_offset.x, tl.y + (1 / 6.0f) * wh.y + lb_offset.y };
+    const auto lb_center = ImVec2{ lb_tl.x + 0.5f * (lb_br.x - lb_tl.x), lb_tl.y + 0.5f * (lb_br.y - lb_tl.y) };
+    draw_list->AddRectFilled(lb_tl, lb_br, get_button_col(steam_c, handle, DA::Game_LB, alpha), bumper_rounding);
+
+    const auto l_shoulder_txt = get_str_for_da(steam_c, handle, DA::Game_LB);
+    add_text_centered(draw_list, l_shoulder_txt, lb_center, alpha);
+  }
+
+  // rb
+  {
+    const auto rb_offset = ImVec2{ -2, 2 };
+    const auto rb_tl = ImVec2{ tl.x + ((6 - 2.5f) / 6.0f) * wh.x + rb_offset.x, tl.y + (0 / 6.0f) * wh.y + rb_offset.y };
+    const auto rb_br = ImVec2{ tl.x + (6 / 6.0f) * wh.x + rb_offset.x, tl.y + (1 / 6.0f) * wh.y + rb_offset.y };
+    const auto rb_center = ImVec2{ rb_tl.x + 0.5f * (rb_br.x - rb_tl.x), rb_tl.y + 0.5f * (rb_br.y - rb_tl.y) };
+    draw_list->AddRectFilled(rb_tl, rb_br, get_button_col(steam_c, handle, DA::Game_RB, alpha), bumper_rounding);
+
+    const auto r_shoulder_txt = get_str_for_da(steam_c, handle, DA::Game_RB);
+    add_text_centered(draw_list, r_shoulder_txt, rb_center, alpha);
+  }
+}
+
+void
+draw_eyebrows(const SINGLE_SteamControllers& steam_c,
+              const InputHandle_t handle,
+              auto* draw_list,
+              const ImVec2 tl,
+              const ImVec2 wh,
+              const float ui_scale,
+              const int alpha)
+{
+  const float eyebrow_thickness = 8.0f * ui_scale;
+
+  // draw some angry eyebrows
+  // representing the start/select button
+  const auto l_eyebrow_p1 = ImVec2{ tl.x + (2 / 6.0f * wh.x), tl.y + (1 / 3.0f * wh.y) };
+  const auto l_eyebrow_p2 = ImVec2{ tl.x + (0.48f * wh.x), tl.y + (0.5f * wh.y) };
+  const auto r_eyebrow_p1 = ImVec2{ tl.x + (4 / 6.0f * wh.x), tl.y + (1 / 3.0f * wh.y) };
+  const auto r_eyebrow_p2 = ImVec2{ tl.x + (0.52f * wh.x), tl.y + (0.5f * wh.y) };
+  draw_list->AddLine(l_eyebrow_p1, l_eyebrow_p2, get_button_col(steam_c, handle, DA::Game_Back, alpha), eyebrow_thickness);
+  draw_list->AddLine(r_eyebrow_p1, r_eyebrow_p2, get_button_col(steam_c, handle, DA::Game_Start, alpha), eyebrow_thickness);
+}
+
+void
+draw_eyes(entt::registry& r,
+          const SINGLE_SteamControllers& steam_c,
+          const InputHandle_t handle,
+          auto* draw_list,
+          const ImVec2 tl,
+          const ImVec2 wh,
+          const float ui_scale,
+          const int player_idx,
+          const int alpha)
+{
+  // draw a circle representing an eye/analogue
+  const auto my_col = default_player_colours[player_idx];
+  const auto eye_col = ImColor(0.0f, 0.0f, 0.0f, alpha / 255.0f);
+  const auto eyesocket_col = IM_COL32(0.8f * my_col.r, 0.8f * my_col.g, 0.8f * my_col.b, alpha);
+  const auto eye_spec_col = ImColor(1.0f, 1.0f, 1.0f, alpha / 255.0f);
+  const float eye_radius = 17.0 * ui_scale;
+  const float eye_spec_radius = 2.0f * ui_scale;
+  const ImVec2 eye_spec_offset = { 6 * ui_scale, -6 * ui_scale };
+
+  // get the inputs...
+  const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
+  const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
+
+  const auto strength = ImVec2(10.0f, 10.0f);
+  const auto l_center = ImVec2{ tl.x + (0.334f * wh.x), tl.y + (0.667f * wh.y) };
+  const auto r_center = ImVec2{ tl.x + (0.667f * wh.x), tl.y + (0.667f * wh.y) };
+  const auto l_center_input = ImVec2{ l_center.x + strength.x * l_analog.x, l_center.y + strength.y * -l_analog.y };
+  const auto r_center_input = ImVec2{ r_center.x + strength.x * r_analog.x, r_center.y + strength.y * -r_analog.y };
+
+  // stationary grey circles
+  draw_list->AddCircleFilled(l_center, eye_radius, eyesocket_col);
+  draw_list->AddCircleFilled(r_center, eye_radius, eyesocket_col);
+
+  // wiggly eyes
+  draw_list->AddCircleFilled(l_center_input, eye_radius, eye_col);
+  draw_list->AddCircleFilled(r_center_input, eye_radius, eye_col);
+
+  // wiggly eyes specular highlights
+  const ImVec2 l_center_with_specular_offset = { l_center_input.x + eye_spec_offset.x,
+                                                 l_center_input.y + eye_spec_offset.y };
+  const ImVec2 r_center_with_specular_offset = { r_center_input.x + eye_spec_offset.x,
+                                                 r_center_input.y + eye_spec_offset.y };
+  draw_list->AddCircleFilled(l_center_with_specular_offset, eye_spec_radius, eye_spec_col);
+  draw_list->AddCircleFilled(r_center_with_specular_offset, eye_spec_radius, eye_spec_col);
+};
+
+void
+draw_mouth(const SINGLE_SteamControllers& steam_c,
+           const InputHandle_t handle,
+           auto* draw_list,
+           const ImVec2 tl,
+           const ImVec2 wh,
+           const float ui_scale,
+           const int alpha)
+{
+  // mouth
+  const float mouth_radius_w = 10.0f * ui_scale;
+  const float mouth_radius_h = 10.0f * ui_scale;
+
+  const auto rb_tl = ImVec2{ tl.x + 0.5f * wh.x - mouth_radius_w, tl.y + (5 / 6.0f) * wh.y - (0.2f * mouth_radius_w) };
+  const auto rb_br = ImVec2{ tl.x + 0.5f * wh.x + mouth_radius_w, tl.y + (5 / 6.0f) * wh.y + (0.2f * mouth_radius_h) };
+  draw_list->AddRectFilled(rb_tl, rb_br, IM_COL32(0, 0, 0, alpha), 8);
 };
 
 void
@@ -39,91 +289,35 @@ draw_player_ui_box(entt::registry& r,
                    const int player_idx,
                    const SINGLE_SteamControllers& steam_c,
                    const InputHandle_t handle,
-                   const ControllerState state)
+                   const ControllerState state,
+                   const float dt)
 {
   const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  auto& data_c = get_first_component<SINGLE_MainMenuAnimatedData>(r);
+  auto& anim_data = data_c.data[player_idx];
 
   // data
   const auto my_col = default_player_colours[player_idx];
-
   float alpha = 0.9f;
   if (state == ControllerState::NOT_CONNECTED)
     alpha = 0.5f;
-
   const auto im_bg_col = IM_COL32(my_col.r, my_col.g, my_col.b, 255 * alpha);
-  const auto eye_col = ImColor(0.0f, 0.0f, 0.0f, 1.0f);
-  const auto eyesocket_col = IM_COL32(0.8f * my_col.r, 0.8f * my_col.g, 0.8f * my_col.b, 1.0f * 255);
-  const auto eye_spec_col = ImColor(1.0f, 1.0f, 1.0f, 1.0f);
+  const int alpha_int = (int)(255 * alpha);
 
-  // draw a circle representing an eye/analogue
-  const float eye_radius = 17.0 * ui_scale;
-  const float eye_spec_radius = 2.0f * ui_scale;
-  const float eye_offset_y = 20;
-  const ImVec2 eye_spec_offset = { 6 * ui_scale, -6 * ui_scale };
-  const float eyebrow_thickness = 8.0f * ui_scale;
-
-  // dpad
-  const float rect_rad = 6.0f * ui_scale;
-  const float rect_spacing = 1.0f * ui_scale;
-  // abxy
-  const float abxy_radius = 8.0f * ui_scale;
-  // mouth
-  const float mouth_radius_w = 10.0f * ui_scale;
-  const float mouth_radius_h = 10.0f * ui_scale;
+  // initialize some anim data
+  static engine::RandomState rnd;
+  if (!anim_data.init) {
+    anim_data.mask_string_l_y = engine::rand_det_s(rnd.rng, anim_data.mask_min_rnd, anim_data.mask_max_rnd);
+    anim_data.mask_string_r_y = engine::rand_det_s(rnd.rng, anim_data.mask_min_rnd, anim_data.mask_max_rnd);
+    anim_data.sleeping_mask_y_timer = player_idx; // offset the zzzs
+    anim_data.init = true;
+  }
 
   // black separator bar
   const float bar_size = 3.0f * ui_scale;
 
   // set font
   auto* draw_list = ImGui::GetWindowDrawList();
-
-  const auto add_text_centered = [&](const std::string text, const ImVec2 pos) {
-    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[6]);
-    const auto text_wh = ImGui::CalcTextSize(text.c_str());
-    const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
-    draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
-    ImGui::PopFont();
-  };
-
-  const auto get_button_col = [&](const DigitalAction da) -> ImColor {
-    // if active, white
-    if (controller_button_held(steam_c, handle, da))
-      return ImColor(255, 255, 255, 255);
-    // if not active, black
-    return ImColor(0, 0, 0, 255);
-  };
-
-  const auto get_str_for_da = [&](const DigitalAction da) -> std::string {
-    // DigitalAction
-    const auto& digital_action_handles = steam_c.digital_action_handles;
-    const auto h = digital_action_handles[(int)da];
-
-    // ActionSet
-    const auto& actionset_handles = steam_c.action_set_handles;
-    const auto as = actionset_handles[(int)AS::ActionSet_GameControls];
-
-    // This would return the names of the actions on steam
-    // return SteamInput()->GetStringForDigitalActionName(h);
-
-    EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
-    const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
-    if (n_origins > 0) {
-      // use the first origin keyname
-      EInputActionOrigin origin = origins[0];
-      const char* keyname = SteamInput()->GetStringForActionOrigin(origin);
-
-      // return things like "B Button";
-      const auto button_str = std::string(keyname);
-
-      // if it has button, remove that
-      const auto pos = to_lower(button_str).find(" button");
-      if (pos != std::string::npos)
-        return button_str.substr(0, pos);
-
-      return button_str;
-    }
-    return "";
-  };
 
   // background
   const float inc = ((player_idx + 1) / 4.0f);
@@ -147,131 +341,49 @@ draw_player_ui_box(entt::registry& r,
 
   const auto show_connected_ui = [&]() {
     //
-    // add_top_centered_text("Connected");
     add_bottom_left_text("Connected");
 
-    // get the inputs...
-    const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
-    const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
-
-    const auto strength = ImVec2(10.0f, 10.0f);
-    const auto center = ImVec2{ tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y };
-    const auto l_center = ImVec2{ tl.x + (0.33f * wh.x), center.y + eye_offset_y };
-    const auto r_center = ImVec2{ tl.x + (0.66f * wh.x), center.y + eye_offset_y };
-    const auto l_center_input = ImVec2{ l_center.x + strength.x * l_analog.x, l_center.y + strength.y * -l_analog.y };
-    const auto r_center_input = ImVec2{ r_center.x + strength.x * r_analog.x, r_center.y + strength.y * -r_analog.y };
-
-    // stationary grey circles
-    draw_list->AddCircleFilled(l_center, eye_radius, eyesocket_col);
-    draw_list->AddCircleFilled(r_center, eye_radius, eyesocket_col);
-
-    // wiggly eyes
-    draw_list->AddCircleFilled(l_center_input, eye_radius, eye_col);
-    draw_list->AddCircleFilled(r_center_input, eye_radius, eye_col);
-
-    // wiggly eyes specular highlights
-    const ImVec2 l_center_with_specular_offset = { l_center_input.x + eye_spec_offset.x,
-                                                   l_center_input.y + eye_spec_offset.y };
-    const ImVec2 r_center_with_specular_offset = { r_center_input.x + eye_spec_offset.x,
-                                                   r_center_input.y + eye_spec_offset.y };
-    draw_list->AddCircleFilled(l_center_with_specular_offset, eye_spec_radius, eye_spec_col);
-    draw_list->AddCircleFilled(r_center_with_specular_offset, eye_spec_radius, eye_spec_col);
-
-    // draw some angry eyebrows
-    // representing the start/select button
-    const auto l_eyebrow_p1 = ImVec2{ tl.x + (2 / 6.0f * wh.x), tl.y + (1 / 3.0f * wh.y) };
-    const auto l_eyebrow_p2 = ImVec2{ tl.x + (0.48f * wh.x), tl.y + (0.5f * wh.y) };
-    const auto r_eyebrow_p1 = ImVec2{ tl.x + (4 / 6.0f * wh.x), tl.y + (1 / 3.0f * wh.y) };
-    const auto r_eyebrow_p2 = ImVec2{ tl.x + (0.52f * wh.x), tl.y + (0.5f * wh.y) };
-    draw_list->AddLine(l_eyebrow_p1, l_eyebrow_p2, get_button_col(DA::Game_Back), eyebrow_thickness);
-    draw_list->AddLine(r_eyebrow_p1, r_eyebrow_p2, get_button_col(DA::Game_Start), eyebrow_thickness);
-
-    // draw some squares for the dpad.
-    const auto dpad_center = ImVec2{ tl.x + (0.75f / 6.0f) * wh.x, tl.y + (0.5f * wh.y) };
-    const auto dpad_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y - rect_rad);
-    const auto dpad_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y + rect_rad);
-    draw_list->AddRectFilled(dpad_center_tl, dpad_center_br, IM_COL32(0, 0, 0, 255));
-
-    // dpad-left
-    {
-      const auto dpad_l_center_tl = ImVec2(dpad_center.x - 3.0f * rect_rad - rect_spacing, dpad_center.y - rect_rad);
-      const auto dpad_l_center_br = ImVec2(dpad_center.x - 1.0f * rect_rad - rect_spacing, dpad_center.y + rect_rad);
-      draw_list->AddRectFilled(dpad_l_center_tl, dpad_l_center_br, get_button_col(DA::Game_Left));
-    }
-    // dpad-right
-    {
-      const auto dpad_r_center_tl = ImVec2(dpad_center.x + 1.0f * rect_rad + rect_spacing, dpad_center.y - rect_rad);
-      const auto dpad_r_center_br = ImVec2(dpad_center.x + 3.0f * rect_rad + rect_spacing, dpad_center.y + rect_rad);
-      draw_list->AddRectFilled(dpad_r_center_tl, dpad_r_center_br, get_button_col(DA::Game_Right));
-    }
-    // dpad-up
-    {
-      const auto dpad_u_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y - 3.0f * rect_rad - rect_spacing);
-      const auto dpad_u_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y - 1.0f * rect_rad - rect_spacing);
-      draw_list->AddRectFilled(dpad_u_center_tl, dpad_u_center_br, get_button_col(DA::Game_Up));
-    }
-    // dpad-down
-    {
-      const auto dpad_d_center_tl = ImVec2(dpad_center.x - rect_rad, dpad_center.y + 1.0f * rect_rad + rect_spacing);
-      const auto dpad_d_center_br = ImVec2(dpad_center.x + rect_rad, dpad_center.y + 3.0f * rect_rad + rect_spacing);
-      draw_list->AddRectFilled(dpad_d_center_tl, dpad_d_center_br, get_button_col(DA::Game_Down));
-    }
-
-    // lb
-    {
-      const auto lb_offset = ImVec2{ 2, 2 };
-      const auto lb_tl = ImVec2{ tl.x + (0 / 6.0f) * wh.x + lb_offset.x, tl.y + (0 / 6.0f) * wh.y + lb_offset.y };
-      const auto lb_br = ImVec2{ tl.x + (2.5f / 6.0f) * wh.x + lb_offset.x, tl.y + (1 / 6.0f) * wh.y + lb_offset.y };
-      const auto lb_center = ImVec2{ lb_tl.x + 0.5f * (lb_br.x - lb_tl.x), lb_tl.y + 0.5f * (lb_br.y - lb_tl.y) };
-      draw_list->AddRectFilled(lb_tl, lb_br, get_button_col(DA::Game_LB), 8);
-
-      const auto l_shoulder_txt = get_str_for_da(DA::Game_LB);
-      add_text_centered(l_shoulder_txt, lb_center);
-    }
-
-    // rb
-    {
-      const auto rb_offset = ImVec2{ -2, 2 };
-      const auto rb_tl = ImVec2{ tl.x + ((6 - 2.5f) / 6.0f) * wh.x + rb_offset.x, tl.y + (0 / 6.0f) * wh.y + rb_offset.y };
-      const auto rb_br = ImVec2{ tl.x + (6 / 6.0f) * wh.x + rb_offset.x, tl.y + (1 / 6.0f) * wh.y + rb_offset.y };
-      const auto rb_center = ImVec2{ rb_tl.x + 0.5f * (rb_br.x - rb_tl.x), rb_tl.y + 0.5f * (rb_br.y - rb_tl.y) };
-      draw_list->AddRectFilled(rb_tl, rb_br, get_button_col(DA::Game_RB), 8);
-
-      const auto r_shoulder_txt = get_str_for_da(DA::Game_RB);
-      add_text_centered(r_shoulder_txt, rb_center);
-    }
-
-    // ABXY
-    {
-      const auto u_pos = ImVec2(tl.x + (10.1f / 12.0f) * wh.x, tl.y + (4.8f / 12.0f) * wh.y);
-      const auto d_pos = ImVec2(tl.x + (10.4f / 12.0f) * wh.x, tl.y + (7.2f / 12.0f) * wh.y);
-      const auto l_pos = ImVec2(tl.x + (9.5f / 12.0f) * wh.x, tl.y + (6.5f / 12.0f) * wh.y);
-      const auto r_pos = ImVec2(tl.x + (11.0f / 12.0f) * wh.x, tl.y + (5.5f / 12.0f) * wh.y);
-      draw_list->AddCircleFilled(u_pos, abxy_radius, get_button_col(DA::Game_North));
-      draw_list->AddCircleFilled(d_pos, abxy_radius, get_button_col(DA::Game_South));
-      draw_list->AddCircleFilled(l_pos, abxy_radius, get_button_col(DA::Game_West));
-      draw_list->AddCircleFilled(r_pos, abxy_radius, get_button_col(DA::Game_East));
-
-      add_text_centered(get_str_for_da(DA::Game_North), u_pos);
-      add_text_centered(get_str_for_da(DA::Game_West), l_pos);
-      add_text_centered(get_str_for_da(DA::Game_East), r_pos);
-      add_text_centered(get_str_for_da(DA::Game_South), d_pos);
-    }
-
-    // mouth
-    {
-
-      const auto rb_tl = ImVec2{ tl.x + 0.5f * wh.x - mouth_radius_w, tl.y + (5 / 6.0f) * wh.y - (0.2f * mouth_radius_w) };
-      const auto rb_br = ImVec2{ tl.x + 0.5f * wh.x + mouth_radius_w, tl.y + (5 / 6.0f) * wh.y + (0.2f * mouth_radius_h) };
-      draw_list->AddRectFilled(rb_tl, rb_br, IM_COL32(0, 0, 0, 255), 8);
-    }
+    draw_eyes(r, steam_c, handle, draw_list, tl, wh, ui_scale, player_idx, alpha_int);
+    draw_eyebrows(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_abxy_buttons(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_bumpers(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
   };
 
   const auto show_disconnected_ui = [&]() {
     //
     // add_top_centered_text("Disconnected");
 
-    // draw half sleepy guy
+    // draw eyes as crosses
+    const auto l_center = ImVec2{ tl.x + (0.4f * wh.x), tl.y + (0.667f * wh.y) };
+    const auto r_center = ImVec2{ tl.x + (0.6f * wh.x), tl.y + (0.667f * wh.y) };
+    // const auto text_col = IM_COL32(255, 255, 255, alpha_int);
+    const auto text_col = IM_COL32(0, 0, 0, alpha_int);
+    {
+      const std::string text = "G";
+      const auto l_pos = l_center;
+      ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[5]);
+      const auto text_wh = ImGui::CalcTextSize(text.c_str());
+      const auto text_pos = l_pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
+      draw_list->AddText(text_pos, text_col, text.c_str());
+      ImGui::PopFont();
+    }
+    {
+      const std::string text = "G";
+      const auto r_pos = r_center;
+      ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[5]);
+      const auto text_wh = ImGui::CalcTextSize(text.c_str());
+      const auto text_pos = r_pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
+      draw_list->AddText(text_pos, text_col, text.c_str());
+      ImGui::PopFont();
+    }
+
+    draw_eyebrows(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_abxy_buttons(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_bumpers(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
 
     add_bottom_left_text("Disconnected");
   };
@@ -280,15 +392,57 @@ draw_player_ui_box(entt::registry& r,
     //
     add_bottom_left_text("Not Connected");
 
-    // todo: draw sleeping mask.
+    draw_eyebrows(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_abxy_buttons(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
 
     // draw sleep mask
-    const auto center = ImVec2{ tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y };
-    const auto l_center = ImVec2{ tl.x + (0.33f * wh.x), center.y + eye_offset_y };
-    const auto r_center = ImVec2{ tl.x + (0.66f * wh.x), center.y + eye_offset_y };
-    const auto mask_min = ImVec2(l_center.x, l_center.y);
-    const auto mask_max = ImVec2(r_center.y, r_center.y);
-    draw_list->AddRectFilled(mask_min, mask_max, IM_COL32(0, 0, 0, 255));
+    const float mask_rounding = 16.0f;
+    const auto mask_tl = ImVec2{ tl.x + (3.0f / 12.0f * wh.x), tl.y + (2.5f / 6.0f * wh.y) };
+    const auto mask_br = ImVec2{ tl.x + (9.0f / 12.0f * wh.x), tl.y + (4.5f / 6.0f * wh.y) };
+    draw_list->AddRectFilled(mask_tl, mask_br, IM_COL32(0, 0, 0, 1.0f * 255), mask_rounding);
+
+    // draw some white lines to represent sleeping mask strings
+    const float line_thickness = 2.0f;
+    const auto line_col = IM_COL32(255, 255, 255, 255);
+    {
+      const auto l_line_p0 = ImVec2(tl.x, tl.y + (anim_data.mask_string_l_y * wh.y));
+      const auto l_line_p1 = ImVec2(mask_tl.x + 10, tl.y + (0.60f * wh.y));
+      const auto r_line_p0 = ImVec2(mask_br.x - 10, tl.y + (0.50f * wh.y));
+      const auto r_line_p1 = ImVec2(tl.x + wh.x, tl.y + (anim_data.mask_string_r_y * wh.y));
+      draw_list->AddLine(l_line_p0, l_line_p1, line_col, line_thickness);
+      draw_list->AddLine(r_line_p0, r_line_p1, line_col, line_thickness);
+    }
+
+    // draw some white lines to represent eyes
+    {
+      const auto l_line_p0 = ImVec2(tl.x + (4.5f / 12.0f) * wh.x, tl.y + (3.5f / 6.0f) * wh.y);
+      const auto l_line_p1 = ImVec2(tl.x + (5.5f / 12.0f) * wh.x, tl.y + (3.5f / 6.0f) * wh.y);
+      const auto r_line_p0 = ImVec2(tl.x + (6.5f / 12.0f) * wh.x, tl.y + (3.5f / 6.0f) * wh.y);
+      const auto r_line_p1 = ImVec2(tl.x + (7.5f / 12.0f) * wh.x, tl.y + (3.5f / 6.0f) * wh.y);
+      draw_list->AddLine(l_line_p0, l_line_p1, line_col, line_thickness);
+      draw_list->AddLine(r_line_p0, r_line_p1, line_col, line_thickness);
+    }
+
+    // Add some Zzz to represent sleeing.
+    {
+      const auto text = "Zzz"s;
+
+      // make it bob
+      const float amplitude = 10.0f;
+      const float speed = 2.0f;
+      anim_data.sleeping_mask_y_timer += dt * speed;
+      const float bob_val = glm::sin(anim_data.sleeping_mask_y_timer) * amplitude;
+
+      const auto pos = ImVec2(mask_br.x, mask_tl.y + bob_val);
+
+      ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[3]);
+      const auto text_wh = ImGui::CalcTextSize(text.c_str());
+      const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
+      draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
+      ImGui::PopFont();
+    }
   };
 
   if (state == ControllerState::CONNECTED)
@@ -305,7 +459,7 @@ draw_player_ui_box(entt::registry& r,
 }
 
 void
-update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
+update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
 {
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
   if (scene_c.s != Scene::menu)
@@ -327,9 +481,11 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoNav;
   flags |= ImGuiWindowFlags_NoBackground;
+#if !defined(_DEBUG)
+  flags |= ImGuiWindowFlags_NoInputs;
+#endif
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f));
@@ -481,13 +637,15 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r)
       ui_state = ControllerState::NOT_CONNECTED;
 
 #if defined(_DEBUG)
-    if (i == 1)
-      draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::DISCONNECTED);
-    else if (i == 2)
-      draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::NOT_CONNECTED);
-    else
+    // if (i == 1)
+    //   draw_player_ui_box(
+    //     r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::DISCONNECTED, dt);
+    // else if (i == 2)
+    //   draw_player_ui_box(
+    //     r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::NOT_CONNECTED, dt);
+    // else
 #endif
-      draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ui_state);
+    draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ui_state, dt);
 
     // move vertically
     player_ui_tl.y += player_ui_h + padding_between_player_rows;

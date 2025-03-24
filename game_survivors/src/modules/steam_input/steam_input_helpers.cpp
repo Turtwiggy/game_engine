@@ -229,7 +229,7 @@ controller_button_held(const SINGLE_SteamControllers& steam_c, const InputHandle
 };
 
 bool
-controller_button_release(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dAction)
+controller_button_release(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DA dAction)
 {
   if (handle == 0)
     return false;
@@ -243,7 +243,7 @@ controller_button_release(const SINGLE_SteamControllers& steam_c, InputHandle_t 
 }
 
 glm::vec2
-controller_axis(entt::registry& r, InputHandle_t handle, AA aAction)
+controller_axis(entt::registry& r, const InputHandle_t handle, AA aAction)
 {
   if (handle == 0)
     return { 0, 0 };
