@@ -285,8 +285,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
       set_sprite(r, e, "hull_dinghy");
     if (hull_key == "rhib")
       set_sprite(r, e, "hull_rhib");
-    if (hull_key == "constitution")
-      set_sprite(r, e, "hull_constitution");
+    // if (hull_key == "constitution")
+    //   set_sprite(r, e, "hull_constitution");
     if (hull_key == "pbr")
       set_sprite(r, e, "hull_pbr");
     if (hull_key == "trimaran")
@@ -399,10 +399,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     gold_c.temp_amount = 0;
 
     std::vector<HullChoice> hull_keys = {
-      HullChoice{ .player_idx = 0, .player_boat = "dinghy" },
-      HullChoice{ .player_idx = 1, .player_boat = "dinghy" },
-      HullChoice{ .player_idx = 2, .player_boat = "dinghy" },
-      HullChoice{ .player_idx = 3, .player_boat = "dinghy" },
+      HullChoice{ .player_idx = 0, .player_boat_key = "dinghy" },
+      HullChoice{ .player_idx = 1, .player_boat_key = "dinghy" },
+      HullChoice{ .player_idx = 2, .player_boat_key = "dinghy" },
+      HullChoice{ .player_idx = 3, .player_boat_key = "dinghy" },
     };
 
     auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
@@ -430,10 +430,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
         continue; // no controller for p2-4
 
       // validate weapons are set
-      const auto boat_str = hull_keys[i].player_boat;
+      const auto boat_str = hull_keys[i].player_boat_key;
       if (boat_str == "")
         throw std::runtime_error("boat_str not set");
-      const auto weapon_str = hull_keys[i].player_gun;
+      const auto weapon_str = hull_keys[i].player_gun_key;
       if (weapon_str == "")
         throw std::runtime_error("weapon_str not set");
       SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());

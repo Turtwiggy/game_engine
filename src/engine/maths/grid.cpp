@@ -119,9 +119,10 @@ get_neighbour_gridpos_with_diagonals(const glm::ivec2& xy, const int x_max, cons
 glm::ivec2
 index_to_grid_position(const int index, const int x_max, const int y_max)
 {
+  assert(x_max > 0 && y_max > 0 && index < x_max * y_max);
   const int x = index % x_max;
-  const int y = static_cast<int>(index / static_cast<float>(y_max));
-  return { x, y };
+  const int y = index / x_max;
+  return glm::ivec2{ x, y };
 };
 
 engine::grid::GridDirection

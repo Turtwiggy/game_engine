@@ -11,9 +11,11 @@ struct HullChoice
 {
   bool confirmed = false;
 
+  int player_row_idx = 0;
   int player_idx = 0;
-  std::string player_boat;
-  std::string player_gun = "unknown";
+  std::string player_boat_key = "unknown";
+  std::string player_gun_key = "unknown";
+  std::string player_ability_key = "unknown";
 };
 
 struct SINGLE_SelectSceneData

@@ -3,14 +3,12 @@
 #include "ui_main_menu_playerjoin_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
-#include "modules/ui_hierarchy/hierarchy_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 #include "resources/data.hpp"
@@ -41,50 +39,6 @@ get_button_col(const SINGLE_SteamControllers& steam_c, const InputHandle_t handl
     return ImColor(255, 255, 255, alpha);
   // if not active, black
   return ImColor(0, 0, 0, alpha);
-};
-
-std::string
-get_str_for_da(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DigitalAction da)
-{
-  // DigitalAction
-  const auto& digital_action_handles = steam_c.digital_action_handles;
-  const auto h = digital_action_handles[(int)da];
-
-  // ActionSet
-  const auto& actionset_handles = steam_c.action_set_handles;
-  const auto as = actionset_handles[(int)AS::ActionSet_GameControls];
-
-  // This would return the names of the actions on steam
-  // return SteamInput()->GetStringForDigitalActionName(h);
-
-  EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
-  const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
-  if (n_origins > 0) {
-    // use the first origin keyname
-    EInputActionOrigin origin = origins[0];
-    const char* keyname = SteamInput()->GetStringForActionOrigin(origin);
-
-    // return things like "B Button";
-    const auto button_str = std::string(keyname);
-
-    // if it has button, remove that
-    const auto pos = to_lower(button_str).find(" button");
-    if (pos != std::string::npos)
-      return button_str.substr(0, pos);
-
-    return button_str;
-  }
-  return "";
-};
-
-void
-add_text_centered(auto* draw_list, const std::string text, const ImVec2 pos, const int alpha)
-{
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[6]);
-  const auto text_wh = ImGui::CalcTextSize(text.c_str());
-  const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
-  draw_list->AddText(text_pos, IM_COL32(255, 255, 255, alpha), text.c_str());
-  ImGui::PopFont();
 };
 
 void

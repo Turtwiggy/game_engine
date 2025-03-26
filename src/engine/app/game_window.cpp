@@ -97,8 +97,8 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   flags |= SDL_WINDOW_RESIZABLE;
   if (displaymode == DisplayMode::windowed_borderless)
     flags |= SDL_WINDOW_BORDERLESS;
-  else if (displaymode == DisplayMode::fullscreen)
-    flags |= SDL_WINDOW_FULLSCREEN;
+  // else if (displaymode == DisplayMode::fullscreen)
+  //   flags |= SDL_WINDOW_FULLSCREEN;
   else if (displaymode == DisplayMode::fullscreen_borderless)
     flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
@@ -287,11 +287,11 @@ GameWindow::set_displaymode(const DisplayMode mode)
   // set state
   switch (mode) {
 
-    case DisplayMode::fullscreen: {
-      if (SDL_SetWindowFullscreen(window_.get(), SDL_WINDOW_FULLSCREEN))
-        throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
-      break;
-    }
+    // case DisplayMode::fullscreen: {
+    //   if (SDL_SetWindowFullscreen(window_.get(), SDL_WINDOW_FULLSCREEN))
+    //     throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
+    //   break;
+    // }
     case DisplayMode::fullscreen_borderless: {
       SDL_SetWindowBordered(window_.get(), SDL_FALSE); // Ensure the window is borderless
       // This makes the window fullscreen but keeps the desktop resolution and runs the window in a
@@ -317,6 +317,24 @@ GameWindow::set_displaymode(const DisplayMode mode)
       break;
   }
 };
+
+DisplayMode
+GameWindow::get_displaymode() const
+{
+  const auto flags = SDL_GetWindowFlags(window_.get());
+  const bool fullscreen = flags & SDL_WINDOW_FULLSCREEN;
+  const bool borderless = flags & SDL_WINDOW_BORDERLESS;
+  const bool fullscreen_borderless = flags & SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+  if (fullscreen_borderless)
+    return DisplayMode::fullscreen_borderless;
+  // if (fullscreen)
+  //   return DisplayMode::fullscreen;
+  if (borderless)
+    return DisplayMode::windowed_borderless;
+
+  return DisplayMode::windowed;
+}
 
 bool
 GameWindow::get_fullscreen() const

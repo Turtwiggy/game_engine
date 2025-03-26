@@ -1,258 +1,519 @@
 #include "pch.hpp"
 
+#include "scene_select_components.hpp"
+#include "scene_select_helpers.hpp"
 #include "scene_select_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actor_weapon/weapon_components.hpp"
-#include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
+#include "modules/core_renderer/helpers.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
-#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "scene_select_components.hpp"
+#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
-void
-update_countdown(SINGLE_SelectSceneData& data_c, bool everyone_confirmed, float dt)
+std::string
+str_remove_all_occurances(std::string base, const std::string& substr)
 {
-  // Start a countdown..
-  if (everyone_confirmed)
-    data_c.countdown -= dt;
-  else
-    data_c.countdown = data_c.countdown_max;
-};
-
-void
-update_countdown_ui(entt::registry& r, const SINGLE_SelectSceneData& data_c)
-{
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto x_pos = 0.5f;
-  const auto y_pos = 0.75f;
-  const auto hmm = ImVec2{ ri.viewport_size_render_at.x * x_pos, ri.viewport_size_render_at.y * y_pos };
-  const auto pos = ImVec2{ ri.viewport_pos.x + hmm.x, ri.viewport_pos.y + hmm.y };
-  const auto size = ImVec2{ 200, 200 };
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 0.5f, 0.5f });
-  ImGui::SetNextWindowSize(size);
-
-  ImGuiWindowFlags countdown_flags = 0;
-  countdown_flags |= ImGuiWindowFlags_NoDecoration;
-  countdown_flags |= ImGuiWindowFlags_NoCollapse;
-  countdown_flags |= ImGuiWindowFlags_NoTitleBar;
-  countdown_flags |= ImGuiWindowFlags_NoBackground;
-
-  ImGuiIO& io = ImGui::GetIO();
-  ImGui::PushFont(io.Fonts->Fonts[2]); // Use the larger font (index 1)
-  ImGui::Begin("Countdown", NULL, countdown_flags);
-  const auto ui_wh = ImGui::GetContentRegionAvail();
-  const auto ui_tl = ImGui::GetCursorPos();
-
-  const auto str = std::format("{}", ((int)data_c.countdown) + 1);
-  const auto text_c_str = str.c_str();
-  const auto text_c_str_len = ImGui::CalcTextSize(text_c_str);
-  ImGui::SetCursorPosX(ui_tl.x + (ui_wh.x * 0.5) - (text_c_str_len.x * 0.5));
-  ImGui::SetCursorPosY(ui_tl.y + (ui_wh.y * 0.5) - (text_c_str_len.y * 0.5));
-  ImGui::Text("%s", text_c_str);
-
-  ImGui::End();
-  ImGui::PopFont();
-};
-
-void
-update_countdown_to_next_scene(entt::registry& r,
-                               const SINGLE_SelectSceneData& data_c,
-                               const std::vector<ShipHullData>& sorted_hulls)
-{
-  if (data_c.countdown > 0.0f)
-    return;
-
-  SelectSceneToSurviveScene data;
-  data.chosen_boats = data_c.player_choice_state;
-  create_persistent<SelectSceneToSurviveScene>(r, data);
-
-  move_to_scene_start(r, Scene::survive);
-};
-
-void
-update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c)
-{
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
-
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
-
-  const int joined_players = non_zero_handles(steam_state_c.handles).size();
-  for (int i = 0; i < 4; i++) {
-
-    // 4 copies of the ui-state. one per player.
-    auto& ui_state_c = ui_c.player_ui_state[i];
-    if (!ui_state_c.init) {
-      ui_state_c.rows.push_back({ .col_name = "Select Weapon", .action = []() {} });
-      ui_state_c.rows.push_back({ .col_name = "Select Hull", .action = []() {} });
-
-      ui_state_c.rows.push_back({ .col_name = "To Menu", .action = [&r]() {
-                                   //
-                                   move_to_scene_start(r, Scene::menu);
-                                 } });
-
-      ui_state_c.init = true;
-    }
-
-    // process the input for that ui-state.
-    ui_state_c.new_actions.clear();
-
-    if (i < joined_players)
-      process_input_for_ui(r, ui_state_c, steam_state_c.handles[i]);
-  }
-};
-
-void
-draw_player_select_box(entt::registry& r,
-                       SINGLE_SelectSceneData& ui_c,
-                       const ImVec2 tl,
-                       const ImVec2 wh,
-                       const int player_idx)
-{
-  GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
-  GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
-
-  const int num_active_players = non_zero_handles(steam_state_c.handles).size();
-  const bool player_is_joined = player_idx < num_active_players;
-
-  if (!player_is_joined) {
-    const auto text_str = "Connect Controller in Main Menu";
-    const auto text_str_len = ImGui::CalcTextSize(text_str);
-    const auto text_size = ImGui::CalcTextSize(text_str);
-    const auto text_pos = ImVec2{
-      tl.x + 0.5f * (wh.x - text_size.x),
-      tl.y + 0.5f * (wh.y - text_size.y),
-    };
-    ImGui::GetWindowDrawList()->AddText(text_pos, IM_COL32(255, 255, 255, 255), text_str);
-    return;
-  }
-
-  // const auto button_size_w = 20.0f;
-  // const auto button_size_half = button_size_w * 0.5f;
-  // const auto button_size = ImVec2{ button_size_w, button_size_w };
-  // const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-  // const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
-
-  const auto text_size = ImGui::CalcTextSize("anything");
-  auto& state_c = ui_c.player_ui_state[player_idx];
-  auto& game_state_c = ui_c.player_choice_state[player_idx];
-
-  auto last_xy = tl;
-  last_xy.y += 0.5f * (wh.y - text_size.y);
-  last_xy.y -= 0.5f * state_c.rows.size() * text_size.y; // center
-
-  for (int row_i = 0; row_i < (int)state_c.rows.size(); row_i++) {
-    auto& row = state_c.rows[row_i];
-    auto& col_index = row.col_index;
-    const auto& col_name = row.col_name;
-
-    const bool selected = state_c.current_row_index == row_i;
-    const bool is_weapon = row_i == 0;
-    const bool is_hull = row_i == 1;
-
-    const auto text = row.col_name;
-    std::string label = "";
-
-    // prepend (x) to label
-    // if (selected)
-    //   label += "(x) ";
-    label += std::format("{}", text);
-
-    // append weapon name to label
-    if (is_weapon) {
-      auto& idx = col_index;
-
-      // convert index to valid index
-      const auto& weapons = weapons_c.weapons;
-      idx = idx < 0 ? (int)weapons.size() - 1 : idx;
-      idx %= weapons.size();
-
-      const auto& weapon = weapons[idx];
-      label += ": " + weapon.name;
-
-      // update state? note: .key not .name
-      game_state_c.player_gun = weapon.key;
-      // SDL_Log("Updated player gun choice: %s", game_state_c.player_gun.c_str());
-    }
-
-    // append hull name to label
-    if (is_hull) {
-      auto& idx = col_index;
-
-      // convert index to valid index
-      const auto& hulls = hulls_c.hulls;
-      idx = idx < 0 ? (int)hulls.size() - 1 : idx;
-      idx %= hulls.size();
-
-      const auto& hull = hulls[idx];
-      label += ": " + hull.name;
-
-      // update state? note: .key not .name
-      game_state_c.player_boat = hull.key;
-    }
-
-    last_xy.y += text_size.y;
-    const auto text_pos_l = ImVec2{
-      tl.x,
-      last_xy.y,
-    };
-
-    auto colour = IM_COL32(255, 255, 255, 126);
-    if (selected)
-      colour = IM_COL32(255, 255, 255, 255);
-
-    auto* draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddText(last_xy, colour, label.c_str());
-
-    // Left Arrow
-    // ImGui::SetCursorScreenPos(text_pos_l);
-    // ImVec2 uv_tl{ 0.0f, 0.0f };
-    // ImVec2 uv_br{ 1.0f, 1.0f };
-    // std::string l_label = "##left"s + std::to_string(row_i);
-    // std::tie(uv_tl, uv_br) = convert_sprite_to_uv(r, "ARROW_LEFT");
-    // ImGui::ImageButton(l_label.c_str(), im_id, button_size, uv_tl, uv_br);
-
-    // hull description
-    if (is_hull) {
-      const auto idx = col_index;
-      const auto& hulls = hulls_c.hulls;
-      const auto& hull = hulls[idx];
-      const auto desc = hull.desc;
-      last_xy.y += text_size.y;
-      ImGui::GetWindowDrawList()->AddText(last_xy, colour, desc.c_str());
-    }
-
-    // weapon description
-    if (is_weapon) {
-      const auto idx = col_index;
-      const auto& weapons = weapons_c.weapons;
-      const auto& weapon = weapons[idx];
-      const auto desc = weapon.desc;
-      last_xy.y += text_size.y;
-      ImGui::GetWindowDrawList()->AddText(last_xy, colour, desc.c_str());
-    }
-
-    last_xy.y += text_size.y;
-  }
-
-  last_xy.y += text_size.y;
-  last_xy.y += text_size.y;
-  const auto text = std::format("Ready: {}", game_state_c.confirmed);
-  ImGui::GetWindowDrawList()->AddText(last_xy, IM_COL32(255, 255, 255, 255), text.c_str());
+  size_t pos = 0;
+  while ((pos = base.find(substr, pos)) != std::string::npos)
+    base.erase(pos, substr.length());
+  return base;
 }
 
-// Display all the hulls,
-// and the player can select one
+void
+add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha)
+{
+  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
+
+  ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
+  const float custom_font_size = 16.0f * ui_scaling;
+  const auto text_size = font->CalcTextSizeA(custom_font_size, FLT_MAX, -1.0f, text.c_str());
+  const auto text_pos = pos - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
+  const ImU32 col = IM_COL32(255, 255, 255, alpha);
+  draw_list->AddText(font, custom_font_size, text_pos, col, text.c_str());
+};
+
+void
+update_input_for_confirm(entt::registry& r, const int player_idx)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
+  GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
+  GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
+
+  auto& player_ui_data = ui_c.player_ui_state[player_idx];
+  auto& player_state = ui_c.player_choice_state[player_idx];
+  const auto& a = player_ui_data.new_actions;
+  const bool h_changed = std::find(a.begin(), a.end(), UIAction::H_VALUE_CHANGED) != a.end();
+  const bool v_changed = std::find(a.begin(), a.end(), UIAction::V_VALUE_CHANGED) != a.end();
+  const bool player_pressed_select = std::find(a.begin(), a.end(), UIAction::SELECT) != a.end();
+  const bool player_pressed_back = std::find(a.begin(), a.end(), UIAction::BACK) != a.end();
+
+  if (player_pressed_select) {
+    bool ready = player_state.player_row_idx == (player_ui_data.rows.size() - 1);
+    player_state.confirmed = ready;
+    if (ready)
+      SDL_Log("A player is ready");
+
+    player_state.player_row_idx++;
+    player_state.player_row_idx = glm::clamp(player_state.player_row_idx, 0, (int)(player_ui_data.rows.size() - 1));
+  }
+  if (player_pressed_back) {
+    player_state.confirmed = false;
+
+    // TODO: make hold button for menu transition
+    bool back_to_menu = player_state.player_row_idx == 0;
+    if (back_to_menu) {
+      move_to_scene_start(r, Scene::menu);
+      return;
+    }
+
+    player_state.player_row_idx--;
+    player_state.player_row_idx = glm::clamp(player_state.player_row_idx, 0, (int)(player_ui_data.rows.size() - 1));
+  }
+
+  // note: row_index set via confirm/back, not dpad
+  player_ui_data.current_row_index = player_state.player_row_idx;
+
+  // Clamp the values.
+  {
+    auto& ui_hulls = player_ui_data.rows[0];
+    const auto& hulls = hulls_c.hulls;
+    auto& idx = ui_hulls.col_index;
+    idx = idx < 0 ? (int)hulls.size() - 1 : idx;
+    idx %= hulls.size();
+  }
+  {
+    auto& ui_weapons = player_ui_data.rows[1];
+    const auto& weapons = weapons_c.weapons;
+    auto& idx = ui_weapons.col_index;
+    idx = idx < 0 ? (int)weapons.size() - 1 : idx;
+    idx %= weapons.size();
+  }
+}
+
+void
+draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
+  const auto& player_ui_data = ui_c.player_ui_state[player_idx];
+  const auto& player_state = ui_c.player_choice_state[player_idx];
+
+  const float inc = ((player_idx + 1) / 4.0f);
+  const auto im_active_col = IM_COL32(0, 255 * inc, 0, 255);
+
+  auto* draw_list = ImGui::GetWindowDrawList();
+  // draw a background
+  // const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
+  // draw_list->AddRectFilled(tl, br, im_active_col, 6);
+
+  // split the box in to thirds.
+  const float header_segments = 3;
+  auto box_tl = ImVec2(tl.x, tl.y);
+  auto box_wh = ImVec2(wh.x * (1.0f / header_segments), wh.y);
+  for (int i = 0; i < header_segments; i++) {
+
+    // draw a debug rect
+    // const float seg_inc = ((player_idx + 1) / header_segments);
+    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
+    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
+    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
+
+    const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+
+    const bool is_hull = i == 0;
+    const bool is_weapon = i == 1;
+    const bool is_ability = i == 2;
+    const bool active = i == player_state.player_row_idx;
+    const int active_alpha = active ? 255 : 100;
+    const auto& col_idx = player_ui_data.rows[i].col_index;
+
+    // Hulls info
+    if (is_hull) {
+      const auto draw_hulls_header = [&]() {
+        const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
+        const auto text_str = std::format("Hull {}/{}", col_idx + 1, hulls_c.hulls.size());
+        add_text_centered_here(r, draw_list, text_str, box_center, active_alpha);
+      };
+      draw_hulls_header();
+    }
+
+    // Weapons info
+    if (is_weapon) {
+      const auto draw_weapons_header = [&]() {
+        const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+        const auto text_str = std::format("Weapon {}/{}", col_idx + 1, weapons_c.weapons.size());
+        add_text_centered_here(r, draw_list, text_str, box_center, active_alpha);
+      };
+      draw_weapons_header();
+    }
+
+    // Ability info
+    if (is_ability) {
+      const auto draw_ability_header = [&]() {
+        const auto text_str = std::format("Ability 0/0");
+        add_text_centered_here(r, draw_list, text_str, box_center, active_alpha);
+      };
+      draw_ability_header();
+    }
+
+    // move the segments on.
+    box_tl.x += box_wh.x;
+  }
+}
+
+void
+draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
+  GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
+  GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
+  const auto& player_ui_data = ui_c.player_ui_state[player_idx];
+  const auto player_row_idx = player_ui_data.current_row_index;
+  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
+
+  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c)
+  const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
+  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+
+  // draw a background
+  const auto my_bg_col = default_player_colours[player_idx];
+  const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 0.2 * 255);
+  const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
+  auto* draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(tl, br, im_bg_col, 6);
+
+  // std::string& hull = player_state.player_boat;
+  // std::string& weapon = player_state.player_gun;
+  // std::string& ability = player_state.player_ability;
+
+  // split the box in to thirds.
+  const float segments = 3;
+  auto box_tl = ImVec2(tl.x, tl.y);
+  auto box_wh = ImVec2(wh.x * (1.0f / segments), wh.y);
+  for (int i = 0; i < segments; i++) {
+    //
+    // draw a debug rect
+    // const float seg_inc = ((player_idx + 1) / segments);
+    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
+    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
+    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
+
+    const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+
+    const bool is_hull = i == 0;
+    const bool is_weapon = i == 1;
+    const bool is_ability = i == 2;
+    const bool active = i == player_row_idx;
+    const int active_alpha = active ? 255 : 100;
+    const auto& col_idx = player_ui_data.rows[i].col_index;
+
+    // std::string debug_str = std::format("ri {} ci {}", i, col_idx);
+    // add_text_centered_here(ImGui::GetWindowDrawList(), debug_str, box_center, active_alpha);
+
+    // display hull
+    if (is_hull) {
+      const auto& idx = col_idx;
+      const auto& hull = hulls_c.hulls[idx];
+      auto& player_state = ui_c.player_choice_state[player_idx];
+      player_state.player_boat_key = hull.key;
+
+      // split the name across lines
+      auto str = hull.name;
+      std::replace(str.begin(), str.end(), ' ', '\n');
+      add_text_centered_here(r, draw_list, str, box_center, active_alpha);
+    }
+
+    // display weapon
+    if (is_weapon) {
+      const auto& idx = col_idx;
+      const auto& weapon = weapons_c.weapons[idx];
+      auto& player_state = ui_c.player_choice_state[player_idx];
+      player_state.player_gun_key = weapon.key;
+
+      // split the name across lines
+      auto str = weapon.name;
+      std::replace(str.begin(), str.end(), ' ', '\n');
+      add_text_centered_here(r, draw_list, str, box_center, active_alpha);
+    }
+
+    // draw some left and right arrows
+    if (active) {
+
+      // Arrows made of sprites
+      // const float arrow_rad = 32;
+      // const auto center_l_tl = ImVec2{ box_tl.x, box_tl.y + box_wh.y * 0.667f - arrow_rad };
+      // const auto center_l_br = ImVec2{ center_l_tl.x + arrow_rad, center_l_tl.y + arrow_rad };
+      // const auto center_r_tl = ImVec2{ box_tl.x + box_wh.x - arrow_rad, box_tl.y + box_wh.y * 0.667f - arrow_rad };
+      // const auto center_r_br = ImVec2{ center_r_tl.x + arrow_rad, center_r_tl.y + arrow_rad };
+      // const auto [l_uv_tl, l_uv_br] = convert_sprite_to_uv(r, "ARROW_LEFT");
+      // const auto [r_uv_tl, r_uv_br] = convert_sprite_to_uv(r, "ARROW_RIGHT");
+      // draw_list->AddImage(im_id, center_l_tl, center_l_br, l_uv_tl, l_uv_br);
+      // draw_list->AddImage(im_id, center_r_tl, center_r_br, r_uv_tl, r_uv_br);
+
+      const float arrow_txt_size = 32;
+      const auto center_l = ImVec2{ box_tl.x + 0.5f * arrow_txt_size, box_tl.y + box_wh.y * 0.5f };
+      const auto center_r = ImVec2{ box_tl.x + box_wh.x - 0.5f * arrow_txt_size, box_tl.y + box_wh.y * 0.5f };
+
+      // arrows made of text
+      const std::string arrow_l = "<";
+      const std::string arrow_r = ">";
+      ImFont* font = ImGui::GetIO().Fonts->Fonts[1];
+      const auto l_text_size = font->CalcTextSizeA(arrow_txt_size, FLT_MAX, -1.0f, arrow_l.c_str());
+      const auto l_text_pos = center_l - ImVec2{ 0.5f * l_text_size.x, 0.5f * l_text_size.y };
+      const auto r_text_size = font->CalcTextSizeA(arrow_txt_size, FLT_MAX, -1.0f, arrow_r.c_str());
+      const auto r_text_pos = center_r - ImVec2{ 0.5f * r_text_size.x, 0.5f * r_text_size.y };
+      draw_list->AddText(font, 32 * ui_scaling, l_text_pos, IM_COL32(150, 150, 150, 255), "<");
+      draw_list->AddText(font, 32 * ui_scaling, r_text_pos, IM_COL32(150, 150, 150, 255), ">");
+    }
+
+    // move the segments on.
+    box_tl.x += box_wh.x;
+  }
+}
+
+void
+draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  const auto handle = steam_ui_c.handles[player_idx];
+
+  const float inc = ((player_idx + 1) / 4.0f);
+  const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
+  auto* draw_list = ImGui::GetWindowDrawList();
+
+  // draw a background
+  // const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
+  // draw_list->AddRectFilled(tl, br, im_active_col, 6);
+
+  // split the box in to segments
+  const float segments = 2;
+  auto box_tl = ImVec2(tl.x, tl.y);
+  auto box_wh = ImVec2(wh.x * (1.0f / segments), wh.y);
+  for (int i = 0; i < segments; i++) {
+
+    // draw a debug rect
+    // const float seg_inc = ((player_idx + 1) / segments);
+    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
+    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
+    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
+
+    const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+
+    if (i == 0) {
+      const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
+      const auto back_str = std::format("Press {} to back", confirm_str);
+      add_text_centered_here(r, draw_list, back_str, box_center, 255);
+    }
+
+    if (i == 1) {
+      const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
+      const auto select_str = std::format("Press {} to select", confirm_str);
+      add_text_centered_here(r, draw_list, select_str, box_center, 255);
+    }
+
+    // move the segments on.
+    box_tl.x += box_wh.x;
+  }
+}
+
+void
+draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
+  GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
+  GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
+  const auto& player_ui_data = ui_c.player_ui_state[player_idx];
+  const auto& player_state = ui_c.player_choice_state[player_idx];
+  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
+
+  const auto player_row_idx = player_ui_data.current_row_index;
+
+  // draw a background
+  const auto my_bg_col = default_player_colours[player_idx];
+  const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 0.2 * 255);
+  const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
+  auto* draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(tl, br, im_bg_col, 6);
+
+  std::string header_txt = "";
+  std::string description_txt = "";
+  std::string more_info_txt = "";
+
+  const bool is_hull = player_ui_data.current_row_index == 0;
+  const bool is_weapon = player_ui_data.current_row_index == 1;
+  const bool is_ability = player_ui_data.current_row_index == 2;
+  int col_idx = player_ui_data.rows[player_ui_data.current_row_index].col_index;
+
+  std::vector<std::string> display_stats;
+
+  if (is_hull) {
+    const auto& hull = hulls_c.hulls[col_idx];
+    header_txt = hull.name;
+    description_txt = hull.desc;
+    display_stats.push_back(std::format("Hardpoints: {}", hull.hardpoints.size()));
+    display_stats.push_back(std::format("Size: {}", hull.width * hull.height));
+  }
+
+  if (is_weapon) {
+    const auto& weapon = weapons_c.weapons[col_idx];
+    header_txt = weapon.name;
+    description_txt = weapon.desc;
+    for (const auto& [key, val] : weapon.data) {
+      auto clean_key = key;
+      clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
+      clean_key = str_remove_all_occurances(clean_key, "BULLET_");
+      display_stats.push_back(std::format("{} {}", clean_key, val));
+    }
+  }
+
+  // Draw header + description
+  {
+    const auto header_pos = ImVec2(tl.x + 0.05f * wh.x, tl.y + 0.05f * wh.y);
+    const auto desc_pos = ImVec2(tl.x + 0.05f * wh.x, tl.y + 0.2f * wh.y);
+    ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
+    draw_list->AddText(font, 20 * ui_scaling, header_pos, IM_COL32(255, 255, 255, 255), header_txt.c_str());
+    draw_list->AddText(font, 13 * ui_scaling, desc_pos, IM_COL32(255, 255, 255, 255), description_txt.c_str());
+  }
+
+  const float offset_y = 0.35f * wh.y;
+  auto box_tl = ImVec2(tl.x + 4, tl.y + offset_y);
+  auto box_wh = ImVec2(wh.x, wh.y - offset_y);
+
+  // Display stats in a grid
+  const int cols_xmax = 3;
+  const int rows_ymax = 4;
+  for (int idx = 0; idx < cols_xmax * rows_ymax; idx++) {
+    if (idx >= display_stats.size())
+      break; // no more data
+    const auto stat = display_stats[idx];
+    // Get position from row and col & convert to display pos
+    const auto gp = engine::grid::index_to_grid_position(idx, cols_xmax, rows_ymax);
+    const auto x_pos = ((gp.x) / (float)cols_xmax);
+    const auto y_pos = ((gp.y) / (float)rows_ymax);
+    const auto pos = ImVec2(box_tl.x + x_pos * box_wh.x, box_tl.y + y_pos * box_wh.y);
+
+    ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
+    draw_list->AddText(font, 16 * ui_scaling, pos, IM_COL32(255, 255, 255, 255), stat.c_str());
+  }
+
+  /*
+  // split the box in to segments
+  for (int i = 0; i < segments; i++) {
+
+    // draw a debug rect
+    // const float seg_inc = ((player_idx + 1) / segments);
+    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
+    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
+    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
+
+    const auto box_center = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y);
+
+    // move the segments on.
+    box_tl.x += box_wh.x;
+  }
+  */
+}
+
+void
+update_split_screen_into_quaters(entt::registry& r,
+                                 SINGLE_RendererInfo& ri_c,
+                                 SINGLE_SelectSceneData& ui_c,
+                                 const int max_num_players)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
+
+  ImGuiWindowFlags flags = 0;
+  flags |= ImGuiWindowFlags_NoDecoration;
+  flags |= ImGuiWindowFlags_NoMove;
+  flags |= ImGuiWindowFlags_NoCollapse;
+  flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoBackground;
+
+  const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
+  const auto set_window_size = ImVec2{
+    (float)ri_c.viewport_size_render_at.x,
+    (float)ri_c.viewport_size_render_at.y,
+  };
+  ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.5f, 0.5f });
+  ImGui::SetNextWindowSize(set_window_size);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+  ImGui::Begin("SelectShipUI", nullptr, flags);
+
+  const ImVec2 window_pos = ImGui::GetWindowPos();
+  const ImVec2 window_size = ImGui::GetWindowSize();
+  const auto player_ui_w = window_size.x / max_num_players; // always /4
+  const auto player_ui_h = window_size.y;
+  auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
+  auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
+
+  for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
+    const auto center = player_ui_h * 0.5f;
+
+    const auto handle = steam_ui_c.handles[player_idx];
+    const bool connected = handle_is_connected(steam_c, handle);
+    const bool joined = handle_is_joined(steam_ui_c, handle);
+    if (connected && joined) {
+
+      // const auto width = 300;
+      const auto height = 120 * ui_scaling; // or 1/6th of the screen
+      const auto main_quarter_tl = ImVec2{ player_ui_tl.x, center - (height * 0.5f) };
+      draw_main_quarters(r, main_quarter_tl, ImVec2{ player_ui_w, height }, player_idx);
+
+      const auto header_height = 50;
+      const auto header_tl = ImVec2(player_ui_tl.x, main_quarter_tl.y - header_height);
+      draw_main_header_quarters(r, header_tl, { player_ui_w, header_height }, player_idx);
+
+      const auto info_height = 50;
+      const auto info_tl = ImVec2(player_ui_tl.x, center + (height * 0.5f));
+      draw_below_main_info_quarters(r, info_tl, { player_ui_w, info_height }, player_idx);
+
+      const auto selected_info_height = 120 * ui_scaling; // or 1/6th of the screen
+      const auto selected_info_y = player_ui_h * 0.667f;
+      const auto selected_info_tl = ImVec2(player_ui_tl.x, selected_info_y);
+      draw_selected_info_panel(r, selected_info_tl, { player_ui_w, selected_info_height }, player_idx);
+    }
+
+    else {
+      const auto height = 120 * ui_scaling; // or 1/6th of the screen
+      const auto main_quarter_tl = ImVec2{ player_ui_tl.x, center - (height * 0.5f) };
+      const auto tl = main_quarter_tl;
+      const auto wh = ImVec2{ player_ui_w, height };
+
+      // Draw a background
+      // TODO
+
+      // Draw some text
+      const auto box_center = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y);
+      auto* draw_list = ImGui::GetWindowDrawList();
+      add_text_centered_here(r, draw_list, "No Controller.", box_center, 100);
+    }
+
+    // move horizontally
+    player_ui_tl.x += player_ui_w;
+    player_ui_br.x += player_ui_w;
+  }
+
+  ImGui::End();
+  ImGui::PopStyleVar(2);
+};
+
 void
 update_ui_scene_select_system(entt::registry& r, const float dt)
 {
@@ -276,77 +537,15 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   }
 
   update_input_for_select_ui(r, ui_c);
+  for (int i = 0; i < max_num_players; i++)
+    update_input_for_confirm(r, i);
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoCollapse;
-  flags |= ImGuiWindowFlags_NoDocking;
+  update_split_screen_into_quaters(r, ri_c, ui_c, max_num_players);
 
-  const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
-  const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x - 0.1f * ri_c.viewport_size_render_at.x, 200 };
-  ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.5f, 0.5f });
-  ImGui::SetNextWindowSize(set_window_size);
+  draw_select_header(r, ri_c);
 
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-
-  ImGui::Begin("SelectShipUI", nullptr, flags);
-
-  const ImVec2 window_pos = ImGui::GetWindowPos();
-  const ImVec2 window_size = ImGui::GetWindowSize();
-  const auto player_ui_w = window_size.x / max_num_players; // always /4
-  const auto player_ui_h = window_size.y;
-  auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
-  auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
-
-  // center ui...
-  // player_ui_tl.x += (window_size.x) * 0.5f - (num_active_players * player_ui_w * 0.5);
-  // player_ui_br.x += (window_size.x) * 0.5f - (num_active_players * player_ui_w * 0.5);
-
-  bool moved_to_menu = false;
-
-  for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
-
-    // background
-    const float inc = ((player_idx + 1) / 4.0f);
-    const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
-    auto p_max = ImVec2{ player_ui_tl.x + player_ui_w, player_ui_tl.y + player_ui_h };
-    ImGui::GetWindowDrawList()->AddRectFilled(player_ui_tl, p_max, im_active_col, 6);
-
-    // draw the contents
-    draw_player_select_box(r, ui_c, player_ui_tl, { player_ui_w, player_ui_h }, player_idx);
-
-    // Input <=> Confirmed
-    auto& state_c = ui_c.player_ui_state[player_idx];
-    auto& game_state_c = ui_c.player_choice_state[player_idx];
-    const auto& a = state_c.new_actions;
-    const bool player_pressed_select = std::find(a.begin(), a.end(), UIAction::SELECT) != a.end();
-    const bool player_pressed_back = std::find(a.begin(), a.end(), UIAction::BACK) != a.end();
-
-    // todo: fix this to not use magic numbers
-    const bool on_back_to_menu_button = state_c.current_row_index == 2;
-    if (player_pressed_select && on_back_to_menu_button) {
-      state_c.rows[2].action();
-      moved_to_menu = true;
-      break;
-    }
-
-    if (player_pressed_select && !on_back_to_menu_button)
-      game_state_c.confirmed = true;
-
-    if (player_pressed_back)
-      game_state_c.confirmed = false;
-
-    // move horizontally
-    player_ui_tl.x += player_ui_w;
-    player_ui_br.x += player_ui_w;
-  }
-
-  ImGui::End();
-  ImGui::PopStyleVar(2);
-
-  if (moved_to_menu)
+  const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  if (scene_c.s != Scene::select)
     return;
 
   //
@@ -361,14 +560,10 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   const auto someone_confirmed = std::any_of(c.begin(), c.end(), confirmed);
   const auto noone_confirmed = std::none_of(c.begin(), c.end(), confirmed);
 
-  const ImVec2 pivot = { 0.5f, 0.5f };
-  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
-
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2{ 0.5f, 0.5f });
   update_countdown(ui_c, everyone_confirmed, dt);
-
   if (everyone_confirmed)
     update_countdown_ui(r, ui_c);
-
   update_countdown_to_next_scene(r, ui_c, hulls_c.hulls);
 
   ImGui::PopStyleVar();

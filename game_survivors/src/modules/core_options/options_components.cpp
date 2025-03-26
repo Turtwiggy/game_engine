@@ -14,15 +14,22 @@ namespace game2d {
 void
 center_window(engine::SINGLE_Application& app)
 {
-  // hack: set window pos
   const auto size = app.window.get_size();
   const auto half_size = glm::ivec2{ size.x * 0.5f, size.y * 0.5f };
 
-  // TODO: fix these values
-  int monitor_x = 1920;
-  int monitor_y = 1080;
+  const int monitor_idx = SDL_GetWindowDisplayIndex(app.window.get_handle());
+  if (monitor_idx < 0) {
+    SDL_Log("error: %s", SDL_GetError());
+    return; // unable to get...
+  }
 
-  const auto center = glm::ivec2{ (monitor_x * 0.5) - half_size.x, (monitor_y * 0.5) - half_size.y };
+  SDL_Rect monitor_bounds;
+  if (SDL_GetDisplayBounds(monitor_idx, &monitor_bounds) != 0)
+    return; // unable to get...
+
+  const int monitor_w = monitor_bounds.w;
+  const int monitor_h = monitor_bounds.h;
+  const auto center = glm::ivec2{ (monitor_w * 0.5) - half_size.x, (monitor_h * 0.5) - half_size.y };
   app.window.set_position(center.x, center.y);
 };
 

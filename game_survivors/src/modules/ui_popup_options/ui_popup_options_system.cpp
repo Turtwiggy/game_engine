@@ -81,6 +81,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   auto& ui_c = gesert_component<SINGLE_OptionsMenuState>(r);
+  const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
 
   process_requests<RequestToShowOptionsMenu>(r, [&ui_c]() {
     ui_c.one_frame_buffer = true;
@@ -139,18 +140,32 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
     // Hack: add seperators for categories.
     const auto enum_val = magic_enum::enum_cast<GAME_OPTIONS>(i).value();
+
     // first audio option
     if (enum_val == GAME_OPTIONS::AUDIO_MASTER_VOLUME) {
       ImGui::Text("Keyboard: use arrow keys (wip)");
       ImGui::Text("Controller: use dpad");
       ImGui::SeparatorText("Audio");
     }
+
     // first video option
     if (enum_val == GAME_OPTIONS::VIDEO_SCREEN_MODE)
       ImGui::SeparatorText("Video");
+
     // last option
     if (i == (int)(GAME_OPTIONS::count))
       ImGui::SeparatorText("Menu");
+
+    // if in fullscreen_borderless, hide resolution option.
+    bool res_auto_set = false;
+    if (enum_val == GAME_OPTIONS::VIDEO_RESOLUTION) {
+      const auto dm = app.window.get_displaymode();
+      if (dm == engine::DisplayMode::fullscreen_borderless) {
+        ImGui::Text("Resolution (auto set): %i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
+        res_auto_set = true;
+        continue;
+      }
+    }
 
     if (selectable_button(a_def))
       row.action();

@@ -16,8 +16,8 @@ enum class DisplayMode
 {
   windowed = 0,
   windowed_borderless,
-  fullscreen,
   fullscreen_borderless,
+  // fullscreen,
 
   count,
 };
@@ -72,6 +72,7 @@ public:
   [[nodiscard]] glm::ivec2 get_resolution() const;
   [[nodiscard]] bool get_fullscreen() const;
   [[nodiscard]] float get_brightness() const;
+  [[nodiscard]] DisplayMode get_displaymode() const;
 
   // ---- mouse
 

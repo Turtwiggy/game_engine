@@ -9,14 +9,14 @@
       "data": {
         "WEAPON_CLIP_SIZE": 6   , // shots before reload
         "WEAPON_PROJECTILES": 2 ,
-        "WEAPON_SPREAD": 5      , // degrees
         "WEAPON_FIRERATE": 1.25 , // per second
         "WEAPON_RELOAD": 3      , // seconds
         "WEAPON_RANGE": 4.0     , // meters
         "BULLET_DAMAGE": 12     ,
         "BULLET_KNOCKBACK": 0   , // force
         "BULLET_PIERCE": 12     ,
-        "BULLET_SIZE": 6        
+        "BULLET_SIZE": 6        ,
+        "WEAPON_SPREAD": 5       // degrees
       }
     },
 
@@ -58,11 +58,12 @@
 
     {
       "key": "weapon_sea_turret",
-      "name": "Sea-Turret-Deployer",
+      "name": "Sea-Turret Deployer",
       "desc": "Deploy Turrets as you move.",
       "weapon_type": "DEPLOY",
       "data": {
         "WEAPON_CLIP_SIZE": 1    , // shots before reload
+        "WEAPON_PROJECTILES": 1  ,
         "WEAPON_FIRERATE": 0.2   , // per second
         "WEAPON_RELOAD": 3       , // seconds
         "WEAPON_RANGE": 4.0      , // meters
