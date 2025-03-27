@@ -11,14 +11,15 @@
 #include "modules/combat/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/event_death/components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/system_death_throes/death_throes_components.hpp"
-#include "modules/system_traits/trait_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ui_worldspace_text/helpers.hpp"
 
@@ -31,10 +32,13 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
 
   wst_c.layout = [damage, crit](entt::registry& r) {
     const auto my_non_crit_col = hex_to_srgb("#b1c9c3"); // grey
-    const auto my_crit_col = hex_to_srgb("#e99f10");     // orange
+    const auto my_crit_col = hex_to_srgb("#e99f10");     //
 
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::PushFont(io.Fonts->Fonts[3]);
+    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+    auto* font = get_fingerpaint_font(r, font_enum);
+
+    ImGui::PushFont(font);
 
     const auto im_non_crit_col = ImVec4{
       my_non_crit_col.r / 255.0f,

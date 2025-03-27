@@ -8,8 +8,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/imgui/helpers.hpp"
-#include "engine/maths/grid.hpp"
 #include "modules/actor_weapon/weapon_components.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
 #include "modules/scene/scene_components.hpp"
@@ -45,10 +45,11 @@ struct TextDesc
 void
 add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc& desc, ImVec2* out_pos = nullptr)
 {
-  ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+  auto* font = get_fingerpaint_font(r, font_enum);
 
-  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
-  const auto scaled_font_size = desc.non_scaled_font_size * ui_scaling;
+  const auto scaled_font_size = desc.non_scaled_font_size * font_scale;
   const auto text_size = font->CalcTextSizeA(scaled_font_size, FLT_MAX, desc.wrap_width, desc.text.c_str());
   const auto text_pos = desc.non_centered_pos - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
   draw_list->AddText(font, scaled_font_size, text_pos, desc.col, desc.text.c_str(), NULL, desc.wrap_width);
@@ -86,8 +87,8 @@ update_input_for_confirm(entt::registry& r, const int player_idx)
   if (player_pressed_back) {
     player_state.confirmed = false;
 
-    // TODO: make hold button for menu transition
-    bool back_to_menu = player_state.player_row_idx == 0;
+    // IDEA: could make the player hold button for menu transition
+    const bool back_to_menu = player_state.player_row_idx == 0;
     if (back_to_menu) {
       move_to_scene_start(r, Scene::menu);
       return;
@@ -313,7 +314,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       .non_centered_pos = header_text_pos,
       .col = IM_COL32(255, 255, 255, active_alpha),
       .non_scaled_font_size = 16,
-      .wrap_width = 90,
+      .wrap_width = 90 * ui_scaling,
     };
 
     ImVec2 header_text_pos_centered{ 0, 0 };
@@ -321,39 +322,46 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
     // draw description text
     {
+      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_DESCRIPTION : FontSize::TEXT_DESCRIPTION_SCALED;
+      auto* font = get_fingerpaint_font(r, font_enum);
+
       const TextDesc d{
         .text = desc,
         .non_centered_pos = desc_text_pos,
         .col = im_desc_text_col,
-        .non_scaled_font_size = 15,
-        .wrap_width = 96,
+        .non_scaled_font_size = (float)FontSize::TEXT_DESCRIPTION,
+        .wrap_width = 96 * ui_scaling,
       };
-      ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
-      const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
-      const auto scaled_font_size = d.non_scaled_font_size * ui_scaling;
+
+      const auto scaled_font_size = d.non_scaled_font_size * font_scale;
       const auto text_size = font->CalcTextSizeA(scaled_font_size, FLT_MAX, d.wrap_width, d.text.c_str());
       draw_list->AddText(font, scaled_font_size, desc_text_pos, d.col, d.text.c_str(), NULL, d.wrap_width);
     }
 
     // draw some left and right arrows
     if (active) {
-      const float arrow_txt_size = 16 * ui_scaling;
+      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_DESCRIPTION : FontSize::TEXT_DESCRIPTION_SCALED;
+
+      const float arrow_txt_size = (int)FontSize::TEXT_DESCRIPTION;
+      const float arrow_txt_size_scaled = arrow_txt_size * font_scale;
       const float padding_x = 4;
       const auto center_l = ImVec2{ box_tl.x + padding_x, header_text_pos_centered.y };
-      const auto center_r = ImVec2{ box_tl.x + box_wh.x - arrow_txt_size - padding_x, header_text_pos_centered.y };
+      const auto center_r = ImVec2{ box_tl.x + box_wh.x - arrow_txt_size_scaled - padding_x, header_text_pos_centered.y };
+      auto* font = get_fingerpaint_font(r, font_enum);
 
       // arrows made of text
       const std::string arrow_l = "<";
       const std::string arrow_r = ">";
-      ImFont* font = ImGui::GetIO().Fonts->Fonts[1];
-      const auto l_text_size = font->CalcTextSizeA(arrow_txt_size, FLT_MAX, -1.0f, arrow_l.c_str());
+      const auto l_text_size = font->CalcTextSizeA(arrow_txt_size_scaled, FLT_MAX, -1.0f, arrow_l.c_str());
       // const auto l_text_pos = center_l - ImVec2{ l_text_size.x, l_text_size.y };
       const auto l_text_pos = center_l;
-      const auto r_text_size = font->CalcTextSizeA(arrow_txt_size, FLT_MAX, -1.0f, arrow_r.c_str());
+      const auto r_text_size = font->CalcTextSizeA(arrow_txt_size_scaled, FLT_MAX, -1.0f, arrow_r.c_str());
       // const auto r_text_pos = center_r - ImVec2{ r_text_size.x, r_text_size.y };
       const auto r_text_pos = center_r;
-      draw_list->AddText(font, arrow_txt_size, l_text_pos, IM_COL32(150, 150, 150, 255), "<");
-      draw_list->AddText(font, arrow_txt_size, r_text_pos, IM_COL32(150, 150, 150, 255), ">");
+      draw_list->AddText(font, arrow_txt_size_scaled, l_text_pos, IM_COL32(150, 150, 150, 255), "<");
+      draw_list->AddText(font, arrow_txt_size_scaled, r_text_pos, IM_COL32(150, 150, 150, 255), ">");
     }
 
     // move the segments on.
@@ -475,8 +483,12 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
     }
   }
 
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
+  auto* font = get_fingerpaint_font(r, font_enum);
+
   // use h not wh.y
-  static float space_per_row = 16.0f * ui_scaling;
+  static float space_per_row = (float)font_enum;
 #if defined(_DEBUG)
   imgui_draw_float("space_per_row", space_per_row);
 #endif
@@ -494,9 +506,8 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
   // Draw header + description
   // {
   const std::string header_text = "Details: " + header_txt;
-  const auto header_pos = ImVec2(tl.x + 0.02f * wh.x, tl.y + 0.02f * h);
-  ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
-  draw_list->AddText(font, 16.0f * ui_scaling, header_pos, IM_COL32(255, 255, 255, 255), header_text.c_str());
+  const auto header_pos = ImVec2(tl.x + 0.0f * wh.x, tl.y + 0.0f * h);
+  draw_list->AddText(font, (float)font_enum, header_pos, IM_COL32(255, 255, 255, 255), header_text.c_str());
   //   const auto desc_pos = ImVec2(tl.x + 0.05f * wh."selected_info_wx, tl.y + 0.2f * h);
   //   draw_list->AddText(font, 13 * ui_scaling, desc_pos, IM_COL32(255, 255, 255, 255), description_txt.c_str());
   // }

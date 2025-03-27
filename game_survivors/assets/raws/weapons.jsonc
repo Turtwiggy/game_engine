@@ -4,7 +4,7 @@
     {
       "key": "weapon_deck_cannon",
       "name": "Cannon", // heavy pistol
-      "desc": "A compact cannon that fires heavy rounds.",
+      "desc": "Fires Heavy rounds.",
       "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 6   , // shots before reload
@@ -23,7 +23,7 @@
     {
       "key": "weapon_grapeshot_cannon",
       "name": "Dragon's Breath", // shotgun
-      "desc": "A short-range weapon that fires a spread of projectiles.",
+      "desc": "Short range. Fires in an area.",
       "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 2    , // shots before reload
@@ -41,7 +41,7 @@
     {
       "key": "weapon_swivel_cannon",
       "name": "Typhoon",       // SMG-type
-      "desc": "A lightweight weapon that fires smaller rounds at a high firerate.",
+      "desc": "Smaller rounds at a high firerate.",
       "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 10   , // shots before reload
@@ -59,7 +59,7 @@
     {
       "key": "weapon_sea_turret",
       "name": "Deployer",
-      "desc": "Deploy stationary Turrets as you move.",
+      "desc": "Place Turrets as you move.",
       "weapon_type": "DEPLOY",
       "data": {
         "WEAPON_CLIP_SIZE": 1    , // shots before reload

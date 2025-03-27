@@ -2,7 +2,10 @@
 
 #include "ui_main_menu_playerjoin_helpers.hpp"
 
+#include "engine/entt/helpers.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_hierarchy/hierarchy_helpers.hpp"
 
 namespace game2d {
@@ -75,13 +78,16 @@ connected_but_not_joined_controllers(const SINGLE_SteamControllers& steam_c, con
 };
 
 void
-add_text_centered(ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha)
+add_text_centered(entt::registry& r, ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha)
 {
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[6]);
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
+  auto* font = get_fingerpaint_font(r, font_enum);
+
+  ImGui::PushFont(font);
   const auto text_wh = ImGui::CalcTextSize(text.c_str());
   const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, alpha), text.c_str());
-
   ImGui::PopFont();
 };
 

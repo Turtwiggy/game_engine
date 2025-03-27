@@ -28,7 +28,7 @@ std::vector<InputHandle_t>
 connected_but_not_joined_controllers(const SINGLE_SteamControllers& steam_c, const SINGLE_SteamControllerGameState& ui_c);
 
 void
-add_text_centered(ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha);
+add_text_centered(entt::registry& r, ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha);
 
 std::string
 get_str_for_da(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DigitalAction da);

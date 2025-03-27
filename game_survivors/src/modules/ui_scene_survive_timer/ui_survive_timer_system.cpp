@@ -1,11 +1,13 @@
+#include "pch.hpp"
+
 #include "ui_survive_timer_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "modules/actor_snake/snake_components.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "ui_survive_timer_components.hpp"
-
-#include <imgui.h>
 
 namespace game2d {
 
@@ -15,9 +17,10 @@ update_ui_survive_timer_system(entt::registry& r)
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const glm::vec2 tr = ri.viewport_size_render_at;
 
-  // Push larger font
-  ImGuiIO& io = ImGui::GetIO();
-  ImGui::PushFont(io.Fonts->Fonts[1]); // Use the larger font (index 1)
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
+  auto* font = get_fingerpaint_font(r, font_enum);
+  ImGui::PushFont(font); // Use the larger font (index 1)
 
   for (const auto& [e, timer_c] : r.view<const SurviveTimerComponent>().each()) {
 

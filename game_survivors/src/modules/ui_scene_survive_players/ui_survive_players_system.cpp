@@ -1,6 +1,6 @@
 #include "pch.hpp"
 
-#include "ui_survive_weapon_system.hpp"
+#include "ui_survive_players_system.hpp"
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
@@ -15,24 +15,18 @@
 #include "modules/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
 const auto my_active_col = hex_to_srgb("#FFFFFF", 255);
 const auto im_active_col = convert_my_to_im(my_active_col);
 
-const std::vector<engine::SRGBColour> my_player_colours{
-  hex_to_srgb("#E8DA58"), // yellow
-  hex_to_srgb("#3D9B44"), // green
-  hex_to_srgb("#00A8EB"), // blue
-  hex_to_srgb("#D075CE"), // pink
-};
-
 const auto my_hp_bar_background_col = hex_to_srgb("#15171B");
 const auto im_hp_bar_background_col = convert_my_to_im(my_hp_bar_background_col);
 
 void
-update_ui_survive_weapon_system(entt::registry& r)
+update_ui_survive_players_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
 
@@ -96,7 +90,7 @@ update_ui_survive_weapon_system(entt::registry& r)
 
   for (int i = 0; i < max_num_players; i++) {
 
-    const auto my_player_col = my_player_colours[i];
+    const auto my_player_col = default_player_colours[i];
     const auto im_player_col = convert_my_to_im(my_player_col);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 

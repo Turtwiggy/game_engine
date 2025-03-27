@@ -1,3 +1,4 @@
+#include "modules/ui_common/ui_common_components.hpp"
 #include "pch.hpp"
 
 #include "ui_scene_press_any_key_system.hpp"
@@ -6,6 +7,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/system_scene_pressanykey_move_to_next/components.hpp"
@@ -30,11 +32,17 @@ auto init_text = [](entt::registry& r) {
     auto my_greenish = hex_to_srgb("#71BBB2");
     auto im_greenish = convert_my_to_im_vec(my_greenish);
 
-    ImGui::PushFont(io.Fonts->Fonts[5]); // size 32
+    const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+
+    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_enum_large = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
+    const auto font_enum_med = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+
+    ImGui::PushFont(get_fingerpaint_font(r, font_enum_large));
     ImGui::TextColored(im_greenish, "Press the 'Any' Key!");
     ImGui::PopFont();
 
-    ImGui::PushFont(io.Fonts->Fonts[3]); // size 20
+    ImGui::PushFont(get_fingerpaint_font(r, font_enum_med));
     ImGui::TextColored(im_greenish, "*If you cant find it, mash your keyboard or controller.");
     ImGui::PopFont();
   };

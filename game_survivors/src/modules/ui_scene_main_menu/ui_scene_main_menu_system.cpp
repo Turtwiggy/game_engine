@@ -7,6 +7,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
@@ -40,7 +41,7 @@ text_with_dropshadow(std::string text, const ImVec4& col)
 
   // dropshadow first so it's below the text
   ImGui::SetCursorPos(dropshadow_pos);
-  ImGui::TextColored(ImVec4(dropshadow_col[0], dropshadow_col[1], dropshadow_col[2], dropshadow_col[3]), "Oh Buoy!");
+  ImGui::TextColored(ImVec4(dropshadow_col[0], dropshadow_col[1], dropshadow_col[2], dropshadow_col[3]), "%s", text.c_str());
 
   // then the text
   ImGui::SetCursorPos(pos);
@@ -64,8 +65,13 @@ const auto init_menu = [](entt::registry& r) {
   WorldspaceTextComponent wst_c;
 
   wst_c.layout = [im_greenish](entt::registry& r) {
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::PushFont(io.Fonts->Fonts[4]);
+    //
+
+    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
+    auto* font = get_fingerpaint_font(r, font_enum);
+
+    ImGui::PushFont(font);
 
     text_with_dropshadow("Oh Buoy!", im_greenish);
 
@@ -122,10 +128,13 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   ImGuiIO& io = ImGui::GetIO();
 
   // button idx
-  ImGui::PushFont(io.Fonts->Fonts[5]);
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
+  auto* font = get_fingerpaint_font(r, font_enum);
+  ImGui::PushFont(font);
 
-  const ImVec2 button_size = { 177.0f, 50.0f };
-  const ImVec2 space_between_buttons = { 0, 16 };
+  const ImVec2 button_size = { 177.0f * font_scale, 50.0f * font_scale };
+  const ImVec2 space_between_buttons = { 0, 16 * font_scale };
 
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });

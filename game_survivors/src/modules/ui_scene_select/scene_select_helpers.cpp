@@ -4,6 +4,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -78,7 +79,9 @@ draw_select_header(entt::registry& r, SINGLE_RendererInfo& ri_c)
   draw_list->AddRectFilled(window_tl, window_br, im_bg_col, 6);
 
   // text
-  ImGui::PushFont(io.Fonts->Fonts[5]);
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
+  ImGui::PushFont(get_fingerpaint_font(r, font_enum));
   const std::string text_str = "All hands on deck!";
   const auto text_size = ImGui::CalcTextSize(text_str.c_str());
   const auto text_pos = center - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
@@ -133,7 +136,11 @@ update_countdown_ui(entt::registry& r, const SINGLE_SelectSceneData& data_c)
   countdown_flags |= ImGuiWindowFlags_NoBackground;
 
   ImGuiIO& io = ImGui::GetIO();
-  ImGui::PushFont(io.Fonts->Fonts[2]); // Use the larger font (index 1)
+
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
+  auto* font = get_fingerpaint_font(r, font_enum);
+  ImGui::PushFont(font);
   ImGui::Begin("Countdown", NULL, countdown_flags);
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();

@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_survive_weapon_system(entt::registry& r);
+update_ui_survive_players_system(entt::registry& r);
 
 } // namespace game2d

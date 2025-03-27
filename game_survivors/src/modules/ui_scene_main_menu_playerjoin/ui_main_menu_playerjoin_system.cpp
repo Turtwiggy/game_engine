@@ -4,6 +4,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -87,7 +88,8 @@ draw_dpad(const SINGLE_SteamControllers& steam_c,
 };
 
 void
-draw_abxy_buttons(const SINGLE_SteamControllers& steam_c,
+draw_abxy_buttons(entt::registry& r,
+                  const SINGLE_SteamControllers& steam_c,
                   const InputHandle_t handle,
                   auto* draw_list,
                   const ImVec2 tl,
@@ -108,14 +110,15 @@ draw_abxy_buttons(const SINGLE_SteamControllers& steam_c,
   draw_list->AddCircleFilled(l_pos, abxy_radius, get_button_col(steam_c, handle, DA::Game_West, alpha));
   draw_list->AddCircleFilled(r_pos, abxy_radius, get_button_col(steam_c, handle, DA::Game_East, alpha));
 
-  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_North), u_pos, alpha);
-  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_West), l_pos, alpha);
-  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_East), r_pos, alpha);
-  add_text_centered(draw_list, get_str_for_da(steam_c, handle, DA::Game_South), d_pos, alpha);
+  add_text_centered(r, draw_list, get_str_for_da(steam_c, handle, DA::Game_North), u_pos, alpha);
+  add_text_centered(r, draw_list, get_str_for_da(steam_c, handle, DA::Game_West), l_pos, alpha);
+  add_text_centered(r, draw_list, get_str_for_da(steam_c, handle, DA::Game_East), r_pos, alpha);
+  add_text_centered(r, draw_list, get_str_for_da(steam_c, handle, DA::Game_South), d_pos, alpha);
 };
 
 void
-draw_bumpers(const SINGLE_SteamControllers& steam_c,
+draw_bumpers(entt::registry& r,
+             const SINGLE_SteamControllers& steam_c,
              const InputHandle_t handle,
              auto* draw_list,
              const ImVec2 tl,
@@ -134,7 +137,7 @@ draw_bumpers(const SINGLE_SteamControllers& steam_c,
     draw_list->AddRectFilled(lb_tl, lb_br, get_button_col(steam_c, handle, DA::Game_LB, alpha), bumper_rounding);
 
     const auto l_shoulder_txt = get_str_for_da(steam_c, handle, DA::Game_LB);
-    add_text_centered(draw_list, l_shoulder_txt, lb_center, alpha);
+    add_text_centered(r, draw_list, l_shoulder_txt, lb_center, alpha);
   }
 
   // rb
@@ -146,7 +149,7 @@ draw_bumpers(const SINGLE_SteamControllers& steam_c,
     draw_list->AddRectFilled(rb_tl, rb_br, get_button_col(steam_c, handle, DA::Game_RB, alpha), bumper_rounding);
 
     const auto r_shoulder_txt = get_str_for_da(steam_c, handle, DA::Game_RB);
-    add_text_centered(draw_list, r_shoulder_txt, rb_center, alpha);
+    add_text_centered(r, draw_list, r_shoulder_txt, rb_center, alpha);
   }
 }
 
@@ -279,7 +282,10 @@ draw_player_ui_box(entt::registry& r,
   draw_list->AddRectFilled(tl, p_max, im_bg_col, 2);
 
   const auto add_bottom_left_text = [&](std::string text_str) -> void {
-    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[6]);
+    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
+    auto* font = get_fingerpaint_font(r, font_enum);
+    ImGui::PushFont(font);
 
     const auto text_str_len = ImGui::CalcTextSize(text_str.c_str());
     const auto text_size = ImGui::CalcTextSize(text_str.c_str());
@@ -300,8 +306,8 @@ draw_player_ui_box(entt::registry& r,
     draw_eyes(r, steam_c, handle, draw_list, tl, wh, ui_scale, player_idx, alpha_int);
     draw_eyebrows(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
-    draw_abxy_buttons(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
-    draw_bumpers(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_abxy_buttons(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_bumpers(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
   };
 
@@ -314,30 +320,32 @@ draw_player_ui_box(entt::registry& r,
     const auto r_center = ImVec2{ tl.x + (0.6f * wh.x), tl.y + (0.667f * wh.y) };
     // const auto text_col = IM_COL32(255, 255, 255, alpha_int);
     const auto text_col = IM_COL32(0, 0, 0, alpha_int);
+
+    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
+    ImGui::PushFont(get_fingerpaint_font(r, font_enum));
+
     {
       const std::string text = "G";
       const auto l_pos = l_center;
-      ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[5]);
       const auto text_wh = ImGui::CalcTextSize(text.c_str());
       const auto text_pos = l_pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
       draw_list->AddText(text_pos, text_col, text.c_str());
-      ImGui::PopFont();
     }
     {
       const std::string text = "G";
       const auto r_pos = r_center;
-      ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[5]);
       const auto text_wh = ImGui::CalcTextSize(text.c_str());
       const auto text_pos = r_pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
       draw_list->AddText(text_pos, text_col, text.c_str());
-      ImGui::PopFont();
     }
+    ImGui::PopFont();
 
     draw_eyebrows(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
-    draw_abxy_buttons(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
-    draw_bumpers(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_abxy_buttons(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_bumpers(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
 
     add_bottom_left_text("Disconnected");
   };
@@ -349,7 +357,7 @@ draw_player_ui_box(entt::registry& r,
     draw_eyebrows(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
-    draw_abxy_buttons(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_abxy_buttons(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
 
     // draw sleep mask
     const float mask_rounding = 16.0f;
@@ -379,7 +387,7 @@ draw_player_ui_box(entt::registry& r,
       draw_list->AddLine(r_line_p0, r_line_p1, line_col, line_thickness);
     }
 
-    // Add some Zzz to represent sleeing.
+    // Add some Zzz to represent sleeping.
     {
       const auto text = "Zzz"s;
 
@@ -391,10 +399,14 @@ draw_player_ui_box(entt::registry& r,
 
       const auto pos = ImVec2(mask_br.x, mask_tl.y + bob_val);
 
-      ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[3]);
+      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+      ImGui::PushFont(get_fingerpaint_font(r, font_enum));
+
       const auto text_wh = ImGui::CalcTextSize(text.c_str());
       const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
       draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
+
       ImGui::PopFont();
     }
   };

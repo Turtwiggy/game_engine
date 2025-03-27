@@ -4,7 +4,9 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "modules/core_animations/wiggle/components.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ui_worldspace_text/helpers.hpp"
 
@@ -46,8 +48,10 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
   wst_c.layout = [text](entt::registry& r) {
     const auto text_col = hex_to_srgb("#ffffff");
 
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::PushFont(io.Fonts->Fonts[3]);
+    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+    auto* font = get_fingerpaint_font(r, font_enum);
+    ImGui::PushFont(font);
 
     const auto im_crit_col = ImVec4{
       text_col.r / 255.0f,

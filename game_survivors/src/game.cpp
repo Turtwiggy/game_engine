@@ -26,6 +26,8 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
+#include "modules/core_fonts/fonts_component.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_io/io_components.hpp"
 #include "modules/core_io/io_helpers.hpp"
 #include "modules/core_options/options_components.hpp"
@@ -102,9 +104,9 @@
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
 #include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
+#include "modules/ui_scene_survive_players/ui_survive_players_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
-#include "modules/ui_scene_survive_weapon/ui_survive_weapon_system.hpp"
 #include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
@@ -128,25 +130,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   ImFontConfig fontConfig;
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
 
-  // idx: 2 (countdown)
-  ImFontConfig countdown_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &countdown_config);
-
-  // idx: 3 (general)
-  ImFontConfig fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f, &fingerpaint_config);
-
-  // idx: 4 (header menu)
-  ImFontConfig header_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f, &header_fingerpaint_config);
-
-  // idx: 5 (buttons menu)
-  ImFontConfig buttons_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 40.0f, &buttons_fingerpaint_config);
-
-  // idx: 6 (small)
-  ImFontConfig text_small;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 12.0f, &text_small);
+  init_fonts_system();
 
   // hide default cursor
   if (custom_mouse_cursor) {
@@ -191,7 +175,8 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_SteamControllerGameState>(r);
   create_persistent<SINGLE_PostFixedUpdateCallbacks>(r);
 
-  create_persistent<SINGLE_UIData>(r); // todo: make a setting
+  // create_persistent<SINGLE_FontsComponent>(r);
+  create_persistent<SINGLE_UIData>(r); // HMM: could make a setting
   create_persistent<SINGLE_GameOptions>(r);
   create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
   create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
@@ -373,7 +358,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_info_system(r);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_upgrade_system(r);
-    update_ui_survive_weapon_system(r);
+    update_ui_survive_players_system(r);
     update_ui_gameover_system(r);
     update_ui_ability_system(r);
   }
