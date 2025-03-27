@@ -130,23 +130,23 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   // idx: 2 (countdown)
   ImFontConfig countdown_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f * 1.2f, &countdown_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 128.0f, &countdown_config);
 
   // idx: 3 (general)
   ImFontConfig fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f * 1.2, &fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f, &fingerpaint_config);
 
   // idx: 4 (header menu)
   ImFontConfig header_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f * 1.2f, &header_fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f, &header_fingerpaint_config);
 
   // idx: 5 (buttons menu)
   ImFontConfig buttons_fingerpaint_config;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 40.0f * 1.2f, &buttons_fingerpaint_config);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 40.0f, &buttons_fingerpaint_config);
 
   // idx: 6 (small)
   ImFontConfig text_small;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 12.0f * 1.2f, &text_small);
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 12.0f, &text_small);
 
   // hide default cursor
   if (custom_mouse_cursor) {

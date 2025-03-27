@@ -4,10 +4,11 @@
 #include "scene_select_helpers.hpp"
 #include "scene_select_system.hpp"
 
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/maths/grid.hpp"
-#include "engine/sprites/helpers.hpp"
 #include "modules/actor_weapon/weapon_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/core_renderer/helpers.hpp"
@@ -15,6 +16,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
@@ -29,19 +31,32 @@ str_remove_all_occurances(std::string base, const std::string& substr)
   while ((pos = base.find(substr, pos)) != std::string::npos)
     base.erase(pos, substr.length());
   return base;
-}
+};
+
+struct TextDesc
+{
+  std::string text = "";
+  ImVec2 non_centered_pos{ 0, 0 };
+  ImU32 col = 0;
+  float non_scaled_font_size = 16.0f;
+  float wrap_width = -1;
+};
 
 void
-add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha)
+add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc& desc, ImVec2* out_pos = nullptr)
 {
-  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
-
   ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
-  const float custom_font_size = 16.0f * ui_scaling;
-  const auto text_size = font->CalcTextSizeA(custom_font_size, FLT_MAX, -1.0f, text.c_str());
-  const auto text_pos = pos - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
-  const ImU32 col = IM_COL32(255, 255, 255, alpha);
-  draw_list->AddText(font, custom_font_size, text_pos, col, text.c_str());
+
+  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto scaled_font_size = desc.non_scaled_font_size * ui_scaling;
+  const auto text_size = font->CalcTextSizeA(scaled_font_size, FLT_MAX, desc.wrap_width, desc.text.c_str());
+  const auto text_pos = desc.non_centered_pos - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
+  draw_list->AddText(font, scaled_font_size, text_pos, desc.col, desc.text.c_str(), NULL, desc.wrap_width);
+
+  if (out_pos) {
+    out_pos->x = text_pos.x;
+    out_pos->y = text_pos.y;
+  }
 };
 
 void
@@ -100,7 +115,7 @@ update_input_for_confirm(entt::registry& r, const int player_idx)
     idx = idx < 0 ? (int)weapons.size() - 1 : idx;
     idx %= weapons.size();
   }
-}
+};
 
 void
 draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
@@ -108,9 +123,6 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
   GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
   const auto& player_ui_data = ui_c.player_ui_state[player_idx];
   const auto& player_state = ui_c.player_choice_state[player_idx];
-
-  const float inc = ((player_idx + 1) / 4.0f);
-  const auto im_active_col = IM_COL32(0, 255 * inc, 0, 255);
 
   auto* draw_list = ImGui::GetWindowDrawList();
   // draw a background
@@ -123,14 +135,6 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
   auto box_wh = ImVec2(wh.x * (1.0f / header_segments), wh.y);
   for (int i = 0; i < header_segments; i++) {
 
-    // draw a debug rect
-    // const float seg_inc = ((player_idx + 1) / header_segments);
-    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
-    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
-    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
-
-    const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
-
     const bool is_hull = i == 0;
     const bool is_weapon = i == 1;
     const bool is_ability = i == 2;
@@ -138,12 +142,33 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
     const int active_alpha = active ? 255 : 100;
     const auto& col_idx = player_ui_data.rows[i].col_index;
 
+    const auto my_player_col = default_player_colours[player_idx];
+    const auto im_player_col = IM_COL32(my_player_col.r, my_player_col.g, my_player_col.b, active_alpha);
+    const auto my_bg_col = hex_to_srgb("#1A1B18");
+    const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, active_alpha);
+
+    // draw a rect with filled border
+    const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
+    draw_list->AddRectFilled(box_tl, box_br, im_bg_col, 8);
+    draw_list->AddRect(box_tl, box_br, im_player_col, 8, 0, 2.0);
+
+    const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+
     // Hulls info
     if (is_hull) {
       const auto draw_hulls_header = [&]() {
         const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
         const auto text_str = std::format("Hull {}/{}", col_idx + 1, hulls_c.hulls.size());
-        add_text_centered_here(r, draw_list, text_str, box_center, active_alpha);
+        // const auto text_str = std::format("Hull");
+
+        const TextDesc text_desc{
+          .text = text_str,
+          .non_centered_pos = box_center,
+          .col = IM_COL32(255, 255, 255, active_alpha),
+          .non_scaled_font_size = 16,
+          .wrap_width = -1,
+        };
+        add_text_centered_here(r, draw_list, text_desc);
       };
       draw_hulls_header();
     }
@@ -153,7 +178,16 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
       const auto draw_weapons_header = [&]() {
         const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
         const auto text_str = std::format("Weapon {}/{}", col_idx + 1, weapons_c.weapons.size());
-        add_text_centered_here(r, draw_list, text_str, box_center, active_alpha);
+        // const auto text_str = std::format("Weapon");
+
+        const TextDesc text_desc{
+          .text = text_str,
+          .non_centered_pos = box_center,
+          .col = IM_COL32(255, 255, 255, active_alpha),
+          .non_scaled_font_size = 16,
+          .wrap_width = -1,
+        };
+        add_text_centered_here(r, draw_list, text_desc);
       };
       draw_weapons_header();
     }
@@ -161,8 +195,16 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
     // Ability info
     if (is_ability) {
       const auto draw_ability_header = [&]() {
-        const auto text_str = std::format("Ability 0/0");
-        add_text_centered_here(r, draw_list, text_str, box_center, active_alpha);
+        const auto text_str = std::format("Ability {}/{}", 0, 0);
+
+        const TextDesc text_desc{
+          .text = "Ability",
+          .non_centered_pos = box_center,
+          .col = IM_COL32(255, 255, 255, active_alpha),
+          .non_scaled_font_size = 16,
+          .wrap_width = -1,
+        };
+        add_text_centered_here(r, draw_list, text_desc);
       };
       draw_ability_header();
     }
@@ -187,11 +229,14 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
   const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
 
   // draw a background
-  const auto my_bg_col = default_player_colours[player_idx];
-  const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 0.2 * 255);
+  const auto my_bg_col = hex_to_srgb("#1A1B18");
+  const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 255);
+  const auto my_player_col = default_player_colours[player_idx];
+  const auto im_player_col = convert_my_to_im(my_player_col);
   const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
   auto* draw_list = ImGui::GetWindowDrawList();
-  draw_list->AddRectFilled(tl, br, im_bg_col, 6);
+  draw_list->AddRectFilled(tl, br, im_bg_col, 8);
+  draw_list->AddRect(tl, br, im_player_col, 8, 0, 2.0);
 
   // std::string& hull = player_state.player_boat;
   // std::string& weapon = player_state.player_gun;
@@ -209,7 +254,9 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
     // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
     // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
 
-    const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+    // const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+    const auto header_text_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.15f * box_wh.y);
+    const auto desc_text_pos = ImVec2(box_tl.x + 4, box_tl.y + 0.3f * box_wh.y);
 
     const bool is_hull = i == 0;
     const bool is_weapon = i == 1;
@@ -221,6 +268,9 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
     // std::string debug_str = std::format("ri {} ci {}", i, col_idx);
     // add_text_centered_here(ImGui::GetWindowDrawList(), debug_str, box_center, active_alpha);
 
+    std::string name = "";
+    std::string desc = "";
+
     // display hull
     if (is_hull) {
       const auto& idx = col_idx;
@@ -230,8 +280,9 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
       // split the name across lines
       auto str = hull.name;
-      std::replace(str.begin(), str.end(), ' ', '\n');
-      add_text_centered_here(r, draw_list, str, box_center, active_alpha);
+      // std::replace(str.begin(), str.end(), ' ', '\n');
+      name = str;
+      desc = hull.desc;
     }
 
     // display weapon
@@ -243,38 +294,66 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
       // split the name across lines
       auto str = weapon.name;
-      std::replace(str.begin(), str.end(), ' ', '\n');
-      add_text_centered_here(r, draw_list, str, box_center, active_alpha);
+      // std::replace(str.begin(), str.end(), ' ', '\n');
+      name = str;
+      desc = weapon.desc;
+    }
+
+    if (is_ability) {
+      name = "N/A";
+      desc = "Not implemented.";
+    }
+
+    const auto my_desc_text_col = hex_to_srgb("#ACACAC", active_alpha);
+    const auto im_desc_text_col = convert_my_to_im(my_desc_text_col);
+
+    // Draw text
+    const TextDesc header_text_desc{
+      .text = name,
+      .non_centered_pos = header_text_pos,
+      .col = IM_COL32(255, 255, 255, active_alpha),
+      .non_scaled_font_size = 16,
+      .wrap_width = 90,
+    };
+
+    ImVec2 header_text_pos_centered{ 0, 0 };
+    add_text_centered_here(r, draw_list, header_text_desc, &header_text_pos_centered);
+
+    // draw description text
+    {
+      const TextDesc d{
+        .text = desc,
+        .non_centered_pos = desc_text_pos,
+        .col = im_desc_text_col,
+        .non_scaled_font_size = 15,
+        .wrap_width = 96,
+      };
+      ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
+      const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto scaled_font_size = d.non_scaled_font_size * ui_scaling;
+      const auto text_size = font->CalcTextSizeA(scaled_font_size, FLT_MAX, d.wrap_width, d.text.c_str());
+      draw_list->AddText(font, scaled_font_size, desc_text_pos, d.col, d.text.c_str(), NULL, d.wrap_width);
     }
 
     // draw some left and right arrows
     if (active) {
-
-      // Arrows made of sprites
-      // const float arrow_rad = 32;
-      // const auto center_l_tl = ImVec2{ box_tl.x, box_tl.y + box_wh.y * 0.667f - arrow_rad };
-      // const auto center_l_br = ImVec2{ center_l_tl.x + arrow_rad, center_l_tl.y + arrow_rad };
-      // const auto center_r_tl = ImVec2{ box_tl.x + box_wh.x - arrow_rad, box_tl.y + box_wh.y * 0.667f - arrow_rad };
-      // const auto center_r_br = ImVec2{ center_r_tl.x + arrow_rad, center_r_tl.y + arrow_rad };
-      // const auto [l_uv_tl, l_uv_br] = convert_sprite_to_uv(r, "ARROW_LEFT");
-      // const auto [r_uv_tl, r_uv_br] = convert_sprite_to_uv(r, "ARROW_RIGHT");
-      // draw_list->AddImage(im_id, center_l_tl, center_l_br, l_uv_tl, l_uv_br);
-      // draw_list->AddImage(im_id, center_r_tl, center_r_br, r_uv_tl, r_uv_br);
-
-      const float arrow_txt_size = 32;
-      const auto center_l = ImVec2{ box_tl.x + 0.5f * arrow_txt_size, box_tl.y + box_wh.y * 0.5f };
-      const auto center_r = ImVec2{ box_tl.x + box_wh.x - 0.5f * arrow_txt_size, box_tl.y + box_wh.y * 0.5f };
+      const float arrow_txt_size = 16 * ui_scaling;
+      const float padding_x = 4;
+      const auto center_l = ImVec2{ box_tl.x + padding_x, header_text_pos_centered.y };
+      const auto center_r = ImVec2{ box_tl.x + box_wh.x - arrow_txt_size - padding_x, header_text_pos_centered.y };
 
       // arrows made of text
       const std::string arrow_l = "<";
       const std::string arrow_r = ">";
       ImFont* font = ImGui::GetIO().Fonts->Fonts[1];
       const auto l_text_size = font->CalcTextSizeA(arrow_txt_size, FLT_MAX, -1.0f, arrow_l.c_str());
-      const auto l_text_pos = center_l - ImVec2{ 0.5f * l_text_size.x, 0.5f * l_text_size.y };
+      // const auto l_text_pos = center_l - ImVec2{ l_text_size.x, l_text_size.y };
+      const auto l_text_pos = center_l;
       const auto r_text_size = font->CalcTextSizeA(arrow_txt_size, FLT_MAX, -1.0f, arrow_r.c_str());
-      const auto r_text_pos = center_r - ImVec2{ 0.5f * r_text_size.x, 0.5f * r_text_size.y };
-      draw_list->AddText(font, 32 * ui_scaling, l_text_pos, IM_COL32(150, 150, 150, 255), "<");
-      draw_list->AddText(font, 32 * ui_scaling, r_text_pos, IM_COL32(150, 150, 150, 255), ">");
+      // const auto r_text_pos = center_r - ImVec2{ r_text_size.x, r_text_size.y };
+      const auto r_text_pos = center_r;
+      draw_list->AddText(font, arrow_txt_size, l_text_pos, IM_COL32(150, 150, 150, 255), "<");
+      draw_list->AddText(font, arrow_txt_size, r_text_pos, IM_COL32(150, 150, 150, 255), ">");
     }
 
     // move the segments on.
@@ -287,7 +366,12 @@ draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 w
 {
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
   const auto handle = steam_ui_c.handles[player_idx];
+  const auto& player_ui_data = ui_c.player_ui_state[player_idx];
+  const auto& player_state = ui_c.player_choice_state[player_idx];
+  const auto player_row_idx = player_ui_data.current_row_index;
+  const bool confirmed = player_state.confirmed;
 
   const float inc = ((player_idx + 1) / 4.0f);
   const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
@@ -298,7 +382,7 @@ draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 w
   // draw_list->AddRectFilled(tl, br, im_active_col, 6);
 
   // split the box in to segments
-  const float segments = 2;
+  const float segments = 3;
   auto box_tl = ImVec2(tl.x, tl.y);
   auto box_wh = ImVec2(wh.x * (1.0f / segments), wh.y);
   for (int i = 0; i < segments; i++) {
@@ -310,23 +394,44 @@ draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 w
     // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
 
     const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+    const bool active = i == player_state.player_row_idx;
 
-    if (i == 0) {
-      const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
-      const auto back_str = std::format("Press {} to back", confirm_str);
-      add_text_centered_here(r, draw_list, back_str, box_center, 255);
+    if (active && !confirmed) {
+      const auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
+      const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
+      const auto txt_str = std::format("(Next) Press {}\n(Back) Press {}", confirm_str, back_str);
+
+      const TextDesc text_desc{
+        .text = txt_str,
+        .non_centered_pos = box_center,
+        .col = IM_COL32(255, 255, 255, 255),
+        .non_scaled_font_size = 16,
+        .wrap_width = -1,
+      };
+      add_text_centered_here(r, draw_list, text_desc);
     }
 
-    if (i == 1) {
-      const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
-      const auto select_str = std::format("Press {} to select", confirm_str);
-      add_text_centered_here(r, draw_list, select_str, box_center, 255);
+    if (i == segments - 1 && confirmed) {
+      const TextDesc text_desc{
+        .text = "You're Ready!",
+        .non_centered_pos = box_center,
+        .col = IM_COL32(255, 255, 255, 255),
+        .non_scaled_font_size = 16,
+        .wrap_width = -1,
+      };
+      add_text_centered_here(r, draw_list, text_desc);
     }
 
     // move the segments on.
     box_tl.x += box_wh.x;
   }
 }
+
+struct DisplayStat
+{
+  std::string key;
+  std::string val;
+};
 
 void
 draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
@@ -337,33 +442,25 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
   const auto& player_ui_data = ui_c.player_ui_state[player_idx];
   const auto& player_state = ui_c.player_choice_state[player_idx];
   const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
-
   const auto player_row_idx = player_ui_data.current_row_index;
-
-  // draw a background
-  const auto my_bg_col = default_player_colours[player_idx];
-  const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 0.2 * 255);
-  const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
-  auto* draw_list = ImGui::GetWindowDrawList();
-  draw_list->AddRectFilled(tl, br, im_bg_col, 6);
-
-  std::string header_txt = "";
-  std::string description_txt = "";
-  std::string more_info_txt = "";
 
   const bool is_hull = player_ui_data.current_row_index == 0;
   const bool is_weapon = player_ui_data.current_row_index == 1;
   const bool is_ability = player_ui_data.current_row_index == 2;
   int col_idx = player_ui_data.rows[player_ui_data.current_row_index].col_index;
 
-  std::vector<std::string> display_stats;
+  std::string header_txt = "";
+  std::string description_txt = "";
+  std::string more_info_txt = "";
+
+  std::vector<DisplayStat> display_stats;
 
   if (is_hull) {
     const auto& hull = hulls_c.hulls[col_idx];
     header_txt = hull.name;
     description_txt = hull.desc;
-    display_stats.push_back(std::format("Hardpoints: {}", hull.hardpoints.size()));
-    display_stats.push_back(std::format("Size: {}", hull.width * hull.height));
+    display_stats.push_back({ .key = "Hardpoints", .val = std::to_string(hull.hardpoints.size()) });
+    display_stats.push_back({ .key = "Size", .val = std::to_string(hull.width * hull.height) });
   }
 
   if (is_weapon) {
@@ -374,56 +471,51 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
       auto clean_key = key;
       clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
       clean_key = str_remove_all_occurances(clean_key, "BULLET_");
-      display_stats.push_back(std::format("{} {}", clean_key, val));
+      display_stats.push_back({ .key = clean_key, .val = std::format("{:.2f}", val) });
     }
   }
 
+  // use h not wh.y
+  static float space_per_row = 16.0f * ui_scaling;
+#if defined(_DEBUG)
+  imgui_draw_float("space_per_row", space_per_row);
+#endif
+  const float h = (display_stats.size() + 1) * space_per_row; // +1, row for header
+
+  // draw a background
+  const auto my_bg_col = default_player_colours[player_idx];
+  const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 0.1f * 255);
+  const auto im_border_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 0.2f * 255);
+  const auto br = ImVec2{ tl.x + wh.x, tl.y + h };
+  auto* draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(tl, br, im_bg_col, 8);
+  draw_list->AddRect(tl, br, im_border_col, 8, 0, 2.0f);
+
   // Draw header + description
-  {
-    const auto header_pos = ImVec2(tl.x + 0.05f * wh.x, tl.y + 0.05f * wh.y);
-    const auto desc_pos = ImVec2(tl.x + 0.05f * wh.x, tl.y + 0.2f * wh.y);
-    ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
-    draw_list->AddText(font, 20 * ui_scaling, header_pos, IM_COL32(255, 255, 255, 255), header_txt.c_str());
-    draw_list->AddText(font, 13 * ui_scaling, desc_pos, IM_COL32(255, 255, 255, 255), description_txt.c_str());
-  }
+  // {
+  const std::string header_text = "Details: " + header_txt;
+  const auto header_pos = ImVec2(tl.x + 0.02f * wh.x, tl.y + 0.02f * h);
+  ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
+  draw_list->AddText(font, 16.0f * ui_scaling, header_pos, IM_COL32(255, 255, 255, 255), header_text.c_str());
+  //   const auto desc_pos = ImVec2(tl.x + 0.05f * wh."selected_info_wx, tl.y + 0.2f * h);
+  //   draw_list->AddText(font, 13 * ui_scaling, desc_pos, IM_COL32(255, 255, 255, 255), description_txt.c_str());
+  // }
 
-  const float offset_y = 0.35f * wh.y;
-  auto box_tl = ImVec2(tl.x + 4, tl.y + offset_y);
-  auto box_wh = ImVec2(wh.x, wh.y - offset_y);
+  auto box_tl = ImVec2(tl.x, tl.y + (1.0f * space_per_row)); // offset by 1 row
+  auto box_wh = ImVec2(wh.x, h);
 
-  // Display stats in a grid
-  const int cols_xmax = 3;
-  const int rows_ymax = 4;
-  for (int idx = 0; idx < cols_xmax * rows_ymax; idx++) {
-    if (idx >= display_stats.size())
-      break; // no more data
+  for (int idx = 0; idx < (int)display_stats.size(); idx++) {
     const auto stat = display_stats[idx];
-    // Get position from row and col & convert to display pos
-    const auto gp = engine::grid::index_to_grid_position(idx, cols_xmax, rows_ymax);
-    const auto x_pos = ((gp.x) / (float)cols_xmax);
-    const auto y_pos = ((gp.y) / (float)rows_ymax);
-    const auto pos = ImVec2(box_tl.x + x_pos * box_wh.x, box_tl.y + y_pos * box_wh.y);
 
-    ImFont* font = ImGui::GetIO().Fonts->Fonts[3];
-    draw_list->AddText(font, 16 * ui_scaling, pos, IM_COL32(255, 255, 255, 255), stat.c_str());
+    // draw stat
+    const auto stat_head_pos = ImVec2(box_tl.x + 0.1f * box_wh.x, box_tl.y);
+    const auto stat_desc_pos = ImVec2(box_tl.x + 0.66f * box_wh.x, box_tl.y);
+    draw_list->AddText(stat_head_pos, IM_COL32(172, 172, 172, 255), stat.key.c_str());
+    draw_list->AddText(stat_desc_pos, IM_COL32(172, 172, 172, 255), stat.val.c_str());
+
+    // move on padding.
+    box_tl.y += space_per_row;
   }
-
-  /*
-  // split the box in to segments
-  for (int i = 0; i < segments; i++) {
-
-    // draw a debug rect
-    // const float seg_inc = ((player_idx + 1) / segments);
-    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
-    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
-    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
-
-    const auto box_center = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y);
-
-    // move the segments on.
-    box_tl.x += box_wh.x;
-  }
-  */
 }
 
 void
@@ -476,18 +568,19 @@ update_split_screen_into_quaters(entt::registry& r,
       const auto main_quarter_tl = ImVec2{ player_ui_tl.x, center - (height * 0.5f) };
       draw_main_quarters(r, main_quarter_tl, ImVec2{ player_ui_w, height }, player_idx);
 
-      const auto header_height = 50;
+      const auto header_height = 25 * ui_scaling;
       const auto header_tl = ImVec2(player_ui_tl.x, main_quarter_tl.y - header_height);
       draw_main_header_quarters(r, header_tl, { player_ui_w, header_height }, player_idx);
 
-      const auto info_height = 50;
+      const auto info_height = 50 * ui_scaling;
       const auto info_tl = ImVec2(player_ui_tl.x, center + (height * 0.5f));
       draw_below_main_info_quarters(r, info_tl, { player_ui_w, info_height }, player_idx);
 
-      const auto selected_info_height = 120 * ui_scaling; // or 1/6th of the screen
+      const auto selected_info_w = player_ui_w * 0.6f; // X% of the width of the quarter.
       const auto selected_info_y = player_ui_h * 0.667f;
-      const auto selected_info_tl = ImVec2(player_ui_tl.x, selected_info_y);
-      draw_selected_info_panel(r, selected_info_tl, { player_ui_w, selected_info_height }, player_idx);
+      const auto selected_info_tl =
+        ImVec2(player_ui_tl.x + (0.5f * player_ui_w) - (0.5f * selected_info_w), selected_info_y);
+      draw_selected_info_panel(r, selected_info_tl, { selected_info_w, 0 }, player_idx);
     }
 
     else {
@@ -502,7 +595,15 @@ update_split_screen_into_quaters(entt::registry& r,
       // Draw some text
       const auto box_center = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y);
       auto* draw_list = ImGui::GetWindowDrawList();
-      add_text_centered_here(r, draw_list, "No Controller.", box_center, 100);
+
+      const TextDesc text_desc{
+        .text = "No Controller",
+        .non_centered_pos = box_center,
+        .col = IM_COL32(255, 255, 255, 100),
+        .non_scaled_font_size = 14,
+        .wrap_width = -1,
+      };
+      add_text_centered_here(r, draw_list, text_desc);
     }
 
     // move horizontally
