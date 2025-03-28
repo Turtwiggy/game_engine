@@ -6,19 +6,20 @@
 
 namespace game2d {
 
+// From 720p => 1080p, multiply all by 1.5x
 enum class FontSize
 {
   TEXT_SMALL = 12,
   TEXT_SMALL_SCALED = 18,
 
-  TEXT_DESCRIPTION = 16,
-  TEXT_DESCRIPTION_SCALED = 24,
+  TEXT_SIZE_16 = 16,
+  TEXT_SIZE_16_SCALED = 24,
 
-  TEXT_MEDIUM = 20,        // 720p
-  TEXT_MEDIUM_SCALED = 30, // 1080p
+  TEXT_MEDIUM = 20,
+  TEXT_MEDIUM_SCALED = 30,
 
-  TEXT_LARGE = 32,        // 720p
-  TEXT_LARGE_SCALED = 48, // 1080p
+  TEXT_LARGE = 32,
+  TEXT_LARGE_SCALED = 48,
 
   HEADER = 100,
   HEADER_SCALED = 120,

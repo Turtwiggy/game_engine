@@ -1,9 +1,9 @@
+#include "pch.hpp"
+
 #include "system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/physics_components.hpp"
-
-#include "imgui.h"
 #include "modules/core_renderer/components.hpp"
 
 namespace game2d {
@@ -11,6 +11,8 @@ namespace game2d {
 void
 update_ui_collisions_system(entt::registry& r)
 {
+  return; // disabled
+
   const auto& physics = get_first_component<SINGLE_Physics>(r);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 

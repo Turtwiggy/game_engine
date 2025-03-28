@@ -3,29 +3,11 @@
 #include "modules/ui_worldspace_text/system.hpp"
 
 #include "components.hpp"
-#include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/core_camera/orthographic.hpp"
-#include "modules/core_renderer/components.hpp"
+#include "modules/core_camera/helpers.hpp"
 
 namespace game2d {
 using namespace std::literals;
-
-glm::vec2
-worldspace_to_screenspace(entt::registry& r, const glm::vec2& pos_in_pixels)
-{
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto camera_e = get_first<OrthographicCamera>(r);
-  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-  const auto& camera_t = r.get<TransformComponent>(camera_e);
-  const auto zoom = camera_c.zoom_nonlinear;
-
-  const auto screen_center = ImVec2{ ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f };
-  const auto camera_pos = glm::vec2{ camera_t.position.x, camera_t.position.y };
-  const auto dir = (pos_in_pixels - camera_pos) / zoom;
-  const auto pos = glm::vec2{ screen_center.x + dir.x, screen_center.y + dir.y };
-  return pos;
-};
 
 void
 update_ui_worldspace_text_system(entt::registry& r)

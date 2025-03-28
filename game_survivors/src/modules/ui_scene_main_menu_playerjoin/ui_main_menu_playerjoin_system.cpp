@@ -3,6 +3,7 @@
 #include "ui_main_menu_playerjoin_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
@@ -603,13 +604,14 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
       ui_state = ControllerState::NOT_CONNECTED;
 
 #if defined(_DEBUG)
-    // if (i == 1)
-    //   draw_player_ui_box(
-    //     r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::DISCONNECTED, dt);
-    // else if (i == 2)
-    //   draw_player_ui_box(
-    //     r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::NOT_CONNECTED, dt);
-    // else
+// Force boxes in to specific states
+// if (i == 1)
+//   draw_player_ui_box(
+//     r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::DISCONNECTED, dt);
+// else if (i == 2)
+//   draw_player_ui_box(
+//     r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ControllerState::NOT_CONNECTED, dt);
+// else
 #endif
     draw_player_ui_box(r, player_ui_tl, { player_ui_w, player_ui_h }, i, steam_c, handle, ui_state, dt);
 
@@ -620,6 +622,28 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
 
   // ImGui::Text("Connected but no inputs? Please try replugging controller.");
   ImGui::End();
+
+  ImGuiWindowFlags suggestion_flags = 0;
+  suggestion_flags |= ImGuiWindowFlags_NoDecoration;
+  suggestion_flags |= ImGuiWindowFlags_NoNav;
+  suggestion_flags |= ImGuiWindowFlags_NoBackground;
+  suggestion_flags |= ImGuiWindowFlags_NoInputs;
+  suggestion_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
+  const auto help_window_pos = ImVec2{ ui_pos.x - total_size_x, ui_pos.y + 0.5f * total_size_y };
+  const auto help_window_size = ImVec2{ total_size_x, ri.viewport_size_render_at.y - help_window_pos.y };
+  ImGui::SetNextWindowPos(help_window_pos, ImGuiCond_Always, { 0.0f, 0.0f });
+  ImGui::SetNextWindowSize(help_window_size, ImGuiCond_Always);
+
+  ImGui::Begin("PlayerNoInputSuggestions", NULL, flags);
+
+  ImGui::NewLine();
+  ImGui::SeparatorText("Connected & No Input");
+  ImGui::Text("- Unplug/Replug Controllers");
+  ImGui::Text("- Check SteamInput bindings.");
+
+  ImGui::End();
+
   ImGui::PopStyleVar(2);
 }
 

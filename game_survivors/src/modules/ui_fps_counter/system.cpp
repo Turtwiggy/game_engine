@@ -1,7 +1,8 @@
+#include "pch.hpp"
+
 #include "system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "imgui.h"
 #include "modules/core_renderer/components.hpp"
 
 namespace game2d {
@@ -29,9 +30,9 @@ update_ui_fps_counter_system(entt::registry& r)
     const ImVec2 pivot = { 0.0f, 0.5f };
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
 
-    ImGui::Begin("FPS", NULL, flags);
-    ImGui::Text("%d FPS", (int)ImGui::GetIO().Framerate);
-    ImGui::End();
+    // ImGui::Begin("FPS", NULL, flags);
+    // ImGui::Text("%d FPS", (int)ImGui::GetIO().Framerate);
+    // ImGui::End();
 
     ImGui::PopStyleVar();
   }

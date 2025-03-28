@@ -9,6 +9,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
 #include "modules/core_colour/components.hpp"
 #include "modules/core_renderer/components.hpp"
@@ -19,29 +20,6 @@
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 
 namespace game2d {
-
-glm::vec2
-worldspace_to_screenspace(entt::registry& r, glm::vec2 worldspace)
-{
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto camera_e = get_first<OrthographicCamera>(r);
-  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-
-  const auto camera_pos = get_position(r, camera_e);
-  const auto screen_size = glm::vec2{ (float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y };
-  // const auto screen_size = ImGui::GetContentRegionAvail();
-  // const auto avail = ImGui::GetContentRegionAvail();
-  // const auto avail_max = ImGui::GetContentRegionMax();
-
-  // 1.4 is zoom in
-  // 1 is no zoom
-  // 0.7 is zoomout
-  auto camera_pos_space = worldspace - camera_pos;
-  camera_pos_space.x /= camera_c.zoom_nonlinear;
-  camera_pos_space.y /= camera_c.zoom_nonlinear;
-
-  return camera_pos_space + (0.5f * glm::vec2{ screen_size.x, screen_size.y });
-};
 
 void
 DrawArc(const glm::vec2& screenspace_pos,

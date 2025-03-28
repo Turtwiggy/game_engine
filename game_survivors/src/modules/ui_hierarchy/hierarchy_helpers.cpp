@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "hierarchy_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -5,10 +7,6 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-
-#include <imgui.h>
-
-#include <format>
 
 namespace game2d {
 

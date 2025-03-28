@@ -5,6 +5,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "modules/system_screenshake/components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {
 
@@ -20,12 +22,17 @@ update_screenshake_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_ScreenshakeComponent, r, shake_e, shake_c);
 
 #if defined(_DEBUG)
-  // Debug: screenshake
-  static bool do_screenshake = false;
-  imgui_draw_bool("screenshake", do_screenshake);
-  if (do_screenshake) {
-    do_screenshake = false;
-    create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::EXPLODE });
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto state = gesert_menubar_state(menu_c, "Screenshake");
+  if (state.enabled) {
+    ImGui::Begin("Screenshake");
+    static bool do_screenshake = false;
+    imgui_draw_bool("screenshake", do_screenshake);
+    if (do_screenshake) {
+      do_screenshake = false;
+      create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::EXPLODE });
+    }
+    ImGui::End();
   }
 #endif
 

@@ -103,8 +103,8 @@
 #include "modules/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui_scene_survive/scene_survive_system.hpp"
+#include "modules/ui_scene_survive_hp_bars/ui_survive_hp_bars.hpp"
 #include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
-#include "modules/ui_scene_survive_players/ui_survive_players_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 #include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
@@ -330,7 +330,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     auto& ui_scale = get_first_component<SINGLE_UIData>(r);
     ui_scale.scaling = scale; // scale up if e.g. 1920x1080
 #if defined(_DEBUG)
-    ImGui::Text("UI scaling: %f", ui_scale.scaling);
+    // ImGui::Text("UI scaling: %f", ui_scale.scaling);
 #endif
   }
 
@@ -356,9 +356,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_scene_survive_system(r);
     update_ui_survive_timer_system(r);
     update_ui_survive_info_system(r);
+    update_ui_survive_hp_bars_system(r);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_upgrade_system(r);
-    update_ui_survive_players_system(r);
     update_ui_gameover_system(r);
     update_ui_ability_system(r);
   }

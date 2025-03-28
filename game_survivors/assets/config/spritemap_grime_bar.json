@@ -1,10 +1,10 @@
 {
   "spritesheet": {
     "name": "grime_bar",
-    "px_total": 512,
-    "py_total": 32,
-    "px": 512,
-    "py": 32,
+    "px_total": 400,
+    "py_total": 22,
+    "px": 400,
+    "py": 22,
     "nx": 1,
     "ny": 1
   },

@@ -12,4 +12,8 @@ mouse_position_in_worldspace(entt::registry& r);
 // [[nodiscard]] glm::vec2
 // position_in_worldspace(entt::registry& r, const glm::ivec2& pos);
 
+[[nodiscard]]
+glm::vec2
+worldspace_to_screenspace(entt::registry& r, const glm::vec2& worldspace);
+
 } // namespace game2d

@@ -1,10 +1,10 @@
+#include "pch.hpp"
+
 #include "ui_debug_menubar_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
-
-#include "imgui.h"
 
 namespace game2d {
 
@@ -24,7 +24,7 @@ update_ui_debug_menubar_system(entt::registry& r)
   // flags |= ImGuiWindowFlags_NoSavedSettings;
   // flags |= ImGuiWindowFlags_NoInputs;
 
-  auto size = ImVec2{ (float)ri.viewport_size_render_at.x, 20 };
+  auto size = ImVec2{ (float)160, 20 };
   ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always);
   ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 

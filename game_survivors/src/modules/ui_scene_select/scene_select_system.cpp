@@ -1,3 +1,4 @@
+#include "imgui.h"
 #include "pch.hpp"
 
 #include "scene_select_components.hpp"
@@ -38,21 +39,22 @@ struct TextDesc
   std::string text = "";
   ImVec2 non_centered_pos{ 0, 0 };
   ImU32 col = 0;
-  float non_scaled_font_size = 16.0f;
   float wrap_width = -1;
+  FontSize font_size = FontSize::TEXT_MEDIUM;
+  FontSize font_size_scaled = FontSize::TEXT_MEDIUM_SCALED;
 };
 
 void
 add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc& desc, ImVec2* out_pos = nullptr)
 {
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+  const auto font_enum = font_scale == 1.0f ? desc.font_size : desc.font_size_scaled;
+  const auto font_size = (float)font_enum;
   auto* font = get_fingerpaint_font(r, font_enum);
 
-  const auto scaled_font_size = desc.non_scaled_font_size * font_scale;
-  const auto text_size = font->CalcTextSizeA(scaled_font_size, FLT_MAX, desc.wrap_width, desc.text.c_str());
+  const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, desc.wrap_width, desc.text.c_str());
   const auto text_pos = desc.non_centered_pos - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
-  draw_list->AddText(font, scaled_font_size, text_pos, desc.col, desc.text.c_str(), NULL, desc.wrap_width);
+  draw_list->AddText(font, font_size, text_pos, desc.col, desc.text.c_str(), NULL, desc.wrap_width);
 
   if (out_pos) {
     out_pos->x = text_pos.x;
@@ -166,7 +168,6 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
           .text = text_str,
           .non_centered_pos = box_center,
           .col = IM_COL32(255, 255, 255, active_alpha),
-          .non_scaled_font_size = 16,
           .wrap_width = -1,
         };
         add_text_centered_here(r, draw_list, text_desc);
@@ -185,7 +186,6 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
           .text = text_str,
           .non_centered_pos = box_center,
           .col = IM_COL32(255, 255, 255, active_alpha),
-          .non_scaled_font_size = 16,
           .wrap_width = -1,
         };
         add_text_centered_here(r, draw_list, text_desc);
@@ -202,7 +202,6 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
           .text = "Ability",
           .non_centered_pos = box_center,
           .col = IM_COL32(255, 255, 255, active_alpha),
-          .non_scaled_font_size = 16,
           .wrap_width = -1,
         };
         add_text_centered_here(r, draw_list, text_desc);
@@ -243,28 +242,26 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
   // std::string& weapon = player_state.player_gun;
   // std::string& ability = player_state.player_ability;
 
-  // split the box in to thirds.
+  // split the box in to thirds horizontally
   const float segments = 3;
   auto box_tl = ImVec2(tl.x, tl.y);
   auto box_wh = ImVec2(wh.x * (1.0f / segments), wh.y);
   for (int i = 0; i < segments; i++) {
     //
-    // draw a debug rect
-    // const float seg_inc = ((player_idx + 1) / segments);
-    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
-    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
-    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
-
-    // const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
-    const auto header_text_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.15f * box_wh.y);
-    const auto desc_text_pos = ImVec2(box_tl.x + 4, box_tl.y + 0.3f * box_wh.y);
-
+    // data
     const bool is_hull = i == 0;
     const bool is_weapon = i == 1;
     const bool is_ability = i == 2;
     const bool active = i == player_row_idx;
     const int active_alpha = active ? 255 : 100;
     const auto& col_idx = player_ui_data.rows[i].col_index;
+
+    //
+    // draw a debug rect
+    // const float seg_inc = ((player_idx + 1) / segments);
+    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
+    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
+    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
 
     // std::string debug_str = std::format("ri {} ci {}", i, col_idx);
     // add_text_centered_here(ImGui::GetWindowDrawList(), debug_str, box_center, active_alpha);
@@ -281,7 +278,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
       // split the name across lines
       auto str = hull.name;
-      // std::replace(str.begin(), str.end(), ' ', '\n');
+      std::replace(str.begin(), str.end(), ' ', '\n');
       name = str;
       desc = hull.desc;
     }
@@ -295,7 +292,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
       // split the name across lines
       auto str = weapon.name;
-      // std::replace(str.begin(), str.end(), ' ', '\n');
+      std::replace(str.begin(), str.end(), ' ', '\n');
       name = str;
       desc = weapon.desc;
     }
@@ -305,63 +302,62 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       desc = "Not implemented.";
     }
 
-    const auto my_desc_text_col = hex_to_srgb("#ACACAC", active_alpha);
+    const auto my_desc_text_col = hex_to_srgb("#D6D6D6", active_alpha);
     const auto im_desc_text_col = convert_my_to_im(my_desc_text_col);
 
-    // Draw text
+    // const auto head_font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+    // const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
+
+    const auto header_y = box_tl.y + 0.15f * box_wh.y;
+    const auto header_padding = 4;
+    const auto header_pos = ImVec2(box_tl.x + 0.5f * box_wh.x + header_padding, header_y);
     const TextDesc header_text_desc{
       .text = name,
-      .non_centered_pos = header_text_pos,
+      .non_centered_pos = header_pos,
       .col = IM_COL32(255, 255, 255, active_alpha),
-      .non_scaled_font_size = 16,
-      .wrap_width = 90 * ui_scaling,
+      .wrap_width = -1,
+      .font_size = FontSize::TEXT_SIZE_16,
+      .font_size_scaled = FontSize::TEXT_SIZE_16_SCALED,
     };
-
     ImVec2 header_text_pos_centered{ 0, 0 };
     add_text_centered_here(r, draw_list, header_text_desc, &header_text_pos_centered);
 
     // draw description text
     {
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_DESCRIPTION : FontSize::TEXT_DESCRIPTION_SCALED;
-      auto* font = get_fingerpaint_font(r, font_enum);
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+      const auto font_size = (float)font_enum;
+      const auto* font = get_fingerpaint_font(r, font_enum);
 
-      const TextDesc d{
-        .text = desc,
-        .non_centered_pos = desc_text_pos,
-        .col = im_desc_text_col,
-        .non_scaled_font_size = (float)FontSize::TEXT_DESCRIPTION,
-        .wrap_width = 96 * ui_scaling,
-      };
+      const float desc_pad_x = 6;
+      const float width_limit = box_wh.x - 2.0f * desc_pad_x;
+      const auto text_size = font->CalcTextSizeA(font_size, width_limit, -1, desc.c_str());
 
-      const auto scaled_font_size = d.non_scaled_font_size * font_scale;
-      const auto text_size = font->CalcTextSizeA(scaled_font_size, FLT_MAX, d.wrap_width, d.text.c_str());
-      draw_list->AddText(font, scaled_font_size, desc_text_pos, d.col, d.text.c_str(), NULL, d.wrap_width);
+      const auto desc_text_pos = ImVec2(box_tl.x + 0.5f * box_wh.x + desc_pad_x, box_tl.y + 0.3f * box_wh.y);
+      const auto desc_text_pos_centered = ImVec2(desc_text_pos.x - 0.5f * text_size.x, desc_text_pos.y);
+      draw_list->AddText(font, font_size, desc_text_pos_centered, im_desc_text_col, desc.c_str(), NULL, width_limit);
     }
 
     // draw some left and right arrows
     if (active) {
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_DESCRIPTION : FontSize::TEXT_DESCRIPTION_SCALED;
-
-      const float arrow_txt_size = (int)FontSize::TEXT_DESCRIPTION;
-      const float arrow_txt_size_scaled = arrow_txt_size * font_scale;
-      const float padding_x = 4;
-      const auto center_l = ImVec2{ box_tl.x + padding_x, header_text_pos_centered.y };
-      const auto center_r = ImVec2{ box_tl.x + box_wh.x - arrow_txt_size_scaled - padding_x, header_text_pos_centered.y };
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+      const auto font_size = (float)font_enum;
       auto* font = get_fingerpaint_font(r, font_enum);
 
-      // arrows made of text
       const std::string arrow_l = "<";
       const std::string arrow_r = ">";
-      const auto l_text_size = font->CalcTextSizeA(arrow_txt_size_scaled, FLT_MAX, -1.0f, arrow_l.c_str());
-      // const auto l_text_pos = center_l - ImVec2{ l_text_size.x, l_text_size.y };
-      const auto l_text_pos = center_l;
-      const auto r_text_size = font->CalcTextSizeA(arrow_txt_size_scaled, FLT_MAX, -1.0f, arrow_r.c_str());
-      // const auto r_text_pos = center_r - ImVec2{ r_text_size.x, r_text_size.y };
-      const auto r_text_pos = center_r;
-      draw_list->AddText(font, arrow_txt_size_scaled, l_text_pos, IM_COL32(150, 150, 150, 255), "<");
-      draw_list->AddText(font, arrow_txt_size_scaled, r_text_pos, IM_COL32(150, 150, 150, 255), ">");
+      const auto l_text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1.0f, arrow_l.c_str());
+      const auto r_text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1.0f, arrow_r.c_str());
+
+      const float padding_x = 8; // pad the arrows away from the edge
+      const auto l = ImVec2{ box_tl.x + padding_x, header_y - 0.5f * l_text_size.y };
+      const auto r = ImVec2{ box_tl.x + box_wh.x - r_text_size.x - padding_x, header_y - 0.5f * r_text_size.y };
+
+      const auto l_text_pos = l;
+      const auto r_text_pos = r;
+      draw_list->AddText(font, font_size, l_text_pos, IM_COL32(150, 150, 150, 255), arrow_l.c_str());
+      draw_list->AddText(font, font_size, r_text_pos, IM_COL32(150, 150, 150, 255), arrow_r.c_str());
     }
 
     // move the segments on.
@@ -413,7 +409,6 @@ draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 w
         .text = txt_str,
         .non_centered_pos = box_center,
         .col = IM_COL32(255, 255, 255, 255),
-        .non_scaled_font_size = 16,
         .wrap_width = -1,
       };
       add_text_centered_here(r, draw_list, text_desc);
@@ -424,7 +419,6 @@ draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 w
         .text = "You're Ready!",
         .non_centered_pos = box_center,
         .col = IM_COL32(255, 255, 255, 255),
-        .non_scaled_font_size = 16,
         .wrap_width = -1,
       };
       add_text_centered_here(r, draw_list, text_desc);
@@ -505,9 +499,11 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
 
   // Draw header + description
   // {
-  const std::string header_text = "Details: " + header_txt;
-  const auto header_pos = ImVec2(tl.x + 0.0f * wh.x, tl.y + 0.0f * h);
-  draw_list->AddText(font, (float)font_enum, header_pos, IM_COL32(255, 255, 255, 255), header_text.c_str());
+  const std::string header_text = header_txt;
+  auto header_pos = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * space_per_row);
+  auto header_size = ImGui::CalcTextSize(header_text.c_str());
+  header_pos -= { 0.5f * header_size.x, 0.5f * header_size.y };
+  draw_list->AddText(header_pos, IM_COL32(255, 255, 255, 255), header_text.c_str());
   //   const auto desc_pos = ImVec2(tl.x + 0.05f * wh."selected_info_wx, tl.y + 0.2f * h);
   //   draw_list->AddText(font, 13 * ui_scaling, desc_pos, IM_COL32(255, 255, 255, 255), description_txt.c_str());
   // }
@@ -545,6 +541,7 @@ update_split_screen_into_quaters(entt::registry& r,
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoInputs;
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const auto set_window_size = ImVec2{
@@ -611,7 +608,6 @@ update_split_screen_into_quaters(entt::registry& r,
         .text = "No Controller",
         .non_centered_pos = box_center,
         .col = IM_COL32(255, 255, 255, 100),
-        .non_scaled_font_size = 14,
         .wrap_width = -1,
       };
       add_text_centered_here(r, draw_list, text_desc);

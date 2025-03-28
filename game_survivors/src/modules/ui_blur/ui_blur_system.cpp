@@ -1,15 +1,14 @@
+#include "pch.hpp"
+
 #include "ui_blur_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
-#include "imgui.h"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
-
-#include <SDL_scancode.h>
 
 namespace game2d {
 

@@ -2,19 +2,50 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/core_camera/helpers.hpp"
 #include "modules/core_colour/components.hpp"
 #include "modules/core_sprites/sprite_helpers.hpp"
 #include "modules/system_ability/ability_components.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "ui_ability_system.hpp"
 
 namespace game2d {
 
+const auto my_cooldown_col = engine::SRGBColour(0.2f, 0.2f, 0.2f, 0.30f);
+const auto my_active_col = engine::SRGBColour(0.2f, 1.0f, 0.2f, 0.30f);
+const auto im_cooldown_col = convert_my_to_im(my_cooldown_col);
+const auto im_active_col = convert_my_to_im(my_active_col);
+
 void
 update_ui_ability_system(entt::registry& r)
 {
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+  ImGuiWindowFlags flags = 0;
+  flags |= ImGuiWindowFlags_NoDecoration;
+  flags |= ImGuiWindowFlags_NoMove;
+  flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoInputs;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
+
+  const auto screen_size = ImVec2{ (float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y };
+  ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
+  ImGui::SetNextWindowSize(screen_size, ImGuiCond_Always);
+
+  ImGui::Begin("overlay", NULL, flags);
+
+  const auto tl = ImGui::GetWindowPos();
+  const auto wh = ImGui::GetWindowSize();
+  auto* draw_list = ImGui::GetWindowDrawList();
 
   for (const auto& [e, ability_c, colour_c, t_c] :
        r.view<const AbilityComponent, const DefaultColour, const TransformComponent>().each()) {
@@ -24,26 +55,52 @@ update_ui_ability_system(entt::registry& r)
     const float icon_padding = 6.0f;
     const auto ability_1_icon_size = glm::vec2{ 4, 4 };
     const auto ability_2_icon_size = glm::vec2{ 4, 4 };
-    const auto ability_1_spot = glm::vec2{ t_c.scale.x, t_c.scale.y };
-    const auto ability_2_spot = glm::vec2{ ability_1_spot.x + ability_1_icon_size.x + icon_padding, ability_1_spot.y };
-    const auto cooldown_col = engine::SRGBColour(0.2f, 0.2f, 0.2f, 0.75f);
-    const auto active_col = engine::SRGBColour(0.2f, 1.0f, 0.2f, 0.75f);
+    const auto ability_1_spot = glm::vec2{ -t_c.scale.x, -t_c.scale.y };
+    const auto ability_2_spot = glm::vec2{ t_c.scale.x, -t_c.scale.y };
 
-    Sprite s1;
-    s1.sprite = allowed_to_use_ability_1 ? "CIRCLE" : "CIRCLE";
-    s1.col = allowed_to_use_ability_1 ? active_col : cooldown_col;
-    s1.pos = get_position(r, e) + ability_1_spot;
-    s1.size = { 8, 8 };
-    s1.z_idx = ZLayer::VFX;
-    draw_sprite(r, s1);
+    const auto half_button_size = ImVec2{ 10, 10 };
 
-    Sprite s2;
-    s2.sprite = allowed_to_use_ability_2 ? "CIRCLE" : "CIRCLE";
-    s2.col = allowed_to_use_ability_2 ? active_col : cooldown_col;
-    s2.pos = get_position(r, e) + ability_2_spot;
-    s2.size = { 8, 8 };
-    s2.z_idx = ZLayer::VFX;
-    draw_sprite(r, s2);
+    const auto pos1 = glm::vec2{ t_c.position.x + ability_1_spot.x, t_c.position.y + ability_1_spot.y };
+    const auto pos2 = glm::vec2{ t_c.position.x + ability_2_spot.x, t_c.position.y + ability_2_spot.y };
+    const auto screenspace1 = worldspace_to_screenspace(r, pos1);
+    const auto screenspace2 = worldspace_to_screenspace(r, pos2);
+    const auto im_screenspace1 = ImVec2(screenspace1.x, screenspace1.y);
+    const auto im_screenspace2 = ImVec2(screenspace2.x, screenspace2.y);
+
+    const auto button1_tl = ImVec2{ im_screenspace1.x - half_button_size.x, im_screenspace1.y - half_button_size.y };
+    const auto button1_br = ImVec2{ im_screenspace1.x + half_button_size.x, im_screenspace1.y + half_button_size.y };
+    const auto button1_col = allowed_to_use_ability_1 ? im_active_col : im_cooldown_col;
+    draw_list->AddRectFilled(button1_tl, button1_br, button1_col, 4.0f);
+
+    const auto button2_tl = ImVec2{ im_screenspace2.x - half_button_size.x, im_screenspace2.y - half_button_size.y };
+    const auto button2_br = ImVec2{ im_screenspace2.x + half_button_size.x, im_screenspace2.y + half_button_size.y };
+    const auto button2_col = allowed_to_use_ability_2 ? im_active_col : im_cooldown_col;
+    draw_list->AddRectFilled(button2_tl, button2_br, button2_col, 4.0f);
+
+    const auto text_size1 = ImGui::CalcTextSize("L");
+    const auto text_size2 = ImGui::CalcTextSize("R");
+    const auto text_pos1 = ImVec2(im_screenspace1.x - 0.5f * text_size1.x, im_screenspace1.y - 0.5f * text_size1.y);
+    const auto text_pos2 = ImVec2(im_screenspace2.x - 0.5f * text_size2.x, im_screenspace2.y - 0.5f * text_size2.y);
+
+    auto* font = ImGui::GetDefaultFont();
+    draw_list->AddText(font, 16, text_pos1, IM_COL32(255, 255, 255, 255), "L");
+    draw_list->AddText(font, 16, text_pos2, IM_COL32(255, 255, 255, 255), "R");
+
+    // Sprite s1;
+    // s1.sprite = allowed_to_use_ability_1 ? "CIRCLE" : "CIRCLE";
+    // s1.col = allowed_to_use_ability_1 ? active_col : cooldown_col;
+    // s1.pos = get_position(r, e) + ability_1_spot;
+    // s1.size = { 8, 8 };
+    // s1.z_idx = ZLayer::VFX;
+    // draw_sprite(r, s1);
+
+    // Sprite s2;
+    // s2.sprite = allowed_to_use_ability_2 ? "CIRCLE" : "CIRCLE";
+    // s2.col = allowed_to_use_ability_2 ? active_col : cooldown_col;
+    // s2.pos = get_position(r, e) + ability_2_spot;
+    // s2.size = { 8, 8 };
+    // s2.z_idx = ZLayer::VFX;
+    // draw_sprite(r, s2);
 
     // draw an anchor sprite
     if (ability_c.ability_1_in_progress) {
@@ -61,6 +118,9 @@ update_ui_ability_system(entt::registry& r)
       draw_sprite(r, s);
     }
   }
+
+  ImGui::End();
+  ImGui::PopStyleVar(2);
 }
 
 } // namespace game2d
