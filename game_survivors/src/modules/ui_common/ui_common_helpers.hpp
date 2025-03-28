@@ -22,6 +22,6 @@ process_requests(entt::registry& r, const std::function<void()>& callback)
 };
 
 bool
-selectable_button(SelectableButtonDef& def);
+selectable_button(entt::registry& r, SelectableButtonDef& def);
 
 } // namespace game2d

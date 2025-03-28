@@ -121,15 +121,6 @@ void
 init(engine::SINGLE_Application& app, entt::registry& r)
 {
   init_events_system(r);
-
-  // idx: 0
-  ImGuiIO& io = ImGui::GetIO();
-  io.Fonts->AddFontDefault();
-
-  // idx: 1
-  ImFontConfig fontConfig;
-  io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f, &fontConfig);
-
   init_fonts_system();
 
   // hide default cursor

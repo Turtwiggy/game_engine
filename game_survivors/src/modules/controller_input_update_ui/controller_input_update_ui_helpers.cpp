@@ -86,8 +86,14 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   const bool h_changed = h_selected != state.rows[v_selected].col_index;
 
   // vertical changed...
-  if (v_changed)
+  if (v_changed) {
     state.new_actions.push_back(UIAction::V_VALUE_CHANGED);
+
+    if (v_selected < state.current_row_index)
+      state.new_actions.push_back(UIAction::V_VALUE_CHANGED_UP);
+    if (v_selected > state.current_row_index)
+      state.new_actions.push_back(UIAction::V_VALUE_CHANGED_DOWN);
+  }
 
   // horizontal value changed...
   if (!v_changed && h_changed)

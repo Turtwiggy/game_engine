@@ -82,7 +82,7 @@ Option_AudioMasterVolume::get_hindex(entt::registry& r)
 std::string
 Option_AudioMasterVolume::display_val()
 {
-  return std::format("{:.2f}", data.value * 100.0f);
+  return std::format("{}%", (int)(data.value * 100.0f));
 };
 
 //
@@ -138,7 +138,7 @@ Option_AudioMusicVolume::get_hindex(entt::registry& r)
 std::string
 Option_AudioMusicVolume::display_val()
 {
-  return std::format("{:.2f}", data.value * 100.0f);
+  return std::format("{}%", (int)(data.value * 100.0f));
 };
 
 //
@@ -194,7 +194,7 @@ Option_AudioSFXVolume::get_hindex(entt::registry& r)
 std::string
 Option_AudioSFXVolume::display_val()
 {
-  return std::format("{:.2f}", data.value * 100.0f);
+  return std::format("{}%", (int)(data.value * 100.0f));
 };
 
 //

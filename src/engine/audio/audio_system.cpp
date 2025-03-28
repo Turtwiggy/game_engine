@@ -4,7 +4,6 @@
 
 // this is the engine/ directory... modules/ shouldn't be here...
 #include "game_state.hpp"
-#include "modules/system_pause/pause_helpers.hpp"
 
 #include "audio_components.hpp"
 #include "engine/audio/audio_helpers.hpp"
@@ -98,8 +97,16 @@ update_audio_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_GameStateComponent, r, state_e, state_c);
 
   // dampen music if paused
-  bool paused = state_c.state == GameState::PAUSED;
-  paused |= require_pause(r); // gameplay logic
+  // bool paused = state_c.state == GameState::PAUSED;
+  // paused |= require_pause(r); // gameplay logic
+
+  // NOTE: this DOESNT dampen the music if the options menu is open.
+  // this is due to the fact that if audio settings are being adjusted,
+  // you dont want to adjust them while listening to damped audio,
+  // then go back and have the audio suddenly be loud.
+  // const auto& pause_menu_c = get_first_component<SINGLE_PauseMenuState>(r);
+  // const bool dampen_music = pause_menu_c.open;
+  const bool dampen_music = false;
 
   if (!audio_c.loaded)
     return;
@@ -147,7 +154,7 @@ update_audio_system(entt::registry& r, const float dt)
     const auto is_playing = source.state == AudioSourceState::PLAYING;
     if (!is_playing)
       continue;
-    update_audio_channel_volume(source, volume_sfx, volume_music, paused);
+    update_audio_channel_volume(source, volume_sfx, volume_music, dampen_music);
   }
 
   // compact duplicate audio requests
@@ -165,7 +172,8 @@ update_audio_system(entt::registry& r, const float dt)
 
     if (free_audio_sources.size() == 0) {
       // SDL_Log("%s", std::format("No free audio sources! Missed request for: {}", tag).c_str());
-      return;
+      r.destroy(entities.begin(), entities.end());
+      continue;
     }
 
     AudioSource& audio_source = free_audio_sources.front();
@@ -178,7 +186,7 @@ update_audio_system(entt::registry& r, const float dt)
     if (channel != audio_source.channel)
       SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());
     audio_source.sound_type = s.type;
-    update_audio_channel_volume(audio_source, volume_sfx, volume_music, paused);
+    update_audio_channel_volume(audio_source, volume_sfx, volume_music, dampen_music);
 
     // process request
     r.destroy(entities.begin(), entities.end());

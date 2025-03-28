@@ -12,6 +12,9 @@ enum class FontSize
   TEXT_SMALL = 12,
   TEXT_SMALL_SCALED = 18,
 
+  TEXT_SIZE_13 = 13,
+  TEXT_SIZE_13_SCALED = 20, // should be 19.5
+
   TEXT_SIZE_16 = 16,
   TEXT_SIZE_16_SCALED = 24,
 

@@ -638,9 +638,10 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   ImGui::Begin("PlayerNoInputSuggestions", NULL, flags);
 
   ImGui::NewLine();
-  ImGui::SeparatorText("Connected & No Input");
-  ImGui::Text("- Unplug/Replug Controllers");
+  ImGui::SeparatorText("Help! Connected but no input!");
+  ImGui::Text("- Unplug/Replug Controller.");
   ImGui::Text("- Check SteamInput bindings.");
+  ImGui::Text("- Check with a HTML5 gamepad tester.");
 
   ImGui::End();
 

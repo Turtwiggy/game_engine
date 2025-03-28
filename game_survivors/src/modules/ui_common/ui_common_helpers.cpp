@@ -1,35 +1,25 @@
 #include "pch.hpp"
 
+#include "engine/entt/helpers.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
 
 namespace game2d {
 
-const auto my_active_col = hex_to_srgb("#FFFFFF", 255);
-const auto im_active_col = convert_my_to_im(my_active_col);
-
-const auto my_inactive_col = hex_to_srgb("#FFFFFF", 0.6 * 255);
-const auto im_inactive_col = convert_my_to_im(my_inactive_col);
-
-const auto my_active_button_background_col = hex_to_srgb("#02526D", 255);
-const auto im_active_button_background_col = convert_my_to_im(my_active_button_background_col);
-
-const auto my_inactive_button_background_col = hex_to_srgb("#02526D", 0.6 * 255);
-const auto im_inactive_button_background_col = convert_my_to_im(my_inactive_button_background_col);
-
 bool
-selectable_button(SelectableButtonDef& def)
+selectable_button(entt::registry& r, SelectableButtonDef& def)
 {
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0)); // button hovered
   ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));  // button clicked
 
-  const auto& colors = ImGui::GetStyle().Colors;
-  const auto b_col = colors[ImGuiCol_Button];
-  const auto bh_col = colors[ImGuiCol_ButtonActive];
-  const auto ba_col = colors[ImGuiCol_ButtonActive];
-  const ImU32 button_col = IM_COL32(b_col.x * 255, b_col.y * 255, b_col.z * 255, b_col.w * 0);
-  const ImU32 button_hovered_col = IM_COL32(bh_col.x * 255, bh_col.y * 255, bh_col.z * 255, bh_col.w * 0);
-  const ImU32 button_clicked_col = IM_COL32(ba_col.x * 255, ba_col.y * 255, ba_col.z * 255, ba_col.w * 0);
+  // const auto& colors = ImGui::GetStyle().Colors;
+  // const auto b_col = colors[ImGuiCol_Button];
+  // const auto bh_col = colors[ImGuiCol_ButtonActive];
+  // const auto ba_col = colors[ImGuiCol_ButtonActive];
+  // const ImU32 button_col = IM_COL32(b_col.x * 255, b_col.y * 255, b_col.z * 255, b_col.w * 0);
+  // const ImU32 button_hovered_col = IM_COL32(bh_col.x * 255, bh_col.y * 255, bh_col.z * 255, bh_col.w * 0);
+  // const ImU32 button_clicked_col = IM_COL32(ba_col.x * 255, ba_col.y * 255, ba_col.z * 255, ba_col.w * 0);
 
   const auto& size = def.size;
 
@@ -66,39 +56,53 @@ selectable_button(SelectableButtonDef& def)
   is_selected &= (def.my_row_index == def.ui_row_index);
 
   draw_list->ChannelsSetCurrent(0);
-  const auto p_min = ImGui::GetItemRectMin();
-  const auto p_max = ImGui::GetItemRectMax();
-  const auto p_size = ImGui::GetItemRectSize();
+  const auto p_tl = ImGui::GetItemRectMin();
+  const auto p_br = ImGui::GetItemRectMax();
+  const auto p_wh = ImGui::GetItemRectSize();
   const float rounding = 6.0;
   const float thickness = 2.0;
 
-  ImU32 colour = im_inactive_col;
-  if (is_selected)
-    colour = im_active_col;
+  const ImU32 im_inactive_outline_col = convert_my_to_im(def.inactive_outline_col);
+  const ImU32 im_active_outline_col = convert_my_to_im(def.active_outline_col);
+  const ImU32 im_inactive_bg_col = convert_my_to_im(def.inactive_bg_col);
+  const ImU32 im_active_bg_col = convert_my_to_im(def.active_bg_col);
 
-  ImU32 button_background_col = im_inactive_button_background_col;
-  if (is_selected)
-    button_background_col = im_active_button_background_col;
+  const ImU32 outline_col = is_selected ? im_active_outline_col : im_inactive_outline_col;
+  const ImU32 bg_col = is_selected ? im_active_bg_col : im_inactive_bg_col;
+  const ImU32 text_col = IM_COL32(255, 255, 255, is_selected ? 255 : 100);
 
-  // button background based on state
-  ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, button_background_col, rounding);
+  // button
+  draw_list->AddRectFilled(p_tl, p_br, bg_col, rounding);
+  draw_list->AddRect(p_tl, p_br, outline_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
-  // button outline
-  const ImDrawFlags corners = ImDrawFlags_RoundCornersAll;
-  ImGui::GetWindowDrawList()->AddRect(p_min, p_max, colour, rounding, corners, thickness);
-
-  // Draw some text based on state.
+  // Drawssome text based on state.
   auto label = def.label;
+  // if (is_selected)
+  //   label += " (*)";
+
   auto pos = def.label.find("##");
   if (pos != std::string::npos)
     label = label.substr(0, pos);
 
-  const auto text_size = ImGui::CalcTextSize(label.c_str());
-  const auto text_pos = ImVec2{
-    p_min.x + 0.5f * (p_size.x - text_size.x),
-    p_min.y + 0.5f * (p_size.y - text_size.y),
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? def.font_size : def.font_size_scaled;
+  const auto font_size = (float)font_enum;
+  auto* font = get_fingerpaint_font(r, font_enum);
+
+  const auto text_size = font->CalcTextSizeA(font_size, p_wh.x, -1, label.c_str());
+
+  auto text_pos = ImVec2{
+    p_tl.x,
+    p_tl.y,
   };
-  ImGui::GetWindowDrawList()->AddText(text_pos, colour, label.c_str());
+  if (def.text_centered) {
+    text_pos.x += 0.5f * (p_wh.x);
+    text_pos.y += 0.5f * (p_wh.y);
+    text_pos.x -= 0.5f * text_size.x;
+    text_pos.y -= 0.5f * text_size.y;
+  }
+  text_pos += def.text_offset;
+  draw_list->AddText(font, font_size, text_pos, text_col, label.c_str());
 
   // "commit changes"
   draw_list->ChannelsMerge();

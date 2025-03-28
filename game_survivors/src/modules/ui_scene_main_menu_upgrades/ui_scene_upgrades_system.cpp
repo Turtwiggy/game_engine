@@ -332,7 +332,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
             .ui_col_active = ui_col_active,
           };
 
-          if (selectable_button(a_def))
+          if (selectable_button(r, a_def))
             row.action();
         } else {
           // no data

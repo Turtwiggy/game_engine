@@ -509,7 +509,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       };
 
       ImGui::SetCursorScreenPos({ pad_tl.x, y });
-      if (selectable_button(def) || (selected && do_act)) {
+      if (selectable_button(r, def) || (selected && do_act)) {
         state_c.rows[i].action(); // get it
         break;
       }

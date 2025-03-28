@@ -3,10 +3,13 @@
 #include "ui_popup_options_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_io/io_helpers.hpp"
 #include "modules/core_options/options_components.hpp"
 #include "modules/core_renderer/components.hpp"
+#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
@@ -107,10 +110,23 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
                       ui_c.state.new_actions.end();
 
   ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoCollapse;
-  flags |= ImGuiWindowFlags_NoTitleBar;
+  flags |= ImGuiWindowFlags_NoDecoration;
+  flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  // flags |= ImGuiWindowFlags_NoBackground;
+
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+  const auto font_size = (float)font_enum;
+  auto* font = get_fingerpaint_font(r, font_enum);
+  ImGui::PushFont(font);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0, 0 });
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
   const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_wh = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
@@ -118,9 +134,29 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, viewport_tl.y + viewport_wh_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
 
+  const auto window_size = glm::vec2{ 300 * font_scale, 175 * font_scale };
+  // imgui_draw_vec2("window_size", window_size);
+  ImGui::SetNextWindowSize({ window_size.x, window_size.y }, ImGuiCond_Always);
+
   ImGui::Begin("Options Menu", NULL, flags);
 
-  const auto TEXT_SIZE = ImGui::CalcTextSize("A");
+  auto* draw_list = ImGui::GetWindowDrawList();
+  const ImVec2 window_tl = ImGui::GetWindowPos();
+  const ImVec2 window_wh = ImGui::GetWindowSize();
+  const ImVec2 window_br = { window_tl.x + window_wh.x, window_tl.y + window_wh.y };
+
+  const auto my_window_bg_col = hex_to_srgb("#21242B");
+  const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
+  const auto my_window_border_col = hex_to_srgb("#FFFFFF");
+  const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
+
+  const float rounding = 4.0f;
+  const float thickness = 2.0f;
+  const auto rect_flags = ImDrawFlags_RoundCornersAll;
+  draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, rounding);
+  draw_list->AddRect(window_tl, window_br, IM_COL32(255, 255, 255, 255), rounding, rect_flags, thickness);
+
+  const auto TEXT_SIZE = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
   const ImVec2 button_size = { 200.0f, TEXT_SIZE.y + 2.0f };
 
   for (int i = 0; i < (int)(ui_c.state.rows.size()); i++) {
@@ -132,10 +168,24 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       .size = button_size,
       .input = do_act,
       .my_row_index = i,
-      .my_col_index = 0, // one col
+      .my_col_index = 0, // one column
       .ui_row_index = ui_c.state.current_row_index,
-      .ui_col_index = col_idx, // one col
-      .ui_col_active = true,   // one col
+      .ui_col_index = col_idx, // one column
+      .ui_col_active = true,   // one column
+
+      // could replace both .text_X with .text_pivot
+      .text_centered = false,
+      .text_offset = { window_wh.x * 0.25f, 0 },
+
+      // could replace .font_size and this with an actual font*
+      .font_size = FontSize::TEXT_SIZE_13,
+      .font_size_scaled = FontSize::TEXT_SIZE_13_SCALED,
+
+      // hide the buttons
+      .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
     // Hack: add seperators for categories.
@@ -143,8 +193,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
     // first audio option
     if (enum_val == GAME_OPTIONS::AUDIO_MASTER_VOLUME) {
-      ImGui::Text("Keyboard: use arrow keys (wip)");
-      ImGui::Text("Controller: use dpad");
+      // ImGui::Text("Keyboard: use arrow keys (wip)");
+      // ImGui::Text("Controller: use dpad");
       ImGui::SeparatorText("Audio");
     }
 
@@ -156,24 +206,40 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     if (i == (int)(GAME_OPTIONS::count))
       ImGui::SeparatorText("Menu");
 
-    // if in fullscreen_borderless, hide resolution option.
-    bool res_auto_set = false;
-    if (enum_val == GAME_OPTIONS::VIDEO_RESOLUTION) {
-      const auto dm = app.window.get_displaymode();
-      if (dm == engine::DisplayMode::fullscreen_borderless) {
-        ImGui::Text("Resolution (auto set): %i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
-        res_auto_set = true;
-        continue;
-      }
-    }
-
-    if (selectable_button(a_def))
-      row.action();
-
     const auto& acts = ui_c.state.new_actions;
     const auto v_value_changed = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED) != acts.end();
     const auto h_value_changed = std::find(acts.begin(), acts.end(), UIAction::H_VALUE_CHANGED) != acts.end();
     const bool active = i == ui_c.state.current_row_index;
+
+    // if in fullscreen_borderless, hide resolution option.
+    if (enum_val == GAME_OPTIONS::VIDEO_RESOLUTION) {
+
+      const auto dm = app.window.get_displaymode();
+      if (dm == engine::DisplayMode::fullscreen_borderless) {
+
+        // Skip this option in the select menu
+        if (v_value_changed && active && enum_val == GAME_OPTIONS::VIDEO_RESOLUTION) {
+          const auto v_value_changed_u = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED_UP) != acts.end();
+          const auto v_value_changed_d = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED_DOWN) != acts.end();
+          if (v_value_changed_u)
+            ui_c.state.current_row_index++;
+          if (v_value_changed_d)
+            ui_c.state.current_row_index--;
+        }
+
+        const auto inactive_col = ImVec4(1.0f, 1.0f, 1.0f, (100 / 255.0f));
+        ImGui::SetCursorScreenPos({ window_tl.x + window_wh.x * 0.25f, ImGui::GetCursorScreenPos().y });
+        ImGui::TextColored(inactive_col, "Resolution (auto)");
+
+        ImGui::SameLine();
+        ImGui::SetCursorScreenPos({ window_tl.x + window_wh.x * 0.60f, ImGui::GetCursorScreenPos().y });
+        ImGui::TextColored(inactive_col, "%i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
+        continue;
+      }
+    }
+
+    if (selectable_button(r, a_def))
+      row.action();
 
     const auto& option = get_option(r, enum_val);
     if (option == nullptr)
@@ -186,11 +252,14 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     }
 
     // Display option value to user...
-    ImGui::SameLine();
+    ImGui::SameLine(window_wh.x * 0.6f);
     ImGui::Text("%s", option->display_val().c_str());
   }
 
+  ImGui::NewLine(); // pad the last row
   ImGui::End();
+  ImGui::PopFont();
+  ImGui::PopStyleVar(5);
 }
 
 } // namespace game2d

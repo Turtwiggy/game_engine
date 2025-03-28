@@ -40,8 +40,8 @@ struct TextDesc
   ImVec2 non_centered_pos{ 0, 0 };
   ImU32 col = 0;
   float wrap_width = -1;
-  FontSize font_size = FontSize::TEXT_MEDIUM;
-  FontSize font_size_scaled = FontSize::TEXT_MEDIUM_SCALED;
+  FontSize font_size = FontSize::TEXT_SIZE_16;
+  FontSize font_size_scaled = FontSize::TEXT_SIZE_16_SCALED;
 };
 
 void
@@ -302,7 +302,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       desc = "Not implemented.";
     }
 
-    const auto my_desc_text_col = hex_to_srgb("#D6D6D6", active_alpha);
+    const auto my_desc_text_col = hex_to_srgb("#FFFFFF", active_alpha);
     const auto im_desc_text_col = convert_my_to_im(my_desc_text_col);
 
     // const auto head_font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
@@ -327,11 +327,13 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
       const auto font_size = (float)font_enum;
-      const auto* font = get_fingerpaint_font(r, font_enum);
+
+      auto* font = ImGui::GetIO().Fonts->Fonts[1];
+      // const auto* font = get_fingerpaint_font(r, font_enum);
 
       const float desc_pad_x = 6;
-      const float width_limit = box_wh.x - 2.0f * desc_pad_x;
-      const auto text_size = font->CalcTextSizeA(font_size, width_limit, -1, desc.c_str());
+      const float width_limit = box_wh.x - (2.0f * desc_pad_x);
+      const auto text_size = font->CalcTextSizeA(font_size, width_limit, width_limit, desc.c_str());
 
       const auto desc_text_pos = ImVec2(box_tl.x + 0.5f * box_wh.x + desc_pad_x, box_tl.y + 0.3f * box_wh.y);
       const auto desc_text_pos_centered = ImVec2(desc_text_pos.x - 0.5f * text_size.x, desc_text_pos.y);
@@ -403,7 +405,7 @@ draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 w
     if (active && !confirmed) {
       const auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
       const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
-      const auto txt_str = std::format("(Next) Press {}\n(Back) Press {}", confirm_str, back_str);
+      const auto txt_str = std::format("--> Press {}\n<-- Press {}", confirm_str, back_str);
 
       const TextDesc text_desc{
         .text = txt_str,

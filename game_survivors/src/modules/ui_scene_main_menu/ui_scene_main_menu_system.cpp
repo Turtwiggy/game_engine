@@ -69,7 +69,7 @@ const auto init_menu = [](entt::registry& r) {
 
     const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
-    auto* font = get_fingerpaint_font(r, font_enum);
+    auto* font = ImGui::GetIO().Fonts->Fonts[2]; // idx: 2 should be the fingerpaint header font
 
     ImGui::PushFont(font);
 
@@ -220,7 +220,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       .ui_col_active = true,   // one col
     };
 
-    if (selectable_button(a_def))
+    if (selectable_button(r, a_def))
       row.action();
 
     //

@@ -15,11 +15,6 @@
 
 namespace game2d {
 
-const auto my_cooldown_col = engine::SRGBColour(0.2f, 0.2f, 0.2f, 0.30f);
-const auto my_active_col = engine::SRGBColour(0.2f, 1.0f, 0.2f, 0.30f);
-const auto im_cooldown_col = convert_my_to_im(my_cooldown_col);
-const auto im_active_col = convert_my_to_im(my_active_col);
-
 void
 update_ui_ability_system(entt::registry& r)
 {
@@ -52,13 +47,19 @@ update_ui_ability_system(entt::registry& r)
     const bool allowed_to_use_ability_1 = ability_c.ability_1_cooldown_left <= 0.0f;
     const bool allowed_to_use_ability_2 = ability_c.ability_2_cooldown_left <= 0.0f;
 
-    const float icon_padding = 6.0f;
-    const auto ability_1_icon_size = glm::vec2{ 4, 4 };
-    const auto ability_2_icon_size = glm::vec2{ 4, 4 };
-    const auto ability_1_spot = glm::vec2{ -t_c.scale.x, -t_c.scale.y };
-    const auto ability_2_spot = glm::vec2{ t_c.scale.x, -t_c.scale.y };
+    const auto my_cooldown_col = engine::SRGBColour(0.2f, 0.2f, 0.2f, 0.25f);
+    const auto my_active_col = engine::SRGBColour(0.2f, 1.0f, 0.2f, 0.3f);
+    const auto im_cooldown_col = convert_my_to_im(my_cooldown_col);
+    const auto im_active_col = convert_my_to_im(my_active_col);
 
     const auto half_button_size = ImVec2{ 10, 10 };
+    const auto button_size = ImVec2{ 20, 20 };
+    const float space_between_buttons = 3.0f;
+    const float icon_padding_x = 6.0f;
+    const float icon_padding_y = 10.0f;
+    const auto ability_1_spot = glm::vec2{ -t_c.scale.x - icon_padding_x, -t_c.scale.y - icon_padding_y };
+    const auto ability_2_spot =
+      glm::vec2{ -t_c.scale.x - icon_padding_x + +space_between_buttons + button_size.x, -t_c.scale.y - icon_padding_y };
 
     const auto pos1 = glm::vec2{ t_c.position.x + ability_1_spot.x, t_c.position.y + ability_1_spot.y };
     const auto pos2 = glm::vec2{ t_c.position.x + ability_2_spot.x, t_c.position.y + ability_2_spot.y };
@@ -70,12 +71,12 @@ update_ui_ability_system(entt::registry& r)
     const auto button1_tl = ImVec2{ im_screenspace1.x - half_button_size.x, im_screenspace1.y - half_button_size.y };
     const auto button1_br = ImVec2{ im_screenspace1.x + half_button_size.x, im_screenspace1.y + half_button_size.y };
     const auto button1_col = allowed_to_use_ability_1 ? im_active_col : im_cooldown_col;
-    draw_list->AddRectFilled(button1_tl, button1_br, button1_col, 4.0f);
+    draw_list->AddRectFilled(button1_tl, button1_br, button1_col, 8.0f);
 
     const auto button2_tl = ImVec2{ im_screenspace2.x - half_button_size.x, im_screenspace2.y - half_button_size.y };
     const auto button2_br = ImVec2{ im_screenspace2.x + half_button_size.x, im_screenspace2.y + half_button_size.y };
     const auto button2_col = allowed_to_use_ability_2 ? im_active_col : im_cooldown_col;
-    draw_list->AddRectFilled(button2_tl, button2_br, button2_col, 4.0f);
+    draw_list->AddRectFilled(button2_tl, button2_br, button2_col, 8.0f);
 
     const auto text_size1 = ImGui::CalcTextSize("L");
     const auto text_size2 = ImGui::CalcTextSize("R");

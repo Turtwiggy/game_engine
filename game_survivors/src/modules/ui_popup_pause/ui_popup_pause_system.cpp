@@ -130,7 +130,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
       .ui_col_active = true,   // one col
     };
 
-    if (selectable_button(a_def))
+    if (selectable_button(r, a_def))
       row.action();
   }
 
