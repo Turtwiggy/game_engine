@@ -11,7 +11,7 @@ void
 process_input_for_ui_all_handles(entt::registry& r, UIState& state);
 
 // Note: if you use this variation, call
-// state.new_actions.clear() before
+// state.actions.clear() before
 void
 process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t handle);
 

@@ -3,7 +3,7 @@
 #include "astar_components.hpp"
 #include "engine/map/components.hpp"
 
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 #include <vector>
 

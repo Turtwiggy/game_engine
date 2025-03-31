@@ -86,7 +86,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   auto& ui_c = gesert_component<SINGLE_OptionsMenuState>(r);
   const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
 
-  process_requests<RequestToShowOptionsMenu>(r, [&ui_c]() {
+  process_requests<RequestToShowOptionsMenu>(r, [&ui_c](const auto& req) {
     ui_c.one_frame_buffer = true;
     ui_c.open = true;
   });
@@ -106,8 +106,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
   process_input_for_ui_all_handles(r, ui_c.state);
 
-  const bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
-                      ui_c.state.new_actions.end();
+  const bool do_act =
+    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::SELECT) != ui_c.state.actions.end();
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -206,7 +206,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     if (i == (int)(GAME_OPTIONS::count))
       ImGui::SeparatorText("Menu");
 
-    const auto& acts = ui_c.state.new_actions;
+    const auto& acts = ui_c.state.actions;
     const auto v_value_changed = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED) != acts.end();
     const auto h_value_changed = std::find(acts.begin(), acts.end(), UIAction::H_VALUE_CHANGED) != acts.end();
     const bool active = i == ui_c.state.current_row_index;

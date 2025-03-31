@@ -1,8 +1,6 @@
 #pragma once
 
-#include "engine/lifecycle/components.hpp"
-
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace game2d {
 

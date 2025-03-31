@@ -40,12 +40,14 @@
 #include "modules/system_spawner/spawner_helpers.hpp"
 #include "modules/system_sprint/sprint_components.hpp"
 #include "modules/system_spritestack/spritestack_components.hpp"
+#include "modules/system_stats/stats_components.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_gameover/ui_gameover_components.hpp"
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
@@ -390,9 +392,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "GAME_0", .looping = true });
+    create_empty<SINGLE_SurviveStatsComponent>(r);
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);
+    create_empty<SINGLE_GameoverUI>(r);
 
     // Reset temporary gold
     auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);

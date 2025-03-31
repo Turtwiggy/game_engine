@@ -17,6 +17,7 @@
 #include "modules/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/event_upgrade/event_upgrade_helpers.hpp"
+#include "modules/system_stats/stats_helpers.hpp"
 
 namespace game2d {
 
@@ -47,6 +48,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__trait_splinter>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__exploder_screenshake>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__treasure_enemy>(r);
+  ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__update_stats>(r);
 
   ed.dispatcher->sink<UpgradeEvent>().connect<&handle_upgrade_event>(r);
 }

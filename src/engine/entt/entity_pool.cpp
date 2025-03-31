@@ -1,7 +1,10 @@
+#include "pch.hpp"
+
 #include "entity_pool.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"

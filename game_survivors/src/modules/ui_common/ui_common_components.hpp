@@ -70,7 +70,7 @@ struct UIState
   int current_row_index = 0;
   std::vector<RowState> rows;
 
-  std::vector<UIAction> new_actions;
+  std::vector<UIAction> actions;
 };
 
 } // namespace game2d

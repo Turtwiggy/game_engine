@@ -2,7 +2,6 @@
 
 // other library headers
 #include <glm/fwd.hpp>
-#include <glm/glm.hpp>
 
 // c++ standard lib headers
 #include <random>

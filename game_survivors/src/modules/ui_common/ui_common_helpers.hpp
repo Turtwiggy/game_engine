@@ -10,13 +10,13 @@ namespace game2d {
 
 template<class T>
 void
-process_requests(entt::registry& r, const std::function<void()>& callback)
+process_requests(entt::registry& r, const std::function<void(const T& req)>& callback)
 {
   const auto& view = r.view<T>();
 
   const bool has_requests = view.size() > 0;
   if (has_requests)
-    callback();
+    callback(r.get<T>(view.front()));
 
   r.destroy(view.begin(), view.end());
 };

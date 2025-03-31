@@ -2,7 +2,7 @@
 
 #include "engine/physics/physics_components.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 #include <glm/fwd.hpp>
 
 #include <unordered_set>

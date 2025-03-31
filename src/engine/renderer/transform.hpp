@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 #include <nlohmann/json.hpp>
 
 namespace game2d {

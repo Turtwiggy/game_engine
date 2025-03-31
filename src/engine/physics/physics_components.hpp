@@ -3,8 +3,8 @@
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_math.h>
 #include <box2d/box2d.h>
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <entt/fwd.hpp>
+#include <glm/fwd.hpp>
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 

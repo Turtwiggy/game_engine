@@ -2,9 +2,6 @@
 
 #include "engine/colour/colour.hpp"
 
-// other library headers
-#include <glm/glm.hpp>
-
 namespace engine {
 
 class RenderCommand

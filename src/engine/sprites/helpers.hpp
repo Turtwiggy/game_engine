@@ -4,8 +4,7 @@
 #include "components.hpp"
 #include "modules/core_renderer/components.hpp"
 
-#include <entt/entt.hpp>
-#include <imgui.h>
+#include <entt/fwd.hpp>
 
 #include <string>
 

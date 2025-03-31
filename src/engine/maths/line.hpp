@@ -2,8 +2,8 @@
 
 #include "engine/renderer/transform.hpp"
 
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <entt/fwd.hpp>
+#include <glm/fwd.hpp>
 
 #include <optional>
 

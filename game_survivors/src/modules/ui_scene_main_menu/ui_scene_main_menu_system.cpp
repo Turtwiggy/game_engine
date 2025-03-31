@@ -112,7 +112,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     ui_c.init = true;
   }
 
-  process_requests<RequestToShowMainMenu>(r, [&ui_c]() {
+  process_requests<RequestToShowMainMenu>(r, [&ui_c](const auto& req) {
     ui_c.one_frame_buffer = true;
     ui_c.display = true;
   });
@@ -198,8 +198,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   process_input_for_ui_all_handles(r, ui_c.state);
 
   int& selected = ui_c.state.current_row_index;
-  const bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
-                      ui_c.state.new_actions.end();
+  const bool do_act =
+    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::SELECT) != ui_c.state.actions.end();
 
   for (int i = 0; i < (int)ui_c.state.rows.size(); i++) {
     if (i > 0)

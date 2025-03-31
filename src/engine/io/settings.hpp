@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL_log.h>
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 #include <nlohmann/json.hpp>
 
 #include <fstream>

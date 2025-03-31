@@ -6,6 +6,7 @@
 #include "modules/core_io/io_helpers.hpp"
 #include "modules/system_gameover/gameover_components.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
+#include "modules/system_stats/stats_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 
 namespace game2d {
@@ -18,6 +19,7 @@ update_gameover_system(entt::registry& r)
     return; // game already ended
 
   GET_FIRST_OR_RETURN(SINGLE_GoldComponent, r, gold_e, gold_c);
+  GET_FIRST_OR_RETURN(SINGLE_SurviveStatsComponent, r, stats_e, stats_c);
 
   for (const auto& [e, timer_c] : r.view<const SurviveTimerComponent>().each()) {
 
@@ -34,6 +36,9 @@ update_gameover_system(entt::registry& r)
       gameover_c.win_condition = true;
       gameover_c.reason = "You survived";
       create_empty<GameOverComponent>(r, gameover_c);
+
+      // update stats
+      stats_c.gold_earned = gold_c.temp_amount;
 
       // Save collected gold to disk.
       gold_c.amount += gold_c.temp_amount;
@@ -52,8 +57,11 @@ update_gameover_system(entt::registry& r)
     gameover_c.reason = "All players dead";
     create_empty<GameOverComponent>(r, gameover_c);
 
+    // update stats
+    stats_c.gold_earned = gold_c.temp_amount;
+
     // Save collected gold to disk.
-    // Even if you lose. A bit too harsh otherwise
+    // Even if you lose. too harsh otherwise?
     gold_c.amount += gold_c.temp_amount;
     gold_c.temp_amount = 0;
     savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);

@@ -41,7 +41,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
       create_empty<RequestToShowPauseMenu>(r);
   }
 
-  process_requests<RequestToShowPauseMenu>(r, [&ui_c]() { ui_c.open = true; });
+  process_requests<RequestToShowPauseMenu>(r, [&ui_c](const auto& req) { ui_c.open = true; });
 
   const bool open = ui_c.open;
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
@@ -102,8 +102,8 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
   process_input_for_ui_all_handles(r, ui_c.state);
 
-  bool do_act = std::find(ui_c.state.new_actions.begin(), ui_c.state.new_actions.end(), UIAction::SELECT) !=
-                ui_c.state.new_actions.end();
+  bool do_act =
+    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::SELECT) != ui_c.state.actions.end();
 
   ImGui::Begin("Paused", NULL, flags);
 

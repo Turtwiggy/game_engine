@@ -6,11 +6,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 #include "engine/opengl/framebuffer.hpp"
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 // c++ standard library headers
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace engine {

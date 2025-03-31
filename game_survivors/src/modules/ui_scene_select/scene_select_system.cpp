@@ -1,4 +1,3 @@
-#include "imgui.h"
 #include "pch.hpp"
 
 #include "scene_select_components.hpp"
@@ -71,7 +70,7 @@ update_input_for_confirm(entt::registry& r, const int player_idx)
 
   auto& player_ui_data = ui_c.player_ui_state[player_idx];
   auto& player_state = ui_c.player_choice_state[player_idx];
-  const auto& a = player_ui_data.new_actions;
+  const auto& a = player_ui_data.actions;
   const bool h_changed = std::find(a.begin(), a.end(), UIAction::H_VALUE_CHANGED) != a.end();
   const bool v_changed = std::find(a.begin(), a.end(), UIAction::V_VALUE_CHANGED) != a.end();
   const bool player_pressed_select = std::find(a.begin(), a.end(), UIAction::SELECT) != a.end();
@@ -302,7 +301,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       desc = "Not implemented.";
     }
 
-    const auto my_desc_text_col = hex_to_srgb("#FFFFFF", active_alpha);
+    const auto my_desc_text_col = engine::SRGBColour(240, 240, 240, active_alpha);
     const auto im_desc_text_col = convert_my_to_im(my_desc_text_col);
 
     // const auto head_font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
@@ -325,11 +324,9 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
     // draw description text
     {
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
       const auto font_size = (float)font_enum;
-
-      auto* font = ImGui::GetIO().Fonts->Fonts[1];
-      // const auto* font = get_fingerpaint_font(r, font_enum);
+      const auto* font = get_fingerpaint_font(r, font_enum);
 
       const float desc_pad_x = 6;
       const float width_limit = box_wh.x - (2.0f * desc_pad_x);
@@ -405,7 +402,7 @@ draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 w
     if (active && !confirmed) {
       const auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
       const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
-      const auto txt_str = std::format("--> Press {}\n<-- Press {}", confirm_str, back_str);
+      const auto txt_str = std::format("< ({}) ({}) > ", confirm_str, back_str);
 
       const TextDesc text_desc{
         .text = txt_str,

@@ -397,7 +397,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       auto& state_c = ui_c.ui_states[i];
       state_c.current_row_index = 0;
       state_c.rows.clear();
-      state_c.new_actions.clear();
+      state_c.actions.clear();
 
       const auto player_e = get_player_e_from_idx(r, i);
       if (player_e == entt::null)
@@ -464,7 +464,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
     // update input
     auto& state_c = ui_c.ui_states[player_idx];
-    state_c.new_actions.clear();
+    state_c.actions.clear();
     process_input_for_ui(r, state_c, steam_state_c.handles[player_idx]);
 
     auto pad_tl = ImVec2{ player_ui_tl.x + padding_x, player_ui_tl.y + padding_y };
@@ -475,8 +475,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
     const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
     ImGui::GetWindowDrawList()->AddRectFilled(pad_tl, pad_br, im_active_col, 0);
 
-    const bool do_act =
-      std::find(state_c.new_actions.begin(), state_c.new_actions.end(), UIAction::SELECT) != state_c.new_actions.end();
+    const bool do_act = std::find(state_c.actions.begin(), state_c.actions.end(), UIAction::SELECT) != state_c.actions.end();
 
     auto y = pad_tl.y;
 

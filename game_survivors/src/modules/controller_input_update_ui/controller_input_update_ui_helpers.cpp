@@ -21,7 +21,7 @@ process_input_for_ui_all_handles(entt::registry& r, UIState& state)
 
   const auto nz_handles = non_zero_handles(steam_gs_c.handles);
 
-  state.new_actions.clear();
+  state.actions.clear();
   for (int i = 0; i < (int)nz_handles.size(); i++) {
     auto handle = nz_handles[i];
     const bool connected = handle_is_connected(steam_c, handle);
@@ -61,9 +61,9 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   else if (controller_button_down(steam_c, handle, DA::Game_Right))
     state.rows[v_selected].col_index++;
   else if (controller_button_down(steam_c, handle, DA::Game_South))
-    state.new_actions.push_back(UIAction::SELECT);
+    state.actions.push_back(UIAction::SELECT);
   else if (controller_button_down(steam_c, handle, DA::Game_East))
-    state.new_actions.push_back(UIAction::BACK);
+    state.actions.push_back(UIAction::BACK);
 
   // Update menu via keyboard (debug, mostly)
   //
@@ -77,9 +77,9 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
     else if (get_key_down(input, SDL_SCANCODE_RIGHT))
       state.rows[v_selected].col_index++;
     else if (get_key_down(input, SDL_SCANCODE_RETURN))
-      state.new_actions.push_back(UIAction::SELECT);
+      state.actions.push_back(UIAction::SELECT);
     else if (get_key_down(input, SDL_SCANCODE_KP_DECIMAL))
-      state.new_actions.push_back(UIAction::BACK);
+      state.actions.push_back(UIAction::BACK);
   }
 
   const bool v_changed = v_selected != state.current_row_index;
@@ -87,17 +87,17 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
 
   // vertical changed...
   if (v_changed) {
-    state.new_actions.push_back(UIAction::V_VALUE_CHANGED);
+    state.actions.push_back(UIAction::V_VALUE_CHANGED);
 
     if (v_selected < state.current_row_index)
-      state.new_actions.push_back(UIAction::V_VALUE_CHANGED_UP);
+      state.actions.push_back(UIAction::V_VALUE_CHANGED_UP);
     if (v_selected > state.current_row_index)
-      state.new_actions.push_back(UIAction::V_VALUE_CHANGED_DOWN);
+      state.actions.push_back(UIAction::V_VALUE_CHANGED_DOWN);
   }
 
   // horizontal value changed...
   if (!v_changed && h_changed)
-    state.new_actions.push_back(UIAction::H_VALUE_CHANGED);
+    state.actions.push_back(UIAction::H_VALUE_CHANGED);
 
   // clamp selected
   const int max = state.rows.size();

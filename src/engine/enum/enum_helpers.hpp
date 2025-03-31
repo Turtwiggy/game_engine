@@ -1,6 +1,5 @@
 #pragma once
 
-#include <entt/entt.hpp>
 #include <magic_enum.hpp>
 
 namespace engine {

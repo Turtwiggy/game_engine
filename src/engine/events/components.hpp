@@ -1,13 +1,11 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <entt/fwd.hpp>
+#include <glm/fwd.hpp>
 #include <nlohmann/json.hpp>
 
 #include <map>

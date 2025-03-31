@@ -175,7 +175,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
     ui_c.init = true;
   }
 
-  process_requests<RequestToShowUpgradesMenu>(r, [&ui_c]() { ui_c.display = true; });
+  process_requests<RequestToShowUpgradesMenu>(r, [&ui_c](const auto& req) { ui_c.display = true; });
 
   if (!ui_c.display)
     return;
@@ -263,8 +263,8 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto TEXT_SIZE = ImGui::CalcTextSize("A");
   const ImVec2 button_size = { 200.0f, TEXT_SIZE.y + 2.0f };
 
-  const bool do_act = std::find(active_column.new_actions.begin(), active_column.new_actions.end(), UIAction::SELECT) !=
-                      active_column.new_actions.end();
+  const bool do_act =
+    std::find(active_column.actions.begin(), active_column.actions.end(), UIAction::SELECT) != active_column.actions.end();
 
   // int& selected = active_column.current_row_index;
 

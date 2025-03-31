@@ -1,7 +1,7 @@
 #pragma once
 
 // other lib headers
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 // c++ lib headers
 #include <vector>

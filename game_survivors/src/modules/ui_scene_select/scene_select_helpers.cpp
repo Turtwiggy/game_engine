@@ -39,7 +39,7 @@ update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c)
     }
 
     // process the input for that ui-state.
-    ui_state_c.new_actions.clear();
+    ui_state_c.actions.clear();
 
     if (i < joined_players)
       process_input_for_ui(r, ui_state_c, steam_state_c.handles[i]);

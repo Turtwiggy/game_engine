@@ -3,7 +3,7 @@
 // other library headers
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 // c++ standard lib headers
 #include <cstdint>
