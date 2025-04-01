@@ -26,7 +26,6 @@
 #include "modules/core_camera/camera_system.hpp"
 #include "modules/core_camera/helpers.hpp"
 #include "modules/core_camera/orthographic.hpp"
-#include "modules/core_fonts/fonts_component.hpp"
 #include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_io/io_components.hpp"
 #include "modules/core_io/io_helpers.hpp"
@@ -91,6 +90,8 @@
 #include "modules/ui_gameover/ui_gameover_system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_imgui_colours/ui_imgui_colours.hpp"
+#include "modules/ui_popup_controller_disconnected/ui_popup_controller_disconnected_components.hpp"
+#include "modules/ui_popup_controller_disconnected/ui_popup_controller_disconnected_system.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_options/ui_popup_options_system.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
@@ -166,7 +167,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_SteamControllerGameState>(r);
   create_persistent<SINGLE_PostFixedUpdateCallbacks>(r);
 
-  // create_persistent<SINGLE_FontsComponent>(r);
+  create_persistent<SINGLE_DisconnectedControllerUI>(r);
   create_persistent<SINGLE_UIData>(r); // HMM: could make a setting
   create_persistent<SINGLE_GameOptions>(r);
   create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
@@ -329,6 +330,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_fps_counter_system(r);
   update_ui_popup_pause_system(app, r);
   update_ui_popup_options_system(app, r);
+  update_ui_popup_controller_disconnected_system(r);
   update_ui_worldspace_text_system(r);
 
   if (scene.s == Scene::pressanykey)

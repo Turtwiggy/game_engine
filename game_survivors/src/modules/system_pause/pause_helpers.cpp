@@ -3,6 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/system_gameover/gameover_helpers.hpp"
+#include "modules/ui_popup_controller_disconnected/ui_popup_controller_disconnected_components.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
@@ -22,6 +23,9 @@ require_pause(entt::registry& r)
 
   pause |= is_choosing_upgrade(r);
   pause |= is_gameover(r);
+
+  const bool disconnected = get_first_component<SINGLE_DisconnectedControllerUI>(r).handle_disconnected.size() > 0;
+  pause |= disconnected;
 
   // pause when pause menu is open
   const auto& pause_menu_c = get_first_component<SINGLE_PauseMenuState>(r);

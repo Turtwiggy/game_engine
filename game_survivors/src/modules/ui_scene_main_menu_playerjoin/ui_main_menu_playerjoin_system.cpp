@@ -314,7 +314,7 @@ draw_player_ui_box(entt::registry& r,
 
   const auto show_disconnected_ui = [&]() {
     //
-    // add_top_centered_text("Disconnected");
+    add_bottom_left_text("Disconnected");
 
     // draw eyes as crosses
     const auto l_center = ImVec2{ tl.x + (0.4f * wh.x), tl.y + (0.667f * wh.y) };
@@ -347,8 +347,6 @@ draw_player_ui_box(entt::registry& r,
     draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_abxy_buttons(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
     draw_bumpers(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
-
-    add_bottom_left_text("Disconnected");
   };
 
   const auto show_not_connected_ui = [&]() {
@@ -596,7 +594,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
     const bool joined = handle_is_joined(ui_c, handle);
 
     ControllerState ui_state = ControllerState::NOT_CONNECTED;
-    if (connected && joined)
+    if (joined && connected)
       ui_state = ControllerState::CONNECTED;
     if (joined && !connected)
       ui_state = ControllerState::DISCONNECTED;

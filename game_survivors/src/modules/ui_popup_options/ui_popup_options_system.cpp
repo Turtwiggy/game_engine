@@ -122,11 +122,11 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   auto* font = get_fingerpaint_font(r, font_enum);
   ImGui::PushFont(font);
 
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0, 0 });
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, 0 });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 2 });
 
   const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_wh = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
@@ -149,9 +149,9 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
   const auto my_window_border_col = hex_to_srgb("#FFFFFF");
   const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
-
-  const float rounding = 4.0f;
-  const float thickness = 2.0f;
+  const auto header_x_padding = 10.0f;
+  const auto rounding = 4.0f;
+  const auto thickness = 2.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
   draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, rounding);
   draw_list->AddRect(window_tl, window_br, IM_COL32(255, 255, 255, 255), rounding, rect_flags, thickness);
@@ -195,16 +195,21 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     if (enum_val == GAME_OPTIONS::AUDIO_MASTER_VOLUME) {
       // ImGui::Text("Keyboard: use arrow keys (wip)");
       // ImGui::Text("Controller: use dpad");
-      ImGui::SeparatorText("Audio");
+      ImGui::SetCursorPosX(header_x_padding);
+      ImGui::Text("Audio");
     }
 
     // first video option
-    if (enum_val == GAME_OPTIONS::VIDEO_SCREEN_MODE)
-      ImGui::SeparatorText("Video");
+    if (enum_val == GAME_OPTIONS::VIDEO_SCREEN_MODE) {
+      ImGui::SetCursorPosX(header_x_padding);
+      ImGui::Text("Video");
+    }
 
     // last option
-    if (i == (int)(GAME_OPTIONS::count))
-      ImGui::SeparatorText("Menu");
+    if (i == (int)(GAME_OPTIONS::count)) {
+      ImGui::SetCursorPosX(header_x_padding);
+      ImGui::Text("Menu");
+    }
 
     const auto& acts = ui_c.state.actions;
     const auto v_value_changed = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED) != acts.end();
