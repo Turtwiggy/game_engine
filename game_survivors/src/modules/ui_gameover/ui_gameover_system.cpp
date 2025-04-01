@@ -15,7 +15,6 @@
 #include "ui_gameover_components.hpp"
 #include "ui_gameover_system.hpp"
 
-
 namespace game2d {
 
 void
@@ -99,7 +98,7 @@ update_ui_gameover_system(entt::registry& r)
   const auto ui_tl = ImGui::GetCursorPos();
 
   // idx 2 should be fingerpaint font
-  auto& fingerpaint_font = ImGui::GetIO().Fonts->Fonts[2];
+  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[2];
 
   if (request.win_condition) {
     ImGui::PushFont(fingerpaint_font);
@@ -135,8 +134,7 @@ update_ui_gameover_system(entt::registry& r)
     .ui_col_index = col_idx,
     .ui_col_active = true,
 
-    .font_size = FontSize::TEXT_MEDIUM,
-    .font_size_scaled = FontSize::TEXT_MEDIUM_SCALED,
+    .font = fingerpaint_font,
   };
 
   ImGui::NewLine();

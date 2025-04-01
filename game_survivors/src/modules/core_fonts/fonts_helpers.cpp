@@ -25,6 +25,10 @@ init_fonts_system()
 
   // idx: 2
   io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f);
+  // idx: 3 upgrade menu header
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 24.0f);
+  // idx: 4 upgrade menu header scaled
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 24.0f * 1.5f);
 
   const int count = magic_enum::enum_count<FontSize>();
   for (int i = 0; i < count; i++) {

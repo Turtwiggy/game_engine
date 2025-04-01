@@ -298,7 +298,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
     if (is_ability) {
       name = "N/A";
-      desc = "Not implemented.";
+      desc = "None";
     }
 
     const auto my_desc_text_col = engine::SRGBColour(240, 240, 240, active_alpha);

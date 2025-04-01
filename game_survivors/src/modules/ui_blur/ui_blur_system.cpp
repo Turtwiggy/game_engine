@@ -6,9 +6,9 @@
 #include "engine/events/components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
-#include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
+#include "modules/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 
 namespace game2d {
 
@@ -39,6 +39,14 @@ update_ui_blur_system(entt::registry& r, const float dt)
   // blur with pause menu...
   if (pause_c.open)
     blur_amount += fade_in_speed * dt;
+
+  // blur with upgrade menu...
+  const auto upgrade_e = get_first<SINGLE_UpgradesMenuUI>(r);
+  if (upgrade_e != entt::null) {
+    const auto& upgrade_c = r.get<SINGLE_UpgradesMenuUI>(upgrade_e);
+    if (upgrade_c.display)
+      blur_amount += fade_in_speed * dt;
+  }
 
   else
     blur_amount -= dt;

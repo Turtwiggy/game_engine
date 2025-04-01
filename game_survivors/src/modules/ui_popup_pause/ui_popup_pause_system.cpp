@@ -65,6 +65,11 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, { 0.5f, 0.5f });
   ImGui::SetNextWindowBgAlpha(0.0f);
 
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+  const auto font_size = (float)font_enum;
+  auto* font = get_fingerpaint_font(r, font_enum);
+
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
@@ -128,6 +133,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
       .ui_row_index = ui_c.state.current_row_index,
       .ui_col_index = col_idx, // one col
       .ui_col_active = true,   // one col
+      .font = font,
     };
 
     if (selectable_button(r, a_def))

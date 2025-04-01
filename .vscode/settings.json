@@ -58,7 +58,6 @@
 
   // "gcovViewer.highlightMissedLines": false,
 
-
   "C_Cpp.codeAnalysis.runAutomatically": true,
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [

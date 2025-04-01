@@ -177,9 +177,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       .text_centered = false,
       .text_offset = { window_wh.x * 0.25f, 0 },
 
-      // could replace .font_size and this with an actual font*
-      .font_size = FontSize::TEXT_SIZE_13,
-      .font_size_scaled = FontSize::TEXT_SIZE_13_SCALED,
+      .font = font,
 
       // hide the buttons
       .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },

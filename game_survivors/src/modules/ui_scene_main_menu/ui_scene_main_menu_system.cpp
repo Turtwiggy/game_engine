@@ -218,6 +218,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       .ui_row_index = ui_c.state.current_row_index,
       .ui_col_index = col_idx, // one col
       .ui_col_active = true,   // one col
+      .font = font,
     };
 
     if (selectable_button(r, a_def))

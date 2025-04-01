@@ -102,6 +102,15 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
       std::erase(ui_c.handle_disconnected, handle);
   }
 
+  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+  const auto header_font_size = (float)header_font_enum;
+  auto* header_font = get_fingerpaint_font(r, header_font_enum);
+  const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+  const auto text_font_size = (float)text_font_enum;
+  auto* text_font = get_fingerpaint_font(r, text_font_enum);
+  const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
+
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0, 0 });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -115,17 +124,6 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoSavedSettings;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoBackground;
-
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-
-  const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  const auto header_font_size = (float)header_font_enum;
-  auto* header_font = get_fingerpaint_font(r, header_font_enum);
-
-  const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
-  const auto text_font_size = (float)text_font_enum;
-  auto* text_font = get_fingerpaint_font(r, text_font_enum);
-  const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
 
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto window_pos = ImVec2{ ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f };
@@ -254,8 +252,7 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
       .ui_col_index = col_idx,
       .ui_col_active = button_active,
 
-      .font_size = FontSize::TEXT_SIZE_13,
-      .font_size_scaled = FontSize::TEXT_SIZE_13_SCALED,
+      .font = text_font,
     };
 
     const auto cursor_pos = ImVec2{

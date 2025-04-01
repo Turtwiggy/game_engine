@@ -39,7 +39,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
 
   const bool is_hovered = ImGui::IsItemHovered();
-  if (is_hovered && mouse_move) {
+  if (is_hovered && mouse_move && def.update_selected_on_mouse_move) {
     def.ui_row_index = def.my_row_index;
     def.ui_col_index = def.my_col_index;
   }
@@ -69,7 +69,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
 
   const ImU32 outline_col = is_selected ? im_active_outline_col : im_inactive_outline_col;
   const ImU32 bg_col = is_selected ? im_active_bg_col : im_inactive_bg_col;
-  const ImU32 text_col = IM_COL32(255, 255, 255, is_selected ? 255 : 100);
+  const ImU32 text_col = IM_COL32(255, 255, 255, is_selected ? 255 : 150);
 
   // button
   draw_list->AddRectFilled(p_tl, p_br, bg_col, rounding);
@@ -84,12 +84,11 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   if (pos != std::string::npos)
     label = label.substr(0, pos);
 
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? def.font_size : def.font_size_scaled;
-  const auto font_size = (float)font_enum;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto font = def.font;
+  if (font == nullptr)
+    font = ImGui::GetIO().Fonts->Fonts[0];
 
-  const auto text_size = font->CalcTextSizeA(font_size, p_wh.x, -1, label.c_str());
+  const auto text_size = font->CalcTextSizeA(font->FontSize, p_wh.x, -1, label.c_str());
 
   auto text_pos = ImVec2{
     p_tl.x,
@@ -102,7 +101,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     text_pos.y -= 0.5f * text_size.y;
   }
   text_pos += def.text_offset;
-  draw_list->AddText(font, font_size, text_pos, text_col, label.c_str());
+  draw_list->AddText(font, font->FontSize, text_pos, text_col, label.c_str());
 
   // "commit changes"
   draw_list->ChannelsMerge();
