@@ -9,12 +9,14 @@
 #include "modules/core_options/options_components.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 
 namespace game2d {
 using namespace std::literals;
 
 void
-audio_warning_ui(entt::registry& r)
+warning_ui(entt::registry& r, const std::string& text)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
 
@@ -31,8 +33,8 @@ audio_warning_ui(entt::registry& r)
   flags |= ImGuiWindowFlags_NoBackground;
 
   ImGui::Begin("WaitingForAudio", NULL, flags);
-  ImGui::Text("Initializing Audio...");
-  ImGui::Text("If your audio device changed (since launch) and this is stuck, consider restarting.");
+  ImGui::Text("Initializing...");
+  ImGui::Text("%s", text.c_str());
   ImGui::End();
 }
 
@@ -48,7 +50,7 @@ update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, e
 
   auto& audio = get_first_component<SINGLE_AudioComponent>(r);
   if (!audio.loaded) {
-    audio_warning_ui(r);
+    warning_ui(r, "If your audio device changed (since launch) and this is stuck, consider restarting.");
     return; // wait for it to load
   }
 
@@ -56,6 +58,23 @@ update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, e
   const auto& options_c = get_first_component<SINGLE_GameOptions>(r);
   for (const auto& option : options_c.options)
     option->load(app, r);
+
+  // note: I copied this comment from Spacewar.
+  //
+  // There's a bug where the action handles aren't non-zero until a config is done loading.
+  // Soon config information will be available immediately.
+  // Until then try to init as long as the handles are invalid.
+  //
+  const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& digital_action_handles = steam_c.digital_action_handles;
+
+  static float timer = 0.0f;
+  timer += dt;
+  if (digital_action_handles[(int)DA::Game_Up] == 0) {
+    warning_ui(r, std::format("Loading steam input... waiting on a controller... ({:0.1f})", timer));
+    init_steam_input_actions(r);
+    return; // wait for them to load
+  }
 
   // After X seconds, move to menu,
   // or when audio is loaded and a key is mashed

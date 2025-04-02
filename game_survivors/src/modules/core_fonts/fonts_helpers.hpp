@@ -40,4 +40,15 @@ get_fingerpaint_font(entt::registry& r, const FontSize size);
 void
 init_fonts_system();
 
+//
+
+ImVec2
+calc_center(const ImVec2 tl, const ImVec2 wh);
+
+ImVec2
+calc_wh(const ImVec2 tl, const ImVec2 br);
+
+ImVec2
+center_text(const ImFont* font, const std::string& text, const ImVec2& pos, const ImVec2 pivot = { 0.5f, 0.5f });
+
 } // namespace game2d

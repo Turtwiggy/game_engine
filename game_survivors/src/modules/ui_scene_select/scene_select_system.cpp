@@ -18,6 +18,7 @@
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_common/ui_common_components.hpp"
+#include "modules/ui_common/ui_common_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 #include "resources/data.hpp"
@@ -650,6 +651,54 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   update_split_screen_into_quaters(r, ri_c, ui_c, max_num_players);
 
   draw_select_header(r, ri_c);
+
+  // draw a back button you can click.
+  {
+    ImGuiWindowFlags flags = 0;
+    flags |= ImGuiWindowFlags_NoDecoration;
+    flags |= ImGuiWindowFlags_NoMove;
+    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+    flags |= ImGuiWindowFlags_NoDocking;
+    flags |= ImGuiWindowFlags_NoBackground;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+
+    const auto button_size = ImVec2{ 120, 40 };
+
+    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+    const auto text_font_size = (float)text_font_enum;
+    auto* text_font = get_fingerpaint_font(r, text_font_enum);
+
+    ImGui::SetNextWindowPos({ (float)ri_c.viewport_size_render_at.x * 0.5f, (float)ri_c.viewport_size_render_at.y - 100 },
+                            ImGuiCond_Always,
+                            { 0.5f, 0.5f });
+    ImGui::SetNextWindowSize({ button_size.x + 10, button_size.y + 10 }, ImGuiCond_Appearing);
+
+    ImGui::Begin("BACK", 0, flags);
+
+    int ui_row_idx = 0;
+    int ui_col_idx = 0;
+    SelectableButtonDef def{
+      .label = "Back##tomenu",
+      .size = button_size,
+      .ui_row_index = ui_row_idx,
+      .ui_col_index = ui_col_idx,
+
+      .update_selected_only_with_mouse = true,
+      .font = text_font,
+    };
+
+    ImGui::SetCursorPos({ 5, 5 }); // padding
+    if (selectable_button(r, def))
+      move_to_scene_start(r, Scene::menu);
+
+    ImGui::End();
+    ImGui::PopStyleVar(4);
+  }
 
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
   if (scene_c.s != Scene::select)

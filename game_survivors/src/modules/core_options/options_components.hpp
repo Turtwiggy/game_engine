@@ -10,6 +10,7 @@ struct IOption
 {
   GAME_OPTIONS option;
   std::string display_str;
+  bool loaded = false;
 
   IOption() = delete;
   IOption(const GAME_OPTIONS in_option, const std::string in_display)

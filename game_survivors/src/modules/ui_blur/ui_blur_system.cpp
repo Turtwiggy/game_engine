@@ -9,6 +9,7 @@
 #include "modules/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui_popup_pause/ui_popup_pause_components.hpp"
 #include "modules/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
+#include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 
 namespace game2d {
 
@@ -20,6 +21,15 @@ update_ui_blur_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
   GET_FIRST_OR_RETURN(SINGLE_OptionsMenuState, r, options_e, options_c);
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, pause_e, pause_c);
+  const auto menu_upgrade_e = get_first<SINGLE_UpgradesMenuUI>(r);
+  const auto game_upgrade_e = get_first<SINGLE_LevelUpUI>(r);
+
+  SINGLE_UpgradesMenuUI* menu_upgrade_c = nullptr;
+  SINGLE_LevelUpUI* game_upgrade_c = nullptr;
+  if (menu_upgrade_e != entt::null)
+    menu_upgrade_c = &r.get<SINGLE_UpgradesMenuUI>(menu_upgrade_e);
+  if (game_upgrade_e != entt::null)
+    game_upgrade_c = &r.get<SINGLE_LevelUpUI>(game_upgrade_e);
 
   const auto viewport_pos = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
   const auto viewport_size = ImVec2(ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
@@ -37,16 +47,16 @@ update_ui_blur_system(entt::registry& r, const float dt)
     blur_amount += fade_in_speed * dt;
 
   // blur with pause menu...
-  if (pause_c.open)
+  else if (pause_c.open)
     blur_amount += fade_in_speed * dt;
 
   // blur with upgrade menu...
-  const auto upgrade_e = get_first<SINGLE_UpgradesMenuUI>(r);
-  if (upgrade_e != entt::null) {
-    const auto& upgrade_c = r.get<SINGLE_UpgradesMenuUI>(upgrade_e);
-    if (upgrade_c.display)
-      blur_amount += fade_in_speed * dt;
-  }
+  else if (menu_upgrade_c && menu_upgrade_c->display)
+    blur_amount += fade_in_speed * dt;
+
+  // blur with game upgrade menu...
+  else if (game_upgrade_c && game_upgrade_c->open)
+    blur_amount += fade_in_speed * dt;
 
   else
     blur_amount -= dt;

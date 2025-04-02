@@ -306,24 +306,14 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_upgrade_xp_zone_size_system(r);
   }
 
-  // if (scene.s == Scene::procedural_snake)
-  // update_snake(r, mouse_pos, dt);
-
-#if defined(_DEBUG)
-  // update_debug_fixtures_system(r);
-#endif
-
   // update ui scaling
   {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-    const float base_x = 1280;
+    const float base_x = 1280; // note: this was the res the ui was created at
     const float base_y = 720;
     const float scale = ri.viewport_size_render_at.y / base_y;
     auto& ui_scale = get_first_component<SINGLE_UIData>(r);
     ui_scale.scaling = scale; // scale up if e.g. 1920x1080
-#if defined(_DEBUG)
-    // ImGui::Text("UI scaling: %f", ui_scale.scaling);
-#endif
   }
 
   update_ui_blur_system(r, dt);
@@ -380,10 +370,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     auto sdl2_controller_state = gesert_menubar_state(menu_c, "SDL2 Controller");
     if (sdl2_controller_state.enabled)
       update_ui_controller_system(r);
-
-    // auto sdl2_input_state = gesert_menubar_state(menu_c, "SDL2 Input");
-    // if (sdl2_input_state.enabled)
-    //   update_ui_sdl2_input_system(r);
 
     auto ui_steam_state = gesert_menubar_state(menu_c, "Steam");
     if (ui_steam_state.enabled)

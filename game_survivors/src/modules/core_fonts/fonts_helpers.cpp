@@ -40,4 +40,23 @@ init_fonts_system()
   }
 }
 
+ImVec2
+calc_center(const ImVec2 tl, const ImVec2 wh)
+{
+  return { tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y };
+};
+
+ImVec2
+calc_wh(const ImVec2 tl, const ImVec2 br)
+{
+  return { glm::abs(br.x - tl.x), glm::abs(br.y - tl.y) };
+};
+
+ImVec2
+center_text(const ImFont* font, const std::string& text, const ImVec2& pos, const ImVec2 pivot)
+{
+  const auto size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
+  return pos - ImVec2{ pivot.x * size.x, pivot.y * size.y };
+};
+
 } // namespace game2d

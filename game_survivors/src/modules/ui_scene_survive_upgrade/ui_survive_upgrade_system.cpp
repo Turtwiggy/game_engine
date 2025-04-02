@@ -3,18 +3,22 @@
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
+#include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
 #include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/events/events_components.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/system_upgrade/upgrade_components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
-#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+#include "resources/data.hpp"
 #include "ui_survive_upgrade_helpers.hpp"
 
 namespace game2d {
@@ -286,7 +290,7 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
 
 const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
   if (rarity == Rarity::COMMON) {
-    const auto srgb = hex_to_srgb("#b1c9c3"); //  gray
+    const auto srgb = hex_to_srgb("#D9D9D9"); //  white
     return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
   }
   if (rarity == Rarity::UNCOMMON) {
@@ -306,6 +310,15 @@ const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
     return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
   }
   return { 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
+struct CardDataUI
+{
+  Rarity rarity = Rarity::COMMON;
+  std::string rarity_txt = "common";
+  std::string header_txt = "Bronze Hulls";
+  std::string desc_txt = "+15 firerate";
+  bool selected = false;
 };
 
 void
@@ -340,6 +353,21 @@ setup_ui_based_on_upgrades(entt::registry& r,
 void
 update_ui_survive_upgrade_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  // auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  // if (scene_c.s == Scene::menu) {
+  //   gesert_component<SINGLE_XpComponent>(r);
+  //   gesert_component<SINGLE_LevelUpUI>(r);
+  //   gesert_component<SINGLE_Upgrades>(r);
+  //   static bool init = false;
+  //   if (!init) {
+  //     for (int i = 0; i < 4; i++)
+  //       create_empty<PlayerComponent>(r, PlayerComponent{ i });
+  //     init = true;
+  //   }
+  // }
+#endif
+
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
@@ -356,6 +384,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
     auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
     if (cheat_levelup_state.enabled) {
+      // if (true) {
 
       ImGui::SetNextWindowPos(ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y },
                               ImGuiCond_Always,
@@ -402,15 +431,17 @@ update_ui_survive_upgrade_system(entt::registry& r)
       const auto player_e = get_player_e_from_idx(r, i);
       if (player_e == entt::null)
         continue;
-      auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
+      const auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
 
       setup_ui_based_on_upgrades(r, player_e, state_c, upgrades_c);
     }
   }
 
   // dont show upgrade ui
+  ui_c.open = false;
   if (!is_choosing_upgrade(r))
     return;
+  ui_c.open = true;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -419,26 +450,44 @@ update_ui_survive_upgrade_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoBackground;
 
+  const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+
+  const float upg_header_height = 50.0f * ui_scale;
+  const int cards = 3;
+  const auto card_size = ImVec2{ 225 * ui_scale, 150 * ui_scale };
+  const float card_padding_y = 8 * ui_scale; // pad between cards
+  const auto header_pad = 4 * ui_scale;
+  const auto header_y_size = 30 * ui_scale;
+  const auto line_size = 40.0f * ui_scale;
+  const float desired_y = (card_size.y * cards) + ((cards - 1) * card_padding_y) + upg_header_height;
+
+  // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
+  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 3 : 4];
+  const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+  auto* font = get_fingerpaint_font(r, text_font_enum);
+
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
-  const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x - 0.1f * ri_c.viewport_size_render_at.x, 200 };
+  const float window_x_size = ri_c.viewport_size_render_at.x;
+  const float window_y_size = ri_c.viewport_size_render_at.y;
+  const auto set_window_size = ImVec2{ window_x_size, window_y_size };
   ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.5f, 0.5f });
   ImGui::SetNextWindowSize(set_window_size);
 
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
   ImGui::Begin("UpgradeUI", nullptr, flags);
 
-  const ImVec2 window_pos = ImGui::GetWindowPos();
-  const ImVec2 window_size = ImGui::GetWindowSize();
-  const auto player_ui_w = window_size.x / max_num_players; // always /4
-  const auto player_ui_h = window_size.y;
+  const auto ui_wh = ImGui::GetContentRegionAvail();
+  const auto ui_tl = ImGui::GetCursorPos();
+  auto* draw_list = ImGui::GetWindowDrawList();
 
-  float padding_x = 4;
-  float padding_y = 4;
-  auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
-  auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
+  // float padding_x = 4;
+  // float padding_y = 4;
+  const auto player_ui_wh = ImVec2{ ui_wh.x / max_num_players, ui_wh.y };
+  auto player_ui_tl = ImVec2{ ui_tl.x, ui_tl.y };
+  auto player_ui_br = ImVec2{ ui_tl.x + player_ui_wh.x, ui_tl.y + player_ui_wh.y };
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
@@ -446,18 +495,18 @@ update_ui_survive_upgrade_system(entt::registry& r)
     if (player_e == entt::null) {
 
       // move horizontally
-      player_ui_tl.x += player_ui_w;
-      player_ui_br.x += player_ui_w;
+      player_ui_tl.x += player_ui_wh.x;
+      player_ui_br.x += player_ui_wh.x;
 
       continue;
     }
 
-    const auto* upgrades_c = r.try_get<const UpgradeResultsComponent>(player_e);
+    const auto* upgrades_c = r.try_get<UpgradeResultsComponent>(player_e);
     if (!upgrades_c) {
 
       // move horizontally
-      player_ui_tl.x += player_ui_w;
-      player_ui_br.x += player_ui_w;
+      player_ui_tl.x += player_ui_wh.x;
+      player_ui_br.x += player_ui_wh.x;
 
       continue; // this player isnt upgrading
     }
@@ -466,80 +515,143 @@ update_ui_survive_upgrade_system(entt::registry& r)
     auto& state_c = ui_c.ui_states[player_idx];
     state_c.actions.clear();
     process_input_for_ui(r, state_c, steam_state_c.handles[player_idx]);
-
-    auto pad_tl = ImVec2{ player_ui_tl.x + padding_x, player_ui_tl.y + padding_y };
-    auto pad_br = ImVec2{ player_ui_tl.x + player_ui_w - padding_x, player_ui_tl.y + player_ui_h - padding_y };
-
-    // background
-    const float inc = ((player_idx + 1) / 4.0f);
-    const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
-    ImGui::GetWindowDrawList()->AddRectFilled(pad_tl, pad_br, im_active_col, 0);
-
     const bool do_act = std::find(state_c.actions.begin(), state_c.actions.end(), UIAction::SELECT) != state_c.actions.end();
 
-    auto y = pad_tl.y;
+    // debug background
+    // const auto pad_tl = ImVec2{ player_ui_tl.x, player_ui_tl.y };
+    // const auto pad_br = ImVec2{ player_ui_tl.x + player_ui_wh.x, player_ui_tl.y + player_ui_wh.y };
+    // draw_list->AddRectFilled(pad_tl, pad_br, IM_COL32((player_idx / 4.0f) * 255, 255, 255, 150), 0);
 
-    // draw upgrades
-    for (int i = 0; i < (int)state_c.rows.size(); i++) {
-      const bool selected = state_c.current_row_index == i;
-      int& selected_idx = state_c.current_row_index;
+    const auto clamped_tl =
+      ImVec2(player_ui_tl.x + 0.5f * (player_ui_wh.x - card_size.x), player_ui_tl.y + 0.5f * (player_ui_wh.y - desired_y));
+    const auto clamped_wh = card_size;
 
-      // Upgrade info
-      const auto [rarity, upgrade] = upgrades_c->results[i];
+    const auto* head_f = fingerpaint_font;
+    const auto* f = font; // body font
+
+    // add upgrade header for column
+    const auto im_player_col = convert_my_to_im(default_player_colours[player_idx]);
+    const auto upg_text = "Upgrade";
+    const auto upg_pos = ImVec2{ clamped_tl.x + 0.5f * clamped_wh.x, clamped_tl.y }; // top center
+    const auto upg_center = center_text(head_f, upg_text, upg_pos, { 0.5f, 0.0f });
+    draw_list->AddText(head_f, head_f->FontSize, upg_center, im_player_col, upg_text);
+
+    // some separator lines
+    const auto s_y = clamped_tl.y + head_f->FontSize * 0.5f;
+    const auto l0_p1 = ImVec2{ clamped_tl.x, s_y };
+    const auto l0_p2 = ImVec2{ clamped_tl.x + line_size, s_y };
+    draw_list->AddLine(l0_p1, l0_p2, im_player_col);
+    const auto l1_p1 = ImVec2{ clamped_tl.x + clamped_wh.x - line_size, s_y };
+    const auto l1_p2 = ImVec2{ clamped_tl.x + clamped_wh.x, s_y };
+    draw_list->AddLine(l1_p1, l1_p2, im_player_col);
+
+    auto card_ui_tl = ImVec2{ clamped_tl.x, clamped_tl.y + upg_header_height };
+    auto card_ui_br = ImVec2{ clamped_tl.x + card_size.x, clamped_tl.y + upg_header_height + card_size.y };
+    auto card_ui_wh = calc_wh(card_ui_tl, card_ui_br);
+
+    for (int card_idx = 0; card_idx < (int)state_c.rows.size(); card_idx++) {
+
+      // card data.
+      const auto [rarity, upgrade] = upgrades_c->results[card_idx];
       const auto rarity_str = std::string(magic_enum::enum_name(rarity));
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
       const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
+      const auto desc_txt = std::format("{} {:0.2f}", upgrade_str, amount);
 
-      auto col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-      if (selected)
-        col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-      int col_idx = 0;
-
-      auto def = SelectableButtonDef{
-        .label = "Aquire##" + rarity_str + "_" + upgrade_str,
-        .size = { 60, 24 },
-        .input = do_act,
-        .my_row_index = i,
-        .my_col_index = 0, // one col
-        .ui_row_index = ui_c.ui_states[player_idx].current_row_index,
-        .ui_col_index = col_idx, // one col
-        .ui_col_active = true,   // one col
+      const CardDataUI data{
+        .rarity = rarity,
+        .rarity_txt = rarity_str,
+        .header_txt = "Bronze Hulls", // todo: generate unique names for all upgradez
+        .desc_txt = desc_txt,
+        .selected = state_c.current_row_index == card_idx,
       };
 
-      ImGui::SetCursorScreenPos({ pad_tl.x, y });
-      if (selectable_button(r, def) || (selected && do_act)) {
-        state_c.rows[i].action(); // get it
-        break;
+      const auto txt_col = IM_COL32(5, 5, 5, 255);
+      const auto rounding = 4;
+      const auto im_rcol_vec = rarity_to_col(data.rarity);
+      const auto im_rcol = IM_COL32(im_rcol_vec.x * 255, im_rcol_vec.y * 255, im_rcol_vec.z * 255, im_rcol_vec.w * 255);
+
+      // card background
+      const auto my_card_bg_col = hex_to_srgb("#21242B", 0.75f * 255);
+      const auto im_card_bg_col = convert_my_to_im(my_card_bg_col);
+      draw_list->AddRectFilled(card_ui_tl, card_ui_br, im_card_bg_col, rounding);
+      draw_list->AddRect(card_ui_tl, card_ui_br, im_rcol, rounding, 0, 2.0f);
+
+      // card header background.
+      const auto header_bg_tl = ImVec2(card_ui_tl.x + header_pad, card_ui_tl.y + header_pad);
+      const auto header_bg_br = ImVec2(card_ui_tl.x + card_ui_wh.x - header_pad, card_ui_tl.y + header_pad + header_y_size);
+      const auto header_bg_wh = calc_wh(header_bg_tl, header_bg_br);
+      draw_list->AddRectFilled(header_bg_tl, header_bg_br, im_rcol, 0);
+
+      // card header text.
+      const auto header_txt_center = center_text(head_f, data.header_txt, calc_center(header_bg_tl, header_bg_wh));
+      draw_list->AddText(head_f, head_f->FontSize, header_txt_center, txt_col, data.header_txt.c_str());
+
+      // draw the card rarity.
+      const auto rarity_tl = ImVec2(header_bg_tl.x, header_bg_br.y);
+      const auto rarity_br = ImVec2(header_bg_br.x, header_bg_br.y + f->FontSize);
+      const auto rarity_wh = calc_wh(rarity_tl, rarity_br);
+      const auto rarity_txt_center = center_text(f, data.rarity_txt, calc_center(rarity_tl, rarity_wh));
+      draw_list->AddText(f, f->FontSize, rarity_txt_center, im_rcol, data.rarity_txt.c_str());
+
+      // draw the card info text.
+      const auto desc_tl = ImVec2(card_ui_tl.x, header_bg_br.y);
+      const auto desc_br = ImVec2(card_ui_br.x, card_ui_br.y);
+      const auto desc_wh = calc_wh(desc_tl, desc_br);
+      const auto desc_pos = center_text(f, data.desc_txt, calc_center(desc_tl, desc_wh));
+      draw_list->AddText(f, f->FontSize, desc_pos, im_rcol, data.desc_txt.c_str());
+
+      // draw the selected icon bg
+      const auto icon_tl = ImVec2(card_ui_br.x - 25, card_ui_br.y - 25);
+      const auto icon_br = ImVec2(card_ui_br.x - 5, card_ui_br.y - 5);
+      const auto icon_wh = calc_wh(icon_tl, icon_br);
+      const auto my_icon_bg_col = hex_to_srgb("#D9D9D9", 0.15f * 255);
+      const auto im_icon_bg_col = convert_my_to_im(my_icon_bg_col);
+      draw_list->AddRectFilled(icon_tl, icon_br, im_icon_bg_col, rounding);
+
+      // if selected, draw a circle in the box.
+      if (data.selected) {
+        const auto circle_center = calc_center(icon_tl, icon_wh);
+        draw_list->AddCircle(circle_center, 6.0f, im_player_col);
       }
 
-      // Display rarity.
-      auto rarity_col = rarity_to_col(rarity);
-      ImGui::SetCursorScreenPos({ pad_tl.x + def.size.x, y });
-      ImGui::TextColored(rarity_col, "%s", rarity_str.c_str());
+      // Draw a selecable button
+      int col_idx = 0;
+      SelectableButtonDef def{
+        .label = "##aquire_" + rarity_str + "_" + upgrade_str,
+        .size = card_ui_wh,
+        .input = do_act,
+        .my_row_index = card_idx,
+        .my_col_index = 0, // one col
+        .ui_row_index = ui_c.ui_states[player_idx].current_row_index,
+        .ui_col_index = col_idx,
+        .ui_col_active = true,
 
-      // Display upgrade info
-      ImGui::SetCursorScreenPos({ pad_tl.x + def.size.x, y + 12 });
+        // hide the buttons (display handled elsewhere)
+        .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+        .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+        .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+        .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      };
 
-      if (type_str == "stat_flat_increase") {
-        auto str = std::format("{} +{:.2f}", upgrade_str, amount);
-        ImGui::Text("%s", str.c_str());
-      } else {
-        auto str = std::format("{} {:.2f}%", upgrade_str, amount);
-        ImGui::Text("%s", str.c_str());
+      ImGui::SetCursorPos(card_ui_tl);
+      if (selectable_button(r, def)) {
+        // Process action (aquire the upgrade)
+        state_c.rows[state_c.current_row_index].action();
       }
 
       // move vertically
-      y += def.size.y;
+      card_ui_tl.y += card_size.y + card_padding_y;
+      card_ui_br.y += card_size.y + card_padding_y;
     }
 
     // move horizontally
-    player_ui_tl.x += player_ui_w;
-    player_ui_br.x += player_ui_w;
+    player_ui_tl.x += player_ui_wh.x;
+    player_ui_br.x += player_ui_wh.x;
   }
 
   ImGui::End();
-  ImGui::PopStyleVar();
+  ImGui::PopStyleVar(3);
 }
 
 } // namespace game2d

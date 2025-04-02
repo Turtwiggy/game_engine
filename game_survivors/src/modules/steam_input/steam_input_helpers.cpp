@@ -91,10 +91,6 @@ init_steam_input_actions(entt::registry& r)
   // m_ControllerActionSetHandles[actionSet_Layer_Thrust] = SteamInput()->GetActionSetHandle( "thrust_action_layer" );
 
   // clang-format on
-
-  // Each controller will generate a device connected event.
-  SteamAPI_ISteamInput_EnableDeviceCallbacks(SteamAPI_SteamInput());
-  static ControllerEvents eve; // Gotta be a better way?
 };
 
 void
@@ -102,7 +98,7 @@ init_steam_input(entt::registry& r)
 {
   // when Init(true): update explicitely with a separate call
   // when Init(false): update when SteamAPI_RunCallbacks() is called
-  if (!SteamInput()->Init(false)) {
+  if (!SteamInput()->Init(true)) {
     SDL_Log("Fatal Error, SteamInput()->Init() failed");
     exit(1);
   }
@@ -134,6 +130,10 @@ init_steam_input(entt::registry& r)
 
   create_persistent<SINGLE_SteamControllers>(r);
   init_steam_input_actions(r);
+
+  // Each controller will generate a device connected event.
+  SteamAPI_ISteamInput_EnableDeviceCallbacks(SteamAPI_SteamInput());
+  static ControllerEvents eve; // Gotta be a better way?
 };
 
 void

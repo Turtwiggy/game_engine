@@ -30,6 +30,8 @@ struct SelectableButtonDef
   int& ui_col_index;
   bool ui_col_active = true;
 
+  // edge cases
+  bool update_selected_only_with_mouse = false;
   bool update_selected_on_mouse_move = true;
 
   bool text_centered = true;

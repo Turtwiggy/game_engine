@@ -19,13 +19,18 @@ static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
 void
 generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 {
-  const auto view = r.view<PlayerComponent>(entt::exclude<UpgradeResultsComponent>);
-  for (const auto& [e, player_c] : view.each()) {
+  int gen_count = 0;
+
+  for (int i = 0; i < 4; i++) {
+    auto player_e = get_player_e_from_idx(r, i);
+    if (player_e == entt::null)
+      continue;
+    const auto& player_c = r.get<PlayerComponent>(player_e);
 
     UpgradeResultsComponent results_c;
 
     // Roll 3 times for 3 upgrades.
-    for (int i = 0; i < 3; i++) {
+    for (int upg_idx = 0; upg_idx < 3; upg_idx++) {
       const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)traits_to_level_up.size());
       const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
 
@@ -43,8 +48,12 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       results_c.results.push_back({ .rarity = rarity, .upgrade = upgrade });
     }
 
-    r.emplace<UpgradeResultsComponent>(e, results_c);
+    gen_count++;
+    r.emplace<UpgradeResultsComponent>(
+      player_e, UpgradeResultsComponent{ .results = std::vector(results_c.results.begin(), results_c.results.end()) });
   }
+
+  SDL_Log("Generated upgrades for %i players", gen_count);
 };
 
 bool

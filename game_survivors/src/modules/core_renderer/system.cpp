@@ -227,9 +227,9 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.viewport_size_current = screen_wh;
   const auto& fbo_size = ri.viewport_size_render_at;
 
-  const int max_dim = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
-  const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
-  SDL_Log("%s", std::format("jumpflood passes... {}", n_jumpflood_passes).c_str());
+  // const int max_dim = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  // const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
+  // SDL_Log("%s", std::format("jumpflood passes... {}", n_jumpflood_passes).c_str());
 
   // FBO textures
   Framebuffer::default_fbo();

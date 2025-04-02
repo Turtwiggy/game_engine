@@ -55,6 +55,9 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   is_selected &= (def.my_col_index == def.ui_col_index);
   is_selected &= (def.my_row_index == def.ui_row_index);
 
+  if (def.update_selected_only_with_mouse)
+    is_selected = is_hovered;
+
   draw_list->ChannelsSetCurrent(0);
   const auto p_tl = ImGui::GetItemRectMin();
   const auto p_br = ImGui::GetItemRectMax();
@@ -77,8 +80,6 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
 
   // Drawssome text based on state.
   auto label = def.label;
-  // if (is_selected)
-  //   label += " (*)";
 
   auto pos = def.label.find("##");
   if (pos != std::string::npos)
@@ -89,17 +90,13 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     font = ImGui::GetIO().Fonts->Fonts[0];
 
   const auto text_size = font->CalcTextSizeA(font->FontSize, p_wh.x, -1, label.c_str());
+  auto text_pos = ImVec2{ p_tl.x, p_tl.y };
 
-  auto text_pos = ImVec2{
-    p_tl.x,
-    p_tl.y,
-  };
   if (def.text_centered) {
-    text_pos.x += 0.5f * (p_wh.x);
-    text_pos.y += 0.5f * (p_wh.y);
-    text_pos.x -= 0.5f * text_size.x;
-    text_pos.y -= 0.5f * text_size.y;
+    text_pos.x += 0.5f * (p_wh.x - text_size.x);
+    text_pos.y += 0.5f * (p_wh.y - text_size.y);
   }
+
   text_pos += def.text_offset;
   draw_list->AddText(font, font->FontSize, text_pos, text_col, label.c_str());
 

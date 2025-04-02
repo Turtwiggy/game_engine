@@ -36,6 +36,10 @@ center_window(engine::SINGLE_Application& app)
 void
 Option_AudioMasterVolume::load(engine::SINGLE_Application& app, entt::registry& r)
 {
+  if (loaded)
+    return;
+  loaded = true;
+
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
@@ -92,6 +96,10 @@ Option_AudioMasterVolume::display_val()
 void
 Option_AudioMusicVolume::load(engine::SINGLE_Application& app, entt::registry& r)
 {
+  if (loaded)
+    return;
+  loaded = true;
+
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
@@ -148,6 +156,10 @@ Option_AudioMusicVolume::display_val()
 void
 Option_AudioSFXVolume::load(engine::SINGLE_Application& app, entt::registry& r)
 {
+  if (loaded)
+    return;
+  loaded = true;
+
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
@@ -204,6 +216,10 @@ Option_AudioSFXVolume::display_val()
 void
 Option_VideoScreenMode::load(engine::SINGLE_Application& app, entt::registry& r)
 {
+  if (loaded)
+    return;
+  loaded = true;
+
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
@@ -279,6 +295,10 @@ const std::vector<Resolution> resolutions{
 void
 Option_VideoResolution::load(engine::SINGLE_Application& app, entt::registry& r)
 {
+  if (loaded)
+    return;
+  loaded = true;
+
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
@@ -348,6 +368,10 @@ Option_VideoResolution::display_val()
 void
 Option_VideoVsync::load(engine::SINGLE_Application& app, entt::registry& r)
 {
+  if (loaded)
+    return;
+  loaded = true;
+
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
 
@@ -362,7 +386,7 @@ Option_VideoVsync::load(engine::SINGLE_Application& app, entt::registry& r)
 
   // update the system.
   app.window.set_vsync_opengl(data.enabled);
-  SDL_Log("Vsync: %i", data.enabled);
+  SDL_Log("(loaded) Vsync: %i", data.enabled);
 };
 
 void
@@ -382,7 +406,7 @@ Option_VideoVsync::update(engine::SINGLE_Application& app, entt::registry& r, in
 
   // update system
   app.window.set_vsync_opengl(data.enabled);
-  SDL_Log("Vsync: %i", data.enabled);
+  SDL_Log("(update) Vsync: %i", data.enabled);
 };
 
 int

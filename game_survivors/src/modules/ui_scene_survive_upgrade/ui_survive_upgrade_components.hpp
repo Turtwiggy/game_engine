@@ -7,6 +7,8 @@ namespace game2d {
 
 struct SINGLE_LevelUpUI
 {
+  bool open = false;
+
   std::vector<UIState> ui_states;
 };
 

@@ -12,7 +12,11 @@ struct XpComponent
 // Monitoring the total number of xp collected
 struct SINGLE_XpComponent
 {
+#if defined(_DEBUG)
   int xp = 0;
+#else
+  int xp = 0;
+#endif
   int xp_for_next_level = 10;
   int level = 1;
 };
