@@ -448,9 +448,8 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoNav;
   flags |= ImGuiWindowFlags_NoBackground;
-#if !defined(_DEBUG)
   flags |= ImGuiWindowFlags_NoInputs;
-#endif
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f));
@@ -627,6 +626,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   suggestion_flags |= ImGuiWindowFlags_NoBackground;
   suggestion_flags |= ImGuiWindowFlags_NoInputs;
   suggestion_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  suggestion_flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto help_window_pos = ImVec2{ ui_pos.x - total_size_x, ui_pos.y + 0.5f * total_size_y };
   const auto help_window_size = ImVec2{ total_size_x, ri.viewport_size_render_at.y - help_window_pos.y };

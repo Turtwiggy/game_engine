@@ -52,6 +52,7 @@ auto init_text = [](entt::registry& r) {
   wst_c.flags |= ImGuiWindowFlags_NoInputs;
   wst_c.flags |= ImGuiWindowFlags_NoNav;
   wst_c.flags |= ImGuiWindowFlags_NoBackground;
+  wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
 
   auto header_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(header_e);

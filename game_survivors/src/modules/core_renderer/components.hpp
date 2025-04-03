@@ -67,10 +67,12 @@ enum class PassName
   // jump_flood,
   // voronoi_distance,
   mix_lighting_and_scene,
-  crt_effect
+  crt_effect,
   // blur_pingpong_0,
   // blur_pingpong_1,
   // bloom,
+
+  count,
 };
 
 struct RenderPass

@@ -21,7 +21,7 @@ update_ui_debug_menubar_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_MenuBar; // dont copy paste this
-  // flags |= ImGuiWindowFlags_NoSavedSettings;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
   // flags |= ImGuiWindowFlags_NoInputs;
 
   auto size = ImVec2{ (float)160, 20 };

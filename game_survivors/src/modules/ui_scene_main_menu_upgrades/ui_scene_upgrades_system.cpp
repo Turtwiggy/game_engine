@@ -342,6 +342,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
   // flags |= ImGuiWindowFlags_NoBackground;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);

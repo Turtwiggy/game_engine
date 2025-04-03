@@ -14,36 +14,35 @@ namespace engine {
 
 namespace quad_renderer {
 
-template<typename T>
-GLM_FUNC_QUALIFIER glm::mat<4, 4, T, glm::defaultp>
-yaw_pitch_roll(T const& yaw, T const& pitch, T const& roll)
-{
-  T tmp_ch = glm::cos(yaw);
-  T tmp_sh = glm::sin(yaw);
-  T tmp_cp = glm::cos(pitch);
-  T tmp_sp = glm::sin(pitch);
-  T tmp_cb = glm::cos(roll);
-  T tmp_sb = glm::sin(roll);
-
-  glm::mat<4, 4, T, glm::defaultp> Result;
-  Result[0][0] = tmp_ch * tmp_cb + tmp_sh * tmp_sp * tmp_sb;
-  Result[0][1] = tmp_sb * tmp_cp;
-  Result[0][2] = -tmp_sh * tmp_cb + tmp_ch * tmp_sp * tmp_sb;
-  Result[0][3] = static_cast<T>(0);
-  Result[1][0] = -tmp_ch * tmp_sb + tmp_sh * tmp_sp * tmp_cb;
-  Result[1][1] = tmp_cb * tmp_cp;
-  Result[1][2] = tmp_sb * tmp_sh + tmp_ch * tmp_sp * tmp_cb;
-  Result[1][3] = static_cast<T>(0);
-  Result[2][0] = tmp_sh * tmp_cp;
-  Result[2][1] = -tmp_sp;
-  Result[2][2] = tmp_ch * tmp_cp;
-  Result[2][3] = static_cast<T>(0);
-  Result[3][0] = static_cast<T>(0);
-  Result[3][1] = static_cast<T>(0);
-  Result[3][2] = static_cast<T>(0);
-  Result[3][3] = static_cast<T>(1);
-  return Result;
-};
+// template<typename T>
+// GLM_FUNC_QUALIFIER glm::mat<4, 4, T, glm::defaultp>
+// yaw_pitch_roll(T const& yaw, T const& pitch, T const& roll)
+// {
+//   T tmp_ch = glm::cos(yaw);
+//   T tmp_sh = glm::sin(yaw);
+//   T tmp_cp = glm::cos(pitch);
+//   T tmp_sp = glm::sin(pitch);
+//   T tmp_cb = glm::cos(roll);
+//   T tmp_sb = glm::sin(roll);
+//   glm::mat<4, 4, T, glm::defaultp> Result;
+//   Result[0][0] = tmp_ch * tmp_cb + tmp_sh * tmp_sp * tmp_sb;
+//   Result[0][1] = tmp_sb * tmp_cp;
+//   Result[0][2] = -tmp_sh * tmp_cb + tmp_ch * tmp_sp * tmp_sb;
+//   Result[0][3] = static_cast<T>(0);
+//   Result[1][0] = -tmp_ch * tmp_sb + tmp_sh * tmp_sp * tmp_cb;
+//   Result[1][1] = tmp_cb * tmp_cp;
+//   Result[1][2] = tmp_sb * tmp_sh + tmp_ch * tmp_sp * tmp_cb;
+//   Result[1][3] = static_cast<T>(0);
+//   Result[2][0] = tmp_sh * tmp_cp;
+//   Result[2][1] = -tmp_sp;
+//   Result[2][2] = tmp_ch * tmp_cp;
+//   Result[2][3] = static_cast<T>(0);
+//   Result[3][0] = static_cast<T>(0);
+//   Result[3][1] = static_cast<T>(0);
+//   Result[3][2] = static_cast<T>(0);
+//   Result[3][3] = static_cast<T>(1);
+//   return Result;
+// };
 
 void
 QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
@@ -62,11 +61,15 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   const glm::vec2& pos = r.pos_tl;
   const glm::vec2& size = r.size;
   // const glm::vec2 center = r.pos_tl + (0.5f * size);
+  const float angle = r.yaw_pitch_roll_radians.z;
 
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(pos.x, pos.y, 0.0f));
   model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-  model *= yaw_pitch_roll(r.yaw_pitch_roll_radians.x, r.yaw_pitch_roll_radians.y, r.yaw_pitch_roll_radians.z);
+  if (angle != 0.0f)
+    model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+  // model *= yaw_pitch_roll(r.yaw_pitch_roll_radians.x, r.yaw_pitch_roll_radians.y, r.yaw_pitch_roll_radians.z);
+
   model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
   model = glm::scale(model, glm::vec3(size, 1.0f));
 

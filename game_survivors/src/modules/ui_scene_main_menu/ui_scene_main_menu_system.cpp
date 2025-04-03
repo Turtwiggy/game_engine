@@ -48,23 +48,23 @@ text_with_dropshadow(std::string text, const ImVec4& col)
   ImGui::TextColored(col, "%s", text.c_str());
 };
 
-const auto init_menu = [](entt::registry& r) {
+const auto my_greenish = hex_to_srgb("#71BBB2");
+const auto im_greenish = convert_my_to_im_vec(my_greenish);
+
+void
+init_menu(entt::registry& r)
+{
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
 
-  //
   // create a wiggly header
-  //
 
   // pos_x is 0 because camera is already at center
   const auto pos = glm::vec2(0, -viewport_size_half.y + ri.viewport_size_render_at.y * (3 / 12.0f));
 
-  const auto my_greenish = hex_to_srgb("#71BBB2");
-  const auto im_greenish = convert_my_to_im_vec(my_greenish);
-
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [im_greenish](entt::registry& r) {
+  wst_c.layout = [](entt::registry& r) {
     //
 
     const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
@@ -81,8 +81,9 @@ const auto init_menu = [](entt::registry& r) {
   wst_c.flags |= ImGuiWindowFlags_NoDecoration;
   wst_c.flags |= ImGuiWindowFlags_NoInputs;
   wst_c.flags |= ImGuiWindowFlags_NoBackground;
+  wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
 
-  auto header_e = create_empty<WorldspaceTextComponent>(r, wst_c);
+  const auto header_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(header_e);
   r.emplace<WiggleUpAndDown>(header_e,
                              WiggleUpAndDown{
@@ -99,13 +100,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_size = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  const auto viewport_size = ImVec2((float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y);
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
-
-#if defined(_DEBUG)
-  // imgui_draw_vec2("dropshadow_offset", dropshadow_offset);
-  // ImGui::ColorEdit4("dropshadow_col", dropshadow_col);
-#endif
 
   if (!ui_c.init) {
     init_menu(r);
@@ -150,6 +146,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   // Problem statement:
   // We want to register buttons, and each button has an action
@@ -231,7 +228,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   ImGui::PopFont();
 
   // note: could be in a separate file
-  ui_mute_sound_icon(r);
+  // ui_mute_sound_icon(r);
 };
 
 } // namespace game2d

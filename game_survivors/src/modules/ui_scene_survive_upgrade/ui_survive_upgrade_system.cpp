@@ -395,6 +395,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       flags |= ImGuiWindowFlags_NoDecoration;
       flags |= ImGuiWindowFlags_NoDocking;
       flags |= ImGuiWindowFlags_NoMove;
+      flags |= ImGuiWindowFlags_NoSavedSettings;
 
       ImGui::Begin("CheatLevelUp", nullptr, flags);
 
@@ -449,6 +450,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
 
@@ -638,6 +640,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       if (selectable_button(r, def)) {
         // Process action (aquire the upgrade)
         state_c.rows[state_c.current_row_index].action();
+        break;
       }
 
       // move vertically

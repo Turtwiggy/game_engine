@@ -54,6 +54,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto set_window_pos = ImVec2{ 0, (float)ri_c.viewport_size_render_at.y - distance_from_bottom_of_screen };
   const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, hp_bar_height };

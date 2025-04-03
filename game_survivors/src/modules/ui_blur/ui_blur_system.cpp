@@ -81,6 +81,7 @@ update_ui_blur_system(entt::registry& r, const float dt)
   blur_flags |= ImGuiWindowFlags_NoCollapse;
   blur_flags |= ImGuiWindowFlags_NoTitleBar;
   blur_flags |= ImGuiWindowFlags_NoInputs;
+  blur_flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::Begin("Blur", nullptr, blur_flags);
   ImGui::End();

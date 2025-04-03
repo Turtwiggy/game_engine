@@ -25,6 +25,7 @@ update_ui_raws_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::Begin("raws", NULL, flags);
 

@@ -113,6 +113,10 @@
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
+#if defined(_DEBUG)
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace game2d {
 using namespace std::literals;
 
@@ -201,6 +205,10 @@ duplicate_held_input(SINGLE_FixedUpdateInputHistory& fixed_input)
 void
 fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   auto& input = get_first_component<SINGLE_InputComponent>(r);
   auto& fixed_input = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
 
@@ -242,6 +250,10 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
 void
 update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   const float dt = milliseconds_dt / 1000.0f;
   const auto mouse_pos = mouse_position_in_worldspace(r);
@@ -347,7 +359,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  static bool show_settings_ui = true;
+  static bool show_settings_ui = false;
 #else
   static bool show_settings_ui = false;
 #endif
@@ -379,7 +391,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_debug_spawner_system(r);
     update_ui_debug_weapons_system(r);
     update_ui_raws_system(r);
-    update_ui_hierarchy_system(r);
+    // update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
   }
 

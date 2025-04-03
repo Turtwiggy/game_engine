@@ -23,6 +23,7 @@ update_ui_survive_xp_bar_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);

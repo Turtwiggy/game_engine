@@ -471,8 +471,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   showing_grid = show_grid;
 
   for (auto& pass : ri.passes) {
-    const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
-    const auto& pass_enum = pass.pass;
+    // const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
+    // const auto& pass_enum = pass.pass;
 
     Framebuffer::bind_fbo(pass.fbos[0]);
     RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
@@ -494,15 +494,15 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::clear();
 
     // Which pass to render finally?
-    PassName p = PassName::mix_lighting_and_scene;
-    if (get_first<SINGLE_EffectCrt>(r) != entt::null) {
-      auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
-      if (crt_c.enabled)
-        p = PassName::crt_effect;
-    }
+    // PassName p = PassName::mix_lighting_and_scene;
+    // if (get_first<SINGLE_EffectCrt>(r) != entt::null) {
+    //   auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
+    //   if (crt_c.enabled)
+    //     p = PassName::crt_effect;
+    // }
 
     // Note: ImGui::Image takes in TexID not TexUnit
-    const auto& pass = ri.passes[search_for_renderpass_by_name(ri, p)];
+    const auto& pass = ri.passes[(int)PassName::crt_effect];
     const auto tex_id = pass.texs[0].tex_id.id;
     const auto vi = render_texture_to_imgui_viewport(tex_id);
 

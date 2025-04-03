@@ -542,6 +542,7 @@ update_split_screen_into_quaters(entt::registry& r,
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoInputs;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const auto set_window_size = ImVec2{
@@ -660,6 +661,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     flags |= ImGuiWindowFlags_NoFocusOnAppearing;
     flags |= ImGuiWindowFlags_NoDocking;
     flags |= ImGuiWindowFlags_NoBackground;
+    flags |= ImGuiWindowFlags_NoSavedSettings;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);

@@ -61,4 +61,13 @@ init_steam(entt::registry& r)
   SDL_Log("GetLaunchCommandLine: %s", szCommandLine);
 }
 
+void
+SteamOverlayManager::OnGameOverlayActivated(GameOverlayActivated_t* pCallback)
+{
+  if (pCallback->m_bActive)
+    SDL_Log("Steam overlay now active");
+  else
+    SDL_Log("Steam overlay now inactive");
+}
+
 } // namespace game2d

@@ -76,6 +76,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoResize;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });

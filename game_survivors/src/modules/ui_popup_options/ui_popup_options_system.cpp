@@ -115,6 +115,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;

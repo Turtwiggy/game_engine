@@ -61,6 +61,7 @@ draw_select_header(entt::registry& r, SINGLE_RendererInfo& ri_c)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::Begin("SelectHeader", NULL, flags);
 
@@ -134,6 +135,7 @@ update_countdown_ui(entt::registry& r, const SINGLE_SelectSceneData& data_c)
   countdown_flags |= ImGuiWindowFlags_NoCollapse;
   countdown_flags |= ImGuiWindowFlags_NoTitleBar;
   countdown_flags |= ImGuiWindowFlags_NoBackground;
+  countdown_flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImGuiIO& io = ImGui::GetIO();
 

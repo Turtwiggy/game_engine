@@ -56,6 +56,7 @@ ui_mute_sound_icon(entt::registry& r)
   icon_flags |= ImGuiWindowFlags_NoTitleBar;
   icon_flags |= ImGuiWindowFlags_AlwaysAutoResize;
   icon_flags |= ImGuiWindowFlags_NoBackground;
+  icon_flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImVec2 icon_size{ 50, 50 };
   icon_size.x *= ui_c.scaling;

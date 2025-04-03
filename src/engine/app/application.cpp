@@ -3,6 +3,10 @@
 
 #include <SDL_timer.h>
 
+#if defined(_DEBUG)
+#include <tracy/Tracy.hpp>
+#endif
+
 void
 engine::start_frame(SINGLE_Application& app)
 {
@@ -12,6 +16,10 @@ engine::start_frame(SINGLE_Application& app)
 void
 engine::end_frame(SINGLE_Application& app)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   app.imgui.end_frame(app.window);
   SDL_GL_SwapWindow(app.window.get_handle());
 

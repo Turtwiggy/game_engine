@@ -17,6 +17,7 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
 
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
   window_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  window_flags |= ImGuiWindowFlags_NoSavedSettings;
 
   {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();

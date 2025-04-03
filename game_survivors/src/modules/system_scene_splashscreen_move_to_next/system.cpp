@@ -31,6 +31,7 @@ warning_ui(entt::registry& r, const std::string& text)
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::Begin("WaitingForAudio", NULL, flags);
   ImGui::Text("Initializing...");

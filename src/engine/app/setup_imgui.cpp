@@ -2,6 +2,10 @@
 
 #include "setup_imgui.hpp"
 
+#if defined(_DEBUG)
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace engine {
 
 ImGui_Manager::~ImGui_Manager()
@@ -25,6 +29,11 @@ ImGui_Manager::initialize(GameWindow& window)
   // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
   io.IniFilename = nullptr;
 #endif
+
+  // disable .ini to stop stuttering io calls
+  // this is mainly a problem because everything is on one thread
+  io.IniFilename = NULL;
+  io.LogFilename = NULL;
 
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
@@ -137,6 +146,10 @@ ImGui_Manager::initialize(GameWindow& window)
 void
 ImGui_Manager::begin_frame(const GameWindow& window)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplSDL2_NewFrame(window.get_handle());
   ImGui::NewFrame();
@@ -145,6 +158,10 @@ ImGui_Manager::begin_frame(const GameWindow& window)
 void
 ImGui_Manager::end_frame(const GameWindow& window)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   glm::ivec2 window_size = window.get_size();
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2(static_cast<float>(window_size.x), static_cast<float>(window_size.y));

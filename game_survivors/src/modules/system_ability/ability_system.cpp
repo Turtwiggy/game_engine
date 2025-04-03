@@ -3,7 +3,6 @@
 #include "ability_components.hpp"
 #include "ability_system.hpp"
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
@@ -81,9 +80,9 @@ anchor_release(entt::registry& r, entt::entity e, const InputComponent& input_c,
     r.remove<LockedInSpotComponent>(e);
 
   // Give a speed boost? tokyo drifffftttttt
-  const auto mass = body_c.body->GetMass();
-  body_c.body->SetLinearVelocity(10.0f * mass * speed_c.current_speed * b2Vec2{ input_c.lx, input_c.ly });
-}
+  const float meters_per_second = 5;
+  body_c.body->SetLinearVelocity(meters_per_second * b2Vec2{ input_c.lx, input_c.ly });
+};
 
 void
 update_ability_system(entt::registry& r, const float dt)

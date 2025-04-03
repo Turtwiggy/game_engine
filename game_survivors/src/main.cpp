@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 #include "game.hpp"
+#include <client/TracyCallstack.hpp>
 using namespace game2d;
 
 #include "engine/app/application.hpp"
@@ -13,6 +14,13 @@ using namespace engine;
 #include <emscripten.h>
 #endif
 
+#if defined(_DEBUG) && !defined(TRACY_ENABLE)
+#define TRACY_ENABLE
+#endif
+#if defined(_DEBUG)
+#include <tracy/Tracy.hpp>
+#endif
+
 // fixed tick
 // static constexpr int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
 static constexpr int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
@@ -21,13 +29,10 @@ static uint64_t milliseconds_accumulator_since_last_tick = 0;
 
 static SINGLE_Application app;
 static entt::registry game;
-
-static int frames_to_pass_before_init = 3;
-static bool done_init_slow = false;
 static std::optional<std::thread> slow_thread = std::nullopt;
 
 void
-launch_thread_after_x_frames()
+launch_thread()
 {
 #if defined(__EMSCRIPTEN__)
   const bool do_threaded = false;
@@ -36,38 +41,27 @@ launch_thread_after_x_frames()
 #endif
 
   if (do_threaded) {
-    if (frames_to_pass_before_init <= 0 && !done_init_slow) {
-      const auto work = []() { game2d::init_slow(app, game); };
-      slow_thread = std::thread(work);
-      done_init_slow = true;
-      SDL_Log("%s", std::format("spawning thread...").c_str());
-    }
-    if (slow_thread != std::nullopt && slow_thread.value().joinable()) {
-      SDL_Log("%s", std::format("joining thread...").c_str());
-      slow_thread.value().join();
-      slow_thread = std::nullopt;
-    }
+    const auto work = []() { game2d::init_slow(app, game); };
+    slow_thread = std::thread(work);
+    SDL_Log("%s", std::format("spawning thread...").c_str());
+    slow_thread.value().join();
+    SDL_Log("%s", std::format("joined thread...").c_str());
   }
 
-  if (!do_threaded) {
-    // Just do the slow work. Non-threded.
-    if (frames_to_pass_before_init <= 0 && !done_init_slow) {
-      game2d::init_slow(app, game);
-      done_init_slow = true;
-    }
-  }
-
-  if (frames_to_pass_before_init > 0)
-    frames_to_pass_before_init--;
+  // Just do the slow work. Non-threaded.
+  if (!do_threaded)
+    game2d::init_slow(app, game);
 }
 
 void
 main_loop(void* arg)
 {
+#if defined(_DEBUG)
+  ZoneScopedS(32);
+#endif
   IM_UNUSED(arg); // do nothing with it
 
   engine::start_frame(app);
-  launch_thread_after_x_frames();
 
   const uint64_t now = SDL_GetTicks64();
   app.start_ms = now;
@@ -91,12 +85,15 @@ main_loop(void* arg)
   game2d::update(app, game, frame_time);
 
   engine::end_frame(app);
+
+#if defined(_DEBUG)
+  FrameMark; // frame done
+#endif
 }
 
 int
 main(int argc, char* argv[])
 {
-
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
@@ -141,10 +138,9 @@ main(int argc, char* argv[])
   name += "[MSVC]";
 #endif
 
-#if defined(_DEBUG)
-  // app.limit_fps = true;
-  // app.fps_limit = 25;
-#endif
+  app.vsync = true;
+  // app.limit_fps = false;
+  // app.fps_limit = 120;
 
 #if defined(_DEBUG)
   app.window = GameWindow(name, DisplayMode::windowed_borderless, app.vsync);
@@ -154,6 +150,7 @@ main(int argc, char* argv[])
 
   app.imgui.initialize(app.window);
 
+  launch_thread();
   game2d::init(app, game);
   CHECK_OPENGL_ERROR(0);
 

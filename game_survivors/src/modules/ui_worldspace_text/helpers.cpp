@@ -78,6 +78,7 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
   wst_c.flags |= ImGuiWindowFlags_NoInputs;
   wst_c.flags |= ImGuiWindowFlags_NoNav;
   wst_c.flags |= ImGuiWindowFlags_NoBackground;
+  wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
 
   auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(popup_e);

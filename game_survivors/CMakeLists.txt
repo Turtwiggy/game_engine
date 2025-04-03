@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.30.0)
+include(FetchContent)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -35,6 +37,18 @@ endif()
 
 find_packages()
 
+set(TRACY_ENABLE 1)
+set(TRACY_CALLSTACK 1)
+
+FetchContent_Declare(
+  tracy
+  GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+  GIT_TAG v0.11.1
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(tracy)
+
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
   ${IMGUI_SOURCE}
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include/glad/glad.c
@@ -60,6 +74,7 @@ set(PCH_INSTANTIATE_TEMPLATES ON)
 
 link_libs(game_survivors)
 link_libs_steam(game_survivors)
+target_link_libraries(game_survivors PUBLIC TracyClient)
 
 #
 target_include_directories(game_survivors PRIVATE
