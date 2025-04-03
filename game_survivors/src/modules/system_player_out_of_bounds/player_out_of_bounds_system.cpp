@@ -13,6 +13,7 @@
 #include "modules/event_damage/event_damage_components.hpp"
 #include "modules/events/events_components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
+#include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "player_out_of_bounds_components.hpp"
 
 namespace game2d {
@@ -52,10 +53,17 @@ update_player_out_of_bounds_system(entt::registry& r, const float dt)
       continue;
     reset_cooldown(damage_c.cooldown_c);
 
-    // deal 5% of your max health
+    // deal 10% of your max health
     auto core_e = get_fixture_by_tag(r, e, "fixture_player");
     const auto& hp_c = r.get<HealthComponent>(core_e);
-    const int damage_per_tick = (int)(hp_c.max_hp * 0.05f);
+    float damage_per_tick = hp_c.max_hp * 0.1f;
+
+    // note: consider regen.
+    if (auto* regen_c = r.try_get<ActorHealthRegenComponent>(e)) {
+      const auto hp_per_sec = regen_c->hp_per_second;
+      const auto regen_damage = hp_per_sec * damage_c.cooldown_c.time_max;
+      damage_per_tick += regen_damage; // completely offset regen
+    }
 
     DamageEvent evt;
     evt.from = entt::null; // likely dead

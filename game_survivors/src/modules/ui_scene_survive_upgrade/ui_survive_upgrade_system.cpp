@@ -16,6 +16,7 @@
 #include "modules/ui_common/ui_common_components.hpp"
 #include "modules/ui_common/ui_common_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
@@ -384,7 +385,6 @@ update_ui_survive_upgrade_system(entt::registry& r)
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
     auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
     if (cheat_levelup_state.enabled) {
-      // if (true) {
 
       ImGui::SetNextWindowPos(ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y },
                               ImGuiCond_Always,
