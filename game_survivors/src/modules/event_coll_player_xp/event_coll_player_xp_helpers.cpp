@@ -22,18 +22,18 @@ handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
 
   // If your xp zone collides with xp, make it fly to the player.
   {
-    const auto [zone_e, xp_e] = coll<XpZoneComponent, XpComponent>(r, evt.a, evt.b);
-    if (zone_e != entt::null && xp_e != entt::null) {
+    const auto [zone_e, xp_fixture_e] = coll<XpZoneComponent, XpComponent>(r, evt.a, evt.b);
+    if (zone_e != entt::null && xp_fixture_e != entt::null) {
 
-      const std::function<void(entt::registry&)> make_xp_fly_to_player = [xp_e, zone_e](entt::registry& r) {
-        auto& fixture_c = r.get<PhysicsFixtureComponent>(xp_e);
+      const std::function<void(entt::registry&)> make_xp_fly_to_player = [xp_fixture_e, zone_e](entt::registry& r) {
+        const auto& fixture_c = r.get<PhysicsFixtureComponent>(xp_fixture_e);
         const auto player_par_e = r.get<HasParentComponent>(zone_e).parent;
 
         // change xp from static to dynamic.
         fixture_c.body->SetType(b2BodyType::b2_dynamicBody);
 
         // Add components to xp parent not fixture.
-        auto xp_parent = r.get<HasParentComponent>(xp_e).parent;
+        const auto xp_parent = r.get<HasParentComponent>(xp_fixture_e).parent;
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = false;
         tgt_c.speed = 10.0f;

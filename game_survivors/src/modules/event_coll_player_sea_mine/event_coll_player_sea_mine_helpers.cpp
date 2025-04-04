@@ -25,7 +25,7 @@ handle_player_enter_sea_mine(entt::registry& r, const OnCollisionEnter& evt)
   //
 
   // Same as exploder logic...
-  const auto item_par_e = r.get<HasParentComponent>(item_e).parent;
+  const auto item_par_e = r.get<const HasParentComponent>(item_e).parent;
 
   const std::function<bool(entt::registry&, entt::entity)> filter_criteria = [](entt::registry& r, entt::entity e) -> bool {
     bool valid_target = false;

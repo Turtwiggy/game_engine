@@ -14,7 +14,7 @@
 
 namespace game2d {
 
-auto pink = hex_to_srgb("#D075CE"); // pink
+const auto pink = hex_to_srgb("#D075CE"); // pink
 
 void
 drop_levelup_xp_on_death_callback(entt::registry& r, const entt::entity e)

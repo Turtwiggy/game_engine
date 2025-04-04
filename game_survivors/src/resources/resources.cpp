@@ -65,6 +65,7 @@ get_default_audio()
   audio.sounds.push_back({ "SHOTGUN_RELOAD_0", path + "RELOAD_Pump_stereo.wav", SoundType::SFX });
   audio.sounds.push_back({ "TAKE_DAMAGE_0", path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
 
+  // audio.sounds.push_back({ "BUOY_0", path + "marblehead_bell_buoy_nrm_23.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back(
     { "WATER_AMBIENCE_0", path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "MENU_0", path + "sergepavkin_smooth-waters.mp3", SoundType::BACKGROUND });

@@ -5,6 +5,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/core_raws/raws_helpers.hpp"
+#include "modules/system_upgrade/upgrade_components.hpp"
 #include "ui_survive_upgrade_components.hpp"
 
 namespace game2d {
@@ -29,8 +31,8 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 
     UpgradeResultsComponent results_c;
 
-    // Roll 3 times for 3 upgrades.
-    for (int upg_idx = 0; upg_idx < 3; upg_idx++) {
+    // Roll for 3 upgrades, but make sure they're unique.
+    while (results_c.results.size() != 3) {
       const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)traits_to_level_up.size());
       const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
 
@@ -45,12 +47,12 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       }
 
       const auto upgrade = traits_to_level_up[roll_value];
-      results_c.results.push_back({ .rarity = rarity, .upgrade = upgrade });
+      const UpgradeRollResult result = { .rarity = rarity, .upgrade = upgrade };
+      results_c.results.emplace(result);
     }
 
     gen_count++;
-    r.emplace<UpgradeResultsComponent>(
-      player_e, UpgradeResultsComponent{ .results = std::vector(results_c.results.begin(), results_c.results.end()) });
+    r.emplace<UpgradeResultsComponent>(player_e, results_c);
   }
 
   SDL_Log("Generated upgrades for %i players", gen_count);
@@ -78,5 +80,41 @@ get_player_e_from_idx(entt::registry& r, int player_idx)
 
   return (*player_it);
 };
+
+SINGLE_UpgradeToName
+load_upgrade_names(const std::string& path)
+{
+  SDL_Log("loading upgrade names... %s", path.c_str());
+
+  // load from disk
+  std::ifstream t(path);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  const std::string data_with_comments = buffer.str();
+
+  // remove comments from .jsonc file
+  std::istringstream stream(data_with_comments);
+  std::ostringstream output;
+  std::string line;
+  while (std::getline(stream, line)) {
+    std::string cleaned_line = remove_comment(line);
+    output << cleaned_line << "\n";
+  }
+
+  const std::string string_without_comments = output.str();
+  nlohmann::json root = nlohmann::json::parse(string_without_comments);
+  SINGLE_UpgradeToName data = root.get<SINGLE_UpgradeToName>();
+
+  // populate data stat_to_name_map
+  for (const auto& upgrade_on_disk : data.names) {
+    const UpgradeRollResult result{
+      .rarity = magic_enum::enum_cast<Rarity>(upgrade_on_disk.rarity).value(),
+      .upgrade = magic_enum::enum_cast<UpgradeableStat>(upgrade_on_disk.stat).value(),
+    };
+    data.stat_to_name_map[result] = upgrade_on_disk.name;
+  }
+
+  return data;
+}
 
 } // namespace game2d

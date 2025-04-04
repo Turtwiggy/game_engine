@@ -1,0 +1,107 @@
+{
+  "names": [
+
+    //
+    // Note: these upgrades try to be 19th century naval technology,
+    // with a stretch in to early 20th century tech, and some ol' silly bits, you silly badgers!
+    //
+
+    { "stat": "ACTOR_DODGE_CHANCE", "rarity":"COMMON",          "name": "Skilled Helmsmen"},
+    { "stat": "ACTOR_DODGE_CHANCE", "rarity":"UNCOMMON",        "name": "Balanced Rudder"},
+    { "stat": "ACTOR_DODGE_CHANCE", "rarity":"RARE",            "name": "Auxiliary Steering"},
+    { "stat": "ACTOR_DODGE_CHANCE", "rarity":"LEGENDARY",       "name": "Gyroscopic Stabilizers"},
+    { "stat": "ACTOR_DODGE_CHANCE", "rarity":"SUPER_LEGENDARY", "name": "Twin Screw Propultion"},
+
+    { "stat": "ACTOR_HEALTH_MAX", "rarity":"COMMON",            "name": "Double-Planed Oak Hull"},
+    { "stat": "ACTOR_HEALTH_MAX", "rarity":"UNCOMMON",          "name": "Iron Belt Armor"},
+    { "stat": "ACTOR_HEALTH_MAX", "rarity":"RARE",              "name": "Case-Hardened Steel Plating"},
+    { "stat": "ACTOR_HEALTH_MAX", "rarity":"LEGENDARY",         "name": "Sloped Armor Citadel"},
+    { "stat": "ACTOR_HEALTH_MAX", "rarity":"SUPER_LEGENDARY",   "name": "Composite Alloy Armor"},
+
+    { "stat": "ACTOR_HEALTH_REGEN", "rarity":"COMMON",          "name": "Damage Control Parties"},
+    { "stat": "ACTOR_HEALTH_REGEN", "rarity":"UNCOMMON",        "name": "Watertight Compartments"},
+    { "stat": "ACTOR_HEALTH_REGEN", "rarity":"RARE",            "name": "Pumped Bilge System"},
+    { "stat": "ACTOR_HEALTH_REGEN", "rarity":"LEGENDARY",       "name": "Living Ship Worms"},
+    { "stat": "ACTOR_HEALTH_REGEN", "rarity":"SUPER_LEGENDARY", "name": "Flash-Welding Repair Teams"},
+
+    { "stat": "ACTOR_SPEED", "rarity":"COMMON",                 "name": "Trimmed Sails"},
+    { "stat": "ACTOR_SPEED", "rarity":"UNCOMMON",               "name": "Copper-Bottom Hull"},
+    { "stat": "ACTOR_SPEED", "rarity":"RARE",                   "name": "Triple-Expansion Engine"},
+    { "stat": "ACTOR_SPEED", "rarity":"LEGENDARY",              "name": "Turbine Drive System"},
+    { "stat": "ACTOR_SPEED", "rarity":"SUPER_LEGENDARY",        "name": "Supercharged Boilers"},
+    
+    { "stat": "ACTOR_XP_ZONE_SIZE", "rarity":"COMMON",          "name": "Signal Flags Training"},
+    { "stat": "ACTOR_XP_ZONE_SIZE", "rarity":"UNCOMMON",        "name": "Telegraph Orders"},
+    { "stat": "ACTOR_XP_ZONE_SIZE", "rarity":"RARE",            "name": "Rangefinder Crews"},
+    { "stat": "ACTOR_XP_ZONE_SIZE", "rarity":"LEGENDARY",       "name": "Centralized Fire Control"},
+    { "stat": "ACTOR_XP_ZONE_SIZE", "rarity":"SUPER_LEGENDARY", "name": "Veteran Admirals"},
+
+
+    { "stat": "BULLET_CRIT_CHANCE", "rarity":"COMMON",          "name": "Lucky Shots"},
+    { "stat": "BULLET_CRIT_CHANCE", "rarity":"UNCOMMON",        "name": "Optical Sights"},
+    { "stat": "BULLET_CRIT_CHANCE", "rarity":"RARE",            "name": "Stabilized Gun Mounts"},
+    { "stat": "BULLET_CRIT_CHANCE", "rarity":"LEGENDARY",       "name": "Mechanical Predictor"},
+    { "stat": "BULLET_CRIT_CHANCE", "rarity":"SUPER_LEGENDARY", "name": "Gyro-Stabilized Fire Control"},
+
+    { "stat": "BULLET_CRIT_DAMAGE", "rarity":"COMMON",          "name": "Hardened Shot"},
+    { "stat": "BULLET_CRIT_DAMAGE", "rarity":"UNCOMMON",        "name": "Palliser Shells"},
+    { "stat": "BULLET_CRIT_DAMAGE", "rarity":"RARE",            "name": "Tungsten-Core Ammo"},
+    { "stat": "BULLET_CRIT_DAMAGE", "rarity":"LEGENDARY",       "name": "Shaped-Charge Warheads"},
+    { "stat": "BULLET_CRIT_DAMAGE", "rarity":"SUPER_LEGENDARY", "name": "Depleted Uranium Shells"},
+
+    { "stat": "BULLET_DAMAGE", "rarity":"COMMON",               "name": "High-Explosive Shells"},
+    { "stat": "BULLET_DAMAGE", "rarity":"UNCOMMON",             "name": "Lyddite Shells"},
+    { "stat": "BULLET_DAMAGE", "rarity":"RARE",                 "name": "Armor-Piercing HE"},
+    { "stat": "BULLET_DAMAGE", "rarity":"LEGENDARY",            "name": "Delay-Fuse Shells"},
+    { "stat": "BULLET_DAMAGE", "rarity":"SUPER_LEGENDARY",      "name": "Flash-Forged Fragmentation"},
+
+    { "stat": "BULLET_KNOCKBACK", "rarity":"COMMON",          "name": "Wide-Bore Muzzles"},
+    { "stat": "BULLET_KNOCKBACK", "rarity":"UNCOMMON",        "name": "Concussive Shells"},
+    { "stat": "BULLET_KNOCKBACK", "rarity":"RARE",            "name": "Airburst Fuses"},
+    { "stat": "BULLET_KNOCKBACK", "rarity":"LEGENDARY",       "name": "Hydraulic Recoil Guns"},
+    { "stat": "BULLET_KNOCKBACK", "rarity":"SUPER_LEGENDARY", "name": "Compressed Steam Blast"},
+    
+    { "stat": "BULLET_LIFESTEAL", "rarity":"COMMON",          "name": "Medical Supply Cashes"},
+    { "stat": "BULLET_LIFESTEAL", "rarity":"UNCOMMON",        "name": "Stimulant-Injected Crew"},
+    { "stat": "BULLET_LIFESTEAL", "rarity":"RARE",            "name": "Automated Tourniquets"},
+    { "stat": "BULLET_LIFESTEAL", "rarity":"LEGENDARY",       "name": "Blood Transfusion Kits"},
+    { "stat": "BULLET_LIFESTEAL", "rarity":"SUPER_LEGENDARY", "name": "Electro-Stimulant Revival"},
+
+    { "stat": "BULLET_PIERCE", "rarity":"COMMON",          "name": "Chain Shot"},
+    { "stat": "BULLET_PIERCE", "rarity":"UNCOMMON",        "name": "Bar Shot"},
+    { "stat": "BULLET_PIERCE", "rarity":"RARE",            "name": "Tandem-charge"},
+    { "stat": "BULLET_PIERCE", "rarity":"LEGENDARY",       "name": "XXX"},
+    { "stat": "BULLET_PIERCE", "rarity":"SUPER_LEGENDARY", "name": "Screw-Piercing Shot"},
+
+    { "stat": "BULLET_SPEED", "rarity":"COMMON",          "name": "Fast-Burning Powder"},
+    { "stat": "BULLET_SPEED", "rarity":"UNCOMMON",        "name": "Smoothbore Barrels"},
+    { "stat": "BULLET_SPEED", "rarity":"RARE",            "name": "Electrothermal Charges"},
+    { "stat": "BULLET_SPEED", "rarity":"LEGENDARY",       "name": "Recuperator Mechanism"},
+    { "stat": "BULLET_SPEED", "rarity":"SUPER_LEGENDARY", "name": "Supercharged Propellant"},
+
+
+    { "stat": "WEAPON_CLIP_SIZE", "rarity":"COMMON",          "name": "Extended Mags"},
+    { "stat": "WEAPON_CLIP_SIZE", "rarity":"UNCOMMON",        "name": "Belt-Fed Hopper"},
+    { "stat": "WEAPON_CLIP_SIZE", "rarity":"RARE",            "name": "Hot-Swap Turrets"},
+    { "stat": "WEAPON_CLIP_SIZE", "rarity":"LEGENDARY",       "name": "Autoloader System"},
+    { "stat": "WEAPON_CLIP_SIZE", "rarity":"SUPER_LEGENDARY", "name": "Buckets-of-Bullets!"},
+
+    { "stat": "WEAPON_FIRERATE", "rarity":"COMMON",          "name": "Quick Ignition"},
+    { "stat": "WEAPON_FIRERATE", "rarity":"UNCOMMON",        "name": "Muzzle Loader"},
+    { "stat": "WEAPON_FIRERATE", "rarity":"RARE",            "name": "Gatling Mechanism"},
+    { "stat": "WEAPON_FIRERATE", "rarity":"LEGENDARY",       "name": "Pneumatic Rammer"},
+    { "stat": "WEAPON_FIRERATE", "rarity":"SUPER_LEGENDARY", "name": "Reciprocating Autoloader"},
+
+    { "stat": "WEAPON_RELOAD", "rarity":"COMMON",          "name": "Trained Gun Crews"},
+    { "stat": "WEAPON_RELOAD", "rarity":"UNCOMMON",        "name": "Hydraulic Shell Hoist"},
+    { "stat": "WEAPON_RELOAD", "rarity":"RARE",            "name": "Cased Ammunition"},
+    { "stat": "WEAPON_RELOAD", "rarity":"LEGENDARY",       "name": "Automatic Brechblock"},
+    { "stat": "WEAPON_RELOAD", "rarity":"SUPER_LEGENDARY", "name": "Quantum Relock"},
+
+    { "stat": "WEAPON_RANGE", "rarity":"COMMON",          "name": "Elevated Gun Deck"},
+    { "stat": "WEAPON_RANGE", "rarity":"UNCOMMON",        "name": "Extended Sights"},
+    { "stat": "WEAPON_RANGE", "rarity":"RARE",            "name": "Rangerfinder"},
+    { "stat": "WEAPON_RANGE", "rarity":"LEGENDARY",       "name": "Electromagnetic Longshot"},
+    { "stat": "WEAPON_RANGE", "rarity":"SUPER_LEGENDARY", "name": "Sniper-of-the-Seas!"}
+  ]
+}

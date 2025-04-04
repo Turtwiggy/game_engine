@@ -247,4 +247,14 @@ get_system_time_for_seed()
   return seed;
 };
 
+bool
+circle_collision(const Circle& a, const Circle& b)
+{
+  const auto d = b.pos - a.pos;
+  const auto d2 = d.x * d.x + d.y * d.y;
+  const float rad = a.radius + b.radius;
+  const float rad_sqr = rad * rad;
+  return d2 < rad_sqr;
+};
+
 } // namespace engine

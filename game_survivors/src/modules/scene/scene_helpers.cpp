@@ -73,7 +73,7 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 bool
 add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
 {
-  std::vector<std::string> supported_spritestacks{
+  const std::vector<std::string> supported_spritestacks{
     "dinghy",
     "rhib",
     "pbr",
@@ -81,7 +81,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
   };
 
   // i.e. which layer makes mose sense to have as the hitbox?
-  std::vector<int> spritestack_base_layer{
+  const std::vector<int> spritestack_base_layer{
     1,
     9,
     26,
@@ -238,32 +238,39 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
 
   // r.emplace<SpriteOutline>(e);
 
+  const auto add_trail = [&r, e](glm::vec2 offset) {
+    const auto tl_offset = offset;
+    const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-l");
+    r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
+    r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
+
+    RequestToSpawnParticles req;
+    req.key = "default_trail";
+    req.parent = emitter_parent_e;
+    spawn_particle_emitter(r, req);
+  };
+
   // add trail to the butt of the boat
   if (hull_key == "dinghy") {
     const auto inset = 2.0f;
-    {
-      // const auto tl_offset = glm::vec2{ 0, size/2 };
-      const auto tl_offset = glm::vec2{ inset, inset };
-      const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-l");
-      r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
-      r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
-
-      RequestToSpawnParticles req;
-      req.key = "default_trail";
-      req.parent = emitter_parent_e;
-      spawn_particle_emitter(r, req);
-    }
-    {
-      const auto tl_offset = glm::vec2{ inset, size.y - inset };
-      const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-r");
-      r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
-      r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
-
-      RequestToSpawnParticles req;
-      req.key = "default_trail";
-      req.parent = emitter_parent_e;
-      spawn_particle_emitter(r, req);
-    }
+    add_trail({ inset, inset });
+    add_trail({ inset, size.y - inset });
+  }
+  if (hull_key == "pbr") {
+    const auto inset = 2.0f;
+    add_trail({ inset, inset });
+    add_trail({ inset, size.y - inset });
+  }
+  if (hull_key == "rhib") {
+    const auto inset = 3.0f;
+    add_trail({ inset, inset });
+    add_trail({ inset, size.y - inset });
+  }
+  if (hull_key == "trimaran") {
+    const auto inset = 2.0f;
+    add_trail({ inset, inset });
+    add_trail({ inset, size.y * 0.5f });
+    add_trail({ inset, size.y - inset });
   }
 
   // Apply some drag, bro
@@ -386,6 +393,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::select) {
     // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "BUOY_0", .looping = true });
     create_empty<SINGLE_SelectSceneData>(r);
   }
 

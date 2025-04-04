@@ -22,8 +22,6 @@
 #include "modules/system_autofire/autofire_helpers.hpp"
 #include "modules/system_hardpoint_arcs/hulls_components.hpp"
 
-#include "modules/core_sprites/sprite_helpers.hpp"
-
 namespace game2d {
 
 void
@@ -130,15 +128,9 @@ update_autofire_system(entt::registry& r, const float dt)
       const float enemy_radius_meters = glm::max(enemy_size.x, enemy_size.y) * 0.5f;
 
       // check for circle col...
-      const auto c1 = wep_pos_in_meters;
-      const auto c2 = enemy_pos_in_meters;
-      const auto r1 = search_radius_meters;
-      const auto r2 = enemy_radius_meters;
-      const auto d = c2 - c1;
-      const auto d2 = d.x * d.x + d.y * d.y;
-      const float rad = r1 + r2;
-      const float rad_sqr = rad * rad;
-      const bool coll = d2 <= rad_sqr;
+      const bool coll = engine::circle_collision(
+        engine::Circle{ .pos = { wep_pos_in_meters.x, wep_pos_in_meters.y }, .radius = search_radius_meters },
+        engine::Circle{ .pos = { enemy_pos_in_meters.x, enemy_pos_in_meters.y }, .radius = enemy_radius_meters });
 
 #if defined(_DEBUG)
       if (is_enemy) {

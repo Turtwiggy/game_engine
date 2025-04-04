@@ -375,6 +375,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
+  GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
 
   // check the probabilities are mathing to 100%
   static_assert(sum_array_values() == 100);
@@ -554,16 +555,19 @@ update_ui_survive_upgrade_system(entt::registry& r)
     for (int card_idx = 0; card_idx < (int)state_c.rows.size(); card_idx++) {
 
       // card data.
-      const auto [rarity, upgrade] = upgrades_c->results[card_idx];
+      const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
+      const auto [rarity, upgrade] = upgrades_vec[card_idx];
       const auto rarity_str = std::string(magic_enum::enum_name(rarity));
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
       const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
       const auto desc_txt = std::format("{} {:0.2f}", upgrade_str, amount);
+      const UpgradeRollResult result{ .rarity = rarity, .upgrade = upgrade };
+      const std::string flavour_text = upg_name_c.stat_to_name_map.at(result);
 
       const CardDataUI data{
         .rarity = rarity,
         .rarity_txt = rarity_str,
-        .header_txt = "Bronze Hulls", // todo: generate unique names for all upgradez
+        .header_txt = flavour_text, // get name e.g. Bronze Hulls
         .desc_txt = desc_txt,
         .selected = state_c.current_row_index == card_idx,
       };

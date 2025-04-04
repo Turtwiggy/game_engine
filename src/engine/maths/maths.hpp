@@ -140,4 +140,13 @@ angle_degrees_flip_y_axis(float angle_degrees);
 [[nodiscard]] int
 get_system_time_for_seed();
 
+struct Circle
+{
+  glm::vec2 pos;
+  float radius;
+};
+
+bool
+circle_collision(const Circle& a, const Circle& b);
+
 } // namespace engine

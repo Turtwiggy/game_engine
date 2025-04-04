@@ -32,7 +32,7 @@ handle_player_enter_vacuum_orb(entt::registry& r, const OnCollisionEnter& evt)
       fixture_c.body->SetType(b2BodyType::b2_dynamicBody);
 
       // Add components to xp parent not fixture.
-      auto xp_parent = r.get<HasParentComponent>(xp_e).parent;
+      const auto xp_parent = r.get<HasParentComponent>(xp_e).parent;
       ApplyForceToDynamicTarget tgt_c;
       tgt_c.orbit = false;
       tgt_c.speed = 10.0f;

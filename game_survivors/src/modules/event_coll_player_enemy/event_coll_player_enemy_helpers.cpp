@@ -71,8 +71,8 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
 
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
-  auto player_parent_e = r.get<HasParentComponent>(player_fixture_e).parent;
-  auto enemy_parent_e = r.get<HasParentComponent>(enemy_fixture_e).parent;
+  const auto player_parent_e = r.get<HasParentComponent>(player_fixture_e).parent;
+  const auto enemy_parent_e = r.get<HasParentComponent>(enemy_fixture_e).parent;
 
   // explode on contact with enemies with the "explode" trait
   handle_player_enemy_explosive_coll(r, enemy_parent_e);

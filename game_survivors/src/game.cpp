@@ -107,6 +107,8 @@
 #include "modules/ui_scene_survive_hp_bars/ui_survive_hp_bars.hpp"
 #include "modules/ui_scene_survive_info/ui_survive_info_system.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_system.hpp"
+#include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+#include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 #include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 #include "modules/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui_sdl2_controller/ui_sdl2_controller_system.hpp"
@@ -166,6 +168,8 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_Upgrades>(r, load_upgrades("assets/raws/persistent_upgrades.jsonc"));
   create_persistent<SINGLE_Weapons>(r, load_weapons("assets/raws/weapons.jsonc"));
   create_persistent<SINGLE_OnDiskSpawners>(r, load_spawns("assets/raws/spawns.jsonc"));
+  create_persistent<SINGLE_UpgradeToName>(r, load_upgrade_names("assets/raws/upgrade_names.jsonc"));
+
   create_persistent<SINGLE_EffectCrt>(r);
   create_persistent<SINGLE_FixedUpdateInputHistory>(r);
   create_persistent<SINGLE_SteamControllerGameState>(r);

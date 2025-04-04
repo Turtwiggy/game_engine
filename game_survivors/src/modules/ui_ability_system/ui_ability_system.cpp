@@ -78,14 +78,14 @@ update_ui_ability_system(entt::registry& r)
     const auto button2_col = allowed_to_use_ability_2 ? im_active_col : im_cooldown_col;
     draw_list->AddRectFilled(button2_tl, button2_br, button2_col, 8.0f);
 
-    const auto text_size1 = ImGui::CalcTextSize("L");
-    const auto text_size2 = ImGui::CalcTextSize("R");
+    auto* font = ImGui::GetDefaultFont();
+    const int font_size = 16;
+    const auto text_size1 = font->CalcTextSizeA(font_size, FLT_MAX, -1, "L");
+    const auto text_size2 = font->CalcTextSizeA(font_size, FLT_MAX, -1, "R");
     const auto text_pos1 = ImVec2(im_screenspace1.x - 0.5f * text_size1.x, im_screenspace1.y - 0.5f * text_size1.y);
     const auto text_pos2 = ImVec2(im_screenspace2.x - 0.5f * text_size2.x, im_screenspace2.y - 0.5f * text_size2.y);
-
-    auto* font = ImGui::GetDefaultFont();
-    draw_list->AddText(font, 16, text_pos1, IM_COL32(255, 255, 255, 255), "L");
-    draw_list->AddText(font, 16, text_pos2, IM_COL32(255, 255, 255, 255), "R");
+    draw_list->AddText(font, font_size, text_pos1, IM_COL32(255, 255, 255, 255), "L");
+    draw_list->AddText(font, font_size, text_pos2, IM_COL32(255, 255, 255, 255), "R");
 
     // Sprite s1;
     // s1.sprite = allowed_to_use_ability_1 ? "CIRCLE" : "CIRCLE";

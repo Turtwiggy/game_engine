@@ -5,6 +5,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/core_raws/raws_helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
@@ -117,22 +118,30 @@ rnd_position_around_point(entt::registry& r, const glm::ivec2 center, float radi
 glm::vec2
 rnd_position_in_map_but_not_inside_players(entt::registry& r)
 {
-  int attempts = 3;
-  auto candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, 700.0f);
+  const int attempts = 3;
+  const float map_x = 700;
+  auto candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, map_x);
 
   for (int i = 0; i < attempts; i++) {
     bool valid = true;
 
-    auto view = r.view<const PlayerComponent>();
-    for (const auto& [e, player_c] : view.each()) {
-      auto d = get_position(r, e) - candidate;
-      const float d2 = d.x * d.x + d.y * d.y;
-      // SDL_Log("d2: %f", d2);
-
+    const auto view = r.view<const PlayerComponent, const TransformComponent>();
+    for (const auto& [e, player_c, t_c] : view.each()) {
+      const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
       constexpr int buffer_size_sqr = 32 * 32;
-      constexpr int player_size_sqr = 32 * 32;
-      if (d2 < (player_size_sqr + buffer_size_sqr))
-        valid = false; // candidate invalid. try again.
+
+      const bool coll = engine::circle_collision(
+        {
+          .pos = get_position(r, e),
+          .radius = 0.5f * glm::max(size.x, size.y),
+        },
+        {
+          .pos = candidate,
+          .radius = 32 * 32,
+        });
+
+      if (coll) // candidate invalid. try again.
+        valid = false;
     }
 
     if (valid)

@@ -69,12 +69,14 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // Make it a variant.
   // outline it
-  // Double the HP, but it also drops a level up.
+  // 10x the HP, but it also drops a level up.
   static engine::RandomState variant_rng(0);
-  const bool is_variant = engine::rand_det_s(variant_rng.rng, 0, 100) < 2.0f;
+  const float variant_chance_percent_0_100 = 1.5f;
+  const float variant_hp_multiplier = 10.0f;
+  const bool is_variant = engine::rand_det_s(variant_rng.rng, 0, 100) < variant_chance_percent_0_100;
   if (is_variant) {
     r.emplace<SpriteOutline>(e);
-    hp *= 2.0f;
+    hp *= variant_hp_multiplier;
     auto& death_c = r.get<OnDeathCallbacks>(e);
     auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
     death_c.callbacks.push_back(drop_xp_callback);
