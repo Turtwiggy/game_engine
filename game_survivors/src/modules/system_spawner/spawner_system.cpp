@@ -46,6 +46,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
+  // hack: multiply hp by number of players.
+  const auto num_players = r.view<PlayerComponent>().size();
+  hp *= glm::max((float)num_players, 1.0f);
+
   // TODO: could have an "aggro meter" per player?
   auto target_e = get_random_player_target(r);
   if (target_e == entt::null)
