@@ -8,6 +8,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon/weapon_components.hpp"
 #include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_renderer/components.hpp"
@@ -50,7 +51,7 @@ add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc&
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? desc.font_size : desc.font_size_scaled;
   const auto font_size = (float)font_enum;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto* font = get_inter_font(r, font_enum);
 
   const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, desc.wrap_width, desc.text.c_str());
   const auto text_pos = desc.non_centered_pos - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
@@ -327,7 +328,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
       const auto font_size = (float)font_enum;
-      const auto* font = get_fingerpaint_font(r, font_enum);
+      const auto* font = get_inter_font(r, font_enum);
 
       const float desc_pad_x = 6;
       const float width_limit = box_wh.x - (2.0f * desc_pad_x);
@@ -343,7 +344,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
       const auto font_size = (float)font_enum;
-      auto* font = get_fingerpaint_font(r, font_enum);
+      auto* font = get_inter_font(r, font_enum);
 
       const std::string arrow_l = "<";
       const std::string arrow_r = ">";
@@ -479,7 +480,7 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
 
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto* font = get_inter_font(r, font_enum);
 
   // use h not wh.y
   static float space_per_row = (float)font_enum;
@@ -673,7 +674,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
     const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
     const auto text_font_size = (float)text_font_enum;
-    auto* text_font = get_fingerpaint_font(r, text_font_enum);
+    auto* text_font = get_inter_font(r, text_font_enum);
 
     ImGui::SetNextWindowPos({ (float)ri_c.viewport_size_render_at.x * 0.5f, (float)ri_c.viewport_size_render_at.y - 100 },
                             ImGuiCond_Always,
@@ -714,9 +715,12 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
                                       ui_c.player_choice_state.begin() + num_active_players };
 
   const auto confirmed = [](const HullChoice& choice) { return choice.confirmed; };
-  const auto everyone_confirmed = std::all_of(c.begin(), c.end(), confirmed);
-  const auto someone_confirmed = std::any_of(c.begin(), c.end(), confirmed);
-  const auto noone_confirmed = std::none_of(c.begin(), c.end(), confirmed);
+  auto everyone_confirmed = std::all_of(c.begin(), c.end(), confirmed);
+  auto someone_confirmed = std::any_of(c.begin(), c.end(), confirmed);
+  auto noone_confirmed = std::none_of(c.begin(), c.end(), confirmed);
+  everyone_confirmed &= r.view<PlayerComponent>().size() > 0;
+  someone_confirmed &= r.view<PlayerComponent>().size() > 0;
+  noone_confirmed &= r.view<PlayerComponent>().size() == 0;
 
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2{ 0.5f, 0.5f });
   update_countdown(ui_c, everyone_confirmed, dt);

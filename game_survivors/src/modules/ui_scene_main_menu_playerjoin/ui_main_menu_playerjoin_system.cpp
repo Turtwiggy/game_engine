@@ -285,7 +285,7 @@ draw_player_ui_box(entt::registry& r,
   const auto add_bottom_left_text = [&](std::string text_str) -> void {
     const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
-    auto* font = get_fingerpaint_font(r, font_enum);
+    auto* font = get_inter_font(r, font_enum);
     ImGui::PushFont(font);
 
     const auto text_str_len = ImGui::CalcTextSize(text_str.c_str());
@@ -324,7 +324,7 @@ draw_player_ui_box(entt::registry& r,
 
     const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
-    ImGui::PushFont(get_fingerpaint_font(r, font_enum));
+    ImGui::PushFont(get_inter_font(r, font_enum));
 
     {
       const std::string text = "G";
@@ -400,7 +400,7 @@ draw_player_ui_box(entt::registry& r,
 
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
-      ImGui::PushFont(get_fingerpaint_font(r, font_enum));
+      ImGui::PushFont(get_inter_font(r, font_enum));
 
       const auto text_wh = ImGui::CalcTextSize(text.c_str());
       const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };

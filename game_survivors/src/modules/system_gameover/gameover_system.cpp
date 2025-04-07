@@ -7,6 +7,7 @@
 #include "modules/system_gameover/gameover_components.hpp"
 #include "modules/system_item_gold/gold_components.hpp"
 #include "modules/system_stats/stats_components.hpp"
+#include "modules/ui_gameover/ui_gameover_components.hpp"
 #include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 
 namespace game2d {
@@ -14,8 +15,16 @@ namespace game2d {
 void
 update_gameover_system(entt::registry& r)
 {
-  auto game_over_view = r.view<GameOverComponent>();
+  const auto game_over_view = r.view<GameOverComponent>();
   if (game_over_view.size() > 0)
+    return; // game already ended
+
+  // note: having system rely on ui state is pretty sus
+  const auto ui_gameover_e = get_first<SINGLE_GameoverUI>(r);
+  if (ui_gameover_e == entt::null)
+    return;
+  const auto game_over_ui_open = r.get<SINGLE_GameoverUI>(ui_gameover_e).open;
+  if (game_over_ui_open)
     return; // game already ended
 
   GET_FIRST_OR_RETURN(SINGLE_GoldComponent, r, gold_e, gold_c);

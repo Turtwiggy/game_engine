@@ -49,8 +49,8 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
     const auto text_col = hex_to_srgb("#ffffff");
 
     const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
-    auto* font = get_fingerpaint_font(r, font_enum);
+    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+    auto* font = get_inter_font(r, font_enum);
     ImGui::PushFont(font);
 
     const auto im_crit_col = ImVec4{

@@ -99,7 +99,7 @@ ui_display_backbuttons(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
   const auto text_font_size = (float)text_font_enum;
-  auto* text_font = get_fingerpaint_font(r, text_font_enum);
+  auto* text_font = get_inter_font(r, text_font_enum);
   const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
   const auto button_size = ImVec2{ 100.0f, TEXT_SIZE.y + 2.0f };
 
@@ -258,10 +258,10 @@ update_ui_scene_upgrades_system(entt::registry& r)
 
   const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto header_font_size = (float)header_font_enum;
-  auto* header_font = get_fingerpaint_font(r, header_font_enum);
+  auto* header_font = get_inter_font(r, header_font_enum);
   const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
   const auto text_font_size = (float)text_font_enum;
-  auto* text_font = get_fingerpaint_font(r, text_font_enum);
+  auto* text_font = get_inter_font(r, text_font_enum);
   const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
 
   // clear all actions.

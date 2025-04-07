@@ -56,7 +56,7 @@ update_ui_survive_timer_system(entt::registry& r)
     {
       const auto header_font_scale = get_first_component<SINGLE_UIData>(r).scaling;
       const auto header_font_enum = header_font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
-      auto* header_font = get_fingerpaint_font(r, header_font_enum);
+      auto* header_font = get_inter_font(r, header_font_enum);
       ImGui::PushFont(header_font); // Use the larger font (index 1)
 
       ImGui::Text("%s", display.c_str());
@@ -66,7 +66,7 @@ update_ui_survive_timer_system(entt::registry& r)
     {
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
-      auto* font = get_fingerpaint_font(r, font_enum);
+      auto* font = get_inter_font(r, font_enum);
       ImGui::PushFont(font); // Use the larger font (index 1)
 
       const auto my_orange_col = hex_to_srgb("#DF9755");

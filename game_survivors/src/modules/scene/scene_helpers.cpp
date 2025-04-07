@@ -165,7 +165,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   };
   const ShipHullData hull = get_key(hulls_c.hulls, hull_key).value();
   const WeaponData weapon_data = get_key(weps_c.weapons, weapon_key).value();
-  const auto size = glm::vec2{ hull.width, hull.height };
+  const auto hull_size = glm::vec2{ hull.width, hull.height };
 
   std::vector<entt::entity> weapons;
 
@@ -188,7 +188,9 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     weapons.push_back(weapon_e);
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
-      break; // only spawn 1 wep
+      break; // only spawn 1 deployer
+
+    break; // spawn boats with only 1 gun
   }
 
   // Spawn a manual weapon
@@ -208,7 +210,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   // }
 
   const auto e = spawn(r, key);
-  give_life(r, e, pos, size);
+  give_life(r, e, pos, hull_size);
   r.emplace<PlayerComponent>(e, num);
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
@@ -230,7 +232,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
 
     ActorXpZoneSizeComponent xp_zone_c;
     // xp_zone_c.radius_meters = pixels_to_meters(fixture_def.size[0].x);
-    xp_zone_c.radius_meters = pixels_to_meters(size.x * 4.0f);
+    xp_zone_c.radius_meters = pixels_to_meters(hull_size.x * 4.0f);
 
     // update_circle_fixture_size(r, e, f);
     r.emplace<ActorXpZoneSizeComponent>(e, xp_zone_c);
@@ -251,26 +253,27 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   };
 
   // add trail to the butt of the boat
+  //
   if (hull_key == "dinghy") {
     const auto inset = 2.0f;
     add_trail({ inset, inset });
-    add_trail({ inset, size.y - inset });
+    add_trail({ inset, hull_size.y - inset });
   }
   if (hull_key == "pbr") {
     const auto inset = 2.0f;
     add_trail({ inset, inset });
-    add_trail({ inset, size.y - inset });
+    add_trail({ inset, hull_size.y - inset });
   }
   if (hull_key == "rhib") {
     const auto inset = 3.0f;
     add_trail({ inset, inset });
-    add_trail({ inset, size.y - inset });
+    add_trail({ inset, hull_size.y - inset });
   }
   if (hull_key == "trimaran") {
     const auto inset = 2.0f;
     add_trail({ inset, inset });
-    add_trail({ inset, size.y * 0.5f });
-    add_trail({ inset, size.y - inset });
+    add_trail({ inset, hull_size.y * 0.5f });
+    add_trail({ inset, hull_size.y - inset });
   }
 
   // Apply some drag, bro
@@ -302,13 +305,19 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
       set_sprite(r, e, "hull_trimaran");
   };
 
+  // convert boat to hp?
+  float hp = 10.0f;
+  // take hp as a percent of the boat size?
+  hp = (hull_size.x * hull_size.y) / 100.0f;
+  SDL_Log("Boat HP: %f", hp);
+
   // set the player colour.
   const auto col = default_player_colours[num];
   set_colour(r, e, r.get<DefaultColour>(e).colour);
 
   auto player_fixture_e = get_fixture_by_tag(r, e, "fixture_player");
   r.emplace<PlayerFixtureComponent>(player_fixture_e);
-  r.emplace<HealthComponent>(player_fixture_e, 10.0f, 10.0f);
+  r.emplace<HealthComponent>(player_fixture_e, hp, hp);
   // r.emplace<DefenceComponent>(player_fixture_e, 0);
 
   // xp_zone fixture
@@ -417,7 +426,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       HullChoice{ .player_idx = 3, .player_boat_key = "dinghy" },
     };
 
-    auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
+    const auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
     if (transfer_scene_e != entt::null) {
       const auto& transfer_scene_c = r.get<SelectSceneToSurviveScene>(transfer_scene_e);
       hull_keys.clear();

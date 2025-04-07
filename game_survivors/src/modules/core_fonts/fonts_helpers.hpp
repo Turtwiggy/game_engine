@@ -35,7 +35,7 @@ enum class FontSize
 static std::unordered_map<FontSize, ImFont*> loaded_fonts;
 
 ImFont*
-get_fingerpaint_font(entt::registry& r, const FontSize size);
+get_inter_font(entt::registry& r, const FontSize size);
 
 void
 init_fonts_system();

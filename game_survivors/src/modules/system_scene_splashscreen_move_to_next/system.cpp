@@ -69,13 +69,13 @@ update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, e
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& digital_action_handles = steam_c.digital_action_handles;
 
-  static float timer = 0.0f;
-  timer += dt;
-  if (digital_action_handles[(int)DA::Game_Up] == 0) {
-    warning_ui(r, std::format("Loading steam input... waiting on a controller... ({:0.1f})", timer));
-    init_steam_input_actions(r);
-    return; // wait for them to load
-  }
+  // static float timer = 0.0f;
+  // timer += dt;
+  // if (digital_action_handles[(int)DA::Game_Up] == 0) {
+  //   warning_ui(r, std::format("Loading steam input... waiting on a controller... ({:0.1f})", timer));
+  //   init_steam_input_actions(r);
+  //   return; // wait for them to load
+  // }
 
   // After X seconds, move to menu,
   // or when audio is loaded and a key is mashed

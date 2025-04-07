@@ -126,7 +126,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   // button idx
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
 
   const ImVec2 button_size = { 177.0f * font_scale, 50.0f * font_scale };
@@ -216,6 +216,12 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       .ui_col_index = col_idx, // one col
       .ui_col_active = true,   // one col
       .font = font,
+
+      // hide the buttons
+      // .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      // .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      // .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      // .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
     if (selectable_button(r, a_def))

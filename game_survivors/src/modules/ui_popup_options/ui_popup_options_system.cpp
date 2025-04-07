@@ -120,7 +120,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
   const auto font_size = (float)font_enum;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
 
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, 0 });

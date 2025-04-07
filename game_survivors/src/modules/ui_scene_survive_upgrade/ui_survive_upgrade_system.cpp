@@ -299,7 +299,7 @@ const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
     return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
   }
   if (rarity == Rarity::RARE) {
-    const auto srgb = hex_to_srgb("#0096ff"); //  blue
+    const auto srgb = hex_to_srgb("#00b6ff"); //  bright blue
     return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
   }
   if (rarity == Rarity::LEGENDARY) {
@@ -467,7 +467,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
   auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 3 : 4];
   const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
-  auto* font = get_fingerpaint_font(r, text_font_enum);
+  auto* font = get_inter_font(r, text_font_enum);
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const float window_x_size = ri_c.viewport_size_render_at.x;
@@ -618,7 +618,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
       // if selected, draw a circle in the box.
       if (data.selected) {
         const auto circle_center = calc_center(icon_tl, icon_wh);
-        draw_list->AddCircle(circle_center, 6.0f, im_player_col);
+        // draw_list->AddCircle(circle_center, 6.0f, im_player_col);
+        draw_list->AddCircleFilled(circle_center, 5.0f, im_player_col);
       }
 
       // Draw a selecable button

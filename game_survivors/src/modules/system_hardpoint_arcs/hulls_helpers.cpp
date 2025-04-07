@@ -63,7 +63,7 @@ load_hulls(std::string directory)
   auto sorted_hulls = hulls.hulls;
   auto sort_by_hullsize = [](const ShipHullData& a, const ShipHullData& b) {
     const int size_a = a.height * a.width;
-    const int size_b = b.height * b.height;
+    const int size_b = b.height * b.width;
     return size_a < size_b;
   };
   std::sort(sorted_hulls.begin(), sorted_hulls.end(), sort_by_hullsize);

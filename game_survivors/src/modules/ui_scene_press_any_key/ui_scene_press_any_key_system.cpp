@@ -38,11 +38,11 @@ auto init_text = [](entt::registry& r) {
     const auto font_enum_large = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
     const auto font_enum_med = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
 
-    ImGui::PushFont(get_fingerpaint_font(r, font_enum_large));
+    ImGui::PushFont(get_inter_font(r, font_enum_large));
     ImGui::TextColored(im_greenish, "Press the 'Any' Key!");
     ImGui::PopFont();
 
-    ImGui::PushFont(get_fingerpaint_font(r, font_enum_med));
+    ImGui::PushFont(get_inter_font(r, font_enum_med));
     ImGui::TextColored(im_greenish, "*If you cant find it, mash your keyboard or controller.");
     ImGui::PopFont();
   };

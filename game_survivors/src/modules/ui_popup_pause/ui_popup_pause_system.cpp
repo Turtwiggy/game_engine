@@ -68,7 +68,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto font_size = (float)font_enum;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto* font = get_inter_font(r, font_enum);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;

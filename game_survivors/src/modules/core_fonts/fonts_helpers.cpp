@@ -7,7 +7,7 @@ namespace game2d {
 // https://github.com/ocornut/imgui/issues/8465
 
 ImFont*
-get_fingerpaint_font(entt::registry& r, const FontSize size)
+get_inter_font(entt::registry& r, const FontSize size)
 {
   return loaded_fonts[size];
 };

@@ -68,8 +68,8 @@ update_ui_gameover_system(entt::registry& r)
   bool back_to_menu = false;
   const std::string discord_link = "https/discord.gg/8RTzsm25pR";
   const std::string header_win = "Congrats!";
-  const std::string header_loss = "womp womp";
-  const std::string subheader_w = "With some luck, you did it!";
+  const std::string header_loss = "womp womp!";
+  const std::string subheader_w = "You did it!";
   const std::string subheader_l = "Was it you or us? Feedback @ \n" + discord_link;
 
   const auto my_w_col = hex_to_srgb("#46C74F");
@@ -99,6 +99,10 @@ update_ui_gameover_system(entt::registry& r)
 
   // idx 2 should be fingerpaint font
   auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[2];
+
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+  const auto font_size = (float)font_enum;
+  auto* text_font = get_inter_font(r, font_enum);
 
   if (request.win_condition) {
     ImGui::PushFont(fingerpaint_font);
@@ -134,7 +138,7 @@ update_ui_gameover_system(entt::registry& r)
     .ui_col_index = col_idx,
     .ui_col_active = true,
 
-    .font = fingerpaint_font,
+    .font = text_font,
   };
 
   ImGui::NewLine();

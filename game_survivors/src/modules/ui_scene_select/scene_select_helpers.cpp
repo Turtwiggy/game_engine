@@ -82,7 +82,7 @@ draw_select_header(entt::registry& r, SINGLE_RendererInfo& ri_c)
   // text
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
-  ImGui::PushFont(get_fingerpaint_font(r, font_enum));
+  ImGui::PushFont(get_inter_font(r, font_enum));
   const std::string text_str = "All hands on deck!";
   const auto text_size = ImGui::CalcTextSize(text_str.c_str());
   const auto text_pos = center - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
@@ -141,7 +141,7 @@ update_countdown_ui(entt::registry& r, const SINGLE_SelectSceneData& data_c)
 
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
   ImGui::Begin("Countdown", NULL, countdown_flags);
   const auto ui_wh = ImGui::GetContentRegionAvail();

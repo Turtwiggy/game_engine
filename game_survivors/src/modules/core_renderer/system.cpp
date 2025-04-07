@@ -2,12 +2,13 @@
 
 #include "system.hpp"
 
-// components/systems#
+// components/systems
 #include "components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/core_camera/orthographic.hpp"
@@ -38,11 +39,11 @@ struct UboData
   glm::mat4 projection_zoomed = glm::mat4(1.0f);
   glm::mat4 view = glm::mat4(1.0f);
   glm::vec2 camera_pos{ 0, 0 };
+  glm::vec2 screenshake{ 0, 0 };
+  glm::vec4 player_positions[4]; // try to avoid padding issues with vec4
   float time = 0;
   float zoom = 0;
   float tilesize = 50;
-  glm::vec2 screenshake{ 0, 0 };
-  glm::vec3 player_positions[4];
 };
 
 int
@@ -443,9 +444,25 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   auto grid_e = get_first<Effect_GridComponent>(r);
   if (grid_e != entt::null)
     data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
-  const auto& players_view = r.view<PlayerComponent, TransformComponent>();
-  for (int i = 0; const auto& [e, player_c, t_c] : players_view.each())
-    data.player_positions[i++] = t_c.position;
+
+  // .w as 0 indicates player inactive.
+  for (int i = 0; i < 4; i++)
+    data.player_positions[i].w = 0.0f;
+
+  const auto players_view = r.view<const PlayerComponent, const TransformComponent>();
+  for (int i = 0; const auto& [e, player_c, t_c] : players_view.each()) {
+    data.player_positions[i].x = t_c.position.x;
+    data.player_positions[i].y = t_c.position.y;
+
+    // HACK: trial a wedge angle representing a flashlight for the player.
+    float angle = clamp_axis(t_c.rotation_radians.z);
+    // static float angle = 0.0f;
+    // angle += 1.0f * dt;
+    // angle = clamp_axis(angle);
+    data.player_positions[i].z = angle;
+    data.player_positions[i].w = 1.0f;
+    i++;
+  }
 
   // Note: this updates the entire array.
   // We could update only the parts that change

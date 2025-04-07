@@ -22,11 +22,11 @@ layout(std140) uniform Data {
   mat4 projection_zoomed;
   mat4 view;
   vec2 camera_pos;
+  vec2 screenshake;
+  vec4[4] player_positions;
   float time;
   float zoom;
   float tilesize;
-  vec2 screenshake;
-	vec3[4] player_positions;
 };
 
 uniform vec2 viewport_wh;
@@ -187,6 +187,8 @@ void main()
 	}
 
 	// vec3 col = vec3(r, g, b);
+	// col.rgb = vec3(0.1, 0.3, 0.5);
+	// col.rgb *= 0.5;
 	out_colour.rgb = col;
 
 	// vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);

@@ -21,11 +21,11 @@ layout(std140) uniform Data {
   mat4 projection_zoomed;
   mat4 view;
   vec2 camera_pos;
+  vec2 screenshake;
+  vec4[4] player_positions;
   float time;
   float zoom;
   float tilesize;
-  vec2 screenshake;
-  vec3[4] player_positions;
 };
 
 void

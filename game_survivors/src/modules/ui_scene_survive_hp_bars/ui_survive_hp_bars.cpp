@@ -32,7 +32,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
   const auto font_size = (float)font_enum;
-  auto* font = get_fingerpaint_font(r, font_enum);
+  auto* font = get_inter_font(r, font_enum);
 
   const float hp_bar_height = font_size;
   const float hp_bar_width = 200.0f * font_scale;
