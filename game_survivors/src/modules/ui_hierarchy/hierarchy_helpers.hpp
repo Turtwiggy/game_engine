@@ -12,9 +12,6 @@ struct Category
   bool display = true;
 };
 
-std::string
-to_lower(const std::string& str);
-
 std::optional<size_t>
 get_category_idx(const std::vector<Category>& cs, const std::string& s);
 

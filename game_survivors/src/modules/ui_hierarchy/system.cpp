@@ -8,6 +8,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
+#include "engine/string/helpers.hpp"
 #include "hierarchy_helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 

@@ -58,15 +58,15 @@ ImGui_Manager::initialize(GameWindow& window)
   }
 
   style.PopupBorderSize = 0;
-  // style.WindowBorderSize = 1;
   style.WindowBorderSize = 0;
   style.ChildBorderSize = 0;
   style.FrameBorderSize = 0;
-  style.WindowRounding = 8;
+  style.WindowRounding = 0;
   style.WindowTitleAlign = ImVec2(0.5, 0.5);
-  style.WindowPadding = ImVec2(6, 4);
-  style.FrameRounding = 4;
-  style.FramePadding = ImVec2(4, 2);
+  style.WindowPadding = ImVec2(0, 0);
+  style.FrameRounding = 0;
+  style.FramePadding = ImVec2(0, 0);
+  style.ItemSpacing = ImVec2(0, 4);
 
   auto& colors = ImGui::GetStyle().Colors;
 

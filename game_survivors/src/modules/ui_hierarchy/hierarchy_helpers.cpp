@@ -6,17 +6,10 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/string/helpers.hpp"
 #include "modules/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {
-
-std::string
-to_lower(const std::string& str)
-{
-  std::string result = str;
-  std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
-  return result;
-};
 
 std::optional<size_t>
 get_category_idx(const std::vector<Category>& cs, const std::string& s)

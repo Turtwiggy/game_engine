@@ -7,19 +7,6 @@
 
 namespace game2d {
 
-enum class GAME_OPTIONS
-{
-  AUDIO_MASTER_VOLUME,
-  AUDIO_MUSIC_VOLUME,
-  AUDIO_SFX_VOLUME,
-
-  VIDEO_SCREEN_MODE,
-  VIDEO_RESOLUTION,
-  VIDEO_VSYNC,
-
-  count
-};
-
 struct RequestToShowOptionsMenu
 {
   bool placeholder = true;

@@ -6,16 +6,39 @@
 
 namespace game2d {
 
+enum class GAME_OPTIONS
+{
+  AUDIO_MASTER_VOLUME,
+  AUDIO_MUSIC_VOLUME,
+  AUDIO_SFX_VOLUME,
+
+  VIDEO_SCREEN_MODE,
+  VIDEO_RESOLUTION,
+  VIDEO_VSYNC,
+
+  count
+};
+
+// NOTE: this currently isnt used
+enum class UIValueType
+{
+  BUTTON,
+  SCROLL,
+  SELECTION,
+};
+
 struct IOption
 {
   GAME_OPTIONS option;
   std::string display_str;
   bool loaded = false;
+  UIValueType value_type;
 
   IOption() = delete;
-  IOption(const GAME_OPTIONS in_option, const std::string in_display)
+  IOption(const GAME_OPTIONS in_option, const std::string in_display, const UIValueType type)
     : option(in_option)
-    , display_str(in_display) {};
+    , display_str(in_display)
+    , value_type(type) {};
 
   // fun-ctions, because they're fun. right. right?
   virtual void load(engine::SINGLE_Application& app, entt::registry& r) {};
@@ -31,7 +54,7 @@ struct Option_AudioMasterVolume : public IOption
   Audio_OnDisk data;
 
   Option_AudioMasterVolume()
-    : IOption(GAME_OPTIONS::AUDIO_MASTER_VOLUME, "Master") {};
+    : IOption(GAME_OPTIONS::AUDIO_MASTER_VOLUME, "Master", UIValueType::SCROLL) {};
 
   void load(engine::SINGLE_Application& app, entt::registry& r) override;
   void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;
@@ -44,7 +67,7 @@ struct Option_AudioMusicVolume : public IOption
   Audio_OnDisk data;
 
   Option_AudioMusicVolume()
-    : IOption(GAME_OPTIONS::AUDIO_MUSIC_VOLUME, "Music") {};
+    : IOption(GAME_OPTIONS::AUDIO_MUSIC_VOLUME, "Music", UIValueType::SCROLL) {};
 
   void load(engine::SINGLE_Application& app, entt::registry& r) override;
   void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;
@@ -57,7 +80,7 @@ struct Option_AudioSFXVolume : public IOption
   Audio_OnDisk data;
 
   Option_AudioSFXVolume()
-    : IOption(GAME_OPTIONS::AUDIO_SFX_VOLUME, "SFX") {};
+    : IOption(GAME_OPTIONS::AUDIO_SFX_VOLUME, "SFX", UIValueType::SCROLL) {};
 
   void load(engine::SINGLE_Application& app, entt::registry& r) override;
   void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;
@@ -70,7 +93,7 @@ struct Option_VideoScreenMode : public IOption
   Video_ScreenModeOnDisk data;
 
   Option_VideoScreenMode()
-    : IOption(GAME_OPTIONS::VIDEO_SCREEN_MODE, "Screen Mode") {};
+    : IOption(GAME_OPTIONS::VIDEO_SCREEN_MODE, "Screen Mode", UIValueType::SELECTION) {};
 
   void load(engine::SINGLE_Application& app, entt::registry& r) override;
   void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;
@@ -83,7 +106,7 @@ struct Option_VideoResolution : public IOption
   Video_ResolutionOnDisk data;
 
   Option_VideoResolution()
-    : IOption(GAME_OPTIONS::VIDEO_RESOLUTION, "Resolution") {};
+    : IOption(GAME_OPTIONS::VIDEO_RESOLUTION, "Resolution", UIValueType::SELECTION) {};
 
   void load(engine::SINGLE_Application& app, entt::registry& r) override;
   void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;
@@ -96,7 +119,7 @@ struct Option_VideoVsync : public IOption
   Video_VsyncOnDisk data;
 
   Option_VideoVsync()
-    : IOption(GAME_OPTIONS::VIDEO_VSYNC, "Vsync") {};
+    : IOption(GAME_OPTIONS::VIDEO_VSYNC, "Vsync", UIValueType::BUTTON) {};
 
   void load(engine::SINGLE_Application& app, entt::registry& r) override;
   void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;

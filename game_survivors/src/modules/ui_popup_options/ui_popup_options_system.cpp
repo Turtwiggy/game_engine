@@ -4,6 +4,8 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/string/helpers.hpp"
 #include "modules/controller_input_update_ui/controller_input_update_ui_helpers.hpp"
 #include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/core_io/io_helpers.hpp"
@@ -16,6 +18,7 @@
 #include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 
 namespace game2d {
+using namespace std::literals;
 
 std::shared_ptr<IOption>
 get_option(entt::registry& r, const GAME_OPTIONS o)
@@ -111,33 +114,39 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoSavedSettings;
+  flags |= ImGuiWindowFlags_NoBackground;
 
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+  // const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  // const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+  const auto font_enum = FontSize::TEXT_SIZE_16;
   const auto font_size = (float)font_enum;
   auto* font = get_inter_font(r, font_enum);
+
+  // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
+  // auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 3 : 4];
+  // const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+  const auto header_font_enum = FontSize::TEXT_MEDIUM;
+  auto* header_font = get_inter_font(r, header_font_enum);
+
   ImGui::PushFont(font);
 
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, 0 });
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 2 });
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 6 });
 
   const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_wh = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
   const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, viewport_tl.y + viewport_wh_half.y);
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-  const auto window_size = glm::vec2{ 300 * font_scale, 175 * font_scale };
+  // const auto window_size = glm::vec2{ 300 * font_scale, 175 * font_scale };
   // imgui_draw_vec2("window_size", window_size);
-  ImGui::SetNextWindowSize({ window_size.x, window_size.y }, ImGuiCond_Always);
+  // ImGui::SetNextWindowSize({ window_size.x, window_size.y }, ImGuiCond_Always);
+
+  ImGui::SetNextWindowSizeConstraints({ 400, 200 }, { 1000, 1000 });
 
   ImGui::Begin("Options Menu", NULL, flags);
 
@@ -146,27 +155,53 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const ImVec2 window_wh = ImGui::GetWindowSize();
   const ImVec2 window_br = { window_tl.x + window_wh.x, window_tl.y + window_wh.y };
 
-  const auto my_window_bg_col = hex_to_srgb("#21242B");
+  const auto my_separator_col = hex_to_srgb("#7d8488");
+  const auto my_inactive_col = hex_to_srgb("#737a7e");
+  const auto my_window_bg_col = hex_to_srgb("#0c1116");
+  const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
+  const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
   const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
-  const auto my_window_border_col = hex_to_srgb("#FFFFFF");
-  const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
-  const auto header_x_padding = 10.0f;
-  const auto rounding = 4.0f;
+  const auto rounding = 12.0f;
   const auto thickness = 2.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
   draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, rounding);
-  draw_list->AddRect(window_tl, window_br, IM_COL32(255, 255, 255, 255), rounding, rect_flags, thickness);
+  // draw_list->AddRect(window_tl, window_br, IM_COL32(255, 255, 255, 255), rounding, rect_flags, thickness);
 
   const auto TEXT_SIZE = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
   const ImVec2 button_size = { 200.0f, TEXT_SIZE.y + 2.0f };
+  const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+  const float padding_x = 10;
+
+  // centered options header
+  ImGui::PushFont(header_font);
+  const auto header_text = std::string("OPTIONS");
+  const auto header_pos = center_text(header_font, header_text, { window_wh.x * 0.5f, 0 });
+  ImGui::SetCursorPosX(header_pos.x);
+  ImGui::SetCursorPosY(-1 * header_pos.y);
+  ImGui::TextColored(white_col, "%s", header_text.c_str());
+  ImGui::PopFont();
+
+  ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
 
   for (int i = 0; i < (int)(ui_c.state.rows.size()); i++) {
     auto& row = ui_c.state.rows[i];
 
+    // center the"back" button text
+    auto but_size = button_size;
+    float pad_x = padding_x;
+    bool text_centered = false;
+    if (to_lower(row.col_name).find("back") != std::string::npos) {
+      text_centered = true;
+      pad_x = 0;
+      but_size.x = window_wh.x;
+    }
+
     int col_idx = 0;
     auto a_def = SelectableButtonDef{
-      .label = row.col_name,
-      .size = button_size,
+      .label = to_upper(row.col_name),
+      .size = but_size,
       .input = do_act,
       .my_row_index = i,
       .my_col_index = 0, // one column
@@ -175,8 +210,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       .ui_col_active = true,   // one column
 
       // could replace both .text_X with .text_pivot
-      .text_centered = false,
-      .text_offset = { window_wh.x * 0.25f, 0 },
+      .text_centered = text_centered,
+      .text_offset = { pad_x, 0 },
 
       .font = font,
 
@@ -187,28 +222,32 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
-    // Hack: add seperators for categories.
+    // add seperators for categories.
     const auto enum_val = magic_enum::enum_cast<GAME_OPTIONS>(i).value();
 
     // first audio option
     if (enum_val == GAME_OPTIONS::AUDIO_MASTER_VOLUME) {
-      // ImGui::Text("Keyboard: use arrow keys (wip)");
-      // ImGui::Text("Controller: use dpad");
-      ImGui::SetCursorPosX(header_x_padding);
-      ImGui::Text("Audio");
+      const auto h_txt = "- AUDIO -";
+      const auto h_pos = center_text(font, h_txt, { window_wh.x * 0.5f, 0 });
+      ImGui::SetCursorPosX(h_pos.x);
+      ImGui::TextColored(white_col, h_txt);
     }
 
     // first video option
     if (enum_val == GAME_OPTIONS::VIDEO_SCREEN_MODE) {
-      ImGui::SetCursorPosX(header_x_padding);
-      ImGui::Text("Video");
+      const auto h_txt = "- VIDEO -";
+      const auto h_pos = center_text(font, h_txt, { window_wh.x * 0.5f, 0 });
+      ImGui::SetCursorPosX(h_pos.x);
+      ImGui::TextColored(white_col, h_txt);
     }
 
     // last option
-    if (i == (int)(GAME_OPTIONS::count)) {
-      ImGui::SetCursorPosX(header_x_padding);
-      ImGui::Text("Menu");
-    }
+    // if (i == (int)(GAME_OPTIONS::count)) {
+    //   const auto h_txt = "- SYSTEM -";
+    //   const auto h_pos = center_text(font, h_txt, { window_wh.x * 0.5f, 0 });
+    //   ImGui::SetCursorPosX(h_pos.x);
+    //   ImGui::TextColored(white_col, h_txt);
+    // }
 
     const auto& acts = ui_c.state.actions;
     const auto v_value_changed = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED) != acts.end();
@@ -231,13 +270,12 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
             ui_c.state.current_row_index--;
         }
 
-        const auto inactive_col = ImVec4(1.0f, 1.0f, 1.0f, (100 / 255.0f));
-        ImGui::SetCursorScreenPos({ window_tl.x + window_wh.x * 0.25f, ImGui::GetCursorScreenPos().y });
-        ImGui::TextColored(inactive_col, "Resolution (auto)");
+        ImGui::SetCursorPos({ padding_x, ImGui::GetCursorPos().y });
+        ImGui::TextColored(im_inactive_col, "RESOLUTION (auto)");
 
         ImGui::SameLine();
-        ImGui::SetCursorScreenPos({ window_tl.x + window_wh.x * 0.60f, ImGui::GetCursorScreenPos().y });
-        ImGui::TextColored(inactive_col, "%i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
+        ImGui::SetCursorScreenPos({ window_tl.x + window_wh.x * 0.50f, ImGui::GetCursorScreenPos().y });
+        ImGui::TextColored(im_inactive_col, "%i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
         continue;
       }
     }
@@ -245,7 +283,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     if (selectable_button(r, a_def))
       row.action();
 
-    const auto& option = get_option(r, enum_val);
+    std::shared_ptr<IOption> option = get_option(r, enum_val);
     if (option == nullptr)
       continue; // option not impl?
 
@@ -255,15 +293,84 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       option->update(app, r, h_value);
     }
 
-    // Display option value to user...
-    ImGui::SameLine(window_wh.x * 0.6f);
-    ImGui::Text("%s", option->display_val().c_str());
+    {
+      // Display option value to user...
+      // ImGui::SameLine(window_wh.x * 0.6f);
+      // ImGui::Text("%s", option->display_val().c_str());
+
+      const auto display_slider = [&r, &app, &row, window_wh, padding_x](auto& o, auto label) {
+        auto& data = o->data;
+
+        ImGui::SameLine(window_wh.x * 0.5f);
+        ImGui::Text("%s", o->display_val().c_str());
+
+        float slider_x = 0.6f; // 0-1
+        ImGui::SameLine(window_wh.x * slider_x);
+        ImGui::SetNextItemWidth((window_wh.x * (1.0f - slider_x)) - padding_x);
+        if (ImGui::SliderFloat(label, &data.value, 0.0f, 1.0f, "", 0)) {
+          int tmp = engine::scale(data.value, 0.0f, 1.0f, 0, 10);
+          o->update(app, r, tmp);
+          row.col_index = tmp; // update the row col_index
+        }
+      };
+
+      const auto display_button = [&r, &app, &row, window_wh, padding_x](auto& o, auto label) {
+        auto& data = o->data;
+        ImGui::SameLine(window_wh.x * 0.75f);
+        if (ImGui::Checkbox(label, &data.enabled)) {
+          int tmp = (int)data.enabled;
+          o->update(app, r, tmp);
+        }
+      };
+
+      const auto display_options = [&r, &app, &row, window_wh](auto& o, int cur_opt, auto l_tag, auto r_tag) {
+        auto& data = o->data;
+        ImGui::SameLine(window_wh.x * 0.5f);
+
+        float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
+        if (ImGui::ArrowButton(l_tag, ImGuiDir_Left)) {
+          int new_dm = (int)cur_opt - 1;
+          o->update(app, r, new_dm);
+          row.col_index = new_dm;
+        }
+
+        ImGui::SameLine(0.0f, spacing);
+        const auto display_txt = o->display_val();
+        ImGui::Text("%s", display_txt.c_str());
+
+        ImGui::SameLine(0.0f, spacing);
+        if (ImGui::ArrowButton(r_tag, ImGuiDir_Right)) {
+          int new_dm = (int)cur_opt + 1;
+          o->update(app, r, new_dm);
+          row.col_index = new_dm;
+        }
+      };
+
+      if (auto* o = dynamic_cast<Option_AudioMasterVolume*>(option.get())) {
+        display_slider(o, "##mastervol");
+      }
+      if (auto* o = dynamic_cast<Option_AudioMusicVolume*>(option.get())) {
+        display_slider(o, "##musicvol");
+      }
+      if (auto* o = dynamic_cast<Option_AudioSFXVolume*>(option.get())) {
+        display_slider(o, "##sfxvol");
+      }
+      if (auto* o = dynamic_cast<Option_VideoScreenMode*>(option.get())) {
+        display_options(o, o->get_hindex(r), "##vsm-l", "##vsm-r");
+      }
+      if (auto* o = dynamic_cast<Option_VideoResolution*>(option.get())) {
+        display_options(o, o->get_hindex(r), "##res-l", "##res-r");
+      }
+      if (auto* o = dynamic_cast<Option_VideoVsync*>(option.get())) {
+        display_button(o, "##vsync");
+      }
+    }
   }
 
   ImGui::NewLine(); // pad the last row
   ImGui::End();
   ImGui::PopFont();
-  ImGui::PopStyleVar(5);
+  ImGui::PopStyleVar();
 }
 
 } // namespace game2d

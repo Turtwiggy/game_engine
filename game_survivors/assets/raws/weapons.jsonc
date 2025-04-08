@@ -3,7 +3,7 @@
   
     {
       "key": "weapon_deck_cannon",
-      "name": "Cannon", // heavy pistol
+      "name": "Cannon (Heavy)", // heavy pistol
       "desc": "Fires Heavy rounds.",
       "weapon_type": "PROJECTILE",
       "data": {
@@ -22,7 +22,7 @@
 
     {
       "key": "weapon_grapeshot_cannon",
-      "name": "Dragon's Breath", // shotgun
+      "name": "Cannon (Grapeshot)", // shotgun
       "desc": "Short range. Fires in an area.",
       "weapon_type": "PROJECTILE",
       "data": {
@@ -40,7 +40,7 @@
 
     {
       "key": "weapon_swivel_cannon",
-      "name": "Typhoon",       // SMG-type
+      "name": "Cannon (Gatling)",       // SMG-type
       "desc": "Smaller rounds at a high firerate.",
       "weapon_type": "PROJECTILE",
       "data": {

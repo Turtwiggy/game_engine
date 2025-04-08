@@ -57,6 +57,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_size = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
+  const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
 
   const auto center = ImVec2{
     (float)ri.viewport_pos.x + viewport_size_half.x,
@@ -116,7 +117,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();
 
-  const ImVec2 size = { 120.0f, 40.0f };
+  const ImVec2 size = { 120.0f * ui_scale, 40.0f * ui_scale };
 
   for (int i = 0; i < (int)ui_c.state.rows.size(); i++) {
     if (i > 0)

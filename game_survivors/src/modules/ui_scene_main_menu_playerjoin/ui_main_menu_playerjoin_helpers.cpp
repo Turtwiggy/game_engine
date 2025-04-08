@@ -3,6 +3,7 @@
 #include "ui_main_menu_playerjoin_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/string/helpers.hpp"
 #include "modules/core_fonts/fonts_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/ui_common/ui_common_components.hpp"

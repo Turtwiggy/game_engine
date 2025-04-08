@@ -14,74 +14,8 @@
 namespace game2d {
 
 void
-process_input_for_ui_all_handles(entt::registry& r, UIState& state)
+check_if_changed(UIState& state, int v_selected, int h_selected)
 {
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
-
-  const auto nz_handles = non_zero_handles(steam_gs_c.handles);
-
-  state.actions.clear();
-  for (int i = 0; i < (int)nz_handles.size(); i++) {
-    auto handle = nz_handles[i];
-    const bool connected = handle_is_connected(steam_c, handle);
-    const bool joined = handle_is_joined(steam_gs_c, handle);
-
-    if (joined && connected)
-      process_input_for_ui(r, state, handle);
-  }
-};
-
-void
-process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t handle)
-{
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
-  GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
-
-  if (handle == 0)
-    return;
-  if (handle_joined_this_frame(steam_gs_c, handle))
-    return; // prevent immediately doing do_ui_action
-
-  // state
-  int v_selected = state.current_row_index;
-  int h_selected = state.rows[v_selected].col_index;
-
-  // TODO: replace this system with has_action, which maps both keyboard and controller
-
-  // Update menu via controller
-  //
-  if (controller_button_down(steam_c, handle, DA::Game_Up))
-    state.current_row_index--;
-  else if (controller_button_down(steam_c, handle, DA::Game_Down))
-    state.current_row_index++;
-  else if (controller_button_down(steam_c, handle, DA::Game_Left))
-    state.rows[v_selected].col_index--;
-  else if (controller_button_down(steam_c, handle, DA::Game_Right))
-    state.rows[v_selected].col_index++;
-  else if (controller_button_down(steam_c, handle, DA::Game_South))
-    state.actions.push_back(UIAction::SELECT);
-  else if (controller_button_down(steam_c, handle, DA::Game_East))
-    state.actions.push_back(UIAction::BACK);
-
-  // Update menu via keyboard (debug, mostly)
-  //
-  {
-    if (get_key_down(input, SDL_SCANCODE_UP))
-      state.current_row_index--;
-    else if (get_key_down(input, SDL_SCANCODE_DOWN))
-      state.current_row_index++;
-    else if (get_key_down(input, SDL_SCANCODE_LEFT))
-      state.rows[v_selected].col_index--;
-    else if (get_key_down(input, SDL_SCANCODE_RIGHT))
-      state.rows[v_selected].col_index++;
-    else if (get_key_down(input, SDL_SCANCODE_RETURN))
-      state.actions.push_back(UIAction::SELECT);
-    else if (get_key_down(input, SDL_SCANCODE_KP_DECIMAL))
-      state.actions.push_back(UIAction::BACK);
-  }
-
   const bool v_changed = v_selected != state.current_row_index;
   const bool h_changed = h_selected != state.rows[v_selected].col_index;
 
@@ -106,6 +40,80 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
 
   state.current_row_index = state.current_row_index < 0 ? max - 1 : state.current_row_index;
   state.current_row_index %= max;
+};
+
+void
+process_keyboard_input_for_ui(entt::registry& r, UIState& state)
+{
+  GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
+
+  int v_selected = state.current_row_index;
+  int h_selected = state.rows[v_selected].col_index;
+
+  // Update menu via keyboard (debug, mostly)
+  //
+  {
+    if (get_key_down(input, SDL_SCANCODE_UP))
+      state.current_row_index--;
+    else if (get_key_down(input, SDL_SCANCODE_DOWN))
+      state.current_row_index++;
+    else if (get_key_down(input, SDL_SCANCODE_LEFT))
+      state.rows[v_selected].col_index--;
+    else if (get_key_down(input, SDL_SCANCODE_RIGHT))
+      state.rows[v_selected].col_index++;
+    else if (get_key_down(input, SDL_SCANCODE_RETURN))
+      state.actions.push_back(UIAction::SELECT);
+    else if (get_key_down(input, SDL_SCANCODE_KP_DECIMAL))
+      state.actions.push_back(UIAction::BACK);
+  }
+
+  check_if_changed(state, v_selected, h_selected);
 }
+
+void
+process_input_for_ui_all_handles(entt::registry& r, UIState& state)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
+
+  state.actions.clear();
+
+  process_keyboard_input_for_ui(r, state);
+
+  for (int i = 0; i < steam_gs_c.handles.size(); i++)
+    process_input_for_ui(r, state, steam_gs_c.handles[i]);
+};
+
+void
+process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t handle)
+{
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
+
+  if (handle_joined_this_frame(steam_gs_c, handle))
+    return; // prevent immediately doing do_ui_action
+
+  // TODO: replace this system with has_action, which maps both keyboard and controller
+
+  // state
+  int v_selected = state.current_row_index;
+  int h_selected = state.rows[v_selected].col_index;
+
+  // Update menu via controller
+  //
+  if (controller_button_down(steam_c, handle, DA::Game_Up))
+    state.current_row_index--;
+  else if (controller_button_down(steam_c, handle, DA::Game_Down))
+    state.current_row_index++;
+  else if (controller_button_down(steam_c, handle, DA::Game_Left))
+    state.rows[v_selected].col_index--;
+  else if (controller_button_down(steam_c, handle, DA::Game_Right))
+    state.rows[v_selected].col_index++;
+  else if (controller_button_down(steam_c, handle, DA::Game_South))
+    state.actions.push_back(UIAction::SELECT);
+  else if (controller_button_down(steam_c, handle, DA::Game_East))
+    state.actions.push_back(UIAction::BACK);
+
+  check_if_changed(state, v_selected, h_selected);
+};
 
 } // namespace game2d

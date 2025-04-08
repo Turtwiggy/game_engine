@@ -718,9 +718,9 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   auto everyone_confirmed = std::all_of(c.begin(), c.end(), confirmed);
   auto someone_confirmed = std::any_of(c.begin(), c.end(), confirmed);
   auto noone_confirmed = std::none_of(c.begin(), c.end(), confirmed);
-  everyone_confirmed &= r.view<PlayerComponent>().size() > 0;
-  someone_confirmed &= r.view<PlayerComponent>().size() > 0;
-  noone_confirmed &= r.view<PlayerComponent>().size() == 0;
+  everyone_confirmed &= c.size() > 0;
+  someone_confirmed &= c.size() > 0;
+  noone_confirmed &= c.size() == 0;
 
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2{ 0.5f, 0.5f });
   update_countdown(ui_c, everyone_confirmed, dt);

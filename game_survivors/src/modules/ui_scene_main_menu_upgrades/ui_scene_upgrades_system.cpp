@@ -155,18 +155,20 @@ init_menu(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
   ui_c.state.resize(data_columns);
 
   // col_idx: 0: hulls
-  auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
-  for (int i = 0; i < hulls_c.hulls.size(); i++) {
-    const auto& hull = hulls_c.hulls[i];
-    ui_c.state[0].rows.push_back(RowState{ .col_name = hull.name, .action = []() {} });
-  }
+  // auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
+  // for (int i = 0; i < hulls_c.hulls.size(); i++) {
+  //   const auto& hull = hulls_c.hulls[i];
+  //   ui_c.state[0].rows.push_back(RowState{ .col_name = hull.name, .action = []() {} });
+  // }
+  ui_c.state[0].rows.push_back((RowState{ .col_name = "None", .action = []() {} }));
 
   // col_idx 1: weapons
-  auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
-  for (int i = 0; i < weapons_c.weapons.size(); i++) {
-    const auto& weapon = weapons_c.weapons[i];
-    ui_c.state[1].rows.push_back(RowState{ .col_name = weapon.name, .action = []() {} });
-  }
+  // auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+  // for (int i = 0; i < weapons_c.weapons.size(); i++) {
+  //   const auto& weapon = weapons_c.weapons[i];
+  //   ui_c.state[1].rows.push_back(RowState{ .col_name = weapon.name, .action = []() {} });
+  // }
+  ui_c.state[1].rows.push_back((RowState{ .col_name = "None", .action = []() {} }));
 
   // col_idx 2: abilities
   ui_c.state[2].rows.push_back((RowState{ .col_name = "None", .action = []() {} }));
