@@ -100,7 +100,7 @@ update_ui_gameover_system(entt::registry& r)
   // idx 2 should be fingerpaint font
   auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[2];
 
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto font_size = (float)font_enum;
   auto* text_font = get_inter_font(r, font_enum);
 

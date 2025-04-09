@@ -466,7 +466,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
   // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
   auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 3 : 4];
-  const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+
+  const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   auto* font = get_inter_font(r, text_font_enum);
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };

@@ -20,6 +20,20 @@
 namespace game2d {
 using namespace std::literals;
 
+void
+back_to_main_menu(entt::registry& r, SINGLE_OptionsMenuState& ui_c)
+{
+  SDL_Log("Closing Options Menu");
+  ui_c.open = false;
+  ui_c.one_frame_buffer = true;
+  ui_c.state.current_row_index = 0;
+
+  // save your changes
+  savefile_save_disk(r);
+
+  create_empty<RequestToShowMainMenu>(r);
+}
+
 std::shared_ptr<IOption>
 get_option(entt::registry& r, const GAME_OPTIONS o)
 {
@@ -69,17 +83,7 @@ init_menu(entt::registry& r, SINGLE_OptionsMenuState& ui_c)
   }
 
   // go back to whence you came!
-  ui_c.state.rows.push_back(RowState{ .col_name = "Back", .action = [&r, &ui_c]() {
-                                       SDL_Log("Closing Options Menu");
-                                       ui_c.open = false;
-                                       ui_c.one_frame_buffer = true;
-                                       ui_c.state.current_row_index = 0;
-
-                                       // save your changes
-                                       savefile_save_disk(r);
-
-                                       create_empty<RequestToShowMainMenu>(r);
-                                     } });
+  ui_c.state.rows.push_back(RowState{ .col_name = "Back", .action = [&r, &ui_c]() { back_to_main_menu(r, ui_c); } });
 }
 
 void
@@ -111,6 +115,13 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
   const bool do_act =
     std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::SELECT) != ui_c.state.actions.end();
+  const bool do_back =
+    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::BACK) != ui_c.state.actions.end();
+
+  if (do_back) {
+    back_to_main_menu(r, ui_c);
+    return;
+  }
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -128,8 +139,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
   // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
   // auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 3 : 4];
-  // const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
-  const auto header_font_enum = FontSize::TEXT_MEDIUM;
+  // const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+  const auto header_font_enum = FontSize::TEXT_SIZE_16;
   auto* header_font = get_inter_font(r, header_font_enum);
 
   ImGui::PushFont(font);

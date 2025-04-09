@@ -116,13 +116,27 @@ get_neighbour_gridpos_with_diagonals(const glm::ivec2& xy, const int x_max, cons
   return results;
 };
 
-glm::ivec2
-index_to_grid_position(const int index, const int x_max, const int y_max)
+std::pair<int, int>
+index_to_grid_position(const int index, const int x_max)
 {
-  assert(x_max > 0 && y_max > 0 && index < x_max * y_max);
+  // assert(x_max > 0 && y_max > 0 && index < x_max * y_max);
   const int x = index % x_max;
   const int y = index / x_max;
-  return glm::ivec2{ x, y };
+  return { x, y };
+};
+
+std::pair<int, int>
+index_to_world_position(const int index, const int x_max, const int y_max, const int size)
+{
+  const auto [x, y] = index_to_grid_position(index, x_max);
+  return { x * size, y * size };
+};
+
+std::pair<int, int>
+index_to_world_position_center(const int index, const int x_max, const int y_max, const int size)
+{
+  const auto [x, y] = index_to_grid_position(index, x_max);
+  return { x * size + size * 0.5f, y * size + size * 0.5f };
 };
 
 engine::grid::GridDirection

@@ -6,6 +6,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/system.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/lifecycle_system.hpp"
 #include "engine/physics/physics_system.hpp"
 #include "engine/sprites/components.hpp"
@@ -330,6 +331,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     const float scale = ri.viewport_size_render_at.y / base_y;
     auto& ui_scale = get_first_component<SINGLE_UIData>(r);
     ui_scale.scaling = scale; // scale up if e.g. 1920x1080
+
+#if defined(_DEBUG)
+    // auto& ui_scale = get_first_component<SINGLE_UIData>(r);
+    // ui_scale.scaling = 1.0f;
+    // imgui_draw_float("ui_scale", ui_scale.scaling);
+#endif
   }
 
   update_ui_blur_system(r, dt);

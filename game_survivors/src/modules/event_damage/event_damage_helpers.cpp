@@ -35,7 +35,7 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
     const auto my_crit_col = hex_to_srgb("#e99f10");     //
 
     const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
     auto* font = get_inter_font(r, font_enum);
 
     ImGui::PushFont(font);

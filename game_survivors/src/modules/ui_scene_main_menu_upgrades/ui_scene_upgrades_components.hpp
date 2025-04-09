@@ -19,9 +19,9 @@ struct SINGLE_UpgradesMenuUI
   bool display = false;
   bool init = false;
 
-  // how many columns
-  int ui_col_index = 0; // which column
-  std::vector<UIState> state;
+  int grid_idx = 0;
+  int grid_x = 8;
+  UIState state;
 
   std::optional<UpgradeableStat> selected_stat = std::nullopt;
 };

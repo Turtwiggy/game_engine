@@ -29,9 +29,15 @@ check_if_changed(UIState& state, int v_selected, int h_selected)
       state.actions.push_back(UIAction::V_VALUE_CHANGED_DOWN);
   }
 
-  // horizontal value changed...
-  if (!v_changed && h_changed)
+  // horizontal changed...
+  if (!v_changed && h_changed) {
     state.actions.push_back(UIAction::H_VALUE_CHANGED);
+
+    if (h_selected < state.rows[v_selected].col_index)
+      state.actions.push_back(UIAction::H_VALUE_CHANGED_RIGHT);
+    if (h_selected > state.rows[v_selected].col_index)
+      state.actions.push_back(UIAction::H_VALUE_CHANGED_LEFT);
+  }
 
   // clamp selected
   const int max = state.rows.size();
@@ -63,7 +69,11 @@ process_keyboard_input_for_ui(entt::registry& r, UIState& state)
       state.rows[v_selected].col_index++;
     else if (get_key_down(input, SDL_SCANCODE_RETURN))
       state.actions.push_back(UIAction::SELECT);
-    else if (get_key_down(input, SDL_SCANCODE_KP_DECIMAL))
+    else if (get_key_down(input, SDL_SCANCODE_KP_ENTER))
+      state.actions.push_back(UIAction::SELECT);
+    else if (get_key_down(input, SDL_SCANCODE_ESCAPE))
+      state.actions.push_back(UIAction::BACK);
+    else if (get_key_down(input, SDL_SCANCODE_BACKSPACE))
       state.actions.push_back(UIAction::BACK);
   }
 

@@ -65,7 +65,7 @@ update_ui_survive_timer_system(entt::registry& r)
     }
     {
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
       auto* font = get_inter_font(r, font_enum);
       ImGui::PushFont(font); // Use the larger font (index 1)
 

@@ -253,7 +253,7 @@ controller_axis(entt::registry& r, const InputHandle_t handle, AA aAction)
 
   auto h = analog_action_handles[(int)aAction];
 
-  ControllerAnalogActionData_t data = SteamAPI_ISteamInput_GetAnalogActionData(SteamAPI_SteamInput(), handle, h);
+  ControllerAnalogActionData_t data = SteamInput()->GetAnalogActionData(handle, h);
 
   if (data.bActive)
     return { data.x, data.y };

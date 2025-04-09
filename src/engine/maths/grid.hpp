@@ -109,21 +109,14 @@ grid_position_to_clamped_index(const glm::ivec2& pos, const int xmax, const int 
 bool
 grid_position_in_bounds(const glm::ivec2& gp, const int x_max, const int y_max);
 
-glm::ivec2
-index_to_grid_position(const int index, const int x_max, const int y_max);
+std::pair<int, int>
+index_to_grid_position(const int index, const int x_max);
 
-inline glm::vec2
-index_to_world_position(const int index, const int x_max, const int y_max, const int size)
-{
-  return index_to_grid_position(index, x_max, y_max) * size;
-};
+std::pair<int, int>
+index_to_world_position(const int index, const int x_max, const int y_max, const int size);
 
-inline glm::vec2
-index_to_world_position_center(const int index, const int x_max, const int y_max, const int size)
-{
-  const glm::vec2 pos = index_to_grid_position(index, x_max, y_max) * size;
-  return pos + glm::vec2{ size / 2.0f, size / 2.0f };
-};
+std::pair<int, int>
+index_to_world_position_center(const int index, const int x_max, const int y_max, const int size);
 
 // a grid shaped
 // ~~~~~~~~~~~~~

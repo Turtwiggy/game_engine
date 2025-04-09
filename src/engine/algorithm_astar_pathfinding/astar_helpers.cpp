@@ -330,7 +330,7 @@ at_destination(entt::registry& r, const entt::entity src_e)
 
   const auto src = get_position(r, src_e);
   const auto src_idx = engine::grid::worldspace_to_index(src, map.tilesize, map.xmax, map.ymax);
-  const auto src_gridpos = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
+  const auto src_gridpos = engine::grid::index_to_grid_position(src_idx, map.xmax);
 
   const auto& path = r.try_get<GeneratedPathComponent>(src_e);
 
@@ -339,7 +339,7 @@ at_destination(entt::registry& r, const entt::entity src_e)
     return true;
 
   const auto last = path->path[path->path.size() - 1];
-  const bool same_gridcell = last == src_gridpos;
+  const bool same_gridcell = last == glm::ivec2{ src_gridpos.first, src_gridpos.second };
   if (!same_gridcell)
     return false;
 

@@ -399,7 +399,7 @@ draw_player_ui_box(entt::registry& r,
       const auto pos = ImVec2(mask_br.x, mask_tl.y + bob_val);
 
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_MEDIUM : FontSize::TEXT_MEDIUM_SCALED;
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
       ImGui::PushFont(get_inter_font(r, font_enum));
 
       const auto text_wh = ImGui::CalcTextSize(text.c_str());
@@ -587,7 +587,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
   auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < ui_c.players; i++) {
     const auto handle = data.handles[i];
     const bool connected = handle_is_connected(steam_c, handle);
     const bool joined = handle_is_joined(ui_c, handle);
