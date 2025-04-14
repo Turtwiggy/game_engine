@@ -18,7 +18,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
   const auto& view = r.view<EntityTimedLifecycle>(entt::exclude<WaitForInitComponent>);
   view.each([&dead, &milliseconds_dt](auto entity, auto& lifecycle) {
     if (lifecycle.milliseconds_alive > lifecycle.milliseconds_alive_max)
-      dead.dead.emplace(entity);
+      dead.dead.push_back(entity);
 
     lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
@@ -27,8 +27,8 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
   // OnDeathCallbacks can cause more dead.dead entities (explosions)
   std::unordered_set<entt::entity> uniquely_dead;
   while (!dead.dead.empty()) {
-    const auto e = dead.dead.front();
-    dead.dead.pop();
+    const entt::entity e = *dead.dead.begin();
+    std::erase(dead.dead, e);
 
     // Skip entities that are already in uniquely_dead
     if (uniquely_dead.find(e) != uniquely_dead.end())
@@ -70,7 +70,8 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       r.destroy(e);
   }
 
-  // Check invalid entities...
+// Check invalid entities...
+#if defined(_DEBUG)
   const auto& storage = r.storage<entt::entity>();
   for (const std::tuple<entt::entity>& ent_tuple : storage.each()) {
     const auto& [e] = ent_tuple;
@@ -78,6 +79,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     if (!r.valid(e)) {
       SDL_Log("Warning: removing invalid entity. How did it occur?");
       r.destroy((e));
+      throw std::runtime_error("Found invalid entity");
     }
 
     if (const auto* has_parent = r.try_get<HasParentComponent>(e)) {
@@ -86,7 +88,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
         auto* tag_c = r.try_get<TagComponent>(e);
         // auto* item_key_c = r.try_get<ItemKey>(e);
         // SDL_Log("%s has a null parent, key: %s", tag_c->tag.c_str(), item_key_c->key.c_str());
-        dead.dead.emplace(e);
+        dead.dead.push_back(e);
       }
       if (!r.valid(parent_e)) {
         auto* tag_c = r.try_get<TagComponent>(e);
@@ -95,10 +97,11 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
         //         tag_c->tag.c_str(),
         //         item_key_c->key.c_str(),
         //         static_cast<uint32_t>(parent_e));
-        dead.dead.emplace(e);
+        dead.dead.push_back(e);
       }
     }
   }
+#endif
 
   // process create requests
   const auto requests = r.view<WaitForInitComponent>();

@@ -182,16 +182,14 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
 
 #if defined(_DEBUG)
-  {
-    // static bool debug_menu = true;
-    // if (debug_menu) {
-    //   ImGui::Text("Rows: %zu", ui_c.state.rows.size());
-    //   for (const auto& row : ui_c.state.rows)
-    //     ImGui::Text("%s, idx: %i", row.col_name.c_str(), row.col_index);
-    // }
-    if (ImGui::Button("GiveGold"))
-      gold_c.amount += 5;
-  }
+  // static bool debug_menu = true;
+  // if (debug_menu) {
+  //   ImGui::Text("Rows: %zu", ui_c.state.rows.size());
+  //   for (const auto& row : ui_c.state.rows)
+  //     ImGui::Text("%s, idx: %i", row.col_name.c_str(), row.col_index);
+  // }
+  // if (ImGui::Button("GiveGold"))
+  //   gold_c.amount += 5;
 #endif
 
   if (!ui_c.init) {
@@ -302,7 +300,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto upgr_size = fingerpaint_font->CalcTextSizeA(fingerpaint_font->FontSize, FLT_MAX, -1, upgr_text);
   ImGui::SetCursorPos({ (ui_wh.x - upgr_size.x) * 0.5f, upgr_size.y * 0.5f });
   ImGui::PushFont(fingerpaint_font);
-  ImGui::Text("%s", upgr_text);
+  ImGui::TextColored(im_text_col, "%s", upgr_text);
   ImGui::PopFont();
 
   ImGui::PushFont(text_font);
@@ -394,7 +392,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
     const Upgrade u = (*it);
 
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);
-    ImGui::Text("Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
+    ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
 
     // loaded on-disk values
     int your_level = 0;

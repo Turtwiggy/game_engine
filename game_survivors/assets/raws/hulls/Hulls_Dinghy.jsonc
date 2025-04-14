@@ -20,8 +20,8 @@
         {
             "s_key" : "front_1",
             "n_mount_size" : 1,
-            "n_arc_mid" : 90,
-            "n_arc" : 180,
+            "n_arc_mid" : 0,
+            "n_arc" : 360,
             "n_x_rel_tl" : 22.5,
             "n_y_rel_tl" : 4.5
         },

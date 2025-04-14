@@ -47,7 +47,7 @@ update_animator_system(entt::registry& r, const float dt)
 
     // should end or loop the animation?
     if (animation.timer >= animation.duration && !animation.looping) {
-      // dead.dead.emplace(e); // destroy this effect
+      // dead.dead.push_back(e); // destroy this effect
       continue;
     }
 

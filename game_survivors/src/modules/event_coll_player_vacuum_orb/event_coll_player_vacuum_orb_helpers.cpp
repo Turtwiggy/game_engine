@@ -52,7 +52,7 @@ handle_player_enter_vacuum_orb(entt::registry& r, const OnCollisionEnter& evt)
   callbacks_c.callbacks.push_back(vacuum_orbs_on_death);
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  dead.dead.emplace(item_e);
+  dead.dead.push_back(item_e);
 }
 
 } // namespace game2d

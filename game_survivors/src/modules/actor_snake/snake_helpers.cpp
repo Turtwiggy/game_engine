@@ -45,15 +45,15 @@ auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
 
   // Remove targets when head dies
-  dead_c.dead.emplace(snake_c.target_e_0);
-  dead_c.dead.emplace(snake_c.target_e_1);
+  dead_c.dead.push_back(snake_c.target_e_0);
+  dead_c.dead.push_back(snake_c.target_e_1);
 
   // Kill all sections when head dies?
   entt::entity e = dead_e;
   while (auto* children_c = r.try_get<HasChildrenComponent>(e)) {
-    dead_c.dead.emplace(e);
+    dead_c.dead.push_back(e);
     e = children_c->children[0]; // note: assuming only 1 child
-    dead_c.dead.emplace(e);
+    dead_c.dead.push_back(e);
   }
 };
 

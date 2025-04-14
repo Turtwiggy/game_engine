@@ -71,16 +71,17 @@ update_ui_survive_timer_system(entt::registry& r)
 
       const auto my_orange_col = hex_to_srgb("#DF9755");
       const auto im_orange_col = convert_my_to_im_vec(my_orange_col);
+      const float padding_x = 10.0;
 
       if (r.view<BossComponent>().size() > 0) {
         const std::string str = "Defeat Steve";
         const auto str_size = ImGui::CalcTextSize(str.c_str());
-        ImGui::SetCursorPosX(ui_tl.x + ui_wh.x - str_size.x);
+        ImGui::SetCursorPosX(ui_tl.x + ui_wh.x - str_size.x - padding_x);
         ImGui::TextColored(im_orange_col, "%s", str.c_str());
       } else {
         const std::string str = "Survive!";
         const auto str_size = ImGui::CalcTextSize(str.c_str());
-        ImGui::SetCursorPosX(ui_tl.x + ui_wh.x - str_size.x);
+        ImGui::SetCursorPosX(ui_tl.x + ui_wh.x - str_size.x - padding_x);
         ImGui::TextColored(im_orange_col, "%s", str.c_str());
       }
 

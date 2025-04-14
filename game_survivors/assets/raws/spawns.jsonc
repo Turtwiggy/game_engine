@@ -18,40 +18,40 @@
     {
       "name": "wave", "time": { "start": 0, "stop": 1 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data": { "hp": 10, "max": 20, "num_per_spawn": 3} }, // puffer
-        { "key": "actor_enemy_melee_1",  "data": { "hp": 10, "max": 20, "num_per_spawn": 3} } // horseshoe
+        { "key": "actor_enemy_exploder", "data": { "hp": 10, "max": 20, "num_per_spawn": 6} }, // puffer
+        { "key": "actor_enemy_melee_1",  "data": { "hp": 10, "max": 20, "num_per_spawn": 6} } // horseshoe
       ]
     },
     {
       "name": "wave", "time": { "start": 1, "stop": 2 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data": { "hp": 20, "max": 30, "num_per_spawn": 3}}, // puffer
-        { "key": "actor_enemy_melee_1",  "data": { "hp": 20, "max": 30, "num_per_spawn": 3}}, // horseshoe
-        { "key": "actor_enemy_melee_2",  "data": { "hp": 20, "max": 20, "num_per_spawn": 4}}  // hermit
+        { "key": "actor_enemy_exploder", "data": { "hp": 20, "max": 30, "num_per_spawn": 6}}, // puffer
+        { "key": "actor_enemy_melee_1",  "data": { "hp": 20, "max": 30, "num_per_spawn": 6}}, // horseshoe
+        { "key": "actor_enemy_melee_2",  "data": { "hp": 20, "max": 20, "num_per_spawn": 8}}  // hermit
       ]
     },
     {
       "name": "wave", "time": { "start": 2, "stop": 3 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data": {"hp": 30, "max": 40, "num_per_spawn": 3}}, // puffer
-        { "key": "actor_enemy_melee_1",  "data": {"hp": 30, "max": 40, "num_per_spawn": 3}}, // horseshoe
-        { "key": "actor_enemy_melee_2",  "data": {"hp": 20, "max": 20, "num_per_spawn": 4}}  // hermit
+        { "key": "actor_enemy_exploder", "data": {"hp": 30, "max": 10, "num_per_spawn": 6}}, // puffer
+        { "key": "actor_enemy_melee_1",  "data": {"hp": 30, "max": 100, "num_per_spawn": 6}}, // horseshoe
+        { "key": "actor_enemy_melee_2",  "data": {"hp": 20, "max": 10, "num_per_spawn": 8}}  // hermit
       ]
     },
     {
       "name": "wave", "time": { "start": 3, "stop": 4 },
       "enemies": [
-        { "key": "actor_enemy_exploder",  "data": { "hp": 35, "max": 4, "num_per_spawn": 2}},  // puffer
-        { "key": "actor_enemy_melee_1",   "data": { "hp": 20, "max": 6, "num_per_spawn": 2}}, // horseshoe
-        { "key": "actor_enemy_swarmlord", "data": { "hp": 100, "max": 3, "num_per_wave": 3, "num_per_spawn": 3}} // 3 jellyfish lords
+        { "key": "actor_enemy_exploder",  "data": { "hp": 35, "max": 4,  "num_per_spawn": 2}},  // puffer
+        { "key": "actor_enemy_melee_1",   "data": { "hp": 20, "max": 20, "num_per_spawn": 10}}, // horseshoe
+        { "key": "actor_enemy_swarmlord", "data": { "hp": 100, "max": 10, "num_per_wave": 10, "num_per_spawn": 10}} // jellyfish lords
       ]
     },
     {
       "name": "wave", "time": { "start": 4, "stop": 5 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data" : { "hp": 35, "max": 5,  "num_per_spawn": 2}},  // puffer
-        { "key": "actor_enemy_melee_2",  "data" : { "hp": 30, "max": 20, "num_per_spawn": 4}}, // hermit
-        { "key": "actor_enemy_melee_3",  "data" : { "hp": 30, "max": 20, "num_per_spawn": 4}}  // redclaw
+        // { "key": "actor_enemy_exploder", "data" : { "hp": 35, "max": 5,  "num_per_spawn": 2}},  // puffer
+        { "key": "actor_enemy_melee_2",  "data" : { "hp": 30, "max": 60, "num_per_spawn": 15}}, // hermit
+        { "key": "actor_enemy_melee_3",  "data" : { "hp": 30, "max": 60, "num_per_spawn": 15}}  // redclaw
       ]
     },
     //

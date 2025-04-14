@@ -37,7 +37,7 @@ EntityPool::update(entt::registry& r, const int desired)
   for (int i = old_size; i > new_size; i--) {
     const auto idx = i - 1;
     const auto entity = instances[idx];
-    dead.dead.emplace(entity);
+    dead.dead.push_back(entity);
 
     std::erase(instances, entity);
   }

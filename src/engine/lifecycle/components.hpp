@@ -3,7 +3,7 @@
 #include "entt/entt.hpp"
 
 #include <functional>
-#include <queue>
+#include <vector>
 
 namespace game2d {
 
@@ -28,7 +28,7 @@ struct EntityTimedLifecycle
 
 struct SINGLE_EntityBinComponent
 {
-  std::queue<entt::entity> dead; // to destroy next fixed update
+  std::vector<entt::entity> dead; // to destroy next fixed update
 };
 
 // Alternative:

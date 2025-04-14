@@ -24,7 +24,7 @@ const auto remove_dead_parents =
   [](entt::registry& r, SINGLE_EntityBinComponent& dead, const entt::entity e, const entt::entity parent) -> bool {
   if (parent == entt::null || !r.valid(parent)) {
     r.emplace_or_replace<WaitForInitComponent>(e);
-    dead.dead.emplace(e);
+    dead.dead.push_back(e);
     return true;
   }
   return false;

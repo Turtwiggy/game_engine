@@ -49,7 +49,7 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
 
     // HACK: parent is ded. How to cleanup spritestacks?
     if (!r.valid(ssc.root) || ssc.root == entt::null) {
-      dead.dead.emplace(e);
+      dead.dead.push_back(e);
       continue;
     }
 

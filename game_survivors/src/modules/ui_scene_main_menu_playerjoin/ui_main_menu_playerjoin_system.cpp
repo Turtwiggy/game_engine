@@ -426,9 +426,13 @@ draw_player_ui_box(entt::registry& r,
 void
 update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
 {
+  static float timer = 0.0f;
+
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
-  if (scene_c.s != Scene::menu)
+  if (scene_c.s != Scene::menu) {
+    timer = 0.0f;
     return;
+  }
 
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
@@ -452,19 +456,35 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const float pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f));
-  const float pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (0 / 12.0f));
-  const auto pos = ImVec2(pos_x, pos_y);
-  // ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-  // ImGui::Begin("Players", NULL, flags);
+  const float pos_padding_x = -8.0f * ui_scale.scaling;
+  const float pos_padding_y = 0.0f * ui_scale.scaling;
+  const float ui_pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f)) + pos_padding_x;
+  const float ui_pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (6 / 12.0f)) + pos_padding_y;
+  const auto ui_pos = ImVec2(ui_pos_x, ui_pos_y);
+  ImGui::SetNextWindowPos(ui_pos, ImGuiCond_Always, ImVec2(1.0f, 0.5f));
+
+  // Get state for UI.
+  const int active = steam_c.n_active;
+  const auto data = ui_c;
+  const float padding_between_player_rows = 4.0f;
+  const float total_padding_y = (3 * padding_between_player_rows);
+
+  const float total_size_x = 260 * ui_scale.scaling;
+  const float total_size_y = 4 * 100 * ui_scale.scaling + total_padding_y;
+  ImGui::SetNextWindowSize({ total_size_x, total_size_y }, ImGuiCond_Always);
 
   // There's a bug where the action handles aren't non-zero until a config is done loading. Soon config
   // information will be available immediately. Until then try to init as long as the handles are invalid.
   const auto& digital_action_handles = steam_c.digital_action_handles;
   if (digital_action_handles[(int)DA::Game_Up] == 0) {
     init_steam_input_actions(r);
-    // ImGui::Text("SteamInput not detected, or no controllers plugged in!");
-    // ImGui::End();
+
+    timer += dt;
+
+    ImGui::Begin("WaitingForControllerUI", NULL, flags);
+    auto txt = std::format("Loading steam input...\nWaiting for a controller... ({:0.1f})", timer);
+    ImGui::Text("%s", txt.c_str());
+    ImGui::End();
     return;
   }
 
@@ -555,23 +575,6 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   }
 
   // ImGui::End();
-
-  // Get state for UI.
-  const int active = steam_c.n_active;
-  const auto data = ui_c;
-  const float padding_between_player_rows = 4.0f;
-  const float total_padding_y = (3 * padding_between_player_rows);
-
-  const float pos_padding_x = -8.0f * ui_scale.scaling;
-  const float pos_padding_y = 0.0f * ui_scale.scaling;
-  const float ui_pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f)) + pos_padding_x;
-  const float ui_pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (6 / 12.0f)) + pos_padding_y;
-  const auto ui_pos = ImVec2(ui_pos_x, ui_pos_y);
-  ImGui::SetNextWindowPos(ui_pos, ImGuiCond_Always, ImVec2(1.0f, 0.5f));
-
-  const float total_size_x = 260 * ui_scale.scaling;
-  const float total_size_y = 4 * 100 * ui_scale.scaling + total_padding_y;
-  ImGui::SetNextWindowSize({ total_size_x, total_size_y }, ImGuiCond_Always);
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));

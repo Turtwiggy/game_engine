@@ -84,7 +84,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
       if (bullet_pierce_c.pierced >= bullet_pierce_c.pierce) {
         // maximum number of enemies pierced with this bullet
         auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-        dead.dead.emplace(bullet_e_parent);
+        dead.dead.push_back(bullet_e_parent);
       }
     }
   }

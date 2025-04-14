@@ -60,7 +60,7 @@ handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
         sxp_c.xp++;
 
       auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-      dead.dead.emplace(xp_e);
+      dead.dead.push_back(xp_e);
 
       // play audio
       create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "XP_0" });

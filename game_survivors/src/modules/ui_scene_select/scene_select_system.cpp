@@ -26,6 +26,8 @@
 
 namespace game2d {
 
+const auto my_bg_col = hex_to_srgb("#0c1116");
+
 std::string
 str_remove_all_occurances(std::string base, const std::string& substr)
 {
@@ -148,13 +150,13 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
 
     const auto my_player_col = default_player_colours[player_idx];
     const auto im_player_col = IM_COL32(my_player_col.r, my_player_col.g, my_player_col.b, active_alpha);
-    const auto my_bg_col = hex_to_srgb("#1A1B18");
     const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, active_alpha);
+    const auto rounding = 4.0f;
 
     // draw a rect with filled border
     const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
     draw_list->AddRectFilled(box_tl, box_br, im_bg_col, 8);
-    draw_list->AddRect(box_tl, box_br, im_player_col, 8, 0, 2.0);
+    draw_list->AddRect(box_tl, box_br, im_player_col, rounding, 0, 2.0);
 
     const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
 
@@ -230,14 +232,13 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
   const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
 
   // draw a background
-  const auto my_bg_col = hex_to_srgb("#1A1B18");
   const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 255);
   const auto my_player_col = default_player_colours[player_idx];
   const auto im_player_col = convert_my_to_im(my_player_col);
   const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
   auto* draw_list = ImGui::GetWindowDrawList();
   draw_list->AddRectFilled(tl, br, im_bg_col, 8);
-  draw_list->AddRect(tl, br, im_player_col, 8, 0, 2.0);
+  // draw_list->AddRect(tl, br, im_player_col, 8, 0, 2.0);
 
   // std::string& hull = player_state.player_boat;
   // std::string& weapon = player_state.player_gun;

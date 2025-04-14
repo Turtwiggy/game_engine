@@ -46,7 +46,7 @@ update_death_throes_system(entt::registry& r, const float dt)
     evts.dispatcher->update();
 
     SDL_Log("Completed death throes");
-    dead.dead.emplace(e);
+    dead.dead.push_back(e);
   }
 }
 

@@ -29,7 +29,7 @@ handle_player_enter_hp(entt::registry& r, const OnCollisionEnter& evt)
   hp_c.hp = glm::min(hp_c.hp, hp_c.max_hp);
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  dead.dead.emplace(item_e);
+  dead.dead.push_back(item_e);
 }
 
 } // namespace game2d

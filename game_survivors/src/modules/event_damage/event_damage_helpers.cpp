@@ -159,6 +159,13 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   const auto to_e = evt.to;
   const auto parent_e = r.get<HasParentComponent>(to_e).parent;
 
+  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+  const bool is_dead = std::find(dead.dead.begin(), dead.dead.end(), parent_e) != dead.dead.end();
+
+  // another DamageEvent was sent but the entity is already queued to die
+  if (is_dead)
+    return;
+
   // .. pop & flash the fixture
   if (const auto* t_c = r.try_get<TransformComponent>(to_e))
     r.emplace_or_replace<RequestHitScaleComponent>(to_e);
@@ -227,9 +234,9 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
       const auto& is_dying = r.get_or_emplace<IsDyingComponent>(parent_e);
       return;
     }
+
     // else: die now!
-    auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-    dead.dead.emplace(parent_e);
+    dead.dead.push_back(parent_e);
 
     // const auto& parent_name = r.get<TagComponent>(parent_e).tag;
     // const auto str = std::format("{} died. Parent: {}", b_name, parent_name);

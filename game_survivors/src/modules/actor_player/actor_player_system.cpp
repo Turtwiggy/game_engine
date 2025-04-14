@@ -37,7 +37,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     for (const auto& [e, input_c, movetype_c, body_c, speed_c] : view.each()) {
 
       const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
-      const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
+      glm::vec2 l_nrm_dir = l_nrm_raw; // not normalized
 
       // Apply more force the more your mass
       const float mass = body_c.body->GetMass();
@@ -46,14 +46,42 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
       // note: if you are sprinting, your current_speed is modified.
       const float speed_in_meters_per_second = speed_c.current_speed;
       float speed = speed_in_meters_per_second;
+
       if (auto* upgrade_c = r.try_get<StatModifierComponent>(e)) {
         const auto key_actor_speed = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_SPEED));
         speed = upgrade_c->apply_modifiers(speed_in_meters_per_second, key_actor_speed);
       }
 
-      const b2Vec2 vel = speed * b2Vec2{ l_nrm_dir.x, l_nrm_dir.y };
-      const b2Vec2 impulse = mass * vel;
-      body_c.body->ApplyLinearImpulseToCenter(impulse, true);
+      // use a scaled deadzone.
+      const float deadzone = 0.10f;
+      const float magnitude = glm::length(l_nrm_dir);
+      if (magnitude < deadzone)
+        l_nrm_dir = { 0, 0 };
+      else {
+        // scale input from deadzone to full range
+        // const float x = engine::scale(l_nrm_dir.x, deadzone, 1.0f, 0.0f, 1.0f);
+        // const float y = engine::scale(l_nrm_dir.y, deadzone, 1.0f, 0.0f, 1.0f);
+
+        float scale = (magnitude - deadzone) / (1.0f - deadzone);
+        l_nrm_dir *= scale / magnitude;
+      }
+
+      const b2Vec2 tgt_vel = 100.0f * speed * b2Vec2{ l_nrm_dir.x, l_nrm_dir.y };
+      const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
+
+      const b2Vec2 vel_err = tgt_vel - cur_vel;
+      const b2Vec2 force = 100.0f * (vel_err);
+      // SDL_Log("vel_err: %f, %f, force: %f %f", vel_err.x, vel_err.y, force.x, force.y);
+
+      // try and catch the "sudden" stops that kill all momentum
+      if (glm::abs(l_nrm_dir.x) > 0.0f && glm::abs(l_nrm_dir.y) > 0.0f)
+        body_c.body->ApplyForceToCenter(force, true);
+
+      // if (glm::abs(l_nrm_dir.x) > 0.0f && glm::abs(l_nrm_dir.y) > 0.0f)
+      // body_c.body->SetLinearVelocity(cur_vel + max_vel_change);
+
+      // const b2Vec2 impulse = mass * speed * b2Vec2{ l_nrm_dir.x, l_nrm_dir.y };
+      // body_c.body->ApplyLinearImpulseToCenter(impulse, true);
     }
   }
 
@@ -61,7 +89,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     r.view<const PhysicsBodyComponent, const RotateToVelocityComponent>(entt::exclude<LockedInSpotComponent>);
   for (const auto& [e, body_c, rotate_c] : view.each()) {
     // Set Rotation
-    const float angle_speed = 10.0f; // higher number = faster to rotate
+    const float angle_speed = 50.0f; // higher number = faster to rotate
     const float max_angle = 30.0f * engine::Deg2Rad;
 
     const auto cur_angle = body_c.body->GetAngle();

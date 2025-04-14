@@ -116,7 +116,7 @@ update_ui_gameover_system(entt::registry& r)
     ImGui::TextColored(im_l_col, "%s", std::format("{}", header_loss).c_str());
     ImGui::PopFont();
 
-    ImGui::Text("honk!");
+    // ImGui::Text("honk!");
   }
 
   ImGui::NewLine();
