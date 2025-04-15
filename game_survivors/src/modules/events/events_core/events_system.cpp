@@ -51,6 +51,8 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__update_stats>(r);
 
   ed.dispatcher->sink<UpgradeEvent>().connect<&handle_upgrade_event>(r);
+
+  // ed.dispatcher->sink<WeaponLevelReachedEvent>().connect<>(r);
 }
 
 void

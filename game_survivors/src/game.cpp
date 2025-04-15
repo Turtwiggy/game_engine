@@ -1,4 +1,3 @@
-#include "modules/systems/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
 #include "pch.hpp"
 
 #include "game.hpp"
@@ -63,6 +62,7 @@
 #include "modules/systems/system_particles/particle_system.hpp"
 #include "modules/systems/system_particles_on_death/system.hpp"
 #include "modules/systems/system_pause/pause_helpers.hpp"
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
 #include "modules/systems/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/systems/system_player_out_of_bounds/player_out_of_bounds_system.hpp"
 #include "modules/systems/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
@@ -114,6 +114,7 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 #if defined(_DEBUG)
 #include <tracy/Tracy.hpp>
