@@ -13,6 +13,7 @@
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
@@ -329,40 +330,18 @@ aquire_action(entt::registry& r, entt::entity player_e, const Rarity rarity, con
   const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
   const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
 
-  auto& stats_c = r.get<StatModifierComponent>(player_e);
-  if (type_str == "stat_flat_increase")
-    stats_c.add(std::make_shared<StatFlatIncrease>(amount, upgrade_str));
-  else if (type_str == "stat_percent_increase")
-    stats_c.add(std::make_shared<StatPercentIncrease>(amount, upgrade_str));
-  else
-    throw std::runtime_error("Unknown stat type");
-
   auto& evts_c = get_first_component<SINGLE_Events>(r);
 
   UpgradeEvent evt;
   evt.e = player_e;
-  evt.upgrade = {
-
+  evt.data = StatUpgrade{
+    .type = type_str,
+    .rarity = rarity,
+    .stat = upgrade,
+    .value = amount,
   };
-
-  // evts_c.dispatcher->trigger(evt);s
+  evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();
-
-  // If it's a weapon upgrade, upgrade the weapon level by 1.
-  // {
-  //   const auto& wab = weapon_and_bullet_stats;
-  //   const bool is_wep_stat = std::find(wab.begin(), wab.end(), upgrade) != wab.end();
-  //   if (is_wep_stat) {
-  //     auto& children_c = r.get<HasChildrenComponent>(player_e);
-  //     for (const auto& child_e : children_c.children) {
-  //       //
-  //       if (auto* wep_level_c = r.try_get<WeaponLevelComponent>(child_e)) {
-  //         // upgrade all weapons? this is wrong
-  //         wep_level_c->level++;
-  //       }
-  //     }
-  //   }
-  // }
 
   SDL_Log("Aquiring: %s %s", rarity_str.c_str(), upgrade_str.c_str());
   r.remove<UpgradeResultsComponent>(player_e); // done
@@ -383,6 +362,14 @@ setup_ui_based_on_upgrades(entt::registry& r,
 void
 update_ui_survive_upgrade_system(entt::registry& r)
 {
+  GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
+  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
+  GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
+  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
+  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
+  GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
+
 #if defined(_DEBUG)
   // auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
   // if (scene_c.s == Scene::menu) {
@@ -396,20 +383,6 @@ update_ui_survive_upgrade_system(entt::registry& r)
   //     init = true;
   //   }
   // }
-#endif
-
-  GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
-  GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
-  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
-  GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
-
-  // check the probabilities are mathing to 100%
-  static_assert(sum_array_values() == 100);
-
-#if defined(_DEBUG)
   // Cheats..!! CHEATSS!!! CHEEEATTTSSSSSSS!!!!!!!
   {
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
@@ -437,6 +410,9 @@ update_ui_survive_upgrade_system(entt::registry& r)
   }
 #endif
 
+  // check the probabilities are mathing to 100%
+  static_assert(sum_array_values() == 100);
+
   const int max_num_players = 4;
   const int num_active_players = non_zero_handles(steam_state_c.handles).size();
   const auto text_col = ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
@@ -448,7 +424,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
     // consume xp
     sxp_c.xp = 0;
     sxp_c.level++;
-    sxp_c.xp_for_next_level += 2; // 2 harder every time
+    sxp_c.xp_for_next_level += 5; // 5 harder every time
 
     generate_upgrades_for_players(r, ui_c);
 

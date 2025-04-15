@@ -16,7 +16,7 @@
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/events/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/events/event_trait_splinter/trait_splinter_helpers.hpp"
-#include "modules/events/event_upgrade/event_upgrade_helpers.hpp"
+#include "modules/events/event_upgrade_aquired/event_upgrade_aquired_helpers.hpp"
 #include "modules/systems/system_stats/stats_helpers.hpp"
 
 namespace game2d {

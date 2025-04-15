@@ -304,7 +304,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
       desc = "None";
     }
 
-    const auto my_desc_text_col = engine::SRGBColour(240, 240, 240, active_alpha);
+    const auto my_desc_text_col = engine::SRGBColour(200, 200, 200, active_alpha);
     const auto im_desc_text_col = convert_my_to_im(my_desc_text_col);
 
     // const auto head_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
@@ -327,11 +327,11 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
     // draw description text
     {
       const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
       const auto font_size = (float)font_enum;
       const auto* font = get_inter_font(r, font_enum);
 
-      const float desc_pad_x = 6;
+      const float desc_pad_x = 4;
       const float width_limit = box_wh.x - (2.0f * desc_pad_x);
       const auto text_size = font->CalcTextSizeA(font_size, width_limit, width_limit, desc.c_str());
 

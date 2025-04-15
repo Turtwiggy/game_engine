@@ -218,7 +218,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   if (hp->hp <= 0) {
 
-    // clamp hp at 0
+    // set dead hp at 0
     hp->hp = 0;
 
     // Die now, or die soon?

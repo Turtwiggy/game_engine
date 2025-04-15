@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event_upgrade_components.hpp"
+#include "modules/events/event_upgrade/event_upgrade_components.hpp"
 
 #include <entt/fwd.hpp>
 

@@ -6,12 +6,11 @@
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/actors/actor_player/components.hpp"
-#include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
-#include "modules/systems/system_upgrade/upgrade_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
@@ -43,42 +42,6 @@ update_ui_debug_upgrades_system(entt::registry& r)
     WomboComboOut combo_out = draw_wombo_combo(combo_in);
     if (combo_in.current_index != combo_out.selected)
       index = combo_out.selected;
-  }
-
-  //
-  // display the selected upgrade info
-  //
-  if (up_c.upgrades.size() > 0) {
-    Upgrade& u = up_c.upgrades[index];
-
-    /*
-      std::string desc = generate_description(u);
-      ImGui::Text("%s", desc.c_str());
-
-      std::string label = "Aquire##" + u.name;
-      if (ImGui::Button(label.c_str())) {
-        for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
-          // send event, me thinks
-          UpgradeEvent evt;
-          evt.e = e;
-          evt.upgrade = u;
-          evts_c.dispatcher->trigger(evt);
-          evts_c.dispatcher->update();
-        }
-      }
-    */
-  }
-
-  if (ImGui::Button("AquireAll")) {
-    for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
-      for (const auto& u : up_c.upgrades) {
-        UpgradeEvent evt;
-        evt.e = e;
-        evt.upgrade = u;
-        evts_c.dispatcher->trigger(evt);
-        evts_c.dispatcher->update();
-      }
-    }
   }
 
   ImGui::SeparatorText("Modifier Config");

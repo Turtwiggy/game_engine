@@ -1,3 +1,4 @@
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
 #include "pch.hpp"
 
 #include "game.hpp"
@@ -72,7 +73,6 @@
 #include "modules/systems/system_spawner/spawner_system.hpp"
 #include "modules/systems/system_spritestack/spritestack_system.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
-#include "modules/systems/system_upgrade/upgrade_helpers.hpp"
 #include "modules/systems/system_upgrade_hp_max/upgrade_hp_max_system.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
