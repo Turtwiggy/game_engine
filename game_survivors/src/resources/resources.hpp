@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/audio/audio_components.hpp"
-#include "modules/core_renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 
 namespace game2d {
 

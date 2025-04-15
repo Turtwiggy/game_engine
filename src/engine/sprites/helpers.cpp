@@ -5,8 +5,8 @@
 
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
-#include "modules/core_renderer/components.hpp"
-#include "modules/core_renderer/helpers.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 
 namespace game2d {
 using json = nlohmann::json;

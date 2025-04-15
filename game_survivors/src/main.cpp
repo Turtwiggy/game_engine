@@ -1,7 +1,6 @@
 #include "pch.hpp"
 
 #include "game.hpp"
-#include <client/TracyCallstack.hpp>
 using namespace game2d;
 
 #include "engine/app/application.hpp"

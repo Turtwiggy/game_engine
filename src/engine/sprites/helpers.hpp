@@ -2,7 +2,7 @@
 
 // my libs
 #include "components.hpp"
-#include "modules/core_renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 
 #include <entt/fwd.hpp>
 

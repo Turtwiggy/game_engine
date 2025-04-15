@@ -9,7 +9,7 @@
 #include "engine/io/path.hpp"
 
 // this probably shouldnt be here
-#include "modules/core_renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 
 // other library headers
 #include "engine/deps/opengl.hpp"

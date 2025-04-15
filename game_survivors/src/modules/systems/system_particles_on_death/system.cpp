@@ -1,0 +1,28 @@
+#include "system.hpp"
+
+#include "engine/actors/actor_helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "modules/core/raws/raws_components.hpp"
+#include "modules/systems/system_particles/components.hpp"
+
+namespace game2d {
+
+void
+update_spawn_particles_on_death_system(entt::registry& r)
+{
+  const auto view = r.view<RequestToSpawnParticles>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, req_c] : view.each()) {
+
+    const auto emitter_parent_e = create_transform(r, "emitter-parent");
+    set_size(r, emitter_parent_e, { 0, 0 }); // no size just script, but need position
+    set_position(r, emitter_parent_e, req_c.position);
+    r.emplace<EntityTimedLifecycle>(emitter_parent_e, 1 * 1000);
+
+    req_c.parent = emitter_parent_e;
+    spawn_particle_emitter(r, req_c);
+  }
+
+  r.destroy(view.begin(), view.end()); // all requests processed
+};
+
+} // namespace game2d

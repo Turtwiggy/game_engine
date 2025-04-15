@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/colour/colour.hpp"
-#include "modules/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 
 namespace game2d {
 

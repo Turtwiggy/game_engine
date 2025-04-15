@@ -1,0 +1,575 @@
+#include "pch.hpp"
+
+#include "system.hpp"
+
+// components/systems
+#include "components.hpp"
+#include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/core/camera/orthographic.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
+#include "modules/core/renderer/helpers/batch_quad.hpp"
+#include "modules/core/renderer/renderpass/passes.hpp"
+#include "modules/effect_crt/crt_components.hpp"
+
+// engine headers
+#include "engine/opengl/framebuffer.hpp"
+#include "engine/opengl/render_command.hpp"
+#include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
+#include "engine/opengl/util.hpp"
+#include "modules/scene/scene_components.hpp"
+#include "modules/systems/system_screenshake/components.hpp"
+#include "renderpass/passes.hpp"
+
+using namespace engine;
+
+namespace game2d {
+using namespace std::literals;
+
+struct UboData
+{
+  // glm::mat4 projection = glm::mat4(1.0f);
+  glm::mat4 projection_zoomed = glm::mat4(1.0f);
+  glm::mat4 view = glm::mat4(1.0f);
+  glm::vec2 camera_pos{ 0, 0 };
+  glm::vec2 screenshake{ 0, 0 };
+  glm::vec4 player_positions[4]; // try to avoid padding issues with vec4
+  float time = 0;
+  float zoom = 0;
+  float tilesize = 50;
+};
+
+int
+get_renderer_tex_unit_count(const SINGLE_RendererInfo& ri)
+{
+  int i = 0;
+  for (const auto& p : ri.passes)
+    i += int(p.texs.size());
+  return i;
+};
+
+void
+rebind(entt::registry& r, SINGLE_RendererInfo& ri)
+{
+  SDL_Log("%s", std::format("rebind...").c_str());
+
+  const auto& wh = ri.viewport_size_render_at;
+
+  // Super sampling, innit
+  const glm::vec2 double_wh = { 2.0 * wh.x, 2.0f * wh.y };
+
+  for (RenderPass& rp : ri.passes) {
+    for (const auto& tex : rp.texs) {
+      engine::bind_tex(tex.tex_id.id);
+      engine::update_bound_texture_size(double_wh);
+      engine::unbind_tex();
+    }
+  }
+
+  int i = 0;
+  for (auto& rp : ri.passes) {
+    for (const auto& tex : rp.texs) {
+      glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
+      glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
+      i++;
+    }
+  }
+  for (const auto& tex : ri.user_textures) {
+    glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
+    glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
+    i++;
+  }
+
+  // Texture quadrenderer...
+  // int tex_buffer_unit = i++;
+  // glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
+  // glBindTexture(GL_TEXTURE_2D, ri.tex_unit_circles);
+  // ri.tex_unit_circles = tex_buffer_unit;
+  // SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.tex_unit_circles).c_str());
+
+  SDL_Log("%s", std::format("bound textures: {}", i).c_str());
+  const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
+
+  const auto get_tex_unit = [&ri](const PassName& p) -> int {
+    const auto idx = search_for_renderpass_by_name(ri, p);
+    const auto& pass = ri.passes[idx];
+    return pass.texs[0].tex_unit.unit;
+  };
+
+  const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
+  const int tex_unit_water = get_tex_unit(PassName::water);
+  const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
+  const int tex_unit_outline = get_tex_unit(PassName::outline);
+  const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
+  // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
+  const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
+  // const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
+
+  auto& camera = get_first_component<OrthographicCamera>(r);
+  camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 1.0f);
+  camera.projection_zoomed = camera.projection;
+
+  // store projection ONCE in the UBO
+  // glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+  // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+  // glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+  ri.water.reload(r);
+  ri.water.bind();
+  ri.water.set_uniform_block_binding("Data", 0);
+  ri.water.set_mat4("projection", camera.projection);
+  ri.water.set_vec2("viewport_wh", wh);
+
+  // set user textures in shaders
+  const auto clean_path = [](const std::string& path) -> std::string {
+    const auto last_slash = path.find_last_of("/\\");
+    const auto file_name = path.substr(last_slash + 1);
+    const auto last_dot = file_name.find_last_of('.');
+    return file_name.substr(0, last_dot);
+  };
+
+  ri.instanced.reload(r);
+  ri.instanced.bind();
+  ri.instanced.set_uniform_block_binding("Data", 0);
+  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  ri.instanced.set_bool("do_zoom", true);
+  ri.instanced.set_mat4("projection", camera.projection);
+  for (const auto& tex : ri.user_textures) {
+    const std::string key = "tex_" + clean_path(tex.path);
+    SDL_Log("%s", std::format("user tex key: {}", key).c_str());
+    ri.instanced.set_int(key, tex.tex_unit.unit);
+  }
+
+  ri.outline.reload(r);
+  ri.outline.bind();
+  ri.outline.set_uniform_block_binding("Data", 0);
+  ri.outline.set_mat4("projection", camera.projection);
+  ri.outline.set_bool("is_fullscreen", true);
+  ri.outline.set_bool("do_zoom", false);
+
+  // ri.outline.set_mat4("projection", camera.projection);
+  // ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  // for (const auto& tex : ri.user_textures)
+  //   ri.outline.set_int("tex_" + clean_path(tex.path), tex.tex_unit.unit);
+  ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
+
+  ri.crt.reload(r);
+  ri.crt.bind();
+  ri.crt.set_uniform_block_binding("Data", 0);
+  ri.crt.set_bool("is_fullscreen", true);
+  ri.crt.set_mat4("projection", camera.projection);
+  ri.crt.set_int("tex_to_crt", tex_unit_mix_lighting_and_scene);
+  ri.crt.set_vec2("viewport_wh", double_wh);
+
+  ri.lighting_emitters_and_occluders.reload(r);
+  ri.lighting_emitters_and_occluders.bind();
+  ri.lighting_emitters_and_occluders.set_uniform_block_binding("Data", 0);
+  ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
+
+  ri.voronoi_seed.reload(r);
+  ri.voronoi_seed.bind();
+  ri.voronoi_seed.set_bool("is_fullscreen", true);
+  ri.voronoi_seed.set_mat4("projection", camera.projection);
+  // ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
+
+  ri.jump_flood.reload(r);
+  ri.jump_flood.bind();
+  ri.jump_flood.set_bool("is_fullscreen", true);
+  ri.jump_flood.set_mat4("projection", camera.projection);
+  ri.jump_flood.set_vec2("screen_wh", ri.viewport_size_render_at);
+
+  ri.voronoi_distance.reload(r);
+  ri.voronoi_distance.bind();
+  ri.voronoi_distance.set_bool("is_fullscreen", true);
+  ri.voronoi_distance.set_mat4("projection", camera.projection);
+  // ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit_emitters_and_occluders);
+  ri.voronoi_distance.set_vec2("screen_wh", ri.viewport_size_render_at);
+
+  ri.mix_lighting_and_scene.reload(r);
+  ri.mix_lighting_and_scene.bind();
+  ri.mix_lighting_and_scene.set_uniform_block_binding("Data", 0);
+  ri.mix_lighting_and_scene.set_bool("is_fullscreen", true);
+  ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
+  ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
+  ri.mix_lighting_and_scene.set_bool("add_grid", false);
+  ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
+  ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
+  ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
+  ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
+
+  const auto& camera_c = get_first_component<OrthographicCamera>(r);
+  ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
+
+  // ri.blur.reload(r);
+  // ri.blur.bind();
+  // ri.blur.set_mat4("projection", camera.projection);
+
+  // ri.bloom.reload(r);
+  // ri.bloom.bind();
+  // ri.bloom.set_mat4("projection", camera.projection);
+  // ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
+  // ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
+};
+
+void
+init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+
+  const glm::ivec2 screen_wh = app.window.get_size();
+  ri.viewport_size_render_at = screen_wh;
+  ri.viewport_size_current = screen_wh;
+  const auto& fbo_size = ri.viewport_size_render_at;
+
+  // const int max_dim = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  // const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
+  // SDL_Log("%s", std::format("jumpflood passes... {}", n_jumpflood_passes).c_str());
+
+  // FBO textures
+  Framebuffer::default_fbo();
+  RenderCommand::set_viewport(0, 0, ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
+  RenderCommand::clear();
+
+  ri.passes.push_back(RenderPass(PassName::water));
+  ri.passes.push_back(RenderPass(PassName::floor_mask));
+  ri.passes.push_back(RenderPass(PassName::linear_main));
+  ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
+  ri.passes.push_back(RenderPass(PassName::outline));
+  // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
+  // // Use the Jump flood algorithm to generate a voroi diagram,
+  // // then convert that in to a distance field
+  // ri.passes.push_back(RenderPass(PassName::voronoi_seed));
+  // ri.passes.push_back(RenderPass(PassName::jump_flood));
+  // ri.passes.push_back(RenderPass(PassName::voronoi_distance));
+  ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
+  ri.passes.push_back(RenderPass(PassName::crt_effect));
+  // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
+  // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
+  // ri.passes.push_back(RenderPass(PassName::bloom));
+
+  // Super sampling, innit
+  auto double_fbo_size = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
+
+  for (auto& rp : ri.passes) {
+    // if (rp.pass == PassName::jump_flood)
+    //   rp.setup(fbo_size, 2);
+    // else
+    rp.setup(double_fbo_size);
+  }
+
+  // Load user textures
+  const int base_tex_unit = get_renderer_tex_unit_count(ri);
+  int next_tex_unit = base_tex_unit;
+  for (Texture& tex : ri.user_textures) {
+    tex.tex_unit.unit = next_tex_unit;
+
+    const LinearTexture loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
+
+    tex.tex_id.id = bind_linear_texture(loaded_tex);
+    tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
+
+    next_tex_unit++;
+    SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
+  }
+
+  ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
+  ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
+  ri.lighting_emitters_and_occluders =
+    Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
+  ri.voronoi_seed = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
+  ri.jump_flood = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
+  ri.voronoi_distance = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
+  ri.mix_lighting_and_scene = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
+  ri.crt = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
+  // ri.blur = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/blur.frag");
+  // ri.bloom = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
+
+  // initialize renderer
+#if !defined(__EMSCRIPTEN__)
+  glEnable(GL_MULTISAMPLE);
+#endif
+
+  // glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  engine::print_gpu_info();
+
+  // init(): create a dynamic VBO
+  ri.renderer.init();
+
+  // create a texture
+  //   constexpr static int N_MAX_CIRCLES = 100;
+  //   {
+  //     GLuint tex = 0;
+  //     glGenTextures(1, &tex);
+  //     glBindTexture(GL_TEXTURE_2D, tex);
+  //     ri.tex_unit_circles = tex;
+  //     // allocate texture storage
+  //     const int num_rows = N_MAX_CIRCLES;
+  //     const int num_cols = sizeof(game2d::CircleComponent) / sizeof(float); // floats per comp
+  //     const auto size = glm::ivec2{ num_cols, num_rows };
+  // #if defined(__EMSCRIPTEN__)
+  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  // #else
+  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  // #endif
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  //     SDL_Log("%s", std::format("created texture object... id: {}", tex).c_str());
+  //   }
+
+  // generate ubo
+  {
+    GLuint ubo;
+    glGenBuffers(1, &ubo);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(UboData), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // set as binding point 0
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, sizeof(UboData));
+
+    ri.tex_unit_ubo_data = ubo;
+  }
+
+  // update ubo data
+  // {
+  //   const auto camera_e = get_first<OrthographicCamera>(r);
+  //   const auto& camera_t = r.get<TransformComponent>(camera_e);
+  //   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+  //   static UboData data;
+  //   data.time = 0;
+  //   data.view = camera_c.view;
+  //   data.camera_pos = { camera_t.position.x, camera_t.position.y };
+  //   data.zoom = camera_c.zoom_nonlinear;
+  //   auto grid_e = get_first<Effect_GridComponent>(r);
+  //   if (grid_e != entt::null)
+  //     data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
+  //   glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
+  //   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
+  //   // glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+  // }
+
+  rebind(r, ri);
+
+  // adds the update() for each renderpass
+  setup_floor_mask_update(r);
+  setup_water_update(r);
+  setup_linear_main_update(r);
+  setup_sprites_to_outline_update(r);
+  setup_outline_update(r);
+  // setup_lighting_emitters_and_occluders_update(r);
+  // setup_voronoi_seed_update(r);
+  // setup_jump_flood_pass(r);
+  // setup_voronoi_distance_field_update(r);
+  setup_mix_lighting_and_scene_update(r);
+  setup_crt_effect_update(r);
+  // setup_gaussian_blur_update(r);
+  // setup_bloom_update(r);
+
+  // validate that update() been set...
+  for (const auto& pass : ri.passes) {
+    const auto type_name = std::string(magic_enum::enum_name(pass.pass));
+    if (!pass.update) {
+      SDL_Log("%s", std::format("ERROR! RenderPass Update() not set for {}", type_name).c_str());
+      exit(1); // explode
+    }
+    // SDL_Log("%s", std::format("RenderPass {} tex_size: {}", type_name, pass.texs.size()).c_str());
+
+    // for (const auto& tex : pass.texs)
+    //   SDL_Log("%s", std::format("Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
+  }
+  // for (auto& tex : ri.user_textures)
+  //   SDL_Log("%s", std::format("User Texture, Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
+
+  CHECK_OPENGL_ERROR(3);
+};
+
+void
+update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
+{
+  static const engine::SRGBColour black(0, 0, 0, 0);
+
+#if defined(_DEBUG)
+  CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
+#endif
+
+  static float time = 0.0f;
+  time += dt;
+
+  const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+
+  if (check_if_viewport_resize(ri))
+    rebind(r, ri);
+
+#if defined(_DEBUG)
+  // reload all shaders
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  if (ri.viewport_hovered && get_key_down(input, SDL_SCANCODE_0)) {
+    SDL_Log("(DEBUG) Reloading shaders");
+    rebind(r, ri);
+  }
+#endif
+
+  // const auto viewport_wh = ri.viewport_size_render_at;
+  const auto double_wh = glm::vec2{ 2.0f * ri.viewport_size_render_at.x, 2.0f * ri.viewport_size_render_at.y };
+
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  const auto& camera_t = r.get<TransformComponent>(camera_e);
+  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+  const auto& screenshake_c = get_first_component<SINGLE_ScreenshakeComponent>(r);
+
+  // update ubo data
+  static UboData data;
+  data.projection_zoomed = camera_c.projection_zoomed;
+  data.view = camera_c.view;
+  data.camera_pos = { camera_t.position.x, camera_t.position.y };
+  data.time = time;
+  data.zoom = camera_c.zoom_nonlinear;
+  data.screenshake = screenshake_c.strength;
+  auto grid_e = get_first<Effect_GridComponent>(r);
+  if (grid_e != entt::null)
+    data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
+
+  // .w as 0 indicates player inactive.
+  for (int i = 0; i < 4; i++)
+    data.player_positions[i].w = 0.0f;
+
+  const auto players_view = r.view<const PlayerComponent, const TransformComponent>();
+  for (int i = 0; const auto& [e, player_c, t_c] : players_view.each()) {
+    data.player_positions[i].x = t_c.position.x;
+    data.player_positions[i].y = t_c.position.y;
+
+    // HACK: trial a wedge angle representing a flashlight for the player.
+    float angle = clamp_axis(t_c.rotation_radians.z);
+    // static float angle = 0.0f;
+    // angle += 1.0f * dt;
+    // angle = clamp_axis(angle);
+    data.player_positions[i].z = angle;
+    data.player_positions[i].w = 1.0f;
+    i++;
+  }
+
+  // Note: this updates the entire array.
+  // We could update only the parts that change
+  glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+  const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
+  const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
+
+  static bool showing_grid = false;
+  static bool showing_grid_updated = true;
+  const bool show_grid = get_first<Effect_GridComponent>(r) != entt::null;
+  if (show_grid && !showing_grid)
+    showing_grid_updated = true;
+  if (!show_grid && showing_grid)
+    showing_grid_updated = true;
+  if (showing_grid_updated) {
+    ri.mix_lighting_and_scene.bind();
+    ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
+    showing_grid_updated = false;
+  }
+  showing_grid = show_grid;
+
+  for (auto& pass : ri.passes) {
+    // const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
+    // const auto& pass_enum = pass.pass;
+
+    Framebuffer::bind_fbo(pass.fbos[0]);
+    RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
+    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::clear();
+
+    pass.update(r);
+  }
+
+  // Default: render_texture_to_imgui
+  // Render the last renderpass texture to the final output
+  {
+    // last stage, dont double the framebuffer
+    const auto viewport_wh = ri.viewport_size_render_at;
+
+    Framebuffer::default_fbo();
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::clear();
+
+    // Which pass to render finally?
+    // PassName p = PassName::mix_lighting_and_scene;
+    // if (get_first<SINGLE_EffectCrt>(r) != entt::null) {
+    //   auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
+    //   if (crt_c.enabled)
+    //     p = PassName::crt_effect;
+    // }
+
+    // Note: ImGui::Image takes in TexID not TexUnit
+    const auto& pass = ri.passes[(int)PassName::crt_effect];
+    const auto tex_id = pass.texs[0].tex_id.id;
+    const auto vi = render_texture_to_imgui_viewport(tex_id);
+
+    // If the viewport moves - viewport position will be a frame behind.
+    // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
+    // (or if a user is moving the viewport, they likely dont need that one frame?)
+    ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
+    ri.viewport_size_current = { vi.size.x, vi.size.y };
+    ri.viewport_hovered = vi.hovered;
+    ri.viewport_focused = vi.focused;
+  }
+
+#if defined(_DEBUG)
+  {
+    const bool hide_debug_textures = true;
+    if (hide_debug_textures)
+      return;
+
+    // Debug Passes
+    for (const auto& rp : ri.passes) {
+      const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
+
+      for (const auto& tex : rp.texs) {
+        const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
+        ImGui::Begin(label.c_str());
+        const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        const uint64_t id = tex.tex_id.id;
+        ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        ImGui::End();
+      }
+    }
+
+    // Debug user Texture
+    for (int i = 0; const auto& tex : ri.user_textures) {
+      const std::string label = std::string("Debug") + std::to_string(i++);
+      ImGui::Begin(label.c_str());
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      const uint64_t id = tex.tex_id.id;
+      ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      ImGui::End();
+    }
+  }
+#endif
+};
+
+void
+end_frame_render_system(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  ri.renderer.end_frame();
+};
+
+} // namespace game2d

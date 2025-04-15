@@ -5,8 +5,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/core_collisions/resolve_collisions_helpers.hpp"
-#include "modules/core_raws/raws_components.hpp"
+#include "modules/core/collisions/resolve_collisions_helpers.hpp"
+#include "modules/core/raws/raws_components.hpp"
 
 namespace game2d {
 

@@ -61,11 +61,11 @@
     { "stat": "BULLET_KNOCKBACK", "rarity":"LEGENDARY",         "name": "Hydraulic Impact Rounds",    "desc": "Water-ramming effect." },
     { "stat": "BULLET_KNOCKBACK", "rarity":"SUPER_LEGENDARY",   "name": "Compressed Steam Blast",     "desc": "Experimental wave-generating shots." },
     
-    { "stat": "BULLET_LIFESTEAL", "rarity":"COMMON",            "name": "Medical Supply Cashes",      "desc": "Provides basic healing." },
-    { "stat": "BULLET_LIFESTEAL", "rarity":"UNCOMMON",          "name": "Stimulant-Injected Crew",    "desc": "Adrenaline boosts." },
+    { "stat": "BULLET_LIFESTEAL", "rarity":"COMMON",            "name": "Medical Supply Caches",      "desc": "Provides basic healing." },
+    { "stat": "BULLET_LIFESTEAL", "rarity":"UNCOMMON",          "name": "Stim-Injected Crew",    "desc": "Adrenaline boosts." },
     { "stat": "BULLET_LIFESTEAL", "rarity":"RARE",              "name": "Automated Tourniquets",      "desc": "Instant wound sealing." },
     { "stat": "BULLET_LIFESTEAL", "rarity":"LEGENDARY",         "name": "Blood Transfusion Kits",     "desc": "Rapid recovery." },
-    { "stat": "BULLET_LIFESTEAL", "rarity":"SUPER_LEGENDARY",   "name": "Electro-Stimulant Revival",  "desc": "Shock-based healing." },
+    { "stat": "BULLET_LIFESTEAL", "rarity":"SUPER_LEGENDARY",   "name": "Electro-Stim Revival",  "desc": "Shock-based healing." },
 
     { "stat": "BULLET_PIERCE", "rarity":"COMMON",               "name": "Chain Shot",                 "desc": "Cuts through rigging." },
     { "stat": "BULLET_PIERCE", "rarity":"UNCOMMON",             "name": "Bar Shot",                   "desc": "Wider penetration." },

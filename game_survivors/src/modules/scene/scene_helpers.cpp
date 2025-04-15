@@ -14,47 +14,49 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/actor_snake/snake_helpers.hpp"
-#include "modules/actor_weapon/weapon_helpers.hpp"
-#include "modules/combat/components.hpp"
-#include "modules/core_camera/components.hpp"
-#include "modules/core_camera/orthographic.hpp"
-#include "modules/core_colour/components.hpp"
-#include "modules/core_raws/raws_components.hpp"
-#include "modules/core_renderer/components.hpp"
-#include "modules/core_sprites/sprite_helpers.hpp"
-#include "modules/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/actors/actor_hull/hull_components.hpp"
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_snake/snake_helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
+#include "modules/combat/combat_core/components.hpp"
+#include "modules/core/camera/components.hpp"
+#include "modules/core/camera/orthographic.hpp"
+#include "modules/core/colour/components.hpp"
+#include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/sprites/sprite_helpers.hpp"
+#include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
-#include "modules/system_ability/ability_components.hpp"
-#include "modules/system_autofire/autofire_components.hpp"
-#include "modules/system_hardpoint_arcs/hulls_components.hpp"
-#include "modules/system_item_gold/gold_components.hpp"
-#include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/system_particles/components.hpp"
-#include "modules/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
-#include "modules/system_player_out_of_bounds/player_out_of_bounds_components.hpp"
-#include "modules/system_scene_pressanykey_move_to_next/components.hpp"
-#include "modules/system_scene_splashscreen_move_to_next/components.hpp"
-#include "modules/system_screenshake/components.hpp"
-#include "modules/system_spawner/spawner_helpers.hpp"
-#include "modules/system_sprint/sprint_components.hpp"
-#include "modules/system_spritestack/spritestack_components.hpp"
-#include "modules/system_stats/stats_components.hpp"
-#include "modules/system_upgrade/upgrade_components.hpp"
-#include "modules/system_upgrade_dodge/upgrade_dodge_components.hpp"
-#include "modules/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
-#include "modules/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
-#include "modules/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
-#include "modules/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui_gameover/ui_gameover_components.hpp"
-#include "modules/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
-#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
-#include "modules/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
-#include "modules/ui_scene_select/scene_select_components.hpp"
-#include "modules/ui_scene_survive_timer/ui_survive_timer_components.hpp"
-#include "modules/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+#include "modules/systems/system_ability/ability_components.hpp"
+#include "modules/systems/system_autofire/autofire_components.hpp"
+#include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/systems/system_item_gold/gold_components.hpp"
+#include "modules/systems/system_move_to_target_via_lerp/components.hpp"
+#include "modules/systems/system_particles/components.hpp"
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
+#include "modules/systems/system_player_out_of_bounds/player_out_of_bounds_components.hpp"
+#include "modules/systems/system_scene_pressanykey_move_to_next/components.hpp"
+#include "modules/systems/system_scene_splashscreen_move_to_next/components.hpp"
+#include "modules/systems/system_screenshake/components.hpp"
+#include "modules/systems/system_spawner/spawner_helpers.hpp"
+#include "modules/systems/system_sprint/sprint_components.hpp"
+#include "modules/systems/system_spritestack/spritestack_components.hpp"
+#include "modules/systems/system_stats/stats_components.hpp"
+#include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
+#include "modules/systems/system_upgrade_hp_max/upgrade_hp_max_system.hpp"
+#include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
+#include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
+#include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
+#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_gameover/ui_gameover_components.hpp"
+#include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
+#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
+#include "modules/ui/ui_scene_select/scene_select_components.hpp"
+#include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -164,7 +166,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     return (*it);
   };
   const ShipHullData hull = get_key(hulls_c.hulls, hull_key).value();
-  const WeaponData weapon_data = get_key(weps_c.weapons, weapon_key).value();
+  const Weapon_OnDiskData weapon_data = get_key(weps_c.weapons, weapon_key).value();
   const auto hull_size = glm::vec2{ hull.width, hull.height };
 
   std::vector<entt::entity> weapons;
@@ -177,8 +179,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     auto weapon_e = spawn_weapon(r, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(weapon_e, HardpointComponent{ hardpoint_data });
 
-    // add weapon data, but could add a weapondatakey isntead
-    r.emplace<WeaponData>(weapon_e, weapon_data);
+    // add weapon data, but could add a Weapon_OnDiskDatakey isntead
+    r.emplace<Weapon_OnDiskData>(weapon_e, weapon_data);
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE)
       r.emplace<AutofireComponent>(weapon_e);
@@ -219,6 +221,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   r.emplace<OutOfBoundsTimer>(e);
   r.emplace<AbilityComponent>(e);
+  r.emplace<HullKeyComponent>(e, hull_key);
 
   // Upgradeable stats
   r.emplace<ActorSpeedComponent>(e, ActorSpeedComponent{ .base_speed = 0.02f, .current_speed = 0.02f }); // meters per second
@@ -285,7 +288,6 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     hull_key.begin(), hull_key.end(), std::back_inserter(hull_lower), [](const auto& c) { return std::tolower(c); });
 
   // TODO: come up with something better to set sprites
-
   // If a spritestack is implemented, use that.
   r.remove<SpriteComponent>(e);
   if (add_spritestack(r, e, hull_lower))
@@ -476,6 +478,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     init_spawners(r);
 
     load_persistent_upgrades_and_apply_to_player(r);
+
+    // bugfix: this makes sure the player has the correct health on spawn after loading upgrades.
+    update_upgrade_hp_max_system(r);
+    const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
+    for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
+      hp_c.hp = hp_c.max_hp;
   }
 
   if (s == Scene::procedural_snake) {

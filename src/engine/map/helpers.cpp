@@ -5,8 +5,8 @@
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-// #include "modules/core_collisions/resolve_collisions_helpers.hpp"
-// #include "modules/events/events_components.hpp"
+// #include "modules/core/collisions/resolve_collisions_helpers.hpp"
+// #include "modules/events/events_core/events_components.hpp"
 
 namespace game2d {
 

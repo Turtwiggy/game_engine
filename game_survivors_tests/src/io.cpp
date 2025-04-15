@@ -1,4 +1,4 @@
-#include "modules/core_options/options_components.hpp"
+#include "modules/core/options/options_components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>

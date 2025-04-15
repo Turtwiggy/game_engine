@@ -1,5 +1,5 @@
 #include "engine/maths/grid.hpp"
-#include "modules/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_upgrade/upgrade_components.hpp"
 
 #include <SDL2/SDL_log.h>
 #include <glm/glm.hpp>

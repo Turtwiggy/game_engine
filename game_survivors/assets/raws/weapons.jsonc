@@ -4,7 +4,7 @@
     {
       "key": "weapon_deck_cannon",
       "name": "Cannon (Heavy)", // heavy pistol
-      "desc": "Fires Heavy rounds.",
+      "desc": "Shoot [Heavy] cannonballs at the closest target.",
       "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 6   , // shots before reload
@@ -23,7 +23,7 @@
     {
       "key": "weapon_grapeshot_cannon",
       "name": "Cannon (Grapeshot)", // shotgun
-      "desc": "Short range. Fires in an area.",
+      "desc": "Shoot [Grapeshot] cannonballs at the closest target. Short range. Multi-shot.",
       "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 2    , // shots before reload
@@ -41,7 +41,7 @@
     {
       "key": "weapon_swivel_cannon",
       "name": "Cannon (Gatling)",       // SMG-type
-      "desc": "Smaller rounds at a high firerate.",
+      "desc": "Shoot [Small] rounds at the closest target. High firereate.",
       "weapon_type": "PROJECTILE",
       "data": {
         "WEAPON_CLIP_SIZE": 10   , // shots before reload
@@ -58,8 +58,8 @@
 
     {
       "key": "weapon_sea_turret",
-      "name": "Deployer",
-      "desc": "Place Turrets as you move.",
+      "name": "SEABOB Turret",
+      "desc": "Deploy [Turrets] as you move that fire [Heavy]",
       "weapon_type": "DEPLOY",
       "data": {
         "WEAPON_CLIP_SIZE": 1    , // shots before reload
