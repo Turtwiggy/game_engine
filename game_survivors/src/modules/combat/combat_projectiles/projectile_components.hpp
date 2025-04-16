@@ -1,7 +1,7 @@
 #pragma once
 
 #include "modules/combat/combat_core/components.hpp"
-#include "modules/systems/system_traits/trait_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
 #include <entt/fwd.hpp>
 #include <glm/fwd.hpp>
@@ -23,7 +23,7 @@ struct BulletDef
   float crit_chance = 0.0f;   // percent
   float crit_damage = 100.0f; // percent of your base damage
   float lifesteal = 0;
-  std::vector<AquirableTrait> traits;
+  std::vector<WeaponBehaviour> traits;
 
   BulletDef() = delete;
   BulletDef(entt::entity parent)

@@ -215,6 +215,9 @@ process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t hand
   if (handle_joined_this_frame(steam_gs_c, handle))
     return; // prevent immediately doing do_ui_action
 
+  if (state.rows.size() == 0)
+    return;
+
   // TODO: replace this system with has_action, which maps both keyboard and controller
 
   // state

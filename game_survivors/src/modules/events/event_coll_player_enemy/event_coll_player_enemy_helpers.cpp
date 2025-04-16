@@ -23,7 +23,7 @@ handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
 {
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
-  // Note, for enemies, checking the item template, not the live TraitComponent
+  // Note, for enemies, checking the item template, not the live
   const auto key = r.get<ItemKey>(enemy_e).key;
   const auto item_c = find_item(r, key);
   if (!item_c.traits.has_value())

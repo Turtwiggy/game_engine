@@ -4,10 +4,9 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
-#include "modules/systems/system_traits/trait_components.hpp"
-#include "modules/systems/system_traits/trait_helpers.hpp"
 
 namespace game2d {
 
@@ -22,12 +21,12 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
   if (from_e == entt::null || to_e == entt::null)
     return;
 
-  auto* trait_c = r.try_get<TraitComponent>(from_e);
+  const auto* trait_c = r.try_get<WeaponBehaviourComponent>(from_e);
   if (!trait_c)
     return;
 
-  auto trait = AquirableTrait::SPLINTER;
-  if (!has_trait(r, trait_c->traits, trait))
+  const auto trait = WeaponBehaviour::SPLINTER;
+  if (!has(trait_c->traits, trait))
     return;
 
   const auto splinter_callback = [from_e](entt::registry& r, const entt::entity dead_e) {

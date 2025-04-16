@@ -35,330 +35,6 @@ sum_array_values()
   return sum;
 };
 
-const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> std::pair<float, std::string> {
-  float amount = 0;
-
-  const auto rarity_str = std::string(magic_enum::enum_name(rarity));
-  const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
-
-  if (upgrade == UpgradeableStat::ACTOR_DODGE_CHANCE) {
-    if (rarity == Rarity::COMMON)
-      amount = 2;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 4;
-    if (rarity == Rarity::RARE)
-      amount = 6;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 8;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 10;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::ACTOR_HEALTH_MAX) {
-    if (rarity == Rarity::COMMON)
-      amount = 2;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 5;
-    if (rarity == Rarity::RARE)
-      amount = 10;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 15;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 20;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::ACTOR_HEALTH_REGEN) {
-    if (rarity == Rarity::COMMON)
-      amount = 0.03;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 0.1;
-    if (rarity == Rarity::RARE)
-      amount = 0.15;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 0.25;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 0.4;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::ACTOR_SPEED) {
-    if (rarity == Rarity::COMMON)
-      amount = 5;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 10;
-    if (rarity == Rarity::RARE)
-      amount = 20;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 35;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-
-  /*
-  if (upgrade == UpgradeableStat::ACTOR_STAMINA) {
-    if (rarity == Rarity::COMMON)
-      amount = 1;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 2;
-    if (rarity == Rarity::RARE)
-      amount = 3;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 4;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 5;
-    return { amount, "stat_flat_increase" };
-  }
-  */
-
-  if (upgrade == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
-    if (rarity == Rarity::COMMON)
-      amount = 5;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 15;
-    if (rarity == Rarity::RARE)
-      amount = 25;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 35;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 45;
-    return { amount, "stat_percent_increase" };
-  }
-
-  if (upgrade == UpgradeableStat::BULLET_CRIT_CHANCE) {
-    if (rarity == Rarity::COMMON)
-      amount = 3;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 6;
-    if (rarity == Rarity::RARE)
-      amount = 9;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 12;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 15;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_CRIT_DAMAGE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 50;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 75;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 100;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_DAMAGE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_KNOCKBACK) {
-    if (rarity == Rarity::COMMON)
-      amount = 0.1f;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 0.2f;
-    if (rarity == Rarity::RARE)
-      amount = 0.3f;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 0.4f;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 0.5f;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_LIFESTEAL) {
-    if (rarity == Rarity::COMMON)
-      amount = 0.1;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 0.2;
-    if (rarity == Rarity::RARE)
-      amount = 0.3;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 0.5;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 1.0;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_PIERCE) {
-    if (rarity == Rarity::COMMON)
-      amount = 1;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 2;
-    if (rarity == Rarity::RARE)
-      amount = 3;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 4;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 5;
-    return { amount, "stat_flat_increase" };
-  }
-
-  /*
-  if (upgrade == UpgradeableStat::BULLET_SIZE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  */
-
-  if (upgrade == UpgradeableStat::BULLET_SPEED) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-
-  if (upgrade == UpgradeableStat::WEAPON_CLIP_SIZE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::WEAPON_FIRERATE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 15;
-    if (rarity == Rarity::RARE)
-      amount = 25;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 35;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::WEAPON_RANGE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::WEAPON_RELOAD) {
-    if (rarity == Rarity::COMMON)
-      amount = -10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = -20;
-    if (rarity == Rarity::RARE)
-      amount = -30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = -40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = -50;
-    return { amount, "stat_percent_increase" };
-  }
-
-  const auto err_str = std::format("Not impl: {}, {}", rarity_str, upgrade_str);
-  throw std::runtime_error(err_str.c_str());
-};
-
-const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
-  if (rarity == Rarity::COMMON) {
-    const auto srgb = hex_to_srgb("#D9D9D9"); //  white
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::UNCOMMON) {
-    const auto srgb = hex_to_srgb("#00c420"); //  green
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::RARE) {
-    const auto srgb = hex_to_srgb("#00b6ff"); //  bright blue
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::LEGENDARY) {
-    const auto srgb = hex_to_srgb("#cfc041"); //  gold
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::SUPER_LEGENDARY) {
-    const auto srgb = hex_to_srgb("#d74200"); //  red
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  return { 1.0f, 1.0f, 1.0f, 1.0f };
-};
-
-struct CardDataUI
-{
-  Rarity rarity = Rarity::COMMON;
-  std::string rarity_txt = "common";
-  std::string header_txt = "Bronze Hulls";
-  std::string desc_txt = "+15 firerate";
-  bool selected = false;
-};
-
-void
-aquire_action(entt::registry& r, entt::entity player_e, const Rarity rarity, const UpgradeableStat upgrade)
-{
-  const auto rarity_str = std::string(magic_enum::enum_name(rarity));
-  const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
-  const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
-
-  auto& evts_c = get_first_component<SINGLE_Events>(r);
-
-  UpgradeEvent evt;
-  evt.e = player_e;
-  evt.data = StatUpgrade{
-    .type = type_str,
-    .rarity = rarity,
-    .stat = upgrade,
-    .value = amount,
-  };
-  evts_c.dispatcher->trigger(evt);
-  evts_c.dispatcher->update();
-
-  SDL_Log("Aquiring: %s %s", rarity_str.c_str(), upgrade_str.c_str());
-  r.remove<UpgradeResultsComponent>(player_e); // done
-};
-
-void
-setup_ui_based_on_upgrades(entt::registry& r,
-                           entt::entity player_e,
-                           UIState& state_c,
-                           const UpgradeResultsComponent& upgrades_c)
-{
-  for (const auto& [rarity, upgrade] : upgrades_c.results) {
-    state_c.rows.push_back(RowState{
-      .col_name = "Aquire", .action = [&r, player_e, rarity, upgrade]() { aquire_action(r, player_e, rarity, upgrade); } });
-  }
-};
-
 void
 update_ui_survive_upgrade_system(entt::registry& r)
 {
@@ -427,21 +103,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
     sxp_c.xp_for_next_level += 5; // 5 harder every time
 
     generate_upgrades_for_players(r, ui_c);
-
-    // reset ui
-    for (int i = 0; i < max_num_players; i++) {
-      auto& state_c = ui_c.ui_states[i];
-      state_c.current_row_index = 0;
-      state_c.rows.clear();
-      state_c.actions.clear();
-
-      const auto player_e = get_player_e_from_idx(r, i);
-      if (player_e == entt::null)
-        continue;
-      const auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
-
-      setup_ui_based_on_upgrades(r, player_e, state_c, upgrades_c);
-    }
+    populate_ui_based_on_upgrades(r, ui_c);
   }
 
   // dont show upgrade ui
@@ -558,23 +220,41 @@ update_ui_survive_upgrade_system(entt::registry& r)
     auto card_ui_br = ImVec2{ clamped_tl.x + card_size.x, clamped_tl.y + upg_header_height + card_size.y };
     auto card_ui_wh = calc_wh(card_ui_tl, card_ui_br);
 
-    for (int card_idx = 0; card_idx < (int)state_c.rows.size(); card_idx++) {
+    const int cards = glm::min((int)upgrades_c->results.size(), (int)state_c.rows.size());
+
+    for (int card_idx = 0; card_idx < cards; card_idx++) {
 
       // card data.
       const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
       const auto [rarity, upgrade] = upgrades_vec[card_idx];
       const auto rarity_str = std::string(magic_enum::enum_name(rarity));
-      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
-      const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade);
-      const UpgradeRollResult result{ .rarity = rarity, .upgrade = upgrade };
-      const std::string header_text = upg_name_c.stat_to_name_map.at(result);
 
-      // card description
-      std::string desc_txt = std::format("{} {:0.2f}", upgrade_str, amount);
-      const auto& wab = weapon_and_bullet_stats;
-      const bool is_wep_stat = std::find(wab.begin(), wab.end(), upgrade) != wab.end();
-      if (is_wep_stat)
-        desc_txt += "\n+1 to X level"; // todo: associate upgrade with one of your weapons
+      std::string header_text = "";
+      std::string upgrade_str = "";
+      std::string desc_txt = "";
+
+      if (upgrade.stat.has_value()) {
+        upgrade_str = std::string(magic_enum::enum_name(upgrade.stat.value()));
+
+        // flavour text for the header
+        const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade.stat.value());
+        const UpgradeRollResult result{ .rarity = rarity, .value = upgrade };
+        header_text = upg_name_c.stat_to_name_map.at(result);
+
+        desc_txt = std::format("{} {:0.2f}", upgrade_str, amount);
+
+        // Display that the WEAPON_X or BULLET_X stat will level up your gun.
+        const auto& wab = weapon_and_bullet_stats;
+        const bool is_wep_stat = std::find(wab.begin(), wab.end(), upgrade.stat.value()) != wab.end();
+        if (is_wep_stat)
+          desc_txt += "\n+1 to X level"; // todo: associate upgrade with one of your weapons
+      }
+
+      if (upgrade.trait.has_value()) {
+        upgrade_str = std::string(magic_enum::enum_name(upgrade.trait.value()));
+        header_text = "unknown"; // todo: fix this
+        desc_txt = std::format("{}", upgrade_str);
+      }
 
       const CardDataUI data{
         .rarity = rarity,

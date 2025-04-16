@@ -6,6 +6,7 @@
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
 namespace game2d {
 
@@ -126,7 +127,7 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   bullet_def.crit_damage = mod_bul_crit_damage;
   bullet_def.lifesteal = mod_bul_lifesteal;
 
-  auto traits_set = r.get<TraitComponent>(par_e).traits;
+  auto traits_set = r.get<WeaponBehaviourComponent>(par_e).traits;
   bullet_def.traits = { traits_set.begin(), traits_set.end() };
 
   return bullet_def;

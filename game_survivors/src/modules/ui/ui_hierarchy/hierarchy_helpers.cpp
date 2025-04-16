@@ -6,7 +6,7 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "engine/string/helpers.hpp"
+#include "engine/std/string/helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {

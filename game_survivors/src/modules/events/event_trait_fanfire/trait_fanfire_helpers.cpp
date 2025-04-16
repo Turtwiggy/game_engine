@@ -3,11 +3,11 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
-#include "modules/systems/system_traits/trait_components.hpp"
-#include "modules/systems/system_traits/trait_helpers.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
 namespace game2d {
 
@@ -28,12 +28,12 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   if (from_e == entt::null || wep_e == entt::null)
     return;
 
-  const auto* trait_c = r.try_get<TraitComponent>(from_e);
+  const auto* trait_c = r.try_get<WeaponBehaviourComponent>(from_e);
   if (!trait_c)
     return;
 
-  const auto trait = AquirableTrait::FAN_FIRE;
-  if (!has_trait(r, trait_c->traits, trait))
+  const auto trait = WeaponBehaviour::SHOOT_FANFIRE_ON_LAST_BULLET;
+  if (!has(trait_c->traits, trait))
     return;
 
   auto& fanfire_c = r.get_or_emplace<FanfireTraitComponent>(from_e);

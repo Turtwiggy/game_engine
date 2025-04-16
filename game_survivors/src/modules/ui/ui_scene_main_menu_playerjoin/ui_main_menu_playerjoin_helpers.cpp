@@ -3,11 +3,10 @@
 #include "ui_main_menu_playerjoin_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/string/helpers.hpp"
+#include "engine/std/string/helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
-#include "modules/ui/ui_hierarchy/hierarchy_helpers.hpp"
 
 namespace game2d {
 

@@ -10,7 +10,7 @@
 #include "modules/events/event_coll/event_coll_components.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
-#include "modules/systems/system_traits/trait_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_worldspace_text/helpers.hpp"
 
 namespace game2d {
@@ -56,7 +56,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 
   // note: these values have already been
   // modified with upgrades at the point they were created
-  const auto& bullet_traits_c = r.get<TraitComponent>(bullet_e_parent);
+  const auto& bullet_traits_c = r.get<WeaponBehaviourComponent>(bullet_e_parent);
   const auto& bullet_damage_c = r.get<BulletDamage>(bullet_e_parent);
   const auto& bullet_knockback_c = r.get<BulletKnockback>(bullet_e_parent);
   auto& bullet_pierce_c = r.get<BulletPierce>(bullet_e_parent);

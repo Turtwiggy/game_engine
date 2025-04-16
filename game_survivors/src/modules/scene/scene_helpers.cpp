@@ -222,6 +222,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<OutOfBoundsTimer>(e);
   r.emplace<AbilityComponent>(e);
   r.emplace<HullKeyComponent>(e, hull_key);
+  r.emplace<WeaponBehaviourComponent>(e);
 
   // Upgradeable stats
   r.emplace<ActorSpeedComponent>(e, ActorSpeedComponent{ .base_speed = 0.02f, .current_speed = 0.02f }); // meters per second

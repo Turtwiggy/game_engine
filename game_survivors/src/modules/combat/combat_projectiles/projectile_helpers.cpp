@@ -9,7 +9,7 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_components.hpp"
-#include "modules/systems/system_traits/trait_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
 namespace game2d {
 
@@ -18,14 +18,18 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
 {
   // note: modifiers already applied, provided via BulletDef
 
-  auto parent_e = bullet_def.parent_e;
+  const auto parent_e = bullet_def.parent_e;
 
-  auto bullet_e = spawn(r, bullet_def.key);
+  const auto bullet_e = spawn(r, bullet_def.key);
   give_life(r, bullet_e, pos, bullet_def.size);
   r.emplace<HasParentComponent>(bullet_e, HasParentComponent{ parent_e });
 
   auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
   r.emplace<BulletComponent>(fixture_e);
+
+  // add all weapon traits to the bullet
+  auto& wb_c = r.emplace<WeaponBehaviourComponent>(bullet_e);
+  wb_c.traits.insert(bullet_def.traits.begin(), bullet_def.traits.end());
 
   r.emplace<TeamComponent>(bullet_e, bullet_def.team);
   r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);
@@ -47,9 +51,6 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
     };
     r.emplace<BulletCrit>(bullet_e, crit_c);
   }
-
-  auto& bullet_trait_c = r.get<TraitComponent>(bullet_e);
-  bullet_trait_c.traits.insert(bullet_def.traits.begin(), bullet_def.traits.end());
 
   set_z_index(r, bullet_e, ZLayer::PROJECTILE);
   set_colour(r, bullet_e, r.get<DefaultColour>(parent_e).colour);

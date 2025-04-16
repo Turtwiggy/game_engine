@@ -9,6 +9,9 @@ namespace game2d {
 void
 generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c);
 
+void
+populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c);
+
 bool
 is_choosing_upgrade(entt::registry& r);
 

@@ -17,6 +17,8 @@
 #include "modules/events/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/events/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/events/event_upgrade_aquired/event_upgrade_aquired_helpers.hpp"
+#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_components.hpp"
+#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/systems/system_stats/stats_helpers.hpp"
 
 namespace game2d {
@@ -52,7 +54,7 @@ init_events_system(entt::registry& r)
 
   ed.dispatcher->sink<UpgradeEvent>().connect<&handle_upgrade_event>(r);
 
-  // ed.dispatcher->sink<WeaponLevelReachedEvent>().connect<>(r);
+  ed.dispatcher->sink<WeaponLevelReachedEvent>().connect<handle_weapon_level_reached_event>(r);
 }
 
 void

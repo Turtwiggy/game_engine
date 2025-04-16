@@ -7,9 +7,6 @@ namespace game2d {
 
 enum class AquirableTrait
 {
-  SPLINTER = 0,
-  FAN_FIRE,
-
   EXPLODE,       // on death
   DIRECT,        // ai type
   ARC_ANGLE,     // ai type

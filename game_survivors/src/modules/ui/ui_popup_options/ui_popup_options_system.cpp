@@ -3,9 +3,8 @@
 #include "ui_popup_options_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/string/helpers.hpp"
+#include "engine/std/string/helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/io/io_helpers.hpp"
 #include "modules/core/options/options_components.hpp"

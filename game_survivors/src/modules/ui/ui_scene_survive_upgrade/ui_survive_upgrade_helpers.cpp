@@ -6,6 +6,8 @@
 #include "engine/maths/maths.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
+#include "modules/events/event_upgrade/event_upgrade_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "ui_survive_upgrade_components.hpp"
 
@@ -49,7 +51,7 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto rarity = get_rarity_from_roll(roll_rarity);
       const auto upgrade = weapon_and_bullet_stats[roll_value];
 
-      results_c.results.emplace(UpgradeRollResult{ .rarity = rarity, .upgrade = upgrade });
+      results_c.results.emplace(UpgradeRollResult{ .rarity = rarity, .value = UpgradeValue{ .stat = upgrade } });
     }
 
     // For the 3rd upgrade, roll an ACTOR_X stat.
@@ -60,13 +62,69 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto rarity = get_rarity_from_roll(roll_rarity);
       const auto upgrade = actor_x_stats[roll_value];
 
-      results_c.results.emplace(UpgradeRollResult{ .rarity = rarity, .upgrade = upgrade });
+      results_c.results.emplace(UpgradeRollResult{ .rarity = rarity, .value = UpgradeValue{ .stat = upgrade } });
     }
 
     r.emplace<UpgradeResultsComponent>(player_e, results_c);
   }
 
   SDL_Log("Generated upgrades for %i players", num_players);
+};
+
+void
+aquire_action(entt::registry& r, entt::entity player_e, const Rarity rarity, const UpgradeValue& uv)
+{
+  auto& evts_c = get_first_component<SINGLE_Events>(r);
+  UpgradeEvent evt;
+  evt.e = player_e;
+
+  const auto rarity_str = std::string(magic_enum::enum_name(rarity));
+
+  if (uv.stat.has_value()) {
+    const auto upgrade_str = std::string(magic_enum::enum_name(uv.stat.value()));
+    const auto [amount, type_str] = stat_from_stat_table(rarity, uv.stat.value());
+
+    evt.type = type_str; // flat or percent
+    evt.value = amount;
+    evt.roll_result = UpgradeRollResult{ .rarity = rarity, .value = { .stat = uv.stat.value() } };
+
+  } else if (uv.trait.has_value()) {
+
+    evt.type = "n/a";
+    evt.value = 0;
+    evt.roll_result = UpgradeRollResult{ .rarity = rarity, .value = { .trait = uv.trait.value() } };
+
+  } else
+    throw std::runtime_error("Unknown upgrade value; something isnt set.");
+
+  evts_c.dispatcher->trigger(evt);
+  evts_c.dispatcher->update();
+};
+
+void
+populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
+{
+  SDL_Log("Populating upgrade ui...");
+  const int max_num_players = 4;
+
+  // reset ui
+  for (int i = 0; i < max_num_players; i++) {
+    auto& state_c = ui_c.ui_states[i];
+    state_c.current_row_index = 0;
+    state_c.rows.clear();
+    state_c.actions.clear();
+
+    const auto player_e = get_player_e_from_idx(r, i);
+    if (player_e == entt::null)
+      continue;
+    const auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
+
+    // setup_ui_based_on_upgrades(r, player_e, state_c, upgrades_c);
+    for (const auto& res : upgrades_c.results) {
+      state_c.rows.push_back(RowState{
+        .col_name = "Aquire", .action = [&r, player_e, res]() { aquire_action(r, player_e, res.rarity, res.value); } });
+    }
+  }
 };
 
 bool
@@ -118,9 +176,10 @@ load_upgrade_names(const std::string& path)
 
   // populate data stat_to_name_map
   for (const auto& upgrade_on_disk : data.names) {
+    const auto stat = magic_enum::enum_cast<UpgradeableStat>(upgrade_on_disk.stat).value();
     const UpgradeRollResult result{
       .rarity = magic_enum::enum_cast<Rarity>(upgrade_on_disk.rarity).value(),
-      .upgrade = magic_enum::enum_cast<UpgradeableStat>(upgrade_on_disk.stat).value(),
+      .value = UpgradeValue{ .stat = stat },
     };
     data.stat_to_name_map[result] = upgrade_on_disk.name;
   }
