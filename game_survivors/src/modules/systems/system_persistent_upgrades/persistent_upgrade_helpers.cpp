@@ -19,7 +19,7 @@ struct StatInfo
   float val;
 };
 
-SINGLE_Upgrades
+SINGLE_PersistentUpgrades
 load_upgrades(std::string path)
 {
   // load from disk
@@ -39,7 +39,7 @@ load_upgrades(std::string path)
   const std::string string_without_comments = output.str();
 
   nlohmann::json root = nlohmann::json::parse(string_without_comments);
-  const auto upgrades_c = root.get<SINGLE_Upgrades>();
+  const auto upgrades_c = root.get<SINGLE_PersistentUpgrades>();
 
   // Parse the upgrades at load, to make sure they're all valid.
   for (const Upgrade& u : upgrades_c.upgrades) {
@@ -60,7 +60,7 @@ load_upgrades(std::string path)
 std::vector<std::string>
 available_upgrade_names(entt::registry& r)
 {
-  const auto& up_c = get_first_component<SINGLE_Upgrades>(r);
+  const auto& up_c = get_first_component<SINGLE_PersistentUpgrades>(r);
 
   std::vector<std::string> keys;
   const auto get_upgrade_names = [](const auto& u) { return u.key; };
@@ -72,7 +72,7 @@ available_upgrade_names(entt::registry& r)
 Upgrade
 find_upgrade(entt::registry& r, const std::string& key)
 {
-  const auto& up_c = get_first_component<SINGLE_Upgrades>(r);
+  const auto& up_c = get_first_component<SINGLE_PersistentUpgrades>(r);
 
   auto find_lambda = [&key](const Upgrade& u) { return u.key == key; };
   auto it = std::find_if(up_c.upgrades.begin(), up_c.upgrades.end(), find_lambda);
@@ -88,7 +88,7 @@ find_upgrade(entt::registry& r, const std::string& key)
 void
 load_persistent_upgrades_and_apply_to_player(entt::registry& r)
 {
-  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, upgrade_e, upgrade_c);
+  GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, upgrade_e, upgrade_c);
 
   std::vector<StatInfo> stats;
 
@@ -106,7 +106,7 @@ load_persistent_upgrades_and_apply_to_player(entt::registry& r)
     const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
     const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
     if (it == upgrade_c.upgrades.end()) {
-      // You've purchased an upgrade that isnt in the SINGLE_Upgrades.upgrades. CURIOUS
+      // You've purchased an upgrade that isnt in the SINGLE_PersistentUpgrades.upgrades. CURIOUS
       continue;
     }
 

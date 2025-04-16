@@ -20,7 +20,7 @@ namespace game2d {
 using namespace std::literals;
 
 void
-back_to_main_menu(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
+back_to_main_menu(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 {
   ui_c.display = false;
   ui_c.one_frame_buffer = true;
@@ -32,7 +32,7 @@ back_to_main_menu(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
 void
 purchase_upgrade(entt::registry& r, const UpgradeableStat stat)
 {
-  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, upgrade_e, upgrade_c);
+  GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, upgrade_e, upgrade_c);
   GET_FIRST_OR_RETURN(SINGLE_GoldComponent, r, gold_e, gold_c);
 
   const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat));
@@ -93,7 +93,7 @@ purchase_upgrade(entt::registry& r, const UpgradeableStat stat)
 };
 
 void
-init_menu(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
+init_menu(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 {
   for (int i = 0; i < (int)UpgradeableStat::count; i++) {
 
@@ -112,7 +112,7 @@ init_menu(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
 };
 
 std::pair<int, int>
-get_upgrade_level(entt::registry& r, SINGLE_Upgrades& upgrade_c, std::string stat_key)
+get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::string stat_key)
 {
   int n_stat_upgrades_aquired = 0;
   const auto on_disk_stat_level_opt = savefile_get_key(r, stat_key);
@@ -141,7 +141,7 @@ get_upgrade_level(entt::registry& r, SINGLE_Upgrades& upgrade_c, std::string sta
 };
 
 void
-process_input_for_grid(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
+process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 {
   auto& acts = ui_c.state.actions;
   const auto val_u = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED_UP) != acts.end();
@@ -174,9 +174,9 @@ process_input_for_grid(entt::registry& r, SINGLE_UpgradesMenuUI& ui_c)
 void
 update_ui_scene_upgrades_system(entt::registry& r)
 {
-  GET_FIRST_OR_RETURN(SINGLE_UpgradesMenuUI, r, ui_e, ui_c)
+  GET_FIRST_OR_RETURN(SINGLE_PersistentUpgradesMenuUI, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
-  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, upgrade_e, upgrade_c);
+  GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, upgrade_e, upgrade_c);
   auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
   const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
 

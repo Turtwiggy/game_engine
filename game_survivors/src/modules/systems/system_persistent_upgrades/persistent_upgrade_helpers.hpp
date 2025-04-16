@@ -5,7 +5,7 @@
 
 namespace game2d {
 
-SINGLE_Upgrades
+SINGLE_PersistentUpgrades
 load_upgrades(std::string path);
 
 std::vector<std::string>

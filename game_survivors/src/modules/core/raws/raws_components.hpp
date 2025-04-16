@@ -156,7 +156,7 @@ struct Item
   std::optional<Use> use = std::nullopt;
   std::optional<Defence> defence = std::nullopt;
   std::optional<Combat> combat = std::nullopt;
-  std::optional<std::vector<TraitOnDisk>> traits = std::nullopt;
+  std::optional<std::vector<KeyValueOnDisk>> traits = std::nullopt;
   std::optional<Inventory> inventory = std::nullopt;
   std::optional<PhysicsBodyDef> phys_body = std::nullopt;
   std::optional<std::vector<PhysicsFixtureDef>> phys_fixtures = std::nullopt;

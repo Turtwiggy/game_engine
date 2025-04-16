@@ -390,7 +390,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const int num_players = 4;
 
     create_empty<SINGLE_MainMenuUI>(r);
-    create_empty<SINGLE_UpgradesMenuUI>(r);
+    create_empty<SINGLE_PersistentUpgradesMenuUI>(r);
     SINGLE_MainMenuAnimatedData menu_anim_c;
     menu_anim_c.data.resize(num_players);
     create_empty<SINGLE_MainMenuAnimatedData>(r, menu_anim_c);

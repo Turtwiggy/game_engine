@@ -41,7 +41,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
-  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
+  GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
   GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
@@ -51,7 +51,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   // if (scene_c.s == Scene::menu) {
   //   gesert_component<SINGLE_XpComponent>(r);
   //   gesert_component<SINGLE_LevelUpUI>(r);
-  //   gesert_component<SINGLE_Upgrades>(r);
+  //   gesert_component<SINGLE_PersistentUpgrades>(r);
   //   static bool init = false;
   //   if (!init) {
   //     for (int i = 0; i < 4; i++)
@@ -63,7 +63,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
   {
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
     auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
-    if (cheat_levelup_state.enabled) {
+    // if (cheat_levelup_state.enabled) {
+    if (true) {
 
       ImGui::SetNextWindowPos(ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y },
                               ImGuiCond_Always,

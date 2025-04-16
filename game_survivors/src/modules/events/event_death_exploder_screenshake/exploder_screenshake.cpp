@@ -16,11 +16,11 @@ handle_death_event__exploder_screenshake(entt::registry& r, const DeathEvent& ev
   if (dead_e == entt::null)
     return;
 
-  auto* traits_c = r.try_get<TraitComponent>(dead_e);
+  auto* traits_c = r.try_get<AiBehavioursComponent>(dead_e);
   if (!traits_c)
     return;
 
-  auto it = std::find(traits_c->traits.begin(), traits_c->traits.end(), AquirableTrait::EXPLODE);
+  auto it = std::find(traits_c->traits.begin(), traits_c->traits.end(), AiBehaviour::EXPLODE);
   if (it == traits_c->traits.end())
     return;
 

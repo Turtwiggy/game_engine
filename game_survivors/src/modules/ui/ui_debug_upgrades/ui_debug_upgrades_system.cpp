@@ -1,3 +1,5 @@
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "pch.hpp"
 
 #include "ui_debug_upgrades_system.hpp"
@@ -16,34 +18,28 @@
 
 namespace game2d {
 
-void
-update_ui_debug_upgrades_system(entt::registry& r)
+bool
+draw_debug_ai_behaviours_ui(entt::registry& r)
 {
-  GET_FIRST_OR_RETURN(SINGLE_Upgrades, r, up_e, up_c);
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
-
-  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-  auto state = gesert_menubar_state(menu_c, "Upgrades");
-  if (!state.enabled)
-    return;
-  ImGui::Begin(state.name.c_str());
-
-  ImGui::SeparatorText("Upgrades");
-
-  //
-  // Convert upgrades to vec<std::string> of their keys, and display them in wombocombo
-  //
-  static int index = 0;
-  auto keys = available_upgrade_names(r);
+  ImGui::SeparatorText("Trait Config");
+  static auto trait_mode = magic_enum::enum_value<AiBehaviour>(0);
+  static auto trait_modes = engine::enum_class_to_vec_str<AiBehaviour>();
   {
-    WomboComboIn combo_in(keys);
-    combo_in.label = "upgrades";
-    combo_in.current_index = static_cast<int>(index);
+    WomboComboIn combo_in(trait_modes);
+    combo_in.label = "trait";
+    combo_in.current_index = static_cast<int>(trait_mode);
     WomboComboOut combo_out = draw_wombo_combo(combo_in);
     if (combo_in.current_index != combo_out.selected)
-      index = combo_out.selected;
+      trait_mode = static_cast<AiBehaviour>(combo_out.selected);
   }
+  const auto trait = std::string(magic_enum::enum_name(trait_mode));
+  const bool add_trait = ImGui::Button("Add Trait");
+  return add_trait;
+};
 
+std::pair<bool, bool>
+draw_debug_modifier_ui(entt::registry& r)
+{
   ImGui::SeparatorText("Modifier Config");
   static auto stat_mode = magic_enum::enum_value<UpgradeableStat>(0);
   static auto stat_modes = engine::enum_class_to_vec_str<UpgradeableStat>();
@@ -58,43 +54,71 @@ update_ui_debug_upgrades_system(entt::registry& r)
   const auto modifier = std::string(magic_enum::enum_name(stat_mode));
   static float mod_val = 1.0f;
   imgui_draw_float("mod_val", mod_val);
+
   const bool add_flat = ImGui::Button("Add Flat");
   ImGui::SameLine();
   const bool add_percent = ImGui::Button("Add Percentage");
 
-  ImGui::SeparatorText("Trait Config");
-  static auto trait_mode = magic_enum::enum_value<AquirableTrait>(0);
-  static auto trait_modes = engine::enum_class_to_vec_str<AquirableTrait>();
-  {
-    WomboComboIn combo_in(trait_modes);
-    combo_in.label = "trait";
-    combo_in.current_index = static_cast<int>(trait_mode);
-    WomboComboOut combo_out = draw_wombo_combo(combo_in);
-    if (combo_in.current_index != combo_out.selected)
-      trait_mode = static_cast<AquirableTrait>(combo_out.selected);
-  }
-  const auto trait = std::string(magic_enum::enum_name(trait_mode));
-  const bool add_trait = ImGui::Button("Add Trait");
-
-  const auto& view = r.view<TagComponent, StatModifierComponent, TraitComponent>();
-  for (const auto [e, tag_c, stat_c, traits_c] : view.each()) {
+  const auto& view = r.view<TagComponent, StatModifierComponent, WeaponBehaviourComponent>();
+  for (const auto [e, tag_c, stat_c, wb_c] : view.each()) {
     ImGui::SeparatorText(std::format("{}", tag_c.tag).c_str());
 
-    for (const auto& mod : stat_c.modifiers)
-      ImGui::Text("Mod: %s, %s", mod->stat.c_str(), mod->modifier.c_str());
+    for (const auto& mod : stat_c.modifiers) {
+      auto type = mod->modifier; // flat or percent
+      if (type == "stat_percent_increase") {
+        const auto* ptr = dynamic_cast<StatPercentIncrease*>(mod.get());
+        ImGui::Text("%s, %0.2f", mod->stat.c_str(), ptr->percent);
+      } else if (type == "stat_flat_increase") {
+        const auto* ptr = dynamic_cast<StatFlatIncrease*>(mod.get());
+        ImGui::Text("%s, %0.2f", mod->stat.c_str(), ptr->increase);
+      }
+    }
 
-    for (const auto& trait : traits_c.traits)
-      ImGui::Text("Trait: %s", std::string(magic_enum::enum_name(trait)).c_str());
+    for (const auto& wb : wb_c.traits)
+      ImGui::Text("WepMod: %s", std::string(magic_enum::enum_name(wb)).c_str());
 
     if (add_flat)
       stat_c.add(std::make_shared<StatFlatIncrease>(mod_val, modifier));
 
     if (add_percent)
       stat_c.add(std::make_shared<StatPercentIncrease>(mod_val, modifier));
-
-    if (add_trait)
-      traits_c.traits.emplace(trait_mode);
   }
+
+  return { add_flat, add_percent };
+};
+
+void
+update_ui_debug_upgrades_system(entt::registry& r)
+{
+  GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
+  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto state = gesert_menubar_state(menu_c, "Upgrades");
+  // if (!state.enabled)
+  //   return;
+  ImGui::Begin(state.name.c_str());
+
+  ImGui::SeparatorText("WeaponBehaviours");
+
+  static auto wep_behaviour = magic_enum::enum_value<WeaponBehaviour>(0);
+  static auto wep_behaviours = engine::enum_class_to_vec_str<WeaponBehaviour>();
+  {
+    WomboComboIn combo_in(wep_behaviours);
+    combo_in.label = "weapon behaviours";
+    combo_in.current_index = static_cast<int>(wep_behaviour);
+    WomboComboOut combo_out = draw_wombo_combo(combo_in);
+    if (combo_in.current_index != combo_out.selected)
+      wep_behaviour = static_cast<WeaponBehaviour>(combo_out.selected);
+  }
+  const bool add_wep_behaviour = ImGui::Button("Add Weapon Behaviour");
+  if (add_wep_behaviour) {
+    for (const auto& [e, player_c, behaviour_c] : r.view<PlayerComponent, WeaponBehaviourComponent>().each())
+      behaviour_c.traits.emplace(wep_behaviour);
+  }
+
+  const auto [add_flat, add_percent] = draw_debug_modifier_ui(r);
+  // const auto add_trait = draw_debug_trait_ui(r);
 
   ImGui::End();
 }

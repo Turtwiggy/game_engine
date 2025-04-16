@@ -5,7 +5,7 @@
 
 namespace game2d {
 
-enum class AquirableTrait
+enum class AiBehaviour
 {
   EXPLODE,       // on death
   DIRECT,        // ai type
@@ -17,16 +17,16 @@ enum class AquirableTrait
   count,
 };
 
-struct TraitOnDisk
+struct KeyValueOnDisk
 {
   std::string key;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TraitOnDisk, key);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(KeyValueOnDisk, key);
 };
 
-struct TraitComponent
+struct AiBehavioursComponent
 {
-  std::unordered_set<AquirableTrait> traits;
+  std::unordered_set<AiBehaviour> traits;
 };
 
 } // namespace game2d

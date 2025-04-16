@@ -95,7 +95,6 @@ public:
 
 struct StatPercentIncrease : public IStatModifier
 {
-private:
   float percent = 0.0f;
 
 public:
@@ -108,7 +107,6 @@ public:
 
 struct StatFlatIncrease : public IStatModifier
 {
-private:
   float increase = 0.0f;
 
 public:

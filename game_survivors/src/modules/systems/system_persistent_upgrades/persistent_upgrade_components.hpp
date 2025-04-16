@@ -22,11 +22,11 @@ struct Upgrade
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Upgrade, key, levels);
 };
 
-struct SINGLE_Upgrades
+struct SINGLE_PersistentUpgrades
 {
   std::vector<Upgrade> upgrades;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_Upgrades, upgrades);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_PersistentUpgrades, upgrades);
 };
 
 } // namespace game2d

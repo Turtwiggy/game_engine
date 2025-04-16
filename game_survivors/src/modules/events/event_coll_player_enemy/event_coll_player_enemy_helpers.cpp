@@ -29,8 +29,8 @@ handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
   if (!item_c.traits.has_value())
     return; // entity has no traits
 
-  auto explosive_trait = AquirableTrait::EXPLODE;
-  auto find_trait = [&](const TraitOnDisk& t) { return t.key == std::string(magic_enum::enum_name(explosive_trait)); };
+  auto explosive_trait = AiBehaviour::EXPLODE;
+  auto find_trait = [&](const KeyValueOnDisk& t) { return t.key == std::string(magic_enum::enum_name(explosive_trait)); };
   auto it = std::find_if(item_c.traits.value().begin(), item_c.traits.value().end(), find_trait);
   if (it == item_c.traits.value().end())
     return; // entity has no explode trait

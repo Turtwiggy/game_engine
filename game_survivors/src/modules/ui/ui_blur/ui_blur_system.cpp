@@ -21,13 +21,13 @@ update_ui_blur_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
   GET_FIRST_OR_RETURN(SINGLE_OptionsMenuState, r, options_e, options_c);
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, pause_e, pause_c);
-  const auto menu_upgrade_e = get_first<SINGLE_UpgradesMenuUI>(r);
+  const auto menu_upgrade_e = get_first<SINGLE_PersistentUpgradesMenuUI>(r);
   const auto game_upgrade_e = get_first<SINGLE_LevelUpUI>(r);
 
-  SINGLE_UpgradesMenuUI* menu_upgrade_c = nullptr;
+  SINGLE_PersistentUpgradesMenuUI* menu_upgrade_c = nullptr;
   SINGLE_LevelUpUI* game_upgrade_c = nullptr;
   if (menu_upgrade_e != entt::null)
-    menu_upgrade_c = &r.get<SINGLE_UpgradesMenuUI>(menu_upgrade_e);
+    menu_upgrade_c = &r.get<SINGLE_PersistentUpgradesMenuUI>(menu_upgrade_e);
   if (game_upgrade_e != entt::null)
     game_upgrade_c = &r.get<SINGLE_LevelUpUI>(game_upgrade_e);
 

@@ -12,7 +12,7 @@ struct RequestToShowUpgradesMenu
   bool placeholder = true;
 };
 
-struct SINGLE_UpgradesMenuUI
+struct SINGLE_PersistentUpgradesMenuUI
 {
   // prevent immediately doing action when sent by other scene
   bool one_frame_buffer = true;

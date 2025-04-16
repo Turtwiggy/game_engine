@@ -266,24 +266,24 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
   // add_traits()
   {
-    std::vector<TraitOnDisk> traits;
+    std::vector<KeyValueOnDisk> traits;
     if (t.traits.has_value())
       traits = t.traits.value();
 
     // Store traits on a per-entity basis as well
-    TraitComponent trait_c;
+    AiBehavioursComponent trait_c;
     for (const auto& t : traits) {
-      const AquirableTrait typed_t = magic_enum::enum_cast<AquirableTrait>(t.key).value();
+      const AiBehaviour typed_t = magic_enum::enum_cast<AiBehaviour>(t.key).value();
       trait_c.traits.emplace(typed_t);
     }
-    r.emplace<TraitComponent>(e, trait_c);
+    r.emplace<AiBehavioursComponent>(e, trait_c);
 
     bool big_explode = false;
 
     for (const auto& trait_str : traits) {
-      const auto trait_enum = magic_enum::enum_cast<AquirableTrait>(trait_str.key).value();
+      const auto trait_enum = magic_enum::enum_cast<AiBehaviour>(trait_str.key).value();
 
-      if (trait_enum == AquirableTrait::DIRECT) {
+      if (trait_enum == AiBehaviour::DIRECT) {
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = false;
         tgt_c.reduce_thrusters = false;
@@ -292,7 +292,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
       }
 
-      if (trait_enum == AquirableTrait::ARC_ANGLE) {
+      if (trait_enum == AiBehaviour::ARC_ANGLE) {
         // generate a random angle to approach from
 
 #if defined(_DEBUG)
@@ -310,7 +310,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         // SDL_Log("%s", angle_str.c_str());
       }
 
-      if (trait_enum == AquirableTrait::KEEP_DISTANCE) {
+      if (trait_enum == AiBehaviour::KEEP_DISTANCE) {
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = true;
         tgt_c.reduce_thrusters = true;
@@ -320,7 +320,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
       }
 
-      if (trait_enum == AquirableTrait::PROJECTILE) {
+      if (trait_enum == AiBehaviour::PROJECTILE) {
         r.emplace<ProjectileEnemyComponent>(e);
 
         // TODO: give the enemy a weapon, dont attach these components to enemy?
@@ -334,7 +334,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         // r.emplace<WeaponProjectiles>(wep_e, 1);
       }
 
-      if (trait_enum == AquirableTrait::EXPLODE) {
+      if (trait_enum == AiBehaviour::EXPLODE) {
 
         const std::function<bool(entt::registry&, entt::entity)> filter_criteria = [](entt::registry& r,
                                                                                       entt::entity e) -> bool {
@@ -349,7 +349,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         big_explode = true;
       }
 
-      if (trait_enum == AquirableTrait::CHARGE) {
+      if (trait_enum == AiBehaviour::CHARGE) {
         r.emplace<ChargerEnemyComponent>(e);
         r.emplace<CooldownComponent>(e);
       }
