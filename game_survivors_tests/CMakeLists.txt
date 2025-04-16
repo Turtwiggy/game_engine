@@ -7,18 +7,29 @@ include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-msvc.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/steam.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 
 project(game_survivors_tests VERSION 0.1.0)
 message("game_survivors_tests...")
 
+# stop the tests trying to launch as a steam game
+add_compile_definitions(USE_STEAM 0)
+
 find_packages()
 find_package(GTest CONFIG REQUIRED)
 
-file(GLOB_RECURSE TEST_SRC_FILES
+FetchContent_Declare(
+  tracy
+  GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+  GIT_TAG v0.11.1
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(tracy)
+
+file(GLOB_RECURSE TEST_SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
   ${IMGUI_SOURCE}
-  ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include/glad/glad.c
 
   # do not inlude main()
@@ -33,20 +44,24 @@ file(GLOB_RECURSE TEST_SRC_FILES
 # Test executable
 add_executable(game_survivors_tests ${TEST_SRC_FILES})
 
+# Precompile headers
+set(PCH_FILE ${CMAKE_SOURCE_DIR}/game_survivors/src/pch.hpp)
+target_precompile_headers(game_survivors_tests PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${PCH_FILE}>")
+set(PCH_INSTANTIATE_TEMPLATES ON)
+
 link_libs(game_survivors_tests)
 link_libs_steam(game_survivors_tests)
-
+target_link_libraries(game_survivors_tests PUBLIC TracyClient)
 target_link_libraries(game_survivors_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 
 target_include_directories(game_survivors_tests PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
-  ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_survivors/src
   ${CMAKE_SOURCE_DIR}/game_survivors_tests/src
-  ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
+  ${CMAKE_SOURCE_DIR}/thirdparty/entt/src
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include
@@ -106,6 +121,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE MATCHES Debug)
   # )
 endif()
 
+# Copy the steam .dll next to the .exe (even if the tests doesnt use it)
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
+  if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll")
+    set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
+    message("Copying steam .dll next to .exe")
+    set(dst ${CMAKE_CURRENT_BINARY_DIR})
+    add_custom_command(TARGET game_survivors_tests POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy
+      ${steam_lib}/steam_api64.dll
+      $<TARGET_FILE_DIR:game_survivors_tests>
+    )
+  endif()
+endif()
+
 # Create symlink for assets only in debug mode.
 # This is due to the way I've implemented github
 # actions for building release. Github actins will
@@ -114,12 +143,7 @@ endif()
 if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   message("creating symlink...")
   set(src ${CMAKE_SOURCE_DIR}/game_survivors/assets)
-
-  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/Debug/assets)
-  else()
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-  endif()
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
 
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")

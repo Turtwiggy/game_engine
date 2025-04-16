@@ -1,5 +1,7 @@
-#include "engine/maths/maths.hpp"
+#include "pch.hpp"
+
 #include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 
 #include <gtest/gtest.h>
 
@@ -10,10 +12,10 @@ TEST(TestSuite, HelloMaths)
   const glm::ivec2 gp{ 0, 0 };
 
   // act
-  const glm::ivec2 result = engine::grid::index_to_grid_position(index, 5, 5);
+  const auto [x, y] = engine::grid::index_to_grid_position(index, 5);
 
   // assert
-  ASSERT_EQ(gp, result);
+  ASSERT_EQ(gp, glm::ivec2(x, y));
 };
 
 TEST(TestSuite, DirToAngle)

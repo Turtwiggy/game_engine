@@ -1,7 +1,7 @@
+#include "pch.hpp"
+
 #include "engine/maths/grid.hpp"
 
-#include <SDL2/SDL.h>
-#include <glm/glm.hpp>
 #include <gtest/gtest.h>
 
 // Logical	    ASSERT_TRUE(condition)

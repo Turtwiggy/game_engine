@@ -1,7 +1,6 @@
-#include "modules/core/options/options_components.hpp"
+#include "pch.hpp"
 
-#include <SDL2/SDL_log.h>
-#include <glm/glm.hpp>
+#include "modules/core/options/options_components.hpp"
 #include <gtest/gtest.h>
 
 namespace game2d {

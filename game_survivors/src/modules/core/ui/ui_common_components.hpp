@@ -39,9 +39,9 @@ struct SelectableButtonDef
   ImFont* font = nullptr;
 
   engine::SRGBColour active_outline_col = hex_to_srgb("#FFFFFF", 255);
-  engine::SRGBColour inactive_outline_col = hex_to_srgb("#FFFFFF", 0.6f * 255);
+  engine::SRGBColour inactive_outline_col = hex_to_srgb("#FFFFFF", (int)(0.6f * 255));
   engine::SRGBColour active_bg_col = hex_to_srgb("#02526D", 255);
-  engine::SRGBColour inactive_bg_col = hex_to_srgb("#02526D", 0.6f * 255);
+  engine::SRGBColour inactive_bg_col = hex_to_srgb("#02526D", (int)(0.6f * 255));
 };
 
 struct RowState

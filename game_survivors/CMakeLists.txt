@@ -37,6 +37,8 @@ endif()
 
 find_packages()
 
+# use steaminpum & launch as steam game
+add_compile_definitions(USE_STEAM 1)
 set(TRACY_ENABLE 1)
 set(TRACY_CALLSTACK 1)
 

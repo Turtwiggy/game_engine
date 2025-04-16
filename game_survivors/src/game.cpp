@@ -141,9 +141,12 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   // Init steam before loading textures, because
   // some of the button icon glyph / textures are loaded via steam.
   init_input_system(r);
+
+#if defined(USE_STEAM)
   init_steam(r);
   init_steam_input(r);
   create_persistent<SteamOverlayManager>(r);
+#endif
 
   {
     SINGLE_RendererInfo ri = get_default_textures();
@@ -263,11 +266,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   const auto mouse_pos = mouse_position_in_worldspace(r);
 
   begin_frame_sprite(r);
-
-  SteamAPI_RunCallbacks();
-
   update_sdl_event_system(app, r); // sets update_since_last_fixed_update
+
+#if defined(USE_STEAM)
+  SteamAPI_RunCallbacks();
   update_steam_input(r);
+#endif
+
   update_camera_system(r, dt);
   update_audio_system(r, dt);
   update_player_controller_system(r, milliseconds_dt, mouse_pos);
@@ -389,9 +394,11 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     if (audio_state.enabled)
       update_ui_audio_system(r);
 
+#if defined(USE_STEAM)
     auto ui_steam_state = gesert_menubar_state(menu_c, "Steam");
     if (ui_steam_state.enabled)
       update_steam_debug_ui_system(r);
+#endif
 
     update_ui_colours_system(r);
     update_ui_debug_spawner_system(r);
