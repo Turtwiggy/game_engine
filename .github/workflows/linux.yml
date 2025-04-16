@@ -34,9 +34,8 @@ jobs:
       - name: install-linux-deps
         run: |
           sudo apt-get update 
-          sudo apt-get -y install
-            build-essential \
-            curl zip unzip tar pkg-config
+          sudo apt-get -y install build-essential \
+            curl zip unzip tar pkg-config \
             libglew-dev libxmu-dev libxi-dev libgl-dev
           sudo apt install autoconf libtool linux-libc-dev -y
           sudo apt install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y

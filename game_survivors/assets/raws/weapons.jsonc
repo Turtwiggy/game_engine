@@ -1,4 +1,31 @@
 {
+  "upgrades": [
+    
+    { "key": "HP_UPGRADE_A", "desc": "Shoot a bullet in the opposite direction" },
+    { "key": "HP_UPGRADE_B" },
+    { "key": "HP_UPGRADE_C" },
+    { "key": "HP_UPGRADE_D" },
+    { "key": "HP_UPGRADE_E" },
+
+    { "key": "GS_UPGRADE_A" },
+    { "key": "GS_UPGRADE_B" },
+    { "key": "GS_UPGRADE_C" },
+    { "key": "GS_UPGRADE_D" },
+    { "key": "GS_UPGRADE_E" },
+
+    { "key": "SC_UPGRADE_A" },
+    { "key": "SC_UPGRADE_B" },
+    { "key": "SC_UPGRADE_C" },
+    { "key": "SC_UPGRADE_D" },
+    { "key": "SC_UPGRADE_E" },
+
+    { "key": "SEATURRET_UPGRADE_A" },
+    { "key": "SEATURRET_UPGRADE_B" },
+    { "key": "SEATURRET_UPGRADE_C" },
+    { "key": "SEATURRET_UPGRADE_D" },
+    { "key": "SEATURRET_UPGRADE_E" }
+  ],
+
   "weapons": [
   
     {
@@ -17,7 +44,14 @@
         "BULLET_PIERCE": 12     ,
         "BULLET_SIZE": 6        ,
         "WEAPON_SPREAD": 5       // degrees
-      }
+      },
+      "upgrades": [
+        "HP_UPGRADE_A",
+        "HP_UPGRADE_B",
+        "HP_UPGRADE_C",
+        "HP_UPGRADE_D",
+        "HP_UPGRADE_E"
+      ]
     },
 
     {
@@ -35,7 +69,14 @@
         "BULLET_KNOCKBACK": 0.3  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 4        
-      }
+      },
+      "upgrades": [
+        "GS_UPGRADE_A",
+        "GS_UPGRADE_B",
+        "GS_UPGRADE_C",
+        "GS_UPGRADE_D",
+        "GS_UPGRADE_E"
+      ]
     },
 
     {
@@ -53,7 +94,14 @@
         "BULLET_KNOCKBACK": 0.3  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 2        
-      }
+      },
+      "upgrades": [
+        "SC_UPGRADE_A",
+        "SC_UPGRADE_B",
+        "SC_UPGRADE_C",
+        "SC_UPGRADE_D",
+        "SC_UPGRADE_E"
+      ]
     },
 
     {
@@ -72,7 +120,14 @@
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 2         
         // "LIFETIME": 10             // seconds
-      }
+      },
+      "upgrades": [
+        "SEATURRET_UPGRADE_A",
+        "SEATURRET_UPGRADE_B",
+        "SEATURRET_UPGRADE_C",
+        "SEATURRET_UPGRADE_D",
+        "SEATURRET_UPGRADE_E"
+      ]
     }
 
     // {
