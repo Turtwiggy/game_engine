@@ -46,21 +46,21 @@ jobs:
           cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: build-tests
-        run: cmake --build build --config Release --target game_defence_tests
+        run: cmake --build build --config Release --target game_survivors_tests
 
       - name: build-game
-        run: cmake --build build --config Release --target game_defence
+        run: cmake --build build --config Release --target game_survivors
 
       - name: copy-game-assets
         run: |
-          cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
+          cp -r ${{ github.workspace }}/game_survivors/assets ./build/game_survivors/
           rm -r ./build/game_defence/CMakeFiles
-          rm ./build/game_defence/*.cmake  || true
-          rm ./build/game_defence/*.manifest || true
+          rm ./build/game_survivors/*.cmake  || true
+          rm ./build/game_survivors/*.manifest || true
           chmod +x ./build/game_defence/solar_warfare
 
       - name: release-game
         uses: actions/upload-artifact@v4
         with:
           name: game_defence-${{ matrix.os }}
-          path: ./build/game_defence
+          path: ./build/game_survivors
