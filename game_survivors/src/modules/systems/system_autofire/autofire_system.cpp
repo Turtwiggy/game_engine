@@ -1,8 +1,8 @@
 #include "pch.hpp"
 
+#include "autofire_components.hpp"
 #include "autofire_system.hpp"
 
-#include "autofire_components.hpp"
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
@@ -11,6 +11,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
@@ -21,6 +22,8 @@
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_helpers.hpp"
 
 namespace game2d {
 
@@ -107,6 +110,7 @@ update_autofire_system(entt::registry& r, const float dt)
 
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
+    const auto& behaviours_c = r.get<WeaponBehaviourComponent>(p);
 
     // Get modded weapon values.
     const auto wep_def = get_weapon_def(r, p, wep_e);
@@ -268,17 +272,40 @@ update_autofire_system(entt::registry& r, const float dt)
     // request screenshake
     // create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::SHOOT });
 
+    WeaponDef altered_w_def = wep_def;
+    BulletDef altered_b_def = bul_def;
+
+    // Merge all bullets in to one mega bullet?
+    if (has(behaviours_c.traits, WeaponBehaviour::MEGABULLET)) {
+      const auto in = WeaponBehaviourMegabulletIn{ .wep_def = wep_def, .bul_def = bul_def };
+      const auto out = weapon_behaviour_megabullet(r, in);
+      altered_w_def = out.wep_def;
+      altered_b_def = out.bul_def;
+    }
+
     // Spawn X amount of bullets
     // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
     // If the weapon has enough weapon spread (e.g. 90 degrees)
     // It could still shoot at the limited angles.
-    const auto angles_rad = generate_angles(shoot_angle, wep_def.projectiles, wep_def.spread_deg * engine::Deg2Rad);
-    for (int i = 0; i < wep_def.projectiles; i++) {
-      auto bullet_e = spawn_projectile(r, bul_def, wep_pos);
-      auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
+    const auto angles_rad =
+      generate_angles(shoot_angle, altered_w_def.projectiles, altered_w_def.spread_deg * engine::Deg2Rad);
+
+    for (int i = 0; i < altered_w_def.projectiles; i++) {
+      const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
       const auto bullet_dir = engine::angle_radians_to_direction(angles_rad[i]);
-      const b2Vec2 bullet_vel = bul_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
-      body_c.body->SetLinearVelocity(bullet_vel);
+      const auto bullet_vel = altered_b_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
+      r.get<PhysicsBodyComponent>(bullet_e).body->SetLinearVelocity(bullet_vel);
+    }
+
+    // shoot bullets in opposite direction?
+    if (has(behaviours_c.traits, WeaponBehaviour::SHOOT_BULLETS_OPPOSITE_DIRECTION)) {
+      const auto in = WeaponBehaviourBulletOppositeDirectionIn{
+        .wep_def = altered_w_def,
+        .bul_def = altered_b_def,
+        .wep_pos = wep_pos,
+        .angles_rad = angles_rad,
+      };
+      weapon_behaviour_shoot_in_opposite_direction(r, in);
     }
 
     // Some traits fire on nth shots

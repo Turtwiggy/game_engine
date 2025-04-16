@@ -25,7 +25,8 @@ struct BulletDef
   float lifesteal = 0;
   std::vector<WeaponBehaviour> traits;
 
-  BulletDef() = delete;
+  // BulletDef() = delete;
+  BulletDef() = default;
   BulletDef(entt::entity parent)
     : parent_e(parent) {
       // if (parent == entt::null) {
