@@ -6,11 +6,10 @@
 ### Install prerequisites
 
 - c++ compiler (MSVC, g++, clang)
-  - `sudo apt install build-essential`
 - cmake e.g. `choco install cmake`, `brew install cmake`, `sudo apt-get install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`, `sudo apt-get install ninja-build`
 
-- MSYS2 (UCRT64) e.g.
+### (optional) gcc/g++ via MSYS2
 
 ```
 pacman -S \
@@ -25,7 +24,7 @@ pacman -S mingw-w64-ucrt-x86_64-toolchain
 Note: When select a kit via vscode, choose "UCRT64 gcc/g++", and update your gcc paths in .vscode/cmake-kits.json
 ```
 
-Windows
+Windows Setup
 
 ```bash
 git clone
@@ -36,7 +35,7 @@ or
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-mingw-static.txt
 ```
 
-Mac
+Mac Setup
 
 ```bash
 brew install pkg-config
@@ -47,7 +46,7 @@ thirdparty/vcpkg/bootstrap-vcpkg.sh
 thirdparty/vcpkg/vcpkg install @vcpkg-arm64-osx.txt
 ```
 
-Emscripten
+Emscripten Setup
 
 ```bash
 git clone
@@ -58,14 +57,14 @@ thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-wasm32-emscripten.txt
 ```
 
-Linux
-
-https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/BUILDING.md#linux
+Linux Setup
 
 ```bash
 git clone
 git submodule update --init --recursive
 sudo apt-get update
+
+sudo apt install build-essential
 
 # gdb
 sudo apt install g++ gdb -y
@@ -88,8 +87,9 @@ sudo apt install python3-jinja2
 
 thirdparty/vcpkg/bootstrap-vcpkg.sh
 thirdparty/vcpkg/vcpkg install @vcpkg-x64-linux.txt
-
 ```
+
+https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/BUILDING.md#linux
 
 ### Develop
 
