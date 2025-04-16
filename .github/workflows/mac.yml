@@ -22,6 +22,9 @@ jobs:
 
     steps:
       - uses: lukka/get-cmake@latest
+        with:
+            cmakeVersion: "~3.30.0" 
+
       - uses: actions/checkout@v3
         with:
           submodules: true
