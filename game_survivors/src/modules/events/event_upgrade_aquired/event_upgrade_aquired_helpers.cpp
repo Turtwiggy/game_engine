@@ -1,4 +1,3 @@
-#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -8,12 +7,14 @@
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
 namespace game2d {
 
 // this probably shouldnt live here.
 // std::vector<int> core_weapon_levels = { 5, 10, 15 };
-std::vector<int> core_weapon_levels = { 2, 3, 4 };
+const std::vector<int> core_weapon_levels = { 4, 8, 12 };
 
 void
 handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
@@ -21,32 +22,38 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   auto& evts_c = get_first_component<SINGLE_Events>(r);
 
   auto player_e = evt.e;
-
-  // upgrade a stat.
-  if (evt.roll_result.value.stat.has_value()) {
-    auto type_str = evt.type;
-    const auto upgrade = evt.roll_result.value.stat.value();
-    const auto rarity_str = std::string(magic_enum::enum_name(evt.roll_result.rarity));
-    const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
-    const auto amount = evt.value;
-
-    auto& stats_c = r.get<StatModifierComponent>(player_e);
-    if (type_str == "stat_flat_increase")
-      stats_c.add(std::make_shared<StatFlatIncrease>(amount, upgrade_str));
-    else if (type_str == "stat_percent_increase")
-      stats_c.add(std::make_shared<StatPercentIncrease>(amount, upgrade_str));
-    else
-      throw std::runtime_error("Unknown stat type");
-  }
-
   r.remove<UpgradeResultsComponent>(player_e); // done
 
-  // If it's a weapon upgrade, upgrade the weapon level by 1.
-  if (evt.roll_result.value.stat.has_value()) {
-    const auto upgrade = evt.roll_result.value.stat.value();
+  const auto rarity = evt.roll_result.rarity;
+  const auto& stats = evt.roll_result.stats;
+  const auto& traits = evt.roll_result.traits;
+  const auto rarity_str = std::string(magic_enum::enum_name(evt.roll_result.rarity));
+
+  // Upgrade stats.
+  auto& stats_c = r.get<StatModifierComponent>(player_e);
+  for (const auto& s : stats) {
+    const auto& stat = s.stat;
+    const auto& type = s.type;
+    const auto& value = s.value;
+
+    if (type == "stat_flat_increase")
+      stats_c.add(std::make_shared<StatFlatIncrease>(value, stat));
+    else if (type == "stat_percent_increase")
+      stats_c.add(std::make_shared<StatPercentIncrease>(value, stat));
+    else
+      throw std::runtime_error("Unknown stat type");
+
+    // If it's a weapon upgrade, upgrade the weapon level by 1.
+    const auto stat_as_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
     const auto& wab = weapon_and_bullet_stats;
-    const bool is_wep_stat = std::find(wab.begin(), wab.end(), upgrade) != wab.end();
-    if (is_wep_stat) {
+    const bool is_wep_stat = std::find(wab.begin(), wab.end(), stat_as_enum) != wab.end();
+
+    // note: added the level_weapon check here, become some weapon behaviours
+    // e.g. HEAVY_PISTOL_CRIT contain stats that are WEAPON_X or BULLET_X,
+    // but that itself is a level up-upgrade, so we dont want it to level up
+    // due to the fact the weapons stats are being added
+    //
+    if (is_wep_stat && evt.roll_result.level_weapon) {
       auto& children_c = r.get<HasChildrenComponent>(player_e);
       for (const auto& child_e : children_c.children) {
 
@@ -76,11 +83,9 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   }
 
   // aquire a trait.
-  if (evt.roll_result.value.trait.has_value()) {
-    const auto trait = evt.roll_result.value.trait.value();
+  for (const auto& trait : traits) {
     const auto trait_str = std::string(magic_enum::enum_name(trait));
     SDL_Log("player wants to aquire trait: %s", trait_str.c_str());
-
     auto& behaviours_c = r.get<WeaponBehaviourComponent>(player_e);
     behaviours_c.traits.emplace(trait);
   }

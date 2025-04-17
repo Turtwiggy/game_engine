@@ -115,12 +115,12 @@ struct Use
   };
 };
 
-struct Stats
+struct HpStats
 {
   float max_hp = 100;
   float hp = 100;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Stats, max_hp, hp);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(HpStats, max_hp, hp);
 };
 
 struct Inventory
@@ -152,7 +152,7 @@ struct Item
   std::string display_name;
   std::string display_desc;
   Renderable renderable;
-  std::optional<Stats> stats = std::nullopt;
+  std::optional<HpStats> stats = std::nullopt;
   std::optional<Use> use = std::nullopt;
   std::optional<Defence> defence = std::nullopt;
   std::optional<Combat> combat = std::nullopt;

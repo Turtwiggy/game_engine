@@ -247,7 +247,7 @@ update_autofire_system(entt::registry& r, const float dt)
 
     // Check if you're fire-rate limited.
     // note: updates the _max time based on the modded firerate
-    weapon_fire_rate_c.seconds_between_shots_max = 1.0 / wep_def.fire_rate;
+    weapon_fire_rate_c.seconds_between_shots_max = 1.0f / wep_def.fire_rate;
     if (weapon_fire_rate_c.seconds_between_shots_left >= 0.0) {
       weapon_fire_rate_c.seconds_between_shots_left -= dt;
       continue;
@@ -289,7 +289,6 @@ update_autofire_system(entt::registry& r, const float dt)
     // It could still shoot at the limited angles.
     const auto angles_rad =
       generate_angles(shoot_angle, altered_w_def.projectiles, altered_w_def.spread_deg * engine::Deg2Rad);
-
     for (int i = 0; i < altered_w_def.projectiles; i++) {
       const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
       const auto bullet_dir = engine::angle_radians_to_direction(angles_rad[i]);

@@ -49,9 +49,15 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
 
       const auto rarity = get_rarity_from_roll(roll_rarity);
-      const auto upgrade = weapon_and_bullet_stats[roll_value];
+      const auto upgrade_enum = weapon_and_bullet_stats[roll_value];
+      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
+      const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
 
-      results_c.results.emplace(UpgradeRollResult{ .rarity = rarity, .value = UpgradeValue{ .stat = upgrade } });
+      results_c.results.emplace(UpgradeRollResult{
+        .rarity = rarity,
+        .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
+        .level_weapon = true, // WEAPON_x and BULLET_x do level weapon
+      });
     }
 
     // For the 3rd upgrade, roll an ACTOR_X stat.
@@ -60,9 +66,15 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
 
       const auto rarity = get_rarity_from_roll(roll_rarity);
-      const auto upgrade = actor_x_stats[roll_value];
+      const auto upgrade_enum = actor_x_stats[roll_value];
+      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
+      const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
 
-      results_c.results.emplace(UpgradeRollResult{ .rarity = rarity, .value = UpgradeValue{ .stat = upgrade } });
+      results_c.results.emplace(UpgradeRollResult{
+        .rarity = rarity,
+        .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
+        .level_weapon = false, // ACTOR_x do not level weapon
+      });
     }
 
     r.emplace<UpgradeResultsComponent>(player_e, results_c);
@@ -72,31 +84,12 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 };
 
 void
-aquire_action(entt::registry& r, entt::entity player_e, const Rarity rarity, const UpgradeValue& uv)
+aquire_action(entt::registry& r, entt::entity player_e, const UpgradeRollResult& roll)
 {
   auto& evts_c = get_first_component<SINGLE_Events>(r);
   UpgradeEvent evt;
   evt.e = player_e;
-
-  const auto rarity_str = std::string(magic_enum::enum_name(rarity));
-
-  if (uv.stat.has_value()) {
-    const auto upgrade_str = std::string(magic_enum::enum_name(uv.stat.value()));
-    const auto [amount, type_str] = stat_from_stat_table(rarity, uv.stat.value());
-
-    evt.type = type_str; // flat or percent
-    evt.value = amount;
-    evt.roll_result = UpgradeRollResult{ .rarity = rarity, .value = { .stat = uv.stat.value() } };
-
-  } else if (uv.trait.has_value()) {
-
-    evt.type = "n/a";
-    evt.value = 0;
-    evt.roll_result = UpgradeRollResult{ .rarity = rarity, .value = { .trait = uv.trait.value() } };
-
-  } else
-    throw std::runtime_error("Unknown upgrade value; something isnt set.");
-
+  evt.roll_result = roll;
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();
 };
@@ -120,9 +113,9 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     const auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
 
     // setup_ui_based_on_upgrades(r, player_e, state_c, upgrades_c);
-    for (const auto& res : upgrades_c.results) {
-      state_c.rows.push_back(RowState{
-        .col_name = "Aquire", .action = [&r, player_e, res]() { aquire_action(r, player_e, res.rarity, res.value); } });
+    for (const UpgradeRollResult& res : upgrades_c.results) {
+      state_c.rows.push_back(
+        RowState{ .col_name = "Aquire", .action = [&r, player_e, res]() { aquire_action(r, player_e, res); } });
     }
   }
 };
@@ -176,10 +169,10 @@ load_upgrade_names(const std::string& path)
 
   // populate data stat_to_name_map
   for (const auto& upgrade_on_disk : data.names) {
-    const auto stat = magic_enum::enum_cast<UpgradeableStat>(upgrade_on_disk.stat).value();
+    const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(upgrade_on_disk.stat).value();
     const UpgradeRollResult result{
       .rarity = magic_enum::enum_cast<Rarity>(upgrade_on_disk.rarity).value(),
-      .value = UpgradeValue{ .stat = stat },
+      .stats = { Stat{ .stat = upgrade_on_disk.stat } },
     };
     data.stat_to_name_map[result] = upgrade_on_disk.name;
   }

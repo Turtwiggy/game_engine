@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
@@ -27,22 +28,18 @@ enum class Rarity
   count
 };
 
-struct UpgradeValue
+// https://stackoverflow.com/a/72073933/1609322
+inline std::size_t
+hash_vector(const std::vector<uint32_t>& vec)
 {
-  std::optional<UpgradeableStat> stat = std::nullopt;
-  std::optional<WeaponBehaviour> trait = std::nullopt;
-
-  bool operator==(const UpgradeValue& o) const { return stat == o.stat && trait == o.trait; };
-};
-
-struct UpgradeValue_hash
-{
-  std::size_t operator()(const UpgradeValue& key) const
-  {
-    const std::size_t hash_stat = key.stat.has_value() ? std::hash<int>{}((int)key.stat.value()) : 0;
-    const std::size_t hash_trait = key.trait.has_value() ? std::hash<int>{}((int)key.trait.value()) : 0;
-    return hash_stat ^ (hash_trait << 1);
+  std::size_t seed = vec.size();
+  for (auto x : vec) {
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = (x >> 16) ^ x;
+    seed ^= x + 0x9e3779b9 + (seed << 6) + (seed >> 2);
   }
+  return seed;
 };
 
 struct UpgradeRollResult
@@ -51,18 +48,37 @@ struct UpgradeRollResult
 
   // When you upgrade, you can upgrade a stat,
   // or some custom gameplay behaviour.
-  UpgradeValue value;
+  std::vector<Stat> stats;
+  std::vector<WeaponBehaviour> traits;
+  bool level_weapon = false;
 
-  bool operator==(const UpgradeRollResult& other) const { return rarity == other.rarity && value == other.value; }
+  // spaceship operator
+  auto operator<=>(const UpgradeRollResult&) const = default;
 };
 
 struct UpgradeRollResult_hash
 {
   std::size_t operator()(const UpgradeRollResult& key) const
   {
-    const auto hash1 = std::hash<int>{}((int)key.rarity);
-    const auto hash2 = UpgradeValue_hash{}(key.value);
-    return hash1 ^ (hash2 << 1);
+    std::vector<uint32_t> stats_as_ints;
+    std::vector<uint32_t> traits_as_ints;
+
+    std::transform(key.stats.begin(), key.stats.end(), std::back_inserter(stats_as_ints), [](const Stat s) {
+      // convert stat to hash
+      const auto hash1 = (uint32_t)std::hash<std::string>{}(s.stat);
+      const auto hash2 = (uint32_t)std::hash<std::string>{}(s.type);
+      const auto hash3 = (uint32_t)std::hash<float>{}(s.value);
+      return hash_vector(std::vector<uint32_t>{ hash1, hash2, hash3 });
+    });
+
+    std::transform(key.traits.begin(), key.traits.end(), std::back_inserter(traits_as_ints), [](const WeaponBehaviour w) {
+      return (uint32_t)w;
+    });
+
+    const uint32_t hash1 = (uint32_t)std::hash<int>{}((int)key.rarity);
+    const uint32_t hash2 = (uint32_t)hash_vector(stats_as_ints);
+    const uint32_t hash3 = (uint32_t)hash_vector(traits_as_ints);
+    return hash_vector(std::vector<uint32_t>{ hash1, hash2, hash3 });
   }
 };
 

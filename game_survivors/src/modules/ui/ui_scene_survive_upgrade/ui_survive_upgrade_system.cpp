@@ -3,18 +3,14 @@
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
-#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
-#include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
-#include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
@@ -227,35 +223,48 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
       // card data.
       const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
-      const auto [rarity, upgrade] = upgrades_vec[card_idx];
+      const UpgradeRollResult result = upgrades_vec[card_idx];
+
+      const auto rarity = result.rarity;
       const auto rarity_str = std::string(magic_enum::enum_name(rarity));
 
-      std::string header_text = "";
+      std::string header_text = "Upgrade!";
       std::string upgrade_str = "";
       std::string desc_txt = "";
 
-      if (upgrade.stat.has_value()) {
-        upgrade_str = std::string(magic_enum::enum_name(upgrade.stat.value()));
+      // Display weapon behaviours
+      for (const auto& trait : result.traits) {
+        const auto upg_str = std::string(magic_enum::enum_name(trait));
+        desc_txt += upg_str + "\n";
+      }
+
+      // if only one stat, set the header
+      if (result.stats.size() == 1) {
+        const auto& s = result.stats[0];
+        const std::string stat = s.stat;
+        const std::string type = s.type;
+        const float value = s.value;
+        const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
 
         // flavour text for the header
-        const auto [amount, type_str] = stat_from_stat_table(rarity, upgrade.stat.value());
-        const UpgradeRollResult result{ .rarity = rarity, .value = upgrade };
+        const auto [amount, type_str] = stat_from_stat_table(rarity, stat_enum);
+        const UpgradeRollResult result{ .rarity = rarity, .stats = { Stat{ .stat = stat } } };
         header_text = upg_name_c.stat_to_name_map.at(result);
-
-        desc_txt = std::format("{} {:0.2f}", upgrade_str, amount);
-
-        // Display that the WEAPON_X or BULLET_X stat will level up your gun.
-        const auto& wab = weapon_and_bullet_stats;
-        const bool is_wep_stat = std::find(wab.begin(), wab.end(), upgrade.stat.value()) != wab.end();
-        if (is_wep_stat)
-          desc_txt += "\n+1 to X level"; // todo: associate upgrade with one of your weapons
       }
 
-      if (upgrade.trait.has_value()) {
-        upgrade_str = std::string(magic_enum::enum_name(upgrade.trait.value()));
-        header_text = "unknown"; // todo: fix this
-        desc_txt = std::format("{}", upgrade_str);
+      // Display stats.
+      for (const auto& s : result.stats) {
+        const std::string stat = s.stat;
+        const std::string type = s.type;
+        const float value = s.value;
+        const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
+
+        // append stat to description
+        desc_txt += std::format("{} {:0.2f}\n", stat, value);
       }
+
+      if (result.level_weapon)
+        desc_txt += "\n+1 to X level"; // todo: associate upgrade with one of your weapons
 
       const CardDataUI data{
         .rarity = rarity,

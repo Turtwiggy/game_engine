@@ -10,8 +10,6 @@ struct UpgradeEvent
 {
   entt::entity e = entt::null; // could be e.g. player_e
 
-  std::string type; // flat or percent
-  float value = 0.0f;
   UpgradeRollResult roll_result; // rarity, stat, or trait
 };
 

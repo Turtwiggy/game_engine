@@ -1,5 +1,3 @@
-#include "modules/actors/actor_player/components.hpp"
-#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "pch.hpp"
 
 #include "ui_debug_upgrades_system.hpp"
@@ -8,13 +6,19 @@
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/events/event_upgrade/event_upgrade_components.hpp"
+#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 
 namespace game2d {
 
@@ -101,7 +105,7 @@ update_ui_debug_upgrades_system(entt::registry& r)
 
   ImGui::SeparatorText("WeaponBehaviours");
 
-  static auto wep_behaviour = magic_enum::enum_value<WeaponBehaviour>(0);
+  static WeaponBehaviour wep_behaviour = magic_enum::enum_value<WeaponBehaviour>(0);
   static auto wep_behaviours = engine::enum_class_to_vec_str<WeaponBehaviour>();
   {
     WomboComboIn combo_in(wep_behaviours);
@@ -111,10 +115,24 @@ update_ui_debug_upgrades_system(entt::registry& r)
     if (combo_in.current_index != combo_out.selected)
       wep_behaviour = static_cast<WeaponBehaviour>(combo_out.selected);
   }
+
   const bool add_wep_behaviour = ImGui::Button("Add Weapon Behaviour");
   if (add_wep_behaviour) {
-    for (const auto& [e, player_c, behaviour_c] : r.view<PlayerComponent, WeaponBehaviourComponent>().each())
-      behaviour_c.traits.emplace(wep_behaviour);
+    for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+
+      UpgradeRollResult roll;
+      roll.rarity = Rarity::COMMON;
+      roll.stats = get_stats_from_weapon_behaviour(r, wep_behaviour);
+      roll.traits = { wep_behaviour };
+      roll.level_weapon = true;
+
+      UpgradeEvent evt;
+      evt.e = e; // player_e
+      evt.roll_result = roll;
+      evts_c.dispatcher->trigger(evt);
+    }
+
+    evts_c.dispatcher->update();
   }
 
   const auto [add_flat, add_percent] = draw_debug_modifier_ui(r);
