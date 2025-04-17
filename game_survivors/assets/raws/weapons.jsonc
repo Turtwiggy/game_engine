@@ -1,32 +1,32 @@
 {
   "weapon_upgrades": [
     
-    { "key": "HP_UPGRADE_A", "game_key": "MEGABULLET", "desc": "Combine all your bullets in to one powerful bullet." },
-    { "key": "HP_UPGRADE_B", "game_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "desc": "Double your projectiles; shoot in the opposite direction." },
-    { "key": "HP_UPGRADE_C", "game_key": "HEAVY_PISTOL_CRIT_UPGRADE", "desc": "Improves crit. (Chance & Damage).", "stats": [
+    { "u_key": "HP_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all your bullets in to one powerful bullet." },
+    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "desc": "Double your projectiles; shoot in the opposite direction." },
+    { "u_key": "HP_UPGRADE_C", "wb_key": "HEAVY_PISTOL_CRIT_UPGRADE", "desc": "Improves crit. (Chance & Damage).", "stats": [
       { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 20 },
       { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
     ] },
-    { "key": "HP_UPGRADE_D", "game_key": "SHOOT_FANFIRE_ON_LAST_BULLET", "desc": "Every 10 bullets, shoot a fan of bullets." },
-    { "key": "HP_UPGRADE_E", "game_key": "CHANGE_DAMAGE_TO_FIRE", "desc": "Change damage type to fire." },
+    { "u_key": "HP_UPGRADE_D", "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET", "desc": "Every 10 bullets, shoot a fan of bullets." },
+    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE", "desc": "Change damage type to fire." },
 
-    { "key": "GS_UPGRADE_A", "game_key": "", "desc": "" },
-    { "key": "GS_UPGRADE_B", "game_key": "", "desc": "" },
-    { "key": "GS_UPGRADE_C", "game_key": "", "desc": "" },
-    { "key": "GS_UPGRADE_D", "game_key": "", "desc": "" },
-    { "key": "GS_UPGRADE_E", "game_key": "", "desc": "" },
+    { "u_key": "GS_UPGRADE_A", "wb_key": "", "desc": "" },
+    { "u_key": "GS_UPGRADE_B", "wb_key": "", "desc": "" },
+    { "u_key": "GS_UPGRADE_C", "wb_key": "", "desc": "" },
+    { "u_key": "GS_UPGRADE_D", "wb_key": "", "desc": "" },
+    { "u_key": "GS_UPGRADE_E", "wb_key": "", "desc": "" },
 
-    { "key": "SC_UPGRADE_A", "game_key": "", "desc": "" },
-    { "key": "SC_UPGRADE_B", "game_key": "", "desc": "" },
-    { "key": "SC_UPGRADE_C", "game_key": "", "desc": "" },
-    { "key": "SC_UPGRADE_D", "game_key": "", "desc": "" },
-    { "key": "SC_UPGRADE_E", "game_key": "", "desc": "" },
+    { "u_key": "SC_UPGRADE_A", "wb_key": "", "desc": "" },
+    { "u_key": "SC_UPGRADE_B", "wb_key": "", "desc": "" },
+    { "u_key": "SC_UPGRADE_C", "wb_key": "", "desc": "" },
+    { "u_key": "SC_UPGRADE_D", "wb_key": "", "desc": "" },
+    { "u_key": "SC_UPGRADE_E", "wb_key": "", "desc": "" },
 
-    { "key": "SEATURRET_UPGRADE_A", "game_key": "", "desc": "" },
-    { "key": "SEATURRET_UPGRADE_B", "game_key": "", "desc": "" },
-    { "key": "SEATURRET_UPGRADE_C", "game_key": "", "desc": "" },
-    { "key": "SEATURRET_UPGRADE_D", "game_key": "", "desc": "" },
-    { "key": "SEATURRET_UPGRADE_E", "game_key": "", "desc": "" }
+    { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "", "desc": "" },
+    { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "", "desc": "" },
+    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "", "desc": "" },
+    { "u_key": "SEATURRET_UPGRADE_D", "wb_key": "", "desc": "" },
+    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "", "desc": "" }
   ],
 
   "weapons": [

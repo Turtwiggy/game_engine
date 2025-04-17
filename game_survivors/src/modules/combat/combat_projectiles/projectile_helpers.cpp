@@ -29,7 +29,7 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
 
   // add all weapon traits to the bullet
   auto& wb_c = r.emplace<WeaponBehaviourComponent>(bullet_e);
-  wb_c.traits.insert(bullet_def.traits.begin(), bullet_def.traits.end());
+  wb_c.behaviours.insert(bullet_def.wep_behaviours.begin(), bullet_def.wep_behaviours.end());
 
   r.emplace<TeamComponent>(bullet_e, bullet_def.team);
   r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);

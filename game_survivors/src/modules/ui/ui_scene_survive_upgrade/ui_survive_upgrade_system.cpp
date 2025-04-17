@@ -59,8 +59,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   {
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
     auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
-    // if (cheat_levelup_state.enabled) {
-    if (true) {
+    if (cheat_levelup_state.enabled) {
 
       ImGui::SetNextWindowPos(ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y },
                               ImGuiCond_Always,
@@ -228,7 +227,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       const auto rarity = result.rarity;
       const auto rarity_str = std::string(magic_enum::enum_name(rarity));
 
-      std::string header_text = "Upgrade!";
+      std::string header_text = "Weapon Upgrade!";
       std::string upgrade_str = "";
       std::string desc_txt = "";
 
@@ -260,7 +259,12 @@ update_ui_survive_upgrade_system(entt::registry& r)
         const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
 
         // append stat to description
-        desc_txt += std::format("{} {:0.2f}\n", stat, value);
+        if (type == "stat_flat_increase")
+          desc_txt += std::format("{} +{:0.1f}\n", stat, value);
+        else if (type == "stat_percent_increase")
+          desc_txt += std::format("{} +{:0.1f}%\n", stat, value);
+        else
+          throw std::runtime_error("unknown stat type");
       }
 
       if (result.level_weapon)

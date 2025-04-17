@@ -23,7 +23,7 @@ struct BulletDef
   float crit_chance = 0.0f;   // percent
   float crit_damage = 100.0f; // percent of your base damage
   float lifesteal = 0;
-  std::vector<WeaponBehaviour> traits;
+  std::vector<WeaponBehaviour> wep_behaviours;
 
   // BulletDef() = delete;
   BulletDef() = default;

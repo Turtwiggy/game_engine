@@ -32,8 +32,8 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   if (!trait_c)
     return;
 
-  const auto trait = WeaponBehaviour::SHOOT_FANFIRE_ON_LAST_BULLET;
-  if (!has(trait_c->traits, trait))
+  const auto behaviour = WeaponBehaviour::SHOOT_FANFIRE_ON_LAST_BULLET;
+  if (!has(trait_c->behaviours, behaviour))
     return;
 
   auto& fanfire_c = r.get_or_emplace<FanfireTraitComponent>(from_e);

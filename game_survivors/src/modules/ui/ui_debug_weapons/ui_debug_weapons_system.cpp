@@ -32,7 +32,7 @@ update_ui_debug_weapons_system(entt::registry& r)
 
   ImGui::SeparatorText("Weapon Upgrades");
   for (const auto& wep_upg : weps_c.weapon_upgrades) {
-    ImGui::Text("%s %s %s", wep_upg.key.c_str(), wep_upg.game_key.c_str(), wep_upg.desc.c_str());
+    ImGui::Text("%s %s %s", wep_upg.u_key.c_str(), wep_upg.wb_key.c_str(), wep_upg.desc.c_str());
     for (const auto& stat : wep_upg.stats)
       ImGui::Text("%s", stat.stat.c_str());
   }

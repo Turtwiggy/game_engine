@@ -87,7 +87,7 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
     const auto trait_str = std::string(magic_enum::enum_name(trait));
     SDL_Log("player wants to aquire trait: %s", trait_str.c_str());
     auto& behaviours_c = r.get<WeaponBehaviourComponent>(player_e);
-    behaviours_c.traits.emplace(trait);
+    behaviours_c.behaviours.emplace(trait);
   }
 }
 

@@ -78,7 +78,7 @@ draw_debug_modifier_ui(entt::registry& r)
       }
     }
 
-    for (const auto& wb : wb_c.traits)
+    for (const auto& wb : wb_c.behaviours)
       ImGui::Text("WepMod: %s", std::string(magic_enum::enum_name(wb)).c_str());
 
     if (add_flat)

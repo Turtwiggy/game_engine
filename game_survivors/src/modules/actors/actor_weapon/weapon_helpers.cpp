@@ -108,8 +108,8 @@ load_weapons(std::string filepath)
   for (const auto& weapon_upgrade : weapons_c.weapon_upgrades) {
 
     // validate WeaponBehaviour.
-    if (weapon_upgrade.game_key != "")
-      const auto wb = magic_enum::enum_cast<WeaponBehaviour>(weapon_upgrade.game_key).value();
+    if (weapon_upgrade.wb_key != "")
+      const auto wb = magic_enum::enum_cast<WeaponBehaviour>(weapon_upgrade.wb_key).value();
 
     // validate UpgradeableStat.
     for (const auto& stat : weapon_upgrade.stats) {

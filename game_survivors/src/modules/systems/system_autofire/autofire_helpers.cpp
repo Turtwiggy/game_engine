@@ -127,8 +127,8 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   bullet_def.crit_damage = mod_bul_crit_damage;
   bullet_def.lifesteal = mod_bul_lifesteal;
 
-  auto traits_set = r.get<WeaponBehaviourComponent>(par_e).traits;
-  bullet_def.traits = { traits_set.begin(), traits_set.end() };
+  auto behaviours_set = r.get<WeaponBehaviourComponent>(par_e).behaviours;
+  bullet_def.wep_behaviours = { behaviours_set.begin(), behaviours_set.end() };
 
   return bullet_def;
 };

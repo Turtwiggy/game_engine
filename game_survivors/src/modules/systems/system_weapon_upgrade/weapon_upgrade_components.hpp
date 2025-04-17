@@ -41,7 +41,7 @@ enum class WeaponBehaviour
 
 struct WeaponBehaviourComponent
 {
-  std::unordered_set<WeaponBehaviour> traits;
+  std::unordered_set<WeaponBehaviour> behaviours;
 };
 
 } // namespace game2d

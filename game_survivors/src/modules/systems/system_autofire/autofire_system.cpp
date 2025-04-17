@@ -276,7 +276,7 @@ update_autofire_system(entt::registry& r, const float dt)
     BulletDef altered_b_def = bul_def;
 
     // Merge all bullets in to one mega bullet?
-    if (has(behaviours_c.traits, WeaponBehaviour::MEGABULLET)) {
+    if (has(behaviours_c.behaviours, WeaponBehaviour::MEGABULLET)) {
       const auto in = WeaponBehaviourMegabulletIn{ .wep_def = wep_def, .bul_def = bul_def };
       const auto out = weapon_behaviour_megabullet(r, in);
       altered_w_def = out.wep_def;
@@ -297,7 +297,7 @@ update_autofire_system(entt::registry& r, const float dt)
     }
 
     // shoot bullets in opposite direction?
-    if (has(behaviours_c.traits, WeaponBehaviour::SHOOT_BULLETS_OPPOSITE_DIRECTION)) {
+    if (has(behaviours_c.behaviours, WeaponBehaviour::SHOOT_BULLETS_OPPOSITE_DIRECTION)) {
       const auto in = WeaponBehaviourBulletOppositeDirectionIn{
         .wep_def = altered_w_def,
         .bul_def = altered_b_def,

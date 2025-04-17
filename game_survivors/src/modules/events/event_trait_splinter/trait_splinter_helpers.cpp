@@ -25,8 +25,8 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
   if (!trait_c)
     return;
 
-  const auto trait = WeaponBehaviour::SPLINTER;
-  if (!has(trait_c->traits, trait))
+  const auto behaviour = WeaponBehaviour::SPLINTER;
+  if (!has(trait_c->behaviours, behaviour))
     return;
 
   const auto splinter_callback = [from_e](entt::registry& r, const entt::entity dead_e) {

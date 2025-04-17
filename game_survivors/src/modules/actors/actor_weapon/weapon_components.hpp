@@ -49,12 +49,12 @@ struct Stat
 
 struct WeaponUpgrade_OnDiskData
 {
-  std::string key;
-  std::string game_key; // validate as a valid WeaponBehaviour
+  std::string u_key;  // key unique to the upgrade
+  std::string wb_key; // WeaponBehaviour key
   std::string desc;
   std::vector<Stat> stats;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WeaponUpgrade_OnDiskData, key, game_key, desc, stats);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WeaponUpgrade_OnDiskData, u_key, wb_key, desc, stats);
 };
 
 struct SINGLE_Weapons
