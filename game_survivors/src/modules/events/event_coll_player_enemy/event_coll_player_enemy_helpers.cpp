@@ -47,7 +47,7 @@ handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
   DamageEvent evt;
   evt.from = entt::null;
   evt.to = core_e;
-  evt.type = DamageType::PHYSICAL;
+  evt.type = WEAPON_DAMAGE::KINETIC;
   evt.amount = core_c.max_hp;
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();
@@ -81,7 +81,7 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   DamageEvent evt;
   evt.from = enemy_parent_e;
   evt.to = player_fixture_e;
-  evt.type = DamageType::PHYSICAL;
+  evt.type = WEAPON_DAMAGE::KINETIC;
   evt.amount = 1; // todo: replace with "correct" damage for enemy
   evts_c.dispatcher->trigger(evt);
   evts_c.dispatcher->update();

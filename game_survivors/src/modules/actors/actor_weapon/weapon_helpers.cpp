@@ -28,6 +28,7 @@ spawn_weapon(entt::registry& r, const Weapon_OnDiskData& w_data, std::string key
   // weapon stats
   r.emplace<WeaponComponent>(wep_e);
   r.emplace<WeaponLevelComponent>(wep_e);
+  r.emplace<WeaponDamageTypeComponent>(wep_e, w_data.damage_as_enum);
   // r.emplace<Weapon_OnDiskData>(wep_e); // already added
 
   const auto get_or_default = [&](std::string key, float def) -> float {
@@ -101,8 +102,10 @@ load_weapons(std::string filepath)
 
   // validate weapon type
   auto weapons_c = root.get<SINGLE_Weapons>();
-  for (auto& weapon : weapons_c.weapons)
+  for (auto& weapon : weapons_c.weapons) {
     weapon.type_as_enum = magic_enum::enum_cast<WEAPON_TYPE>(weapon.weapon_type).value();
+    weapon.damage_as_enum = magic_enum::enum_cast<WEAPON_DAMAGE>(weapon.weapon_damage).value();
+  }
 
   // validate weapon upgrades.
   for (const auto& weapon_upgrade : weapons_c.weapon_upgrades) {

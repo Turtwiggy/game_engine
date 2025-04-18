@@ -9,15 +9,6 @@ namespace game2d {
 // for example shoot bullets behind every X shots
 //
 
-enum class WeaponDamageType
-{
-  KINETIC,
-  FIRE,
-  ICE,
-  POISON,
-  SHOCK,
-};
-
 enum class WeaponBehaviour
 {
   // done

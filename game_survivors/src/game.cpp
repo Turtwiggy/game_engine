@@ -19,6 +19,7 @@
 #include "modules/actors/actor_snake_projectiles/actor_snake_projectiles_system.hpp"
 #include "modules/actors/actor_swarmlord/enemy_swarmlord_system.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
+#include "modules/combat/combat_elemental_damage/elemental_damage_system.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
 #include "modules/core/animations/rotate_system.hpp"
@@ -113,6 +114,7 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 #if defined(_DEBUG)
 #include <tracy/Tracy.hpp>
@@ -296,6 +298,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
     // update_manualfire_system(r, dt);
+    update_combat_elemental_damage_system(r, dt);
     update_combat_scale_on_hit_system(r, dt);
     update_cooldown_system(r, milliseconds_dt);
     update_gun_follow_player_system(r, mouse_pos, dt);

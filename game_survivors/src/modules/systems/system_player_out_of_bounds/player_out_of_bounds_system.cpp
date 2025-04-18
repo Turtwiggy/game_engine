@@ -68,7 +68,7 @@ update_player_out_of_bounds_system(entt::registry& r, const float dt)
     DamageEvent evt;
     evt.from = entt::null; // likely dead
     evt.to = core_e;
-    evt.type = DamageType::PHYSICAL;
+    evt.type = WEAPON_DAMAGE::KINETIC;
     evt.amount = damage_per_tick;
     evts_c.dispatcher->trigger(evt);
     evts_c.dispatcher->update();

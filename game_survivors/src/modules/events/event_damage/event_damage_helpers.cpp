@@ -7,8 +7,9 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "imgui.h"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_elemental_damage/elemental_damage_components.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
@@ -90,22 +91,10 @@ calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
   const auto amount = evt.amount;
   const auto type = evt.type;
   const auto e = evt.to; // Note: evt.to is a fixture
-
-  float amount_final = amount;
-
-  if (type == DamageType::PHYSICAL) {
-    // int defence_amount = 0;
-    // if (auto* defence_c = r.try_get<DefenceComponent>(e))
-    //   defence_amount = defence_c->armour;
-    // amount_final -= defence_amount;
-  }
-
-  if (type == DamageType::PURE) {
-    // .. pure not blocked ..
-  }
+  const auto e_from = evt.from;
 
   // damage shouldnt be negative
-  return glm::max(amount_final, 0.0f);
+  return glm::max(amount, 0.0f);
 };
 
 bool
@@ -160,10 +149,15 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   const auto parent_e = r.get<HasParentComponent>(to_e).parent;
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  const bool is_dead = std::find(dead.dead.begin(), dead.dead.end(), parent_e) != dead.dead.end();
 
   // another DamageEvent was sent but the entity is already queued to die
+  const bool is_dead = std::find(dead.dead.begin(), dead.dead.end(), parent_e) != dead.dead.end();
   if (is_dead)
+    return;
+
+  // note: evt.to is a fixture, not the parent with all the components on
+  auto* hp = r.try_get<HealthComponent>(to_e);
+  if (!hp)
     return;
 
   // .. pop & flash the fixture
@@ -172,16 +166,6 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   // .. pop & flash the parent transform
   else
     r.emplace_or_replace<RequestHitScaleComponent>(parent_e);
-
-  // note: evt.to is a fixture, not the parent with all the components on
-  auto* hp = r.try_get<HealthComponent>(to_e);
-  if (!hp) {
-    // const auto& tag_c = r.get<TagComponent>(to_e);
-    // auto err = std::format("handle_damage_event(): {} has no HealthComponent", tag_c.tag);
-    // SDL_Log("%s", err.c_str());
-    // throw std::runtime_error(err);
-    return;
-  }
 
   static engine::RandomState dodge_rnd(0);
   static engine::RandomState crit_rnd(0);
@@ -193,6 +177,15 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
       create_popup(r, get_position(r, parent_e), "0");
       return;
     }
+  }
+
+  // apply elemental damage ticks.
+  if (evt.type != WEAPON_DAMAGE::KINETIC) {
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    // time should be relative to the element?
+    const float time = 3.0f;
+    // TODO: dont just push to .fire
+    elemental_damage_c.fire.push_back({ WEAPON_DAMAGE::FIRE, time });
   }
 
   float damage = calculate_damage_to_take(r, evt);
@@ -212,7 +205,6 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   // apply damage
   hp->hp -= damage;
-  // SDL_Log("Something took damage");
 
   create_damage_popup(r, damage, crit, parent_e);
 

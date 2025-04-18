@@ -5,6 +5,15 @@
 
 namespace game2d {
 
+enum class WEAPON_DAMAGE
+{
+  KINETIC,
+  FIRE,
+  ICE,
+  SHOCK,
+  POISON
+};
+
 enum class WEAPON_TYPE
 {
   PROJECTILE,
@@ -20,19 +29,26 @@ struct Weapon_OnDiskData
   std::string name;
   std::string desc;
   std::string weapon_type;
+  std::string weapon_damage;
 
   // validate on load
   WEAPON_TYPE type_as_enum = WEAPON_TYPE::PROJECTILE;
+  WEAPON_DAMAGE damage_as_enum = WEAPON_DAMAGE::KINETIC;
 
   std::unordered_map<std::string, float> data;
   std::vector<std::string> upgrades; // assigned upgrades (keys; data stored in WeponUpgrade_OnDiskData)
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Weapon_OnDiskData, key, name, desc, weapon_type, data, upgrades);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Weapon_OnDiskData, key, name, desc, weapon_type, weapon_damage, data, upgrades);
 };
 
 struct WeaponLevelComponent
 {
   int level = 1;
+};
+
+struct WeaponDamageTypeComponent
+{
+  WEAPON_DAMAGE type = WEAPON_DAMAGE::KINETIC;
 };
 
 struct Stat

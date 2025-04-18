@@ -6,6 +6,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/events/event_coll/event_coll_components.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
@@ -61,14 +62,32 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   const auto& bullet_knockback_c = r.get<BulletKnockback>(bullet_e_parent);
   auto& bullet_pierce_c = r.get<BulletPierce>(bullet_e_parent);
 
-  //
+  const auto wep_e = r.get<HasParentComponent>(bullet_e_parent).parent;
+  if (wep_e == entt::null || !r.valid(wep_e))
+    return; // bullet parent dead
+
+  const auto par_e = r.get<HasParentComponent>(wep_e).parent;
+  if (par_e == entt::null || !r.valid(par_e))
+    return; // weapon parent dead
+
+  WEAPON_DAMAGE damage_type = WEAPON_DAMAGE::KINETIC;
+  const auto& weapon_damage_c = r.get<WeaponDamageTypeComponent>(wep_e);
+  const auto& behaviours_c = r.get<WeaponBehaviourComponent>(par_e);
+  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE))
+    damage_type = WEAPON_DAMAGE::FIRE;
+  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_ICE))
+    damage_type = WEAPON_DAMAGE::ICE;
+  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_POISON))
+    damage_type = WEAPON_DAMAGE::POISON;
+  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_SHOCK))
+    damage_type = WEAPON_DAMAGE::SHOCK;
+
   // Send a damage event from the bullet to the other entity
-  //
   {
     DamageEvent evt;
     evt.from = bullet_e_parent;
     evt.to = other_fixture_e;
-    evt.type = DamageType::PHYSICAL;
+    evt.type = damage_type;
     evt.amount = bullet_damage_c.damage;
     evts_c.dispatcher->trigger(evt);
     evts_c.dispatcher->update();

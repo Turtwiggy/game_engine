@@ -94,8 +94,8 @@ add_explode_on_death_callback(entt::registry& r,
         DamageEvent evt;
         evt.from = entt::null; // likely dead
         evt.to = fixture_e;
-        evt.type = DamageType::PHYSICAL;
-        evt.amount = is_player ? 4 : 100; // todo: replace with "correct" damage for explosion
+        evt.type = WEAPON_DAMAGE::KINETIC;
+        evt.amount = is_player ? 4 : 50; // todo: replace with "correct" damage for explosion
         evts_c.dispatcher->trigger(evt);
         evts_c.dispatcher->update();
         break; // if you collide with a valid fixture, damage once

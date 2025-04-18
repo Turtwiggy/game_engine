@@ -36,6 +36,7 @@
       "name": "Cannon (Heavy)", // heavy pistol
       "desc": "Shoot [Heavy] cannonballs at the closest target.",
       "weapon_type": "PROJECTILE",
+      "weapon_damage": "KINETIC",
       "data": {
         "WEAPON_CLIP_SIZE": 6   , // shots before reload
         "WEAPON_PROJECTILES": 2 ,
@@ -62,6 +63,7 @@
       "name": "Cannon (Grapeshot)", // shotgun
       "desc": "Shoot [Grapeshot] cannonballs at the closest target. Short range. Multi-shot.",
       "weapon_type": "PROJECTILE",
+      "weapon_damage": "KINETIC",
       "data": {
         "WEAPON_CLIP_SIZE": 2    , // shots before reload
         "WEAPON_PROJECTILES": 7  ,
@@ -87,6 +89,7 @@
       "name": "Cannon (Gatling)",       // SMG-type
       "desc": "Shoot [Small] rounds at the closest target. High firereate.",
       "weapon_type": "PROJECTILE",
+      "weapon_damage": "KINETIC",
       "data": {
         "WEAPON_CLIP_SIZE": 10   , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
@@ -112,6 +115,7 @@
       "name": "SEABOB Turret",
       "desc": "Deploy [Turrets] as you move that fire [Heavy]",
       "weapon_type": "DEPLOY",
+      "weapon_damage": "KINETIC",
       "data": {
         "WEAPON_CLIP_SIZE": 1    , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
