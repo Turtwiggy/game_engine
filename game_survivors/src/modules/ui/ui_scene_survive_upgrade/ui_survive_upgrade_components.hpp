@@ -50,7 +50,8 @@ struct UpgradeRollResult
   // or some custom gameplay behaviour.
   std::vector<Stat> stats;
   std::vector<WeaponBehaviour> traits;
-  bool level_weapon = false;
+  std::vector<entt::entity> weapons;
+  bool level_weapons = false;
 
   // spaceship operator
   auto operator<=>(const UpgradeRollResult&) const = default;

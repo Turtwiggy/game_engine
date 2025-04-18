@@ -1,7 +1,6 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
 #include "event_upgrade_aquired_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
@@ -42,53 +41,40 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
       stats_c.add(std::make_shared<StatPercentIncrease>(value, stat));
     else
       throw std::runtime_error("Unknown stat type");
+  }
 
-    // If it's a weapon upgrade, upgrade the weapon level by 1.
-    const auto stat_as_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
-    const auto& wab = weapon_and_bullet_stats;
-    const bool is_wep_stat = std::find(wab.begin(), wab.end(), stat_as_enum) != wab.end();
+  // level up the weapons
+  for (const auto& weapon_e : evt.roll_result.weapons) {
 
-    // note: added the level_weapon check here, become some weapon behaviours
-    // e.g. HEAVY_PISTOL_CRIT contain stats that are WEAPON_X or BULLET_X,
-    // but that itself is a level up-upgrade, so we dont want it to level up
-    // due to the fact the weapons stats are being added
-    //
-    if (is_wep_stat && evt.roll_result.level_weapon) {
-      auto& children_c = r.get<HasChildrenComponent>(player_e);
-      for (const auto& child_e : children_c.children) {
+    // add traits to all the weapons.
+    auto& behaviours_c = r.get<WeaponBehaviourComponent>(weapon_e).behaviours;
+    behaviours_c.insert(traits.begin(), traits.end());
 
-        auto* wep_level_c = r.try_get<WeaponLevelComponent>(child_e);
-        if (!wep_level_c)
-          continue;
+    if (!evt.roll_result.level_weapons)
+      continue; // dont level
 
-        // upgrade all weapons? this could be improved
-        // by associating an upgrade with a weapon to level.
-        wep_level_c->level++;
+    auto* wep_level_c = r.try_get<WeaponLevelComponent>(weapon_e);
+    if (!wep_level_c)
+      continue;
 
-        auto it = std::find(core_weapon_levels.begin(), core_weapon_levels.end(), wep_level_c->level);
-        if (it != core_weapon_levels.end()) {
-          // if weapon level reaches a critical level,
-          // send a weapon upgrade level event
+    wep_level_c->level++;
 
-          SDL_Log("Core weapon level reached: %i", wep_level_c->level);
-          WeaponLevelReachedEvent lv_evt;
-          lv_evt.level = wep_level_c->level;
-          lv_evt.par_e = player_e;
-          lv_evt.wep_e = child_e;
-          evts_c.dispatcher->trigger(lv_evt);
-          evts_c.dispatcher->update();
-        }
-      }
+    auto it = std::find(core_weapon_levels.begin(), core_weapon_levels.end(), wep_level_c->level);
+    if (it != core_weapon_levels.end()) {
+      // if weapon level reaches a critical level,
+      // send a weapon upgrade level event
+
+      SDL_Log("Core weapon level reached: %i", wep_level_c->level);
+      WeaponLevelReachedEvent lv_evt;
+      lv_evt.level = wep_level_c->level;
+      lv_evt.par_e = player_e;
+      lv_evt.wep_e = weapon_e;
+      evts_c.dispatcher->trigger(lv_evt);
+      evts_c.dispatcher->update();
     }
   }
 
-  // aquire a trait.
-  for (const auto& trait : traits) {
-    const auto trait_str = std::string(magic_enum::enum_name(trait));
-    SDL_Log("player wants to aquire trait: %s", trait_str.c_str());
-    auto& behaviours_c = r.get<WeaponBehaviourComponent>(player_e);
-    behaviours_c.behaviours.emplace(trait);
-  }
+  //
 }
 
 } // namespace game2d

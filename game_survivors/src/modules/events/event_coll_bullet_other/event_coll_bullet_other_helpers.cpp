@@ -41,10 +41,10 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
     return; // dont damage same team
   if (fixture_tag == "fixture_xp_zone")
     return; // not interested in the xp fixture
+  if (fixture_tag == "fixture_item")
+    return; // not interested in the item fixture
 
   // Here, a bullet has collided with something on a different team.
-  //
-
   // Check that the bullet has not collided with this entity before.
   auto& coll = r.get_or_emplace<CollInfo>(bullet_e_parent).other;
   auto it = std::find(coll.begin(), coll.end(), other_e_parent);
@@ -61,33 +61,14 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   const auto& bullet_damage_c = r.get<BulletDamage>(bullet_e_parent);
   const auto& bullet_knockback_c = r.get<BulletKnockback>(bullet_e_parent);
   auto& bullet_pierce_c = r.get<BulletPierce>(bullet_e_parent);
-
-  const auto wep_e = r.get<HasParentComponent>(bullet_e_parent).parent;
-  if (wep_e == entt::null || !r.valid(wep_e))
-    return; // bullet parent dead
-
-  const auto par_e = r.get<HasParentComponent>(wep_e).parent;
-  if (par_e == entt::null || !r.valid(par_e))
-    return; // weapon parent dead
-
-  WEAPON_DAMAGE damage_type = WEAPON_DAMAGE::KINETIC;
-  const auto& weapon_damage_c = r.get<WeaponDamageTypeComponent>(wep_e);
-  const auto& behaviours_c = r.get<WeaponBehaviourComponent>(par_e);
-  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE))
-    damage_type = WEAPON_DAMAGE::FIRE;
-  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_ICE))
-    damage_type = WEAPON_DAMAGE::ICE;
-  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_POISON))
-    damage_type = WEAPON_DAMAGE::POISON;
-  if (has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_SHOCK))
-    damage_type = WEAPON_DAMAGE::SHOCK;
+  const auto& bullet_damage_type_c = r.get<WeaponDamageTypeComponent>(bullet_e_parent);
 
   // Send a damage event from the bullet to the other entity
   {
     DamageEvent evt;
     evt.from = bullet_e_parent;
     evt.to = other_fixture_e;
-    evt.type = damage_type;
+    evt.type = bullet_damage_type_c.type;
     evt.amount = bullet_damage_c.damage;
     evts_c.dispatcher->trigger(evt);
     evts_c.dispatcher->update();

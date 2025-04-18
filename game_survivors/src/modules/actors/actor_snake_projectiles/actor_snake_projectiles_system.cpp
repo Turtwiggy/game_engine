@@ -31,17 +31,18 @@ update_actor_snake_projectiles_system(entt::registry& r)
     const auto pos_perp = glm::vec2{ -dir.y, dir.x };
     const auto neg_perp = -1.0f * pos_perp;
 
-    const auto bullet_speed = 0.60f;
-    const auto bullet_size = glm::vec2{ 8, 8 };
+    const auto bullet_speed = 1.20f;
+    const auto bullet_size = glm::vec2{ 12, 12 };
 
     BulletDef bullet_def(e); // note: not a weapon parent, but an enemy
     bullet_def.key = "bullet_snake";
     bullet_def.size = bullet_size;
     bullet_def.team = AvailableTeams::enemy;
-    bullet_def.damage = 1; // TODO: make enemy bullet correct damage
+    bullet_def.damage = 2; // TODO: make enemy bullet correct damage
     bullet_def.pierce = 1;
     bullet_def.speed = bullet_speed;
     bullet_def.lifecycle = 10 * 1000;
+    bullet_def.damage_type = WEAPON_DAMAGE::KINETIC;
 
     const auto bullet_e_0 = spawn_projectile(r, bullet_def, pos);
     const auto bullet_e_1 = spawn_projectile(r, bullet_def, pos);

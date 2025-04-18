@@ -1,8 +1,11 @@
+#include "pch.hpp"
+
 #include "projectile_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -27,10 +30,6 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
   r.emplace<BulletComponent>(fixture_e);
 
-  // add all weapon traits to the bullet
-  auto& wb_c = r.emplace<WeaponBehaviourComponent>(bullet_e);
-  wb_c.behaviours.insert(bullet_def.wep_behaviours.begin(), bullet_def.wep_behaviours.end());
-
   r.emplace<TeamComponent>(bullet_e, bullet_def.team);
   r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);
   r.emplace<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);
@@ -51,6 +50,13 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
     };
     r.emplace<BulletCrit>(bullet_e, crit_c);
   }
+
+  // copy the weapon components to the bullet
+  r.emplace<WeaponDamageTypeComponent>(bullet_e, WeaponDamageTypeComponent{ bullet_def.damage_type });
+
+  // add all weapon traits to the bullet
+  auto& wb_c = r.emplace<WeaponBehaviourComponent>(bullet_e);
+  wb_c.behaviours.insert(bullet_def.wep_behaviours.begin(), bullet_def.wep_behaviours.end());
 
   set_z_index(r, bullet_e, ZLayer::PROJECTILE);
   set_colour(r, bullet_e, r.get<DefaultColour>(parent_e).colour);

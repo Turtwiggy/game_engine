@@ -2,6 +2,7 @@
 
 #include "weapon_helpers.hpp"
 
+#include "engine/lifecycle/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
@@ -29,6 +30,7 @@ spawn_weapon(entt::registry& r, const Weapon_OnDiskData& w_data, std::string key
   r.emplace<WeaponComponent>(wep_e);
   r.emplace<WeaponLevelComponent>(wep_e);
   r.emplace<WeaponDamageTypeComponent>(wep_e, w_data.damage_as_enum);
+  r.emplace<WeaponBehaviourComponent>(wep_e);
   // r.emplace<Weapon_OnDiskData>(wep_e); // already added
 
   const auto get_or_default = [&](std::string key, float def) -> float {
@@ -123,5 +125,25 @@ load_weapons(std::string filepath)
 
   return weapons_c;
 };
+
+std::vector<entt::entity>
+get_weapons(entt::registry& r, entt::entity player_e)
+{
+  const auto* child_c = r.try_get<HasChildrenComponent>(player_e);
+  if (!child_c)
+    return {};
+
+  std::vector<entt::entity> weapons;
+
+  const auto& children = child_c->children;
+  for (const auto child_e : children) {
+    const auto* wep_c = r.try_get<WeaponComponent>(child_e);
+    if (!wep_c)
+      continue;
+    weapons.push_back(child_e);
+  }
+
+  return weapons;
+}
 
 } // namespace game2d

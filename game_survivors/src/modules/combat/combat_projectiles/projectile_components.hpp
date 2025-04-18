@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
@@ -23,6 +24,8 @@ struct BulletDef
   float crit_chance = 0.0f;   // percent
   float crit_damage = 100.0f; // percent of your base damage
   float lifesteal = 0;
+
+  WEAPON_DAMAGE damage_type = WEAPON_DAMAGE::KINETIC;
   std::vector<WeaponBehaviour> wep_behaviours;
 
   // BulletDef() = delete;

@@ -3,6 +3,7 @@
 #include "autofire_helpers.hpp"
 
 #include "engine/maths/maths.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
@@ -127,8 +128,19 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
   bullet_def.crit_damage = mod_bul_crit_damage;
   bullet_def.lifesteal = mod_bul_lifesteal;
 
-  auto behaviours_set = r.get<WeaponBehaviourComponent>(par_e).behaviours;
+  auto behaviours_set = r.get<WeaponBehaviourComponent>(wep_e).behaviours;
   bullet_def.wep_behaviours = { behaviours_set.begin(), behaviours_set.end() };
+
+  auto damage_type = r.get<WeaponDamageTypeComponent>(wep_e).type;
+  if (has(behaviours_set, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE))
+    damage_type = WEAPON_DAMAGE::FIRE;
+  if (has(behaviours_set, WeaponBehaviour::CHANGE_DAMAGE_TO_ICE))
+    damage_type = WEAPON_DAMAGE::ICE;
+  if (has(behaviours_set, WeaponBehaviour::CHANGE_DAMAGE_TO_POISON))
+    damage_type = WEAPON_DAMAGE::POISON;
+  if (has(behaviours_set, WeaponBehaviour::CHANGE_DAMAGE_TO_SHOCK))
+    damage_type = WEAPON_DAMAGE::SHOCK;
+  bullet_def.damage_type = damage_type;
 
   return bullet_def;
 };

@@ -82,7 +82,8 @@ update_autofire_system(entt::registry& r, const float dt)
                            WeaponClipSize,
                            WeaponFireRate,
                            WeaponReloadRate,
-                           WeaponRange>();
+                           WeaponRange,
+                           WeaponBehaviourComponent>();
 
   for (const auto& [wep_e,
                     wep_t,
@@ -92,7 +93,8 @@ update_autofire_system(entt::registry& r, const float dt)
                     weapon_clip_size_c,
                     weapon_fire_rate_c,
                     weapon_reload_rate_c,
-                    weapon_range_c] : view.each()) {
+                    weapon_range_c,
+                    weapon_behaviours_c] : view.each()) {
 
     // if the weapon is reloading, just do that.
     if (weapon_reload_rate_c.seconds_cur > 0.0) {
@@ -110,7 +112,6 @@ update_autofire_system(entt::registry& r, const float dt)
 
     const auto& parent_t = r.get<TransformComponent>(p);
     const auto& parent_col = r.get<DefaultColour>(p).colour;
-    const auto& behaviours_c = r.get<WeaponBehaviourComponent>(p);
 
     // Get modded weapon values.
     const auto wep_def = get_weapon_def(r, p, wep_e);
@@ -276,7 +277,7 @@ update_autofire_system(entt::registry& r, const float dt)
     BulletDef altered_b_def = bul_def;
 
     // Merge all bullets in to one mega bullet?
-    if (has(behaviours_c.behaviours, WeaponBehaviour::MEGABULLET)) {
+    if (has(weapon_behaviours_c.behaviours, WeaponBehaviour::MEGABULLET)) {
       const auto in = WeaponBehaviourMegabulletIn{ .wep_def = wep_def, .bul_def = bul_def };
       const auto out = weapon_behaviour_megabullet(r, in);
       altered_w_def = out.wep_def;
@@ -297,7 +298,7 @@ update_autofire_system(entt::registry& r, const float dt)
     }
 
     // shoot bullets in opposite direction?
-    if (has(behaviours_c.behaviours, WeaponBehaviour::SHOOT_BULLETS_OPPOSITE_DIRECTION)) {
+    if (has(weapon_behaviours_c.behaviours, WeaponBehaviour::SHOOT_BULLETS_OPPOSITE_DIRECTION)) {
       const auto in = WeaponBehaviourBulletOppositeDirectionIn{
         .wep_def = altered_w_def,
         .bul_def = altered_b_def,

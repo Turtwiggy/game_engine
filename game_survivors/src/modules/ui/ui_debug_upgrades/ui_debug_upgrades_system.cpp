@@ -8,6 +8,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/events/events_core/events_components.hpp"
@@ -124,7 +125,8 @@ update_ui_debug_upgrades_system(entt::registry& r)
       roll.rarity = Rarity::COMMON;
       roll.stats = get_stats_from_weapon_behaviour(r, wep_behaviour);
       roll.traits = { wep_behaviour };
-      roll.level_weapon = true;
+      roll.weapons = get_weapons(r, e);
+      roll.level_weapons = true;
 
       UpgradeEvent evt;
       evt.e = e; // player_e

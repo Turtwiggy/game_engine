@@ -45,6 +45,7 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
     BulletDef bul_def = get_bullet_def(r, par_e, wep_e);
     bul_def.damage *= 0.1;   // deal 10% damage
     bul_def.size = { 4, 4 }; // splinter bullets slightly smaller
+    bul_def.damage_type = WEAPON_DAMAGE::KINETIC;
 
     constexpr int projectiles = 3;
     const auto random_dir = engine::rand_det_s(rnd_dir.rng, 0.0f, engine::TWO_PI);

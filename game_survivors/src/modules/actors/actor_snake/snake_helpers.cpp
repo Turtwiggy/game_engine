@@ -4,17 +4,18 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "snake_components.hpp"
 
 #include <box2d/b2_distance_joint.h>
@@ -206,9 +207,9 @@ update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
   GET_FIRST_OR_RETURN(SnakeData, r, snake_e, snake_c);
 
 #if defined(_DEBUG)
-  imgui_draw_float("circle_speed", circle_speed);
-  imgui_draw_float("snake_speed", snake_speed);
-  ImGui::SliderFloat("circle_radius", &circle_radius, 0, 1000.0f);
+  // imgui_draw_float("circle_speed", circle_speed);
+  // imgui_draw_float("snake_speed", snake_speed);
+  // ImGui::SliderFloat("circle_radius", &circle_radius, 0, 1000.0f);
   // bool slider_changed = ImGui::SliderInt("target", &target, 0, 2);
 #endif
 

@@ -4,6 +4,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
+#include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
@@ -267,8 +268,11 @@ update_ui_survive_upgrade_system(entt::registry& r)
           throw std::runtime_error("unknown stat type");
       }
 
-      if (result.level_weapon)
-        desc_txt += "\n+1 to X level"; // todo: associate upgrade with one of your weapons
+      // associate upgrade with one of your weapons
+      if (result.level_weapons) {
+        for (const auto& wep_e : result.weapons)
+          desc_txt += std::format("\n+1 to {} level", r.get<ItemKey>(wep_e).key);
+      }
 
       const CardDataUI data{
         .rarity = rarity,

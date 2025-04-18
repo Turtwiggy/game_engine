@@ -12,4 +12,7 @@ spawn_weapon(entt::registry& r, const Weapon_OnDiskData& w_data, std::string key
 SINGLE_Weapons
 load_weapons(std::string directory);
 
+std::vector<entt::entity>
+get_weapons(entt::registry& r, entt::entity player_e);
+
 } // namespace game2d

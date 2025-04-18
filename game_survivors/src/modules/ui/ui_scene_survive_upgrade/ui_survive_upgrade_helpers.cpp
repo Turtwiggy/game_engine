@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
@@ -43,6 +44,9 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       return Rarity::COMMON; // default
     };
 
+    const auto weapons_e = get_weapons(r, player_e);
+    const auto weapon_e = weapons_e[0]; // hmm: upgrade only the first wep
+
     // For the 1st & 2nd upgrade, roll a BULLET_X or WEAPON_X stat
     while (results_c.results.size() != 2) {
       const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)weapon_and_bullet_stats.size());
@@ -56,7 +60,9 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,
         .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
-        .level_weapon = true, // WEAPON_x and BULLET_x do level weapon
+        // WEAPON_x and BULLET_x do level weapon
+        .weapons = { weapon_e }, // note: only leveling first.
+        .level_weapons = true,
       });
     }
 
@@ -73,7 +79,8 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,
         .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
-        .level_weapon = false, // ACTOR_x do not level weapon
+        .weapons = {}, // ACTOR_x do not level weapon
+        .level_weapons = false,
       });
     }
 

@@ -1,17 +1,17 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
-#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
+#include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "resources/data.hpp"
 #include "ui_survive_hp_bars.hpp"
@@ -131,20 +131,80 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     // const auto text_center = ImVec2(bar_center.x - (0.5f * text_size.x), bar_center.y - 0.5f * text_size.y);
     // draw_list->AddText(font, font_size, text_center, IM_COL32(255, 255, 255, 255), hp_text.c_str());
 
-    // weapon text
-    const auto txt_tl = ImVec2{ full_bar_tl.x, full_bar_br.y };
-    auto txt_pos = txt_tl;
-    for (const auto& child_e : children_c.children) {
-      if (r.all_of<Weapon_OnDiskData, WeaponLevelComponent>(child_e)) {
-        //
-        const auto& wep_ondiskdata = r.get<Weapon_OnDiskData>(child_e);
-        const auto& wep_level_c = r.get<WeaponLevelComponent>(child_e);
+    //
+    // weapon reload / bullet info
+    //
+
+    const auto* weapons_c = r.try_get<HasChildrenComponent>(players_e_vec[i]);
+    if (!weapons_c)
+      continue;
+    const auto weapons_e_vec = weapons_c->children;
+    const auto num_active_weapons = (int)weapons_e_vec.size();
+
+    const float space_between_hp_bar_and_weapon_info = 4;
+    auto txt_tl = ImVec2{ full_bar_tl.x, full_bar_br.y + space_between_hp_bar_and_weapon_info };
+
+    for (int j = 0; j < num_active_weapons; j++) {
+      const auto wep_e = weapons_e_vec[j];
+
+      // weapon reload/ammo bar
+      const auto w = 100;
+      const auto h = font_size;
+      const auto pos_l = ImVec2(txt_tl.x, txt_tl.y);
+      const auto pos_r = ImVec2(txt_tl.x + w, txt_tl.y + h);
+      const auto bar_padding_x = 6; // padding from edges each side
+      const auto bar_padding_y = 3;
+      const auto bar_rounding = 6;
+
+      // state.
+      const auto wep_def = get_weapon_def(r, player_e, wep_e);
+      const auto& weapon_clip_c = r.get<WeaponClipSize>(wep_e);
+      const auto& weapon_reload_c = r.get<WeaponReloadRate>(wep_e);
+      const float bullets_in_clip = weapon_clip_c.bullets_cur / (float)wep_def.bullets_max;
+      const float reload_percent = weapon_reload_c.seconds_cur / (float)wep_def.reload_rate;
+
+      float percent_to_display = 0.0f;
+
+      // if we've got bullets, show your current bullets
+      if (weapon_clip_c.bullets_cur > 0)
+        percent_to_display = bullets_in_clip;
+
+      // if no bullets, show reload time
+      // (make it 1.0-X to show bar as increasing while reloading)
+      if (weapon_clip_c.bullets_cur == 0)
+        percent_to_display = 1.0 - reload_percent;
+
+      // bar background.
+      {
+        const auto bar_l = ImVec2{ pos_l.x + bar_padding_x, pos_l.y + bar_padding_y };
+        const auto bar_r = ImVec2{ pos_r.x - bar_padding_x, pos_r.y - bar_padding_y };
+        const auto my_gunbar_bg = hex_to_srgb("#5D5721");
+        const auto im_gunbar_bg = convert_my_to_im(my_gunbar_bg);
+        draw_list->AddRectFilled(bar_l, bar_r, im_gunbar_bg, bar_rounding);
+      }
+
+      // bar foreground
+      // TODO: lerp between colours...
+      {
+        const auto bar_l = ImVec2{ pos_l.x + bar_padding_x, pos_l.y + bar_padding_y };
+        const auto bar_r = ImVec2{ pos_r.x - bar_padding_x, pos_r.y - bar_padding_y };
+        const auto bar_w = bar_r.x - bar_l.x;
+        const auto bar_r_adj = ImVec2{ bar_r.x - ((1.0f - percent_to_display) * bar_w), bar_r.y };
+        const auto my_gunbar_bg = hex_to_srgb("#E8DA58");
+        const auto im_gunbar_bg = convert_my_to_im(my_gunbar_bg);
+        draw_list->AddRectFilled(bar_l, bar_r_adj, im_gunbar_bg, bar_rounding);
+      }
+
+      // weapon text
+      auto txt_pos = ImVec2(pos_r.x, pos_l.y);
+      if (r.all_of<Weapon_OnDiskData, WeaponLevelComponent>(wep_e)) {
+        const auto& wep_ondiskdata = r.get<Weapon_OnDiskData>(wep_e);
+        const auto& wep_level_c = r.get<WeaponLevelComponent>(wep_e);
         const auto text = std::format("{} Lv {}", wep_ondiskdata.name, wep_level_c.level);
         draw_list->AddText(font, font_size, txt_pos, IM_COL32(255, 255, 255, 255), text.c_str());
-
-        // more text vertically below
-        txt_pos.y += font_size;
       }
+
+      txt_tl.y += font_size; // move vertically
     }
 
     first_tl_x += hp_bar_width;

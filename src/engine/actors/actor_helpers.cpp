@@ -38,7 +38,10 @@ set_position(entt::registry& r, const entt::entity e, const glm::vec2 pos_in_pix
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
     pb->body->SetTransform(pixels_to_meters(pos_in_pixels), 0);
 
-  r.get<TransformComponent>(e).position = glm::vec3{ pos_in_pixels.x, pos_in_pixels.y, 0.0f };
+  if (auto* t_c = r.try_get<TransformComponent>(e))
+    t_c->position = glm::vec3{ pos_in_pixels.x, pos_in_pixels.y, 0.0f };
+  else
+    SDL_Log("Trying to set a position of something without a transform?");
 }
 
 void

@@ -72,12 +72,12 @@ get_upgrades_from_weapon_key(entt::registry& r, const std::string weapon_key)
 std::vector<std::string>
 get_aquired_upgrades(entt::registry& r,
                      const std::vector<WeaponUpgrade_OnDiskData>& weapon_upgrades_data,
-                     entt::entity player_e)
+                     entt::entity wep_e)
 {
   std::vector<std::string> upgrades;
 
   // convert the weapon behaviours to a list of aquired upgrade keys
-  const auto& aquired_wb = r.get<WeaponBehaviourComponent>(player_e).behaviours;
+  const auto& aquired_wb = r.get<WeaponBehaviourComponent>(wep_e).behaviours;
 
   for (const auto& weapon_upgrade : weapon_upgrades_data) {
     auto wb_enum = magic_enum::enum_cast<WeaponBehaviour>(weapon_upgrade.wb_key).value();
@@ -120,6 +120,7 @@ handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEve
 
     // Get the player's weapon
     entt::entity weapon_e = entt::null;
+
     const auto& player_children_c = r.get<HasChildrenComponent>(player_e);
     for (const auto& child_e : player_children_c.children) {
       if (auto* weapon_c = r.try_get<WeaponComponent>(child_e)) {
@@ -139,19 +140,19 @@ handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEve
     const auto& weapon_key = r.get<ItemKey>(weapon_e);
     const auto weapon_upgrades_data = get_upgrades_from_weapon_key(r, weapon_key.key);
 
-    std::vector<std::string> upgs;
+    std::vector<std::string> upg_keys;
     for (const auto& data : weapon_upgrades_data)
-      upgs.push_back(data.u_key);
+      upg_keys.push_back(data.u_key);
 
     // aquired upgrades
-    const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, player_e);
+    const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, weapon_e);
 
     // unaquired upgrades
     std::vector<std::string> unaquired_upg;
-    for (const auto& upg : upgs) {
-      auto it = std::find(aquired_upg.begin(), aquired_upg.end(), upg);
+    for (const auto& upg_key : upg_keys) {
+      auto it = std::find(aquired_upg.begin(), aquired_upg.end(), upg_key);
       if (it == aquired_upg.end())
-        unaquired_upg.push_back(upg);
+        unaquired_upg.push_back(upg_key);
     }
 
     if (unaquired_upg.size() < upgrades) {
@@ -172,16 +173,20 @@ handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEve
       const auto wb_key = get_wb_key_from_upgrade_key(r, upgrade_key);
       const auto behaviour = magic_enum::enum_cast<WeaponBehaviour>(wb_key).value();
 
-      results_c.results.emplace(UpgradeRollResult{
-        .rarity = Rarity::COMMON,
-        .stats = get_stats_from_weapon_behaviour(r, behaviour),
-        .traits = { behaviour },
-        .level_weapon = false,
-      });
+      results_c.results.emplace(UpgradeRollResult{ .rarity = Rarity::COMMON,
+                                                   .stats = get_stats_from_weapon_behaviour(r, behaviour),
+                                                   .traits = { behaviour },
+                                                   .weapons = { weapon_e },
+                                                   .level_weapons = false });
 
       std::erase(unaquired_upg, upgrade_key);
     }
 
+    //
+    // note: if two weapons hit a critical level e.g. lv 4 at the same time,
+    // two sets of upgraderesultcomponent are generated and tried to add to the player.
+    // and the .emplace fails because the component exists already
+    //
     r.emplace<UpgradeResultsComponent>(player_e, results_c);
   }
 

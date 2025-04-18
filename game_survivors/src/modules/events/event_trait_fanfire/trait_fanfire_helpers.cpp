@@ -49,6 +49,7 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   BulletDef bul_def = get_bullet_def(r, from_e, wep_e);
   bul_def.damage *= 0.2;   // deal 20% damage
   bul_def.size = { 4, 4 }; // fanfire bullets slightly smaller
+  bul_def.damage_type = WEAPON_DAMAGE::KINETIC;
 
   const auto& player_col = r.get<DefaultColour>(from_e).colour;
   const auto angles_rad = generate_angles(0, fanfire_c.projectiles_to_fanfire, engine::TWO_PI);
