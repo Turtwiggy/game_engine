@@ -18,6 +18,8 @@
 #include "modules/core/renderer/renderpass/passes.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 
+#include "fluidsim/helpers.hpp"
+
 // engine headers
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
@@ -97,8 +99,11 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
+  // rebind the fluidsim textures.
+  rebind_fluidsim(r, ri.fluid_sim, i);
+
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
-    const auto idx = search_for_renderpass_by_name(ri, p);
+    const auto idx = get_pass_idx(ri, p);
     const auto& pass = ri.passes[idx];
     return pass.texs[0].tex_unit.unit;
   };
@@ -207,6 +212,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
 
+  // bind fluidsim data
+  ri.fluid_sim.advectProgram.reload(r);
+  ri.fluid_sim.advectProgram.bind();
+  ri.fluid_sim.advectProgram.set_uniform_block_binding("Data", 0);
+  ri.fluid_sim.advectProgram.set_mat4("projection", camera.projection);
+
   // ri.blur.reload(r);
   // ri.blur.bind();
   // ri.blur.set_mat4("projection", camera.projection);
@@ -249,6 +260,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // ri.passes.push_back(RenderPass(PassName::voronoi_seed));
   // ri.passes.push_back(RenderPass(PassName::jump_flood));
   // ri.passes.push_back(RenderPass(PassName::voronoi_distance));
+  ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
   ri.passes.push_back(RenderPass(PassName::crt_effect));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
@@ -266,19 +278,19 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   }
 
   // Load user textures
-  const int base_tex_unit = get_renderer_tex_unit_count(ri);
-  int next_tex_unit = base_tex_unit;
-  for (Texture& tex : ri.user_textures) {
-    tex.tex_unit.unit = next_tex_unit;
-
+  const int ri_used_tex_unit = get_renderer_tex_unit_count(ri);
+  for (int i = 0; i < (int)ri.user_textures.size(); i++) {
+    auto& tex = ri.user_textures[i];
+    tex.tex_unit.unit = ri_used_tex_unit + i;
     const LinearTexture loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
-
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
-
-    next_tex_unit++;
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
+
+  // Load fluidsim shaders/textures
+  const int used_tex_units = ri_used_tex_unit + (int)ri.user_textures.size();
+  load_fluidsim(r, ri.fluid_sim, used_tex_units);
 
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
@@ -375,6 +387,9 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
   // setup_voronoi_distance_field_update(r);
+
+  setup_fluidsim_update(r);
+
   setup_mix_lighting_and_scene_update(r);
   setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
@@ -496,7 +511,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
-    pass.update(r);
+    pass.update(r, dt);
   }
 
   // Default: render_texture_to_imgui
@@ -534,7 +549,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    const bool hide_debug_textures = true;
+    const bool hide_debug_textures = false;
     if (hide_debug_textures)
       return;
 
@@ -553,14 +568,35 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     }
 
     // Debug user Texture
+    /*
     for (int i = 0; const auto& tex : ri.user_textures) {
-      const std::string label = std::string("Debug") + std::to_string(i++);
+      const std::string label = std::string("Debug") + std::to_string(i++) + tex.path;
       ImGui::Begin(label.c_str());
       ImVec2 viewport_size = ImGui::GetContentRegionAvail();
       const uint64_t id = tex.tex_id.id;
       ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
       ImGui::End();
     }
+    */
+
+    const auto debug_texture = [](const std::string title, uint64_t tex_id) {
+      ImGuiWindowFlags flags = 0;
+      ImGui::SetNextWindowSizeConstraints({ 100, 100 }, { FLT_MAX, FLT_MAX });
+      ImGui::Begin(title.c_str(), NULL, flags);
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      ImGui::Image((ImTextureID)tex_id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      ImGui::End();
+    };
+
+    // Debug fluidsim textures.
+    auto& fluidsim_data = ri.fluid_sim;
+    debug_texture({ "dye0" }, fluidsim_data.dye.info[0].tex.tex_id.id);
+    debug_texture({ "dye1" }, fluidsim_data.dye.info[1].tex.tex_id.id);
+    debug_texture({ "vel0" }, fluidsim_data.velocity.info[0].tex.tex_id.id);
+    debug_texture({ "vel1" }, fluidsim_data.velocity.info[1].tex.tex_id.id);
+    debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id.id);
+    debug_texture({ "pressure0" }, fluidsim_data.pressure.info[0].tex.tex_id.id);
+    debug_texture({ "pressure1" }, fluidsim_data.pressure.info[1].tex.tex_id.id);
   }
 #endif
 };

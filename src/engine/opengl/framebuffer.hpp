@@ -28,4 +28,19 @@ public:
   static void unbind_rbo();
 };
 
+class DoubleFBO
+{
+public:
+  FramebufferID fbo0;
+  FramebufferID fbo1;
+
+private:
+  FramebufferID active_id;
+
+public:
+  DoubleFBO() = default;
+
+  FramebufferID active() const { return active_id; };
+};
+
 } // namespace engine

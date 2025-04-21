@@ -15,7 +15,7 @@ RenderPass::RenderPass(const PassName& pass_name, const int colour_buffers)
 void
 RenderPass::setup(const glm::ivec2& fbo_size, const int framebuffers)
 {
-  // Create all the textures
+  // Setup the texture objects
   for (int i = 0; i < framebuffers; i++) {
     for (int j = 0; j < colour_buffers_per_texture; j++) {
       Texture t;

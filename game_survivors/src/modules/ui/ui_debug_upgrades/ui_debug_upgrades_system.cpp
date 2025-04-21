@@ -100,8 +100,8 @@ update_ui_debug_upgrades_system(entt::registry& r)
 
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
   auto state = gesert_menubar_state(menu_c, "Upgrades");
-  // if (!state.enabled)
-  //   return;
+  if (!state.enabled)
+    return;
   ImGui::Begin(state.name.c_str());
 
   ImGui::SeparatorText("WeaponBehaviours");

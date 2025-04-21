@@ -30,10 +30,12 @@ ImGui_Manager::initialize(GameWindow& window)
   io.IniFilename = nullptr;
 #endif
 
-  // disable .ini to stop stuttering io calls
-  // this is mainly a problem because everything is on one thread
+// disable .ini to stop stuttering io calls
+// this is mainly a problem because everything is on one thread
+#if !defined(_DEBUG)
   io.IniFilename = NULL;
   io.LogFilename = NULL;
+#endif
 
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
