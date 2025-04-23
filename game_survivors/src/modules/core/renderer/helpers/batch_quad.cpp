@@ -1,13 +1,11 @@
+#include "pch.hpp"
 
 // header
 #include "batch_quad.hpp"
 
 #include "engine/deps/opengl.hpp"
 #include "engine/opengl/util.hpp"
-#include "modules/core/renderer/components.hpp"
 
-#include <SDL2/SDL_log.h>
-#include <format>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace engine {

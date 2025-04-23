@@ -16,7 +16,6 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/core/renderer/renderpass/passes.hpp"
-#include "modules/effect_crt/crt_components.hpp"
 
 #include "fluidsim/helpers.hpp"
 
@@ -68,6 +67,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const glm::vec2 double_wh = { 2.0 * wh.x, 2.0f * wh.y };
 
   for (RenderPass& rp : ri.passes) {
+    if (rp.pass == PassName::fluid_sim)
+      continue;
     for (const auto& tex : rp.texs) {
       engine::bind_tex(tex.tex_id.id);
       engine::update_bound_texture_size(double_wh);
@@ -83,6 +84,14 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
       i++;
     }
   }
+
+  CHECK_OPENGL_ERROR(12);
+
+  // rebind the fluidsim textures.
+  rebind_fluidsim(r, ri.fluid_sim);
+
+  CHECK_OPENGL_ERROR(11);
+
   for (const auto& tex : ri.user_textures) {
     glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
     glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
@@ -97,11 +106,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.tex_unit_circles).c_str());
 
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
-  const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
-
-  // rebind the fluidsim textures.
-  rebind_fluidsim(r, ri.fluid_sim, i);
-
+  const int texs_used = get_renderer_tex_unit_count(ri) + get_texs_used_by_fluidsim();
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
     const auto idx = get_pass_idx(ri, p);
     const auto& pass = ri.passes[idx];
@@ -143,7 +148,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.reload(r);
   ri.instanced.bind();
   ri.instanced.set_uniform_block_binding("Data", 0);
-  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
   ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
   for (const auto& tex : ri.user_textures) {
@@ -212,11 +217,37 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
 
+  //
   // bind fluidsim data
+  //
+
+  CHECK_OPENGL_ERROR(14);
+
+  ri.fluid_sim.splatProgram.reload(r);
+  ri.fluid_sim.splatProgram.bind();
+
   ri.fluid_sim.advectProgram.reload(r);
   ri.fluid_sim.advectProgram.bind();
-  ri.fluid_sim.advectProgram.set_uniform_block_binding("Data", 0);
-  ri.fluid_sim.advectProgram.set_mat4("projection", camera.projection);
+
+  ri.fluid_sim.curlProgram.reload(r);
+  ri.fluid_sim.curlProgram.bind();
+
+  ri.fluid_sim.vorticityProgram.reload(r);
+  ri.fluid_sim.vorticityProgram.bind();
+
+  ri.fluid_sim.divergenceProgram.reload(r);
+  ri.fluid_sim.divergenceProgram.bind();
+
+  ri.fluid_sim.pressureProgram.reload(r);
+  ri.fluid_sim.pressureProgram.bind();
+
+  ri.fluid_sim.gradientSubtractProgram.reload(r);
+  ri.fluid_sim.gradientSubtractProgram.bind();
+
+  ri.fluid_sim.textureProgram.reload(r);
+  ri.fluid_sim.textureProgram.bind();
+
+  CHECK_OPENGL_ERROR(13);
 
   // ri.blur.reload(r);
   // ri.blur.bind();
@@ -277,20 +308,19 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
     rp.setup(double_fbo_size);
   }
 
+  // Load fluidsim shaders/textures
+  int used_tex_units = get_renderer_tex_unit_count(ri);
+  load_fluidsim(r, ri.fluid_sim, used_tex_units);
+
   // Load user textures
-  const int ri_used_tex_unit = get_renderer_tex_unit_count(ri);
   for (int i = 0; i < (int)ri.user_textures.size(); i++) {
     auto& tex = ri.user_textures[i];
-    tex.tex_unit.unit = ri_used_tex_unit + i;
+    tex.tex_unit.unit = used_tex_units + i;
     const LinearTexture loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
-
-  // Load fluidsim shaders/textures
-  const int used_tex_units = ri_used_tex_unit + (int)ri.user_textures.size();
-  load_fluidsim(r, ri.fluid_sim, used_tex_units);
 
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
@@ -375,7 +405,11 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   //   // glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
   // }
 
+  CHECK_OPENGL_ERROR(10);
+
   rebind(r, ri);
+
+  CHECK_OPENGL_ERROR(9);
 
   // adds the update() for each renderpass
   setup_floor_mask_update(r);
@@ -388,12 +422,18 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // setup_jump_flood_pass(r);
   // setup_voronoi_distance_field_update(r);
 
+  CHECK_OPENGL_ERROR(8);
+
   setup_fluidsim_update(r);
+
+  CHECK_OPENGL_ERROR(7);
 
   setup_mix_lighting_and_scene_update(r);
   setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
   // setup_bloom_update(r);
+
+  CHECK_OPENGL_ERROR(5);
 
   // validate that update() been set...
   for (const auto& pass : ri.passes) {
@@ -502,14 +542,16 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
   showing_grid = show_grid;
 
-  for (auto& pass : ri.passes) {
+  for (const auto& pass : ri.passes) {
     // const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
     // const auto& pass_enum = pass.pass;
 
-    Framebuffer::bind_fbo(pass.fbos[0]);
-    RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
-    RenderCommand::clear();
+    if (pass.pass != PassName::fluid_sim) {
+      Framebuffer::bind_fbo(pass.fbos[0]);
+      RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
+      RenderCommand::set_clear_colour_srgb(black);
+      RenderCommand::clear();
+    }
 
     pass.update(r, dt);
   }
@@ -556,7 +598,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     // Debug Passes
     for (const auto& rp : ri.passes) {
       const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
-
       for (const auto& tex : rp.texs) {
         const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
         ImGui::Begin(label.c_str());
@@ -568,7 +609,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     }
 
     // Debug user Texture
-    /*
     for (int i = 0; const auto& tex : ri.user_textures) {
       const std::string label = std::string("Debug") + std::to_string(i++) + tex.path;
       ImGui::Begin(label.c_str());
@@ -577,26 +617,26 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
       ImGui::End();
     }
-    */
 
-    const auto debug_texture = [](const std::string title, uint64_t tex_id) {
+    const auto debug_texture = [](const std::string title, TextureId id) {
       ImGuiWindowFlags flags = 0;
       ImGui::SetNextWindowSizeConstraints({ 100, 100 }, { FLT_MAX, FLT_MAX });
       ImGui::Begin(title.c_str(), NULL, flags);
-      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-      ImGui::Image((ImTextureID)tex_id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      ImGui::Image((ImTextureID)id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
       ImGui::End();
     };
 
     // Debug fluidsim textures.
-    auto& fluidsim_data = ri.fluid_sim;
-    debug_texture({ "dye0" }, fluidsim_data.dye.info[0].tex.tex_id.id);
-    debug_texture({ "dye1" }, fluidsim_data.dye.info[1].tex.tex_id.id);
-    debug_texture({ "vel0" }, fluidsim_data.velocity.info[0].tex.tex_id.id);
-    debug_texture({ "vel1" }, fluidsim_data.velocity.info[1].tex.tex_id.id);
-    debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id.id);
-    debug_texture({ "pressure0" }, fluidsim_data.pressure.info[0].tex.tex_id.id);
-    debug_texture({ "pressure1" }, fluidsim_data.pressure.info[1].tex.tex_id.id);
+    const auto& fluidsim_data = ri.fluid_sim;
+    debug_texture({ "dye-r" }, fluidsim_data.dye.read().tex.tex_id);
+    debug_texture({ "dye-w" }, fluidsim_data.dye.write().tex.tex_id);
+    debug_texture({ "vel-r" }, fluidsim_data.velocity.read().tex.tex_id);
+    debug_texture({ "vel-w" }, fluidsim_data.velocity.write().tex.tex_id);
+    debug_texture({ "curl" }, fluidsim_data.curl.info.tex.tex_id);
+    debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id);
+    debug_texture({ "pressure-r" }, fluidsim_data.pressure.read().tex.tex_id);
+    debug_texture({ "pressure-w" }, fluidsim_data.pressure.write().tex.tex_id);
   }
 #endif
 };
