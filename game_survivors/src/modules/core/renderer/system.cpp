@@ -85,12 +85,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     }
   }
 
-  CHECK_OPENGL_ERROR(12);
-
   // rebind the fluidsim textures.
   rebind_fluidsim(r, ri.fluid_sim);
-
-  CHECK_OPENGL_ERROR(11);
 
   for (const auto& tex : ri.user_textures) {
     glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
@@ -118,6 +114,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
+  const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
   // const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
@@ -149,6 +146,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.bind();
   ri.instanced.set_uniform_block_binding("Data", 0);
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
+  ri.instanced.set_int("tex_fluid", tex_unit_fluid);
+  ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
   ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
   for (const auto& tex : ri.user_textures) {
@@ -213,6 +212,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
+  ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
@@ -282,6 +282,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
+  ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
   ri.passes.push_back(RenderPass(PassName::outline));
@@ -291,7 +292,6 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // ri.passes.push_back(RenderPass(PassName::voronoi_seed));
   // ri.passes.push_back(RenderPass(PassName::jump_flood));
   // ri.passes.push_back(RenderPass(PassName::voronoi_distance));
-  ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
   ri.passes.push_back(RenderPass(PassName::crt_effect));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
@@ -302,6 +302,15 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   auto double_fbo_size = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
 
   for (auto& rp : ri.passes) {
+    if (rp.pass == PassName::fluid_sim) {
+      const auto dye_res = glm::vec2{
+        ri.fluid_sim.config_dye_resolution,
+        ri.fluid_sim.config_dye_resolution,
+      };
+      rp.setup(dye_res);
+      continue;
+    }
+
     // if (rp.pass == PassName::jump_flood)
     //   rp.setup(fbo_size, 2);
     // else
@@ -405,11 +414,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   //   // glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
   // }
 
-  CHECK_OPENGL_ERROR(10);
-
   rebind(r, ri);
-
-  CHECK_OPENGL_ERROR(9);
 
   // adds the update() for each renderpass
   setup_floor_mask_update(r);
@@ -422,18 +427,12 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // setup_jump_flood_pass(r);
   // setup_voronoi_distance_field_update(r);
 
-  CHECK_OPENGL_ERROR(8);
-
   setup_fluidsim_update(r);
-
-  CHECK_OPENGL_ERROR(7);
 
   setup_mix_lighting_and_scene_update(r);
   setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
   // setup_bloom_update(r);
-
-  CHECK_OPENGL_ERROR(5);
 
   // validate that update() been set...
   for (const auto& pass : ri.passes) {
@@ -442,13 +441,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
       SDL_Log("%s", std::format("ERROR! RenderPass Update() not set for {}", type_name).c_str());
       exit(1); // explode
     }
-    // SDL_Log("%s", std::format("RenderPass {} tex_size: {}", type_name, pass.texs.size()).c_str());
-
-    // for (const auto& tex : pass.texs)
-    //   SDL_Log("%s", std::format("Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
   }
-  // for (auto& tex : ri.user_textures)
-  //   SDL_Log("%s", std::format("User Texture, Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
 
   CHECK_OPENGL_ERROR(3);
 };
@@ -591,52 +584,51 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    const bool hide_debug_textures = false;
-    if (hide_debug_textures)
-      return;
-
-    // Debug Passes
-    for (const auto& rp : ri.passes) {
-      const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
-      for (const auto& tex : rp.texs) {
-        const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
+    const bool show_debug_textures = false;
+    if (show_debug_textures) {
+      // Debug Passes
+      for (const auto& rp : ri.passes) {
+        const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
+        for (const auto& tex : rp.texs) {
+          const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
+          ImGui::Begin(label.c_str());
+          const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+          const uint64_t id = tex.tex_id.id;
+          ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+          ImGui::End();
+        }
+      }
+      // Debug user Texture
+      for (int i = 0; const auto& tex : ri.user_textures) {
+        const std::string label = std::string("Debug") + std::to_string(i++) + tex.path;
         ImGui::Begin(label.c_str());
-        const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         const uint64_t id = tex.tex_id.id;
         ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
         ImGui::End();
       }
     }
-
-    // Debug user Texture
-    for (int i = 0; const auto& tex : ri.user_textures) {
-      const std::string label = std::string("Debug") + std::to_string(i++) + tex.path;
-      ImGui::Begin(label.c_str());
-      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-      const uint64_t id = tex.tex_id.id;
-      ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-      ImGui::End();
+    const bool show_debug_fluid_textures = true;
+    if (show_debug_fluid_textures) {
+      const auto debug_texture = [](const std::string title, TextureId id) {
+        ImGuiWindowFlags flags = 0;
+        ImGui::SetNextWindowSizeConstraints({ 100, 100 }, { FLT_MAX, FLT_MAX });
+        ImGui::Begin(title.c_str(), NULL, flags);
+        const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        ImGui::Image((ImTextureID)id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        ImGui::End();
+      };
+      // Debug fluidsim textures.
+      const auto& fluidsim_data = ri.fluid_sim;
+      debug_texture({ "dye-r" }, fluidsim_data.dye.read().tex.tex_id);
+      debug_texture({ "dye-w" }, fluidsim_data.dye.write().tex.tex_id);
+      debug_texture({ "vel-r" }, fluidsim_data.velocity.read().tex.tex_id);
+      debug_texture({ "vel-w" }, fluidsim_data.velocity.write().tex.tex_id);
+      debug_texture({ "curl" }, fluidsim_data.curl.info.tex.tex_id);
+      debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id);
+      debug_texture({ "pressure-r" }, fluidsim_data.pressure.read().tex.tex_id);
+      debug_texture({ "pressure-w" }, fluidsim_data.pressure.write().tex.tex_id);
     }
-
-    const auto debug_texture = [](const std::string title, TextureId id) {
-      ImGuiWindowFlags flags = 0;
-      ImGui::SetNextWindowSizeConstraints({ 100, 100 }, { FLT_MAX, FLT_MAX });
-      ImGui::Begin(title.c_str(), NULL, flags);
-      const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-      ImGui::Image((ImTextureID)id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-      ImGui::End();
-    };
-
-    // Debug fluidsim textures.
-    const auto& fluidsim_data = ri.fluid_sim;
-    debug_texture({ "dye-r" }, fluidsim_data.dye.read().tex.tex_id);
-    debug_texture({ "dye-w" }, fluidsim_data.dye.write().tex.tex_id);
-    debug_texture({ "vel-r" }, fluidsim_data.velocity.read().tex.tex_id);
-    debug_texture({ "vel-w" }, fluidsim_data.velocity.write().tex.tex_id);
-    debug_texture({ "curl" }, fluidsim_data.curl.info.tex.tex_id);
-    debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id);
-    debug_texture({ "pressure-r" }, fluidsim_data.pressure.read().tex.tex_id);
-    debug_texture({ "pressure-w" }, fluidsim_data.pressure.write().tex.tex_id);
   }
 #endif
 };

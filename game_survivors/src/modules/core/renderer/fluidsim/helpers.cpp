@@ -139,10 +139,10 @@ setup_fluidsim_update(entt::registry& r)
     // mouse info
     static ImVec2 prev_frame_pos{ 0, 0 };
     const auto m0_held = ImGui::IsMouseDown(0);
-    const auto m1_held = ImGui::IsMouseDown(1);
+    // const auto m1_held = ImGui::IsMouseDown(1);
     const auto m_pos = ImGui::GetMousePos();
     ImVec2 dxdy = { 0, 0 };
-    if (ImGui::IsMouseDragging(1)) {
+    if (ImGui::IsMouseDragging(0)) {
       ImVec2 dir = { m_pos.x - prev_frame_pos.x, m_pos.y - prev_frame_pos.y };
       prev_frame_pos = m_pos;
       const auto nrm = engine::normalize_safe({ dir.x, dir.y });
@@ -180,175 +180,6 @@ setup_fluidsim_update(entt::registry& r)
     // start fluid sim...
     const auto sim_texel_size = glm::vec2{ 1.0 / data.config_sim_resolution, 1.0 / data.config_sim_resolution };
     const auto dye_texel_size = glm::vec2{ 1.0 / data.config_dye_resolution, 1.0 / data.config_dye_resolution };
-
-    // splats update velocity texture
-    if (m1_held) {
-      {
-        const auto r_vel = data.velocity.read();
-        const auto w_vel = data.velocity.write();
-        const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
-
-        data.splatProgram.bind();
-        data.splatProgram.set_vec2("point", point);
-        data.splatProgram.set_float("radius", data.config_splat_radius / 100.0f);
-        data.splatProgram.set_int("u_target", r_vel.tex.tex_unit.unit);
-        data.splatProgram.set_vec3("colour", { dxdy.x, dxdy.y, 0.0f });
-
-        engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-        engine::RenderCommand::clear();
-        render_quad(r, data.splatProgram, wh);
-
-        data.velocity.swap();
-      }
-    }
-
-    // splats update dye texture
-    if (m0_held) {
-      {
-        const auto r_dye = data.dye.read();
-        const auto w_dye = data.dye.write();
-        const auto wh = glm::ivec2{ w_dye.tex.size.x, w_dye.tex.size.y };
-
-        data.splatProgram.bind();
-        data.splatProgram.set_vec2("point", point);
-        data.splatProgram.set_float("radius", data.config_splat_radius / 100.0f);
-        data.splatProgram.set_int("u_target", r_dye.tex.tex_unit.unit);
-        data.splatProgram.set_vec3("colour", data.config_dye_colour);
-
-        engine::Framebuffer::bind_fbo(w_dye.fbo_id);
-        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-        engine::RenderCommand::clear();
-        render_quad(r, data.splatProgram, wh);
-
-        data.dye.swap();
-      }
-    }
-
-    // curl
-    // {
-    //   const auto w_curl = data.curl.info;
-    //   const auto r_vel = data.velocity.read();
-    //   const auto wh = glm::ivec2{ r_vel.tex.size.x, r_vel.tex.size.y };
-    //   const auto texel_size = sim_texel_size;
-    //   data.curlProgram.bind();
-    //   data.curlProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
-    //   data.curlProgram.set_vec2("texel_size", texel_size);
-    //   engine::Framebuffer::bind_fbo(w_curl.fbo_id);
-    //   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-    //   engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-    //   engine::RenderCommand::clear();
-    //   render_quad(r, data.curlProgram, wh);
-    // }
-
-    // // vorticity
-    // {
-    //   const auto r_vel = data.velocity.read();
-    //   const auto r_curl = data.curl.info;
-    //   const auto w_vel = data.velocity.write();
-    //   const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
-    //   data.vorticityProgram.bind();
-    //   data.vorticityProgram.set_vec2("texel_size", sim_texel_size);
-    //   data.vorticityProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
-    //   data.vorticityProgram.set_int("u_curl", r_curl.tex.tex_unit.unit);
-    //   data.vorticityProgram.set_float("dt", dt_max);
-    //   data.vorticityProgram.set_float("curl", data.config_curl);
-    //   engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-    //   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-    //   render_quad(r, data.vorticityProgram, wh);
-    //   data.velocity.swap();
-    // }
-
-    // divergence
-    {
-      const auto r_vel = data.velocity.read();
-      const auto w_div = data.divergence.info;
-      const auto texel_size = glm::vec2{ 1.0f / w_div.tex.size.x, 1.0f / w_div.tex.size.y };
-
-      const auto wh = glm::ivec2{ w_div.tex.size.x, w_div.tex.size.y };
-      engine::Framebuffer::bind_fbo(w_div.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
-
-      data.divergenceProgram.bind();
-      data.divergenceProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
-      data.divergenceProgram.set_vec2("texel_size", texel_size);
-
-      render_quad(r, data.divergenceProgram, wh);
-    }
-
-    // clear pressure to a value.
-    {
-      const auto r_pressure = data.pressure.read();
-      const auto w_pressure = data.pressure.write();
-
-      data.textureProgram.bind();
-      data.textureProgram.set_float("val", data.config_pressure);
-      data.textureProgram.set_int("tex", r_pressure.tex.tex_unit.unit);
-
-      const auto wh = glm::ivec2{ w_pressure.tex.size.x, w_pressure.tex.size.y };
-      engine::Framebuffer::bind_fbo(w_pressure.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
-
-      render_quad(r, data.textureProgram, wh);
-
-      data.pressure.swap();
-    }
-
-    // pressure iterations
-    {
-      const auto r_divergence = data.divergence.info;
-      const auto texel_size = sim_texel_size;
-
-      data.pressureProgram.bind();
-      data.pressureProgram.set_int("u_divergence", r_divergence.tex.tex_unit.unit);
-      data.pressureProgram.set_vec2("texel_size", texel_size);
-
-      for (int i = 0; i < data.config_pressure_iterations; i++) {
-
-        const auto r_pressure = data.pressure.read();
-        const auto w_pressure = data.pressure.write();
-        data.pressureProgram.set_int("u_pressure", r_pressure.tex.tex_unit.unit);
-
-        const auto wh = glm::ivec2{ w_pressure.tex.size.x, w_pressure.tex.size.y };
-        engine::Framebuffer::bind_fbo(w_pressure.fbo_id);
-        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-        engine::RenderCommand::clear();
-
-        render_quad(r, data.pressureProgram, wh);
-
-        data.pressure.swap();
-      }
-    }
-
-    // gradient subtract
-    {
-      const auto r_vel = data.velocity.read();
-      const auto r_pressure = data.pressure.read();
-      const auto w_vel = data.velocity.write();
-      const auto texel_size = sim_texel_size;
-
-      data.gradientSubtractProgram.bind();
-      data.gradientSubtractProgram.set_vec2("texel_size", texel_size);
-      data.gradientSubtractProgram.set_int("u_pressure", r_pressure.tex.tex_unit.unit);
-      data.gradientSubtractProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
-
-      const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
-      engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
-
-      render_quad(r, data.gradientSubtractProgram, wh);
-
-      data.velocity.swap();
-    }
 
     // self advection
     {
@@ -400,6 +231,176 @@ setup_fluidsim_update(entt::registry& r)
       data.dye.swap();
     }
 
+    // external forces
+    if (m0_held) {
+      // splats update velocity texture
+      {
+        const auto r_vel = data.velocity.read();
+        const auto w_vel = data.velocity.write();
+        const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
+
+        data.splatProgram.bind();
+        data.splatProgram.set_vec2("point", point);
+        data.splatProgram.set_float("radius", data.config_splat_radius / 100.0f);
+        data.splatProgram.set_int("u_target", r_vel.tex.tex_unit.unit);
+        data.splatProgram.set_vec3("colour", { dxdy.x, dxdy.y, 0.0f });
+
+        engine::Framebuffer::bind_fbo(w_vel.fbo_id);
+        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+        engine::RenderCommand::clear();
+        render_quad(r, data.splatProgram, wh);
+
+        data.velocity.swap();
+      }
+
+      // splats update dye texture
+      {
+        const auto r_dye = data.dye.read();
+        const auto w_dye = data.dye.write();
+        const auto wh = glm::ivec2{ w_dye.tex.size.x, w_dye.tex.size.y };
+
+        data.splatProgram.bind();
+        data.splatProgram.set_vec2("point", point);
+        data.splatProgram.set_float("radius", data.config_splat_radius / 100.0f);
+        data.splatProgram.set_int("u_target", r_dye.tex.tex_unit.unit);
+        data.splatProgram.set_vec3("colour", data.config_dye_colour);
+
+        engine::Framebuffer::bind_fbo(w_dye.fbo_id);
+        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+        engine::RenderCommand::clear();
+        render_quad(r, data.splatProgram, wh);
+
+        data.dye.swap();
+      }
+    }
+
+    /*
+    // curl
+    {
+      const auto w_curl = data.curl.info;
+      const auto r_vel = data.velocity.read();
+      const auto wh = glm::ivec2{ r_vel.tex.size.x, r_vel.tex.size.y };
+      const auto texel_size = sim_texel_size;
+      data.curlProgram.bind();
+      data.curlProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
+      data.curlProgram.set_vec2("texel_size", texel_size);
+      engine::Framebuffer::bind_fbo(w_curl.fbo_id);
+      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+      engine::RenderCommand::clear();
+      render_quad(r, data.curlProgram, wh);
+    }
+
+    // vorticity
+    {
+      const auto r_vel = data.velocity.read();
+      const auto r_curl = data.curl.info;
+      const auto w_vel = data.velocity.write();
+      const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
+      data.vorticityProgram.bind();
+      data.vorticityProgram.set_vec2("texel_size", sim_texel_size);
+      data.vorticityProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
+      data.vorticityProgram.set_int("u_curl", r_curl.tex.tex_unit.unit);
+      data.vorticityProgram.set_float("dt", dt_max);
+      data.vorticityProgram.set_float("curl", data.config_curl);
+      engine::Framebuffer::bind_fbo(w_vel.fbo_id);
+      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+      render_quad(r, data.vorticityProgram, wh);
+      data.velocity.swap();
+    }
+    */
+
+    // divergence
+    {
+      const auto r_vel = data.velocity.read();
+      const auto w_div = data.divergence.info;
+      const auto texel_size = glm::vec2{ 1.0f / w_div.tex.size.x, 1.0f / w_div.tex.size.y };
+
+      const auto wh = glm::ivec2{ w_div.tex.size.x, w_div.tex.size.y };
+      engine::Framebuffer::bind_fbo(w_div.fbo_id);
+      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+      engine::RenderCommand::clear();
+
+      data.divergenceProgram.bind();
+      data.divergenceProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
+      data.divergenceProgram.set_vec2("texel_size", texel_size);
+
+      render_quad(r, data.divergenceProgram, wh);
+    }
+
+    // clear pressure to a value.
+    {
+      const auto r_pressure = data.pressure.read();
+      const auto w_pressure = data.pressure.write();
+
+      data.textureProgram.bind();
+      data.textureProgram.set_float("val", data.config_pressure);
+      data.textureProgram.set_int("tex", r_pressure.tex.tex_unit.unit);
+
+      const auto wh = glm::ivec2{ w_pressure.tex.size.x, w_pressure.tex.size.y };
+      engine::Framebuffer::bind_fbo(w_pressure.fbo_id);
+      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+      engine::RenderCommand::clear();
+
+      render_quad(r, data.textureProgram, wh);
+
+      data.pressure.swap();
+    }
+
+    // pressure iterations
+    {
+      const auto r_divergence = data.divergence.info;
+      const auto texel_size = sim_texel_size;
+
+      for (int i = 0; i < data.config_pressure_iterations; i++) {
+
+        const auto r_pressure = data.pressure.read();
+        const auto w_pressure = data.pressure.write();
+
+        data.pressureProgram.bind();
+        data.pressureProgram.set_int("u_divergence", r_divergence.tex.tex_unit.unit);
+        data.pressureProgram.set_vec2("texel_size", texel_size);
+        data.pressureProgram.set_int("u_pressure", r_pressure.tex.tex_unit.unit);
+
+        const auto wh = glm::ivec2{ w_pressure.tex.size.x, w_pressure.tex.size.y };
+        engine::Framebuffer::bind_fbo(w_pressure.fbo_id);
+        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+        engine::RenderCommand::clear();
+
+        render_quad(r, data.pressureProgram, wh);
+
+        data.pressure.swap();
+      }
+    }
+
+    // gradient subtract
+    {
+      const auto r_vel = data.velocity.read();
+      const auto r_pressure = data.pressure.read();
+      const auto w_vel = data.velocity.write();
+      const auto texel_size = sim_texel_size;
+
+      data.gradientSubtractProgram.bind();
+      data.gradientSubtractProgram.set_vec2("texel_size", texel_size);
+      data.gradientSubtractProgram.set_int("u_pressure", r_pressure.tex.tex_unit.unit);
+      data.gradientSubtractProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
+
+      const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
+      engine::Framebuffer::bind_fbo(w_vel.fbo_id);
+      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+      engine::RenderCommand::clear();
+
+      render_quad(r, data.gradientSubtractProgram, wh);
+
+      data.velocity.swap();
+    }
+
     //
     // Finlly, render the results (of the dye?) in to the assigned renderpass texture...
     //
@@ -408,14 +409,15 @@ setup_fluidsim_update(entt::registry& r)
     data.textureProgram.set_float("val", 1.0f);
     data.textureProgram.set_int("tex", data.dye.read().tex.tex_unit.unit);
 
+    const auto res = data.config_dye_resolution;
+
     engine::Framebuffer::bind_fbo(pass.fbos[0]);
-    engine::RenderCommand::set_viewport(0, 0, data.config_dye_resolution, data.config_dye_resolution);
+    engine::RenderCommand::set_viewport(0, 0, res, res);
     engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
     engine::RenderCommand::clear();
-    render_quad(r, data.textureProgram, { data.config_dye_resolution, data.config_dye_resolution });
+    render_quad(r, data.textureProgram, { res, res });
 
     ImGui::End();
-    CHECK_OPENGL_ERROR(321321);
   };
 };
 

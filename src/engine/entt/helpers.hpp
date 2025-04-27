@@ -17,7 +17,6 @@ struct Persistent
   bool placeholder = true;
 };
 
-/*
 inline std::string
 cleanup_tag_str(const std::string& s)
 {
@@ -54,7 +53,6 @@ cleanup_tag_str(const std::string& s)
 
   return clean_tag;
 };
-*/
 
 template<class T>
 entt::entity
@@ -69,9 +67,12 @@ create_empty(entt::registry& r, const std::optional<T>& val = std::nullopt)
   // If you want type information to work on a class for which you don't
   // really want any virtual functions, make the destructor virtual.
 
-  // const std::string name = typeid(T).name();
-  // const std::string tag = cleanup_tag_str(name);
+#if defined(_DEBUG)
+  const std::string name = typeid(T).name();
+  const std::string tag = cleanup_tag_str(name);
+#else
   const std::string tag = "default";
+#endif
 
   const auto e = r.create();
   r.emplace<TagComponent>(e, tag);

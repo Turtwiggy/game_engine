@@ -68,14 +68,14 @@ struct DoubleBufferInfo
 
 struct FluidSimData
 {
-  float config_sim_resolution = 256;
-  float config_dye_resolution = 1024;
+  float config_sim_resolution = 512;
+  float config_dye_resolution = 2048;
   float config_density_dissapation = 1.0f;
   float config_velocity_dissapation = 0.2f;
   float config_pressure = 0.8f;
   float config_pressure_iterations = 20;
-  float config_splat_radius = 0.25f;
-  float config_splat_force = 6000.0f;
+  float config_splat_radius = 0.005f;
+  float config_splat_force = 100.0f;
   float config_curl = 30.0f;
   glm::vec3 config_dye_colour = { 1.0f, 1.0f, 1.0f };
 

@@ -18,80 +18,9 @@ in VS_OUT
 // e.g. "uniform sampler2D tex_monochrome_transparent_packed"
 {{ generate_user_samplers }}
 
+uniform sampler2D tex_fluid;
+uniform int tex_fluid_tex_unit;
 uniform int RENDERER_TEX_UNIT_COUNT;
-
-#define _SUPERSAMPLING_2X2_RGSS
-
-// https://discussions.unity.com/t/how-to-keep-sprites-sharp-and-crisp-even-while-rotating-solved/737314/6
-vec4 tex2dss(sampler2D tex, vec2 uv, float bias, float aascale)
-{
-
-    vec4 col = vec4(0.0);
-
-    // get uv derivatives
-    vec2 dx = dFdx(uv);
-    vec2 dy = dFdy(uv);
-
-#if defined(_SUPERSAMPLING_2X2_RGSS)
-    // MSAA style "four rooks" rotated grid super sampling
-    // samples the texture 4 times
-
-    vec2 uvOffsets = vec2(0.125, 0.375);
-
-    col += texture(tex, uv + uvOffsets.x * dx + uvOffsets.y * dy, bias);
-    col += texture(tex, uv - uvOffsets.x * dx - uvOffsets.y * dy, bias);
-    col += texture(tex, uv + uvOffsets.y * dx - uvOffsets.x * dy, bias);
-    col += texture(tex, uv - uvOffsets.y * dx + uvOffsets.x * dy, bias);
-
-    col *= 0.25;
-
-#elif defined(_SUPERSAMPLING_8X_HALTON)
-    // 8 points from a 2, 3 Halton sequence
-    // similar to what TAA uses, though they usually use more points
-    // samples the texture 8 times
-    // better quality for really fine details
-
-    float2 halton[8] = {
-        float2(1,-3) / 16.0,
-        float2(-1,3) / 16.0,
-        float2(5,1) / 16.0,
-        float2(-3,-5) / 16.0,
-        float2(-5,5) / 16.0,
-        float2(-7,-1) / 16.0,
-        float2(3,7) / 16.0,
-        float2(7,-7) / 16.0
-    };
-
-    for (int i=0; i<8; i++)
-      col += tex2Dbias(tex, vec4(uv + halton[i].x * dx + halton[i].y * dy, 0, bias));
-
-    col *= 0.125;
-
-#elif defined(_SUPERSAMPLING_16X16_OGSS)
-    // brute force ground truth 16x16 ordered grid super sampling
-    // samples the texture 256 times! you should not use this!
-    // does not use tex2Dbias, but instead always samples the top mip
-
-    float gridDim = 16;
-    float halfGridDim = gridDim / 2;
-
-    for (float u=0; u<gridDim; u++)
-    {
-        float uOffset = (u - halfGridDim + 0.5) / gridDim;
-        for (float v=0; v<gridDim; v++)
-        {
-            float vOffset = (v - halfGridDim + 0.5) / gridDim;
-            col += tex2Dlod(tex, vec4(uv + uOffset * dx + vOffset * dy, 0, 0));
-        }
-    }
-
-    col /= (gridDim * gridDim);
-#else
-  // no super sampling, just bias
-  // col = tex2Dbias(tex, vec4(uv, 0, bias));
-#endif
-    return col;
-}
 
 void
 main()
@@ -124,6 +53,14 @@ main()
     //   out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
 {{ generate_sampler_if_statements }}
 
+  }
+
+  if(index == tex_fluid_tex_unit){
+    vec2 uv = v_uv;
+    vec3 col = texture2D(tex_fluid, uv).rgb;
+    float len = length(col);
+    out_colour = vec4(col, len);
+    return;
   }
 
   // Sample texture directly

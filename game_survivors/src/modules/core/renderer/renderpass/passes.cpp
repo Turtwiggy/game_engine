@@ -161,15 +161,15 @@ setup_linear_main_update(entt::registry& r)
       auto group = r.group<TransformComponent, SpriteComponent>();
 
       // sort by z-index; adds ~0.5ms
-      group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
-        const auto& a = group.get<TransformComponent>(lhs);
-        const auto& b = group.get<TransformComponent>(rhs);
-        if (a.z_index != b.z_index)
-          return a.z_index < b.z_index;
+      // group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
+      //   const auto& a = group.get<TransformComponent>(lhs);
+      //   const auto& b = group.get<TransformComponent>(rhs);
+      //   if (a.z_index != b.z_index)
+      //     return a.z_index < b.z_index;
 
-        // sort by eid if the layers are the same
-        return lhs > rhs;
-      });
+      //   // sort by eid if the layers are the same
+      //   return lhs > rhs;
+      // });
 
       for (const auto& [e, transform, sc] : group.each()) {
 

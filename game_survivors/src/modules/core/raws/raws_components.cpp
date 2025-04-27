@@ -357,14 +357,15 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
     // Spawn particles on death
     if (!big_explode) {
-      auto& callbacks_c = r.get<OnDeathCallbacks>(e);
-      const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
-        RequestToSpawnParticles request;
-        request.key = "enemy_death";
-        request.position = get_position(r, e);
-        create_empty<RequestToSpawnParticles>(r, request);
-      };
-      callbacks_c.callbacks.push_back(spawn_particles_callback);
+      if (auto* callbacks_c = r.try_get<OnDeathCallbacks>(e)) {
+        const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
+          RequestToSpawnParticles request;
+          request.key = "enemy_death";
+          request.position = get_position(r, e);
+          create_empty<RequestToSpawnParticles>(r, request);
+        };
+        callbacks_c->callbacks.push_back(spawn_particles_callback);
+      }
     }
   }
 

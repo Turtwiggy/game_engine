@@ -15,6 +15,5 @@ void
 main()
 {
   vec2 v_uv = sim_fs_in.v_uv;
-
   out_colour = val * texture(tex, v_uv);
 }

@@ -40,6 +40,9 @@ main()
   vec2 coord = v_uv - dt * cur_vel * texel_size ; // back in time.
   vec4 result = texture2D(u_source, coord);
 
-  float decay = 1.0 + dt * dissapation;
-  return result / decay;
+  out_colour = result;
+
+  // decay
+  out_colour.rgb /= (1.0 + dt * dissapation);
+
 }

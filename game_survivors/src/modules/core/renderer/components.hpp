@@ -29,6 +29,7 @@ enum class PassName
 {
   water,
   floor_mask,
+  fluid_sim,
   linear_main,
   sprites_to_outline,
   outline,
@@ -36,8 +37,6 @@ enum class PassName
   // voronoi_seed,
   // jump_flood,
   // voronoi_distance,
-
-  fluid_sim,
 
   mix_lighting_and_scene,
   crt_effect,

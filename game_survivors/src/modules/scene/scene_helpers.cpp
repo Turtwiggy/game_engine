@@ -5,6 +5,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/audio/audio_components.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -24,6 +25,7 @@
 #include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -399,6 +401,16 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // load player's saved units
     // const auto units = load_units(r);
     // std::for_each(units.begin(), units.end(), [&r](const auto& u) { add_unit_to_entt(r, u); });
+
+    // create a fluidsim sprite.
+    auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+    const auto fluidsim_e = r.create();
+    r.emplace<TagComponent>(fluidsim_e, "fluidsim_e");
+    r.emplace<ItemKey>(fluidsim_e, "empty");
+    give_life(r, fluidsim_e, { 0, 0 }, { 4096, 4096 });
+    auto& sprite_c = r.get<SpriteComponent>(fluidsim_e);
+    sprite_c.tex_unit = ri_c.passes[(int)get_pass_idx(ri_c, PassName::fluid_sim)].texs[0].tex_unit.unit;
+    sprite_c.colour = engine::LinearColour{ 0.0f, 0.0f, 0.0f, 1.0f };
   }
 
   if (s == Scene::select) {
