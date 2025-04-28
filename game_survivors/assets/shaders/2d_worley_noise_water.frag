@@ -31,6 +31,9 @@ layout(std140) uniform Data {
 
 uniform vec2 viewport_wh;
 
+// use the fluid sim as a mask for the worley noise shader.
+uniform int tex_fluid_sim;
+
 //Calculate the squared length of a vector
 float length2(vec2 p){
     return dot(p,p);
@@ -193,6 +196,13 @@ void main()
 
 	// vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
 	// out_colour.rgb = col;
+
+	// use the fluid sim as a mask for the water shader.
+	// vec3 fluid_c = texture2D(tex_fluid_sim, v_uv).rgb;
+	// if(length(fluid_c) > 0.0)
+	// 	out_colour.rgb = col;
+	// else
+	// 	out_colour.rgb = vec3(0.0);
 
 	out_colour.a = 1.0f;
 }

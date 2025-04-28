@@ -17,10 +17,12 @@ in VS_OUT
 // this key is replaced by the engine with
 // e.g. "uniform sampler2D tex_monochrome_transparent_packed"
 {{ generate_user_samplers }}
+uniform int RENDERER_TEX_UNIT_COUNT;
 
 uniform sampler2D tex_fluid;
 uniform int tex_fluid_tex_unit;
-uniform int RENDERER_TEX_UNIT_COUNT;
+uniform float tex_fluid_texel_size;
+uniform bool tex_fluid_shading;
 
 void
 main()
@@ -57,9 +59,28 @@ main()
 
   if(index == tex_fluid_tex_unit){
     vec2 uv = v_uv;
-    vec3 col = texture2D(tex_fluid, uv).rgb;
-    float len = length(col);
-    out_colour = vec4(col, len);
+    vec3 c = texture2D(tex_fluid, uv).rgb;
+
+#define SHADING 1
+#ifdef SHADING
+    vec2 vL = v_uv - vec2(tex_fluid_texel_size, 0.0);
+    vec2 vR = v_uv + vec2(tex_fluid_texel_size, 0.0);
+    vec2 vT = v_uv + vec2(0.0, tex_fluid_texel_size);
+    vec2 vB = v_uv - vec2(0.0, tex_fluid_texel_size);
+    vec3 lc = texture2D(tex_fluid, vL).rgb;
+    vec3 rc = texture2D(tex_fluid, vR).rgb;
+    vec3 tc = texture2D(tex_fluid, vT).rgb;
+    vec3 bc = texture2D(tex_fluid, vB).rgb;
+    float dx = length(rc) - length(lc);
+    float dy = length(tc) - length(bc);
+    vec3 n = normalize(vec3(dx, dy, length(tex_fluid_texel_size)));
+    vec3 l = vec3(0.0, 0.0, 1.0);
+    float diffuse = clamp(dot(n, l) + 0.7, 0.7, 1.0);
+    c *= diffuse;
+#endif
+   
+    float a = max(c.r, max(c.g, c.b));
+    out_colour = vec4(c, a);
     return;
   }
 

@@ -1,3 +1,4 @@
+#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "pch.hpp"
 
 #include "modules/core/renderer/fluidsim/helpers.hpp"
@@ -139,10 +140,10 @@ setup_fluidsim_update(entt::registry& r)
     // mouse info
     static ImVec2 prev_frame_pos{ 0, 0 };
     const auto m0_held = ImGui::IsMouseDown(0);
-    // const auto m1_held = ImGui::IsMouseDown(1);
+    const auto m1_held = ImGui::IsMouseDown(1);
     const auto m_pos = ImGui::GetMousePos();
     ImVec2 dxdy = { 0, 0 };
-    if (ImGui::IsMouseDragging(0)) {
+    if (ImGui::IsMouseDragging(1)) {
       ImVec2 dir = { m_pos.x - prev_frame_pos.x, m_pos.y - prev_frame_pos.y };
       prev_frame_pos = m_pos;
       const auto nrm = engine::normalize_safe({ dir.x, dir.y });
@@ -166,6 +167,19 @@ setup_fluidsim_update(entt::registry& r)
     imgui_draw_float("config_splat_radius", data.config_splat_radius);
     imgui_draw_float("config_splat_force", data.config_splat_force);
     imgui_draw_float("config_curl", data.config_curl);
+    imgui_draw_bool("config_shading", data.config_shading);
+
+    static float col[3] = { 0.1f, 0.5f, 0.9f };
+    col[0] = data.config_dye_colour.r;
+    col[1] = data.config_dye_colour.g;
+    col[2] = data.config_dye_colour.b;
+    ImGui::ColorEdit3("dye col", col);
+    data.config_dye_colour.r = col[0];
+    data.config_dye_colour.g = col[1];
+    data.config_dye_colour.b = col[2];
+
+    ri.instanced.bind();
+    ri.instanced.set_bool("tex_fluid_shading", data.config_shading);
 
     // run sim at 60fps
     static float dt_max = 1 / 60.0f;
@@ -232,7 +246,7 @@ setup_fluidsim_update(entt::registry& r)
     }
 
     // external forces
-    if (m0_held) {
+    if (m1_held) {
       // splats update velocity texture
       {
         const auto r_vel = data.velocity.read();
@@ -253,7 +267,8 @@ setup_fluidsim_update(entt::registry& r)
 
         data.velocity.swap();
       }
-
+    }
+    if (m0_held) {
       // splats update dye texture
       {
         const auto r_dye = data.dye.read();

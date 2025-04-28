@@ -68,6 +68,7 @@ struct DoubleBufferInfo
 
 struct FluidSimData
 {
+  bool config_shading = true;
   float config_sim_resolution = 512;
   float config_dye_resolution = 2048;
   float config_density_dissapation = 1.0f;

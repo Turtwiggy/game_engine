@@ -133,6 +133,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", wh);
+  ri.water.set_int("tex_fluid_sim", tex_unit_fluid);
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -146,8 +147,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.bind();
   ri.instanced.set_uniform_block_binding("Data", 0);
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
-  ri.instanced.set_int("tex_fluid", tex_unit_fluid);
-  ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
   ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
   for (const auto& tex : ri.user_textures) {
@@ -155,6 +154,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     SDL_Log("%s", std::format("user tex key: {}", key).c_str());
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
+  ri.instanced.set_int("tex_fluid", tex_unit_fluid);
+  ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
+  ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
 
   ri.outline.reload(r);
   ri.outline.bind();
