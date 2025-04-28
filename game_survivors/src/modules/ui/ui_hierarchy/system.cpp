@@ -106,7 +106,7 @@ update_ui_hierarchy_system(entt::registry& r)
     const int max_show = ((SHOWING_INDEX + 1) * MAX_TO_SHOW);
   }*/
 
-  auto properties_menu_state = gesert_menubar_state(menu_c, "Properties");
+  auto properties_menu_state = gesert_menubar_state(menu_c, "HierarchyProperties");
   if (properties_menu_state.enabled) {
     // If an entity is selected draw it's properties
     ImGui::Begin(properties_menu_state.name.c_str(), NULL, ImGuiWindowFlags_NoFocusOnAppearing);

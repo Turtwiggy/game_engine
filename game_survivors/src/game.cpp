@@ -115,7 +115,6 @@
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-
 #if defined(_DEBUG)
 #include <tracy/Tracy.hpp>
 #endif
@@ -336,7 +335,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     const float base_y = 720;
     const float scale = ri.viewport_size_render_at.y / base_y;
     auto& ui_scale = get_first_component<SINGLE_UIData>(r);
-    ui_scale.scaling = scale; // scale up if e.g. 1920x1080
+    ui_scale.scaling = scale <= 1.0 ? 1.0f : 1.5f;
 
 #if defined(_DEBUG)
     // auto& ui_scale = get_first_component<SINGLE_UIData>(r);
@@ -406,7 +405,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_debug_spawner_system(r);
     update_ui_debug_weapons_system(r);
     update_ui_raws_system(r);
-    // update_ui_hierarchy_system(r);
+    update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
   }
 

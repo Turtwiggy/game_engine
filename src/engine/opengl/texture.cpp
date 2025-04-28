@@ -148,17 +148,22 @@ bind_linear_texture(const LinearTexture& tex)
 #endif
   // SDL_Log("%s", std::format("Texture: comps:{} format: {}, {}", nr_components, format_a, format_b).c_str());
 
+  const auto texture_wrap_s = GL_CLAMP_TO_BORDER;
+  const auto texture_wrap_t = GL_CLAMP_TO_BORDER;
+  const auto texture_min_filter = GL_LINEAR_MIPMAP_LINEAR;
+  const auto texture_mag_filter = GL_NEAREST;
+
   glActiveTexture(GL_TEXTURE0 + tex_unit);
   glBindTexture(GL_TEXTURE_2D, texture_id);
   glTexImage2D(GL_TEXTURE_2D, 0, format_a, width, height, 0, format_b, GL_FLOAT, data.data());
   glGenerateMipmap(GL_TEXTURE_2D);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, tex.texture_wrap_s);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tex.texture_wrap_t);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex.texture_min_filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex.texture_max_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texture_wrap_s);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture_wrap_t);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_min_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_mag_filter);
   unbind_tex();
 
-  CHECK_OPENGL_ERROR(4);
+  CHECK_OPENGL_ERROR(6);
   return texture_id;
 };
 
@@ -180,7 +185,7 @@ engine::update_bound_texture_size(const glm::ivec2 size)
 };
 
 std::vector<unsigned int>
-add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
+add_textures_to_fbo(const glm::ivec2& size, const TextureFiltering& f, const int num_colour_buffers)
 {
   // generate textures
   auto* tex_ids = new unsigned int[num_colour_buffers];
@@ -191,15 +196,15 @@ add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
     glBindTexture(GL_TEXTURE_2D, tex_id);
 
     // set parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f.texture_min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f.texture_mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, f.texture_wrap_s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, f.texture_wrap_t);
 
 #if defined(__EMSCRIPTEN__)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 #else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 #endif
 
     // attach it to the currently bound framebuffer object
@@ -216,7 +221,7 @@ add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
 };
 
 FboResult
-engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int n_colour_buffers)
+engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const TextureFiltering& f, const int n_colour_buffers)
 {
   glActiveTexture(GL_TEXTURE0 + tex_unit);
 
@@ -224,7 +229,7 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
   Framebuffer::bind_fbo(fbo_id);
   RenderCommand::set_viewport(0, 0, size.x, size.y);
 
-  const auto tex_ids = add_textures_to_fbo(size, n_colour_buffers);
+  const auto tex_ids = add_textures_to_fbo(size, f, n_colour_buffers);
   CHECK_OPENGL_ERROR(1);
   if (opengl_error1) {
     SDL_Log("%s", std::format("Error: failed tex_unit: {}", tex_unit).c_str());

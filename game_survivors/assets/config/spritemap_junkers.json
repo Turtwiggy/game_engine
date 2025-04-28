@@ -15,9 +15,6 @@
     { "name": "hull_trimaran", "frames": [ { "x": 0, "y": 14, "w": 30, "h": 25 } ] },
     { "name": "hull_constitution", "frames": [ { "x": 0, "y": 39, "w": 170, "h": 38 } ] },
 
-    { "name": "boat_weapon_1", "frames": [ { "x": 1, "y": 6, "w": 1, "h": 2 } ], "angle": 90.0  },
-    { "name": "boat_weapon_2", "frames": [ { "x": 4, "y": 6, "w": 2, "h": 3 } ], "angle": 90.0  },
-
     { "name": "random_decal", "frames": [ { "x": 21, "y": 0, "w": 13, "h": 13 } ]}
 
   ]

@@ -14,6 +14,16 @@
 
 namespace engine {
 
+struct TextureFiltering
+{
+  // min: filtering mode if texture pixels < screen pixels
+  // mag: filtering mode if texture pixels > screen pixels
+  int texture_wrap_s = 0;
+  int texture_wrap_t = 0;
+  int texture_min_filter = 0;
+  int texture_mag_filter = 0;
+};
+
 struct SRGBTexture
 {
   int width;
@@ -34,16 +44,7 @@ struct LinearTexture
   int texture_unit;
   std::string path;
   std::vector<float> data; // linear colour 0-1
-
-  // min: filtering mode if texture pixels < screen pixels
-  // max: filtering mode if texture pixels > screen pixels
-  // int texture_max_filter = GL_LINEAR;
-  // int texture_min_filter = GL_LINEAR;
-
-  int texture_wrap_s = GL_CLAMP_TO_BORDER;
-  int texture_wrap_t = GL_CLAMP_TO_BORDER;
-  int texture_max_filter = GL_NEAREST;
-  int texture_min_filter = GL_LINEAR_MIPMAP_LINEAR;
+  TextureFiltering filtering;
 };
 
 void
@@ -73,6 +74,6 @@ struct FboResult
   std::vector<unsigned int> out_tex_ids;
 };
 FboResult
-new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int n_colour_buffers = 1);
+new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const TextureFiltering& f, const int n_colour_buffers = 1);
 
 } // namespace engine

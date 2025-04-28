@@ -2,7 +2,9 @@
 
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/shader.hpp"
+#include "modules/core/renderer/fluidsim/components.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
+#include "modules/core/renderer/helpers/texture.hpp"
 
 #include "imgui.h"
 #include <entt/fwd.hpp>
@@ -23,42 +25,11 @@ struct ViewportInfo
   bool hovered = false;
 };
 
-// known before bind
-// i.e. chosen by user
-struct TextureUnit
-{
-  int unit = 0;
-
-  TextureUnit() = default;
-  TextureUnit(int unit)
-    : unit(unit) {};
-};
-
-// known after bind
-// i.e. chosen by opengl
-struct TextureId
-{
-  int id = 0;
-};
-
-struct Texture
-{
-  std::string path;
-  std::string spritesheet_path;
-  TextureUnit tex_unit;
-  TextureId tex_id;
-  glm::ivec2 size{ 0, 0 };
-
-  Texture() = default;
-  Texture(const std::string& p, const std::string& sp)
-    : path(p)
-    , spritesheet_path(sp) {};
-};
-
 enum class PassName
 {
   water,
   floor_mask,
+  fluid_sim,
   linear_main,
   sprites_to_outline,
   outline,
@@ -66,6 +37,7 @@ enum class PassName
   // voronoi_seed,
   // jump_flood,
   // voronoi_distance,
+
   mix_lighting_and_scene,
   crt_effect,
   // blur_pingpong_0,
@@ -85,7 +57,7 @@ struct RenderPass
   std::vector<Texture> texs;
 
   // the function that gets called during the render
-  std::function<void(entt::registry&)> update;
+  std::function<void(entt::registry&, float)> update;
 
 private:
   int colour_buffers_per_texture = 0;
@@ -109,6 +81,9 @@ struct SINGLE_RendererInfo
 
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;
+
+  // fluidsim
+  FluidSimData fluid_sim;
 
   // shaders
   engine::Shader water;

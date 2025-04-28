@@ -15,7 +15,7 @@ RenderPass::RenderPass(const PassName& pass_name, const int colour_buffers)
 void
 RenderPass::setup(const glm::ivec2& fbo_size, const int framebuffers)
 {
-  // Create all the textures
+  // Setup the texture objects
   for (int i = 0; i < framebuffers; i++) {
     for (int j = 0; j < colour_buffers_per_texture; j++) {
       Texture t;
@@ -28,6 +28,12 @@ RenderPass::setup(const glm::ivec2& fbo_size, const int framebuffers)
 
   int tex_idx = 0;
 
+  engine::TextureFiltering f;
+  f.texture_wrap_s = GL_CLAMP_TO_EDGE;
+  f.texture_wrap_t = GL_CLAMP_TO_EDGE;
+  f.texture_min_filter = GL_LINEAR;
+  f.texture_mag_filter = GL_LINEAR;
+
   for (int n_fbos = 0; n_fbos < framebuffers; n_fbos++) {
 
     std::optional<engine::FboResult> result_opt = std::nullopt;
@@ -35,9 +41,9 @@ RenderPass::setup(const glm::ivec2& fbo_size, const int framebuffers)
       // use the first texture unit
       // later, we use glActiveTextre & glBindTexture to link
       // the extra crated texture unit to the additional colour buffer.
-      result_opt = engine::new_texture_to_fbo(texs[0].tex_unit.unit, fbo_size, colour_buffers_per_texture);
+      result_opt = engine::new_texture_to_fbo(texs[0].tex_unit.unit, fbo_size, f, colour_buffers_per_texture);
     } else
-      result_opt = engine::new_texture_to_fbo(texs[tex_idx].tex_unit.unit, fbo_size, colour_buffers_per_texture);
+      result_opt = engine::new_texture_to_fbo(texs[tex_idx].tex_unit.unit, fbo_size, f, colour_buffers_per_texture);
 
     const auto result = result_opt.value();
     fbos.push_back(result.out_fbo_id);

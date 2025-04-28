@@ -55,7 +55,7 @@
       "name": "weapon_deck_cannon",
       "display_name": "Deck Cannon",
       "display_desc": "More gun is better gun.",
-      "renderable": { "sprite": "boat_weapon_1", "colour": "white" }
+      "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
       "name": "weapon_grapeshot_cannon",
@@ -111,7 +111,7 @@
 
     {
       "name": "actor_player",
-      "renderable": { "sprite": "hull_dinghy", "colour":  "white" },
+      "renderable": { "sprite": "EMPTY", "colour":  "white" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [
         { "tag": "fixture_player", "type": "box", "is_sensor": false },

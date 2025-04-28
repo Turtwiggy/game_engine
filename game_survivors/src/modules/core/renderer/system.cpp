@@ -16,7 +16,8 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/core/renderer/renderpass/passes.hpp"
-#include "modules/effect_crt/crt_components.hpp"
+
+#include "fluidsim/helpers.hpp"
 
 // engine headers
 #include "engine/opengl/framebuffer.hpp"
@@ -66,6 +67,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const glm::vec2 double_wh = { 2.0 * wh.x, 2.0f * wh.y };
 
   for (RenderPass& rp : ri.passes) {
+    if (rp.pass == PassName::fluid_sim)
+      continue;
     for (const auto& tex : rp.texs) {
       engine::bind_tex(tex.tex_id.id);
       engine::update_bound_texture_size(double_wh);
@@ -81,6 +84,10 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
       i++;
     }
   }
+
+  // rebind the fluidsim textures.
+  rebind_fluidsim(r, ri.fluid_sim);
+
   for (const auto& tex : ri.user_textures) {
     glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
     glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
@@ -95,10 +102,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.tex_unit_circles).c_str());
 
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
-  const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
-
+  const int texs_used = get_renderer_tex_unit_count(ri) + get_texs_used_by_fluidsim();
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
-    const auto idx = search_for_renderpass_by_name(ri, p);
+    const auto idx = get_pass_idx(ri, p);
     const auto& pass = ri.passes[idx];
     return pass.texs[0].tex_unit.unit;
   };
@@ -108,6 +114,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
+  const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
   // const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
@@ -126,6 +133,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", wh);
+  ri.water.set_int("tex_fluid_sim", tex_unit_fluid);
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -138,7 +146,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.reload(r);
   ri.instanced.bind();
   ri.instanced.set_uniform_block_binding("Data", 0);
-  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
+  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
   ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
   for (const auto& tex : ri.user_textures) {
@@ -146,6 +154,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     SDL_Log("%s", std::format("user tex key: {}", key).c_str());
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
+  ri.instanced.set_int("tex_fluid", tex_unit_fluid);
+  ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
+  ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
 
   ri.outline.reload(r);
   ri.outline.bind();
@@ -203,9 +214,42 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
+  ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
+
+  //
+  // bind fluidsim data
+  //
+
+  CHECK_OPENGL_ERROR(14);
+
+  ri.fluid_sim.splatProgram.reload(r);
+  ri.fluid_sim.splatProgram.bind();
+
+  ri.fluid_sim.advectProgram.reload(r);
+  ri.fluid_sim.advectProgram.bind();
+
+  ri.fluid_sim.curlProgram.reload(r);
+  ri.fluid_sim.curlProgram.bind();
+
+  ri.fluid_sim.vorticityProgram.reload(r);
+  ri.fluid_sim.vorticityProgram.bind();
+
+  ri.fluid_sim.divergenceProgram.reload(r);
+  ri.fluid_sim.divergenceProgram.bind();
+
+  ri.fluid_sim.pressureProgram.reload(r);
+  ri.fluid_sim.pressureProgram.bind();
+
+  ri.fluid_sim.gradientSubtractProgram.reload(r);
+  ri.fluid_sim.gradientSubtractProgram.bind();
+
+  ri.fluid_sim.textureProgram.reload(r);
+  ri.fluid_sim.textureProgram.bind();
+
+  CHECK_OPENGL_ERROR(13);
 
   // ri.blur.reload(r);
   // ri.blur.bind();
@@ -240,6 +284,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
+  ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
   ri.passes.push_back(RenderPass(PassName::outline));
@@ -259,24 +304,32 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   auto double_fbo_size = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
 
   for (auto& rp : ri.passes) {
+    if (rp.pass == PassName::fluid_sim) {
+      const auto dye_res = glm::vec2{
+        ri.fluid_sim.config_dye_resolution,
+        ri.fluid_sim.config_dye_resolution,
+      };
+      rp.setup(dye_res);
+      continue;
+    }
+
     // if (rp.pass == PassName::jump_flood)
     //   rp.setup(fbo_size, 2);
     // else
     rp.setup(double_fbo_size);
   }
 
+  // Load fluidsim shaders/textures
+  int used_tex_units = get_renderer_tex_unit_count(ri);
+  load_fluidsim(r, ri.fluid_sim, used_tex_units);
+
   // Load user textures
-  const int base_tex_unit = get_renderer_tex_unit_count(ri);
-  int next_tex_unit = base_tex_unit;
-  for (Texture& tex : ri.user_textures) {
-    tex.tex_unit.unit = next_tex_unit;
-
+  for (int i = 0; i < (int)ri.user_textures.size(); i++) {
+    auto& tex = ri.user_textures[i];
+    tex.tex_unit.unit = used_tex_units + i;
     const LinearTexture loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
-
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
-
-    next_tex_unit++;
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
 
@@ -375,6 +428,9 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
   // setup_voronoi_distance_field_update(r);
+
+  setup_fluidsim_update(r);
+
   setup_mix_lighting_and_scene_update(r);
   setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
@@ -387,13 +443,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
       SDL_Log("%s", std::format("ERROR! RenderPass Update() not set for {}", type_name).c_str());
       exit(1); // explode
     }
-    // SDL_Log("%s", std::format("RenderPass {} tex_size: {}", type_name, pass.texs.size()).c_str());
-
-    // for (const auto& tex : pass.texs)
-    //   SDL_Log("%s", std::format("Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
   }
-  // for (auto& tex : ri.user_textures)
-  //   SDL_Log("%s", std::format("User Texture, Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id).c_str());
 
   CHECK_OPENGL_ERROR(3);
 };
@@ -487,16 +537,18 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
   showing_grid = show_grid;
 
-  for (auto& pass : ri.passes) {
+  for (const auto& pass : ri.passes) {
     // const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
     // const auto& pass_enum = pass.pass;
 
-    Framebuffer::bind_fbo(pass.fbos[0]);
-    RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
-    RenderCommand::clear();
+    if (pass.pass != PassName::fluid_sim) {
+      Framebuffer::bind_fbo(pass.fbos[0]);
+      RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
+      RenderCommand::set_clear_colour_srgb(black);
+      RenderCommand::clear();
+    }
 
-    pass.update(r);
+    pass.update(r, dt);
   }
 
   // Default: render_texture_to_imgui
@@ -534,32 +586,50 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    const bool hide_debug_textures = true;
-    if (hide_debug_textures)
-      return;
-
-    // Debug Passes
-    for (const auto& rp : ri.passes) {
-      const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
-
-      for (const auto& tex : rp.texs) {
-        const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
+    const bool show_debug_textures = false;
+    if (show_debug_textures) {
+      // Debug Passes
+      for (const auto& rp : ri.passes) {
+        const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
+        for (const auto& tex : rp.texs) {
+          const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
+          ImGui::Begin(label.c_str());
+          const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+          const uint64_t id = tex.tex_id.id;
+          ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+          ImGui::End();
+        }
+      }
+      // Debug user Texture
+      for (int i = 0; const auto& tex : ri.user_textures) {
+        const std::string label = std::string("Debug") + std::to_string(i++) + tex.path;
         ImGui::Begin(label.c_str());
-        const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         const uint64_t id = tex.tex_id.id;
         ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
         ImGui::End();
       }
     }
-
-    // Debug user Texture
-    for (int i = 0; const auto& tex : ri.user_textures) {
-      const std::string label = std::string("Debug") + std::to_string(i++);
-      ImGui::Begin(label.c_str());
-      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-      const uint64_t id = tex.tex_id.id;
-      ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-      ImGui::End();
+    const bool show_debug_fluid_textures = true;
+    if (show_debug_fluid_textures) {
+      const auto debug_texture = [](const std::string title, TextureId id) {
+        ImGuiWindowFlags flags = 0;
+        ImGui::SetNextWindowSizeConstraints({ 100, 100 }, { FLT_MAX, FLT_MAX });
+        ImGui::Begin(title.c_str(), NULL, flags);
+        const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        ImGui::Image((ImTextureID)id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        ImGui::End();
+      };
+      // Debug fluidsim textures.
+      const auto& fluidsim_data = ri.fluid_sim;
+      debug_texture({ "dye-r" }, fluidsim_data.dye.read().tex.tex_id);
+      debug_texture({ "dye-w" }, fluidsim_data.dye.write().tex.tex_id);
+      debug_texture({ "vel-r" }, fluidsim_data.velocity.read().tex.tex_id);
+      debug_texture({ "vel-w" }, fluidsim_data.velocity.write().tex.tex_id);
+      debug_texture({ "curl" }, fluidsim_data.curl.info.tex.tex_id);
+      debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id);
+      debug_texture({ "pressure-r" }, fluidsim_data.pressure.read().tex.tex_id);
+      debug_texture({ "pressure-w" }, fluidsim_data.pressure.write().tex.tex_id);
     }
   }
 #endif

@@ -197,7 +197,7 @@ search_for_texture_id_by_spritesheet_path(const SINGLE_RendererInfo& ri, const s
 };
 
 int
-search_for_renderpass_by_name(const SINGLE_RendererInfo& ri, const PassName& name)
+get_pass_idx(const SINGLE_RendererInfo& ri, const PassName name)
 {
   for (size_t i = 0; i < ri.passes.size(); i++) {
     auto pass = ri.passes[i];
@@ -208,6 +208,14 @@ search_for_renderpass_by_name(const SINGLE_RendererInfo& ri, const PassName& nam
   const auto type_name = std::string(magic_enum::enum_name(name));
   SDL_Log("%s", std::format("no render pass of name: {}", type_name).c_str());
   exit(1); // explode
+};
+
+int
+get_tex_unit(const SINGLE_RendererInfo& ri, const PassName& p)
+{
+  const auto pass_idx = get_pass_idx(ri, p);
+  const auto& pass = ri.passes[pass_idx];
+  return pass.texs[0].tex_unit.unit;
 };
 
 void
