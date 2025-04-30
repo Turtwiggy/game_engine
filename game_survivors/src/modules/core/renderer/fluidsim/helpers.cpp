@@ -137,6 +137,10 @@ setup_fluidsim_update(entt::registry& r)
     auto& input_c = get_first_component<SINGLE_InputComponent>(r);
     auto& data = ri.fluid_sim;
 
+    // fluidsim disabled
+    // note for future: something is wrong with the mouse_pos to simspace conversion
+    return;
+
     // mouse info
     static glm::vec2 prev_frame_pos{ 0, 0 };
     const auto m0_held = ImGui::IsMouseDown(0);

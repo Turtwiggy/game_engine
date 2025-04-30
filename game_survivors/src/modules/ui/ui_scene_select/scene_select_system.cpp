@@ -95,7 +95,7 @@ update_input_for_confirm(entt::registry& r, const int player_idx)
     // IDEA: could make the player hold button for menu transition
     const bool back_to_menu = player_state.player_row_idx == 0;
     if (back_to_menu) {
-      move_to_scene_start(r, Scene::select_modifiers);
+      move_to_scene_start(r, Scene::menu);
       return;
     }
 

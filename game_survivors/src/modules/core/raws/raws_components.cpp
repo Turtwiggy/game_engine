@@ -122,8 +122,8 @@ create_fixture(b2Body* body, const PhysicsFixtureDef& fix, const b2Vec2 size_in_
     offset = pixels_to_meters({ fix.offset[0].x, fix.offset[0].y });
 
   b2Vec2 size = size_in_meters;
-  if (fix.size.size() > 0)
-    size = pixels_to_meters({ fix.size[0].x, fix.size[0].y });
+  if (fix.size_in_pixels.size() > 0)
+    size = pixels_to_meters({ fix.size_in_pixels[0].x, fix.size_in_pixels[0].y });
 
   b2FixtureDef fixture_def;
   fixture_def.friction = friction;
@@ -135,7 +135,7 @@ create_fixture(b2Body* body, const PhysicsFixtureDef& fix, const b2Vec2 size_in_
 
   if (type == "circle") {
     b2CircleShape circle;
-    circle.m_radius = size.x;
+    circle.m_radius = size.x * 0.5f;
     circle.m_p.Set(offset.x, offset.y);
     fixture_def.shape = &circle;
     fixture = body->CreateFixture(&fixture_def);
@@ -144,7 +144,7 @@ create_fixture(b2Body* body, const PhysicsFixtureDef& fix, const b2Vec2 size_in_
 
   if (type == "box") {
     b2PolygonShape box;
-    box.SetAsBox(size.x / 2.0f, size.y / 2.0f, offset, 0.0f);
+    box.SetAsBox(size.x * 0.5f, size.y * 0.5f, offset, 0.0f);
     fixture_def.shape = &box;
     fixture = body->CreateFixture(&fixture_def);
     // SDL_Log("creating box fixture..");
@@ -257,11 +257,6 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         fixture->GetUserData().pointer = (uint32)fixture_e;
       }
     }
-
-    // While we're creating it, update the transform
-    auto& transform_c = r.get<TransformComponent>(e);
-    transform_c.scale.x = size.x;
-    transform_c.scale.y = size.y;
   }
 
   // add_traits()

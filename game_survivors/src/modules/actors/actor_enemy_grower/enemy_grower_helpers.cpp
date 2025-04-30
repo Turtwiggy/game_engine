@@ -7,15 +7,15 @@
 namespace game2d {
 
 void
-update_circle_fixture_size(entt::registry& r, entt::entity body_e, entt::entity fix_e, float new_radius_pixels)
+update_circle_fixture_size(entt::registry& r, entt::entity body_e, entt::entity fix_e, float diameter_pixels)
 {
   auto& fix_c = r.get<PhysicsFixtureComponent>(fix_e);
   auto* shape = static_cast<const b2CircleShape*>(fix_c.fixture->GetShape());
-  const float radius_meters = shape->m_radius;
-  const float radius_pixels = meters_to_pixels(radius_meters);
+  const float old_radius_meters = shape->m_radius;
+  const float old_radius_pixels = meters_to_pixels(old_radius_meters);
 
   float epsilon = 0.001f;
-  const float difference = glm::abs(new_radius_pixels - radius_pixels);
+  const float difference = glm::abs(diameter_pixels - 2.0 * old_radius_pixels);
   if (difference < epsilon)
     return;
   SDL_Log("Creating new circle fixture...");
@@ -28,8 +28,8 @@ update_circle_fixture_size(entt::registry& r, entt::entity body_e, entt::entity 
   // create with the new size...
   const auto& tag = r.get<TagComponent>(fix_e).tag;
   auto fixture_def = get_fixture_def_by_tag(r, body_e, tag);
-  fixture_def.size.clear();
-  fixture_def.size.push_back({ new_radius_pixels, new_radius_pixels });
+  fixture_def.size_in_pixels.clear();
+  fixture_def.size_in_pixels.push_back({ diameter_pixels, diameter_pixels });
   auto* new_fixture = create_fixture(body_c.body, fixture_def, { 0, 0 });
 
   // box2d: give link to entt

@@ -47,7 +47,7 @@ struct PhysicsFixtureDef
   float friction = 0.0f;
   float restitution = 1.0f;
   std::vector<vec2f> offset;
-  std::vector<vec2f> size;
+  std::vector<vec2f> size_in_pixels;
 
   friend void to_json(nlohmann ::json& j, const PhysicsFixtureDef& t)
   {
@@ -58,7 +58,7 @@ struct PhysicsFixtureDef
     j["friction"] = t.friction;
     j["restitution"] = t.restitution;
     j["offset"] = t.offset;
-    j["size"] = t.size;
+    j["size"] = t.size_in_pixels;
   }
   friend void from_json(const nlohmann ::json& j, PhysicsFixtureDef& t)
   {
@@ -74,7 +74,7 @@ struct PhysicsFixtureDef
     if (j.contains("offset"))
       j.at("offset").get_to(t.offset);
     if (j.contains("size"))
-      j.at("size").get_to(t.size);
+      j.at("size").get_to(t.size_in_pixels);
   };
 };
 

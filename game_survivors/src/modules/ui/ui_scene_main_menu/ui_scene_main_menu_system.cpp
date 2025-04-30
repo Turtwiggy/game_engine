@@ -152,8 +152,13 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   if (!ui_c.state.init) {
 
-    auto play_action = [&r]() { move_to_scene_start(r, Scene::select_modifiers); };
+    auto play_action = [&r]() { move_to_scene_start(r, Scene::select_ships); };
     auto test_action = [&r]() { move_to_scene_start(r, Scene::procedural_snake); };
+    auto modifiers_action = [&r, &ui_c]() {
+      ui_c.display = false;
+      ui_c.one_frame_buffer = true;
+      move_to_scene_start(r, Scene::select_modifiers);
+    };
     auto upgrade_action = [&r, &ui_c]() {
       ui_c.display = false;
       ui_c.one_frame_buffer = true;
@@ -169,6 +174,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
     auto exit_action = [&app]() { app.running = false; };
 
     ui_c.state.rows.push_back(RowState{ .col_name = "Play", .action = play_action });
+    ui_c.state.rows.push_back(RowState{ .col_name = "Modifiers", .action = modifiers_action });
     ui_c.state.rows.push_back(RowState{ .col_name = "Shipyard", .action = upgrade_action });
 #if defined(_DEBUG)
     // ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });

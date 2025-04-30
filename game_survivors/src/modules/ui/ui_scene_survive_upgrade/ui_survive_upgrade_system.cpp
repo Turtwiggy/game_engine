@@ -248,8 +248,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
         // flavour text for the header
         const auto [amount, type_str] = stat_from_stat_table(rarity, stat_enum);
-        const UpgradeRollResult result{ .rarity = rarity, .stats = { Stat{ .stat = stat } } };
-        header_text = upg_name_c.stat_to_name_map.at(result);
+        const UpgradeRollResult roll_res{ .rarity = rarity, .stats = { Stat{ .stat = stat } } };
+        header_text = upg_name_c.stat_to_name_map.at(roll_res);
       }
 
       // Display stats.

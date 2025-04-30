@@ -25,13 +25,13 @@ update_enemy_grower_system(entt::registry& r, float dt)
 
     auto& hp_c = r.get<HealthComponent>(fixture_e);
 
-    const float radius_pixels = engine::scale(hp_c.hp, 0, hp_c.max_hp, 16, 256);
+    const float diameter_pixels = engine::scale(hp_c.hp, 0, hp_c.max_hp, 32, 256);
 
     // update fixture
-    update_circle_fixture_size(r, body_e, fixture_e, radius_pixels);
+    update_circle_fixture_size(r, body_e, fixture_e, diameter_pixels);
 
     // update transform
-    const auto size = glm::vec2{ 2.0f * radius_pixels, 2.0f * radius_pixels };
+    const auto size = glm::vec2{ diameter_pixels, diameter_pixels };
     t_c.scale.x = size.x;
     t_c.scale.y = size.y;
     r.get<DefaultSizeComponent>(body_e).size = size;

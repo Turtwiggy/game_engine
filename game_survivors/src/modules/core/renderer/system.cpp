@@ -16,6 +16,9 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/core/renderer/renderpass/passes.hpp"
+#include "modules/effect_crt/crt_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 #include "fluidsim/helpers.hpp"
 
@@ -558,7 +561,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::clear();
 
     // Which pass to render finally?
-    // PassName p = PassName::mix_lighting_and_scene;
+    PassName p = PassName::mix_lighting_and_scene;
     // if (get_first<SINGLE_EffectCrt>(r) != entt::null) {
     //   auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
     //   if (crt_c.enabled)
@@ -566,7 +569,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     // }
 
     // Note: ImGui::Image takes in TexID not TexUnit
-    const auto& pass = ri.passes[(int)PassName::crt_effect];
+    const auto& pass = ri.passes[(int)p];
     const auto tex_id = pass.texs[0].tex_id.id;
     const auto vi = render_texture_to_imgui_viewport(tex_id);
 
@@ -581,7 +584,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    const bool show_debug_textures = false;
+    auto& state_c = get_first_component<SINGLE_DebugMenuBar>(r);
+    const bool show_debug_textures = gesert_menubar_state(state_c, "DebugTextures").enabled;
     if (show_debug_textures) {
       // Debug Passes
       for (const auto& rp : ri.passes) {
@@ -605,7 +609,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         ImGui::End();
       }
     }
-    const bool show_debug_fluid_textures = false;
+    const bool show_debug_fluid_textures = gesert_menubar_state(state_c, "DebugFluidTextures").enabled;
     if (show_debug_fluid_textures) {
       const auto debug_texture = [](const std::string title, TextureId id) {
         ImGuiWindowFlags flags = 0;

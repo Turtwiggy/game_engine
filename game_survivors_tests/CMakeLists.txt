@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.30.0)
+include(FetchContent)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -14,7 +16,7 @@ project(game_survivors_tests VERSION 0.1.0)
 message("game_survivors_tests...")
 
 # stop the tests trying to launch as a steam game
-add_compile_definitions(USE_STEAM 0)
+add_compile_definitions(USE_STEAM=0)
 
 find_packages()
 find_package(GTest CONFIG REQUIRED)
@@ -38,7 +40,7 @@ file(GLOB_RECURSE TEST_SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
   ${CMAKE_SOURCE_DIR}/game_survivors/src/resources/*.cpp
   ${CMAKE_SOURCE_DIR}/game_survivors/src/game_state.cpp
   ${CMAKE_SOURCE_DIR}/game_survivors/src/game.cpp
-  ${CMAKE_SOURCE_DIR}/game_survivors_tests/src/*.cpp
+  ${CMAKE_SOURCE_DIR}/game_survivors_tests/src/**.cpp
 )
 
 # Test executable
