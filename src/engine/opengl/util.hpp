@@ -14,11 +14,15 @@ next_power_of_two(unsigned int x);
 const char*
 gl_error_to_string(GLenum err);
 
-#define CHECK_OPENGL_ERROR(x)                                                                                               \
-  GLenum err_##x = glGetError();                                                                                            \
-  const bool opengl_error##x = GL_NO_ERROR != err_##x;                                                                      \
-  if (opengl_error##x)                                                                                                      \
-    SDL_Log("%s", std::format("~~ ERROR ~~ {}: {}", x, gl_error_to_string(err_##x)).c_str());
+inline bool
+CHECK_OPENGL_ERROR(int code)
+{
+  GLenum err = glGetError();
+  const bool opengl_error = GL_NO_ERROR != err;
+  if (opengl_error)
+    SDL_Log("%s", std::format("~~ ERROR ~~ {}: {}", err, gl_error_to_string(err)).c_str());
+  return opengl_error;
+};
 
 void
 print_gpu_info();

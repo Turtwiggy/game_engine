@@ -230,8 +230,7 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const Tex
   RenderCommand::set_viewport(0, 0, size.x, size.y);
 
   const auto tex_ids = add_textures_to_fbo(size, f, n_colour_buffers);
-  CHECK_OPENGL_ERROR(1);
-  if (opengl_error1) {
+  if (CHECK_OPENGL_ERROR(1)) {
     SDL_Log("%s", std::format("Error: failed tex_unit: {}", tex_unit).c_str());
     exit(1); // explode
   }

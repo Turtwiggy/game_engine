@@ -163,11 +163,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.outline.set_mat4("projection", camera.projection);
   ri.outline.set_bool("is_fullscreen", true);
   ri.outline.set_bool("do_zoom", false);
-
-  // ri.outline.set_mat4("projection", camera.projection);
-  // ri.outline.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
-  // for (const auto& tex : ri.user_textures)
-  //   ri.outline.set_int("tex_" + clean_path(tex.path), tex.tex_unit.unit);
   ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
 
   ri.crt.reload(r);

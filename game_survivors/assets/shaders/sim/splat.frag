@@ -20,7 +20,7 @@ main()
   // v_uv is in the range [0, 1]
   vec2 v_uv = sim_fs_in.v_uv;
 
-  vec3 cur_vel = texture2D(u_target, v_uv).xyz;
+  vec3 cur_vel = texture(u_target, v_uv).xyz;
   vec2 p = v_uv - point;
 
   // update texture with splat (velocity and dye textures)

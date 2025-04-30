@@ -22,13 +22,13 @@ main()
   vec2 vT = v_uv + vec2(0.0, texel_size.y);
   vec2 vB = v_uv - vec2(0.0, texel_size.y);
 
-  float L = texture2D(u_pressure, vL).x;
-  float R = texture2D(u_pressure, vR).x;
-  float T = texture2D(u_pressure, vT).x;
-  float B = texture2D(u_pressure, vB).x;
-  float C = texture2D(u_pressure, v_uv).x;
+  float L = texture(u_pressure, vL).x;
+  float R = texture(u_pressure, vR).x;
+  float T = texture(u_pressure, vT).x;
+  float B = texture(u_pressure, vB).x;
+  float C = texture(u_pressure, v_uv).x;
 
-  float divergence = texture2D(u_divergence, v_uv).r;
+  float divergence = texture(u_divergence, v_uv).r;
   float pressure = (L + R + B + T - divergence) * 0.25;
 
   // pressure *= 0.25f;

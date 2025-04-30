@@ -10,14 +10,13 @@
   },
 
   "C_Cpp.intelliSenseEngine": "disabled", // use clangd
-  "clangd.path": "C:/Software/msys64/ucrt64/bin/clangd.exe",
-  // "clangd.path": "C:/Program Files/LLVM/bin/clangd.exe",
-  
+  // "clangd.path": "C:/Software/msys64/ucrt64/bin/clangd.exe",
+
   // use this with msvc
-  "cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
-  "cmake.ctestPath": "C:/Program Files/CMake/bin/ctest.exe",
-  "cmake.cpackPath": "C:/Program Files/CMake/bin/cpack.exe",
-  
+  // "cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
+  // "cmake.ctestPath": "C:/Program Files/CMake/bin/ctest.exe",
+  // "cmake.cpackPath": "C:/Program Files/CMake/bin/cpack.exe",
+
   // use this with g++
   // "cmake.cmakePath": "C:/Software/msys64/ucrt64/bin/cmake.exe",
   // "cmake.ctestPath": "C:/Software/msys64/ucrt64/bin/ctest.exe",

@@ -21,12 +21,12 @@ main()
   vec2 vT = v_uv + vec2(0.0, texel_size.y);
   vec2 vB = v_uv - vec2(0.0, texel_size.y);
 
-  float L = texture2D(u_velocity, vL).x;
-  float R = texture2D(u_velocity, vR).x;
-  float T = texture2D(u_velocity, vT).y;
-  float B = texture2D(u_velocity, vB).y;
+  float L = texture(u_velocity, vL).x;
+  float R = texture(u_velocity, vR).x;
+  float T = texture(u_velocity, vT).y;
+  float B = texture(u_velocity, vB).y;
 
-  vec2 C = texture2D(u_velocity, v_uv).xy;
+  vec2 C = texture(u_velocity, v_uv).xy;
   if (vL.x < 0.0) { L = -C.x; }
   if (vR.x > 1.0) { R = -C.x; }
   if (vT.y > 1.0) { T = -C.y; }

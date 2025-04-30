@@ -1,11 +1,11 @@
+#include "pch.hpp"
 
 // header
-#include "engine/opengl/render_command.hpp"
 #include "engine/colour/colour.hpp"
+#include "engine/opengl/render_command.hpp"
 
 // other library headers
 #include "engine/deps/opengl.hpp"
-#include <SDL2/SDL.h>
 
 namespace engine {
 

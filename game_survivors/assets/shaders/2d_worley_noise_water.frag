@@ -198,7 +198,7 @@ void main()
 	// out_colour.rgb = col;
 
 	// use the fluid sim as a mask for the water shader.
-	// vec3 fluid_c = texture2D(tex_fluid_sim, v_uv).rgb;
+	// vec3 fluid_c = texture(tex_fluid_sim, v_uv).rgb;
 	// if(length(fluid_c) > 0.0)
 	// 	out_colour.rgb = col;
 	// else

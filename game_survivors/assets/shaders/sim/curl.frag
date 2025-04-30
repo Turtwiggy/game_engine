@@ -21,10 +21,10 @@ main()
   vec2 vT = v_uv + vec2(0.0, texel_size.y);
   vec2 vB = v_uv - vec2(0.0, texel_size.y);
 
-  float L = texture2D(u_velocity, vL).x;
-  float R = texture2D(u_velocity, vR).x;
-  float T = texture2D(u_velocity, vT).x;
-  float B = texture2D(u_velocity, vB).x;
+  float L = texture(u_velocity, vL).x;
+  float R = texture(u_velocity, vR).x;
+  float T = texture(u_velocity, vT).x;
+  float B = texture(u_velocity, vB).x;
   float vorticity = 0.5 * ( R - L - T + B );
 
   out_colour = vec4(vorticity, 0.0, 0.0, 1.0);

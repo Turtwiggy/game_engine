@@ -1,10 +1,11 @@
 if(CMAKE_CXX_COMPILER_ID MATCHES CLANG OR CMAKE_CXX_COMPILER_ID MATCHES AppleClang)
   message("Hello, clang!")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
 
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
   if(CMAKE_BUILD_TYPE MATCHES Debug)
     message("(clang) adding define...")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     add_definitions(-D_DEBUG)
   endif()
 endif()

@@ -224,8 +224,8 @@ setup_sprites_to_outline_update(entt::registry& r)
                                       sc.angle_radians + transform.rotation_radians.z };
       desc.colour = sc.colour;
 
-      if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
-        desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+      // if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
+      //   desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
 
       desc.tex_unit = sc.tex_unit;
       desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };

@@ -6,6 +6,14 @@ function(link_libs_steam project)
     set(steam_lib_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64/steam_api64.lib)
     target_link_libraries(${project} PRIVATE ${steam_lib_src})
   endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
+    # Link steam_api[64].lib
+    set(steam_dll_dst ${CMAKE_CURRENT_BINARY_DIR}/libsteam_api.dylib)
+    set(steam_dll_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/osx/libsteam_api.dylib)
+    set(steam_lib_src ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/osx/libsteam_api.dylib)
+    target_link_libraries(${project} PRIVATE ${steam_lib_src})
+  endif()
 endfunction()
 
 # Copy the .dll next to the .exe

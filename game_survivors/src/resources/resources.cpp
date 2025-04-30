@@ -33,8 +33,8 @@ get_default_textures()
 
   add_tex("spritestack_rhib.png", "spritestack_rhib.json");
   add_tex("spritestack_pbr.png", "spritestack_pbr.json");
-  add_tex("spritestack_trimaran.png", "spritestack_trimaran.json");
   add_tex("spritestack_dinghy.png", "spritestack_dinghy.json");
+  // add_tex("spritestack_trimaran.png", "spritestack_trimaran.json");
 
   // const ESteamInputGlyphSize size = k_ESteamInputGlyphSize_Medium;
   // for (int i = 0; i < k_EInputActionOrigin_Count; i++) {

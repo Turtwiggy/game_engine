@@ -54,31 +54,29 @@ main()
     // if(index == RENDERER_TEX_UNIT_COUNT)
     //   out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
 {{ generate_sampler_if_statements }}
-
   }
 
   if(index == tex_fluid_tex_unit){
     vec2 uv = v_uv;
-    vec3 c = texture2D(tex_fluid, uv).rgb;
+    vec3 c = texture(tex_fluid, uv).rgb;
 
-#define SHADING 1
-#ifdef SHADING
-    vec2 vL = v_uv - vec2(tex_fluid_texel_size, 0.0);
-    vec2 vR = v_uv + vec2(tex_fluid_texel_size, 0.0);
-    vec2 vT = v_uv + vec2(0.0, tex_fluid_texel_size);
-    vec2 vB = v_uv - vec2(0.0, tex_fluid_texel_size);
-    vec3 lc = texture2D(tex_fluid, vL).rgb;
-    vec3 rc = texture2D(tex_fluid, vR).rgb;
-    vec3 tc = texture2D(tex_fluid, vT).rgb;
-    vec3 bc = texture2D(tex_fluid, vB).rgb;
-    float dx = length(rc) - length(lc);
-    float dy = length(tc) - length(bc);
-    vec3 n = normalize(vec3(dx, dy, length(tex_fluid_texel_size)));
-    vec3 l = vec3(0.0, 0.0, 1.0);
-    float diffuse = clamp(dot(n, l) + 0.7, 0.7, 1.0);
-    c *= diffuse;
-#endif
-   
+// #define SHADING 1
+// #ifdef SHADING
+//     vec2 vL = v_uv - vec2(tex_fluid_texel_size, 0.0);
+//     vec2 vR = v_uv + vec2(tex_fluid_texel_size, 0.0);
+//     vec2 vT = v_uv + vec2(0.0, tex_fluid_texel_size);
+//     vec2 vB = v_uv - vec2(0.0, tex_fluid_texel_size);
+//     vec3 lc = texture(tex_fluid, vL).rgb;
+//     vec3 rc = texture(tex_fluid, vR).rgb;
+//     vec3 tc = texture(tex_fluid, vT).rgb;
+//     vec3 bc = texture(tex_fluid, vB).rgb;
+//     float dx = length(rc) - length(lc);
+//     float dy = length(tc) - length(bc);
+//     vec3 n = normalize(vec3(dx, dy, length(tex_fluid_texel_size)));
+//     vec3 l = vec3(0.0, 0.0, 1.0);
+//     float diffuse = clamp(dot(n, l) + 0.7, 0.7, 1.0);
+//     c *= diffuse;
+// #endif
     float a = max(c.r, max(c.g, c.b));
     out_colour = vec4(c, a);
     return;
@@ -87,6 +85,7 @@ main()
   // Sample texture directly
   if ((v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f)) { // a whole texture
     out_colour = v_colour;
+    out_colour.a = 1.0f;
     return;
   }
 

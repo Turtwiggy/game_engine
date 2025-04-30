@@ -22,12 +22,12 @@ main()
   vec2 vT = v_uv + vec2(0.0, texel_size.y);
   vec2 vB = v_uv - vec2(0.0, texel_size.y);
 
-  float L = texture2D(u_pressure, vL).x;
-  float R = texture2D(u_pressure, vR).x;
-  float T = texture2D(u_pressure, vT).x;
-  float B = texture2D(u_pressure, vB).x;
+  float L = texture(u_pressure, vL).x;
+  float R = texture(u_pressure, vR).x;
+  float T = texture(u_pressure, vT).x;
+  float B = texture(u_pressure, vB).x;
 
-  vec2 velocity = texture2D(u_velocity, v_uv).xy;
+  vec2 velocity = texture(u_velocity, v_uv).xy;
   
   velocity.xy -= vec2(R - L, T - B);
 

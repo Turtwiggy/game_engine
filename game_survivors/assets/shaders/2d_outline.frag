@@ -40,7 +40,7 @@ void
 main()
 {
 	vec2 v_uv = fs_in.v_uv;
-  vec4 v_colour= fs_in.v_colour;
+  vec4 v_colour = fs_in.v_colour;
   vec2 v_sprite_pos = fs_in.v_sprite_pos;
   vec2 v_sprite_wh = fs_in.v_sprite_wh;
   vec2 v_sprite_max = fs_in.v_sprite_max;
@@ -51,20 +51,19 @@ main()
   vec2 up = vec2(0, texel_size.y);
   vec2 rgt = vec2(texel_size.x, 0);
 
-  vec4 col   = texture(tex_to_outline, v_uv);
-  vec4 l_col = texture(tex_to_outline, v_uv - rgt);
-  vec4 r_col = texture(tex_to_outline, v_uv + rgt);
-  vec4 u_col = texture(tex_to_outline, v_uv + up);
-  vec4 d_col = texture(tex_to_outline, v_uv - up);
+  vec3 col   = texture(tex_to_outline, v_uv).rgb;
+  vec3 l_col = texture(tex_to_outline, v_uv - rgt).rgb;
+  vec3 r_col = texture(tex_to_outline, v_uv + rgt).rgb;
+  vec3 u_col = texture(tex_to_outline, v_uv + up).rgb;
+  vec3 d_col = texture(tex_to_outline, v_uv - up).rgb;
 
-  float col_max = max(col.r, max(col.g, col.b)) > 0.0 ? 1.0 : 0.0;
+  float c_max = max(col.r, max(col.g, col.b)) > 0.0 ? 1.0 : 0.0;
   float l_max = max(l_col.r, max(l_col.g, l_col.b)) > 0.0 ? 1.0 : 0.0;
   float r_max = max(r_col.r, max(r_col.g, r_col.b)) > 0.0 ? 1.0 : 0.0;
   float u_max = max(u_col.r, max(u_col.g, u_col.b)) > 0.0 ? 1.0 : 0.0;
   float d_max = max(d_col.r, max(d_col.g, d_col.b)) > 0.0 ? 1.0 : 0.0;
 
-  // float inline = (1.0f - l_pix * u_pix * r_pix * d_pix) * col.a;
-  float outline = max(max(l_max, u_max), max(r_max, d_max)) - col_max > 0.0 ? 1.0 : 0.0;
-  if(outline > 0.0f)
-    out_colour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+  // float sprite_inline = (1.0f - l_pix * u_pix * r_pix * d_pix) * col.a;
+  float sprite_outline = max(max(l_max, u_max), max(r_max, d_max)) - c_max > 0.0 ? 1.0 : 0.0;
+  out_colour = vec4(sprite_outline, 0.0, 0.0, 1.0f);
 }
