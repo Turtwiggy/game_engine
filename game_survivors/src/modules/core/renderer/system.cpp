@@ -133,7 +133,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", wh);
-  ri.water.set_int("tex_fluid_sim", tex_unit_fluid);
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -541,6 +540,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     // const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
     // const auto& pass_enum = pass.pass;
 
+    // fluidsim uses a square texture, not viewport sized texture
     if (pass.pass != PassName::fluid_sim) {
       Framebuffer::bind_fbo(pass.fbos[0]);
       RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
@@ -548,7 +548,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       RenderCommand::clear();
     }
 
-    pass.update(r, dt);
+    pass.update(r, dt, mouse_pos);
   }
 
   // Default: render_texture_to_imgui
@@ -610,7 +610,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         ImGui::End();
       }
     }
-    const bool show_debug_fluid_textures = true;
+    const bool show_debug_fluid_textures = false;
     if (show_debug_fluid_textures) {
       const auto debug_texture = [](const std::string title, TextureId id) {
         ImGuiWindowFlags flags = 0;

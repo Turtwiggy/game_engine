@@ -41,7 +41,7 @@ setup_water_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::water);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [](entt::registry& r, float dt) {
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -71,7 +71,7 @@ setup_floor_mask_update(entt::registry& r)
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = get_pass_idx(ri, PassName::floor_mask);
   auto& pass = ri.passes[pass_idx];
-  pass.update = [](entt::registry& r, float dt) {
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto& camera_c = get_first_component<OrthographicCamera>(r);
 
@@ -114,7 +114,7 @@ setup_linear_main_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::linear_main);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [](entt::registry& r, float dt) {
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -205,7 +205,7 @@ setup_sprites_to_outline_update(entt::registry& r)
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = get_pass_idx(ri, PassName::sprites_to_outline);
   auto& pass = ri.passes[pass_idx];
-  pass.update = [](entt::registry& r, float dt) {
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -246,7 +246,7 @@ setup_outline_update(entt::registry& r)
   auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pass_idx = get_pass_idx(ri, PassName::outline);
   auto& pass = ri.passes[pass_idx];
-  pass.update = [](entt::registry& r, float dt) {
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
     ri.outline.bind();
@@ -475,7 +475,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::mix_lighting_and_scene);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [](entt::registry& r, float dt) {
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
     engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
@@ -491,7 +491,7 @@ setup_crt_effect_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::crt_effect);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [](entt::registry& r, float dt) {
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
     const auto camera_e = get_first<OrthographicCamera>(r);

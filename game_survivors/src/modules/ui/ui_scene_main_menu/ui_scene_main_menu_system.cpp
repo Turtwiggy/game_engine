@@ -152,7 +152,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   if (!ui_c.state.init) {
 
-    auto play_action = [&r]() { move_to_scene_start(r, Scene::select); };
+    auto play_action = [&r]() { move_to_scene_start(r, Scene::select_modifiers); };
     auto test_action = [&r]() { move_to_scene_start(r, Scene::procedural_snake); };
     auto upgrade_action = [&r, &ui_c]() {
       ui_c.display = false;

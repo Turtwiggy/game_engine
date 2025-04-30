@@ -7,7 +7,8 @@ enum class Scene
   splashscreen,
   pressanykey,
   menu,
-  select,
+  select_modifiers,
+  select_ships,
   survive,
   procedural_snake,
 

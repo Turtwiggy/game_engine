@@ -57,7 +57,7 @@ struct RenderPass
   std::vector<Texture> texs;
 
   // the function that gets called during the render
-  std::function<void(entt::registry&, float)> update;
+  std::function<void(entt::registry&, float, glm::vec2)> update;
 
 private:
   int colour_buffers_per_texture = 0;

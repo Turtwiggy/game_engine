@@ -6,32 +6,34 @@
 
 namespace game2d {
 
-// From 720p => 1080p, multiply all by 1.5x
+// From 720p => 1080p, multiply ui by some scale. it could be 1.5
+constexpr float scale_size = 1.25f;
+
 enum class FontSize
 {
   TEXT_SMALL = 12,
-  TEXT_SMALL_SCALED = 18,
+  TEXT_SMALL_SCALED = static_cast<int>(TEXT_SMALL * scale_size),
 
   TEXT_SIZE_13 = 13,
-  TEXT_SIZE_13_SCALED = 20, // should be 19.5
+  TEXT_SIZE_13_SCALED = static_cast<int>(TEXT_SIZE_13 * scale_size),
 
   // below 16 starts to become too small to read
 
   TEXT_SIZE_16 = 16,
-  TEXT_SIZE_16_SCALED = 24,
+  TEXT_SIZE_16_SCALED = static_cast<int>(TEXT_SIZE_16 * scale_size),
 
   TEXT_SIZE_20 = 20,
-  TEXT_SIZE_20_SCALED = 30,
+  TEXT_SIZE_20_SCALED = static_cast<int>(TEXT_SIZE_20 * scale_size),
 
   TEXT_LARGE = 32,
-  TEXT_LARGE_SCALED = 48,
+  TEXT_LARGE_SCALED = static_cast<int>(TEXT_LARGE * scale_size),
 
   HEADER = 100,
-  HEADER_SCALED = 120,
-  // note: not x1.5. 150 seems to not load or something.
+  HEADER_SCALED = static_cast<int>(HEADER * scale_size),
+  // note: >150 seems to not load or something.
 
   MENU_BUTTONS = 40,
-  MENU_BUTTONS_SCALED = 60,
+  MENU_BUTTONS_SCALED = static_cast<int>(MENU_BUTTONS * scale_size),
 };
 
 static std::unordered_map<FontSize, ImFont*> loaded_fonts;

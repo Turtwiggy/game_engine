@@ -95,7 +95,7 @@ update_input_for_confirm(entt::registry& r, const int player_idx)
     // IDEA: could make the player hold button for menu transition
     const bool back_to_menu = player_state.player_row_idx == 0;
     if (back_to_menu) {
-      move_to_scene_start(r, Scene::menu);
+      move_to_scene_start(r, Scene::select_modifiers);
       return;
     }
 
@@ -601,7 +601,7 @@ update_split_screen_into_quaters(entt::registry& r,
       const auto wh = ImVec2{ player_ui_w, height };
 
       // Draw a background
-      // TODO
+      // ...
 
       // Draw some text
       const auto box_center = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y);
@@ -705,7 +705,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   }
 
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
-  if (scene_c.s != Scene::select)
+  if (scene_c.s != Scene::select_ships)
     return;
 
   //

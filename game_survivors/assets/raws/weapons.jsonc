@@ -33,7 +33,7 @@
   
     {
       "key": "weapon_deck_cannon",
-      "name": "Cannon (Heavy)", // heavy pistol
+      "name": "Cannon [Heavy]", // heavy pistol
       "desc": "Shoot [Heavy] cannonballs at the closest target.",
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -60,7 +60,7 @@
 
     {
       "key": "weapon_grapeshot_cannon",
-      "name": "Cannon (Grapeshot)", // shotgun
+      "name": "Cannon [Grapeshot]", // shotgun
       "desc": "Shoot [Grapeshot] cannonballs at the closest target. Short range. Multi-shot.",
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -86,7 +86,7 @@
 
     {
       "key": "weapon_swivel_cannon",
-      "name": "Cannon (Gatling)",       // SMG-type
+      "name": "Cannon [Gatling]",       // SMG-type
       "desc": "Shoot [Small] rounds at the closest target. High firereate.",
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",

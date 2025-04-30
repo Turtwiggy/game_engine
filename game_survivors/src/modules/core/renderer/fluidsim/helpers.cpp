@@ -132,30 +132,36 @@ setup_fluidsim_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
   const int tex_unit = get_tex_unit(ri, PassName::fluid_sim);
 
-  pass.update = [&pass](entt::registry& r, const float dt) {
+  pass.update = [&pass](entt::registry& r, const float dt, const glm::vec2& mouse_pos) {
     auto& ri = get_first_component<SINGLE_RendererInfo>(r);
     auto& input_c = get_first_component<SINGLE_InputComponent>(r);
     auto& data = ri.fluid_sim;
 
     // mouse info
-    static ImVec2 prev_frame_pos{ 0, 0 };
+    static glm::vec2 prev_frame_pos{ 0, 0 };
     const auto m0_held = ImGui::IsMouseDown(0);
     const auto m1_held = ImGui::IsMouseDown(1);
-    const auto m_pos = ImGui::GetMousePos();
+
+    // convert raw mouse position relative to camera,
+    // and relative to the top left of the fluidsim
+    // note: 4096 is the size of the transform
+    const glm::vec2 fluidsim_tl = { -4096 * 0.5f, -4096 * 0.5f };
+    const glm::vec2 simspace = { mouse_pos.x - fluidsim_tl.x, mouse_pos.y - fluidsim_tl.y };
+    const float point_in_0_to_1_x = glm::clamp(simspace.x / data.config_dye_resolution, 0.0f, 1.0f);
+    const float point_in_0_to_1_y = glm::clamp(simspace.y / data.config_dye_resolution, 0.0f, 1.0f);
+    glm::vec2 point = { point_in_0_to_1_x, point_in_0_to_1_y };
+
     ImVec2 dxdy = { 0, 0 };
     if (ImGui::IsMouseDragging(1)) {
-      ImVec2 dir = { m_pos.x - prev_frame_pos.x, m_pos.y - prev_frame_pos.y };
-      prev_frame_pos = m_pos;
+      ImVec2 dir = { point.x - prev_frame_pos.x, point.y - prev_frame_pos.y };
+      prev_frame_pos = point;
       const auto nrm = engine::normalize_safe({ dir.x, dir.y });
       dxdy.x = nrm.x * data.config_splat_force;
       dxdy.y = nrm.y * data.config_splat_force;
     }
-    const float point_in_0_to_1_x = m_pos.x / ri.viewport_size_render_at.x;
-    const float point_in_0_to_1_y = m_pos.y / ri.viewport_size_render_at.y;
-    glm::vec2 point = { point_in_0_to_1_x, point_in_0_to_1_y };
 
     ImGui::Begin("DebugFluid");
-    glm::vec2 glm_mpos = { m_pos.x, m_pos.y };
+    glm::vec2 glm_mpos = { simspace.x, simspace.y };
     glm::vec2 glm_dxdy = { dxdy.x, dxdy.y };
     imgui_draw_vec2("mouse_pos", glm_mpos);
     imgui_draw_vec2("dxdy", glm_dxdy);

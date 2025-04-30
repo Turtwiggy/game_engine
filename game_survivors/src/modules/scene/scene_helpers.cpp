@@ -50,13 +50,14 @@
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
-#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_gameover/ui_gameover_components.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
+#include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
+#include "modules/ui/ui_scene_select_modifiers/select_modifiers_helpers.hpp"
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
@@ -413,10 +414,13 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     sprite_c.colour = engine::LinearColour{ 0.0f, 0.0f, 0.0f, 1.0f };
   }
 
-  if (s == Scene::select) {
-    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+  if (s == Scene::select_modifiers) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
-    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "BUOY_0", .looping = true });
+    create_empty<RequestToShowModifierMenu>(r);
+    auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
+  }
+
+  if (s == Scene::select_ships) {
     create_empty<SINGLE_SelectSceneData>(r);
   }
 
@@ -432,6 +436,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // Reset temporary gold
     auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
     gold_c.temp_amount = 0;
+
+    // spawn rocks
+    auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
+    if (get_modifier_option(r, MODIFIER_OPTIONS::ROCKS)) {
+      SDL_Log("TODO: spawn rocks");
+    }
 
     std::vector<HullChoice> hull_keys = {
       HullChoice{ .player_idx = 0, .player_boat_key = "dinghy" },

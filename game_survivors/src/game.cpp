@@ -104,6 +104,8 @@
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_system.hpp"
 #include "modules/ui/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui/ui_scene_select/scene_select_system.hpp"
+#include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
+#include "modules/ui/ui_scene_select_modifiers/select_modifiers_system.hpp"
 #include "modules/ui/ui_scene_survive/scene_survive_system.hpp"
 #include "modules/ui/ui_scene_survive_hp_bars/ui_survive_hp_bars.hpp"
 #include "modules/ui/ui_scene_survive_info/ui_survive_info_system.hpp"
@@ -178,6 +180,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_SteamControllerGameState>(r);
   create_persistent<SINGLE_PostFixedUpdateCallbacks>(r);
 
+  create_persistent<SINGLE_ModifiersData>(r);
   create_persistent<SINGLE_DisconnectedControllerUI>(r);
   create_persistent<SINGLE_UIData>(r); // HMM: could make a setting
   create_persistent<SINGLE_GameOptions>(r);
@@ -335,7 +338,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     const float base_y = 720;
     const float scale = ri.viewport_size_render_at.y / base_y;
     auto& ui_scale = get_first_component<SINGLE_UIData>(r);
-    ui_scale.scaling = scale <= 1.0 ? 1.0f : 1.5f;
+    ui_scale.scaling = scale <= 1.0 ? 1.0f : 1.25f;
 
 #if defined(_DEBUG)
     // auto& ui_scale = get_first_component<SINGLE_UIData>(r);
@@ -360,7 +363,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_scene_upgrades_system(r);
   }
 
-  if (scene.s == Scene::select)
+  if (scene.s == Scene::select_modifiers)
+    update_ui_scene_select_modifiers_system(r);
+
+  if (scene.s == Scene::select_ships)
     update_ui_scene_select_system(r, dt);
 
   if (scene.s == Scene::survive) {

@@ -14,12 +14,18 @@ enum class WeaponBehaviour
   // done
   SPLINTER,
 
-  // heavy pistol upgrades
+  // cannon [heavy]
   MEGABULLET,
   SHOOT_BULLETS_OPPOSITE_DIRECTION,
   HEAVY_PISTOL_CRIT_UPGRADE,
   SHOOT_FANFIRE_ON_LAST_BULLET,
   CHANGE_DAMAGE_TO_FIRE,
+
+  // cannon [grapeshot]
+  // ...
+
+  // cannon [gatling]
+  // ...
 
   // todo
   CHANGE_DAMAGE_TO_KINETIC,
