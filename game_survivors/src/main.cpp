@@ -17,6 +17,7 @@ using namespace engine;
 #define TRACY_ENABLE
 #endif
 #if defined(_DEBUG)
+#define TRACY_CALLSTACKS 32
 #include <tracy/Tracy.hpp>
 #endif
 

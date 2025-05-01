@@ -7,6 +7,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/std/vector/helpers.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/events/event_coll/event_coll_components.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
@@ -94,6 +95,8 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
     bullet_body_c.body->SetLinearVelocity(-1.0 * bullet_body_c.body->GetLinearVelocity());
   };
 
+  const auto is_scenery = r.try_get<RockComponent>(other_e_parent) != nullptr;
+
   // Reverse yo velocity
   // Note: this should work as bullets only collide once with enemies.
   if (auto* bullet_bounce_c = r.try_get<BulletBounce>(bullet_e_parent)) {
@@ -101,6 +104,9 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
       reverse_velocity();
       bullet_bounce_c->bounces_left--;
     }
+  } else if (is_scenery) {
+    reverse_velocity();
+
   } else if (fixture_tag == "shield") {
     reverse_velocity();
 
@@ -111,16 +117,15 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   }
 
   // knockback applies to "core" and "shield"
-  if (fixture_tag != "fixture_core" && fixture_tag != "shield")
-    return;
-
-  // Knockback the enemy
-  if (other_team_c.team == AvailableTeams::enemy) {
-    auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);
-    const auto raw_dir = get_position(r, other_e_parent) - get_position(r, bullet_e_parent);
-    const auto nrm_dir = engine::normalize_safe(raw_dir);
-    const float knockback_force = bullet_knockback_c.knockback_force;
-    enemy_body_c.body->SetLinearVelocity(knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
+  if (fixture_tag == "fixture_core" || fixture_tag == "shield") {
+    // Knockback the enemy
+    if (other_team_c.team == AvailableTeams::enemy) {
+      auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);
+      const auto raw_dir = get_position(r, other_e_parent) - get_position(r, bullet_e_parent);
+      const auto nrm_dir = engine::normalize_safe(raw_dir);
+      const float knockback_force = bullet_knockback_c.knockback_force;
+      enemy_body_c.body->SetLinearVelocity(knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
+    }
   }
 }
 

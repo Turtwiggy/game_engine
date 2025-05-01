@@ -15,6 +15,7 @@
 #include "modules/actors/actor_enemy_charger/enemy_charger_system.hpp"
 #include "modules/actors/actor_enemy_grower/enemy_grower_system.hpp"
 #include "modules/actors/actor_player/actor_player_system.hpp"
+#include "modules/actors/actor_rock/rock_system.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/actors/actor_snake_projectiles/actor_snake_projectiles_system.hpp"
 #include "modules/actors/actor_swarmlord/enemy_swarmlord_system.hpp"
@@ -313,6 +314,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // update_sprint_system(r, dt);
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
+    update_actor_rocks_system(r);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_weapon_sea_turret_system(r, dt);

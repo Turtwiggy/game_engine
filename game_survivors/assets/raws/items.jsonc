@@ -199,7 +199,7 @@
 
     {
       "name": "actor_enemy_rocks",
-      "renderable": { "sprite": "CIRCLE", "colour": "white" },
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },

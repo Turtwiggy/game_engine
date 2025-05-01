@@ -9,16 +9,16 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/maths.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
-#include "engine/procedural/poisson.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actors/actor_hull/hull_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
@@ -27,7 +27,6 @@
 #include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
-#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -442,26 +441,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // spawn rocks
     auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
     auto rock_opt = get_modifier_option(r, MODIFIER_OPTIONS::ROCKS);
-    if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks) {
-      // e.g. wh 2000x2000 / rad (250*250) spawns <64 rocks
-      PoissonIn in;
-      in.seed = 0;
-      in.radius = 400;
-      in.wh = { 2000, 2000 };
-      in.tl = { -in.wh.x * 0.5f, -in.wh.y * 0.5f };
-      const auto out = generate_poisson(in);
-      SDL_Log("Spawned %i poisson points for rocks", (int)out.results.size());
-      for (const auto& point : out.results) {
-        // spawn rock cluster
-        auto rock_e = spawn(r, "actor_enemy_rocks");
-        give_life(r, rock_e, point, { 256, 256 });
-        r.emplace<TeamComponent>(rock_e, TeamComponent{ AvailableTeams::neutral });
-
-        // rotate the rocks
-        static engine::RandomState rock_rnd(0);
-        r.get<TransformComponent>(rock_e).rotation_radians.z = engine::rand_det_s(rock_rnd.rng, 0.0f, engine::TWO_PI);
-      }
-    }
+    if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks)
+      create_empty<RequestGenerateRocks>(r);
 
     std::vector<HullChoice> hull_keys = {
       HullChoice{ .player_idx = 0, .player_boat_key = "dinghy" },
