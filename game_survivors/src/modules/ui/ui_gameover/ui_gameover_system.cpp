@@ -3,6 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
@@ -17,20 +18,12 @@
 namespace game2d {
 
 void
-init(entt::registry& r, SINGLE_GameoverUI& ui_c)
-{
-  ui_c.state.rows.push_back(RowState{ .col_name = "To Menu", .action = []() {} });
-
-  ui_c.init = true;
-}
-
-void
 update_ui_gameover_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c)
   GET_FIRST_OR_RETURN(SINGLE_GameoverUI, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_SurviveStatsComponent, r, stats_e, stats_c);
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
 #if defined(_DEBUG)
   auto input_c = get_first_component<SINGLE_InputComponent>(r);
@@ -48,21 +41,19 @@ update_ui_gameover_system(entt::registry& r)
   }
 #endif
 
-  static GameOverComponent request;
-  process_requests<GameOverComponent>(r, [&ui_c](const auto& req) {
-    request = req;
-    ui_c.open = true;
-  });
+  const auto request_opt = ui_c.update<GameOverComponent>(r);
+  if (!request_opt.has_value())
+    return;
+  const auto request = request_opt.value();
 
   if (!ui_c.open)
     return;
 
-  if (!ui_c.init)
-    init(r, ui_c);
-
   process_input_for_ui_all_handles(r, ui_c.state);
-  const auto& acts = ui_c.state.actions;
-  const auto do_act = std::find(acts.begin(), acts.end(), UIAction::SELECT) != acts.end();
+  const auto g_input_e = get_first<InputComponent, Persistent>(r);
+  const auto& g_input_c = r.get<InputComponent>(g_input_e);
+  const auto& b = g_input_c.button_s;
+  const bool do_act = std::find(b.begin(), b.end(), ActionStateEnum::DOWN) != b.end();
 
   bool back_to_menu = false;
   const std::string discord_link = "https/discord.gg/8RTzsm25pR";

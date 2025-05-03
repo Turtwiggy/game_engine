@@ -2,7 +2,6 @@
 
 #include "imgui.h"
 #include <entt/fwd.hpp>
-#include <unordered_map>
 
 namespace game2d {
 
@@ -32,11 +31,9 @@ enum class FontSize
   HEADER_SCALED = static_cast<int>(HEADER * scale_size),
   // note: >150 seems to not load or something.
 
-  MENU_BUTTONS = 40,
+  MENU_BUTTONS = 32,
   MENU_BUTTONS_SCALED = static_cast<int>(MENU_BUTTONS * scale_size),
 };
-
-static std::unordered_map<FontSize, ImFont*> loaded_fonts;
 
 ImFont*
 get_inter_font(entt::registry& r, const FontSize size);

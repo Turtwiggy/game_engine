@@ -12,13 +12,16 @@ struct RequestToShowOptionsMenu
   bool placeholder = true;
 };
 
-struct SINGLE_OptionsMenuState
+struct OptionsCell : public Cell
 {
-  bool open = false;
-  bool init = false;
-  bool one_frame_buffer = true;
+  int value = 0;
+};
 
-  UIState state;
+struct SINGLE_OptionsMenuState : DefaultUI
+{
+  bool init = false;
+
+  void do_init(entt::registry& r);
 };
 
 //

@@ -3,6 +3,7 @@
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -117,7 +118,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoSavedSettings;
 
-  const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   const float upg_header_height = 50.0f * ui_scale;
   const int cards = 3;
@@ -182,7 +183,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
     // update input
     auto& state_c = ui_c.ui_states[player_idx];
     state_c.actions.clear();
-    process_input_for_ui(r, state_c, steam_state_c.handles[player_idx]);
+    const auto input = generate_from_handle(r, steam_state_c.handles[player_idx]);
+    process_input_for_ui(r, state_c, input);
     const bool do_act = std::find(state_c.actions.begin(), state_c.actions.end(), UIAction::SELECT) != state_c.actions.end();
 
     // debug background
@@ -217,7 +219,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
     auto card_ui_br = ImVec2{ clamped_tl.x + card_size.x, clamped_tl.y + upg_header_height + card_size.y };
     auto card_ui_wh = calc_wh(card_ui_tl, card_ui_br);
 
-    const int cards = glm::min((int)upgrades_c->results.size(), (int)state_c.rows.size());
+    const int cards = glm::min((int)upgrades_c->results.size(), (int)state_c.cells.size());
 
     for (int card_idx = 0; card_idx < cards; card_idx++) {
 
@@ -274,12 +276,16 @@ update_ui_survive_upgrade_system(entt::registry& r)
           desc_txt += std::format("\n+1 to {} level", r.get<ItemKey>(wep_e).key);
       }
 
+      // which is the active cell index
+      const auto cell_it = std::find(state_c.cells.begin(), state_c.cells.end(), state_c.active);
+      const auto cell_idx = static_cast<int>(cell_it - state_c.cells.begin());
+
       const CardDataUI data{
         .rarity = rarity,
         .rarity_txt = rarity_str,
         .header_txt = header_text, // get name e.g. Bronze Hulls
         .desc_txt = desc_txt,
-        .selected = state_c.current_row_index == card_idx,
+        .selected = cell_idx == card_idx,
       };
 
       const auto txt_col = IM_COL32(5, 5, 5, 255);
@@ -332,15 +338,15 @@ update_ui_survive_upgrade_system(entt::registry& r)
         draw_list->AddCircleFilled(circle_center, 5.0f, im_player_col);
       }
 
-      // Draw a selecable button
       int col_idx = 0;
+      int row_idx = 0; // TODO: this is definitely wrong
       SelectableButtonDef def{
         .label = "##aquire_" + rarity_str + "_" + upgrade_str,
         .size = card_ui_wh,
         .input = do_act,
         .my_row_index = card_idx,
         .my_col_index = 0, // one col
-        .ui_row_index = ui_c.ui_states[player_idx].current_row_index,
+        .ui_row_index = row_idx,
         .ui_col_index = col_idx,
         .ui_col_active = true,
 
@@ -354,7 +360,10 @@ update_ui_survive_upgrade_system(entt::registry& r)
       ImGui::SetCursorPos(card_ui_tl);
       if (selectable_button(r, def)) {
         // Process action (aquire the upgrade)
-        state_c.rows[state_c.current_row_index].action();
+        // state_c.active->action();
+        // const auto& cell = state_c.rows[state_c.current_row_index];
+        // cell.action();
+        SDL_Log("reimpl aquire upgrade"); // TODO: fix this
         break;
       }
 

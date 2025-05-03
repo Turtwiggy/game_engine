@@ -6,6 +6,8 @@ namespace game2d {
 
 // https://github.com/ocornut/imgui/issues/8465
 
+static std::unordered_map<FontSize, ImFont*> loaded_fonts;
+
 ImFont*
 get_inter_font(entt::registry& r, const FontSize size)
 {

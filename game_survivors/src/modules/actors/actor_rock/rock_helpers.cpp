@@ -125,6 +125,8 @@ generate_rocks(entt::registry& r, const float cutoff)
     r.emplace<HealthComponent>(rock_fixture_e, HealthComponent{ 5000, 5000 });
   }
 
+  SDL_Log("Spawned: %i rocks", r.view<const RockComponent>().size());
+
   /*
   // e.g. wh 2000x2000 / rad (250*250) spawns <64 rocks
   PoissonIn in;

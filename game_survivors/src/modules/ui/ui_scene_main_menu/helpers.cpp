@@ -44,7 +44,7 @@ ui_mute_sound_icon(entt::registry& r)
   return; // disabled
 
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-  const auto& ui_c = get_first_component<SINGLE_UIData>(r);
+  const auto& ui_c = get_first_component<SINGLE_UIScaling>(r);
   const auto& options_c = get_first_component<SINGLE_GameOptions>(r);
 
   const float distance_from_right_of_screen = 75;

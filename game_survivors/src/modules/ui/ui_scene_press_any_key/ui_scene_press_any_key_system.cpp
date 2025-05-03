@@ -1,4 +1,3 @@
-#include "modules/core/ui/ui_common_components.hpp"
 #include "pch.hpp"
 
 #include "ui_scene_press_any_key_system.hpp"
@@ -9,6 +8,7 @@
 #include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/core/ui/ui_common_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
@@ -26,15 +26,15 @@ auto init_text = [](entt::registry& r) {
 
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [](entt::registry& r) {
+  wst_c.layout = [](entt::registry& r, const WorldspaceTextComponent& data) {
     ImGuiIO& io = ImGui::GetIO();
 
     auto my_greenish = hex_to_srgb("#71BBB2");
     auto im_greenish = convert_my_to_im_vec(my_greenish);
 
-    const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum_large = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
     const auto font_enum_med = font_scale == 1.0f ? FontSize::TEXT_SIZE_20 : FontSize::TEXT_SIZE_20_SCALED;
 

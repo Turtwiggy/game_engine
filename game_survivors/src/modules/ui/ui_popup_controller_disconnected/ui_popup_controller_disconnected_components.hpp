@@ -6,13 +6,18 @@
 
 namespace game2d {
 
-struct SINGLE_DisconnectedControllerUI
+struct SINGLE_DisconnectedControllerUI : public DefaultUI
 {
   std::vector<InputHandle_t> handle_disconnected;
 
-  bool init = false;
-  bool open = false;
-  UIState state;
+  SINGLE_DisconnectedControllerUI()
+  {
+    Cell c;
+    c.name = "Resume";
+    state.cells.push_back(std::make_shared<Cell>(c));
+
+    state.active = state.cells[0];
+  }
 };
 
 } // namespace game2d

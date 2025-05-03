@@ -1,4 +1,3 @@
-#include "modules/systems/system_screenshake/components.hpp"
 #include "pch.hpp"
 
 // header
@@ -13,6 +12,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/systems/system_screenshake/components.hpp"
 
 namespace game2d {
 

@@ -19,8 +19,10 @@ update_ui_fps_counter_system(entt::registry& r)
     show_fps_counter |= options_c.open;
   }
 
+#if !defined(_DEBUG)
   if (!show_fps_counter)
     return;
+#endif
 
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto pos = glm::vec2{ ri.viewport_size_render_at.x, 0 }; // tr

@@ -416,7 +416,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::select_modifiers) {
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
     create_empty<RequestToShowModifierMenu>(r);
     auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
   }
@@ -487,7 +487,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       const auto p = spawn_player(r, "actor_player", { 0, 0 }, i, boat_str, weapon_str);
 
       if (handle_joined)
-        r.get<SteamControllerComponent>(p).handle = handle;
+        r.get<SteamControllerComponent>(p).handles.push_back(handle);
 
       if (i == 0)
         r.emplace<KeyboardComponent>(p);
@@ -517,7 +517,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
       auto handle = controller_ui.handles[i];
-      r.get<SteamControllerComponent>(p).handle = handle;
+      r.get<SteamControllerComponent>(p).handles.push_back(handle);
       break;
     }
 

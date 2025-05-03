@@ -10,15 +10,11 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
-#include "modules/scene/scene_components.hpp"
-#include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
-#include "modules/ui/ui_scene_main_menu/helpers.hpp"
+#include "modules/ui/ui_scene_header/ui_scene_header_components.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
-#include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "modules/ui/ui_worldspace_text/components.hpp"
 
 namespace game2d {
@@ -51,7 +47,7 @@ const auto my_greenish = hex_to_srgb("#71BBB2");
 const auto im_greenish = convert_my_to_im_vec(my_greenish);
 
 void
-init_menu(entt::registry& r)
+init_oh_buoy_header_text(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
@@ -59,20 +55,17 @@ init_menu(entt::registry& r)
   // create a wiggly header
 
   // pos_x is 0 because camera is already at center
-  const auto pos = glm::vec2(0, -viewport_size_half.y + ri.viewport_size_render_at.y * (3 / 12.0f));
+  const auto pos = glm::vec2(0, -viewport_size_half.y + ri.viewport_size_render_at.y * (2.5 / 12.0f));
 
   WorldspaceTextComponent wst_c;
-
-  wst_c.layout = [](entt::registry& r) {
-    //
-
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  wst_c.text = "Oh Buoy!";
+  wst_c.layout = [](entt::registry& r, const WorldspaceTextComponent& data) {
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
     auto* font = ImGui::GetIO().Fonts->Fonts[2]; // idx: 2 should be the fingerpaint header font
-
     ImGui::PushFont(font);
 
-    text_with_dropshadow("Oh Buoy!", im_greenish);
+    text_with_dropshadow(data.text, im_greenish);
 
     ImGui::PopFont();
   };
@@ -88,6 +81,8 @@ init_menu(entt::registry& r)
                              WiggleUpAndDown{
                                .base_position = pos,
                              });
+  r.emplace<MegaHeaderComponent>(header_e);
+
   set_position(r, header_e, pos);
 };
 
@@ -103,27 +98,18 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
 
   if (!ui_c.init) {
-    init_menu(r);
-    ui_c.init = true;
+    init_oh_buoy_header_text(r);
+    ui_c.do_init(r);
   }
 
-  process_requests<RequestToShowMainMenu>(r, [&ui_c](const auto& req) {
-    ui_c.one_frame_buffer = true;
-    ui_c.display = true;
-  });
-
-  if (ui_c.one_frame_buffer) {
-    ui_c.one_frame_buffer = false;
-    return;
-  }
-
-  if (!ui_c.display)
+  ui_c.update<RequestToShowMainMenu>(r);
+  if (!ui_c.open)
     return;
 
   ImGuiIO& io = ImGui::GetIO();
 
   // button idx
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
   auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
@@ -147,90 +133,40 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoSavedSettings;
 
-  // Problem statement:
-  // We want to register buttons, and each button has an action
-
-  if (!ui_c.state.init) {
-
-    auto play_action = [&r]() { move_to_scene_start(r, Scene::select_ships); };
-    auto test_action = [&r]() { move_to_scene_start(r, Scene::procedural_snake); };
-    auto modifiers_action = [&r, &ui_c]() {
-      ui_c.display = false;
-      ui_c.one_frame_buffer = true;
-      move_to_scene_start(r, Scene::select_modifiers);
-    };
-    auto upgrade_action = [&r, &ui_c]() {
-      ui_c.display = false;
-      ui_c.one_frame_buffer = true;
-      // ui_c.state.current_row_index = 0;
-      create_empty<RequestToShowUpgradesMenu>(r);
-    };
-    auto options_action = [&r, &ui_c]() {
-      ui_c.display = false;
-      ui_c.one_frame_buffer = true;
-      // ui_c.state.current_row_index = 0;
-      create_empty<RequestToShowOptionsMenu>(r);
-    };
-    auto exit_action = [&app]() { app.running = false; };
-
-    ui_c.state.rows.push_back(RowState{ .col_name = "Play", .action = play_action });
-    ui_c.state.rows.push_back(RowState{ .col_name = "Modifiers", .action = modifiers_action });
-    ui_c.state.rows.push_back(RowState{ .col_name = "Shipyard", .action = upgrade_action });
-#if defined(_DEBUG)
-    // ui_c.state.rows.push_back(RowState{ .col_name = "(Test) Snake", .action = test_action });
-#endif
-    ui_c.state.rows.push_back(RowState{ .col_name = "Options", .action = options_action });
-    ui_c.state.rows.push_back(RowState{ .col_name = "Exit", .action = exit_action });
-
-    ui_c.state.init = true;
-  }
-
-#if defined(_DEBUG)
-  static bool debug_menu = false;
-  if (debug_menu) {
-    ImGui::Text("Menu Rows: %zu", ui_c.state.rows.size());
-    for (const auto& row : ui_c.state.rows)
-      ImGui::Text("%s, idx: %i", row.col_name.c_str(), row.col_index);
-  }
-#endif
-
   ImGui::Begin("Main Menu", nullptr, flags);
 
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
   process_input_for_ui_all_handles(r, ui_c.state);
+  const auto g_input_e = get_first<InputComponent, Persistent>(r);
+  const auto& g_input_c = r.get<InputComponent>(g_input_e);
+  const auto& b_s = g_input_c.button_s;
+  const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
 
-  int& selected = ui_c.state.current_row_index;
-  const bool do_act =
-    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::SELECT) != ui_c.state.actions.end();
+  // which is the active cell index
+  const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
+  const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
 
-  for (int i = 0; i < (int)ui_c.state.rows.size(); i++) {
+  for (int i = 0; i < (int)ui_c.state.cells.size(); i++) {
     if (i > 0)
       ImGui::Dummy(space_between_buttons);
 
-    auto& row = ui_c.state.rows[i];
+    auto& cell = ui_c.state.cells[i];
 
     int col_idx = 0;
-
+    int row_idx = cell_idx;
     auto a_def = SelectableButtonDef{
-      .label = row.col_name,
+      .label = cell->name,
       .size = button_size,
       .input = do_act,
       .my_row_index = i,
-      .my_col_index = 0, // one col
-      .ui_row_index = ui_c.state.current_row_index,
-      .ui_col_index = col_idx, // one col
-      .ui_col_active = true,   // one col
+      .my_col_index = 0,
+      .ui_row_index = row_idx,
+      .ui_col_index = col_idx,
+      .ui_col_active = true,
       .font = font,
-
-      // hide the buttons
-      // .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-      // .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-      // .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-      // .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
     if (selectable_button(r, a_def))
-      row.action();
+      cell->action();
 
     //
   }

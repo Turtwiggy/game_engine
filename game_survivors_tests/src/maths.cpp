@@ -68,3 +68,12 @@ TEST(TestSuite, AngleFlipYAxis)
   ASSERT_NEAR(angle315, 45, epsilon);
   ASSERT_NEAR(angle360, 0, epsilon);
 };
+
+TEST(TestSuite, Wrap)
+{
+  // arrange & act
+  const int test = engine::wrap(-1, 3);
+
+  // assert
+  ASSERT_EQ(test, 3);
+};

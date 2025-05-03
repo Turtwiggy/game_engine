@@ -4,20 +4,14 @@
 
 #include <imgui.h>
 
-#include <string>
-#include <vector>
-
 namespace game2d {
 
-struct SINGLE_MainMenuUI
+struct SINGLE_MainMenuUI : public DefaultUI
 {
-  std::vector<std::string> hovered_buttons;
+  int v_index = 0;
+  // std::vector<std::string> hovered_buttons;
 
-  // prevent immediately doing action when sent by other scene
-  bool one_frame_buffer = true;
-  bool init = false;
-  bool display = true;
-  UIState state;
+  void do_init(entt::registry& r) override;
 };
 
 struct RequestToShowMainMenu

@@ -183,15 +183,15 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
   }
   if (upgrade == UpgradeableStat::ACTOR_HEALTH_REGEN) {
     if (rarity == Rarity::COMMON)
-      amount = 0.03;
+      amount = 0.03f;
     if (rarity == Rarity::UNCOMMON)
-      amount = 0.1;
+      amount = 0.1f;
     if (rarity == Rarity::RARE)
-      amount = 0.15;
+      amount = 0.15f;
     if (rarity == Rarity::LEGENDARY)
-      amount = 0.25;
+      amount = 0.25f;
     if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 0.4;
+      amount = 0.4f;
     return { amount, "stat_flat_increase" };
   }
   if (upgrade == UpgradeableStat::ACTOR_SPEED) {
@@ -292,15 +292,15 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
   }
   if (upgrade == UpgradeableStat::BULLET_LIFESTEAL) {
     if (rarity == Rarity::COMMON)
-      amount = 0.1;
+      amount = 0.1f;
     if (rarity == Rarity::UNCOMMON)
-      amount = 0.2;
+      amount = 0.2f;
     if (rarity == Rarity::RARE)
-      amount = 0.3;
+      amount = 0.3f;
     if (rarity == Rarity::LEGENDARY)
-      amount = 0.5;
+      amount = 0.5f;
     if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 1.0;
+      amount = 1.0f;
     return { amount, "stat_flat_increase" };
   }
   if (upgrade == UpgradeableStat::BULLET_PIERCE) {

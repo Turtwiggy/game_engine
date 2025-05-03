@@ -1,8 +1,8 @@
 #pragma once
 
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 
-#include "steam/isteaminput.h"
 #include <entt/fwd.hpp>
 
 #include <functional>
@@ -28,9 +28,10 @@ selectable_button(entt::registry& r, SelectableButtonDef& def);
 void
 process_input_for_ui_all_handles(entt::registry& r, UIState& state);
 
-// Note: if you use this variation, call
-// state.actions.clear() before
 void
-process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t handle);
+process_input_for_ui(entt::registry& r, UIState& state, const InputComponent& inp_c);
+
+void
+create_as_vertical_layout(std::vector<std::shared_ptr<Cell>>& cells);
 
 } // namespace game2d

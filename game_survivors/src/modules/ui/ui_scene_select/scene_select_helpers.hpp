@@ -11,9 +11,6 @@ void
 update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c);
 
 void
-draw_select_header(entt::registry& r, SINGLE_RendererInfo& ri_c);
-
-void
 update_countdown(SINGLE_SelectSceneData& data_c, bool everyone_confirmed, float dt);
 
 void

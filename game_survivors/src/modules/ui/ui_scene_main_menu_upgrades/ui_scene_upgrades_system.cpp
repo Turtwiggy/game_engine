@@ -1,8 +1,10 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/io/io_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
@@ -13,6 +15,7 @@
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
+#include "resources/data.hpp"
 #include "ui_scene_upgrades_components.hpp"
 #include "ui_scene_upgrades_system.hpp"
 
@@ -22,7 +25,7 @@ using namespace std::literals;
 void
 back_to_main_menu(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 {
-  ui_c.display = false;
+  ui_c.open = false;
   ui_c.one_frame_buffer = true;
   ui_c.selected_stat = std::nullopt;
   ui_c.grid_idx = 0;
@@ -92,25 +95,6 @@ purchase_upgrade(entt::registry& r, const UpgradeableStat stat)
   savefile_save_disk(r);
 };
 
-void
-init_menu(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
-{
-  for (int i = 0; i < (int)UpgradeableStat::count; i++) {
-
-    const auto stat_enum = magic_enum::enum_value<UpgradeableStat>(i);
-    const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
-
-    // stats to skip...
-    if (stat_str.find("ACTOR_STAMINA") != std::string::npos)
-      continue;
-
-    ui_c.state.rows.push_back(RowState{ .col_name = stat_str.c_str(), .action = [&ui_c, stat_enum]() {
-                                         ui_c.selected_stat = stat_enum;
-                                         //  ui_c.ui_col_index = hidden_col_idx; // go to hidden col
-                                       } });
-  }
-};
-
 std::pair<int, int>
 get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::string stat_key)
 {
@@ -125,7 +109,7 @@ get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::
   const auto find_by_key = [&stat_key](Upgrade& u) { return u.key == stat_key; };
   const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
   if (it != upgrade_c.upgrades.end())
-    n_stat_upgrades = (*it).levels.size();
+    n_stat_upgrades = (int)((*it).levels.size());
 
   // remove ACTOR_ from the display key
   // auto display_stat_key = row.col_name;
@@ -144,10 +128,10 @@ void
 process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 {
   auto& acts = ui_c.state.actions;
-  const auto val_u = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED_UP) != acts.end();
-  const auto val_d = std::find(acts.begin(), acts.end(), UIAction::V_VALUE_CHANGED_DOWN) != acts.end();
-  const auto val_l = std::find(acts.begin(), acts.end(), UIAction::H_VALUE_CHANGED_LEFT) != acts.end();
-  const auto val_r = std::find(acts.begin(), acts.end(), UIAction::H_VALUE_CHANGED_RIGHT) != acts.end();
+  const auto val_u = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_U) != acts.end();
+  const auto val_d = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_D) != acts.end();
+  const auto val_l = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_L) != acts.end();
+  const auto val_r = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_R) != acts.end();
 
   const auto [cur_x, cur_y] = engine::grid::index_to_grid_position(ui_c.grid_idx, ui_c.grid_x);
   auto new_x = cur_x;
@@ -163,7 +147,7 @@ process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
     new_y--;
 
   int max_x = ui_c.grid_x - 1;
-  int max_y = ((int)ui_c.state.rows.size() / ui_c.grid_x) - 1;
+  int max_y = ((int)ui_c.state.cells.size() / ui_c.grid_x) - 1;
 
   new_x = glm::clamp(new_x, 0, max_x);
   new_y = glm::clamp(new_y, 0, max_y);
@@ -178,48 +162,30 @@ update_ui_scene_upgrades_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, upgrade_e, upgrade_c);
   auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-#if defined(_DEBUG)
-  // static bool debug_menu = true;
-  // if (debug_menu) {
-  //   ImGui::Text("Rows: %zu", ui_c.state.rows.size());
-  //   for (const auto& row : ui_c.state.rows)
-  //     ImGui::Text("%s, idx: %i", row.col_name.c_str(), row.col_index);
-  // }
-  // if (ImGui::Button("GiveGold"))
-  //   gold_c.amount += 5;
-#endif
+  if (!ui_c.init)
+    ui_c.do_init(r);
 
-  if (!ui_c.init) {
-    init_menu(r, ui_c);
-    ui_c.init = true;
-  }
-
-  process_requests<RequestToShowUpgradesMenu>(r, [&ui_c](const auto& req) { ui_c.display = true; });
-
-  if (!ui_c.display)
+  ui_c.update<RequestToShowUpgradesMenu>(r);
+  if (!ui_c.open)
     return;
-
-  // prevent immediately doing actions
-  if (ui_c.one_frame_buffer) {
-    SDL_Log("Upgrade menu... one frame buffer...");
-    ui_c.one_frame_buffer = false;
-    return;
-  }
 
   // process actions.
   process_input_for_ui_all_handles(r, ui_c.state);
   process_input_for_grid(r, ui_c);
 
+  const auto g_input_e = get_first<InputComponent, Persistent>(r);
+  const auto& g_input_c = r.get<InputComponent>(g_input_e);
+  const auto& b_s = g_input_c.button_s;
+  const auto& b_e = g_input_c.button_e;
+  const bool do_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
+  const bool do_back = std::find(b_e.begin(), b_e.end(), ActionStateEnum::DOWN) != b_e.end();
+
   // update the selected stat
-  const auto stat_key = ui_c.state.rows[ui_c.grid_idx].col_name;
+  const auto stat_key = ui_c.state.cells[ui_c.grid_idx]->name;
   const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
   ui_c.selected_stat = stat_enum;
-
-  auto& acts = ui_c.state.actions;
-  const bool do_sel = std::find(acts.begin(), acts.end(), UIAction::SELECT) != acts.end();
-  const bool do_back = std::find(acts.begin(), acts.end(), UIAction::BACK) != acts.end();
 
   // back pressed and no selected stat
   if (do_back) {
@@ -231,28 +197,17 @@ update_ui_scene_upgrades_system(entt::registry& r)
   if (do_sel && ui_c.selected_stat.has_value())
     purchase_upgrade(r, ui_c.selected_stat.value());
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_NoBackground;
-
   const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_wh = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  const auto viewport_wh = ImVec2((float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y);
   const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
-
   const float size_x = (1.5f / 3.0f) * 1280.0f * font_scale;
   const float size_y = (1.5f / 3.0f) * 720.0f * font_scale;
-  ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
-
   const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, viewport_tl.y + (viewport_wh.y - size_y) * 0.5f);
+  ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
-
   // ImGui::SetNextWindowSizeConstraints({ 400, 200 }, { 1000, 1000 });
-  ImGui::Begin("Upgrades Menu", NULL, flags);
 
+  imgui_begin("upgrades menu");
   auto* draw_list = ImGui::GetWindowDrawList();
   const ImVec2 ui_tl = ImGui::GetWindowPos();
   const ImVec2 ui_wh = ImGui::GetWindowSize();
@@ -267,20 +222,6 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto text_font_size = (float)text_font_enum;
   auto* text_font = get_inter_font(r, text_font_enum);
   const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
-
-  const auto my_inactive_col = hex_to_srgb("#737a7e");
-  const auto my_separator_col = hex_to_srgb("#7d8488");
-  const auto my_window_bg_col = hex_to_srgb("#0c1116");
-  const auto my_window_border_col = hex_to_srgb("#3B5676");
-  const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
-  const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
-  const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
-  const auto im_gold_col = ImVec4(255 * 1.0f, 238 * 1.0f, 0 * 1.0f, 1.0f);
-  const auto im_text_col = ImVec4(255 * 1.0f, 255 * 1.0f, 255 * 1.0f, 1.0f);
-  const auto im_icon_col =
-    ImVec4(my_separator_col.r / 255.0f, my_separator_col.g / 255.0f, my_separator_col.b / 255.0f, (80 / 255.0f));
-  const ImVec4 aquired_col = convert_my_to_im_vec(engine::SRGBColour(0, 255, 0, 255));
-  const ImVec4 unaquired_col = convert_my_to_im_vec(my_inactive_col);
 
   const auto rounding = 12.0f;
   const auto thickness = 2.0f;
@@ -312,7 +253,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   ImGui::Separator();
   ImGui::PopStyleColor();
 
-  const int grid_y = (int)ui_c.state.rows.size() / ui_c.grid_x;
+  const int grid_y = (int)ui_c.state.cells.size() / ui_c.grid_x;
   const auto grid_tl = ImGui::GetCursorScreenPos();
   const auto grid_br = ImVec2{ ui_br.x, grid_tl.y + icon_size.y * grid_y };
   const auto grid_wh = ImVec2{ grid_br.x - grid_tl.x, grid_br.y - grid_tl.y };
@@ -338,7 +279,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   }
 
   // Draw upgrades in a grid.
-  const int valid_amount = ui_c.state.rows.size();
+  const int valid_amount = (int)ui_c.state.cells.size();
   for (int i = 0; i < ui_c.grid_x * grid_y; i++) {
     const bool active = i < valid_amount;
     if (!active)
@@ -368,8 +309,8 @@ update_ui_scene_upgrades_system(entt::registry& r)
       ui_c.grid_idx = i;
 
     ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
-    const auto& row = ui_c.state.rows[i];
-    const auto name = row.col_name;
+    const auto& cell = ui_c.state.cells[i];
+    const auto name = cell->name;
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, name);
     ImGui::TextColored(im_text_col, "%i/%i", aquired, total);
   }

@@ -250,7 +250,7 @@ draw_player_ui_box(entt::registry& r,
                    const ControllerState state,
                    const float dt)
 {
-  const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   auto& data_c = get_first_component<SINGLE_MainMenuAnimatedData>(r);
   auto& anim_data = data_c.data[player_idx];
 
@@ -283,7 +283,7 @@ draw_player_ui_box(entt::registry& r,
   draw_list->AddRectFilled(tl, p_max, im_bg_col, 2);
 
   const auto add_bottom_left_text = [&](std::string text_str) -> void {
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
     auto* font = get_inter_font(r, font_enum);
     ImGui::PushFont(font);
@@ -322,7 +322,7 @@ draw_player_ui_box(entt::registry& r,
     // const auto text_col = IM_COL32(255, 255, 255, alpha_int);
     const auto text_col = IM_COL32(0, 0, 0, alpha_int);
 
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
     ImGui::PushFont(get_inter_font(r, font_enum));
 
@@ -398,7 +398,7 @@ draw_player_ui_box(entt::registry& r,
 
       const auto pos = ImVec2(mask_br.x, mask_tl.y + bob_val);
 
-      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
       ImGui::PushFont(get_inter_font(r, font_enum));
 
@@ -437,7 +437,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-  const auto& ui_scale = get_first_component<SINGLE_UIData>(r);
+  const auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
 
   //
   // Clear the handles that have joined this frame

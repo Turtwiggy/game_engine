@@ -17,9 +17,11 @@
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
 #include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
 #include "resources/data.hpp"
@@ -50,7 +52,7 @@ struct TextDesc
 void
 add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc& desc, ImVec2* out_pos = nullptr)
 {
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? desc.font_size : desc.font_size_scaled;
   const auto font_size = (float)font_enum;
   auto* font = get_inter_font(r, font_enum);
@@ -65,6 +67,8 @@ add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc&
   }
 };
 
+/*
+
 void
 update_input_for_confirm(entt::registry& r, const int player_idx)
 {
@@ -72,23 +76,32 @@ update_input_for_confirm(entt::registry& r, const int player_idx)
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
 
-  auto& player_ui_data = ui_c.player_ui_state[player_idx];
+  auto& player_ui_data = ui_c.player_ui_state[player_idx].state;
   auto& player_state = ui_c.player_choice_state[player_idx];
+
   const auto& a = player_ui_data.actions;
-  const bool h_changed = std::find(a.begin(), a.end(), UIAction::H_VALUE_CHANGED) != a.end();
-  const bool v_changed = std::find(a.begin(), a.end(), UIAction::V_VALUE_CHANGED) != a.end();
   const bool player_pressed_select = std::find(a.begin(), a.end(), UIAction::SELECT) != a.end();
   const bool player_pressed_back = std::find(a.begin(), a.end(), UIAction::BACK) != a.end();
+  const bool v_value_changed_u = std::find(a.begin(), a.end(), UIAction::NAV_MOVE_U) != a.end();
+  const bool v_value_changed_d = std::find(a.begin(), a.end(), UIAction::NAV_MOVE_D) != a.end();
+  const bool h_value_changed_l = std::find(a.begin(), a.end(), UIAction::NAV_MOVE_L) != a.end();
+  const bool h_value_changed_r = std::find(a.begin(), a.end(), UIAction::NAV_MOVE_R) != a.end();
+  const bool v_value_changed = v_value_changed_u || v_value_changed_d;
+  const bool h_value_changed = h_value_changed_l || h_value_changed_r;
 
   if (player_pressed_select) {
-    bool ready = player_state.player_row_idx == (player_ui_data.rows.size() - 1);
+
+    // ready if you're on the last row
+    const bool ready = player_state.player_row_idx == (player_ui_data.cells.size() - 1);
+
     player_state.confirmed = ready;
     if (ready)
       SDL_Log("A player is ready");
 
     player_state.player_row_idx++;
-    player_state.player_row_idx = glm::clamp(player_state.player_row_idx, 0, (int)(player_ui_data.rows.size() - 1));
+    player_state.player_row_idx = glm::clamp(player_state.player_row_idx, 0, (int)(player_ui_data.cells.size() - 1));
   }
+
   if (player_pressed_back) {
     player_state.confirmed = false;
 
@@ -100,24 +113,23 @@ update_input_for_confirm(entt::registry& r, const int player_idx)
     }
 
     player_state.player_row_idx--;
-    player_state.player_row_idx = glm::clamp(player_state.player_row_idx, 0, (int)(player_ui_data.rows.size() - 1));
+    player_state.player_row_idx = glm::clamp(player_state.player_row_idx, 0, (int)(player_ui_data.cells.size() - 1));
   }
 
-  // note: row_index set via confirm/back, not dpad
-  player_ui_data.current_row_index = player_state.player_row_idx;
+  // player_ui_data.current_row_index = player_state.player_row_idx;
 
   // Clamp the values.
   {
-    auto& ui_hulls = player_ui_data.rows[0];
+    auto* ui_hulls = dynamic_cast<OptionsCell*>(player_ui_data.cells[0].get());
     const auto& hulls = hulls_c.hulls;
-    auto& idx = ui_hulls.col_index;
+    auto& idx = ui_hulls->value;
     idx = idx < 0 ? (int)hulls.size() - 1 : idx;
     idx %= hulls.size();
   }
   {
-    auto& ui_weapons = player_ui_data.rows[1];
+    auto* ui_weapons = dynamic_cast<OptionsCell*>(player_ui_data.cells[1].get());
     const auto& weapons = weapons_c.weapons;
-    auto& idx = ui_weapons.col_index;
+    auto& idx = ui_weapons->value;
     idx = idx < 0 ? (int)weapons.size() - 1 : idx;
     idx %= weapons.size();
   }
@@ -136,7 +148,7 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
   // draw_list->AddRectFilled(tl, br, im_active_col, 6);
 
   // split the box in to thirds.
-  const float header_segments = 3;
+  const float header_segments = 2;
   auto box_tl = ImVec2(tl.x, tl.y);
   auto box_wh = ImVec2(wh.x * (1.0f / header_segments), wh.y);
   for (int i = 0; i < header_segments; i++) {
@@ -146,7 +158,10 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
     const bool is_ability = i == 2;
     const bool active = i == player_state.player_row_idx;
     const int active_alpha = active ? 255 : 100;
-    const auto& col_idx = player_ui_data.rows[i].col_index;
+
+    const auto& base = player_ui_data.state.cells[i];
+    const auto* cell = dynamic_cast<OptionsCell*>(base.get());
+    const auto col_idx = cell->value;
 
     const auto my_player_col = default_player_colours[player_idx];
     const auto im_player_col = IM_COL32(my_player_col.r, my_player_col.g, my_player_col.b, active_alpha);
@@ -197,6 +212,7 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
     }
 
     // Ability info
+    /*
     if (is_ability) {
       const auto draw_ability_header = [&]() {
         const auto text_str = std::format("Ability {}/{}", 0, 0);
@@ -212,10 +228,11 @@ draw_main_header_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, c
       draw_ability_header();
     }
 
-    // move the segments on.
-    box_tl.x += box_wh.x;
-  }
+// move the segments on.
+box_tl.x += box_wh.x;
 }
+}
+;
 
 void
 draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
@@ -223,13 +240,11 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
   GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
-  const auto& player_ui_data = ui_c.player_ui_state[player_idx];
-  const auto player_row_idx = player_ui_data.current_row_index;
-  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
-
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c)
   const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
+  const auto& ui_state = ui_c.player_ui_state[player_idx].state;
 
   // draw a background
   const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 255);
@@ -245,26 +260,23 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
   // std::string& ability = player_state.player_ability;
 
   // split the box in to thirds horizontally
-  const float segments = 3;
+  const float segments = 2; // change to 3 for ability header
   auto box_tl = ImVec2(tl.x, tl.y);
   auto box_wh = ImVec2(wh.x * (1.0f / segments), wh.y);
   for (int i = 0; i < segments; i++) {
-    //
     // data
     const bool is_hull = i == 0;
     const bool is_weapon = i == 1;
     const bool is_ability = i == 2;
-    const bool active = i == player_row_idx;
+    const bool active = ui_state.cells[i] == ui_state.active;
     const int active_alpha = active ? 255 : 100;
-    const auto& col_idx = player_ui_data.rows[i].col_index;
+    const int col_idx = dynamic_cast<OptionsCell*>(ui_state.cells[i].get())->value;
 
-    //
     // draw a debug rect
     // const float seg_inc = ((player_idx + 1) / segments);
     // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
     // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
     // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
-
     // std::string debug_str = std::format("ri {} ci {}", i, col_idx);
     // add_text_centered_here(ImGui::GetWindowDrawList(), debug_str, box_center, active_alpha);
 
@@ -273,8 +285,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
     // display hull
     if (is_hull) {
-      const auto& idx = col_idx;
-      const auto& hull = hulls_c.hulls[idx];
+      const auto& hull = hulls_c.hulls[col_idx];
       auto& player_state = ui_c.player_choice_state[player_idx];
       player_state.player_boat_key = hull.key;
 
@@ -326,7 +337,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
     // draw description text
     {
-      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
       const auto font_size = (float)font_enum;
       const auto* font = get_inter_font(r, font_enum);
@@ -342,7 +353,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
 
     // draw some left and right arrows
     if (active) {
-      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
       const auto font_size = (float)font_enum;
       auto* font = get_inter_font(r, font_enum);
@@ -365,71 +376,7 @@ draw_main_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const in
     // move the segments on.
     box_tl.x += box_wh.x;
   }
-}
-
-void
-draw_below_main_info_quarters(entt::registry& r, const ImVec2 tl, const ImVec2 wh, const int player_idx)
-{
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
-  GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
-  const auto handle = steam_ui_c.handles[player_idx];
-  const auto& player_ui_data = ui_c.player_ui_state[player_idx];
-  const auto& player_state = ui_c.player_choice_state[player_idx];
-  const auto player_row_idx = player_ui_data.current_row_index;
-  const bool confirmed = player_state.confirmed;
-
-  const float inc = ((player_idx + 1) / 4.0f);
-  const auto im_active_col = IM_COL32(0, 0, 255 * inc, 255);
-  auto* draw_list = ImGui::GetWindowDrawList();
-
-  // draw a background
-  // const auto br = ImVec2{ tl.x + wh.x, tl.y + wh.y };
-  // draw_list->AddRectFilled(tl, br, im_active_col, 6);
-
-  // split the box in to segments
-  const float segments = 3;
-  auto box_tl = ImVec2(tl.x, tl.y);
-  auto box_wh = ImVec2(wh.x * (1.0f / segments), wh.y);
-  for (int i = 0; i < segments; i++) {
-
-    // draw a debug rect
-    // const float seg_inc = ((player_idx + 1) / segments);
-    // const auto seg_im_active_col = IM_COL32(255 * seg_inc, 0, 0, 255);
-    // const auto box_br = ImVec2(box_tl.x + box_wh.x, box_tl.y + box_wh.y);
-    // draw_list->AddRectFilled(box_tl, box_br, seg_im_active_col, 6);
-
-    const auto box_center = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.5f * box_wh.y);
-    const bool active = i == player_state.player_row_idx;
-
-    if (active && !confirmed) {
-      const auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
-      const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
-      const auto txt_str = std::format("< ({}) ({}) > ", confirm_str, back_str);
-
-      const TextDesc text_desc{
-        .text = txt_str,
-        .non_centered_pos = box_center,
-        .col = IM_COL32(255, 255, 255, 255),
-        .wrap_width = -1,
-      };
-      add_text_centered_here(r, draw_list, text_desc);
-    }
-
-    if (i == segments - 1 && confirmed) {
-      const TextDesc text_desc{
-        .text = "You're Ready!",
-        .non_centered_pos = box_center,
-        .col = IM_COL32(255, 255, 255, 255),
-        .wrap_width = -1,
-      };
-      add_text_centered_here(r, draw_list, text_desc);
-    }
-
-    // move the segments on.
-    box_tl.x += box_wh.x;
-  }
-}
+};
 
 struct DisplayStat
 {
@@ -445,9 +392,9 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
   const auto& player_ui_data = ui_c.player_ui_state[player_idx];
   const auto& player_state = ui_c.player_choice_state[player_idx];
-  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
-  const auto player_row_idx = player_ui_data.current_row_index;
+  const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
+  const auto player_row_idx = player_ui_data.current_row_index;
   const bool is_hull = player_ui_data.current_row_index == 0;
   const bool is_weapon = player_ui_data.current_row_index == 1;
   const bool is_ability = player_ui_data.current_row_index == 2;
@@ -479,7 +426,7 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
     }
   }
 
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   auto* font = get_inter_font(r, font_enum);
 
@@ -500,15 +447,11 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
   draw_list->AddRect(tl, br, im_border_col, 8, 0, 2.0f);
 
   // Draw header + description
-  // {
   const std::string header_text = header_txt;
   auto header_pos = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * space_per_row);
   auto header_size = ImGui::CalcTextSize(header_text.c_str());
   header_pos -= { 0.5f * header_size.x, 0.5f * header_size.y };
   draw_list->AddText(header_pos, IM_COL32(255, 255, 255, 255), header_text.c_str());
-  //   const auto desc_pos = ImVec2(tl.x + 0.05f * wh."selected_info_wx, tl.y + 0.2f * h);
-  //   draw_list->AddText(font, 13 * ui_scaling, desc_pos, IM_COL32(255, 255, 255, 255), description_txt.c_str());
-  // }
 
   auto box_tl = ImVec2(tl.x, tl.y + (1.0f * space_per_row)); // offset by 1 row
   auto box_wh = ImVec2(wh.x, h);
@@ -526,16 +469,17 @@ draw_selected_info_panel(entt::registry& r, const ImVec2 tl, const ImVec2 wh, co
     box_tl.y += space_per_row;
   }
 }
+*/
 
 void
-update_split_screen_into_quaters(entt::registry& r,
-                                 SINGLE_RendererInfo& ri_c,
-                                 SINGLE_SelectSceneData& ui_c,
-                                 const int max_num_players)
+update_split_screen_into_quarters(entt::registry& r,
+                                  SINGLE_RendererInfo& ri_c,
+                                  SINGLE_SelectSceneData& ui_c,
+                                  const int max_num_players)
 {
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
-  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -559,66 +503,46 @@ update_split_screen_into_quaters(entt::registry& r,
 
   ImGui::Begin("SelectShipUI", nullptr, flags);
 
-  const ImVec2 window_pos = ImGui::GetWindowPos();
-  const ImVec2 window_size = ImGui::GetWindowSize();
-  const auto player_ui_w = window_size.x / max_num_players; // always /4
-  const auto player_ui_h = window_size.y;
-  auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
-  auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
+  const ImVec2 window_tl = ImGui::GetWindowPos();
+  const ImVec2 window_wh = ImGui::GetWindowSize();
+  const ImVec2 player_wh = { window_wh.x / max_num_players, window_wh.y };
+  const auto num_active_players = glm::max(1, (int)steam_c.n_active);
+
+  // center it.
+  const auto center_x = window_tl.x + 0.5f * window_wh.x;
+  const auto center_y = player_wh.y * 0.5f;
+  auto first_tl_x = center_x;
+  first_tl_x -= num_active_players * (0.5f * player_wh.x);
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
-    const auto center = player_ui_h * 0.5f;
 
     const auto handle = steam_ui_c.handles[player_idx];
     const bool connected = handle_is_connected(steam_c, handle);
     const bool joined = handle_is_joined(steam_ui_c, handle);
-    if (connected && joined) {
+
+    // always show one player. player_idx either using keyboard or controller
+    if ((connected && joined) || player_idx == 0) {
 
       // const auto width = 300;
-      const auto height = 120 * ui_scaling; // or 1/6th of the screen
-      const auto main_quarter_tl = ImVec2{ player_ui_tl.x, center - (height * 0.5f) };
-      draw_main_quarters(r, main_quarter_tl, ImVec2{ player_ui_w, height }, player_idx);
+      // const auto height = 120 * ui_scaling; // or 1/6th of the screen
+      // const auto main_quarter_tl = ImVec2{ first_tl_x, center_y - (height * 0.5f) };
+      // draw_main_quarters(r, main_quarter_tl, ImVec2{ player_wh.x, height }, player_idx);
 
-      const auto header_height = 25 * ui_scaling;
-      const auto header_tl = ImVec2(player_ui_tl.x, main_quarter_tl.y - header_height);
-      draw_main_header_quarters(r, header_tl, { player_ui_w, header_height }, player_idx);
+      // const auto header_height = 25 * ui_scaling;
+      // const auto header_tl = ImVec2(first_tl_x, main_quarter_tl.y - header_height);
+      // draw_main_header_quarters(r, header_tl, { player_wh.x, header_height }, player_idx);
 
-      const auto info_height = 50 * ui_scaling;
-      const auto info_tl = ImVec2(player_ui_tl.x, center + (height * 0.5f));
-      draw_below_main_info_quarters(r, info_tl, { player_ui_w, info_height }, player_idx);
-
-      const auto selected_info_w = player_ui_w * 0.6f; // X% of the width of the quarter.
-      const auto selected_info_y = player_ui_h * 0.667f;
-      const auto selected_info_tl =
-        ImVec2(player_ui_tl.x + (0.5f * player_ui_w) - (0.5f * selected_info_w), selected_info_y);
-      draw_selected_info_panel(r, selected_info_tl, { selected_info_w, 0 }, player_idx);
+      // const auto selected_info_w = player_wh.x * 0.6f; // X% of the width of the quarter.
+      // const auto selected_info_y = player_wh.y * 0.667f;
+      // const auto selected_info_tl = ImVec2(first_tl_x + (0.5f * player_wh.x) - (0.5f * selected_info_w), selected_info_y);
+      // draw_selected_info_panel(r, selected_info_tl, { selected_info_w, 0 }, player_idx);
     }
 
-    else {
-      const auto height = 120 * ui_scaling; // or 1/6th of the screen
-      const auto main_quarter_tl = ImVec2{ player_ui_tl.x, center - (height * 0.5f) };
-      const auto tl = main_quarter_tl;
-      const auto wh = ImVec2{ player_ui_w, height };
-
-      // Draw a background
-      // ...
-
-      // Draw some text
-      const auto box_center = ImVec2(tl.x + 0.5f * wh.x, tl.y + 0.5f * wh.y);
-      auto* draw_list = ImGui::GetWindowDrawList();
-
-      const TextDesc text_desc{
-        .text = "No Controller",
-        .non_centered_pos = box_center,
-        .col = IM_COL32(255, 255, 255, 100),
-        .wrap_width = -1,
-      };
-      add_text_centered_here(r, draw_list, text_desc);
-    }
+    else
+      break; // no more players
 
     // move horizontally
-    player_ui_tl.x += player_ui_w;
-    player_ui_br.x += player_ui_w;
+    first_tl_x += player_wh.x;
   }
 
   ImGui::End();
@@ -634,75 +558,25 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
 
   const int max_num_players = 4;
-  const int num_active_players = non_zero_handles(steam_state_c.handles).size();
+  const auto num_active_players = glm::max(1, (int)steam_c.n_active);
 
   if (ui_c.menu_to_select_scene_buffer_frame) {
     ui_c.menu_to_select_scene_buffer_frame = false;
-
-    // init ui
     ui_c.player_ui_state.resize(max_num_players);
     ui_c.player_choice_state.resize(max_num_players);
     return;
   }
 
+  // controllers 1-4 works for ui 1-4
   update_input_for_select_ui(r, ui_c);
-  for (int i = 0; i < max_num_players; i++)
-    update_input_for_confirm(r, i);
 
-  update_split_screen_into_quaters(r, ri_c, ui_c, max_num_players);
+  // for (int i = 0; i < max_num_players; i++)
+  //   update_input_for_confirm(r, i);
 
-  draw_select_header(r, ri_c);
-
-  // draw a back button you can click.
-  {
-    ImGuiWindowFlags flags = 0;
-    flags |= ImGuiWindowFlags_NoDecoration;
-    flags |= ImGuiWindowFlags_NoMove;
-    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-    flags |= ImGuiWindowFlags_NoDocking;
-    flags |= ImGuiWindowFlags_NoBackground;
-    flags |= ImGuiWindowFlags_NoSavedSettings;
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-
-    const auto button_size = ImVec2{ 120, 40 };
-
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-    const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-    const auto text_font_size = (float)text_font_enum;
-    auto* text_font = get_inter_font(r, text_font_enum);
-
-    ImGui::SetNextWindowPos({ (float)ri_c.viewport_size_render_at.x * 0.5f, (float)ri_c.viewport_size_render_at.y - 100 },
-                            ImGuiCond_Always,
-                            { 0.5f, 0.5f });
-    ImGui::SetNextWindowSize({ button_size.x + 10, button_size.y + 10 }, ImGuiCond_Appearing);
-
-    ImGui::Begin("BACK", 0, flags);
-
-    int ui_row_idx = 0;
-    int ui_col_idx = 0;
-    SelectableButtonDef def{
-      .label = "Back##tomenu",
-      .size = button_size,
-      .ui_row_index = ui_row_idx,
-      .ui_col_index = ui_col_idx,
-
-      .update_selected_only_with_mouse = true,
-      .font = text_font,
-    };
-
-    ImGui::SetCursorPos({ 5, 5 }); // padding
-    if (selectable_button(r, def))
-      move_to_scene_start(r, Scene::menu);
-
-    ImGui::End();
-    ImGui::PopStyleVar(4);
-  }
+  update_split_screen_into_quarters(r, ri_c, ui_c, max_num_players);
 
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
   if (scene_c.s != Scene::select_ships)

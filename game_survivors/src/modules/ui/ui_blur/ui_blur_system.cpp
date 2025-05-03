@@ -51,7 +51,7 @@ update_ui_blur_system(entt::registry& r, const float dt)
     blur_amount += fade_in_speed * dt;
 
   // blur with upgrade menu...
-  else if (menu_upgrade_c && menu_upgrade_c->display)
+  else if (menu_upgrade_c && menu_upgrade_c->open)
     blur_amount += fade_in_speed * dt;
 
   // blur with game upgrade menu...

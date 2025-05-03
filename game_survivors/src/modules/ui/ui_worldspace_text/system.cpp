@@ -39,7 +39,7 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGui::Begin(beginlabel.c_str(), NULL, flags);
     ImGui::PushID(eid);
 
-    wst_c.layout(r); // layout set via regular imgui commands
+    wst_c.layout(r, wst_c); // layout set via regular imgui commands
 
     ImGui::PopID();
     ImGui::End();

@@ -7,6 +7,7 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
+#include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
@@ -110,20 +111,23 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
   // reset ui
   for (int i = 0; i < max_num_players; i++) {
     auto& state_c = ui_c.ui_states[i];
-    state_c.current_row_index = 0;
-    state_c.rows.clear();
+    state_c.cells.clear();
     state_c.actions.clear();
+    state_c.active = nullptr;
 
     const auto player_e = get_player_e_from_idx(r, i);
     if (player_e == entt::null)
       continue;
     const auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
 
-    // setup_ui_based_on_upgrades(r, player_e, state_c, upgrades_c);
     for (const UpgradeRollResult& res : upgrades_c.results) {
-      state_c.rows.push_back(
-        RowState{ .col_name = "Aquire", .action = [&r, player_e, res]() { aquire_action(r, player_e, res); } });
+      Cell c;
+      c.name = "Aquire";
+      c.action = [&]() { aquire_action(r, player_e, res); };
+      state_c.cells.push_back(std::make_shared<Cell>(c));
     }
+
+    create_as_vertical_layout(state_c.cells);
   }
 };
 

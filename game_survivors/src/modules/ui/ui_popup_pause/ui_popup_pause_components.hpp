@@ -9,10 +9,9 @@ struct RequestToShowPauseMenu
   bool placeholder = true;
 };
 
-struct SINGLE_PauseMenuState
+struct SINGLE_PauseMenuState : public DefaultUI
 {
-  bool open = false;
-  UIState state;
+  void do_init(entt::registry& r) override;
 };
 
 } // namespace game2d

@@ -18,6 +18,11 @@ struct HullChoice
   std::string player_ability_key = "unknown";
 };
 
+struct SelectUI : public DefaultUI
+{
+  int cell_idx = 0;
+};
+
 struct SINGLE_SelectSceneData
 {
   // wait one frame before processing scene,
@@ -33,7 +38,7 @@ struct SINGLE_SelectSceneData
   float countdown = 3.0f;
 #endif
 
-  std::vector<UIState> player_ui_state;
+  std::vector<SelectUI> player_ui_state;
   std::vector<HullChoice> player_choice_state;
 };
 

@@ -1,7 +1,7 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
+#include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
@@ -25,20 +25,32 @@ enum class UIControllerState
 };
 
 void
-init(entt::registry& r, SINGLE_DisconnectedControllerUI& ui_c)
+figure_out_if_controllers_disconnected(entt::registry& r, SINGLE_DisconnectedControllerUI& ui_c)
 {
-  ui_c.state.rows.push_back(RowState{ .col_name = "Resume", .action = []() {} });
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_steam_e, ui_steam_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
 
-  ui_c.init = true;
+  for (int i = 0; i < 4; i++) {
+    const auto handle = ui_steam_c.handles[i];
+    const bool connected = handle_is_connected(steam_c, handle);
+    const bool joined = handle_is_joined(ui_steam_c, handle);
+    const bool is_disconnected = joined && !connected;
+    const bool is_connected = joined && connected;
+    if (!is_disconnected)
+      continue;
+    const auto it = std::find(ui_c.handle_disconnected.begin(), ui_c.handle_disconnected.end(), handle);
+    if (it == ui_c.handle_disconnected.end())
+      ui_c.handle_disconnected.push_back(handle);
+  }
 };
 
 void
 update_ui_popup_controller_disconnected_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_steam_e, ui_steam_c);
   GET_FIRST_OR_RETURN(SINGLE_DisconnectedControllerUI, r, ui_e, ui_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_steam_e, ui_steam_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
 
   const float x_align_0 = 0.33f;
   const float x_align_1 = 0.5f;
@@ -49,39 +61,17 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     return;
   }
 
-#if defined(_DEBUG)
-  // imgui_draw_float("x_align_0", x_align_0);
-  // imgui_draw_float("x_align_1", x_align_1);
-#endif
+  figure_out_if_controllers_disconnected(r, ui_c);
 
-  // Work out if anything has disconnected.
-  for (int i = 0; i < 4; i++) {
-    const auto handle = ui_steam_c.handles[i];
-    const bool connected = handle_is_connected(steam_c, handle);
-    const bool joined = handle_is_joined(ui_steam_c, handle);
-    const bool is_disconnected = joined && !connected;
-    const bool is_connected = joined && connected;
-    if (is_disconnected) {
-      const auto it = std::find(ui_c.handle_disconnected.begin(), ui_c.handle_disconnected.end(), handle);
-      if (it == ui_c.handle_disconnected.end())
-        ui_c.handle_disconnected.push_back(handle);
-    }
-  }
   ui_c.open = ui_c.handle_disconnected.size() != 0;
-
-#if defined(_DEBUG)
-  // ui_c.open = true;
-#endif
-
   if (!ui_c.open)
     return;
 
-  if (!ui_c.init)
-    init(r, ui_c);
-
   process_input_for_ui_all_handles(r, ui_c.state);
-  const bool do_act =
-    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::SELECT) != ui_c.state.actions.end();
+  const auto g_input_e = get_first<InputComponent, Persistent>(r);
+  const auto& g_input_c = r.get<InputComponent>(g_input_e);
+  const auto& b = g_input_c.button_s;
+  const bool do_act = std::find(b.begin(), b.end(), ActionStateEnum::DOWN) != b.end();
 
   // For all the disconnected handles, sample input
   for (const InputHandle_t handle : ui_c.handle_disconnected) {
@@ -101,7 +91,7 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
       std::erase(ui_c.handle_disconnected, handle);
   }
 
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_20 : FontSize::TEXT_SIZE_20_SCALED;
   const auto header_font_size = (float)header_font_enum;
   auto* header_font = get_inter_font(r, header_font_enum);

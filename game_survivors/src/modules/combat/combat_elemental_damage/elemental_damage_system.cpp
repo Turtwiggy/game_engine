@@ -1,8 +1,8 @@
-#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "pch.hpp"
 
 #include "elemental_damage_system.hpp"
 #include "engine/entt/helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_elemental_damage/elemental_damage_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"

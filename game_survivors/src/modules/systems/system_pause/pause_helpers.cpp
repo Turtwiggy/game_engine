@@ -28,12 +28,16 @@ require_pause(entt::registry& r)
   pause |= disconnected;
 
   // pause when pause menu is open
-  const auto& pause_menu_c = get_first_component<SINGLE_PauseMenuState>(r);
-  pause |= pause_menu_c.open;
+  if (get_first<SINGLE_PauseMenuState>(r) != entt::null) {
+    const auto& pause_menu_c = get_first_component<SINGLE_PauseMenuState>(r);
+    pause |= pause_menu_c.open;
+  }
 
   // pause when options menu is open
-  const auto& options_menu_c = get_first_component<SINGLE_OptionsMenuState>(r);
-  pause |= options_menu_c.open;
+  if (get_first<SINGLE_OptionsMenuState>(r) != entt::null) {
+    const auto& options_menu_c = get_first_component<SINGLE_OptionsMenuState>(r);
+    pause |= options_menu_c.open;
+  }
 
   return pause;
 };

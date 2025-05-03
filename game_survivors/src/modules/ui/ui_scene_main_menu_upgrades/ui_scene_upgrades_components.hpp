@@ -12,18 +12,13 @@ struct RequestToShowUpgradesMenu
   bool placeholder = true;
 };
 
-struct SINGLE_PersistentUpgradesMenuUI
+struct SINGLE_PersistentUpgradesMenuUI : public DefaultUI
 {
-  // prevent immediately doing action when sent by other scene
-  bool one_frame_buffer = true;
-  bool display = false;
-  bool init = false;
-
   int grid_idx = 0;
   int grid_x = 8;
-  UIState state;
-
   std::optional<UpgradeableStat> selected_stat = std::nullopt;
+
+  void do_init(entt::registry& r) override;
 };
 
 } // namespace game2d
