@@ -105,8 +105,8 @@
 #include "modules/ui/ui_raws/ui_raws_system.hpp"
 #include "modules/ui/ui_scene_header/ui_scene_header_system.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_system.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_system.hpp"
 #include "modules/ui/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui/ui_scene_select/scene_select_system.hpp"
@@ -122,7 +122,6 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
-
 
 #if defined(_DEBUG)
 #include <tracy/Tracy.hpp>
@@ -376,7 +375,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
-    update_ui_scene_main_menu_playerjoin_system(r, dt);
+    update_ui_scene_main_menu_controllerinfo_system(r, dt);
     update_ui_scene_upgrades_system(r);
   }
 

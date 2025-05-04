@@ -22,8 +22,8 @@
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {

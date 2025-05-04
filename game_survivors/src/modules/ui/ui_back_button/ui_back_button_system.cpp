@@ -46,9 +46,8 @@ update_ui_back_button_system(entt::registry& r)
   // which scene to show the back button?
   //
 
-  if (scene_c.s == Scene::select_ships) {
+  if (scene_c.s == Scene::select_ships)
     something_open |= true;
-  }
 
   if (!something_open)
     return;
@@ -66,16 +65,16 @@ update_ui_back_button_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
 
-  const auto button_size = ImVec2{ 120, 40 };
+  const auto button_size = ImVec2{ 120, 30 };
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto text_font_size = (float)text_font_enum;
   auto* text_font = get_inter_font(r, text_font_enum);
 
-  ImGui::SetNextWindowPos({ (float)ri_c.viewport_size_render_at.x * 0.5f, (float)ri_c.viewport_size_render_at.y - 100 },
+  ImGui::SetNextWindowPos({ (float)ri_c.viewport_size_render_at.x - 10, (float)ri_c.viewport_size_render_at.y - 10 },
                           ImGuiCond_Always,
-                          { 0.5f, 0.5f });
+                          { 1.0f, 1.0f });
   ImGui::SetNextWindowSize({ button_size.x + 10, button_size.y + 10 }, ImGuiCond_Appearing);
 
   ImGui::Begin("BACK", 0, flags);

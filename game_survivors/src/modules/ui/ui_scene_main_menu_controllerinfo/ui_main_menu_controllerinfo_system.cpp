@@ -1,6 +1,6 @@
 #include "pch.hpp"
 
-#include "ui_main_menu_playerjoin_system.hpp"
+#include "ui_main_menu_controllerinfo_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
@@ -11,8 +11,8 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -424,7 +424,7 @@ draw_player_ui_box(entt::registry& r,
 }
 
 void
-update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
+update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float dt)
 {
   static float timer = 0.0f;
 

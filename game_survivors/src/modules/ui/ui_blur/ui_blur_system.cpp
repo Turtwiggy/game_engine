@@ -43,16 +43,16 @@ update_ui_blur_system(entt::registry& r, const float dt)
   //   blur_amount += fade_in_speed * dt;
 
   // blur with options menu...
-  if (options_c.open)
-    blur_amount += fade_in_speed * dt;
+  // if (options_c.open)
+  //   blur_amount += fade_in_speed * dt;
 
   // blur with pause menu...
-  else if (pause_c.open)
+  if (pause_c.open)
     blur_amount += fade_in_speed * dt;
 
   // blur with upgrade menu...
-  else if (menu_upgrade_c && menu_upgrade_c->open)
-    blur_amount += fade_in_speed * dt;
+  // else if (menu_upgrade_c && menu_upgrade_c->open)
+  //   blur_amount += fade_in_speed * dt;
 
   // blur with game upgrade menu...
   else if (game_upgrade_c && game_upgrade_c->open)
@@ -82,6 +82,7 @@ update_ui_blur_system(entt::registry& r, const float dt)
   blur_flags |= ImGuiWindowFlags_NoTitleBar;
   blur_flags |= ImGuiWindowFlags_NoInputs;
   blur_flags |= ImGuiWindowFlags_NoSavedSettings;
+  // blur_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
 
   ImGui::Begin("Blur", nullptr, blur_flags);
   ImGui::End();

@@ -14,7 +14,7 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui/ui_popup_pause/ui_popup_pause_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "ui_popup_pause_components.hpp"
 
 namespace game2d {

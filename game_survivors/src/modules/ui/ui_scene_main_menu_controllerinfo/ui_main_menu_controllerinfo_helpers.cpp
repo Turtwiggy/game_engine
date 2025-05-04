@@ -1,6 +1,6 @@
 #include "pch.hpp"
 
-#include "ui_main_menu_playerjoin_helpers.hpp"
+#include "ui_main_menu_controllerinfo_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/std/string/helpers.hpp"

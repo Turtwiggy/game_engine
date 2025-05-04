@@ -17,7 +17,9 @@
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "resources/data.hpp"
 #include "ui_scene_upgrades_components.hpp"
+#include "ui_scene_upgrades_helpers.hpp"
 #include "ui_scene_upgrades_system.hpp"
+#include <glm/common.hpp>
 
 namespace game2d {
 using namespace std::literals;
@@ -142,17 +144,16 @@ process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
   if (val_l)
     new_x--;
   if (val_u)
-    new_y++;
-  if (val_d)
     new_y--;
+  if (val_d)
+    new_y++;
 
   int max_x = ui_c.grid_x - 1;
-  int max_y = ((int)ui_c.state.cells.size() / ui_c.grid_x) - 1;
-
+  int max_y = get_grid_y(ui_c.state.cells.size(), ui_c.grid_x) - 1;
   new_x = glm::clamp(new_x, 0, max_x);
   new_y = glm::clamp(new_y, 0, max_y);
-
   ui_c.grid_idx = engine::grid::grid_position_to_index({ new_x, new_y }, ui_c.grid_x);
+  ui_c.grid_idx = glm::clamp(ui_c.grid_idx, 0, (int)ui_c.state.cells.size() - 1);
 }
 
 void
@@ -235,14 +236,6 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
   ImGui::Image(im_id, icon_size, gold_tl, gold_br, im_gold_col);
 
-  // header
-  const auto upgr_text = "Shipyard - for all your shipping needs.";
-  const auto upgr_size = fingerpaint_font->CalcTextSizeA(fingerpaint_font->FontSize, FLT_MAX, -1, upgr_text);
-  ImGui::SetCursorPos({ (ui_wh.x - upgr_size.x) * 0.5f, upgr_size.y * 0.5f });
-  ImGui::PushFont(fingerpaint_font);
-  ImGui::TextColored(im_text_col, "%s", upgr_text);
-  ImGui::PopFont();
-
   ImGui::PushFont(text_font);
 
   // Draw gold amount under the gold moneybagz.
@@ -253,7 +246,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   ImGui::Separator();
   ImGui::PopStyleColor();
 
-  const int grid_y = (int)ui_c.state.cells.size() / ui_c.grid_x;
+  const int grid_y = get_grid_y(ui_c.state.cells.size(), ui_c.grid_x);
   const auto grid_tl = ImGui::GetCursorScreenPos();
   const auto grid_br = ImVec2{ ui_br.x, grid_tl.y + icon_size.y * grid_y };
   const auto grid_wh = ImVec2{ grid_br.x - grid_tl.x, grid_br.y - grid_tl.y };

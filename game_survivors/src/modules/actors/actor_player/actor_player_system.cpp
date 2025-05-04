@@ -15,8 +15,9 @@
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_ability/ability_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
+#include <SDL_scancode.h>
 
 namespace game2d {
 
@@ -177,6 +178,7 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
       // generate_actions_from_keyboard(i.button_w, SDL_SCANCODE_RIGHT);
       generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_KP_ENTER);
       generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_RETURN);
+      generate_actions_from_keyboard(i.button_e, SDL_SCANCODE_ESCAPE);
     }
 
     if (auto* sdl_controller_c = r.try_get<SDLControllerComponent>(e)) {

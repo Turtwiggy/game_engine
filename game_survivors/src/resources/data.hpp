@@ -14,10 +14,13 @@ const engine::SRGBColour default_player_colours[n_players] = {
   hex_to_srgb("#00A8EB"), // blue
 };
 
+const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 const auto my_inactive_col = hex_to_srgb("#737a7e");
 const auto my_separator_col = hex_to_srgb("#7d8488");
 const auto my_window_bg_col = hex_to_srgb("#0c1116");
 const auto my_window_border_col = hex_to_srgb("#3B5676");
+
+const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
 const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
 const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
 const auto im_window_border_col = convert_my_to_im(my_window_bg_col);

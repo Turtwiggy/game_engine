@@ -4,6 +4,7 @@
 #include "ui_popup_options_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
@@ -14,6 +15,7 @@
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -54,14 +56,6 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const bool v_value_changed = v_value_changed_u || v_value_changed_d;
   const bool h_value_changed = h_value_changed_l || h_value_changed_r;
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_NoBackground;
-
   // const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   // const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto font_enum = FontSize::TEXT_SIZE_16;
@@ -85,19 +79,12 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSizeConstraints({ 400, 200 }, { 1000, 1000 });
 
-  ImGui::Begin("OptionsMenu", NULL, flags);
-
+  imgui_begin("OptionsMenu");
   auto* draw_list = ImGui::GetWindowDrawList();
   const ImVec2 window_tl = ImGui::GetWindowPos();
   const ImVec2 window_wh = ImGui::GetWindowSize();
   const ImVec2 window_br = { window_tl.x + window_wh.x, window_tl.y + window_wh.y };
 
-  const auto my_separator_col = hex_to_srgb("#7d8488");
-  const auto my_inactive_col = hex_to_srgb("#737a7e");
-  const auto my_window_bg_col = hex_to_srgb("#0c1116");
-  const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
-  const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
-  const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
   const auto rounding = 12.0f;
   const auto thickness = 2.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
@@ -105,15 +92,18 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
   const auto TEXT_SIZE = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
   const ImVec2 button_size = { 200.0f, TEXT_SIZE.y + 2.0f };
-  const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
   const float padding_x = 10;
+
+  // which is the active cell index
+  const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
+  const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
 
   for (int i = 0; i < (int)ui_c.state.cells.size(); i++) {
     auto& base = ui_c.state.cells[i];
     auto* cell = dynamic_cast<OptionsCell*>(base.get());
 
     int col_idx = 0;
-    int& row_idx = cell->value;
+    int row_idx = cell_idx;
     const bool active = base == ui_c.state.active;
 
     auto a_def = SelectableButtonDef{
@@ -192,6 +182,10 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     // Update option...
     if (active && h_value_changed) {
       auto& h_value = cell->value;
+      if (h_value_changed_r)
+        h_value++;
+      if (h_value_changed_l)
+        h_value--;
       option->update(app, r, h_value);
     }
 
