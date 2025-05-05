@@ -12,6 +12,7 @@
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
+#include "ui_back_button_components.hpp"
 
 namespace game2d {
 
@@ -20,6 +21,10 @@ update_ui_back_button_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
+  auto& ui_c = gesert_component<UI_BackButton>(r);
+
+  if (!ui_c.init)
+    ui_c.do_init(r);
 
   bool something_open = false;
 
@@ -79,14 +84,13 @@ update_ui_back_button_system(entt::registry& r)
 
   ImGui::Begin("BACK", 0, flags);
 
-  int ui_row_idx = 0;
-  int ui_col_idx = 0;
-  SelectableButtonDef def{
-    .label = "Back##tomenu",
-    .size = button_size,
-    .ui_row_index = ui_row_idx,
-    .ui_col_index = ui_col_idx,
+  auto& cell = ui_c.state.cells[0];
 
+  SelectableButtonDef def{
+    .label = cell->name,
+    .size = button_size,
+    .cell = cell,
+    .active_cell = ui_c.state.active,
     .update_selected_only_with_mouse = true,
     .font = text_font,
   };

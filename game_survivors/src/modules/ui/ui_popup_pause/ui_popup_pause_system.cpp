@@ -103,17 +103,12 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
       ImGui::NewLine();
     auto& cell = ui_c.state.cells[i];
 
-    int row_idx = 0;
-    int col_idx = 0;
     auto a_def = SelectableButtonDef{
       .label = cell->name,
       .size = size,
       .input = do_act,
-      .my_row_index = i,
-      .my_col_index = 0,
-      .ui_row_index = row_idx,
-      .ui_col_index = col_idx,
-      .ui_col_active = true,
+      .cell = cell,
+      .active_cell = ui_c.state.active,
       .font = font,
     };
 

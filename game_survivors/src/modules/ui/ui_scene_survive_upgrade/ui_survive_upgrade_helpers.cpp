@@ -128,6 +128,7 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     }
 
     create_as_vertical_layout(state_c.cells);
+    state_c.active = state_c.cells[0];
   }
 };
 

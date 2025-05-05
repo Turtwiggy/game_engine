@@ -4,6 +4,7 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
@@ -126,49 +127,46 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.2f));
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoCollapse;
-  flags |= ImGuiWindowFlags_NoTitleBar;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-
-  ImGui::Begin("Main Menu", nullptr, flags);
-
+  imgui_begin("Main Menu");
   process_input_for_ui_all_handles(r, ui_c.state);
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
   const auto& g_input_c = r.get<InputComponent>(g_input_e);
   const auto& b_s = g_input_c.button_s;
   const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
 
-  // which is the active cell index
-  const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
-  const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
+  int i = 0;
+  const std::shared_ptr<Cell> root = ui_c.state.cells[0];
+  std::shared_ptr<Cell> base = root;
 
-  for (int i = 0; i < (int)ui_c.state.cells.size(); i++) {
+  while (base->d != nullptr) {
+
     if (i > 0)
       ImGui::Dummy(space_between_buttons);
 
-    auto& cell = ui_c.state.cells[i];
-
-    int col_idx = 0;
-    int row_idx = cell_idx;
-    auto a_def = SelectableButtonDef{
-      .label = cell->name,
-      .size = button_size,
-      .input = do_act,
-      .my_row_index = i,
-      .my_col_index = 0,
-      .ui_row_index = row_idx,
-      .ui_col_index = col_idx,
-      .ui_col_active = true,
-      .font = font,
+    const auto draw_button = [&](std::shared_ptr<Cell>& cell, int my_col_index) {
+      auto a_def = SelectableButtonDef{
+        .label = cell->name,
+        .size = button_size,
+        .input = do_act,
+        .cell = cell,
+        .active_cell = ui_c.state.active,
+        .font = font,
+      };
+      if (selectable_button(r, a_def))
+        cell->action();
     };
 
-    if (selectable_button(r, a_def))
-      cell->action();
+    draw_button(base, 0);
 
-    //
+    if (base->r != nullptr) {
+      ImGui::SameLine();
+      draw_button(base->r, 1);
+    }
+
+    base = base->d;
+    if (base == root)
+      break;
+    i++;
   }
   ImGui::PopStyleVar(5);
   ImGui::End();

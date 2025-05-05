@@ -229,18 +229,12 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     const bool button_active = ui_c.handle_disconnected.size() == 0;
     const ImVec2 button_size = { 160.0f, (TEXT_SIZE.y * 2.0f) + 2.0f };
 
-    int row_idx = 0;
-    int col_idx = 0;
     auto a_def = SelectableButtonDef{
       .label = "Resume",
       .size = button_size,
       .input = do_act && button_active,
-      .my_row_index = 0,
-      .my_col_index = 0,
-      .ui_row_index = row_idx,
-      .ui_col_index = col_idx,
-      .ui_col_active = button_active,
-
+      .cell = ui_c.state.cells[0], // only one button (continue)
+      .active_cell = ui_c.state.active,
       .font = text_font,
     };
 

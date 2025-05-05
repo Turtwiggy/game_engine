@@ -38,33 +38,25 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   // https://github.com/ocornut/imgui/issues/4719
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   draw_list->ChannelsSplit(2);
-
   draw_list->ChannelsSetCurrent(1);
-
-  const std::string id = "##menuselectable" + std::to_string(def.my_col_index) + "_" + std::to_string(def.my_row_index);
-
-  ImGui::Selectable(id.c_str(), false, 0, size);
 
   const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
   const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
 
+  const std::string id = "##menuselectable" + def.cell->name;
+  ImGui::Selectable(id.c_str(), false, 0, size);
   const bool is_hovered = ImGui::IsItemHovered();
-  if (is_hovered && mouse_move && def.update_selected_on_mouse_move) {
-    def.ui_row_index = def.my_row_index;
-    def.ui_col_index = def.my_col_index;
-  }
-
   const bool is_clicked = ImGui::IsItemClicked();
+
+  if (is_hovered && mouse_move && def.update_selected_on_mouse_move)
+    def.active_cell = def.cell;
+
   if (is_clicked) {
-    def.ui_row_index = def.my_row_index;
-    def.ui_col_index = def.my_col_index;
+    def.active_cell = def.cell;
     do_act = true;
   }
 
-  bool is_selected = def.ui_col_active;
-  is_selected &= (def.my_col_index == def.ui_col_index);
-  is_selected &= (def.my_row_index == def.ui_row_index);
-
+  bool is_selected = def.active_cell == def.cell;
   if (def.update_selected_only_with_mouse)
     is_selected = is_hovered;
 

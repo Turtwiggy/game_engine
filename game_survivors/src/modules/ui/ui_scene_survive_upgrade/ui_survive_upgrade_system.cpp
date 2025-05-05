@@ -338,17 +338,12 @@ update_ui_survive_upgrade_system(entt::registry& r)
         draw_list->AddCircleFilled(circle_center, 5.0f, im_player_col);
       }
 
-      int col_idx = 0;
-      int row_idx = 0; // TODO: this is definitely wrong
       SelectableButtonDef def{
         .label = "##aquire_" + rarity_str + "_" + upgrade_str,
         .size = card_ui_wh,
         .input = do_act,
-        .my_row_index = card_idx,
-        .my_col_index = 0, // one col
-        .ui_row_index = row_idx,
-        .ui_col_index = col_idx,
-        .ui_col_active = true,
+        .cell = state_c.cells[card_idx],
+        .active_cell = state_c.active,
 
         // hide the buttons (display handled elsewhere)
         .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
@@ -360,7 +355,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       ImGui::SetCursorPos(card_ui_tl);
       if (selectable_button(r, def)) {
         // Process action (aquire the upgrade)
-        // state_c.active->action();
+        state_c.active->action();
         // const auto& cell = state_c.rows[state_c.current_row_index];
         // cell.action();
         SDL_Log("reimpl aquire upgrade"); // TODO: fix this

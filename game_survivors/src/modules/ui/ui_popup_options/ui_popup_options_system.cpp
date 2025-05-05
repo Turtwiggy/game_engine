@@ -110,16 +110,12 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       .label = to_upper(cell->name),
       .size = button_size,
       .input = do_act,
-      .my_row_index = i,
-      .my_col_index = 0, // one column
-      .ui_row_index = row_idx,
-      .ui_col_index = col_idx, // one column
-      .ui_col_active = active,
+      .cell = base,
+      .active_cell = ui_c.state.active,
 
       // could replace both .text_X with .text_pivot
       .text_centered = false,
       .text_offset = { padding_x, 0 },
-
       .font = font,
 
       // hide the buttons

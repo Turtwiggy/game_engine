@@ -121,13 +121,8 @@ update_ui_gameover_system(entt::registry& r)
     .label = "To Menu",
     .size = button_size,
     .input = do_act,
-
-    .my_row_index = 0,
-    .my_col_index = 0,
-    .ui_row_index = row_idx,
-    .ui_col_index = col_idx,
-    .ui_col_active = true,
-
+    .cell = ui_c.state.cells[0], // only one button (continue)
+    .active_cell = ui_c.state.active,
     .font = text_font,
   };
 

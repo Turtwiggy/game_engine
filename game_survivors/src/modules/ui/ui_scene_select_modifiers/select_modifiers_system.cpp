@@ -99,17 +99,12 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
   for (int i = 0; i < (int)(ui_c.state.cells.size()); i++) {
     auto& cell = ui_c.state.cells[i];
 
-    int row_idx = 0; // TODO: this is definitely wrong
-    int col_idx = 0;
     auto a_def = SelectableButtonDef{
       .label = to_upper(cell->name),
       .size = button_size,
       .input = do_act,
-      .my_row_index = i,
-      .my_col_index = 0,
-      .ui_row_index = row_idx,
-      .ui_col_index = col_idx,
-      .ui_col_active = true,
+      .cell = cell,
+      .active_cell = ui_c.state.active,
 
       // could replace both .text_X with .text_pivot
       .text_centered = false,

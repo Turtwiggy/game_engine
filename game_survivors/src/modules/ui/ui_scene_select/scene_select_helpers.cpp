@@ -43,6 +43,7 @@ update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c)
       c.name = "Weapon";
       ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c1));
 
+      ui_state_c.state.active = ui_state_c.state.cells[0];
       ui_state_c.init = true;
     }
 

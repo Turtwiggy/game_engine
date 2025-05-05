@@ -16,19 +16,28 @@ struct SINGLE_UIScaling
   float scaling = 1.0f;
 };
 
+struct Cell
+{
+  std::string name;
+
+  std::shared_ptr<Cell> l = nullptr;
+  std::shared_ptr<Cell> r = nullptr;
+  std::shared_ptr<Cell> u = nullptr;
+  std::shared_ptr<Cell> d = nullptr;
+
+  std::function<void()> action;
+
+  virtual ~Cell() = default;
+};
+
 struct SelectableButtonDef
 {
   std::string label;
   ImVec2 size{ 20, 20 };
   bool input;
 
-  // layout index
-  // note: hovering the selected button chan change the sel_index
-  int my_row_index = 0;
-  int my_col_index = 0;
-  int& ui_row_index;
-  int& ui_col_index;
-  bool ui_col_active = true;
+  std::shared_ptr<Cell>& cell;
+  std::shared_ptr<Cell>& active_cell;
 
   // edge cases
   bool update_selected_only_with_mouse = false;
@@ -42,20 +51,6 @@ struct SelectableButtonDef
   engine::SRGBColour inactive_outline_col = hex_to_srgb("#FFFFFF", (int)(0.6f * 255));
   engine::SRGBColour active_bg_col = hex_to_srgb("#02526D", 255);
   engine::SRGBColour inactive_bg_col = hex_to_srgb("#02526D", (int)(0.6f * 255));
-};
-
-struct Cell
-{
-  std::string name;
-
-  std::shared_ptr<Cell> l = nullptr;
-  std::shared_ptr<Cell> r = nullptr;
-  std::shared_ptr<Cell> u = nullptr;
-  std::shared_ptr<Cell> d = nullptr;
-
-  std::function<void()> action;
-
-  virtual ~Cell() = default;
 };
 
 enum class UIAction

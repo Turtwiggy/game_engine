@@ -14,10 +14,13 @@ namespace game2d {
 void
 SINGLE_MainMenuUI::do_init(entt::registry& r)
 {
-  const auto play_action = [&r]() {
+  const auto play_action = [&]() {
+    open = false;
     move_to_scene_start(r, Scene::select_ships);
-    // if (col_idx == 1)
-    //   move_to_scene_start(r, Scene::select_modifiers);
+  };
+  const auto modifiers_action = [&]() {
+    open = false;
+    move_to_scene_start(r, Scene::select_modifiers);
   };
   const auto upgrade_action = [&]() {
     open = false;
@@ -29,21 +32,29 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   };
   const auto exit_action = [&r]() { create_empty<RequestQuitApplication>(r); };
 
-  const auto make_cell = [&](auto name, auto action) {
+  const auto make_cell = [&](auto name, auto action) -> std::shared_ptr<Cell>& {
     Cell c;
     c.name = name;
     c.action = action;
     state.cells.push_back(std::make_shared<Cell>(c));
+    return state.cells.back();
   };
-  make_cell("Play", play_action);
-  make_cell("Upgrades", upgrade_action);
-  make_cell("Options", options_action);
-  make_cell("Exit", exit_action);
+
+  auto a = make_cell("Play", play_action);
+  auto b = make_cell("Upgrades", upgrade_action);
+  auto c = make_cell("Options", options_action);
+  auto d = make_cell("Exit", exit_action);
+  auto e = make_cell("Modifiers", modifiers_action);
 
   //
   // nav
   //
-  create_as_vertical_layout(state.cells);
+  std::vector<std::shared_ptr<Cell>> vertical_cells = { a, b, c, d };
+  create_as_vertical_layout(vertical_cells);
+
+  // put the modifiers button on the right of the play button
+  a->r = e;
+  e->l = a;
 
   state.active = state.cells[0];
   open = true;
