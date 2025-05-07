@@ -172,10 +172,10 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
       generate_actions_from_keyboard(i.dpad_d, SDL_SCANCODE_DOWN);
       generate_actions_from_keyboard(i.dpad_l, SDL_SCANCODE_LEFT);
       generate_actions_from_keyboard(i.dpad_r, SDL_SCANCODE_RIGHT);
-      // generate_actions_from_keyboard(i.button_n, SDL_SCANCODE_UP);
-      // generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_DOWN);
-      // generate_actions_from_keyboard(i.button_e, SDL_SCANCODE_LEFT);
-      // generate_actions_from_keyboard(i.button_w, SDL_SCANCODE_RIGHT);
+      generate_actions_from_keyboard(i.button_n, SDL_SCANCODE_KP_8);
+      generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_KP_2);
+      generate_actions_from_keyboard(i.button_e, SDL_SCANCODE_KP_6);
+      generate_actions_from_keyboard(i.button_w, SDL_SCANCODE_KP_4);
       generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_KP_ENTER);
       generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_RETURN);
       generate_actions_from_keyboard(i.button_e, SDL_SCANCODE_ESCAPE);
@@ -198,6 +198,10 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
         // need to improve this...
         const auto input = generate_from_handle(r, handle);
+        i.lx = input.lx;
+        i.ly = input.ly;
+        i.rx = input.rx;
+        i.ry = input.ry;
         i.pause.insert(i.pause.end(), input.pause.begin(), input.pause.end());
         i.ability1.insert(i.ability1.end(), input.ability1.begin(), input.ability1.end());
         i.ability2.insert(i.ability2.end(), input.ability2.begin(), input.ability2.end());

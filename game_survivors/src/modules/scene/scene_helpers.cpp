@@ -52,6 +52,7 @@
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/ui/ui_gameover/ui_gameover_components.hpp"
+#include "modules/ui/ui_scene_main_menu/helpers.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
@@ -399,6 +400,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_MainMenuAnimatedData>(r, menu_anim_c);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    init_oh_buoy_header_text(r);
 
     // load player's saved units
     // const auto units = load_units(r);
@@ -417,11 +419,14 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::select_modifiers) {
     // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
+    init_oh_buoy_header_text(r);
     create_empty<RequestToShowModifierMenu>(r);
+
     auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
   }
 
   if (s == Scene::select_ships) {
+    init_oh_buoy_header_text(r);
     create_empty<SINGLE_SelectSceneData>(r);
   }
 

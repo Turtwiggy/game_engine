@@ -3,6 +3,8 @@
 #include "ui_back_button_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
@@ -21,6 +23,8 @@ update_ui_back_button_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
+  const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+
   auto& ui_c = gesert_component<UI_BackButton>(r);
 
   if (!ui_c.init)
@@ -93,6 +97,12 @@ update_ui_back_button_system(entt::registry& r)
     .active_cell = ui_c.state.active,
     .update_selected_only_with_mouse = true,
     .font = text_font,
+
+    // hide the buttons
+    .active_outline_col = { 1.0f, 1.0f, 1.0f, 0.4f },
+    .inactive_outline_col = { 1.0f, 1.0f, 1.0f, 0.4f },
+    .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+    .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
   };
 
   ImGui::SetCursorPos({ 5, 5 }); // padding
@@ -101,6 +111,9 @@ update_ui_back_button_system(entt::registry& r)
 
   ImGui::End();
   ImGui::PopStyleVar(4);
+
+  if (get_key_down(input_c, SDL_SCANCODE_ESCAPE))
+    move_to_scene_start(r, Scene::menu);
 }
 
 } // namespace game2d

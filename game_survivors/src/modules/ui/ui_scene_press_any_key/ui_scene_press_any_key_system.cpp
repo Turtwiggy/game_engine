@@ -26,7 +26,7 @@ auto init_text = [](entt::registry& r) {
 
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [](entt::registry& r, const WorldspaceTextComponent& data) {
+  wst_c.layout = [](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
     ImGuiIO& io = ImGui::GetIO();
 
     auto my_greenish = hex_to_srgb("#71BBB2");

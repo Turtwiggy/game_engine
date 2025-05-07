@@ -12,11 +12,11 @@ void
 update_ui_imgui_colours_system(entt::registry& r)
 {
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-  const auto& ui_state = gesert_menubar_state(menu_c, "Colour Editor");
+  const auto& ui_state = gesert_menubar_state(menu_c, "ImGui Colour Editor");
   if (!ui_state.enabled)
     return;
 
-  ImGui::Begin("Colour Editor");
+  ImGui::Begin("ColourEditor");
 
   // CINDER IMGUI
   static float var_ImGuiCol_Text[4] = { 0.86f, 0.93f, 0.89f, 0.78f };

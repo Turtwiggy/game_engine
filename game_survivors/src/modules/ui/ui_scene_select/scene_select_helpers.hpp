@@ -8,7 +8,7 @@
 namespace game2d {
 
 void
-update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c);
+update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c, const float dt);
 
 void
 update_countdown(SINGLE_SelectSceneData& data_c, bool everyone_confirmed, float dt);

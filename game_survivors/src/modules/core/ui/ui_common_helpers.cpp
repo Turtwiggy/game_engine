@@ -1,27 +1,31 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/events/components.hpp"
-#include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
-#include "modules/core/fonts/fonts_helpers.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
-#include "modules/steam_input/steam_input_components.hpp"
-#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
-#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 
 namespace game2d {
 
 bool
 selectable_button(entt::registry& r, SelectableButtonDef& def)
 {
+  const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0)); // button hovered
   ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));  // button clicked
+
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
 
   // const auto& colors = ImGui::GetStyle().Colors;
   // const auto b_col = colors[ImGuiCol_Button];
@@ -75,6 +79,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   const ImU32 outline_col = is_selected ? im_active_outline_col : im_inactive_outline_col;
   const ImU32 bg_col = is_selected ? im_active_bg_col : im_inactive_bg_col;
   const ImU32 text_col = IM_COL32(255, 255, 255, is_selected ? 255 : 150);
+  const ImVec4 text_col_vec = ImVec4(1.0f, 1.0f, 1.0f, is_selected ? 1.0f : 1.0f * (150 / 255.0f));
 
   // button
   draw_list->AddRectFilled(p_tl, p_br, bg_col, rounding);
@@ -102,6 +107,20 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   text_pos += def.text_offset;
   draw_list->AddText(font, font->FontSize, text_pos, text_col, label.c_str());
 
+  // draw as an icon
+  if (def.icon.has_value()) {
+    const auto& icon = def.icon.value();
+    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+    const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+    const ImVec2 icon_size{ def.size.x, def.size.y };
+    const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
+
+    const auto icon_padding = 4;
+    const auto icon_p_tl = ImVec2{ p_tl.x + icon_padding, p_tl.y + icon_padding };
+    const auto icon_p_br = ImVec2{ p_br.x - icon_padding, p_br.y - icon_padding };
+    draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_tl, icon_br, text_col);
+  }
+
   // "commit changes"
   draw_list->ChannelsMerge();
 
@@ -118,6 +137,8 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     do_act = true;
 
   ImGui::PopStyleColor(2);
+  // ImGui::PopStyleVar(4);
+
   return do_act;
 };
 

@@ -10,4 +10,7 @@ play_sound_if_hovered(entt::registry& r, std::vector<std::string>& hovered_butto
 void
 ui_mute_sound_icon(entt::registry& r);
 
+void
+init_oh_buoy_header_text(entt::registry& r);
+
 } // namespace game2d

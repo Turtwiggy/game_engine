@@ -40,6 +40,11 @@
     { "name": "OYSTER", "frames": [ { "x": 6, "y": 10, "w": 2, "h": 2 } ]},
     { "name": "GOLD_OUTLINE", "frames": [ { "x": 8, "y": 10, "w": 2, "h": 2 } ]},
 
-    { "name": "ROCKS_0", "frames": [ { "x": 0, "y": 12, "w": 2, "h": 2 } ]}
+    { "name": "ROCKS_0", "frames": [ { "x": 0, "y": 12, "w": 2, "h": 2 } ]},
+
+    { "name": "ICON_WHEEL", "frames": [ { "x": 0, "y": 28, "w": 4, "h": 4 } ]},
+    { "name": "ICON_SAILBOAT", "frames": [ { "x": 4, "y": 28, "w": 4, "h": 4 } ]},
+    { "name": "ICON_CARGOBOAT", "frames": [ { "x": 8, "y": 28, "w": 4, "h": 4 } ]},
+    { "name": "ICON_WAND", "frames": [ { "x": 12, "y": 28, "w": 4, "h": 4 } ]}
   ]
 }

@@ -25,7 +25,7 @@ struct Cell
   std::shared_ptr<Cell> u = nullptr;
   std::shared_ptr<Cell> d = nullptr;
 
-  std::function<void()> action;
+  std::function<void()> action = []() {};
 
   virtual ~Cell() = default;
 };
@@ -33,6 +33,7 @@ struct Cell
 struct SelectableButtonDef
 {
   std::string label;
+  std::optional<std::string> icon = std::nullopt;
   ImVec2 size{ 20, 20 };
   bool input;
 

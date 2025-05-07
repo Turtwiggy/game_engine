@@ -13,6 +13,7 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -75,12 +76,6 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
   const ImVec2 window_br = { window_tl.x + window_wh.x, window_tl.y + window_wh.y };
 
   // same as the options menu
-  const auto my_separator_col = hex_to_srgb("#7d8488");
-  const auto my_inactive_col = hex_to_srgb("#737a7e");
-  const auto my_window_bg_col = hex_to_srgb("#0c1116");
-  const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
-  const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
-  const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
   const auto rounding = 12.0f;
   const auto thickness = 2.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
@@ -126,7 +121,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
       continue; // option not impl?
 
     // islands only modifier
-    // TODO: fix this
+    // TODO: fix this when more modifiers are added
     if (i != 0)
       continue;
 

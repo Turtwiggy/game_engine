@@ -113,8 +113,6 @@ update_ui_gameover_system(entt::registry& r)
   ImGui::Text("%s", std::format("-{} angry sea monsters", stats_c.enemies_killed).c_str());
   ImGui::Text("%s", std::format("+{} gold", stats_c.gold_earned).c_str());
 
-  int row_idx = 0;
-  int col_idx = 0;
   const ImVec2 button_size = { 88.5f * font_scale, 25.0f * font_scale };
 
   SelectableButtonDef def{

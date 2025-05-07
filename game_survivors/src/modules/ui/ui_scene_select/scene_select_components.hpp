@@ -11,6 +11,12 @@ struct HullChoice
 {
   bool confirmed = false;
 
+  float confirm_held_time = 0.0f;
+  float confirm_held_time_max = 1.1f;
+
+  float back_held_time = 0.0f;
+  float back_held_time_max = 1.1f;
+
   int player_row_idx = 0;
   int player_idx = 0;
   std::string player_boat_key = "unknown";
@@ -20,16 +26,11 @@ struct HullChoice
 
 struct SelectUI : public DefaultUI
 {
-  int cell_idx = 0;
+  int select_choice_idx = 0;
 };
 
-struct SINGLE_SelectSceneData
+struct SINGLE_SelectSceneData : public DefaultUI
 {
-  // wait one frame before processing scene,
-  // otherwise the input that sent you
-  // to the scene will move you to the next scene.
-  bool menu_to_select_scene_buffer_frame = true;
-
 #if defined(_DEBUG)
   float countdown_max = 0.5f;
   float countdown = 0.5f;

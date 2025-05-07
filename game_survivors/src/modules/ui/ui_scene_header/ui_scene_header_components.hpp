@@ -6,7 +6,7 @@ namespace game2d {
 
 struct MegaHeaderComponent
 {
-  bool placeholder = true;
+  std::optional<std::string> icon = std::nullopt;
 };
 
 } // namespace game2d

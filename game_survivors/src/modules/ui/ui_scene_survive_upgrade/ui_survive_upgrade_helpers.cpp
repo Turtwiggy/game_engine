@@ -119,11 +119,12 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     if (player_e == entt::null)
       continue;
     const auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
+    const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
 
     for (const UpgradeRollResult& res : upgrades_c.results) {
       Cell c;
       c.name = "Aquire";
-      c.action = [&]() { aquire_action(r, player_e, res); };
+      c.action = [&, player_e]() { aquire_action(r, player_e, res); };
       state_c.cells.push_back(std::make_shared<Cell>(c));
     }
 

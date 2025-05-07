@@ -31,7 +31,7 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
 {
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [damage, crit](entt::registry& r, const WorldspaceTextComponent& data) {
+  wst_c.layout = [damage, crit](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
     const auto my_non_crit_col = hex_to_srgb("#b1c9c3"); // grey
     const auto my_crit_col = hex_to_srgb("#e99f10");     //
 

@@ -20,7 +20,7 @@
 namespace game2d {
 
 void
-update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c)
+update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c, const float dt)
 {
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
@@ -32,32 +32,51 @@ update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c)
 
     // 4 copies of the ui-state. one per player.
     auto& ui_state_c = ui_c.player_ui_state[i];
-
-    if (!ui_state_c.init) {
-
-      OptionsCell c;
-      c.name = "Hull";
-      ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c));
-
-      OptionsCell c1;
-      c.name = "Weapon";
-      ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c1));
-
-      ui_state_c.state.active = ui_state_c.state.cells[0];
-      ui_state_c.init = true;
-    }
+    auto& ui_choice_state_c = ui_c.player_choice_state[i];
 
     // process the input for that ui-state.
-    if (i < joined_players) {
-      const auto input = generate_from_handle(r, steam_state_c.handles[i]);
+    if (i >= joined_players)
+      break;
 
-      ui_state_c.state.actions.clear();
-      process_input_for_ui(r, ui_state_c.state, input);
+    // note: generate_from_handle, because no PlayerComponent exists.
+    const auto input = generate_from_handle(r, steam_state_c.handles[i]);
+    ui_state_c.state.actions.clear();
+    process_input_for_ui(r, ui_state_c.state, input);
+
+    // check if confirm/back is held.
+    const auto& b_s = input.button_s;
+    const auto& b_e = input.button_e;
+    const bool do_act_held = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
+    const bool do_act_release = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
+    const bool do_back_held = std::find(b_e.begin(), b_e.end(), ActionStateEnum::HELD) != b_e.end();
+    const bool do_back_release = std::find(b_e.begin(), b_e.end(), ActionStateEnum::RELEASE) != b_e.end();
+
+    if (do_act_held) {
+      auto& held_time = ui_choice_state_c.confirm_held_time;
+      auto held_time_max = ui_choice_state_c.confirm_held_time_max;
+      held_time += dt;
+      held_time = glm::clamp(held_time, 0.0f, held_time_max);
+    }
+    if (do_act_release || !do_act_held)
+      ui_choice_state_c.confirm_held_time = 0.0f;
+    if (ui_choice_state_c.confirm_held_time >= ui_choice_state_c.confirm_held_time_max) {
+      ui_choice_state_c.confirmed = true;
+    }
+
+    if (do_back_held) {
+      auto& held_time = ui_choice_state_c.back_held_time;
+      auto held_time_max = ui_choice_state_c.back_held_time_max;
+      held_time += dt;
+      held_time = glm::clamp(held_time, 0.0f, held_time_max);
+    }
+    if (do_back_release || !do_back_held)
+      ui_choice_state_c.back_held_time = 0.0f;
+    if (ui_choice_state_c.back_held_time >= ui_choice_state_c.back_held_time_max) {
+      ui_choice_state_c.confirmed = false;
+      move_to_scene_start(r, Scene::menu);
+      break;
     }
   }
-
-  // keyboard works for player 0
-  // process_keyboard_input_for_ui(r, ui_c.player_ui_state[0]);
 };
 
 void

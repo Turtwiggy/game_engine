@@ -40,6 +40,7 @@ SINGLE_PauseMenuState::do_init(entt::registry& r)
   //
   create_as_vertical_layout(state.cells);
 
+  state.active = state.cells[0];
   init = true;
 };
 
