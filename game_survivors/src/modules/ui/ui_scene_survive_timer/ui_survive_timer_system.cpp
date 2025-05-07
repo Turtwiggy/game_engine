@@ -54,7 +54,7 @@ update_ui_survive_timer_system(entt::registry& r)
     const auto ui_tl = ImGui::GetCursorPos();
 
     {
-      const auto header_font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto header_font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
       const auto header_font_enum = header_font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
       auto* header_font = get_inter_font(r, header_font_enum);
       ImGui::PushFont(header_font); // Use the larger font (index 1)
@@ -64,7 +64,7 @@ update_ui_survive_timer_system(entt::registry& r)
       ImGui::PopFont();
     }
     {
-      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
       auto* font = get_inter_font(r, font_enum);
       ImGui::PushFont(font); // Use the larger font (index 1)

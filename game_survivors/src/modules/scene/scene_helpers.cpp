@@ -52,9 +52,10 @@
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/ui/ui_gameover/ui_gameover_components.hpp"
+#include "modules/ui/ui_scene_main_menu/helpers.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
@@ -399,6 +400,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_MainMenuAnimatedData>(r, menu_anim_c);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    init_oh_buoy_header_text(r);
 
     // load player's saved units
     // const auto units = load_units(r);
@@ -416,12 +418,15 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::select_modifiers) {
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
+    init_oh_buoy_header_text(r);
     create_empty<RequestToShowModifierMenu>(r);
+
     auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
   }
 
   if (s == Scene::select_ships) {
+    init_oh_buoy_header_text(r);
     create_empty<SINGLE_SelectSceneData>(r);
   }
 
@@ -487,7 +492,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       const auto p = spawn_player(r, "actor_player", { 0, 0 }, i, boat_str, weapon_str);
 
       if (handle_joined)
-        r.get<SteamControllerComponent>(p).handle = handle;
+        r.get<SteamControllerComponent>(p).handles.push_back(handle);
 
       if (i == 0)
         r.emplace<KeyboardComponent>(p);
@@ -517,7 +522,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
       auto handle = controller_ui.handles[i];
-      r.get<SteamControllerComponent>(p).handle = handle;
+      r.get<SteamControllerComponent>(p).handles.push_back(handle);
       break;
     }
 

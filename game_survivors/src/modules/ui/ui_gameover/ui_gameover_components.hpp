@@ -5,11 +5,16 @@
 
 namespace game2d {
 
-struct SINGLE_GameoverUI
+struct SINGLE_GameoverUI : public DefaultUI
 {
-  bool init = false;
-  bool open = false;
-  UIState state;
+  SINGLE_GameoverUI()
+  {
+    Cell c;
+    c.name = "Main Menu";
+    state.cells.push_back(std::make_shared<Cell>(c));
+
+    state.active = state.cells[0];
+  }
 };
 
 } // namespace game2d

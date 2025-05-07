@@ -89,7 +89,7 @@ struct SINGLE_SteamControllers
 // attach this to a player
 struct SteamControllerComponent
 {
-  InputHandle_t handle = 0;
+  std::vector<InputHandle_t> handles;
 };
 
 } // namespace game2d

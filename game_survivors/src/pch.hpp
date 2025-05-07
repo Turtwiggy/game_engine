@@ -12,6 +12,7 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <memory>
 #include <optional>
 #include <ranges>
 #include <set>

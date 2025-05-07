@@ -1,8 +1,8 @@
 #pragma once
 
 #include "engine/colour/colour.hpp"
-#include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+
 #include <imgui.h>
 
 #include <functional>
@@ -11,24 +11,34 @@
 
 namespace game2d {
 
-struct SINGLE_UIData
+struct SINGLE_UIScaling
 {
   float scaling = 1.0f;
+};
+
+struct Cell
+{
+  std::string name;
+
+  std::shared_ptr<Cell> l = nullptr;
+  std::shared_ptr<Cell> r = nullptr;
+  std::shared_ptr<Cell> u = nullptr;
+  std::shared_ptr<Cell> d = nullptr;
+
+  std::function<void()> action = []() {};
+
+  virtual ~Cell() = default;
 };
 
 struct SelectableButtonDef
 {
   std::string label;
+  std::optional<std::string> icon = std::nullopt;
   ImVec2 size{ 20, 20 };
   bool input;
 
-  // layout index
-  // note: hovering the selected button chan change the sel_index
-  int my_row_index = 0;
-  int my_col_index = 0;
-  int& ui_row_index;
-  int& ui_col_index;
-  bool ui_col_active = true;
+  std::shared_ptr<Cell>& cell;
+  std::shared_ptr<Cell>& active_cell;
 
   // edge cases
   bool update_selected_only_with_mouse = false;
@@ -44,40 +54,52 @@ struct SelectableButtonDef
   engine::SRGBColour inactive_bg_col = hex_to_srgb("#02526D", (int)(0.6f * 255));
 };
 
-struct RowState
-{
-  std::string col_name = "default";
-  int col_index = 0;
-
-  // one function per row-state?
-  std::function<void()> action;
-};
-
 enum class UIAction
 {
+  NAV_MOVE_L,
+  NAV_MOVE_R,
+  NAV_MOVE_U,
+  NAV_MOVE_D,
+
   SELECT,
   BACK,
-
-  H_VALUE_CHANGED,
-  H_VALUE_CHANGED_LEFT,
-  H_VALUE_CHANGED_RIGHT,
-
-  V_VALUE_CHANGED,
-  V_VALUE_CHANGED_UP,
-  V_VALUE_CHANGED_DOWN,
 };
 
 // Note: this is limited.
 // should support things like navigating left&right
 struct UIState
 {
-  bool init = false;
-
-  // vertical select
-  int current_row_index = 0;
-  std::vector<RowState> rows;
-
+  std::shared_ptr<Cell> active = nullptr;
+  std::vector<std::shared_ptr<Cell>> cells;
   std::vector<UIAction> actions;
+};
+
+struct DefaultUI
+{
+  bool open = false;
+  bool init = false;
+  bool one_frame_buffer = true;
+  UIState state;
+
+  virtual void do_init(entt::registry& r) {};
+
+  template<class T>
+  std::optional<T> update(entt::registry& r)
+  {
+    std::optional<T> temp = std::nullopt;
+
+    if (one_frame_buffer) {
+      one_frame_buffer = false;
+      return std::nullopt;
+    }
+
+    process_requests<T>(r, [&](const T& req) {
+      open = true;
+      temp = req; // note: if multiple reqs, uses last
+    });
+
+    return temp;
+  }
 };
 
 } // namespace game2d

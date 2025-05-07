@@ -31,11 +31,11 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
 {
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [damage, crit](entt::registry& r) {
+  wst_c.layout = [damage, crit](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
     const auto my_non_crit_col = hex_to_srgb("#b1c9c3"); // grey
     const auto my_crit_col = hex_to_srgb("#e99f10");     //
 
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
     auto* font = get_inter_font(r, font_enum);
 

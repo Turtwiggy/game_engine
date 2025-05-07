@@ -1,9 +1,10 @@
 #include "pch.hpp"
 
-#include "ui_main_menu_playerjoin_system.hpp"
+#include "ui_main_menu_controllerinfo_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -11,8 +12,8 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -250,7 +251,7 @@ draw_player_ui_box(entt::registry& r,
                    const ControllerState state,
                    const float dt)
 {
-  const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   auto& data_c = get_first_component<SINGLE_MainMenuAnimatedData>(r);
   auto& anim_data = data_c.data[player_idx];
 
@@ -283,7 +284,7 @@ draw_player_ui_box(entt::registry& r,
   draw_list->AddRectFilled(tl, p_max, im_bg_col, 2);
 
   const auto add_bottom_left_text = [&](std::string text_str) -> void {
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
     auto* font = get_inter_font(r, font_enum);
     ImGui::PushFont(font);
@@ -322,7 +323,7 @@ draw_player_ui_box(entt::registry& r,
     // const auto text_col = IM_COL32(255, 255, 255, alpha_int);
     const auto text_col = IM_COL32(0, 0, 0, alpha_int);
 
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
     ImGui::PushFont(get_inter_font(r, font_enum));
 
@@ -398,7 +399,7 @@ draw_player_ui_box(entt::registry& r,
 
       const auto pos = ImVec2(mask_br.x, mask_tl.y + bob_val);
 
-      const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+      const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
       const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
       ImGui::PushFont(get_inter_font(r, font_enum));
 
@@ -424,7 +425,7 @@ draw_player_ui_box(entt::registry& r,
 }
 
 void
-update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
+update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float dt)
 {
   static float timer = 0.0f;
 
@@ -437,7 +438,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-  const auto& ui_scale = get_first_component<SINGLE_UIData>(r);
+  const auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
 
   //
   // Clear the handles that have joined this frame
@@ -447,13 +448,6 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   // which I doubt is the users intention
   //
   ui_c.handles_joined_this_frame.clear();
-
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoNav;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoInputs;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const float pos_padding_x = -8.0f * ui_scale.scaling;
@@ -481,7 +475,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
 
     timer += dt;
 
-    ImGui::Begin("WaitingForControllerUI", NULL, flags);
+    imgui_begin("WaitingForControllerUI");
     auto txt = std::format("Loading steam input...\nWaiting for a controller... ({:0.1f})", timer);
     ImGui::Text("%s", txt.c_str());
     ImGui::End();
@@ -578,8 +572,7 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-
-  ImGui::Begin("ControllerUI", NULL, flags);
+  imgui_begin("controllerUI");
 
   const ImVec2 window_pos = ImGui::GetWindowPos();
   const ImVec2 window_size = ImGui::GetWindowSize();
@@ -623,20 +616,12 @@ update_ui_scene_main_menu_playerjoin_system(entt::registry& r, const float dt)
   // ImGui::Text("Connected but no inputs? Please try replugging controller.");
   ImGui::End();
 
-  ImGuiWindowFlags suggestion_flags = 0;
-  suggestion_flags |= ImGuiWindowFlags_NoDecoration;
-  suggestion_flags |= ImGuiWindowFlags_NoNav;
-  suggestion_flags |= ImGuiWindowFlags_NoBackground;
-  suggestion_flags |= ImGuiWindowFlags_NoInputs;
-  suggestion_flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  suggestion_flags |= ImGuiWindowFlags_NoSavedSettings;
-
   const auto help_window_pos = ImVec2{ ui_pos.x - total_size_x, ui_pos.y + 0.5f * total_size_y };
   const auto help_window_size = ImVec2{ total_size_x, ri.viewport_size_render_at.y - help_window_pos.y };
   ImGui::SetNextWindowPos(help_window_pos, ImGuiCond_Always, { 0.0f, 0.0f });
   ImGui::SetNextWindowSize(help_window_size, ImGuiCond_Always);
 
-  ImGui::Begin("PlayerNoInputSuggestions", NULL, flags);
+  imgui_begin("PlayerNoInputSuggestions");
 
   ImGui::NewLine();
   ImGui::SeparatorText("Help! Connected but no input!");

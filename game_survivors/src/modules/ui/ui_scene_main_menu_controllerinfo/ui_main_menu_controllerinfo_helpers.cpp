@@ -1,6 +1,6 @@
 #include "pch.hpp"
 
-#include "ui_main_menu_playerjoin_helpers.hpp"
+#include "ui_main_menu_controllerinfo_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/std/string/helpers.hpp"
@@ -80,7 +80,7 @@ connected_but_not_joined_controllers(const SINGLE_SteamControllers& steam_c, con
 void
 add_text_centered(entt::registry& r, ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha)
 {
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
   auto* font = get_inter_font(r, font_enum);
 

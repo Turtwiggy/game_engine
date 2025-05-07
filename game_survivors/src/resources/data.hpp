@@ -14,4 +14,29 @@ const engine::SRGBColour default_player_colours[n_players] = {
   hex_to_srgb("#00A8EB"), // blue
 };
 
+const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+const auto my_inactive_col = hex_to_srgb("#737a7e");
+const auto my_separator_col = hex_to_srgb("#7d8488");
+const auto my_window_bg_col = engine::SRGBColour(0.13f, 0.14f, 0.17f, 1.00f);
+const auto my_window_border_col = hex_to_srgb("#3B5676");
+
+const auto im_text_col = ImVec4{ 0.86f, 0.93f, 0.89f, 0.78f };
+const auto im_text_col_vec = IM_COL32(im_text_col.x * 255, im_text_col.y * 255, im_text_col.z * 255, im_text_col.z * 255);
+const auto im_text_disabled_col = ImVec4{ 0.86f, 0.93f, 0.89f, 0.28f };
+
+const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
+const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
+const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
+const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
+const auto im_gold_col = ImVec4(255 * 1.0f, 238 * 1.0f, 0 * 1.0f, 1.0f);
+const auto im_icon_col =
+  ImVec4(my_separator_col.r / 255.0f, my_separator_col.g / 255.0f, my_separator_col.b / 255.0f, (80 / 255.0f));
+const ImVec4 aquired_col = convert_my_to_im_vec(engine::SRGBColour(0, 255, 0, 255));
+const ImVec4 unaquired_col = convert_my_to_im_vec(my_inactive_col);
+
+const auto my_text_col_inactive = engine::SRGBColour(200, 200, 200, 100);
+const auto im_text_col_inactive = convert_my_to_im(my_text_col_inactive);
+const auto my_greenish = hex_to_srgb("#71BBB2");
+const auto im_greenish = convert_my_to_im_vec(my_greenish);
+
 } // namespace game2d

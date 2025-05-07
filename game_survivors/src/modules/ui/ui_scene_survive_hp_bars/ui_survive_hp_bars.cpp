@@ -25,14 +25,14 @@ void
 update_ui_survive_hp_bars_system(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
-  const auto ui_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   const auto grime_tex_id = search_for_texture_id_by_texture_path(ri_c, "grime_bar")->id;
   const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(grime_tex_id));
   const auto monochrome_im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(monochrome_tex_id));
 
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
   const auto font_size = (float)font_enum;
   auto* font = get_inter_font(r, font_enum);
@@ -69,14 +69,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   const ImVec2 window_wh = ImGui::GetWindowSize();
   auto* draw_list = ImGui::GetWindowDrawList();
 
-  // draw_list->AddRectFilled(window_tl, window_tl + window_wh, IM_COL32(255, 255, 255, 255));
-
-  const auto player_ui_w = hp_bar_width * ui_scale * 4.0;
-  // const auto player_ui_h = window_wh.y;
-  auto player_ui_tl = ImVec2{ window_tl.x, window_tl.y };
-
   const auto center_x = window_tl.x + 0.5f * window_wh.x;
-
   auto first_tl_x = center_x;
   first_tl_x -= num_active_players * (0.5f * hp_bar_width);
   first_tl_x -= (num_active_players - 1) * (0.5f * space_between_bars);

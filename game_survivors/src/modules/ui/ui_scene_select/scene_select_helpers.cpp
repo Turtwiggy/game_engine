@@ -3,6 +3,7 @@
 #include "scene_select_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
@@ -12,100 +13,70 @@
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
+#include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
 
 namespace game2d {
 
 void
-update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c)
+update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c, const float dt)
 {
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
 
   set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
 
-  const int joined_players = non_zero_handles(steam_state_c.handles).size();
+  const int joined_players = (int)non_zero_handles(steam_state_c.handles).size();
   for (int i = 0; i < 4; i++) {
 
     // 4 copies of the ui-state. one per player.
     auto& ui_state_c = ui_c.player_ui_state[i];
-    if (!ui_state_c.init) {
-      ui_state_c.rows.push_back({ .col_name = "Hull", .action = []() {} });
-      ui_state_c.rows.push_back({ .col_name = "Weapon", .action = []() {} });
-      ui_state_c.rows.push_back({ .col_name = "Ability", .action = []() {} });
-
-      ui_state_c.init = true;
-    }
+    auto& ui_choice_state_c = ui_c.player_choice_state[i];
 
     // process the input for that ui-state.
-    ui_state_c.actions.clear();
+    if (i >= joined_players)
+      break;
 
-    if (i < joined_players)
-      process_input_for_ui(r, ui_state_c, steam_state_c.handles[i]);
+    // note: generate_from_handle, because no PlayerComponent exists.
+    const auto input = generate_from_handle(r, steam_state_c.handles[i]);
+    ui_state_c.state.actions.clear();
+    process_input_for_ui(r, ui_state_c.state, input);
+
+    // check if confirm/back is held.
+    const auto& b_s = input.button_s;
+    const auto& b_e = input.button_e;
+    const bool do_act_held = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
+    const bool do_act_release = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
+    const bool do_back_held = std::find(b_e.begin(), b_e.end(), ActionStateEnum::HELD) != b_e.end();
+    const bool do_back_release = std::find(b_e.begin(), b_e.end(), ActionStateEnum::RELEASE) != b_e.end();
+
+    if (do_act_held) {
+      auto& held_time = ui_choice_state_c.confirm_held_time;
+      auto held_time_max = ui_choice_state_c.confirm_held_time_max;
+      held_time += dt;
+      held_time = glm::clamp(held_time, 0.0f, held_time_max);
+    }
+    if (do_act_release || !do_act_held)
+      ui_choice_state_c.confirm_held_time = 0.0f;
+    if (ui_choice_state_c.confirm_held_time >= ui_choice_state_c.confirm_held_time_max) {
+      ui_choice_state_c.confirmed = true;
+    }
+
+    if (do_back_held) {
+      auto& held_time = ui_choice_state_c.back_held_time;
+      auto held_time_max = ui_choice_state_c.back_held_time_max;
+      held_time += dt;
+      held_time = glm::clamp(held_time, 0.0f, held_time_max);
+    }
+    if (do_back_release || !do_back_held)
+      ui_choice_state_c.back_held_time = 0.0f;
+    if (ui_choice_state_c.back_held_time >= ui_choice_state_c.back_held_time_max) {
+      ui_choice_state_c.confirmed = false;
+      move_to_scene_start(r, Scene::menu);
+      break;
+    }
   }
-};
-
-void
-draw_select_header(entt::registry& r, SINGLE_RendererInfo& ri_c)
-{
-  const auto ui_scaling = get_first_component<SINGLE_UIData>(r).scaling;
-  const float bar_size_y = 100.0f * ui_scaling;
-
-  ImGui::SetNextWindowPos({ 0, 100 });
-  ImGui::SetNextWindowSize({ (float)ri_c.viewport_size_render_at.x, 100.0f }, ImGuiCond_Always);
-
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoCollapse;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-
-  ImGui::Begin("SelectHeader", NULL, flags);
-
-  const ImVec2 window_tl = ImGui::GetWindowPos();
-  const ImVec2 window_wh = ImGui::GetWindowSize();
-  const auto center = ImVec2{ window_tl.x + 0.5f * window_wh.x, window_tl.y + 0.5f * window_wh.y };
-
-  const auto& io = ImGui::GetIO();
-
-  auto* draw_list = ImGui::GetWindowDrawList();
-
-  // background
-  const auto my_bg_col = hex_to_srgb("#245171");
-  const auto im_bg_col = IM_COL32(my_bg_col.r, my_bg_col.g, my_bg_col.b, 0.6f * 255);
-  const auto window_br = ImVec2{ window_tl.x + window_wh.x, window_tl.y + window_wh.y };
-  draw_list->AddRectFilled(window_tl, window_br, im_bg_col, 6);
-
-  // text
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
-  ImGui::PushFont(get_inter_font(r, font_enum));
-  const std::string text_str = "All hands on deck!";
-  const auto text_size = ImGui::CalcTextSize(text_str.c_str());
-  const auto text_pos = center - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
-  draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), text_str.c_str());
-  ImGui::PopFont();
-
-  const auto my_bold_col = hex_to_srgb("#497D9D", 255);
-  const auto my_dark_col = hex_to_srgb("#09252F");
-  const auto im_bold_col = convert_my_to_im(my_bold_col);
-  const auto im_dark_col = convert_my_to_im(my_dark_col);
-
-  ImVec2 p_max;
-
-  // health line bold colour
-  p_max = ImVec2{ window_tl.x + window_wh.x, window_tl.y + 2 };
-  draw_list->AddRectFilled(window_tl, p_max, im_bold_col);
-
-  // health line black line
-  auto p_min = ImVec2{ window_tl.x, window_tl.y + bar_size_y - 2 };
-  p_max = ImVec2{ window_tl.x + window_wh.x, window_tl.y + bar_size_y };
-  draw_list->AddRectFilled(p_min, p_max, im_dark_col);
-
-  ImGui::End();
 };
 
 void
@@ -139,7 +110,7 @@ update_countdown_ui(entt::registry& r, const SINGLE_SelectSceneData& data_c)
 
   ImGuiIO& io = ImGui::GetIO();
 
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
   auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);

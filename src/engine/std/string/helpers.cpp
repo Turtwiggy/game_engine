@@ -20,4 +20,13 @@ to_lower(const std::string& str)
   return result;
 };
 
+std::string
+str_remove_all_occurances(std::string base, const std::string& substr)
+{
+  size_t pos = 0;
+  while ((pos = base.find(substr, pos)) != std::string::npos)
+    base.erase(pos, substr.length());
+  return base;
+};
+
 } // namespace game2d

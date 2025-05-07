@@ -30,7 +30,7 @@ update_ui_survive_xp_bar_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
-  const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
   auto* font = get_inter_font(r, font_enum);
 

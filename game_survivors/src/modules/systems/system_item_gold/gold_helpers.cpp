@@ -22,6 +22,7 @@ load_gold_from_disk(entt::registry& r)
   const auto info_str = std::format("You have {} gold", gold_c.amount);
   SDL_Log("%s", info_str.c_str());
 
+  gold_c.amount = gold;
   return gold_c;
 };
 

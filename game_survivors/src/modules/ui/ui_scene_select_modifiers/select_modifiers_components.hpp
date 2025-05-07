@@ -35,7 +35,7 @@ struct Option_Rocks : public IModifierOption
   bool populate_rocks = false;
 
   Option_Rocks()
-    : IModifierOption(MODIFIER_OPTIONS::ROCKS, "Rocks?", UIValueType::BUTTON) {};
+    : IModifierOption(MODIFIER_OPTIONS::ROCKS, "Islands", UIValueType::BUTTON) {};
 
   void update(entt::registry& r, int& hindex) override;
 };
@@ -51,13 +51,9 @@ struct SINGLE_ModifiersData
 };
 
 // UI data for the modifiers screen
-struct SINGLE_UISelectModifiersMenuState
+struct SINGLE_UISelectModifiersMenuState : public DefaultUI
 {
-  bool open = false;
-  bool init = false;
-  bool one_frame_buffer = true;
-
-  UIState state;
+  void do_init(entt::registry& r) override;
 };
 
 struct RequestToShowModifierMenu

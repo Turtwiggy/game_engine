@@ -102,6 +102,10 @@ struct InputComponent
   std::vector<ActionStateEnum> dpad_d;
   std::vector<ActionStateEnum> dpad_l;
   std::vector<ActionStateEnum> dpad_r;
+  std::vector<ActionStateEnum> button_n;
+  std::vector<ActionStateEnum> button_s;
+  std::vector<ActionStateEnum> button_e;
+  std::vector<ActionStateEnum> button_w;
 };
 
 // move like asteroids

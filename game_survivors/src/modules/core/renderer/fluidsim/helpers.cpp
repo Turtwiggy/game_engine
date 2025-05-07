@@ -1,4 +1,3 @@
-#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "pch.hpp"
 
 #include "modules/core/renderer/fluidsim/helpers.hpp"
@@ -16,6 +15,7 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/fluidsim/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
+#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 
 namespace game2d {
 using namespace engine; // for macro

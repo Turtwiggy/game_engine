@@ -3,6 +3,7 @@
 #include "steam_input_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 
@@ -192,6 +193,11 @@ update_steam_input(entt::registry& r)
     generate_button_state(steam_c, steam_c.handles[h]);
 
   set_all_steam_controller_action_set(steam_c, AS::ActionSet_GameControls);
+
+  // Update the global handles every frame that process input for ui
+  auto global_input_e = get_first<InputComponent, Persistent>(r);
+  auto& global_input_c = r.get<SteamControllerComponent>(global_input_e);
+  global_input_c.handles = steam_c.handles;
 };
 
 bool

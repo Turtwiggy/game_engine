@@ -1,24 +1,31 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/events/components.hpp"
-#include "engine/events/helpers/keyboard.hpp"
-#include "modules/core/fonts/fonts_helpers.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/sprites/helpers.hpp"
+#include "modules/actors/actor_player/actor_player_helpers.hpp"
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
-#include "modules/steam_input/steam_input_components.hpp"
-#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 
 namespace game2d {
 
 bool
 selectable_button(entt::registry& r, SelectableButtonDef& def)
 {
+  const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0)); // button hovered
   ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));  // button clicked
+
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
 
   // const auto& colors = ImGui::GetStyle().Colors;
   // const auto b_col = colors[ImGuiCol_Button];
@@ -35,33 +42,25 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   // https://github.com/ocornut/imgui/issues/4719
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   draw_list->ChannelsSplit(2);
-
   draw_list->ChannelsSetCurrent(1);
-
-  const std::string id = "##menuselectable" + std::to_string(def.my_col_index) + "_" + std::to_string(def.my_row_index);
-
-  ImGui::Selectable(id.c_str(), false, 0, size);
 
   const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
   const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
 
+  const std::string id = "##menuselectable" + def.cell->name;
+  ImGui::Selectable(id.c_str(), false, 0, size);
   const bool is_hovered = ImGui::IsItemHovered();
-  if (is_hovered && mouse_move && def.update_selected_on_mouse_move) {
-    def.ui_row_index = def.my_row_index;
-    def.ui_col_index = def.my_col_index;
-  }
-
   const bool is_clicked = ImGui::IsItemClicked();
+
+  if (is_hovered && mouse_move && def.update_selected_on_mouse_move)
+    def.active_cell = def.cell;
+
   if (is_clicked) {
-    def.ui_row_index = def.my_row_index;
-    def.ui_col_index = def.my_col_index;
+    def.active_cell = def.cell;
     do_act = true;
   }
 
-  bool is_selected = def.ui_col_active;
-  is_selected &= (def.my_col_index == def.ui_col_index);
-  is_selected &= (def.my_row_index == def.ui_row_index);
-
+  bool is_selected = def.active_cell == def.cell;
   if (def.update_selected_only_with_mouse)
     is_selected = is_hovered;
 
@@ -80,6 +79,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   const ImU32 outline_col = is_selected ? im_active_outline_col : im_inactive_outline_col;
   const ImU32 bg_col = is_selected ? im_active_bg_col : im_inactive_bg_col;
   const ImU32 text_col = IM_COL32(255, 255, 255, is_selected ? 255 : 150);
+  const ImVec4 text_col_vec = ImVec4(1.0f, 1.0f, 1.0f, is_selected ? 1.0f : 1.0f * (150 / 255.0f));
 
   // button
   draw_list->AddRectFilled(p_tl, p_br, bg_col, rounding);
@@ -107,6 +107,20 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   text_pos += def.text_offset;
   draw_list->AddText(font, font->FontSize, text_pos, text_col, label.c_str());
 
+  // draw as an icon
+  if (def.icon.has_value()) {
+    const auto& icon = def.icon.value();
+    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+    const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+    const ImVec2 icon_size{ def.size.x, def.size.y };
+    const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
+
+    const auto icon_padding = 4;
+    const auto icon_p_tl = ImVec2{ p_tl.x + icon_padding, p_tl.y + icon_padding };
+    const auto icon_p_br = ImVec2{ p_br.x - icon_padding, p_br.y - icon_padding };
+    draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_tl, icon_br, text_col);
+  }
+
   // "commit changes"
   draw_list->ChannelsMerge();
 
@@ -123,75 +137,10 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     do_act = true;
 
   ImGui::PopStyleColor(2);
+  // ImGui::PopStyleVar(4);
+
   return do_act;
 };
-
-void
-check_if_changed(UIState& state, int v_selected, int h_selected)
-{
-  const bool v_changed = v_selected != state.current_row_index;
-  const bool h_changed = h_selected != state.rows[v_selected].col_index;
-
-  // vertical changed...
-  if (v_changed) {
-    state.actions.push_back(UIAction::V_VALUE_CHANGED);
-
-    if (v_selected < state.current_row_index)
-      state.actions.push_back(UIAction::V_VALUE_CHANGED_UP);
-    if (v_selected > state.current_row_index)
-      state.actions.push_back(UIAction::V_VALUE_CHANGED_DOWN);
-  }
-
-  // horizontal changed...
-  if (!v_changed && h_changed) {
-    state.actions.push_back(UIAction::H_VALUE_CHANGED);
-
-    if (h_selected < state.rows[v_selected].col_index)
-      state.actions.push_back(UIAction::H_VALUE_CHANGED_RIGHT);
-    if (h_selected > state.rows[v_selected].col_index)
-      state.actions.push_back(UIAction::H_VALUE_CHANGED_LEFT);
-  }
-
-  // clamp selected
-  const int max = state.rows.size();
-  if (max == 0)
-    throw std::runtime_error("Error: no rows in ui. Probably setup incorrect.");
-
-  state.current_row_index = state.current_row_index < 0 ? max - 1 : state.current_row_index;
-  state.current_row_index %= max;
-};
-
-void
-process_keyboard_input_for_ui(entt::registry& r, UIState& state)
-{
-  GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
-
-  int v_selected = state.current_row_index;
-  int h_selected = state.rows[v_selected].col_index;
-
-  // Update menu via keyboard (debug, mostly)
-  //
-  {
-    if (get_key_down(input, SDL_SCANCODE_UP))
-      state.current_row_index--;
-    else if (get_key_down(input, SDL_SCANCODE_DOWN))
-      state.current_row_index++;
-    else if (get_key_down(input, SDL_SCANCODE_LEFT))
-      state.rows[v_selected].col_index--;
-    else if (get_key_down(input, SDL_SCANCODE_RIGHT))
-      state.rows[v_selected].col_index++;
-    else if (get_key_down(input, SDL_SCANCODE_RETURN))
-      state.actions.push_back(UIAction::SELECT);
-    else if (get_key_down(input, SDL_SCANCODE_KP_ENTER))
-      state.actions.push_back(UIAction::SELECT);
-    else if (get_key_down(input, SDL_SCANCODE_ESCAPE))
-      state.actions.push_back(UIAction::BACK);
-    else if (get_key_down(input, SDL_SCANCODE_BACKSPACE))
-      state.actions.push_back(UIAction::BACK);
-  }
-
-  check_if_changed(state, v_selected, h_selected);
-}
 
 void
 process_input_for_ui_all_handles(entt::registry& r, UIState& state)
@@ -200,46 +149,59 @@ process_input_for_ui_all_handles(entt::registry& r, UIState& state)
 
   state.actions.clear();
 
-  process_keyboard_input_for_ui(r, state);
-
-  for (int i = 0; i < steam_gs_c.handles.size(); i++)
-    process_input_for_ui(r, state, steam_gs_c.handles[i]);
+  const auto input_e = get_first<InputComponent, Persistent>(r);
+  const auto& input_c = r.get<InputComponent>(input_e);
+  process_input_for_ui(r, state, input_c);
 };
 
 void
-process_input_for_ui(entt::registry& r, UIState& state, const InputHandle_t handle)
+process_input_for_ui(entt::registry& r, UIState& state, const InputComponent& inp_c)
 {
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
+  if (has_action(inp_c.dpad_u, ActionStateEnum::DOWN)) {
+    if (state.active->u != nullptr)
+      state.active = state.active->u;
+    state.actions.push_back(UIAction::NAV_MOVE_U);
+  }
+  if (has_action(inp_c.dpad_d, ActionStateEnum::DOWN)) {
+    if (state.active->d != nullptr)
+      state.active = state.active->d;
+    state.actions.push_back(UIAction::NAV_MOVE_D);
+  }
+  if (has_action(inp_c.dpad_l, ActionStateEnum::DOWN)) {
+    if (state.active->l != nullptr)
+      state.active = state.active->l;
+    state.actions.push_back(UIAction::NAV_MOVE_L);
+  }
+  if (has_action(inp_c.dpad_r, ActionStateEnum::DOWN)) {
+    if (state.active->r != nullptr)
+      state.active = state.active->r;
+    state.actions.push_back(UIAction::NAV_MOVE_R);
+  }
 
-  if (handle_joined_this_frame(steam_gs_c, handle))
-    return; // prevent immediately doing do_ui_action
-
-  if (state.rows.size() == 0)
-    return;
-
-  // TODO: replace this system with has_action, which maps both keyboard and controller
-
-  // state
-  int v_selected = state.current_row_index;
-  int h_selected = state.rows[v_selected].col_index;
-
-  // Update menu via controller
-  //
-  if (controller_button_down(steam_c, handle, DA::Game_Up))
-    state.current_row_index--;
-  else if (controller_button_down(steam_c, handle, DA::Game_Down))
-    state.current_row_index++;
-  else if (controller_button_down(steam_c, handle, DA::Game_Left))
-    state.rows[v_selected].col_index--;
-  else if (controller_button_down(steam_c, handle, DA::Game_Right))
-    state.rows[v_selected].col_index++;
-  else if (controller_button_down(steam_c, handle, DA::Game_South))
+  if (has_action(inp_c.button_s, ActionStateEnum::DOWN))
     state.actions.push_back(UIAction::SELECT);
-  else if (controller_button_down(steam_c, handle, DA::Game_East))
-    state.actions.push_back(UIAction::BACK);
 
-  check_if_changed(state, v_selected, h_selected);
+  if (has_action(inp_c.button_e, ActionStateEnum::DOWN))
+    state.actions.push_back(UIAction::BACK);
 };
+
+void
+create_as_vertical_layout(std::vector<std::shared_ptr<Cell>>& cells)
+{
+  //
+  // sort out navigations
+  // let every button reference the buttons above/below
+  // this is basically a vertical layout group
+  //
+  for (int i = 0; i < cells.size(); i++) {
+    const auto last = engine::wrap(i - 1, (int)cells.size() - 1);
+    const auto next = engine::wrap(i + 1, (int)cells.size() - 1);
+    const auto& prv = cells[last];
+    const auto& nxt = cells[next];
+    auto& c = cells[i];
+    c->u = prv;
+    c->d = nxt;
+  }
+}
 
 } // namespace game2d

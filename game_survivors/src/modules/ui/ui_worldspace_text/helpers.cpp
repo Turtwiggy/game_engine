@@ -45,10 +45,10 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
 {
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [text](entt::registry& r) {
+  wst_c.layout = [text](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
     const auto text_col = hex_to_srgb("#ffffff");
 
-    const auto font_scale = get_first_component<SINGLE_UIData>(r).scaling;
+    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
     auto* font = get_inter_font(r, font_enum);
     ImGui::PushFont(font);
@@ -65,8 +65,8 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
     const auto ui_wh = ImGui::GetContentRegionAvail();
     const auto ui_tl = ImGui::GetCursorPos();
     const auto ui_txt_size = ImGui::CalcTextSize(label.c_str());
-    ImGui::SetCursorPosX(ui_tl.x + (ui_wh.x * 0.5) - (ui_txt_size.x * 0.5));
-    ImGui::SetCursorPosY(ui_tl.y + (ui_wh.y * 0.5) - (ui_txt_size.y * 0.5));
+    ImGui::SetCursorPosX(ui_tl.x + (ui_wh.x * 0.5f) - (ui_txt_size.x * 0.5f));
+    ImGui::SetCursorPosY(ui_tl.y + (ui_wh.y * 0.5f) - (ui_txt_size.y * 0.5f));
 
     ImGui::TextColored(im_crit_col, "%s", label.c_str());
 
@@ -76,7 +76,6 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
   wst_c.flags |= ImGuiWindowFlags_NoDecoration;
   wst_c.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   wst_c.flags |= ImGuiWindowFlags_NoInputs;
-  wst_c.flags |= ImGuiWindowFlags_NoNav;
   wst_c.flags |= ImGuiWindowFlags_NoBackground;
   wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
 

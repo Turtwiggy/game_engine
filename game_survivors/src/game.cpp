@@ -15,6 +15,7 @@
 #include "modules/actors/actor_enemy_charger/enemy_charger_system.hpp"
 #include "modules/actors/actor_enemy_grower/enemy_grower_system.hpp"
 #include "modules/actors/actor_player/actor_player_system.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_system.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/actors/actor_snake_projectiles/actor_snake_projectiles_system.hpp"
@@ -44,6 +45,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam/steam_helpers.hpp"
 #include "modules/steam_debug_ui/steam_debug_ui_system.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_ability/ability_system.hpp"
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
@@ -66,6 +68,7 @@
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_helpers.hpp"
 #include "modules/systems/system_physics_apply_force/physics_apply_force_system.hpp"
 #include "modules/systems/system_player_out_of_bounds/player_out_of_bounds_system.hpp"
+#include "modules/systems/system_quit/quit_system.hpp"
 #include "modules/systems/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/systems/system_scene_splashscreen_move_to_next/system.hpp"
 #include "modules/systems/system_screenshake/system.hpp"
@@ -80,6 +83,7 @@
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_system.hpp"
 #include "modules/ui/ui_ability_system/ui_ability_system.hpp"
 #include "modules/ui/ui_audio/system.hpp"
+#include "modules/ui/ui_back_button/ui_back_button_system.hpp"
 #include "modules/ui/ui_blur/ui_blur_system.hpp"
 #include "modules/ui/ui_collisions/system.hpp"
 #include "modules/ui/ui_colours/ui_colours_system.hpp"
@@ -99,11 +103,11 @@
 #include "modules/ui/ui_popup_pause/ui_popup_pause_components.hpp"
 #include "modules/ui/ui_popup_pause/ui_popup_pause_system.hpp"
 #include "modules/ui/ui_raws/ui_raws_system.hpp"
+#include "modules/ui/ui_scene_header/ui_scene_header_system.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_components.hpp"
-#include "modules/ui/ui_scene_main_menu_playerjoin/ui_main_menu_playerjoin_system.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_system.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_system.hpp"
-#include "modules/ui/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_system.hpp"
@@ -167,7 +171,6 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   }
 
   create_persistent<SINGLE_PauseMenuState>(r);
-  create_persistent<SINGLE_OptionsMenuState>(r);
   create_persistent<SINGLE_DebugMenuBar>(r);
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
@@ -183,10 +186,17 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 
   create_persistent<SINGLE_ModifiersData>(r);
   create_persistent<SINGLE_DisconnectedControllerUI>(r);
-  create_persistent<SINGLE_UIData>(r); // HMM: could make a setting
+  create_persistent<SINGLE_UIScaling>(r); // HMM: could make a setting
   create_persistent<SINGLE_GameOptions>(r);
   create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
   create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
+
+  // the "global" input component, which processes all inputs from keyboard & controllers
+  // note: players also have an InputComponent attached
+  const auto input_e = create_persistent<InputComponent>(r);
+  r.emplace<KeyboardComponent>(input_e);
+  r.emplace<SteamControllerComponent>(input_e);
+
   move_to_scene_start(r, Scene::splashscreen);
 };
 
@@ -279,10 +289,11 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_camera_system(r, dt);
   update_audio_system(r, dt);
-  update_player_controller_system(r, milliseconds_dt, mouse_pos);
+  update_player_controller_system(r, mouse_pos);
   update_screenshake_system(r, dt);
   update_input_open_ui_system(r);
   update_events_system(r); // dispatch events
+  update_quit_system(r, app);
 
   if (scene.s == Scene::pressanykey)
     update_scene_pressanykey_move_to_next_system(r, dt);
@@ -339,29 +350,30 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     const float base_x = 1280; // note: this was the res the ui was created at
     const float base_y = 720;
     const float scale = ri.viewport_size_render_at.y / base_y;
-    auto& ui_scale = get_first_component<SINGLE_UIData>(r);
+    auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
     ui_scale.scaling = scale <= 1.0 ? 1.0f : 1.25f;
 
 #if defined(_DEBUG)
-    // auto& ui_scale = get_first_component<SINGLE_UIData>(r);
+    // auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
     // ui_scale.scaling = 1.0f;
     // imgui_draw_float("ui_scale", ui_scale.scaling);
 #endif
   }
 
-  update_ui_blur_system(r, dt);
   update_ui_fps_counter_system(r);
   update_ui_popup_pause_system(app, r);
   update_ui_popup_options_system(app, r);
   update_ui_popup_controller_disconnected_system(r);
   update_ui_worldspace_text_system(r);
+  update_ui_back_button_system(r);
+  update_ui_scene_header_system(r);
 
-  if (scene.s == Scene::pressanykey)
-    update_ui_scene_press_any_key(r);
+  // if (scene.s == Scene::pressanykey)
+  //   update_ui_scene_press_any_key(r);
 
   if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
-    update_ui_scene_main_menu_playerjoin_system(r, dt);
+    update_ui_scene_main_menu_controllerinfo_system(r, dt);
     update_ui_scene_upgrades_system(r);
   }
 
@@ -416,6 +428,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
   }
+
+  update_ui_blur_system(r, dt);
 
 #if defined(_DEBUG)
   // hack: reload RAWS

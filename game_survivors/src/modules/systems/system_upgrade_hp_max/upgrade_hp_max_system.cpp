@@ -1,8 +1,8 @@
-#include "modules/actors/actor_hull/hull_components.hpp"
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "modules/actors/actor_hull/hull_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
