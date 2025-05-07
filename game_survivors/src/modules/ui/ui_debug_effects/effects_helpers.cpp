@@ -9,7 +9,7 @@
 
 namespace game2d {
 
-void
+entt::entity
 spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size)
 {
   static float sprite_fps = 24;
@@ -32,6 +32,8 @@ spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size)
   EntityTimedLifecycle lifecycle_c{ .milliseconds_alive_max = (int)(anim_c.duration * 1000) };
   r.emplace<EntityTimedLifecycle>(effect_e, lifecycle_c);
   r.emplace<SetAlphaBasedOnLifecycleComponent>(effect_e);
+
+  return effect_e;
 }
 
 } // namespace game2d

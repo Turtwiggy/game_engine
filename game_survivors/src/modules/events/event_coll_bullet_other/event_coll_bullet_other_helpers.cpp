@@ -117,7 +117,10 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
       // create_popup(r, get_position(r, bullet_e_parent), "blocked!");
 
       // create a block vfx
-      spawn_fx(r, "BLOCK_FX_0", get_position(r, bullet_e_parent), { 32, 32 });
+      static engine::RandomState rnd(0);
+      const auto random_idx = engine::rand_det_s(rnd.rng, 0, 1); // 0 or 1
+      const auto fx_str = std::format("BLOCK_FX_{}", random_idx);
+      spawn_fx(r, fx_str, get_position(r, bullet_e_parent), { 32, 32 });
     }
   }
 

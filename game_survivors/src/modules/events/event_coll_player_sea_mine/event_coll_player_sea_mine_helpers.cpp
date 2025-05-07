@@ -34,7 +34,7 @@ handle_player_enter_sea_mine(entt::registry& r, const OnCollisionEnter& evt)
   };
 
   const float bomb_radius_pixels = 200;
-  add_explode_on_death_callback(r, item_par_e, bomb_radius_pixels, filter_criteria);
+  add_explode_on_death_callback(r, item_par_e, bomb_radius_pixels, filter_criteria, "death_sea_mine");
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   dead.dead.push_back(item_par_e);

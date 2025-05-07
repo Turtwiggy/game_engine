@@ -37,7 +37,7 @@ update_screenshake_system(entt::registry& r, const float dt)
 #endif
 
   const std::unordered_map<ScreenshakeType, ScreenshakeData> screenshake_amounts{
-    { ScreenshakeType::EXPLODE, ScreenshakeData{ .length = 0.04f, .strength = 0.001f } },
+    { ScreenshakeType::EXPLODE, ScreenshakeData{ .length = 0.04f, .strength = 0.0005f } },
     { ScreenshakeType::SHOOT, ScreenshakeData{ .length = 0.01f, .strength = 0.002f } },
   };
 

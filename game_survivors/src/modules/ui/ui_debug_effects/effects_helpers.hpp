@@ -5,7 +5,7 @@
 
 namespace game2d {
 
-void
+entt::entity
 spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size);
 
 } // namespace game2d

@@ -63,7 +63,8 @@ void
 add_explode_on_death_callback(entt::registry& r,
                               entt::entity e,
                               const float explosion_radius_pixels,
-                              const std::function<bool(entt::registry&, entt::entity)>& cond)
+                              const std::function<bool(entt::registry&, entt::entity)>& cond,
+                              const std::string key)
 {
   auto& callbacks_c = r.get_or_emplace<OnDeathCallbacks>(e);
 
@@ -106,11 +107,11 @@ add_explode_on_death_callback(entt::registry& r,
 
   // Big explosion when ded
   //
-  const auto spawn_particles_callback = [explosion_radius_pixels](entt::registry& r, entt::entity e) {
+  const auto spawn_particles_callback = [key, explosion_radius_pixels](entt::registry& r, entt::entity e) {
     RequestToSpawnParticles request;
-    request.key = "death_exploder";
+    request.key = key;
     request.position = get_position(r, e);
-    request.radius = explosion_radius_pixels;
+    request.radius_pixels = explosion_radius_pixels;
     create_empty<RequestToSpawnParticles>(r, request);
   };
   callbacks_c.callbacks.push_back(spawn_particles_callback);

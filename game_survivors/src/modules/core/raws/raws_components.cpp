@@ -1,3 +1,4 @@
+#include "modules/ui/ui_debug_effects/effects_helpers.hpp"
 #include "pch.hpp"
 
 #include "modules/core/raws/raws_components.hpp"
@@ -340,7 +341,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         };
 
         const float enemy_explosion_radius_pixels = 50.0f;
-        add_explode_on_death_callback(r, e, enemy_explosion_radius_pixels, filter_criteria);
+        add_explode_on_death_callback(r, e, enemy_explosion_radius_pixels, filter_criteria, "death_exploder");
         big_explode = true;
       }
 
@@ -411,6 +412,13 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
     throw std::runtime_error("particle-emitter parent not set.");
 
   const auto key = req.key;
+
+  // trial: new vfx for exploder
+  if (key.find("death_exploder") != std::string::npos)
+    return spawn_fx(r, "EXPLODE_FX_0", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
+  if (key.find("death_sea_mine") != std::string::npos)
+    return spawn_fx(r, "EXPLODE_FX_1", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
+
   const auto e = create_transform(r, "particle_emitter");
 
   r.emplace<SetPositionAtDynamicTarget>(e);
@@ -430,8 +438,8 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
     pdesc.start_colour = hex_to_srgb("#a64a2e"); // dark red
   }
   if (key.find("death_exploder") != std::string::npos) {
-    pdesc.start_size = { req.radius * 2, req.radius * 2 };
-    pdesc.end_size = { req.radius * 1, req.radius * 1 };
+    pdesc.start_size = { req.radius_pixels * 2, req.radius_pixels * 2 };
+    pdesc.end_size = { req.radius_pixels * 1, req.radius_pixels * 1 };
   }
   if (key.find("default_trail") != std::string::npos) {
     pdesc.start_size = { 2, 2 };
