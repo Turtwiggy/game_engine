@@ -13,6 +13,7 @@
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
+#include "modules/ui/ui_debug_effects/effects_helpers.hpp"
 #include "modules/ui/ui_worldspace_text/helpers.hpp"
 
 namespace game2d {
@@ -110,10 +111,14 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   } else if (fixture_tag == "shield") {
     reverse_velocity();
 
-    // create a piece of worldspace text saying "blocked" as no damage was given.
-    // (unless a health component is ever added to the shield, which it might be)
-    if (!hp_c)
-      create_popup(r, get_position(r, bullet_e_parent), "blocked!");
+    if (!hp_c) {
+      // create a piece of worldspace text saying "blocked" as no damage was given.
+      // (unless a health component is ever added to the shield, which it might be)
+      // create_popup(r, get_position(r, bullet_e_parent), "blocked!");
+
+      // create a block vfx
+      spawn_fx(r, "BLOCK_FX_0", get_position(r, bullet_e_parent), { 32, 32 });
+    }
   }
 
   // knockback applies to "core" and "shield"

@@ -87,6 +87,7 @@
 #include "modules/ui/ui_blur/ui_blur_system.hpp"
 #include "modules/ui/ui_collisions/system.hpp"
 #include "modules/ui/ui_colours/ui_colours_system.hpp"
+#include "modules/ui/ui_debug_effects/ui_debug_effects_system.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_system.hpp"
@@ -424,6 +425,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_colours_system(r);
     update_ui_debug_spawner_system(r);
     update_ui_debug_weapons_system(r);
+    update_ui_debug_effects_system(r);
     update_ui_raws_system(r);
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
