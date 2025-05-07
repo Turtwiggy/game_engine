@@ -108,7 +108,6 @@
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_system.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_system.hpp"
-#include "modules/ui/ui_scene_press_any_key/ui_scene_press_any_key_system.hpp"
 #include "modules/ui/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_system.hpp"
@@ -361,7 +360,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #endif
   }
 
-  update_ui_blur_system(r, dt);
   update_ui_fps_counter_system(r);
   update_ui_popup_pause_system(app, r);
   update_ui_popup_options_system(app, r);
@@ -370,8 +368,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_back_button_system(r);
   update_ui_scene_header_system(r);
 
-  if (scene.s == Scene::pressanykey)
-    update_ui_scene_press_any_key(r);
+  // if (scene.s == Scene::pressanykey)
+  //   update_ui_scene_press_any_key(r);
 
   if (scene.s == Scene::menu) {
     update_ui_scene_main_menu(app, r);
@@ -430,6 +428,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_hierarchy_system(r);
     update_ui_collisions_system(r);
   }
+
+  update_ui_blur_system(r, dt);
 
 #if defined(_DEBUG)
   // hack: reload RAWS

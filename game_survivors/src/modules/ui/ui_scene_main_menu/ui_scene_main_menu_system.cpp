@@ -91,7 +91,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       ImGui::SameLine();
       std::shared_ptr<Cell>& cell = base->r;
 
-      const auto icon_button_size = ImVec2{ 34.0f * font_scale, 34.0f * font_scale };
+      const auto icon_button_size = ImVec2{ 40.0f * font_scale, 40.0f * font_scale };
       auto tl = ImGui::GetCursorPos();
       tl.x += space_between_buttons.y;
       tl.y += button_size.y - icon_button_size.y;

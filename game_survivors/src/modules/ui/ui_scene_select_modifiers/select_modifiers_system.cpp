@@ -38,10 +38,12 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
     return;
 
   process_input_for_ui_all_handles(r, ui_c.state);
-  const bool do_act =
-    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::SELECT) != ui_c.state.actions.end();
-  const bool do_back =
-    std::find(ui_c.state.actions.begin(), ui_c.state.actions.end(), UIAction::BACK) != ui_c.state.actions.end();
+  const auto& acts = ui_c.state.actions;
+  const bool do_act = std::find(acts.begin(), acts.end(), UIAction::SELECT) != acts.end();
+  const bool do_back = std::find(acts.begin(), acts.end(), UIAction::BACK) != acts.end();
+  const bool h_value_changed_l = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_L) != acts.end();
+  const bool h_value_changed_r = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_R) != acts.end();
+  const bool h_value_changed = h_value_changed_l || h_value_changed_r;
 
   if (do_back) {
     back(r);
@@ -125,18 +127,16 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
     if (i != 0)
       continue;
 
-    const auto& acts = ui_c.state.actions;
-    const bool v_value_changed_u = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_U) != acts.end();
-    const bool v_value_changed_d = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_D) != acts.end();
-    const bool h_value_changed_l = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_L) != acts.end();
-    const bool h_value_changed_r = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_R) != acts.end();
-    const bool v_value_changed = v_value_changed_u || v_value_changed_d;
-    const bool h_value_changed = h_value_changed_l || h_value_changed_r;
-    const bool active = cell == ui_c.state.active;
-
     // Update option...
+    const bool active = cell == ui_c.state.active;
     if (active && h_value_changed) {
       auto& h_value = dynamic_cast<OptionsCell*>(cell.get())->value;
+
+      if (h_value_changed_r)
+        h_value++;
+      if (h_value_changed_l)
+        h_value--;
+
       option->update(r, h_value);
     }
 

@@ -4,6 +4,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -448,13 +449,6 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   //
   ui_c.handles_joined_this_frame.clear();
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoNav;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoInputs;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const float pos_padding_x = -8.0f * ui_scale.scaling;
   const float pos_padding_y = 0.0f * ui_scale.scaling;
@@ -481,7 +475,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
 
     timer += dt;
 
-    ImGui::Begin("WaitingForControllerUI", NULL, flags);
+    imgui_begin("WaitingForControllerUI");
     auto txt = std::format("Loading steam input...\nWaiting for a controller... ({:0.1f})", timer);
     ImGui::Text("%s", txt.c_str());
     ImGui::End();
@@ -578,8 +572,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-
-  ImGui::Begin("ControllerUI", NULL, flags);
+  imgui_begin("controllerUI");
 
   const ImVec2 window_pos = ImGui::GetWindowPos();
   const ImVec2 window_size = ImGui::GetWindowSize();
@@ -623,20 +616,12 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   // ImGui::Text("Connected but no inputs? Please try replugging controller.");
   ImGui::End();
 
-  ImGuiWindowFlags suggestion_flags = 0;
-  suggestion_flags |= ImGuiWindowFlags_NoDecoration;
-  suggestion_flags |= ImGuiWindowFlags_NoNav;
-  suggestion_flags |= ImGuiWindowFlags_NoBackground;
-  suggestion_flags |= ImGuiWindowFlags_NoInputs;
-  suggestion_flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  suggestion_flags |= ImGuiWindowFlags_NoSavedSettings;
-
   const auto help_window_pos = ImVec2{ ui_pos.x - total_size_x, ui_pos.y + 0.5f * total_size_y };
   const auto help_window_size = ImVec2{ total_size_x, ri.viewport_size_render_at.y - help_window_pos.y };
   ImGui::SetNextWindowPos(help_window_pos, ImGuiCond_Always, { 0.0f, 0.0f });
   ImGui::SetNextWindowSize(help_window_size, ImGuiCond_Always);
 
-  ImGui::Begin("PlayerNoInputSuggestions", NULL, flags);
+  imgui_begin("PlayerNoInputSuggestions");
 
   ImGui::NewLine();
   ImGui::SeparatorText("Help! Connected but no input!");

@@ -16,6 +16,8 @@ namespace game2d {
 void
 update_ui_blur_system(entt::registry& r, const float dt)
 {
+  std::string window_key = "blur";
+
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c);
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
@@ -38,21 +40,21 @@ update_ui_blur_system(entt::registry& r, const float dt)
   static float blur_amount = 0.0f;
   const float fade_in_speed = 4.0f;
 
-  // blur with main menu...
-  // if (scene_c.s == Scene::menu)
+  // blur with select menu...
+  // if (scene_c.s == Scene::select_ships)
   //   blur_amount += fade_in_speed * dt;
 
   // blur with options menu...
-  // if (options_c.open)
-  //   blur_amount += fade_in_speed * dt;
+  if (options_c.open)
+    blur_amount += fade_in_speed * dt;
 
   // blur with pause menu...
   if (pause_c.open)
     blur_amount += fade_in_speed * dt;
 
   // blur with upgrade menu...
-  // else if (menu_upgrade_c && menu_upgrade_c->open)
-  //   blur_amount += fade_in_speed * dt;
+  else if (menu_upgrade_c && menu_upgrade_c->open)
+    blur_amount += fade_in_speed * dt;
 
   // blur with game upgrade menu...
   else if (game_upgrade_c && game_upgrade_c->open)
@@ -78,11 +80,17 @@ update_ui_blur_system(entt::registry& r, const float dt)
 
   ImGuiWindowFlags blur_flags = 0;
   blur_flags |= ImGuiWindowFlags_NoDecoration;
-  blur_flags |= ImGuiWindowFlags_NoCollapse;
-  blur_flags |= ImGuiWindowFlags_NoTitleBar;
-  blur_flags |= ImGuiWindowFlags_NoInputs;
   blur_flags |= ImGuiWindowFlags_NoSavedSettings;
-  // blur_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+  blur_flags |= ImGuiWindowFlags_NoMouseInputs;
+  blur_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  blur_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+  // blur_flags |= ImGuiWindowFlags_NoBackground; // yes background
+
+  // static bool init = false;
+  // if (!init) {
+  //   ImGui::SetNextWindowFocus();
+  //   init = true;
+  // }
 
   ImGui::Begin("Blur", nullptr, blur_flags);
   ImGui::End();

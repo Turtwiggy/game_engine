@@ -76,7 +76,6 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
   wst_c.flags |= ImGuiWindowFlags_NoDecoration;
   wst_c.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   wst_c.flags |= ImGuiWindowFlags_NoInputs;
-  wst_c.flags |= ImGuiWindowFlags_NoNav;
   wst_c.flags |= ImGuiWindowFlags_NoBackground;
   wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
 

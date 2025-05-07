@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_quit/quit_components.hpp"
@@ -19,6 +20,12 @@ SINGLE_PauseMenuState::do_init(entt::registry& r)
   };
   const auto quit_to_menu_action = [&]() {
     open = false;
+
+    // hack: clear inputs to stop play button being clicked this frame
+    auto input_e = get_first<InputComponent, Persistent>(r);
+    auto& input_c = r.get<InputComponent>(input_e);
+    input_c.button_s.clear();
+
     move_to_scene_start(r, Scene::menu);
   };
   auto quit_to_desktop_action = [&]() { create_empty<RequestQuitApplication>(r); };

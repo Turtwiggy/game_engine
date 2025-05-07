@@ -155,6 +155,25 @@ text_with_dropshadow(std::string text, const ImVec4& col)
 };
 
 void
+draw_icon(entt::registry& r, std::string icon, SINGLE_RendererInfo& ri, float font_scale)
+{
+  const float size = 64.0f;
+  const auto text_size = ImGui::CalcTextSize("A");
+
+  ImGui::SameLine();
+  auto pos = ImGui::GetCursorPos();
+  pos.x += 10.0f; // padding between text and icon
+  pos.y += 0.5f * (text_size.y - size);
+  ImGui::SetCursorPos(pos);
+
+  const auto tex_id = search_for_texture_id_by_texture_path(ri, "custom")->id;
+  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  const ImVec2 icon_size{ size * font_scale, size * font_scale };
+  const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
+  ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_greenish);
+};
+
+void
 init_oh_buoy_header_text(entt::registry& r)
 {
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
@@ -167,7 +186,9 @@ init_oh_buoy_header_text(entt::registry& r)
 
   WorldspaceTextComponent wst_c;
   wst_c.text = "Oh Buoy!";
-  wst_c.layout = [&ri](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
+  wst_c.layout = [](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
+    GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
+
     const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
     auto* font = ImGui::GetIO().Fonts->Fonts[2]; // idx: 2 should be the fingerpaint header font
@@ -176,30 +197,17 @@ init_oh_buoy_header_text(entt::registry& r)
     text_with_dropshadow(data.text, im_greenish);
 
     const auto& header_c = r.get<MegaHeaderComponent>(e);
-    if (header_c.icon.has_value()) {
-      const float size = 64.0f;
-      const auto text_size = ImGui::CalcTextSize("A");
-
-      ImGui::SameLine();
-      auto pos = ImGui::GetCursorPos();
-      pos.x += 10.0f; // padding between text and icon
-      pos.y += 0.5f * (text_size.y - size);
-      ImGui::SetCursorPos(pos);
-
-      const auto tex_id = search_for_texture_id_by_texture_path(ri, "custom")->id;
-      const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
-      const ImVec2 icon_size{ size * font_scale, size * font_scale };
-      const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, header_c.icon.value());
-      ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_greenish);
-    }
+    if (header_c.icon.has_value())
+      draw_icon(r, header_c.icon.value(), ri, font_scale);
 
     ImGui::PopFont();
   };
 
   wst_c.flags |= ImGuiWindowFlags_NoDecoration;
   wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
-  wst_c.flags |= ImGuiWindowFlags_NoInputs;
   wst_c.flags |= ImGuiWindowFlags_NoBackground;
+  wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
+  // wst_c.flags |= ImGuiWindowFlags_NoInputs;
 
   const auto header_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(header_e);

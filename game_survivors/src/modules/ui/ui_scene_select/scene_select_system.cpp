@@ -318,8 +318,12 @@ update_player_select_ui(entt::registry& r,
 
       auto* draw_list = ImGui::GetWindowDrawList();
 
+      const auto my_player_col = default_player_colours[player_idx];
+      const auto im_player_col = convert_my_to_im(my_player_col);
+
       // draw a background
       draw_list->AddRectFilled(main_quarter_tl, main_quarter_br, im_window_bg_col, 6);
+      draw_list->AddRect(main_quarter_tl, main_quarter_br, im_player_col, 6, ImDrawFlags_RoundCornersAll, 2);
 
       // Draw categories + values
       const auto space_between_buttons = 10;
@@ -373,10 +377,9 @@ update_player_select_ui(entt::registry& r,
       const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
 
       // draw a bar that represents ready percentage
-      auto my_player_col = default_player_colours[player_idx];
       auto my_player_col_active = my_player_col;
       auto my_player_col_inactive = my_player_col;
-      my_player_col_inactive.a = 0.4f * 255;
+      my_player_col_inactive.a = 0.25f * 255;
       const auto im_player_col_active = convert_my_to_im(my_player_col_active);
       const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
 

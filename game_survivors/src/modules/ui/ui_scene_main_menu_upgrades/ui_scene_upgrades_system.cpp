@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -19,7 +20,6 @@
 #include "ui_scene_upgrades_components.hpp"
 #include "ui_scene_upgrades_helpers.hpp"
 #include "ui_scene_upgrades_system.hpp"
-#include <glm/common.hpp>
 
 namespace game2d {
 using namespace std::literals;
@@ -201,9 +201,16 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_wh = ImVec2((float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y);
   const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
-  const float size_x = (1.5f / 3.0f) * 1280.0f * font_scale;
-  const float size_y = (1.5f / 3.0f) * 720.0f * font_scale;
-  const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, viewport_tl.y + (viewport_wh.y - size_y) * 0.5f);
+  const float size_x = 0.4f * 1280.0f * font_scale;
+  const float size_y = 0.6f * 720.0f * font_scale;
+
+  // if pivot is 0, window is at the top at the center of the screen
+  // if pivot is 1, window is at the bot at the center of the screen
+
+  static float pivot = 0.33f;
+  const float pos_y = viewport_tl.y + 0.5f * viewport_wh.y - size_y * pivot;
+
+  const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, pos_y);
   ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
   // ImGui::SetNextWindowSizeConstraints({ 400, 200 }, { 1000, 1000 });
@@ -224,27 +231,32 @@ update_ui_scene_upgrades_system(entt::registry& r)
   auto* text_font = get_inter_font(r, text_font_enum);
   const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
 
+  // background
   const auto rounding = 12.0f;
   const auto thickness = 2.0f;
-  const auto rect_flags = ImDrawFlags_RoundCornersAll;
-  draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
+  // draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
 
   // draw a moneybag for your gold
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
   const ImVec2 icon_size{ 32 * font_scale, 32 * font_scale };
   const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
+  ImGui::SetCursorPosX(0.5f * (ui_wh.x - icon_size.x));
   ImGui::Image(im_id, icon_size, gold_tl, gold_br, im_gold_col);
 
   ImGui::PushFont(text_font);
 
   // Draw gold amount under the gold moneybagz.
   ImGui::SetCursorPos({ 0, icon_size.y });
-  ImGui::TextColored(im_gold_col, "Gold: %i", gold_c.amount);
+  const auto gold_txt = std::format("Gold: {}", gold_c.amount);
+  const auto gold_txt_wh = ImGui::CalcTextSize(gold_txt.c_str());
+  ImGui::SetCursorPosX(0.5f * (ui_wh.x - gold_txt_wh.x));
+  ImGui::TextColored(im_gold_col, "%s", gold_txt.c_str());
 
-  ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
-  ImGui::Separator();
-  ImGui::PopStyleColor();
+  // ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
+  // ImGui::Separator();
+  // ImGui::PopStyleColor();
+  ImGui::NewLine();
 
   const int grid_y = get_grid_y(ui_c.state.cells.size(), ui_c.grid_x);
   const auto grid_tl = ImGui::GetCursorScreenPos();
@@ -309,9 +321,10 @@ update_ui_scene_upgrades_system(entt::registry& r)
   }
 
   ImGui::SetCursorScreenPos(ImVec2{ grid_tl.x, grid_br.y });
-  ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
-  ImGui::Separator();
-  ImGui::PopStyleColor();
+  // ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
+  // ImGui::Separator();
+  // ImGui::PopStyleColor();
+  ImGui::NewLine();
 
   if (ui_c.selected_stat.has_value()) {
     const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(ui_c.selected_stat.value()));
@@ -325,7 +338,8 @@ update_ui_scene_upgrades_system(entt::registry& r)
     const Upgrade u = (*it);
 
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);
-    ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
+    // ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
+    ImGui::TextColored(im_text_col, "%s", u.key.c_str());
 
     // loaded on-disk values
     int your_level = 0;

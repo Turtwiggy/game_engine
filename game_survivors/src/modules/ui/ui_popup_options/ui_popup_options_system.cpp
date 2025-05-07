@@ -88,7 +88,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const auto rounding = 12.0f;
   const auto thickness = 2.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
-  draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, rounding);
+  // draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, rounding);
 
   const auto TEXT_SIZE = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
   const ImVec2 button_size = { 200.0f, TEXT_SIZE.y + 2.0f };
@@ -250,6 +250,12 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
     if (auto* o = dynamic_cast<Option_VideoVsync*>(option.get()))
       display_button(o, "##vsync");
+
+    if (i == ui_c.state.cells.size() - 1) {
+      ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
+      ImGui::Separator();
+      ImGui::PopStyleColor();
+    }
   }
 
   ImGui::End();

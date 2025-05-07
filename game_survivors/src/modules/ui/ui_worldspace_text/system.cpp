@@ -5,6 +5,7 @@
 #include "components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/core/camera/helpers.hpp"
+#include "modules/ui/ui_scene_header/ui_scene_header_components.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -33,6 +34,7 @@ update_ui_worldspace_text_system(entt::registry& r)
 
     ImGuiWindowFlags flags = 0;
     flags |= wst_c.flags;
+
     if (wst_c.size.x == 0.0f && wst_c.size.y == 0.0f)
       flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
