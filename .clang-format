@@ -2,3 +2,4 @@ BasedOnStyle: Mozilla
 ColumnLimit: 125
 IndentWidth: 2
 # AlignConsecutiveDeclarations: true
+# AllowShortIfStatementsOnASingleLine: WithoutElse

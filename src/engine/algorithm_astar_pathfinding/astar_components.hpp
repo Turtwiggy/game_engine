@@ -50,4 +50,17 @@ struct GeneratedPathComponent
   float wait_time_ms_left = 0; // move immediately
 };
 
+struct MapEntry
+{
+  int cost = -1;
+};
+
+struct Map_NonEntt
+{
+  int xmax = 10;
+  int ymax = 10;
+  int tilesize = 50;
+  std::vector<MapEntry> map;
+};
+
 } // namespace game2d

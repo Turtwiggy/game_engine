@@ -307,6 +307,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_hardpoint_arcs_system(r);
   update_sprite_spritestack_system(r, dt);
+  update_actor_rocks_system(r);
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
@@ -326,7 +327,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // update_sprint_system(r, dt);
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
-    update_actor_rocks_system(r);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_weapon_sea_turret_system(r, dt);

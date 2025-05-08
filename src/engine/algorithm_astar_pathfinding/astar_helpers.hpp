@@ -41,6 +41,9 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to);
 [[nodiscard]] std::vector<glm::ivec2>
 generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i to);
 
+std::vector<glm::ivec2>
+generate_accessible_areas(const Map_NonEntt& map_c, const vec2i from_pos, const int range);
+
 [[nodiscard]] std::vector<glm::ivec2>
 generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const vec2i from_pos, const int range);
 

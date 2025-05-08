@@ -187,6 +187,8 @@ handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEve
     // two sets of upgraderesultcomponent are generated and tried to add to the player.
     // and the .emplace fails because the component exists already
     //
+
+    // todo: fix crash
     r.emplace<UpgradeResultsComponent>(player_e, results_c);
   }
 

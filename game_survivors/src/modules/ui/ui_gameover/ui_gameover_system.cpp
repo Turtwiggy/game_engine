@@ -42,11 +42,10 @@ update_ui_gameover_system(entt::registry& r)
 #endif
 
   const auto request_opt = ui_c.update<GameOverComponent>(r);
-  if (!request_opt.has_value())
-    return;
-  const auto request = request_opt.value();
+  if (request_opt.has_value())
+    ui_c.request = request_opt.value();
 
-  if (!ui_c.open)
+  if (!ui_c.open || !ui_c.request.has_value())
     return;
 
   process_input_for_ui_all_handles(r, ui_c.state);
@@ -94,14 +93,14 @@ update_ui_gameover_system(entt::registry& r)
   const auto font_size = (float)font_enum;
   auto* text_font = get_inter_font(r, font_enum);
 
-  if (request.win_condition) {
+  if (ui_c.request->win_condition) {
     ImGui::PushFont(fingerpaint_font);
     ImGui::TextColored(im_w_col, "%s", std::format("{}", header_win).c_str());
     ImGui::PopFont();
 
     ImGui::Text("With some luck, you did it!");
   }
-  if (!request.win_condition) {
+  if (!ui_c.request->win_condition) {
     ImGui::PushFont(fingerpaint_font);
     ImGui::TextColored(im_l_col, "%s", std::format("{}", header_loss).c_str());
     ImGui::PopFont();

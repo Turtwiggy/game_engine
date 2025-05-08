@@ -32,7 +32,7 @@ struct IModifierOption
 struct Option_Rocks : public IModifierOption
 {
   // data
-  bool populate_rocks = false;
+  bool populate_rocks = true;
 
   Option_Rocks()
     : IModifierOption(MODIFIER_OPTIONS::ROCKS, "Islands", UIValueType::BUTTON) {};

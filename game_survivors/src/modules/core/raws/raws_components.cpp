@@ -1,4 +1,3 @@
-#include "modules/ui/ui_debug_effects/effects_helpers.hpp"
 #include "pch.hpp"
 
 #include "modules/core/raws/raws_components.hpp"
@@ -28,6 +27,7 @@
 #include "modules/systems/system_physics_apply_force/components.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_debug_effects/effects_helpers.hpp"
 #include "raws_helpers.hpp"
 
 namespace game2d {
