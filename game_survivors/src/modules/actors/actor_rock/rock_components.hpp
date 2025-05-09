@@ -18,6 +18,7 @@ struct RequestGenerateRocks
 struct DebugContoursComponent
 {
   std::vector<Edge> edges;
+  std::vector<Edge> sorted_edges;
 };
 
 } // namespace game2d

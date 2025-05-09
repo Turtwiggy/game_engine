@@ -6,11 +6,15 @@
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/maths/noise.hpp"
+#include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/combat/combat_core/components.hpp"
 
 namespace game2d {
 
@@ -117,6 +121,22 @@ identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_t
     std::vector<NoiseInfo> island;
     for (const auto& found : areas)
       island.push_back(generated[engine::grid::grid_position_to_index({ found.x, found.y }, wh)]);
+
+    // validate island(s)
+
+    // ignore islands that are too small.
+    const auto min_island_size = 4;
+    if (island.size() < min_island_size)
+      continue; // discard island
+
+    // ignore islands that border the edge.
+    const auto borders_map_edge = [](const NoiseInfo& ni) {
+      return ni.xy.x == 0 || ni.xy.x == wh - 1 || ni.xy.y == 0 || ni.xy.y == wh - 1;
+    };
+    auto it = std::find_if(island.begin(), island.end(), borders_map_edge);
+    if (it != island.end())
+      continue; // discard island,
+
     islands.push_back(island);
   }
 
@@ -127,7 +147,51 @@ identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_t
 //
 // uses a marching square algorithm to generates contours for the islands, which we can feed in to box2d
 //
+
+struct ContoursOut
+{
+  std::vector<Edge> contours;
+  std::vector<Edge> sorted_contours;
+};
+
 std::vector<Edge>
+sort_contours(const std::vector<Edge>& island_contours)
+{
+  std::vector<Edge> sorted_island_contours;
+  sorted_island_contours.push_back(island_contours[0]);
+
+  for (size_t i = 1; i < island_contours.size(); i++) {
+
+    const auto prv = sorted_island_contours[i - 1];
+    bool added = false;
+
+    for (int j = 0; j < island_contours.size(); j++) {
+      auto cur = island_contours[j];
+      if (prv == cur)
+        continue;
+
+      if (prv.b == cur.a) {
+        added = true;
+        sorted_island_contours.push_back(cur);
+        break;
+      }
+
+      if (prv.b == cur.b) {
+        added = true;
+        // the edges are the wrong way round
+        std::swap(cur.a, cur.b);
+        sorted_island_contours.push_back(cur);
+        break;
+      }
+    }
+
+    if (!added)
+      break; // no valid connected contour foound.
+  }
+  return sorted_island_contours;
+};
+
+ContoursOut
 generate_contours(entt::registry& r,
                   const std::vector<NoiseInfo>& island,
                   const float tilesize,
@@ -135,28 +199,28 @@ generate_contours(entt::registry& r,
 {
   enum class EDGES
   {
-    B = 0,
-    R = 1,
-    T = 2,
-    L = 3,
+    L = 1,
+    R = 2,
+    T = 3,
+    B = 4,
     ALL, // not currently used
   };
 
   // map the case to intersected edges
   const std::vector<std::vector<EDGES>> lookup_table = {
     {},                     // Case: 0,     0000
-    { EDGES::L, EDGES::B }, // Case: 1      0001                bl
+    { EDGES::B, EDGES::L }, // Case: 1      0001                bl
     { EDGES::B, EDGES::R }, // Case: 2      0010            br
-    { EDGES::L, EDGES::R }, // Case: 3      0011            br  bl
+    { EDGES::R, EDGES::L }, // Case: 3      0011            br  bl
     { EDGES::R, EDGES::T }, // Case: 4      0100        tr
     { EDGES::ALL },         // Case: 5      0101        tr      bl (ambiguous)
-    { EDGES::T, EDGES::B }, // Case: 6      0110        tr  br
+    { EDGES::B, EDGES::T }, // Case: 6      0110        tr  br
     { EDGES::T, EDGES::L }, // Case: 7      0111        tr  br  bl
     { EDGES::T, EDGES::L }, // Case: 8      1000    tl
     { EDGES::T, EDGES::B }, // Case: 9      1001    tl          bl
     { EDGES::ALL },         // Case: 10     1010    tl      br     (ambiguous)
     { EDGES::T, EDGES::R }, // Case: 11     1011    tl      br  bl
-    { EDGES::L, EDGES::R }, // Case: 12     1100    tl  tr
+    { EDGES::R, EDGES::L }, // Case: 12     1100    tl  tr
     { EDGES::B, EDGES::R }, // Case: 13     1101    tl  tr      bl
     { EDGES::B, EDGES::L }, // Case: 14     1110    tl  tr  br
     {}                      // Case: 15     1111    tl  tr  br  bl
@@ -166,31 +230,30 @@ generate_contours(entt::registry& r,
 
   const auto get_noise = [&](int x, int y) -> float {
     auto it = std::find_if(island.begin(), island.end(), [&](const NoiseInfo& ni) { return ni.xy.x == x && ni.xy.y == y; });
-    if (it == island.end())
-      return 0.0f;
-    return it->noise.value();
+    return (it == island.end()) ? 0.0f : it->noise.value();
   };
 
   for (int y = 0; y < wh - 1; y++) {
     for (int x = 0; x < wh - 1; x++) {
 
-      const float bl = get_noise(x, y);
-      const float br = get_noise(x + 1, y);
-      const float tr = get_noise(x + 1, y + 1);
       const float tl = get_noise(x, y + 1);
+      const float tr = get_noise(x + 1, y + 1);
+      const float br = get_noise(x + 1, y);
+      const float bl = get_noise(x, y);
 
       // For the purposes of marching square,
       // anything above the isovalue gets identified as a "1"
       // anything below the isovalue gets identified as a "0"
       int state = 0;
-      state |= (bl != 0.0f) ? 1 : 0;
-      state |= (br != 0.0f) ? 2 : 0;
-      state |= (tr != 0.0f) ? 4 : 0;
       state |= (tl != 0.0f) ? 8 : 0;
+      state |= (tr != 0.0f) ? 4 : 0;
+      state |= (br != 0.0f) ? 2 : 0;
+      state |= (bl != 0.0f) ? 1 : 0;
 
       const std::vector<EDGES> idxs = lookup_table[state];
       if (idxs.size() != 2)
         continue; // only interested in lines
+
       const auto e0 = idxs[0];
       const auto e1 = idxs[1];
 
@@ -198,29 +261,95 @@ generate_contours(entt::registry& r,
       glm::vec2 p0 = xy;
       glm::vec2 p1 = xy;
 
+      const glm::vec2 dl{ 0.0f, 0.5f };
+      const glm::vec2 dr{ 1.0f, 0.5f };
+      const glm::vec2 dt{ 0.5f, 1.0f };
+      const glm::vec2 db{ 0.5f, 0.0f };
+
       if (e0 == EDGES::L)
-        p0.x -= 0.5f * tilesize;
+        p0 += tilesize * dl;
       if (e0 == EDGES::R)
-        p0.x += 0.5f * tilesize;
+        p0 += tilesize * dr;
       if (e0 == EDGES::T)
-        p0.y += 0.5f * tilesize;
+        p0 += tilesize * dt;
       if (e0 == EDGES::B)
-        p0.y -= 0.5f * tilesize;
+        p0 += tilesize * db;
 
       if (e1 == EDGES::L)
-        p1.x -= 0.5f * tilesize;
+        p1 += tilesize * dl;
       if (e1 == EDGES::R)
-        p1.x += 0.5f * tilesize;
+        p1 += tilesize * dr;
       if (e1 == EDGES::T)
-        p1.y += 0.5f * tilesize;
+        p1 += tilesize * dt;
       if (e1 == EDGES::B)
-        p1.y -= 0.5f * tilesize;
+        p1 += tilesize * db;
 
       island_contours.push_back({ p0, p1 });
     }
   }
 
-  return island_contours;
+  ContoursOut out;
+  out.contours = island_contours;
+  out.sorted_contours = sort_contours(island_contours);
+  return out;
+};
+
+void
+create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<Edge>& contours)
+{
+  auto& physics_c = get_first_component<SINGLE_Physics>(r);
+
+  if (contours.size() < 3)
+    return;
+
+  // glm::vec2 centroid{ 0, 0 };
+  //   centroid += glm::vec2{ 0.5f * (p.a.x + p.b.x), 0.5f * (p.a.y + p.b.y) };
+  // for (const auto& p : contours)
+  // centroid /= (int)contours.size();
+  // const glm::vec2 pos_in_meters = {
+  //   pixels_to_meters(centroid.x),
+  //   pixels_to_meters(centroid.y),
+  // };
+
+  b2BodyDef def;
+  def.type = b2_staticBody;
+  b2Body* body = physics_c.world->CreateBody(&def);
+  // box2d: give link to entt
+  body->GetUserData().pointer = (uintptr_t)island_e;
+  auto& body_c = r.emplace<PhysicsBodyComponent>(island_e, PhysicsBodyComponent{ .body = body });
+
+  // Create Fixture
+  {
+    std::vector<glm::ivec2> contour_pixels;
+    for (int i = 0; i < contours.size(); i++) {
+      if (i > 0) {
+        const auto hmm_b = glm::ivec2(contours[i - 1].b.x, contours[i - 1].b.y);
+        const auto hmm_a = glm::ivec2(contours[i - 0].a.x, contours[i - 0].a.y);
+        // assert(hmm_a == hmm_b);
+      }
+      contour_pixels.push_back(glm::ivec2{ contours[i].a.x, contours[i].a.y });
+    }
+
+    std::vector<b2Vec2> contor_meters;
+    std::transform(contour_pixels.begin(), contour_pixels.end(), std::back_inserter(contor_meters), [](const glm::vec2& d) {
+      return b2Vec2{ pixels_to_meters(d.x), pixels_to_meters(d.y) };
+    });
+
+    b2ChainShape chain;
+    chain.CreateLoop(contor_meters.data(), (int32)contor_meters.size());
+
+    b2FixtureDef f_def;
+    f_def.shape = &chain;
+    auto* fixture = body->CreateFixture(&f_def);
+
+    PhysicsFixtureComponent fixture_c;
+    fixture_c.body = body;
+    fixture_c.fixture = fixture;
+
+    auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
+    r.emplace<HasParentComponent>(fixture_e, island_e);
+    fixture->GetUserData().pointer = (uint32)fixture_e; // box2d: give link to entt
+  }
 };
 
 void
@@ -254,7 +383,7 @@ generate_rocks(entt::registry& r, const float cutoff)
     // offset so the grid doesnt start at (0, 0)
     const auto offset = (int)(-wh * 0.5f);
     const auto offset_worldspace = (int)offset * tilesize;
-    std::vector<Edge> offset_contours = contours;
+    std::vector<Edge> offset_contours = contours.sorted_contours;
     for (auto& [p0, p1] : offset_contours) {
       p0.x += offset_worldspace;
       p0.y += offset_worldspace;
@@ -263,7 +392,15 @@ generate_rocks(entt::registry& r, const float cutoff)
     }
 
     auto island_e = create_empty<RockComponent>(r);
-    r.emplace<DebugContoursComponent>(island_e, offset_contours);
+
+    DebugContoursComponent debug_c;
+    debug_c.edges = contours.contours;
+    debug_c.sorted_edges = offset_contours;
+    r.emplace<DebugContoursComponent>(island_e, debug_c);
+    r.emplace<TeamComponent>(island_e, TeamComponent{ AvailableTeams::neutral });
+
+    // island contours in to box2d to create collisions
+    create_box2d_shape(r, island_e, offset_contours);
 
     /*
     for (const auto& info : island) {

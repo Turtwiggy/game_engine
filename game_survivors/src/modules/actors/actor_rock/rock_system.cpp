@@ -58,24 +58,54 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
 
   process_requests<RequestGenerateRocks>(r, [&](const auto& req) {
     // Destroy all the old rocks.
-    // auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
+    auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
     const auto view = r.view<RockComponent>();
-    // for (const auto& [e, rock_c] : view.each())
-    //   dead_c.dead.push_back(e);
-    r.destroy(view.begin(), view.end());
+    for (const auto& [e, rock_c] : view.each())
+      dead_c.dead.push_back(e);
 
     generate_rocks(r, cutoff);
   });
 
 #if defined(_DEBUG)
-  for (int i = 0; const auto& [e, debug_c] : r.view<DebugContoursComponent>().each()) {
-    for (const auto& edge : debug_c.edges) {
-      const auto line_info = generate_line(edge.a, edge.b, 4.0f);
+  // int i = 0;
+  // int j = 0;
+  // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  // static int debug_island = 0;
+  // static int debug_edge = 0;
+  // imgui_draw_int("debug_island", debug_island);
+  // imgui_draw_int("debug_edge", debug_edge);
+  // if (get_key_down(input_c, SDL_SCANCODE_KP_PLUS))
+  //   debug_edge++;
+  // if (get_key_down(input_c, SDL_SCANCODE_KP_MINUS))
+  //   debug_edge--;
+
+  for (const auto& [e, debug_c] : r.view<DebugContoursComponent>().each()) {
+
+    for (const auto& edge : debug_c.sorted_edges) {
+
+      // ImGui::Text("(sorted) (a) %i %i (b) %i %i", edge.a.x, edge.a.y, edge.b.x, edge.b.y);
+      // if (j == debug_edge) {
+      //   ImGui::SameLine();
+      //   ImGui::Text("Active");
+      // }
 
       // give each island a different colour
       const auto tmp = (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f);
       const engine::SRGBColour col{ tmp.x, tmp.y, tmp.z, tmp.w };
 
+      // if (i == debug_island) {
+      //   col.r = 255 * 0.5f;
+      //   col.g = 255 * 0.5f;
+      //   col.b = 255 * 0.5f;
+      // } else {
+      //   col.r = 255 * 0.2f;
+      //   col.g = 255 * 0.2f;
+      //   col.b = 255 * 0.2f;
+      // }
+      // if (j == debug_edge)
+      //   col.r = 255 * 1.0f;
+
+      const auto line_info = generate_line(edge.a, edge.b, 4.0f);
       Sprite debug_s;
       debug_s.pos = line_info.position;
       debug_s.size = line_info.scale;
@@ -83,9 +113,11 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
       debug_s.sprite = "EMPTY";
       debug_s.col = col;
       draw_sprite(r, debug_s);
+
+      // j++;
     }
 
-    i++;
+    // i++;
   }
 #endif
 }
