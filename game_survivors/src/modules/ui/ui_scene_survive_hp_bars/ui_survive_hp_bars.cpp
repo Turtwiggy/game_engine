@@ -6,6 +6,7 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
@@ -20,6 +21,22 @@ namespace game2d {
 
 const auto my_hp_bar_background_col = hex_to_srgb("#15171B");
 const auto im_hp_bar_background_col = convert_my_to_im(my_hp_bar_background_col);
+
+// e.g. 4 players with (0, 4, 2, 5) guns => returns 5
+int
+max_weapons_per_players(entt::registry& r, const std::vector<entt::entity>& players_e_vec)
+{
+  int n_weapons = 0;
+  for (const auto player_e : players_e_vec) {
+    auto& children_c = r.get<HasChildrenComponent>(player_e);
+    int n_player_weps = 0;
+    for (const auto child_e : children_c.children)
+      if (auto* weapon_c = r.try_get<WeaponComponent>(child_e))
+        n_player_weps++;
+    n_weapons = glm::max((int)n_player_weps, n_weapons);
+  }
+  return n_weapons;
+};
 
 void
 update_ui_survive_hp_bars_system(entt::registry& r)
@@ -39,11 +56,13 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 
   const float hp_bar_height = font_size;
   const float hp_bar_width = 200.0f * font_scale;
-  const float distance_from_bottom_of_screen = 50.0f * font_scale;
+  const float distance_from_bottom_of_screen = 15.0f;
   const float space_between_bars = 45.0f * font_scale;
 
   const auto players_e_vec = view_to_vector_of_ents<PlayerComponent>(r);
   const auto num_active_players = (int)players_e_vec.size();
+  int n_weapons = max_weapons_per_players(r, players_e_vec);
+
   // static auto num_active_players = 1;
   // imgui_draw_int("debug_players", num_active_players);
 
@@ -56,11 +75,12 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoSavedSettings;
+  flags |= ImGuiWindowFlags_NoBackground;
+  // flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
   const auto set_window_pos = ImVec2{ 0, (float)ri_c.viewport_size_render_at.y - distance_from_bottom_of_screen };
-  const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, 100.0f * ui_scale };
+  const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, hp_bar_height * (2 + n_weapons) * ui_scale };
   ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.0f, 1.0f });
   ImGui::SetNextWindowSize(set_window_size, ImGuiCond_Always);
 
