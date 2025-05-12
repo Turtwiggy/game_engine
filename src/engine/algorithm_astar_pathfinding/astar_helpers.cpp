@@ -164,9 +164,7 @@ generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i 
     if (equal<vec2i>(current, to))
       return reconstruct_path(came_from, from, to);
 
-    const auto neighbour_gps =
-      engine::grid::get_neighbour_gridpos_with_diagonals({ current.x, current.y }, map_c.xmax, map_c.ymax);
-
+    const auto neighbour_gps = engine::grid::get_neighbour_gridpos_with_diagonals({ current.x, current.y });
     for (const auto& [dir, gp] : neighbour_gps) {
 
       if (gp_out_of_bounds(gp, map_c.xmax, map_c.ymax))
@@ -324,9 +322,7 @@ generate_accessible_areas_with_diagonals(entt::registry& r, const MapComponent& 
     results.emplace(vec2i{ current.x, current.y });
 
     // check neighbours
-    const auto neighbour_gps =
-      engine::grid::get_neighbour_gridpos_with_diagonals({ current.x, current.y }, map_c.xmax, map_c.ymax);
-
+    const auto neighbour_gps = engine::grid::get_neighbour_gridpos_with_diagonals({ current.x, current.y });
     for (const auto& [dir, gp] : neighbour_gps) {
 
       int distance = pos_to_distance[current] + 1;

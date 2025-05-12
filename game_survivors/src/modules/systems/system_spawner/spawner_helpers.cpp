@@ -4,9 +4,11 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "spawner_components.hpp"
@@ -116,32 +118,65 @@ rnd_position_around_point(entt::registry& r, const glm::ivec2 center, float radi
 };
 
 glm::vec2
-rnd_position_in_map_but_not_inside_players(entt::registry& r)
+rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
 {
-  const int attempts = 3;
+  const int attempts = 5;
   const float map_x = 700;
+  const float map_tilesize = 50;
   auto candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, map_x);
+
+  const auto get_players_gridpos = [&]() -> std::vector<glm::ivec2> {
+    std::vector<glm::ivec2> gridpos;
+    for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+      const auto gp = engine::grid::worldspace_to_grid_space(get_position(r, e), map_tilesize);
+      gridpos.push_back(gp);
+    }
+    return gridpos;
+  };
+  const auto get_islands_gridpos = [&]() -> std::vector<glm::ivec2> {
+    std::vector<glm::ivec2> gridpos;
+
+    for (const auto& [e, rock_c, rock_bb_c] : r.view<const RockComponent, const BoundingBoxComponent>().each()) {
+      const auto tl = rock_bb_c.tl;
+      const auto br = rock_bb_c.br;
+
+      for (float y = tl.y; y < br.y; y += map_tilesize) {
+        for (float x = tl.x; x < br.x; x += map_tilesize) {
+          const auto gp = engine::grid::worldspace_to_grid_space({ x, y }, map_tilesize);
+          gridpos.push_back(gp);
+        }
+      }
+    }
+    return gridpos;
+  };
+
+  const auto offlimit_a = get_players_gridpos();
+  const auto offlimit_b = get_islands_gridpos();
+  std::vector<glm::ivec2> offlimit_gridpos;
+  offlimit_gridpos.insert(offlimit_gridpos.end(), offlimit_a.begin(), offlimit_a.end());
+  offlimit_gridpos.insert(offlimit_gridpos.end(), offlimit_b.begin(), offlimit_b.end());
 
   for (int i = 0; i < attempts; i++) {
     bool valid = true;
 
-    const auto view = r.view<const PlayerComponent, const TransformComponent>();
-    for (const auto& [e, player_c, t_c] : view.each()) {
-      const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
-      constexpr int buffer_size_sqr = 32 * 32;
+    glm::ivec2 gp = engine::grid::worldspace_to_grid_space(candidate, map_tilesize);
+    std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> n_gp =
+      engine::grid::get_neighbour_gridpos_with_diagonals({ gp.x, gp.y });
 
-      const bool coll = engine::circle_collision(
-        {
-          .pos = get_position(r, e),
-          .radius = 0.5f * glm::max(size.x, size.y),
-        },
-        {
-          .pos = candidate,
-          .radius = 32 * 32,
-        });
-
-      if (coll) // candidate invalid. try again.
+    // check no overlapping grid cell or neighbour grid cells.
+    {
+      const auto it = std::find(offlimit_gridpos.begin(), offlimit_gridpos.end(), gp);
+      if (it != offlimit_gridpos.end())
         valid = false;
+    }
+    {
+      for (const auto [dir, gp] : n_gp) {
+        const auto it = std::find(offlimit_gridpos.begin(), offlimit_gridpos.end(), gp);
+        if (it != offlimit_gridpos.end()) {
+          valid = false;
+          break;
+        }
+      }
     }
 
     if (valid)

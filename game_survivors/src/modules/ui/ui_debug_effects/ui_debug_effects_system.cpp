@@ -16,8 +16,8 @@ update_ui_debug_effects_system(entt::registry& r)
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
 
   const auto effects_ui = gesert_menubar_state(menu_c, "DebugEffects");
-  // if(!effects_ui.enabled)
-  //   return;
+  if (!effects_ui.enabled)
+    return;
 
   imgui_begin("DebugEffects");
 

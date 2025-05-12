@@ -12,8 +12,10 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -324,7 +326,7 @@ draw_player_ui_box(entt::registry& r,
     const auto text_col = IM_COL32(0, 0, 0, alpha_int);
 
     const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
+    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
     ImGui::PushFont(get_inter_font(r, font_enum));
 
     {
@@ -433,6 +435,22 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   if (scene_c.s != Scene::menu) {
     timer = 0.0f;
     return;
+  }
+
+  // hack: dont show this menu if options or upgrade is open
+  {
+    const auto menu_upgrade_e = get_first<SINGLE_PersistentUpgradesMenuUI>(r);
+    const auto options_ui_e = get_first<SINGLE_OptionsMenuState>(r);
+    SINGLE_PersistentUpgradesMenuUI* upgrade_c = nullptr;
+    SINGLE_OptionsMenuState* options_ui_c = nullptr;
+    if (menu_upgrade_e != entt::null)
+      upgrade_c = &r.get<SINGLE_PersistentUpgradesMenuUI>(menu_upgrade_e);
+    if (options_ui_e != entt::null)
+      options_ui_c = &r.get<SINGLE_OptionsMenuState>(options_ui_e);
+    if (upgrade_c && upgrade_c->open)
+      return;
+    if (options_ui_c && options_ui_c->open)
+      return;
   }
 
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);

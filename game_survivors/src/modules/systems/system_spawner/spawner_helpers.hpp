@@ -26,6 +26,6 @@ glm::vec2
 rnd_position_around_point(entt::registry& r, const glm::ivec2 center, float radius_min, float radius_max);
 
 glm::vec2
-rnd_position_in_map_but_not_inside_players(entt::registry& r);
+rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r);
 
 } // namespace game2d

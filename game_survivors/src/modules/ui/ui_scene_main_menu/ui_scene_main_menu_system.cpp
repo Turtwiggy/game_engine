@@ -37,7 +37,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   // button idx
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
   auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
 

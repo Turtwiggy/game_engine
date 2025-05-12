@@ -5,6 +5,12 @@
 
 namespace game2d {
 
+struct BoundingBoxComponent
+{
+  glm::vec2 tl{ FLT_MAX, FLT_MAX };
+  glm::vec2 br{ -FLT_MAX, -FLT_MAX };
+};
+
 struct RockComponent
 {
   bool placeholder = true;

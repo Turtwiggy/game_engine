@@ -31,8 +31,8 @@ enum class FontSize
   HEADER_SCALED = static_cast<int>(HEADER * scale_size),
   // note: >150 seems to not load or something.
 
-  MENU_BUTTONS = 32,
-  MENU_BUTTONS_SCALED = static_cast<int>(MENU_BUTTONS * scale_size),
+  GAME_TIMER = 48,
+  GAME_TIMER_SCALED = static_cast<int>(GAME_TIMER * scale_size),
 };
 
 ImFont*

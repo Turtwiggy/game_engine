@@ -3,6 +3,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -12,6 +14,7 @@
 #include "modules/systems/system_gameover/gameover_components.hpp"
 #include "modules/systems/system_stats/stats_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "resources/data.hpp"
 #include "ui_gameover_components.hpp"
 #include "ui_gameover_system.hpp"
 
@@ -61,28 +64,26 @@ update_ui_gameover_system(entt::registry& r)
   const std::string subheader_w = "You did it!";
   const std::string subheader_l = "Was it you or us? Feedback @ \n" + discord_link;
 
-  const auto my_w_col = hex_to_srgb("#46C74F");
-  const auto my_l_col = hex_to_srgb("#DF9755");
-  const auto im_w_col = convert_my_to_im_vec(my_w_col);
-  const auto im_l_col = convert_my_to_im_vec(my_l_col);
-
   const ImVec2 wh = { (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
   const ImVec2 tl = { 0, 0 };
   const auto ui_center = ImVec2{ tl.x + wh.x * 0.5f, tl.y + wh.y * 0.5f };
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-
   ImGui::SetNextWindowPos(ui_center, ImGuiCond_Always, { 0.5f, 0.5f });
 
-  ImGui::Begin("Gameover", NULL, flags);
+  static float wp = 6.0f;
+  // static float wr = 0.0f;
+  // static float fp = 0.0f;
+  // static float fr = 0.0f;
+  // imgui_draw_float("wp", wp);
+  // imgui_draw_float("wr", wr);
+  // imgui_draw_float("fp", fp);
+  // imgui_draw_float("fr", fr);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, wp));
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, wr);
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fp, fp));
+  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, fr);
 
+  imgui_begin("Gameover");
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();
 
@@ -130,6 +131,7 @@ update_ui_gameover_system(entt::registry& r)
     back_to_menu = true;
 
   ImGui::End();
+  ImGui::PopStyleVar();
 
   // deletes the SINGLE_GameoverUI
   if (back_to_menu)

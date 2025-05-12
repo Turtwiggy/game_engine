@@ -35,7 +35,7 @@ std::vector<std::pair<GridDirection, glm::ivec2>>
 get_neighbour_gridpos(const glm::ivec2& xy, const int x_max, const int y_max);
 
 std::vector<std::pair<GridDirection, glm::ivec2>>
-get_neighbour_gridpos_with_diagonals(const glm::ivec2& xy, const int x_max, const int y_max);
+get_neighbour_gridpos_with_diagonals(const glm::ivec2& xy);
 
 [[nodiscard]] inline glm::vec2
 grid_space_to_world_space(const glm::ivec2 pos, const int grid_size)

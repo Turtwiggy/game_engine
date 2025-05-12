@@ -58,7 +58,6 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // get a random position around target player?
   // TODO: should be a larger zone considering all players?
   const auto& target_t = r.get<TransformComponent>(target_e);
-
   const auto target_pos = glm::vec2{ target_t.position.x, target_t.position.y };
   const float screen_max = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const auto rnd_pos_around_player = rnd_position_around_point(r, target_pos, screen_max, screen_max);
@@ -216,7 +215,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.emplace<ActorHealthRegenComponent>(e, regen_c); // parent not fixture
     r.emplace<ActorDodgeComponent>(e, 0.0f);
 
-    const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players(r);
+    const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players_or_islands(r);
     set_position(r, e, rnd_pos_inside_map);
   }
 
@@ -232,7 +231,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     auto& callbacks_c = r.get<OnDeathCallbacks>(e);
     callbacks_c.callbacks.clear();
 
-    const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players(r);
+    const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players_or_islands(r);
     set_position(r, e, rnd_pos_inside_map);
 
     // create a gold halo

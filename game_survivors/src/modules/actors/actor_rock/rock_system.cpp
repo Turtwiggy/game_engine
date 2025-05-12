@@ -103,6 +103,8 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
 #endif
 
   process_requests<RequestGenerateRocks>(r, [&](const auto& req) {
+    SDL_Log("Request to generate rocks...");
+
     // Destroy all the old rocks.
     auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
     const auto view = r.view<RockComponent>();
@@ -122,6 +124,8 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
   //   debug_edge++;
   // if (get_key_down(input_c, SDL_SCANCODE_KP_MINUS))
   //   debug_edge--;
+
+  draw_rocks(r);
 }
 
 } // namespace game2d

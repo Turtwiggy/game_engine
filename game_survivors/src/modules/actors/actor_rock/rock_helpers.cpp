@@ -353,6 +353,23 @@ create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<E
 };
 
 void
+generate_rock_bounding_box(entt::registry& r, entt::entity e)
+{
+  const auto& contours_c = r.get<DebugContoursComponent>(e);
+
+  BoundingBoxComponent bb_c;
+
+  for (const auto& points : contours_c.sorted_edges) {
+    bb_c.tl.x = glm::min(bb_c.tl.x, (float)points.a.x);
+    bb_c.tl.y = glm::min(bb_c.tl.y, (float)points.a.y);
+    bb_c.br.x = glm::max(bb_c.br.x, (float)points.a.x);
+    bb_c.br.y = glm::max(bb_c.br.y, (float)points.a.y);
+  }
+
+  r.emplace<BoundingBoxComponent>(e, bb_c);
+}
+
+void
 generate_rocks(entt::registry& r, const float cutoff)
 {
   static int seed = 0;
@@ -401,6 +418,7 @@ generate_rocks(entt::registry& r, const float cutoff)
 
     // island contours in to box2d to create collisions
     create_box2d_shape(r, island_e, offset_contours);
+    generate_rock_bounding_box(r, island_e);
 
     /*
     for (const auto& info : island) {
@@ -469,6 +487,6 @@ generate_rocks(entt::registry& r, const float cutoff)
   r.get<TransformComponent>(rock_e).rotation_radians.z = engine::rand_det_s(rock_rnd.rng, 0.0f, engine::TWO_PI);
   }
   */
-}
+};
 
 } // namespace game2d

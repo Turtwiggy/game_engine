@@ -3,6 +3,8 @@
 #include "ui_survive_timer_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_snake/snake_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -17,6 +19,10 @@ update_ui_survive_timer_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const glm::vec2 tr = ri.viewport_size_render_at;
+
+  const auto players_view = r.view<PlayerComponent>();
+  if (players_view.size() == 0)
+    return; // no players, dont count down timer
 
   for (const auto& [e, timer_c] : r.view<const SurviveTimerComponent>().each()) {
 
@@ -35,27 +41,18 @@ update_ui_survive_timer_system(entt::registry& r)
 
     const auto pos = ImVec2{ tr.x, distance_from_top_of_screen };
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 1.0f, 0.0f });
-
-    ImGuiWindowFlags flags = 0;
-    flags |= ImGuiWindowFlags_NoDecoration;
-    flags |= ImGuiWindowFlags_NoMove;
-    flags |= ImGuiWindowFlags_NoBackground;
-    flags |= ImGuiWindowFlags_NoDocking;
-    flags |= ImGuiWindowFlags_NoSavedSettings;
-    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-    flags |= ImGuiWindowFlags_NoInputs;
-    flags |= ImGuiWindowFlags_AlwaysAutoResize;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.0f, 5.0f));
 
     const auto eid = static_cast<uint32_t>(e);
     ImGui::PushID(eid);
-    ImGui::Begin("Timer", NULL, flags);
+    imgui_begin("timer");
 
     const auto ui_wh = ImGui::GetContentRegionAvail();
     const auto ui_tl = ImGui::GetCursorPos();
 
     {
       const auto header_font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-      const auto header_font_enum = header_font_scale == 1.0f ? FontSize::MENU_BUTTONS : FontSize::MENU_BUTTONS_SCALED;
+      const auto header_font_enum = header_font_scale == 1.0f ? FontSize::GAME_TIMER : FontSize::GAME_TIMER_SCALED;
       auto* header_font = get_inter_font(r, header_font_enum);
       ImGui::PushFont(header_font); // Use the larger font (index 1)
 
@@ -76,12 +73,14 @@ update_ui_survive_timer_system(entt::registry& r)
       if (r.view<BossComponent>().size() > 0) {
         const std::string str = "Defeat Steve";
         const auto str_size = ImGui::CalcTextSize(str.c_str());
-        ImGui::SetCursorPosX(ui_tl.x + ui_wh.x - str_size.x - padding_x);
+        ImGui::Text("");
+        ImGui::SameLine(ui_wh.x - str_size.x);
         ImGui::TextColored(im_orange_col, "%s", str.c_str());
       } else {
         const std::string str = "Survive!";
         const auto str_size = ImGui::CalcTextSize(str.c_str());
-        ImGui::SetCursorPosX(ui_tl.x + ui_wh.x - str_size.x - padding_x);
+        ImGui::Text("");
+        ImGui::SameLine(ui_wh.x - str_size.x);
         ImGui::TextColored(im_orange_col, "%s", str.c_str());
       }
 
@@ -90,6 +89,7 @@ update_ui_survive_timer_system(entt::registry& r)
 
     ImGui::End();
     ImGui::PopID();
+    ImGui::PopStyleVar();
 
     break; // only one timer
   };

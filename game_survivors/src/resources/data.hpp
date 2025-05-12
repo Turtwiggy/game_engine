@@ -39,4 +39,9 @@ const auto im_text_col_inactive = convert_my_to_im(my_text_col_inactive);
 const auto my_greenish = hex_to_srgb("#71BBB2");
 const auto im_greenish = convert_my_to_im_vec(my_greenish);
 
+const auto my_w_col = hex_to_srgb("#46C74F");
+const auto my_l_col = hex_to_srgb("#DF9755");
+const auto im_w_col = convert_my_to_im_vec(my_w_col);
+const auto im_l_col = convert_my_to_im_vec(my_l_col);
+
 } // namespace game2d
