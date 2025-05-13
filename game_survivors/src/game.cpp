@@ -307,10 +307,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_hardpoint_arcs_system(r);
   update_sprite_spritestack_system(r, dt);
+  update_actor_rocks_system(r); // before update_spawner_system
 
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
-    update_actor_rocks_system(r); // before update_spawner_system
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
     // update_manualfire_system(r, dt);

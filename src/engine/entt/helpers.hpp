@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
 
 #include <SDL2/SDL_log.h>
@@ -8,6 +9,7 @@
 #include <format>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace game2d {
 
@@ -183,6 +185,25 @@ view_to_vector_of_ents(entt::registry& r)
     vec.push_back(e);
 
   return vec;
+};
+
+template<class T>
+std::vector<std::pair<entt::entity, T*>>
+find(entt::registry& r, entt::entity e)
+{
+  std::vector<std::pair<entt::entity, T*>> results;
+
+  if (auto* c = r.try_get<T>(e))
+    results.push_back({ e, c });
+
+  if (const auto* children = r.try_get<HasChildrenComponent>(e)) {
+    for (const auto child_e : children->children) {
+      if (auto* cc = r.try_get<T>(child_e))
+        results.push_back({ child_e, cc });
+    }
+  }
+
+  return results;
 };
 
 #define GET_FIRST_OR_RETURN(TYPE, REGISTRY, ENTITY_VAR, COMPONENT_VAR)                                                      \

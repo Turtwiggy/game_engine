@@ -129,7 +129,8 @@ update_ui_debug_upgrades_system(entt::registry& r)
       roll.level_weapons = true;
 
       UpgradeEvent evt;
-      evt.e = e; // player_e
+      evt.par_e = e;
+      evt.upg_e = e; // add to player
       evt.roll_result = roll;
       evts_c.dispatcher->trigger(evt);
     }

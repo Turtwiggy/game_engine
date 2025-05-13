@@ -20,8 +20,10 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
 {
   auto& evts_c = get_first_component<SINGLE_Events>(r);
 
-  auto player_e = evt.e;
-  r.remove<UpgradeResultsComponent>(player_e); // done
+  // note: upg_e is either on the player, or on the weapon
+  const auto par_e = evt.par_e;
+  const auto upg_e = evt.upg_e;
+  r.remove<UpgradeResultsComponent>(upg_e); // done
 
   const auto rarity = evt.roll_result.rarity;
   const auto& stats = evt.roll_result.stats;
@@ -29,7 +31,7 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   const auto rarity_str = std::string(magic_enum::enum_name(evt.roll_result.rarity));
 
   // Upgrade stats.
-  auto& stats_c = r.get<StatModifierComponent>(player_e);
+  auto& stats_c = r.get<StatModifierComponent>(par_e);
   for (const auto& s : stats) {
     const auto& stat = s.stat;
     const auto& type = s.type;
@@ -43,8 +45,8 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
       throw std::runtime_error("Unknown stat type");
   }
 
-  // level up the weapons
-  for (const auto& weapon_e : evt.roll_result.weapons) {
+  // Upgrade weapons sent in request.
+  for (const auto weapon_e : evt.roll_result.weapons) {
 
     // add traits to all the weapons.
     auto& behaviours_c = r.get<WeaponBehaviourComponent>(weapon_e).behaviours;
@@ -53,25 +55,20 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
     if (!evt.roll_result.level_weapons)
       continue; // dont level
 
-    auto* wep_level_c = r.try_get<WeaponLevelComponent>(weapon_e);
-    if (!wep_level_c)
-      continue;
+    auto& wep_level_c = r.get<WeaponLevelComponent>(weapon_e);
+    wep_level_c.level++;
 
-    wep_level_c->level++;
+    auto it = std::find(core_weapon_levels.begin(), core_weapon_levels.end(), wep_level_c.level);
+    if (it == core_weapon_levels.end())
+      continue; // not a core weapon level
 
-    auto it = std::find(core_weapon_levels.begin(), core_weapon_levels.end(), wep_level_c->level);
-    if (it != core_weapon_levels.end()) {
-      // if weapon level reaches a critical level,
-      // send a weapon upgrade level event
-
-      SDL_Log("Core weapon level reached: %i", wep_level_c->level);
-      WeaponLevelReachedEvent lv_evt;
-      lv_evt.level = wep_level_c->level;
-      lv_evt.par_e = player_e;
-      lv_evt.wep_e = weapon_e;
-      evts_c.dispatcher->trigger(lv_evt);
-      evts_c.dispatcher->update();
-    }
+    SDL_Log("Core weapon level reached: %i", wep_level_c.level);
+    WeaponLevelReachedEvent lv_evt;
+    lv_evt.level = wep_level_c.level;
+    lv_evt.par_e = par_e;
+    lv_evt.wep_e = weapon_e;
+    evts_c.dispatcher->trigger(lv_evt);
+    evts_c.dispatcher->update();
   }
 
   //

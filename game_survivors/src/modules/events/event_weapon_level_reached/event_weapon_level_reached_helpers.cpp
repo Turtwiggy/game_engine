@@ -108,89 +108,63 @@ handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEve
   const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
 
   SDL_Log("weapon reached a level... generating upgrades.");
+  const auto player_e = evt.par_e;
+  const auto weapon_e = evt.wep_e;
+  const auto is_weapon = r.all_of<WeaponComponent>(weapon_e);
+  assert(is_weapon);
 
-  const int num_players = 4;
-  for (int i = 0; i < num_players; i++) {
-    auto player_e = get_player_e_from_idx(r, i);
-    if (player_e == entt::null)
-      continue;
-    const auto& player_c = r.get<PlayerComponent>(player_e);
+  UpgradeResultsComponent results_c;
 
-    UpgradeResultsComponent results_c;
+  // Generate 2 (unowned) core weapon upgrades...
+  const auto& weapon_key = r.get<ItemKey>(weapon_e);
+  const auto weapon_upgrades_data = get_upgrades_from_weapon_key(r, weapon_key.key);
 
-    // Get the player's weapon
-    entt::entity weapon_e = entt::null;
+  std::vector<std::string> upg_keys;
+  for (const auto& data : weapon_upgrades_data)
+    upg_keys.push_back(data.u_key);
 
-    const auto& player_children_c = r.get<HasChildrenComponent>(player_e);
-    for (const auto& child_e : player_children_c.children) {
-      if (auto* weapon_c = r.try_get<WeaponComponent>(child_e)) {
-        weapon_e = child_e;
-        break; // only consider first weapon, for the moment.
-      }
-    }
+  // aquired upgrades
+  const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, weapon_e);
 
-    if (weapon_e == entt::null) {
-      SDL_Log("Player has no weapon equipped?");
-      continue;
-    }
+  // unaquired upgrades
+  std::vector<std::string> unaquired_upg;
+  for (const auto& upg_key : upg_keys) {
+    auto it = std::find(aquired_upg.begin(), aquired_upg.end(), upg_key);
+    if (it == aquired_upg.end())
+      unaquired_upg.push_back(upg_key);
+  }
 
-    // Generate 2 (unowned) core weapon upgrades...
-    const int upgrades = 2;
+  const int upgrades = 2;
+  if (unaquired_upg.size() < upgrades) {
+    auto msg = "Available upgrades <2! Weapons should have >5 upgrades, and you aquire 3 during the game";
+    throw std::runtime_error(msg);
+  }
 
-    const auto& weapon_key = r.get<ItemKey>(weapon_e);
-    const auto weapon_upgrades_data = get_upgrades_from_weapon_key(r, weapon_key.key);
-
-    std::vector<std::string> upg_keys;
-    for (const auto& data : weapon_upgrades_data)
-      upg_keys.push_back(data.u_key);
-
-    // aquired upgrades
-    const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, weapon_e);
-
-    // unaquired upgrades
-    std::vector<std::string> unaquired_upg;
-    for (const auto& upg_key : upg_keys) {
-      auto it = std::find(aquired_upg.begin(), aquired_upg.end(), upg_key);
-      if (it == aquired_upg.end())
-        unaquired_upg.push_back(upg_key);
-    }
-
-    if (unaquired_upg.size() < upgrades) {
-      auto msg = "Available upgrades <2! Weapons should have >5 upgrades, and you aquire 3";
-      throw std::runtime_error(msg);
-    }
-
+  static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
 #if defined(_DEBUG)
-    // static engine::RandomState roll_rnd(0); // same roll every time
-    static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
+  // static engine::RandomState roll_rnd(0); // same roll every time
 #else
-    static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
+  static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
 #endif
 
-    for (int i = 0; i < upgrades; i++) {
-      const auto chosen_i = engine::rand_det_s(roll_rnd.rng, 0, (int)unaquired_upg.size());
-      const auto upgrade_key = unaquired_upg[chosen_i];
-      const auto wb_key = get_wb_key_from_upgrade_key(r, upgrade_key);
-      const auto behaviour = magic_enum::enum_cast<WeaponBehaviour>(wb_key).value();
+  // let the player choose which upgrade to pick from upgrades you dont have.
+  for (int i = 0; i < upgrades; i++) {
+    const auto chosen_i = engine::rand_det_s(roll_rnd.rng, 0, (int)unaquired_upg.size());
+    const auto upgrade_key = unaquired_upg[chosen_i];
+    const auto wb_key = get_wb_key_from_upgrade_key(r, upgrade_key);
+    const auto behaviour = magic_enum::enum_cast<WeaponBehaviour>(wb_key).value();
 
-      results_c.results.emplace(UpgradeRollResult{ .rarity = Rarity::COMMON,
-                                                   .stats = get_stats_from_weapon_behaviour(r, behaviour),
-                                                   .traits = { behaviour },
-                                                   .weapons = { weapon_e },
-                                                   .level_weapons = false });
+    results_c.results.emplace(UpgradeRollResult{ .rarity = Rarity::COMMON,
+                                                 .stats = get_stats_from_weapon_behaviour(r, behaviour),
+                                                 .traits = { behaviour },
+                                                 .weapons = { weapon_e },
+                                                 .level_weapons = false });
 
-      std::erase(unaquired_upg, upgrade_key);
-    }
-
-    //
-    // note: if two weapons hit a critical level e.g. lv 4 at the same time,
-    // two sets of upgraderesultcomponent are generated and tried to add to the player.
-    // and the .emplace fails because the component exists already
-    //
-
-    // todo: fix crash
-    r.emplace<UpgradeResultsComponent>(player_e, results_c);
+    std::erase(unaquired_upg, upgrade_key);
   }
+
+  // Add to weapon, not player
+  r.emplace<UpgradeResultsComponent>(weapon_e, results_c);
 
   auto& ui_c = get_first_component<SINGLE_LevelUpUI>(r);
   populate_ui_based_on_upgrades(r, ui_c);

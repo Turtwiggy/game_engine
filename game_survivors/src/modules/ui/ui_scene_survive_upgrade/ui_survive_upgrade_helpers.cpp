@@ -3,6 +3,7 @@
 #include "ui_survive_upgrade_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
@@ -11,6 +12,7 @@
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "ui_survive_upgrade_components.hpp"
 
 namespace game2d {
@@ -46,7 +48,7 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     };
 
     const auto weapons_e = get_weapons(r, player_e);
-    const auto weapon_e = weapons_e[0]; // hmm: upgrade only the first wep
+    // const auto weapon_e = weapons_e[0]; // hmm: upgrade only the first wep
 
     // For the 1st & 2nd upgrade, roll a BULLET_X or WEAPON_X stat
     while (results_c.results.size() != 2) {
@@ -62,7 +64,8 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
         .rarity = rarity,
         .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
         // WEAPON_x and BULLET_x do level weapon
-        .weapons = { weapon_e }, // note: only leveling first.
+        // .weapons = { weapon_e }, // note: only leveling first.
+        .weapons = weapons_e,
         .level_weapons = true,
       });
     }
@@ -92,19 +95,9 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 };
 
 void
-aquire_action(entt::registry& r, entt::entity player_e, const UpgradeRollResult& roll)
-{
-  auto& evts_c = get_first_component<SINGLE_Events>(r);
-  UpgradeEvent evt;
-  evt.e = player_e;
-  evt.roll_result = roll;
-  evts_c.dispatcher->trigger(evt);
-  evts_c.dispatcher->update();
-};
-
-void
 populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 {
+
   SDL_Log("Populating upgrade ui...");
   const int max_num_players = 4;
 
@@ -118,13 +111,25 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     const auto player_e = get_player_e_from_idx(r, i);
     if (player_e == entt::null)
       continue;
-    const auto& upgrades_c = r.get<UpgradeResultsComponent>(player_e);
-    const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
 
-    for (const UpgradeRollResult& res : upgrades_c.results) {
+    const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
+    const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
+    if (upgrades.size() == 0)
+      continue;
+    const auto& [upg_e, upg_c] = upgrades[0];
+
+    for (const UpgradeRollResult& res : upg_c->results) {
       Cell c;
       c.name = "Aquire";
-      c.action = [&, player_e]() { aquire_action(r, player_e, res); };
+      c.action = [&r, upg_e, res, player_e]() {
+        auto& evts_c = get_first_component<SINGLE_Events>(r);
+        UpgradeEvent evt;
+        evt.par_e = player_e;
+        evt.upg_e = upg_e; // upg_e is wep_e or par_e
+        evt.roll_result = res;
+        evts_c.dispatcher->trigger(evt);
+        evts_c.dispatcher->update();
+      };
       state_c.cells.push_back(std::make_shared<Cell>(c));
     }
 

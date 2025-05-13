@@ -79,6 +79,12 @@ update_ui_survive_upgrade_system(entt::registry& r)
       if (ImGui::Button("LevelUp"))
         sxp_c.xp += sxp_c.xp_for_next_level;
 
+      for (int i = 0; i < 4; i++) {
+        const auto player_e = get_player_e_from_idx(r, i);
+        const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
+        ImGui::Text("upgrades_c: %zu", upgrades.size());
+      }
+
       ImGui::End();
     }
   }
@@ -170,8 +176,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
       continue;
     }
 
-    const auto* upgrades_c = r.try_get<UpgradeResultsComponent>(player_e);
-    if (!upgrades_c) {
+    const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
+    if (upgrades.size() == 0) {
 
       // move horizontally
       player_ui_tl.x += player_ui_wh.x;
@@ -179,6 +185,10 @@ update_ui_survive_upgrade_system(entt::registry& r)
 
       continue; // this player isnt upgrading
     }
+
+    // process the first upgrade results
+    const std::pair<entt::entity, UpgradeResultsComponent*>& upgs_pair = upgrades[0];
+    const auto* upgrades_c = upgs_pair.second;
 
     // update input
     auto& state_c = ui_c.ui_states[player_idx];
@@ -356,9 +366,10 @@ update_ui_survive_upgrade_system(entt::registry& r)
       if (selectable_button(r, def)) {
         // Process action (aquire the upgrade)
         state_c.active->action();
-        // const auto& cell = state_c.rows[state_c.current_row_index];
-        // cell.action();
-        SDL_Log("reimpl aquire upgrade"); // TODO: fix this
+
+        // refresh ui
+        populate_ui_based_on_upgrades(r, ui_c);
+
         break;
       }
 

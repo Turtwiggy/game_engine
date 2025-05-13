@@ -8,7 +8,8 @@ namespace game2d {
 
 struct UpgradeEvent
 {
-  entt::entity e = entt::null; // could be e.g. player_e
+  entt::entity par_e = entt::null;
+  entt::entity upg_e = entt::null;
 
   UpgradeRollResult roll_result; // rarity, stat, or trait
 };
