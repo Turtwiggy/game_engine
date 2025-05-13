@@ -136,17 +136,17 @@ update_audio_system(entt::registry& r, const float dt)
   }
 
   // a vector of free audio sources, populated every frame
-  std::vector<AudioSource> free_audio_sources;
+  std::vector<entt::entity> free_audio_sources;
 
   // state: playing -> free
-  for (const auto& [entity, source] : r.view<AudioSource>().each()) {
+  for (const auto& [e, source] : r.view<AudioSource>().each()) {
 
     source.state = AudioSourceState::FREE;
     if (Mix_Playing(source.channel))
       source.state = AudioSourceState::PLAYING;
 
     if (source.state == AudioSourceState::FREE)
-      free_audio_sources.push_back(source);
+      free_audio_sources.push_back(e);
   }
 
   // Update the volume of all playing sources.
@@ -176,17 +176,18 @@ update_audio_system(entt::registry& r, const float dt)
       continue;
     }
 
-    AudioSource& audio_source = free_audio_sources.front();
+    entt::entity audio_source_e = free_audio_sources.front();
     free_audio_sources.erase(free_audio_sources.begin());
-    audio_source.state = AudioSourceState::PLAYING;
+    auto& audio_source_c = r.get<AudioSource>(audio_source_e);
+    audio_source_c.state = AudioSourceState::PLAYING;
 
     const Sound s = get_sound(audio_c, request.tag);
+    audio_source_c.sound_type = s.type;
+    update_audio_channel_volume(audio_source_c, volume_sfx, volume_music, dampen_music);
 
-    const int channel = Mix_PlayChannel(audio_source.channel, s.buffer, request.looping ? -1 : 0);
-    if (channel != audio_source.channel)
+    const int channel = Mix_PlayChannel(audio_source_c.channel, s.buffer, request.looping ? -1 : 0);
+    if (channel != audio_source_c.channel)
       SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());
-    audio_source.sound_type = s.type;
-    update_audio_channel_volume(audio_source, volume_sfx, volume_music, dampen_music);
 
     // process request
     r.destroy(entities.begin(), entities.end());

@@ -418,7 +418,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::select_modifiers) {
-    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
     init_oh_buoy_header_text(r);
     create_empty<RequestToShowModifierMenu>(r);
 
@@ -426,6 +425,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::select_ships) {
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SELECT_0", .looping = true });
     init_oh_buoy_header_text(r);
     create_empty<SINGLE_SelectSceneData>(r);
   }
