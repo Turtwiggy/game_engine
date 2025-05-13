@@ -94,7 +94,7 @@
       "name": "bullet_archerfish",
       "display_name": "Bullet",
       "display_desc": "Bullet that Archerfish shoots",
-      "renderable": { "sprite": "FOOD_FISH", "colour": "white" },
+      "renderable": { "sprite": "BUBBLES_0", "colour": "white" },
       "combat": { "damage": 1, "range": 2, "type": "unknown" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_bullet", "type": "box", "is_sensor": true } ]
@@ -103,7 +103,7 @@
       "name": "bullet_snake",
       "display_name": "Bullet (Snake)",
       "display_desc": "Bullet that Snake shoots",
-      "renderable": { "sprite": "CIRCLE", "colour": "white" },
+      "renderable": { "sprite": "BUBBLES_0", "colour": "white" },
       "combat": { "damage": 1, "range": 2, "type": "unknown" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_bullet", "type": "circle", "is_sensor": true } ]

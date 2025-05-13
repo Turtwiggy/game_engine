@@ -2,6 +2,7 @@
 
 #include "game.hpp"
 
+#include "modules/systems/system_combo_unlock/combo_unlock_system.hpp"
 #include "engine/audio/audio_system.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
@@ -316,6 +317,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // update_manualfire_system(r, dt);
     update_combat_elemental_damage_system(r, dt);
     update_combat_scale_on_hit_system(r, dt);
+    update_combo_unlock_system(r);
     update_cooldown_system(r, milliseconds_dt);
     update_gun_follow_player_system(r, mouse_pos, dt);
     update_move_to_target_via_lerp(r, dt);
@@ -324,7 +326,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_wiggle_up_and_down_system(r, dt);
     update_spawner_system(r, dt);
     update_alpha_based_on_lifecycle_system(r);
-    // update_sprint_system(r, dt);
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
 

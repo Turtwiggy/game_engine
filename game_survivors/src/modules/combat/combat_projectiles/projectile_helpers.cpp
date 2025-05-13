@@ -59,7 +59,7 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   wb_c.behaviours.insert(bullet_def.wep_behaviours.begin(), bullet_def.wep_behaviours.end());
 
   set_z_index(r, bullet_e, ZLayer::PROJECTILE);
-  set_colour(r, bullet_e, r.get<DefaultColour>(parent_e).colour);
+  // set_colour(r, bullet_e, r.get<DefaultColour>(parent_e).colour);
 
   return bullet_e;
 }

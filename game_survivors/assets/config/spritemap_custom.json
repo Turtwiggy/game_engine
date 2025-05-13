@@ -41,6 +41,7 @@
     { "name": "GOLD_OUTLINE", "frames": [ { "x": 8, "y": 10, "w": 2, "h": 2 } ]},
 
     { "name": "ROCKS_0", "frames": [ { "x": 0, "y": 12, "w": 2, "h": 2 } ]},
+    { "name": "BUBBLES_0", "frames": [ { "x": 2, "y": 12, "w": 1, "h": 1 } ]},
 
     { "name": "ICON_WHEEL", "frames": [ { "x": 0, "y": 28, "w": 4, "h": 4 } ]},
     { "name": "ICON_SAILBOAT", "frames": [ { "x": 4, "y": 28, "w": 4, "h": 4 } ]},

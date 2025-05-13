@@ -35,13 +35,16 @@ get_grid_position(entt::registry& r, const entt::entity e)
 void
 set_position(entt::registry& r, const entt::entity e, const glm::vec2 pos_in_pixels)
 {
+  if (e == entt::null || !r.valid(e)) {
+    SDL_Log("trying to set position of something invalid");
+    return;
+  }
+
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
     pb->body->SetTransform(pixels_to_meters(pos_in_pixels), 0);
 
-  if (auto* t_c = r.try_get<TransformComponent>(e))
-    t_c->position = glm::vec3{ pos_in_pixels.x, pos_in_pixels.y, 0.0f };
-  else
-    SDL_Log("Trying to set a position of something without a transform?");
+  auto& t_c = r.get<TransformComponent>(e);
+  t_c.position = glm::vec3{ pos_in_pixels.x, pos_in_pixels.y, 0.0f };
 }
 
 void

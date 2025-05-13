@@ -26,6 +26,8 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/effects_outline/outline_components.hpp"
+#include "modules/systems/system_combo_unlock/combo_unlock_components.hpp"
+#include "modules/systems/system_combo_unlock/combo_unlock_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
 #include "modules/systems/system_death_throes/death_throes_components.hpp"
@@ -66,6 +68,21 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_snake")
     return create_snake(r);
 
+  auto enemy_size = glm::vec2{ 32, 32 };
+  if (key == "actor_enemy_swarmlord_minion")
+    enemy_size = { 16, 16 };
+  if (key == "actor_enemy_grower")
+    enemy_size = { 0, 0 };
+
+  // oyster
+  entt::entity halo_e = entt::null;
+  if (key == "actor_destructable") {
+    halo_e = create_transform(r, "GOLD_OUTLINE");
+    r.emplace<SpriteComponent>(halo_e);
+    set_sprite(r, halo_e, "GOLD_OUTLINE");
+    set_size(r, halo_e, 1.5f * enemy_size);
+  }
+
   auto e = spawn(r, key);
   r.emplace<EnemyComponent>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
@@ -77,19 +94,13 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   const float variant_chance_percent_0_100 = 0.25f; // 0.25%
   const float variant_hp_multiplier = 10.0f;
   const bool is_variant = engine::rand_det_s(variant_rng.rng, 0, 100) < variant_chance_percent_0_100;
-  if (is_variant) {
+  if (is_variant && key != "actor_destructable") {
     r.emplace<SpriteOutline>(e);
     hp *= variant_hp_multiplier;
     auto& death_c = r.get<OnDeathCallbacks>(e);
     auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
     death_c.callbacks.push_back(drop_xp_callback);
   }
-
-  auto enemy_size = glm::vec2{ 32, 32 };
-  if (key == "actor_enemy_swarmlord_minion")
-    enemy_size = { 16, 16 };
-  if (key == "actor_enemy_grower")
-    enemy_size = { 0, 0 };
 
   give_life(r, e, rnd_pos_around_player, enemy_size);
 
@@ -223,23 +234,22 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_charger") {
   }
 
+  auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
+  r.emplace<EnemyComponent>(fixture_e); // duplicate enemy component on fixture?
+  r.emplace<HealthComponent>(fixture_e, hp, hp);
+
   // oyster
   if (key == "actor_destructable") {
     r.emplace<TreasureEnemyComponent>(e);
+
+    const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players_or_islands(r);
+    set_position(r, e, rnd_pos_inside_map);
+    set_position(r, halo_e, rnd_pos_inside_map);
 
     // Dont drop xp. (drop something else)
     auto& callbacks_c = r.get<OnDeathCallbacks>(e);
     callbacks_c.callbacks.clear();
 
-    const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players_or_islands(r);
-    set_position(r, e, rnd_pos_inside_map);
-
-    // create a gold halo
-    auto halo_e = create_transform(r, "GOLD_OUTLINE");
-    r.emplace<SpriteComponent>(halo_e);
-    set_sprite(r, halo_e, "GOLD_OUTLINE");
-    set_position(r, halo_e, rnd_pos_inside_map);
-    set_size(r, halo_e, 1.0f * enemy_size);
     r.emplace<HasParentComponent>(halo_e, e);
     r.emplace<WiggleUpAndDown>(halo_e,
                                WiggleUpAndDown{
@@ -250,11 +260,11 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     set_z_index(r, halo_e, ZLayer::VFX);
     auto& enemy_children_c = r.get_or_emplace<HasChildrenComponent>(e);
     enemy_children_c.children.push_back(halo_e);
-  }
 
-  auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
-  r.emplace<EnemyComponent>(fixture_e); // duplicate enemy component on fixture?
-  r.emplace<HealthComponent>(fixture_e, hp, hp);
+    // make it in to a combo unlockable thing
+    r.remove<HealthComponent>(fixture_e);
+    r.emplace<ComboUnlockComponent>(e, generate_combo_component(r));
+  }
 
   if (key == "actor_enemy_grower") {
     // start the grower as injured

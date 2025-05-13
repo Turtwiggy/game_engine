@@ -15,8 +15,6 @@
 
 namespace game2d {
 
-const auto col = hex_to_srgb("#FF0000");
-
 void
 update_actor_snake_projectiles_system(entt::registry& r)
 {
@@ -46,10 +44,12 @@ update_actor_snake_projectiles_system(entt::registry& r)
 
     const auto bullet_e_0 = spawn_projectile(r, bullet_def, pos);
     const auto bullet_e_1 = spawn_projectile(r, bullet_def, pos);
-    set_colour(r, bullet_e_0, col);
-    set_colour(r, bullet_e_1, col);
-    r.get<DefaultColour>(bullet_e_0).colour = col;
-    r.get<DefaultColour>(bullet_e_1).colour = col;
+
+    // const auto col = hex_to_srgb("#FF0000");
+    // set_colour(r, bullet_e_0, col);
+    // set_colour(r, bullet_e_1, col);
+    // r.get<DefaultColour>(bullet_e_0).colour = col;
+    // r.get<DefaultColour>(bullet_e_1).colour = col;
 
     // set velocity
     auto& bul_body_c_0 = r.get<PhysicsBodyComponent>(bullet_e_0);

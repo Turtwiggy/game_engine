@@ -51,7 +51,7 @@ update_enemy_projectile_system(entt::registry& r)
     // bullet_def.traits = // no traits for enemies?
 
     const auto bullet_e = spawn_projectile(r, bullet_def, pos);
-    set_colour(r, bullet_e, hex_to_srgb("#00c420"));
+    // set_colour(r, bullet_e, hex_to_srgb("#00c420"));
     // set_sprite(r, bullet_e, "FIREWORK");
 
     // set velocity
