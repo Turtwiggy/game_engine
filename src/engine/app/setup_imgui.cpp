@@ -30,9 +30,12 @@ ImGui_Manager::initialize(GameWindow& window)
   io.IniFilename = nullptr;
 #endif
 
-// disable .ini to stop stuttering io calls
-// this is mainly a problem because everything is on one thread
-#if !defined(_DEBUG)
+  // disable .ini to stop stuttering io calls
+  // this is mainly a problem because everything is on one thread
+#if !defined(IMGUI_USE_INI_FILE)
+#define IMGUI_USE_INI_FILE 0
+#endif
+#if defined(IMGUI_USE_INI_FILE)
   io.IniFilename = NULL;
   io.LogFilename = NULL;
 #endif

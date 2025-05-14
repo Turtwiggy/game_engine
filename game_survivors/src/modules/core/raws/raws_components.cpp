@@ -414,10 +414,13 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   const auto key = req.key;
 
   // trial: new vfx for exploder
-  // if (key.find("death_exploder") != std::string::npos)
-  //   return spawn_fx(r, "EXPLODE_FX_0", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
-  if (key.find("death_sea_mine") != std::string::npos)
-    return spawn_fx(r, "EXPLODE_FX_1", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
+
+  // note: * 3.0f as it should be 2.0f (as width = 2.0 * radius),
+  // but the explosions sprite doesnt fill up the entire width, so scale it up.
+  if (key.find("death_exploder") != std::string::npos)
+    return spawn_fx(r, "EXPLODE_FX_0", req.position, { req.radius_pixels * 3.0f, req.radius_pixels * 3.0f });
+  // if (key.find("death_sea_mine") != std::string::npos)
+  //   return spawn_fx(r, "EXPLODE_FX_1", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
 
   const auto e = create_transform(r, "particle_emitter");
 
