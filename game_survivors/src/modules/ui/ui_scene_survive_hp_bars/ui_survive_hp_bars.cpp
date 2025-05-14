@@ -44,7 +44,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
+  auto& ri_c = SINGLE_RendererInfo::instance;
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   const auto grime_tex_id = search_for_texture_id_by_texture_path(ri_c, "grime_bar")->id;

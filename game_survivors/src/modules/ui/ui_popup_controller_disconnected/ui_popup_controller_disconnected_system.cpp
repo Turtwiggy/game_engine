@@ -117,7 +117,7 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoBackground;
 
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto window_pos = ImVec2{ ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f };
   ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, ImVec2{ 0.5f, 0.5f });
 

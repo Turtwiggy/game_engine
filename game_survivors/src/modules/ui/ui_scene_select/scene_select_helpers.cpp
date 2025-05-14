@@ -92,7 +92,7 @@ update_countdown(SINGLE_SelectSceneData& data_c, bool everyone_confirmed, float 
 void
 update_countdown_ui(entt::registry& r, const SINGLE_SelectSceneData& data_c)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto x_pos = 0.5f;
   const auto y_pos = 0.75f;
   const auto hmm = ImVec2{ ri.viewport_size_render_at.x * x_pos, ri.viewport_size_render_at.y * y_pos };

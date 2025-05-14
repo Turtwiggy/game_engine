@@ -60,7 +60,7 @@ update_camera_system(entt::registry& r, const float dt)
   ZoneScoped;
 #endif
 
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
   const auto camera_ent = get_first<OrthographicCamera>(r);
 

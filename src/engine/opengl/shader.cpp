@@ -121,7 +121,7 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
   // add the rest of the shader code
   code = version + code;
 
-  const auto& ri_c = game2d::get_first_component<game2d::SINGLE_RendererInfo>(r);
+  const auto& ri_c = game2d::SINGLE_RendererInfo::instance;
 
   // Generate keys user for textures
   const auto clean_path = [](const std::string& path) -> std::string {

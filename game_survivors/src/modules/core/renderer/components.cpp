@@ -8,6 +8,8 @@ namespace game2d {
 
 static int global_tex_unit_count = 0;
 
+SINGLE_RendererInfo SINGLE_RendererInfo::instance;
+
 RenderPass::RenderPass(const PassName& pass_name, const int colour_buffers)
   : pass(pass_name)
   , colour_buffers_per_texture(colour_buffers) {};

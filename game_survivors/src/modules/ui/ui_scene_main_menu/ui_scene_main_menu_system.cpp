@@ -21,7 +21,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
+  const auto& ri = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_MainMenuUI, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
 

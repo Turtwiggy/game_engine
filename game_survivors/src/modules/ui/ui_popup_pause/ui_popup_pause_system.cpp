@@ -25,10 +25,11 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
+  const auto& ri = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, ui_e, ui_c);
+  const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   // only allow pause in survive scene
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);
@@ -59,7 +60,6 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_size = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
-  const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   const auto center = ImVec2{
     (float)ri.viewport_pos.x + viewport_size_half.x,

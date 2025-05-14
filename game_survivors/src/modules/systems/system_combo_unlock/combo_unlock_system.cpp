@@ -129,6 +129,7 @@ update_combo_unlock_system(entt::registry& r)
     // unlock the chest!
     if (combo_c.current == combo_c.unlock) {
       auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
+      dead_c.dead.push_back(e);
 
       // Send death event.
       DeathEvent d_evt;
@@ -138,7 +139,8 @@ update_combo_unlock_system(entt::registry& r)
       evts.dispatcher->trigger(d_evt);
       evts.dispatcher->update();
 
-      dead_c.dead.push_back(e);
+      // prevent re-sending event due to unlock code matching
+      r.remove<ComboUnlockComponent>(e);
     }
   }
 }

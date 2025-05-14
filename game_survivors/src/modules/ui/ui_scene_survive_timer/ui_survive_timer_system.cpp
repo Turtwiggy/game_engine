@@ -20,7 +20,7 @@ update_ui_survive_timer_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const glm::vec2 tr = ri.viewport_size_render_at;
 
   const auto players_view = r.view<PlayerComponent>();

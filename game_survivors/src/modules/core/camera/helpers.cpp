@@ -14,7 +14,7 @@ namespace game2d {
 glm::vec2
 mouse_position_in_worldspace(entt::registry& r)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto& wh = ri.viewport_size_render_at;
   const auto half_wh = glm::vec2{ wh.x * 0.5f, wh.y * 0.5f };
 
@@ -42,7 +42,7 @@ mouse_position_in_worldspace(entt::registry& r)
 glm::vec2
 position_in_worldspace(entt::registry& r, const glm::ivec2& game_pos)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto& cameras = r.view<OrthographicCamera, TransformComponent>(entt::exclude<WaitForInitComponent>);
 
   const auto screen_pos = game_pos - ri.viewport_pos;
@@ -68,7 +68,7 @@ position_in_worldspace(entt::registry& r, const glm::ivec2& game_pos)
 glm::vec2
 worldspace_to_screenspace(entt::registry& r, const glm::vec2& worldspace)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 

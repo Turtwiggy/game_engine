@@ -51,7 +51,7 @@ ui_mute_sound_icon(entt::registry& r)
 {
   return; // disabled
 
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto& ui_c = get_first_component<SINGLE_UIScaling>(r);
   const auto& options_c = get_first_component<SINGLE_GameOptions>(r);
 
@@ -155,8 +155,9 @@ text_with_dropshadow(std::string text, const ImVec4& col)
 };
 
 void
-draw_icon(entt::registry& r, std::string icon, SINGLE_RendererInfo& ri, float font_scale)
+draw_icon(entt::registry& r, std::string icon, float font_scale)
 {
+  const auto& ri = SINGLE_RendererInfo::instance;
   const float size = 64.0f;
   const auto text_size = ImGui::CalcTextSize("A");
 
@@ -176,47 +177,38 @@ draw_icon(entt::registry& r, std::string icon, SINGLE_RendererInfo& ri, float fo
 void
 init_oh_buoy_header_text(entt::registry& r)
 {
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
-  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
-
   // create a wiggly header
 
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
+  auto* font = ImGui::GetIO().Fonts->Fonts[2]; // idx: 2 should be the fingerpaint header font
+  const auto text = std::string("Oh Buoy!");
+  const auto text_size = font->CalcTextSizeA((float)font_enum, FLT_MAX, -1, text.c_str());
+
   // pos_x is 0 because camera is already at center
-  const auto pos = glm::vec2(0, -viewport_size_half.y + ri.viewport_size_render_at.y * (2.5 / 12.0f));
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto viewport_size_half = ImVec2(ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f);
+  auto pos = glm::vec2(0, -viewport_size_half.y + ri.viewport_size_render_at.y * (2.5 / 12.0f));
+  pos -= 0.5f * glm::vec2{ text_size.x, text_size.y };
 
   WorldspaceTextComponent wst_c;
-  wst_c.text = "Oh Buoy!";
-  wst_c.layout = [](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
-    GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
-
-    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
-    auto* font = ImGui::GetIO().Fonts->Fonts[2]; // idx: 2 should be the fingerpaint header font
+  wst_c.text = text;
+  wst_c.layout = [font, &font_scale](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
     ImGui::PushFont(font);
 
     text_with_dropshadow(data.text, im_greenish);
 
     const auto& header_c = r.get<MegaHeaderComponent>(e);
     if (header_c.icon.has_value())
-      draw_icon(r, header_c.icon.value(), ri, font_scale);
+      draw_icon(r, header_c.icon.value(), font_scale);
 
     ImGui::PopFont();
   };
 
-  wst_c.flags |= ImGuiWindowFlags_NoDecoration;
-  wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
-  wst_c.flags |= ImGuiWindowFlags_NoBackground;
-  wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
-  // wst_c.flags |= ImGuiWindowFlags_NoInputs;
-
   const auto header_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(header_e);
-  r.emplace<WiggleUpAndDown>(header_e,
-                             WiggleUpAndDown{
-                               .base_position = pos,
-                             });
+  r.emplace<WiggleUpAndDown>(header_e, WiggleUpAndDown{ .base_position = pos });
   r.emplace<MegaHeaderComponent>(header_e);
-
   set_position(r, header_e, pos);
 };
 

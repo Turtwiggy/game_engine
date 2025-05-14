@@ -154,14 +154,13 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 #endif
 
   {
-    SINGLE_RendererInfo ri = get_default_textures();
-    create_persistent<SINGLE_RendererInfo>(r, ri);
+    SINGLE_RendererInfo::instance = get_default_textures();
     create_persistent<OrthographicCamera>(r);
     r.emplace<TransformComponent>(get_first<OrthographicCamera>(r));
     init_render_system(app, r); // load textures
   }
   {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto& ri = SINGLE_RendererInfo::instance;
     SINGLE_Animations anims;
     for (const auto& tex : ri.user_textures)
       load_sprites(anims, tex);
@@ -344,7 +343,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   // update ui scaling
   {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto& ri = SINGLE_RendererInfo::instance;
     const float base_x = 1280; // note: this was the res the ui was created at
     const float base_y = 720;
     const float scale = ri.viewport_size_render_at.y / base_y;
@@ -443,7 +442,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   // draw a custom mouse cursor
   if (custom_mouse_cursor) {
-    // const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    // const auto& ri = SINGLE_RendererInfo::instance;
     // const auto half_wh = ImVec2{ 0.5f * ri.viewport_size_render_at.x, 0.5f * ri.viewport_size_render_at.y };
     // const auto pos = ImVec2(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
     // ImDrawList* draw_list = ImGui::GetForegroundDrawList();
@@ -462,7 +461,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_render_system(r, dt, mouse_pos);
 
 #if defined(_DEBUG)
-  // auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+  // auto& ri_c = SINGLE_RendererInfo::instance;
   // ImGui::Begin("RenderCalls");
   // ImGui::Text("DrawCalls: %i", ri_c.renderer.draw_calls());
   // ImGui::End();

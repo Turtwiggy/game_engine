@@ -7,7 +7,6 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
@@ -221,20 +220,25 @@ update_autofire_system(entt::registry& r, const float dt)
     auto dir_to_enemy = glm::vec2();
     if (glm::abs(parent_input.rx) > deadzone || glm::abs(parent_input.ry) > deadzone) {
       override_autofire = true;
+      autofire_c.target = entt::null;
       dir = { parent_input.rx, parent_input.ry };
       dir_to_enemy = { parent_input.rx, parent_input.ry };
       draw_crosshair(r, par_pos, dir_to_enemy, parent_col);
     }
-    imgui_draw_bool("override autofire", override_autofire);
 
     if (!override_autofire) {
-      auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
-      if (nearest_e == entt::null)
-        continue;
-      const auto tgt_pos = get_position(r, nearest_e);
+      if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
+        auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
+        if (nearest_e == entt::null)
+          continue;
+        autofire_c.target = nearest_e;
+      }
+
+      const auto tgt = autofire_c.target;
+      const auto tgt_pos = get_position(r, tgt);
 
       // Note: Adjust the angle, so that the auto-fire leads it's shot a little
-      const auto tgt_vel_m = r.get<PhysicsBodyComponent>(nearest_e).body->GetLinearVelocity();
+      const auto tgt_vel_m = r.get<PhysicsBodyComponent>(tgt).body->GetLinearVelocity();
       const auto tgt_vel_p = meters_to_pixels(tgt_vel_m);
       const auto smarter_tgt_pos = tgt_pos + glm::vec2{ tgt_vel_p.x * lead_amount, tgt_vel_p.y * lead_amount };
 

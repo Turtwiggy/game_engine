@@ -57,12 +57,6 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
 
     std::string label = std::format("{}", (int)damage);
 
-    const auto ui_wh = ImGui::GetContentRegionAvail();
-    const auto ui_tl = ImGui::GetCursorPos();
-    const auto ui_txt_size = ImGui::CalcTextSize(label.c_str());
-    ImGui::SetCursorPosX(ui_tl.x + (ui_wh.x * 0.5) - (ui_txt_size.x * 0.5));
-    ImGui::SetCursorPosY(ui_tl.y + (ui_wh.y * 0.5) - (ui_txt_size.y * 0.5));
-
     if (crit)
       ImGui::TextColored(im_crit_col, "%s", label.c_str());
     else
@@ -70,13 +64,6 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
 
     ImGui::PopFont();
   };
-
-  wst_c.flags |= ImGuiWindowFlags_NoDecoration;
-  wst_c.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  wst_c.flags |= ImGuiWindowFlags_NoInputs;
-  wst_c.flags |= ImGuiWindowFlags_NoNav;
-  wst_c.flags |= ImGuiWindowFlags_NoBackground;
-  // wst_c.alpha = 0.0f;
 
   auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(popup_e);

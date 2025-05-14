@@ -71,6 +71,7 @@ public:
 // Attributes only updated by renderer system, read by anything.
 struct SINGLE_RendererInfo
 {
+
   std::vector<RenderPass> passes;
 
   std::vector<Texture> user_textures;
@@ -106,6 +107,8 @@ struct SINGLE_RendererInfo
 
   bool viewport_hovered = false;
   bool viewport_focused = false;
+
+  static SINGLE_RendererInfo instance;
 };
 
 struct Effect_DoBloom

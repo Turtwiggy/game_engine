@@ -434,8 +434,8 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+  auto& ri_c = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c)
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)

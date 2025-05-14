@@ -7,6 +7,7 @@ namespace game2d {
 struct AutofireComponent
 {
   glm::vec2 draw_cursor_position{ 0, 0 };
+  entt::entity target = entt::null;
 };
 
 } // namespace game2d

@@ -11,7 +11,7 @@ void
 light_up_room(entt::registry& r, std::vector<Light>& lights, int& i, const Room& room, const TransformComponent& camera_t)
 {
   // const int room_size = room.aabb.size.x * room.aabb.size.y;
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto& map = get_first_component<MapComponent>(r);
 
   float lum = 0.85f;

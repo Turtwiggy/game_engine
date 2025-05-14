@@ -21,7 +21,8 @@ update_ui_blur_system(entt::registry& r, const float dt)
 #endif
   std::string window_key = "blur";
 
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
+  auto& ri_c = SINGLE_RendererInfo::instance;
+  ;
   GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c);
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
   GET_FIRST_OR_RETURN(SINGLE_OptionsMenuState, r, options_e, options_c);

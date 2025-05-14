@@ -39,8 +39,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+  const auto& ri_c = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)

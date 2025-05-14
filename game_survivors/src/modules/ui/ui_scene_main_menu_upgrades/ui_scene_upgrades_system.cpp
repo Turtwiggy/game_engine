@@ -163,8 +163,8 @@ update_ui_scene_upgrades_system(entt::registry& r)
   ZoneScoped;
 #endif
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgradesMenuUI, r, ui_e, ui_c)
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, upgrade_e, upgrade_c);
+  auto& ri_c = SINGLE_RendererInfo::instance;
   auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
@@ -201,8 +201,8 @@ update_ui_scene_upgrades_system(entt::registry& r)
   if (do_sel && ui_c.selected_stat.has_value())
     purchase_upgrade(r, ui_c.selected_stat.value());
 
-  const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_wh = ImVec2((float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y);
+  const auto viewport_tl = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
+  const auto viewport_wh = ImVec2((float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y);
   const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
   const float size_x = 0.4f * 1280.0f * font_scale;
   const float size_y = 0.6f * 720.0f * font_scale;
@@ -240,7 +240,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   // draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
 
   // draw a moneybag for your gold
-  const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
+  const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
   const ImVec2 icon_size{ 32 * font_scale, 32 * font_scale };
   const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);

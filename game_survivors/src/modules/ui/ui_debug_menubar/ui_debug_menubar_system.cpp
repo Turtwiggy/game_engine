@@ -15,7 +15,7 @@ update_ui_debug_menubar_system(entt::registry& r)
   ZoneScoped;
 #endif
   GET_FIRST_OR_RETURN(SINGLE_DebugMenuBar, r, menu_e, menu_c);
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;

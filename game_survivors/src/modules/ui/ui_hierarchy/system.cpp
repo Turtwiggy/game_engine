@@ -28,58 +28,59 @@ update_ui_hierarchy_system(entt::registry& r)
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
 
-  // Update available Categories
-  {
-    for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
-      const auto& [e] = ent_tuple;
-
-      const auto tag = to_lower(r.get<TagComponent>(e).tag);
-      const auto category_opt = get_category_idx(categories, tag);
-      if (category_opt.has_value())
-        continue;
-
-      // preset filters...
-
-      if (tag.find("inventoryslot") != std::string::npos) {
-        categories.push_back({ tag, false });
-        continue;
-      }
-
-      // note: also filters out DataParticleEmitter
-      if (tag.find("particle") != std::string::npos) {
-        categories.push_back({ tag, false });
-        continue;
-      }
-
-      if (tag.find("entity-pool-entity") != std::string::npos) {
-        categories.push_back({ tag, false });
-        continue;
-      }
-
-      if (tag.find("single_") != std::string::npos) {
-        categories.push_back({ tag, false });
-        continue;
-      }
-
-      if (tag.find("audiosource") != std::string::npos) {
-        categories.push_back({ tag, false });
-        continue;
-      }
-
-      if (tag.find("cooldowncomponent") != std::string::npos) {
-        categories.push_back({ tag, false });
-        continue;
-      }
-
-      categories.push_back({ tag });
-    }
-
-    // sort alphabetically
-    std::sort(categories.begin(), categories.end(), [](const Category& a, const Category& b) { return a.tag < b.tag; });
-  }
-
   auto cf_menu_state = gesert_menubar_state(menu_c, "Hierarchy Category Filter");
   if (cf_menu_state.enabled) {
+
+    // Update available Categories
+    {
+      for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
+        const auto& [e] = ent_tuple;
+
+        const auto tag = to_lower(r.get<TagComponent>(e).tag);
+        const auto category_opt = get_category_idx(categories, tag);
+        if (category_opt.has_value())
+          continue;
+
+        // preset filters...
+
+        if (tag.find("inventoryslot") != std::string::npos) {
+          categories.push_back({ tag, false });
+          continue;
+        }
+
+        // note: also filters out DataParticleEmitter
+        if (tag.find("particle") != std::string::npos) {
+          categories.push_back({ tag, false });
+          continue;
+        }
+
+        if (tag.find("entity-pool-entity") != std::string::npos) {
+          categories.push_back({ tag, false });
+          continue;
+        }
+
+        if (tag.find("single_") != std::string::npos) {
+          categories.push_back({ tag, false });
+          continue;
+        }
+
+        if (tag.find("audiosource") != std::string::npos) {
+          categories.push_back({ tag, false });
+          continue;
+        }
+
+        if (tag.find("cooldowncomponent") != std::string::npos) {
+          categories.push_back({ tag, false });
+          continue;
+        }
+
+        categories.push_back({ tag });
+      }
+
+      // sort alphabetically
+      std::sort(categories.begin(), categories.end(), [](const Category& a, const Category& b) { return a.tag < b.tag; });
+    }
+
     ImGui::Begin(cf_menu_state.name.c_str(), &cf_menu_state.enabled);
 
     // Display a filter for the categories

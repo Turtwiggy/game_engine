@@ -11,6 +11,7 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/line.hpp"
+#include "modules/core/raws/raws_components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
@@ -26,38 +27,14 @@ draw_rocks(entt::registry& r)
 
     for (const auto& edge : debug_c.sorted_edges) {
 
-      // ImGui::Text("(sorted) (a) %i %i (b) %i %i", edge.a.x, edge.a.y, edge.b.x, edge.b.y);
-      // if (j == debug_edge) {
-      //   ImGui::SameLine();
-      //   ImGui::Text("Active");
-      // }
-
       // give each island a different colour
       const auto tmp = (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f);
       const engine::SRGBColour col{ tmp.x, tmp.y, tmp.z, tmp.w };
 
-      // if (i == debug_island) {
-      //   col.r = 255 * 0.5f;
-      //   col.g = 255 * 0.5f;
-      //   col.b = 255 * 0.5f;
-      // } else {
-      //   col.r = 255 * 0.2f;
-      //   col.g = 255 * 0.2f;
-      //   col.b = 255 * 0.2f;
-      // }
-      // if (j == debug_edge)
-      //   col.r = 255 * 1.0f;
-
       const auto line_info = generate_line(edge.a, edge.b, 4.0f);
-      Sprite debug_s;
-      debug_s.pos = line_info.position;
-      debug_s.size = line_info.scale;
-      debug_s.z_rotation = line_info.rotation;
-      debug_s.sprite = "EMPTY";
-      debug_s.col = col;
-      draw_sprite(r, debug_s);
-
-      // j++;
+      const auto spawned_e = spawn(r, "empty");
+      give_life(r, spawned_e, { 0, 0 }, { 0, 0 });
+      set_position_and_size_with_line(r, spawned_e, line_info);
     }
 
     i++;
@@ -115,6 +92,7 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
       dead_c.dead.push_back(e);
 
     generate_rocks(r, cutoff);
+    draw_rocks(r);
   });
 
   // int j = 0;
@@ -127,8 +105,6 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
   //   debug_edge++;
   // if (get_key_down(input_c, SDL_SCANCODE_KP_MINUS))
   //   debug_edge--;
-
-  draw_rocks(r);
 }
 
 } // namespace game2d

@@ -21,7 +21,7 @@ namespace game2d {
 using namespace engine; // for macro
 
 const auto render_quad = [](entt::registry& r, const engine::Shader& shader, const glm::ivec2& size) {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
 
   ri.renderer.reset_quad_vert_count();
   ri.renderer.begin_batch();
@@ -127,13 +127,13 @@ get_texs_used_by_fluidsim()
 void
 setup_fluidsim_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::fluid_sim);
   auto& pass = ri.passes[pass_idx];
   const int tex_unit = get_tex_unit(ri, PassName::fluid_sim);
 
   pass.update = [&pass](entt::registry& r, const float dt, const glm::vec2& mouse_pos) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     auto& input_c = get_first_component<SINGLE_InputComponent>(r);
     auto& data = ri.fluid_sim;
 

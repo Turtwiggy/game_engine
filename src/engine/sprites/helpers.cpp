@@ -93,7 +93,7 @@ find_animation(const SINGLE_Animations& anims, const std::string& name)
 void
 set_sprite(entt::registry& r, const entt::entity e, const std::string& sprite)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto [spritesheet, anim] = find_animation(anims, sprite);
 

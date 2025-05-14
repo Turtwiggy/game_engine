@@ -457,7 +457,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   }
 
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   const auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
 

@@ -69,7 +69,7 @@ update_hardpoint_arcs_system(entt::registry& r)
 #endif
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
   const auto zoom = camera_c.zoom_nonlinear;

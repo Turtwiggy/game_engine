@@ -128,22 +128,28 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
   int sdl_controllers_used = 0;
 
-  const auto& view = r.view<InputComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, i] : view.each()) {
-    i = {}; // reset all inputs every frame
+  // reset all inputs;
+  const auto inp_view = r.view<InputComponent>();
+  {
+    for (const auto& [e, input_c] : inp_view.each()) {
+      input_c.pause.clear();
+      input_c.ability1.clear();
+      input_c.ability2.clear();
+      input_c.dpad_u.clear();
+      input_c.dpad_d.clear();
+      input_c.dpad_l.clear();
+      input_c.dpad_r.clear();
+      input_c.button_n.clear();
+      input_c.button_s.clear();
+      input_c.button_e.clear();
+      input_c.button_w.clear();
+    }
+  }
 
-    // set rx based on mouse input if selected
-    if (const auto* keyboard_c = r.try_get<KeyboardComponent>(e)) {
-
-      // Add a deadzone to stop weird jitter when mouse is too close
-      // const auto d = glm::vec2{ mouse_pos.x, mouse_pos.y } - glm::vec2{ t_c.position.x, t_c.position.y };
-      // const float d2 = d.x * d.x + d.y * d.y;
-      // auto nrm_dir = glm::vec2(0, 0);
-      // if (d2 > keyboard_c->keyboard_deadzone_sqr)
-      //   nrm_dir = engine::normalize_safe(d);
-      // i.rx = nrm_dir.x;
-      // i.ry = nrm_dir.y;
-
+  // keyboards
+  {
+    const auto& view = r.view<InputComponent, KeyboardComponent>();
+    for (const auto& [e, i, keyboard_c] : view.each()) {
       i.ly += get_key_held(input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
       i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
       i.lx += get_key_held(input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
@@ -183,14 +189,13 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
       generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_RETURN);
       generate_actions_from_keyboard(i.button_e, SDL_SCANCODE_ESCAPE);
     }
+  }
 
-    if (auto* sdl_controller_c = r.try_get<SDLControllerComponent>(e)) {
-      // ... not impl
-    }
-
-    if (auto* controller_c = r.try_get<SteamControllerComponent>(e)) {
-
-      for (const auto handle : controller_c->handles) {
+  // controllers via steam
+  {
+    const auto& view = r.view<InputComponent, SteamControllerComponent>();
+    for (const auto& [e, i, controller_c] : view.each()) {
+      for (const auto handle : controller_c.handles) {
 
         // Handle assigned via menu
         if (handle == 0)
@@ -218,11 +223,16 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
         i.button_w.insert(i.button_w.end(), input.button_w.begin(), input.button_w.end());
       }
     }
+  }
 
-    i.lx = glm::clamp(i.lx, -1.0f, 1.0f);
-    i.ly = glm::clamp(i.ly, -1.0f, 1.0f);
-    i.rx = glm::clamp(i.rx, -1.0f, 1.0f);
-    i.ry = glm::clamp(i.ry, -1.0f, 1.0f);
+  // clamp inputs
+  {
+    for (const auto& [e, i] : inp_view.each()) {
+      i.lx = glm::clamp(i.lx, -1.0f, 1.0f);
+      i.ly = glm::clamp(i.ly, -1.0f, 1.0f);
+      i.rx = glm::clamp(i.rx, -1.0f, 1.0f);
+      i.ry = glm::clamp(i.ry, -1.0f, 1.0f);
+    }
   }
 };
 

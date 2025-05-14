@@ -26,9 +26,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
+  const auto& ri_c = SINGLE_RendererInfo::instance;
   auto& ui_c = gesert_component<SINGLE_OptionsMenuState>(r);
-  const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
 
   ui_c.update<RequestToShowOptionsMenu>(r);
   if (!ui_c.open)
@@ -75,8 +74,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 6 });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 3, 6 });
 
-  const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
-  const auto viewport_wh = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  const auto viewport_tl = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
+  const auto viewport_wh = ImVec2(ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
   const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
   const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, viewport_tl.y + viewport_wh_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));

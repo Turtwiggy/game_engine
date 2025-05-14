@@ -18,7 +18,7 @@ using namespace engine;
 using namespace std::literals;
 
 const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& shader, const glm::ivec2& size) {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
 
   ri.renderer.reset_quad_vert_count();
   ri.renderer.begin_batch();
@@ -37,12 +37,12 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
 void
 setup_water_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::water);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
 
@@ -68,11 +68,11 @@ setup_water_update(entt::registry& r)
 void
 setup_floor_mask_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::floor_mask);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     const auto& camera_c = get_first_component<OrthographicCamera>(r);
 
     // Render floor quads in to floor-mask texture.
@@ -110,12 +110,12 @@ setup_floor_mask_update(entt::registry& r)
 void
 setup_linear_main_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::linear_main);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
@@ -202,11 +202,11 @@ setup_linear_main_update(entt::registry& r)
 void
 setup_sprites_to_outline_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::sprites_to_outline);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
@@ -243,11 +243,11 @@ setup_sprites_to_outline_update(entt::registry& r)
 void
 setup_outline_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::outline);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
 
     ri.outline.bind();
 
@@ -286,12 +286,12 @@ setup_outline_update(entt::registry& r)
 void
 setup_lighting_emitters_and_occluders_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::lighting_emitters_and_occluders);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
@@ -363,7 +363,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
 void
 setup_voronoi_seed_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::voronoi_seed);
   auto& pass = ri.passes[pass_idx];
 
@@ -384,12 +384,12 @@ setup_voronoi_seed_update(entt::registry& r)
 void
 setup_jump_flood_pass(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::jump_flood);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [&pass](entt::registry& r) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -444,12 +444,12 @@ setup_jump_flood_pass(entt::registry& r)
 void
 setup_voronoi_distance_field_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::voronoi_distance);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt) {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -471,12 +471,12 @@ setup_voronoi_distance_field_update(entt::registry& r)
 void
 setup_mix_lighting_and_scene_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::mix_lighting_and_scene);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto& ri = SINGLE_RendererInfo::instance;
 
     engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
 
@@ -487,12 +487,12 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 void
 setup_crt_effect_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::crt_effect);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto& ri = SINGLE_RendererInfo::instance;
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -507,14 +507,14 @@ setup_crt_effect_update(entt::registry& r)
 void
 setup_gaussian_blur_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass0_idx = get_pass_idx(ri, PassName::blur_pingpong_0);
   const auto pass1_idx = get_pass_idx(ri, PassName::blur_pingpong_1);
   auto& pass0 = ri.passes[pass0_idx];
   auto& pass1 = ri.passes[pass1_idx];
 
   pass0.update = [&pass0, &pass1](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    const auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -575,12 +575,12 @@ setup_gaussian_blur_update(entt::registry& r)
 void
 setup_bloom_update(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::bloom);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt) {
-    auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+    auto& ri = SINGLE_RendererInfo::instance;
     const bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
     static float exposure = 1.5f;
 #if defined(_DEBUG)

@@ -29,7 +29,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
   auto& ui_c = gesert_component<SINGLE_UISelectModifiersMenuState>(r);
 

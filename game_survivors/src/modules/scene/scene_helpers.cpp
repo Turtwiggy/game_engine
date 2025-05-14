@@ -407,7 +407,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // std::for_each(units.begin(), units.end(), [&r](const auto& u) { add_unit_to_entt(r, u); });
 
     // create a fluidsim sprite.
-    // auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+    // auto& ri_c = SINGLE_RendererInfo::instance;
     // const auto fluidsim_e = r.create();
     // r.emplace<TagComponent>(fluidsim_e, "fluidsim_e");
     // r.emplace<ItemKey>(fluidsim_e, "empty");

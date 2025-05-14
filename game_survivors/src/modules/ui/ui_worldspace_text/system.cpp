@@ -3,8 +3,10 @@
 #include "modules/ui/ui_worldspace_text/system.hpp"
 
 #include "components.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/core/camera/helpers.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "modules/ui/ui_scene_header/ui_scene_header_components.hpp"
 
 namespace game2d {
@@ -16,41 +18,38 @@ update_ui_worldspace_text_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
+  const auto& ri = SINGLE_RendererInfo::instance;
 
-  const auto& view = r.view<const TransformComponent, const WorldspaceTextComponent>();
+  ImGuiWindowFlags flags = 0;
+  flags |= ImGuiWindowFlags_NoDecoration;
+  flags |= ImGuiWindowFlags_NoMove;
+  flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoInputs;
+  flags |= ImGuiWindowFlags_NoSavedSettings;
+
+  const auto screen_size = ImVec2{ (float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y };
+  ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
+  ImGui::SetNextWindowSize(screen_size, ImGuiCond_Always);
+  ImGui::Begin("overlay", NULL, flags);
+
+  const auto view = r.view<const TransformComponent, const WorldspaceTextComponent>();
   for (const auto& [e, t_c, wst_c] : view.each()) {
-    if (!wst_c.display)
-      continue;
     const auto eid = static_cast<uint32_t>(e);
+    ImGui::PushID(eid);
 
     const auto wsp = glm::vec2(t_c.position.x, t_c.position.y);
     const auto wsp_adj = glm::vec2{ wsp.x + wst_c.offset.x, wsp.y + wst_c.offset.y };
     const auto ss_pos = worldspace_to_screenspace(r, wsp_adj);
-
-    ImGui::SetNextWindowPos(ImVec2{ ss_pos.x, ss_pos.y }, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(wst_c.size, ImGuiCond_Always);
-    ImGui::SetNextWindowBgAlpha(wst_c.alpha);
-
-    std::string beginlabel = "WorldspaceText##"s + std::to_string(eid);
-
-    ImGuiWindowFlags flags = 0;
-    flags |= wst_c.flags;
-
-    if (wst_c.size.x == 0.0f && wst_c.size.y == 0.0f)
-      flags |= ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin(beginlabel.c_str(), NULL, flags);
-    ImGui::PushID(eid);
+    ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y });
 
     wst_c.layout(r, e, wst_c); // layout set via regular imgui commands
 
     ImGui::PopID();
-    ImGui::End();
   }
 
-  ImGui::PopStyleVar(2);
+  ImGui::End();
 }
 
 } // namespace game2d

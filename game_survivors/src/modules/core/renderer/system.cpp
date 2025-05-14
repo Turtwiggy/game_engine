@@ -262,7 +262,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 void
 init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
 
   const glm::ivec2 screen_wh = app.window.get_size();
   ri.viewport_size_render_at = screen_wh;
@@ -462,7 +462,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   time += dt;
 
   const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
 
   if (check_if_viewport_resize(ri))
     rebind(r, ri);
@@ -521,8 +521,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-  const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
-  const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
+  // const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
+  // const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
 
   static bool showing_grid = false;
   static bool showing_grid_updated = true;
@@ -641,7 +641,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 void
 end_frame_render_system(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  auto& ri = SINGLE_RendererInfo::instance;
   ri.renderer.end_frame();
 };
 

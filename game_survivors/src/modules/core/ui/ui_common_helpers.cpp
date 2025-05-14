@@ -17,7 +17,7 @@ namespace game2d {
 bool
 selectable_button(entt::registry& r, SelectableButtonDef& def)
 {
-  const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri_c = SINGLE_RendererInfo::instance;
 
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0)); // button hovered
   ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));  // button clicked

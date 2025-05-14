@@ -26,7 +26,7 @@ update_ui_gameover_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c)
+  auto& ri_c = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_GameoverUI, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_SurviveStatsComponent, r, stats_e, stats_c);
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;

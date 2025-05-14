@@ -16,7 +16,7 @@ update_ui_collisions_system(entt::registry& r)
 #endif
 
   const auto& physics = get_first_component<SINGLE_Physics>(r);
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -35,7 +35,7 @@ update_ui_collisions_system(entt::registry& r)
   ImGui::Begin("Collisions", NULL, flags);
 
   ImGui::SameLine();
-  ImGui::Text("BodyCount(): %i", physics.world->GetBodyCount());
+  ImGui::Text("BodyCount(): %i ", physics.world->GetBodyCount());
 
   ImGui::SameLine();
   ImGui::Text("ContactCount(): %i", physics.world->GetContactCount());

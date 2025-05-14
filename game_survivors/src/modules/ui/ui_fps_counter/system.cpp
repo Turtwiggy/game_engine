@@ -27,7 +27,7 @@ update_ui_fps_counter_system(entt::registry& r)
     return;
 #endif
 
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
   const auto pos = glm::vec2{ ri.viewport_size_render_at.x, 0 }; // tr
   ImGui::SetNextWindowPos(ImVec2{ pos.x, pos.y }, ImGuiCond_Always, { 1, 0 });
 

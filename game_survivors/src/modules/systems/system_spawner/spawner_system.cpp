@@ -46,7 +46,7 @@ namespace game2d {
 entt::entity
 spawn_enemy(entt::registry& r, std::string key, float hp)
 {
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+  const auto& ri = SINGLE_RendererInfo::instance;
 
   // hack: multiply hp by number of players.
   const auto num_players = r.view<PlayerComponent>().size();

@@ -62,22 +62,10 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
 
     std::string label = std::format("{}", text);
 
-    const auto ui_wh = ImGui::GetContentRegionAvail();
-    const auto ui_tl = ImGui::GetCursorPos();
-    const auto ui_txt_size = ImGui::CalcTextSize(label.c_str());
-    ImGui::SetCursorPosX(ui_tl.x + (ui_wh.x * 0.5f) - (ui_txt_size.x * 0.5f));
-    ImGui::SetCursorPosY(ui_tl.y + (ui_wh.y * 0.5f) - (ui_txt_size.y * 0.5f));
-
     ImGui::TextColored(im_crit_col, "%s", label.c_str());
 
     ImGui::PopFont();
   };
-
-  wst_c.flags |= ImGuiWindowFlags_NoDecoration;
-  wst_c.flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  wst_c.flags |= ImGuiWindowFlags_NoInputs;
-  wst_c.flags |= ImGuiWindowFlags_NoBackground;
-  wst_c.flags |= ImGuiWindowFlags_NoSavedSettings;
 
   auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(popup_e);
