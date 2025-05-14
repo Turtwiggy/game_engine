@@ -159,6 +159,9 @@ process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 void
 update_ui_scene_upgrades_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgradesMenuUI, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, upgrade_e, upgrade_c);

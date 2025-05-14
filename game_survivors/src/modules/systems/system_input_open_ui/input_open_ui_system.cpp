@@ -11,6 +11,9 @@ namespace game2d {
 void
 update_input_open_ui_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   for (const auto& [e, input_c] : r.view<InputComponent>().each()) {
     if (has_action(input_c.pause, ActionStateEnum::DOWN))
       create_empty<RequestToShowPauseMenu>(r);

@@ -431,6 +431,9 @@ update_player_select_ui(entt::registry& r,
 void
 update_ui_scene_select_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c)

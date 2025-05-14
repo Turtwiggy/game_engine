@@ -9,6 +9,9 @@ namespace game2d {
 void
 update_scene_pressanykey_move_to_next_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
 
   // handle press anykey.

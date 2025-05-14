@@ -42,6 +42,9 @@ warning_ui(entt::registry& r, const std::string& text)
 void
 update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& data = get_first_component<SINGLE_SplashScreen>(r);
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
 

@@ -15,6 +15,9 @@ namespace game2d {
 void
 update_upgrade_xp_zone_size_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
   auto view = r.view<const PlayerComponent, const ActorXpZoneSizeComponent, const StatModifierComponent>();

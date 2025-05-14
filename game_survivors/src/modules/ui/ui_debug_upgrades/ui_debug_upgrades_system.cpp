@@ -95,6 +95,9 @@ draw_debug_modifier_ui(entt::registry& r)
 void
 update_ui_debug_upgrades_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 

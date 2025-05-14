@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "physics_apply_force_system.hpp"
 
 #include "components.hpp"
@@ -9,10 +11,6 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <box2d/b2_math.h>
-#include <glm/ext/quaternion_geometric.hpp>
 
 namespace game2d {
 
@@ -303,6 +301,9 @@ update_physics_apply_force_system(entt::registry& r)
 void
 update_physics_apply_force_debug_ui(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
 #if defined(_DEBUG)
   const auto& ds = debug_instances;
 

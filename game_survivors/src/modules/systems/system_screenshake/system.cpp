@@ -19,6 +19,9 @@ struct ScreenshakeData
 void
 update_screenshake_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_ScreenshakeComponent, r, shake_e, shake_c);
 
 #if defined(_DEBUG)

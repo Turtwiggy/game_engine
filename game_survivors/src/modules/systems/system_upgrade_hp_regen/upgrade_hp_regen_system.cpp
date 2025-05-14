@@ -12,6 +12,9 @@ namespace game2d {
 void
 update_upgrade_hp_regen_system(entt::registry& r, float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& view = r.view<HealthComponent, HasParentComponent>();
   for (const auto& [e, hp_c, parent_c] : view.each()) {
 

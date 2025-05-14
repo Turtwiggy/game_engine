@@ -13,6 +13,9 @@ namespace game2d {
 void
 update_enemy_swarmlord_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto view = r.view<CooldownComponent, SwarmLordComponent>();
   for (const auto& [e, cooldown_c, swarmlord_c] : view.each()) {
     if (cooldown_c.time > 0.0f)

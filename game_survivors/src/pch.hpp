@@ -71,4 +71,8 @@
 #include <steam/steam_api_common.h>
 #include <steam/steam_api_flat.h>
 
+#if defined(_DEBUG)
+#include <tracy/Tracy.hpp>
+#endif
+
 #endif

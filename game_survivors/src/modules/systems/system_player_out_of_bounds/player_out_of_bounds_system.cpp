@@ -21,6 +21,9 @@ namespace game2d {
 void
 update_player_out_of_bounds_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
   constexpr int map_radius = 900;

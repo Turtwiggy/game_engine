@@ -5,7 +5,9 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/audio/audio_components.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
@@ -13,10 +15,13 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
+#include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
@@ -62,9 +67,106 @@ filter_enemies_by_shoot_angle(entt::registry& r,
   enemies = valid_targets;
 };
 
+entt::entity
+get_nearest_target(entt::registry& r, const entt::entity wep_e, const TransformComponent& wep_t, const WeaponDef& wep_def)
+{
+  // Get enemies in your weapon range
+  const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
+  const float search_radius_meters = wep_def.range; // for nearest enemy
+
+  const std::function<bool(entt::registry&, entt::entity)> is_enemy = [&](entt::registry& r, entt::entity parent_e) -> bool {
+    bool is_enemy = r.try_get<EnemyComponent>(parent_e) != nullptr;
+
+    // Filter enemies in radius so it's a circle shape not a box shape.
+    const auto enemy_pos_in_meters = pixels_to_meters(get_position(r, parent_e));
+    const auto wep_pos_in_meters = pixels_to_meters(get_position(r, wep_e));
+
+    // adjust to include enemy radius as in-range - not just center.
+    const auto enemy_size = pixels_to_meters(get_size(r, parent_e));
+    const float enemy_radius_meters = glm::max(enemy_size.x, enemy_size.y) * 0.5f;
+
+    // check for circle col...
+    const bool coll = engine::circle_collision(
+      engine::Circle{ .pos = { wep_pos_in_meters.x, wep_pos_in_meters.y }, .radius = search_radius_meters },
+      engine::Circle{ .pos = { enemy_pos_in_meters.x, enemy_pos_in_meters.y }, .radius = enemy_radius_meters });
+
+#if defined(_DEBUG)
+    if (is_enemy) {
+      // Sprite s;
+      // s.sprite = "EMPTY";
+      // s.pos = meters_to_pixels(enemy_pos_in_meters);
+      // s.size = { 8, 8 };
+      // if (coll)
+      //   s.col = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
+      // else
+      //   s.col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
+      // draw_sprite(r, s);
+    }
+#endif
+
+    return is_enemy && coll;
+  };
+  const b2Vec2 center_m = pixels_to_meters(wep_pos);
+  auto enemies_map = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);
+  if (enemies_map.size() == 0)
+    return entt::null;
+
+  std::vector<std::pair<int, entt::entity>> enemies;
+  for (const auto& [parent_e, coll_fixtures] : enemies_map) {
+    for (const auto& fixture_coll_result : coll_fixtures) {
+      const auto fixture_e = fixture_coll_result.fixture_e;
+
+      const bool has_hp = r.try_get<HealthComponent>(fixture_e);
+      if (!has_hp)
+        continue; // shield or xp zone or something without health
+
+      enemies.push_back({ fixture_coll_result.d2, parent_e });
+      break; // you hit an enemy fixture with health; damage the enemy once.
+    }
+  }
+
+  // Filter by angle that this weapon can shoot
+  if (auto* hardpoint_c = r.try_get<HardpointComponent>(wep_e))
+    filter_enemies_by_shoot_angle(r, enemies, *hardpoint_c, wep_pos);
+
+  // Check if enemies after all filter conditions
+  if (enemies.size() == 0)
+    return entt::null;
+
+  // Get the nearest enemy
+  // note: a good modifier would be to get the enemy with the highest hp
+  auto sort_by_distance = [](const auto& a, const auto& b) { return a.first < b.first; };
+  std::sort(enemies.begin(), enemies.end(), sort_by_distance);
+  auto nearest_e = enemies[0].second;
+  return nearest_e;
+};
+
+void
+draw_crosshair(entt::registry& r, const glm::vec2 pos, const glm::vec2 dir, const engine::SRGBColour& col)
+{
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+  const auto zoom = camera_c.zoom_nonlinear;
+  const float radius = (50 + 2) / zoom;
+  engine::Ray ray;
+  ray.origin = { pos.x, pos.y, 0.0 };
+  ray.dir = { dir.x, dir.y, 0.0 };
+  const auto crosshair_pos = engine::ray_at(ray, radius);
+
+  Sprite adj_tgt_s;
+  adj_tgt_s.pos = crosshair_pos;
+  adj_tgt_s.sprite = "CROSSHAIR_2";
+  adj_tgt_s.size = { 16, 16 };
+  adj_tgt_s.col = col;
+  draw_sprite(r, adj_tgt_s);
+};
+
 void
 update_autofire_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_Physics, r, phys_e, phys_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
@@ -96,126 +198,50 @@ update_autofire_system(entt::registry& r, const float dt)
                     weapon_range_c,
                     weapon_behaviours_c] : view.each()) {
 
-    // if the weapon is reloading, just do that.
-    if (weapon_reload_rate_c.seconds_cur > 0.0) {
-      weapon_reload_rate_c.seconds_cur -= dt;
-      continue;
-    }
-
-    // debug the adj tgt pos
-    // make the crosshair appear to be smooth though
     const auto p = parent_c.parent;
     if (p == entt::null || !r.valid(p)) {
       r.remove<HasParentComponent>(wep_e);
       return;
     }
 
-    const auto& parent_t = r.get<TransformComponent>(p);
-    const auto& parent_col = r.get<DefaultColour>(p).colour;
+    const auto& parent_t = r.get<const TransformComponent>(p);
+    const auto& parent_col = r.get<const DefaultColour>(p).colour;
+    const auto& parent_input = r.get<const InputComponent>(p);
+
+    const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
+    const auto par_pos = glm::vec2{ parent_t.position.x, parent_t.position.y };
 
     // Get modded weapon values.
     const auto wep_def = get_weapon_def(r, p, wep_e);
 
-    // Get enemies in your weapon range
-    const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
-    const float search_radius_meters = wep_def.range; // for nearest enemy
-
-    const std::function<bool(entt::registry&, entt::entity)> is_enemy = [&](entt::registry& r,
-                                                                            entt::entity parent_e) -> bool {
-      bool is_enemy = r.try_get<EnemyComponent>(parent_e) != nullptr;
-
-      // Filter enemies in radius so it's a circle shape not a box shape.
-      const auto enemy_pos_in_meters = pixels_to_meters(get_position(r, parent_e));
-      const auto wep_pos_in_meters = pixels_to_meters(get_position(r, wep_e));
-
-      // adjust to include enemy radius as in-range - not just center.
-      const auto enemy_size = pixels_to_meters(get_size(r, parent_e));
-      const float enemy_radius_meters = glm::max(enemy_size.x, enemy_size.y) * 0.5f;
-
-      // check for circle col...
-      const bool coll = engine::circle_collision(
-        engine::Circle{ .pos = { wep_pos_in_meters.x, wep_pos_in_meters.y }, .radius = search_radius_meters },
-        engine::Circle{ .pos = { enemy_pos_in_meters.x, enemy_pos_in_meters.y }, .radius = enemy_radius_meters });
-
-#if defined(_DEBUG)
-      if (is_enemy) {
-        // Sprite s;
-        // s.sprite = "EMPTY";
-        // s.pos = meters_to_pixels(enemy_pos_in_meters);
-        // s.size = { 8, 8 };
-        // if (coll)
-        //   s.col = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
-        // else
-        //   s.col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
-        // draw_sprite(r, s);
-      }
-#endif
-
-      return is_enemy && coll;
-    };
-    const b2Vec2 center_m = pixels_to_meters(wep_pos);
-    auto enemies_map = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);
-    if (enemies_map.size() == 0)
-      continue;
-
-    std::vector<std::pair<int, entt::entity>> enemies;
-    for (const auto& [parent_e, coll_fixtures] : enemies_map) {
-      for (const auto& fixture_coll_result : coll_fixtures) {
-        const auto fixture_e = fixture_coll_result.fixture_e;
-
-        const bool has_hp = r.try_get<HealthComponent>(fixture_e);
-        if (!has_hp)
-          continue; // shield or xp zone or something without health
-
-        enemies.push_back({ fixture_coll_result.d2, parent_e });
-        break; // you hit an enemy fixture with health; damage the enemy once.
-      }
+    // If the player is holding the right analogue, overwrite the shoot_angle.
+    const float deadzone = 0.05f;
+    auto override_autofire = false;
+    auto dir = glm::vec2();
+    auto dir_to_enemy = glm::vec2();
+    if (glm::abs(parent_input.rx) > deadzone || glm::abs(parent_input.ry) > deadzone) {
+      override_autofire = true;
+      dir = { parent_input.rx, parent_input.ry };
+      dir_to_enemy = { parent_input.rx, parent_input.ry };
+      draw_crosshair(r, par_pos, dir_to_enemy, parent_col);
     }
+    imgui_draw_bool("override autofire", override_autofire);
 
-    // Filter by angle that this weapon can shoot
-    if (auto* hardpoint_c = r.try_get<HardpointComponent>(wep_e))
-      filter_enemies_by_shoot_angle(r, enemies, *hardpoint_c, wep_pos);
+    if (!override_autofire) {
+      auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
+      if (nearest_e == entt::null)
+        continue;
+      const auto tgt_pos = get_position(r, nearest_e);
 
-    // Check if enemies after all filter conditions
-    if (enemies.size() == 0)
-      continue;
+      // Note: Adjust the angle, so that the auto-fire leads it's shot a little
+      const auto tgt_vel_m = r.get<PhysicsBodyComponent>(nearest_e).body->GetLinearVelocity();
+      const auto tgt_vel_p = meters_to_pixels(tgt_vel_m);
+      const auto smarter_tgt_pos = tgt_pos + glm::vec2{ tgt_vel_p.x * lead_amount, tgt_vel_p.y * lead_amount };
 
-    // Get the nearest enemy
-    // note: a good modifier would be to get the enemy with the highest hp
-    auto sort_by_distance = [](const auto& a, const auto& b) { return a.first < b.first; };
-    std::sort(enemies.begin(), enemies.end(), sort_by_distance);
-    auto nearest_e = enemies[0].second;
-
-    const auto par_pos = glm::vec2{ parent_t.position.x, parent_t.position.y };
-    const auto tgt_pos = get_position(r, nearest_e);
-
-    // Note: Adjust the angle, so that the auto-fire leads it's shot a little
-    const auto tgt_vel_m = r.get<PhysicsBodyComponent>(nearest_e).body->GetLinearVelocity();
-    const auto tgt_vel_p = meters_to_pixels(tgt_vel_m);
-    const auto smarter_tgt_pos = tgt_pos + glm::vec2{ tgt_vel_p.x * lead_amount, tgt_vel_p.y * lead_amount };
-
-    // A ray from the player to the smarter target position.
-    // Get the point that is slightly shorter than the full distance from player to the enemy.
-    const auto dir = engine::normalize_safe(smarter_tgt_pos - par_pos);
-    // const float dst = glm::length(tgt_pos - par_pos);
-
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-    const auto zoom = camera_c.zoom_nonlinear;
-    const float radius = (50 + 2) / zoom;
-
-    engine::Ray ray;
-    ray.origin = { par_pos.x, par_pos.y, 0.0 };
-    ray.dir = { dir.x, dir.y, 0.0 };
-    const auto crosshair_pos = engine::ray_at(ray, radius);
-
-    {
-      // Sprite adj_tgt_s;
-      // adj_tgt_s.pos = crosshair_pos;
-      // adj_tgt_s.sprite = "CROSSHAIR_2";
-      // adj_tgt_s.size = { 16, 16 };
-      // adj_tgt_s.col = parent_col;
-      // draw_sprite(r, adj_tgt_s);
+      // A ray from the player to the smarter target position.
+      // Get the point that is slightly shorter than the full distance from player to the enemy.
+      dir = engine::normalize_safe(smarter_tgt_pos - par_pos);
+      dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);
     }
 
     // update the crosshair position
@@ -234,9 +260,18 @@ update_autofire_system(entt::registry& r, const float dt)
     // }
 
     // rotate the gun to the target
-    const auto dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);
     const float shoot_angle = engine::dir_to_angle_radians(dir_to_enemy);
     wep_t.rotation_radians.z = shoot_angle;
+
+    // if the weapon is reloading, just do that.
+    if (weapon_reload_rate_c.seconds_cur > 0.0) {
+      weapon_reload_rate_c.seconds_cur -= dt;
+      continue;
+    }
+
+    // draw the crosshair for autofire only when able to shoot
+    if (!override_autofire)
+      draw_crosshair(r, par_pos, dir_to_enemy, parent_col);
 
     // you've reloaded
     if (weapon_clip_size_c.bullets_cur <= 0) {
@@ -288,11 +323,10 @@ update_autofire_system(entt::registry& r, const float dt)
     // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
     // If the weapon has enough weapon spread (e.g. 90 degrees)
     // It could still shoot at the limited angles.
-    const auto angles_rad =
-      generate_angles(shoot_angle, altered_w_def.projectiles, altered_w_def.spread_deg * engine::Deg2Rad);
+    const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, altered_w_def.spread_deg * engine::Deg2Rad);
     for (int i = 0; i < altered_w_def.projectiles; i++) {
       const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
-      const auto bullet_dir = engine::angle_radians_to_direction(angles_rad[i]);
+      const auto bullet_dir = engine::angle_radians_to_direction(ar[i]);
       const auto bullet_vel = altered_b_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
       r.get<PhysicsBodyComponent>(bullet_e).body->SetLinearVelocity(bullet_vel);
     }
@@ -303,7 +337,7 @@ update_autofire_system(entt::registry& r, const float dt)
         .wep_def = altered_w_def,
         .bul_def = altered_b_def,
         .wep_pos = wep_pos,
-        .angles_rad = angles_rad,
+        .angles_rad = ar,
       };
       weapon_behaviour_shoot_in_opposite_direction(r, in);
     }

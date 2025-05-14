@@ -56,6 +56,10 @@ update_zoom(OrthographicCamera& camera, float dt)
 void
 update_camera_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
   const auto camera_ent = get_first<OrthographicCamera>(r);

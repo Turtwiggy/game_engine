@@ -20,6 +20,9 @@ namespace game2d {
 void
 update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
   const auto& ui_state = gesert_menubar_state(menu_c, "(Debug) Spritestack");
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
@@ -42,6 +45,7 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
 
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto camera_pos = get_position(r, camera_e);
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
 
   const auto& view = r.view<TransformComponent, SpritestackComponent, SpriteComponent>();
   for (const auto& [e, t, ssc, sprite] : view.each()) {
@@ -53,9 +57,7 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
       continue;
     }
 
-    const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto [spritesheet, anim] = find_animation(anims, ssc.tag);
-
     const int sprite_scale_x = spritesheet.px;
     const int sprite_scale_y = spritesheet.py;
 
@@ -72,7 +74,6 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
     }
 
     t.position.y += scale_up_by * (sprite_height * idx);
-
     t.scale = { sprite_scale_x, sprite_scale_y, 1.0f };
 
     // adjust colour

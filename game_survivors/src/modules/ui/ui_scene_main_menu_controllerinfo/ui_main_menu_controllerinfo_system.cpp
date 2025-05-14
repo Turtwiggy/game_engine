@@ -429,6 +429,9 @@ draw_player_ui_box(entt::registry& r,
 void
 update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   static float timer = 0.0f;
 
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);

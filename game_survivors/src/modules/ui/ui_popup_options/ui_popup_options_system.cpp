@@ -23,6 +23,9 @@ using namespace std::literals;
 void
 update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   auto& ui_c = gesert_component<SINGLE_OptionsMenuState>(r);
   const auto& ri_c = get_first_component<SINGLE_RendererInfo>(r);

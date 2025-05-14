@@ -37,6 +37,9 @@ show_if_in_menu(entt::registry& r,
 void
 update_ui_scene_header_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
   const auto megaheader_e = get_first<MegaHeaderComponent>(r);
   if (megaheader_e == entt::null)

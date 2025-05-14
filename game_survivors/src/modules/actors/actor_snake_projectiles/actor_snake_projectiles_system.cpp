@@ -18,6 +18,9 @@ namespace game2d {
 void
 update_actor_snake_projectiles_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto view = r.view<SnakeSegment, CooldownComponent, PhysicsBodyComponent>();
   for (const auto& [e, snake_segment_c, cooldown_c, body_c] : view.each()) {
     if (cooldown_c.time > 0.0f)

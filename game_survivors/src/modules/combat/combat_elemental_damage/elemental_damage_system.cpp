@@ -12,6 +12,9 @@ namespace game2d {
 void
 update_combat_elemental_damage_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
   for (const auto& [e, tick_c] : r.view<TickDamageComponent>().each()) {

@@ -33,6 +33,9 @@ const auto remove_dead_parents =
 void
 update_move_to_target_via_lerp(entt::registry& r, const float& dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   // update static lerps
   {
     const auto& view = r.view<LerpToFixedTarget>(entt::exclude<WaitForInitComponent>);

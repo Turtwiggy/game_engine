@@ -11,6 +11,10 @@ namespace game2d {
 void
 update_ui_audio_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   // todo: process audio device disconnect and connect events?
 
   const auto audio_e = get_first<SINGLE_AudioComponent>(r);

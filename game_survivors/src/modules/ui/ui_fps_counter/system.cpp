@@ -11,6 +11,9 @@ namespace game2d {
 void
 update_ui_fps_counter_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   bool show_fps_counter = false;
 
   auto options_e = get_first<SINGLE_OptionsMenuState>(r);

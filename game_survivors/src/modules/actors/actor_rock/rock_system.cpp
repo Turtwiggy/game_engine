@@ -67,6 +67,9 @@ draw_rocks(entt::registry& r)
 void
 update_actor_rocks_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   static float cutoff = 0.69f; // [0, 1]
 
 #if defined(_DEBUG)

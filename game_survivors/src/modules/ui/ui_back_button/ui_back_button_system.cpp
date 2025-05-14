@@ -21,6 +21,9 @@ namespace game2d {
 void
 update_ui_back_button_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);

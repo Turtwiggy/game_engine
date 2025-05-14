@@ -28,6 +28,9 @@ disable_flash(entt::registry& r, entt::entity e)
 void
 update_combat_scale_on_hit_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& view = r.view<RequestHitScaleComponent>(entt::exclude<WaitForInitComponent>);
 
   // note: req_e is attached to the e.g. fixture or body.

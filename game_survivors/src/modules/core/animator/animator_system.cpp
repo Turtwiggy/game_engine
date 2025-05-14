@@ -10,6 +10,9 @@ namespace game2d {
 int
 get_index(const float time, const float duration, const int size)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   if (duration == 0.0f)
     return 0;
   const float r = time / duration;                      // a value between 0 and 1

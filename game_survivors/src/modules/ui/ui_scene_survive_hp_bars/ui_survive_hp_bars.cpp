@@ -41,6 +41,9 @@ max_weapons_per_players(entt::registry& r, const std::vector<entt::entity>& play
 void
 update_ui_survive_hp_bars_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c);
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 

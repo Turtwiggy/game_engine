@@ -16,6 +16,9 @@ namespace game2d {
 void
 update_ui_raws_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& raws = get_first_component<Raws>(r);
 
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);

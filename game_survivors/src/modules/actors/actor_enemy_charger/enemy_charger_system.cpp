@@ -18,6 +18,9 @@ namespace game2d {
 void
 update_enemy_charger_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   // keep your distance. when you're within the distance threshold,
   // wait x seconds "charging".
   // and then charge at the player.

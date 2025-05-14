@@ -9,6 +9,9 @@ namespace game2d {
 void
 update_alpha_based_on_lifecycle_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& view = r.view<SetAlphaBasedOnLifecycleComponent, SpriteComponent, const EntityTimedLifecycle>();
   for (const auto& [e, req_c, sprite_c, lifecycle_c] : view.each()) {
     const auto decrement = (lifecycle_c.milliseconds_alive_max - lifecycle_c.milliseconds_alive);

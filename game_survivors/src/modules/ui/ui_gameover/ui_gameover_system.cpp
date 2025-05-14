@@ -23,6 +23,9 @@ namespace game2d {
 void
 update_ui_gameover_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri_c)
   GET_FIRST_OR_RETURN(SINGLE_GameoverUI, r, ui_e, ui_c)
   GET_FIRST_OR_RETURN(SINGLE_SurviveStatsComponent, r, stats_e, stats_c);

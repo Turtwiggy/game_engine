@@ -18,6 +18,9 @@ namespace game2d {
 void
 update_ui_ability_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));

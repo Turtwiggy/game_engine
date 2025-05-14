@@ -25,6 +25,9 @@ namespace game2d {
 void
 update_ui_survive_info_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& paused_c = get_first_component<SINGLE_GameStateComponent>(r);
   if (paused_c.state != GameState::PAUSED)
     return; // show weapon info if paused

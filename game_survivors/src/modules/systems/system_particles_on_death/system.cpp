@@ -10,6 +10,9 @@ namespace game2d {
 void
 update_spawn_particles_on_death_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto view = r.view<RequestToSpawnParticles>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, req_c] : view.each()) {
 

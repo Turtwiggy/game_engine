@@ -28,7 +28,7 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   if (from_e == entt::null || wep_e == entt::null)
     return;
 
-  const auto* trait_c = r.try_get<WeaponBehaviourComponent>(from_e);
+  const auto* trait_c = r.try_get<WeaponBehaviourComponent>(wep_e);
   if (!trait_c)
     return;
 
@@ -36,7 +36,7 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   if (!has(trait_c->behaviours, behaviour))
     return;
 
-  auto& fanfire_c = r.get_or_emplace<FanfireTraitComponent>(from_e);
+  auto& fanfire_c = r.get_or_emplace<FanfireTraitComponent>(wep_e);
   fanfire_c.shots_until_fanfire_left -= 1;
 
   // activation: based on number of shots fired

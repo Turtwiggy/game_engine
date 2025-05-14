@@ -1,4 +1,3 @@
-#include "engine/physics/physics_helpers.hpp"
 #include "pch.hpp"
 
 #include "combo_unlock_components.hpp"
@@ -9,6 +8,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_enemy_treasure/enemy_treasure_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
@@ -42,10 +42,13 @@ get_sprite_for_combodir(COMBO_DIR dir)
 void
 update_combo_unlock_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   static float offset_1st_row = -32;
   static float offset_2nd_row = -64;
-  imgui_draw_float("offset_1st_row", offset_1st_row);
-  imgui_draw_float("offset_2nd_row", offset_2nd_row);
+  // imgui_draw_float("offset_1st_row", offset_1st_row);
+  // imgui_draw_float("offset_2nd_row", offset_2nd_row);
 
   const auto view = r.view<TreasureEnemyComponent, ComboUnlockComponent>();
   for (const auto& [e, enemy_c, combo_c] : view.each()) {

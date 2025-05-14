@@ -41,6 +41,9 @@ get_parents_target(entt::registry& r, const entt::entity p)
 void
 update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   // static glm::vec2 hardpoint_offset{ 22.5f, 0.0f }; // rhib

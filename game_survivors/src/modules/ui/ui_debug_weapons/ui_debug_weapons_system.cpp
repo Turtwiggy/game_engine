@@ -12,6 +12,9 @@ namespace game2d {
 void
 update_ui_debug_weapons_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
 
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);

@@ -22,6 +22,9 @@ namespace game2d {
 void
 update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_RendererInfo, r, ri_e, ri)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)

@@ -8,6 +8,9 @@ namespace game2d {
 void
 update_animation_rotate_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   for (const auto& [e, rotate_c, t_c] : r.view<AnimationRotate, TransformComponent>().each()) {
     t_c.rotation_radians.z += dt * rotate_c.speed;
   }

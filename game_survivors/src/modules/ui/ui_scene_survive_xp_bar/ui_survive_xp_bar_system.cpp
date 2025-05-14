@@ -14,6 +14,9 @@ namespace game2d {
 void
 update_ui_survive_xp_bar_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 

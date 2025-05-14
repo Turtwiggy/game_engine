@@ -11,6 +11,9 @@ namespace game2d {
 void
 update_ui_debug_menubar_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_DebugMenuBar, r, menu_e, menu_c);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 

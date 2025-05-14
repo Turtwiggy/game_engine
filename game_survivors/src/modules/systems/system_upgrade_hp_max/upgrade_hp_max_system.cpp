@@ -14,6 +14,9 @@ namespace game2d {
 void
 update_upgrade_hp_max_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
 
   const auto& view = r.view<const PlayerFixtureComponent, HealthComponent, const HasParentComponent>();

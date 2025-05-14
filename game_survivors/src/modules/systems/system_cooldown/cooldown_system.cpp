@@ -8,6 +8,9 @@ namespace game2d {
 void
 update_cooldown_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const float dt = milliseconds_dt / 1000.0f;
 
   const auto& view = r.view<CooldownComponent>(entt::exclude<WaitForInitComponent>);

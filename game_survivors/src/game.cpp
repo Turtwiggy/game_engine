@@ -2,7 +2,6 @@
 
 #include "game.hpp"
 
-#include "modules/systems/system_combo_unlock/combo_unlock_system.hpp"
 #include "engine/audio/audio_system.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
@@ -51,6 +50,7 @@
 #include "modules/systems/system_ability/ability_system.hpp"
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
 #include "modules/systems/system_autofire/autofire_system.hpp"
+#include "modules/systems/system_combo_unlock/combo_unlock_system.hpp"
 #include "modules/systems/system_cooldown/cooldown_system.hpp"
 #include "modules/systems/system_create_item/create_item_system.hpp"
 #include "modules/systems/system_death_throes/death_throes_system.hpp"
@@ -123,10 +123,6 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
-
-#if defined(_DEBUG)
-#include <tracy/Tracy.hpp>
-#endif
 
 namespace game2d {
 using namespace std::literals;
@@ -310,7 +306,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_sprite_spritestack_system(r, dt);
   update_actor_rocks_system(r); // before update_spawner_system
 
-  auto& state = get_first_component<SINGLE_GameStateComponent>(r);
+  const auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);

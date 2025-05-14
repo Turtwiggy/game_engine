@@ -87,6 +87,9 @@ anchor_release(entt::registry& r, entt::entity e, const InputComponent& input_c,
 void
 update_ability_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   for (const auto& [e, player_c, input_c, body_c, ability_c] :
        r.view<const PlayerComponent, const InputComponent, const PhysicsBodyComponent, AbilityComponent>().each()) {
 

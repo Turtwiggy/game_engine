@@ -13,6 +13,10 @@ namespace game2d {
 bool
 require_pause(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   // Don't pause in the "main" scene.
   // otherwise this would count as a "pause" when options is open
   auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);

@@ -60,6 +60,9 @@ init_events_system(entt::registry& r)
 void
 update_events_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto dispatcher_e = get_first<SINGLE_Events>(r);
   if (dispatcher_e == entt::null)
     return;

@@ -11,7 +11,9 @@ namespace game2d {
 void
 update_ui_collisions_system(entt::registry& r)
 {
-  return; // disabled
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
 
   const auto& physics = get_first_component<SINGLE_Physics>(r);
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);

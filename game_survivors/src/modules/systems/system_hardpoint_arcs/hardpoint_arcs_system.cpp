@@ -64,6 +64,9 @@ DrawArc(const glm::vec2& screenspace_pos,
 void
 update_hardpoint_arcs_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   const auto& ri = get_first_component<SINGLE_RendererInfo>(r);

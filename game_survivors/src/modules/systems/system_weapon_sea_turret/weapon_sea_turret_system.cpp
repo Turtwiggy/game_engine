@@ -48,6 +48,9 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity parent_e)
 void
 update_weapon_sea_turret_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
 
   for (const auto& [wep_e, turret_c, weapon_fire_rate_c, parent_c, weapon_c, weapon_reload_rate_c, weapon_clip_size_c] :

@@ -16,6 +16,9 @@ namespace game2d {
 void
 update_particle_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto spawn_particle_helper = [&r](const ParticleEmitterComponent& emitter, const entt::entity e) {
     // per-instance? seems bad
     auto particle_description = emitter.particle_to_emit;

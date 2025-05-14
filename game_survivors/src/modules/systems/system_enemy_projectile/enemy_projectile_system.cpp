@@ -18,6 +18,9 @@ namespace game2d {
 void
 update_enemy_projectile_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& view = r.view<const PhysicsDynamicTarget, const ProjectileEnemyComponent, CooldownComponent>();
   for (const auto& [e, target_c, type_c, cooldown_c] : view.each()) {
     if (cooldown_c.time > 0.0f)

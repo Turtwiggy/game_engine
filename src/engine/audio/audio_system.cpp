@@ -8,7 +8,6 @@
 #include "audio_components.hpp"
 #include "engine/audio/audio_helpers.hpp"
 #include "engine/entt/helpers.hpp"
-#include <stdexcept>
 
 namespace game2d {
 
@@ -93,6 +92,9 @@ update_audio_channel_volume(const AudioSource& source, float vol_sfx, float vol_
 void
 update_audio_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_AudioComponent, r, audio_e, audio_c);
   GET_FIRST_OR_RETURN(SINGLE_GameStateComponent, r, state_e, state_c);
 

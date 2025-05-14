@@ -11,6 +11,9 @@ namespace game2d {
 void
 update_ui_imgui_colours_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
   const auto& ui_state = gesert_menubar_state(menu_c, "ImGui Colour Editor");
   if (!ui_state.enabled)

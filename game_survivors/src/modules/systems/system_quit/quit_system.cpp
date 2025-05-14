@@ -10,6 +10,9 @@ namespace game2d {
 void
 update_quit_system(entt::registry& r, engine::SINGLE_Application& app)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   process_requests<RequestQuitApplication>(r, [&app](const auto& req) {
     app.running = false; //
   });

@@ -120,6 +120,9 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 void
 update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto& steam_gs_c = get_first_component<SINGLE_SteamControllerGameState>(r);
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);

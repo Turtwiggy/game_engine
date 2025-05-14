@@ -99,6 +99,9 @@ update_ui_enemy_spawner(entt::registry& r, int seconds_from_start)
 void
 update_ui_debug_spawner_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
   auto ui_state = gesert_menubar_state(menu_c, "Spawners");
   if (!ui_state.enabled)

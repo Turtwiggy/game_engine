@@ -16,6 +16,9 @@ namespace game2d {
 void
 update_enemy_grower_system(entt::registry& r, float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   static float speed = 5.0f;
 
   const auto view = r.view<GrowerComponent, TransformComponent>();

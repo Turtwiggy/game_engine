@@ -15,6 +15,9 @@ namespace game2d {
 void
 update_death_throes_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   auto view = r.view<DeathThroesComponent, const IsDyingComponent>();

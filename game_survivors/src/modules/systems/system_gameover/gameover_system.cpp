@@ -15,6 +15,9 @@ namespace game2d {
 void
 update_gameover_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   const auto game_over_view = r.view<GameOverComponent>();
   if (game_over_view.size() > 0)
     return; // game already ended

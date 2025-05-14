@@ -204,6 +204,9 @@ create_snake(entt::registry& r)
 void
 update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SnakeData, r, snake_e, snake_c);
 
 #if defined(_DEBUG)
