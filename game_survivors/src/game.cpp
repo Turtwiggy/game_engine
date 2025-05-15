@@ -301,7 +301,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // pause due to gamelogic
   bool pause = require_pause(r);
 
-  update_hardpoint_arcs_system(r);
+  update_hardpoint_arcs_system(r, dt);
   update_sprite_spritestack_system(r, dt);
   update_actor_rocks_system(r); // before update_spawner_system
 

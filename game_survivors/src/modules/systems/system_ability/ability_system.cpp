@@ -69,7 +69,7 @@ anchor_held(entt::registry& r, entt::entity e, const InputComponent& input_c, co
 }
 
 void
-anchor_release(entt::registry& r, entt::entity e, const InputComponent& input_c, const PhysicsBodyComponent& body_c)
+speedboost_ability(entt::registry& r, entt::entity e, const InputComponent& input_c, const PhysicsBodyComponent& body_c)
 {
   // reset speed
   auto& speed_c = r.get<ActorSpeedComponent>(e);
@@ -80,8 +80,8 @@ anchor_release(entt::registry& r, entt::entity e, const InputComponent& input_c,
     r.remove<LockedInSpotComponent>(e);
 
   // Give a speed boost? tokyo drifffftttttt
-  const float meters_per_second = 5;
-  body_c.body->SetLinearVelocity(meters_per_second * b2Vec2{ input_c.lx, input_c.ly });
+  // const float meters_per_second = 10.0f * speed_c.base_speed;
+  body_c.body->ApplyForceToCenter({ 5000.0f * input_c.lx, 5000.0f * input_c.ly }, true);
 };
 
 void
@@ -103,14 +103,12 @@ update_ability_system(entt::registry& r, const float dt)
 
     if (allowed_to_use_ability_1) {
       if (has_action(input_c.ability1, ActionStateEnum::DOWN)) {
-        anchor_down(r, e);
+        speedboost_ability(r, e, input_c, body_c);
         ability_c.ability_1_in_progress = true;
       }
       if (has_action(input_c.ability1, ActionStateEnum::HELD)) {
-        anchor_held(r, e, input_c, body_c);
       }
       if (has_action(input_c.ability1, ActionStateEnum::RELEASE)) {
-        anchor_release(r, e, input_c, body_c);
         ability_c.ability_1_in_progress = false;
         ability_c.ability_1_cooldown_left = ability_c.ability_1_cooldown;
       }

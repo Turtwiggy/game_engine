@@ -75,6 +75,12 @@ struct HardpointComponent
   glm::vec2 dir_arc_left{ 0, 0 };
   glm::vec2 dir_arc_center{ 0, 0 };
   glm::vec2 dir_arc_right{ 0, 0 };
+
+  float outline_fade_speed = 1.0f;
+  float outline_alpha_cur = 0.0f;
+  float outline_alpha_max = 0.20f;
+  float outline_alpha_time_left_cur = 0.0f;
+  float outline_alpha_time_left_max = 5.0f;
 };
 
 struct ShipHullComponent

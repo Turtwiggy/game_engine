@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_hardpoint_arcs_system(entt::registry& r);
+update_hardpoint_arcs_system(entt::registry& r, const float dt);
 
 } // namespace game2d

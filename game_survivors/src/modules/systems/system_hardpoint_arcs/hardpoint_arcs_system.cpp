@@ -5,10 +5,12 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
@@ -17,7 +19,6 @@
 #include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
-#include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 
 namespace game2d {
 
@@ -59,10 +60,50 @@ DrawArc(const glm::vec2& screenspace_pos,
   //   draw_list->AddCircleFilled(start_point, thickness * 0.5f, color);
   //   draw_list->AddCircleFilled(end_point, thickness * 0.5f, color);
   // }
-}
+};
+
+// If the right analogue is wiggled, redisplay the outline.
+void
+FadeRangeArc(entt::registry& r, entt::entity parent_e, HardpointComponent& hardpoint_c, float dt)
+{
+  const auto& input_c = r.get<InputComponent>(parent_e);
+  if (glm::abs(input_c.rx) > 0.0f || glm::abs(input_c.ry) > 0.0f) {
+    hardpoint_c.outline_alpha_cur = hardpoint_c.outline_alpha_max;
+    hardpoint_c.outline_alpha_time_left_cur = hardpoint_c.outline_alpha_time_left_max;
+  }
+  hardpoint_c.outline_alpha_time_left_cur -= hardpoint_c.outline_fade_speed * dt;
+  hardpoint_c.outline_alpha_time_left_cur = glm::max(0.0f, hardpoint_c.outline_alpha_time_left_cur);
+  hardpoint_c.outline_alpha_cur = engine::scale(hardpoint_c.outline_alpha_time_left_cur, 0.0f, 5.0f, 0.0f, 0.2f);
+  imgui_draw_float("outline", hardpoint_c.outline_alpha_cur);
+};
 
 void
-update_hardpoint_arcs_system(entt::registry& r)
+DrawRangeArc(entt::registry& r,
+             entt::entity parent_e,
+             entt::entity weapon_e,
+             const HardpointComponent& hardpoint_c,
+             const StatModifierComponent& stats_c,
+             const float arc,
+             const glm::vec2 pos,
+             const glm::vec2 dir,
+             const float zoom)
+{
+  const auto screenspace = worldspace_to_screenspace(r, pos);
+  const auto range_val = r.get<WeaponRange>(weapon_e).meters;
+  const auto range_key = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RANGE));
+  const auto range_val_mod = stats_c.apply_modifiers(range_val, range_key);
+  const auto range_radius_p = meters_to_pixels(range_val_mod) / zoom;
+  const float thickness = 1.0;
+  const float radius = range_radius_p;
+  auto arc_col = r.get<DefaultColour>(parent_e).colour;
+  arc_col.a = (int)(hardpoint_c.outline_alpha_cur * 255);
+  const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
+  float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
+  DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);
+};
+
+void
+update_hardpoint_arcs_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
   ZoneScoped;
@@ -144,34 +185,21 @@ update_hardpoint_arcs_system(entt::registry& r)
     // the more guns, onionskin the debug
     entity_to_guncount[p] += 1;
 
-    const auto& stats_c = r.get<StatModifierComponent>(p);
-    const auto screenspace = worldspace_to_screenspace(r, pos);
-
     // draw the xp-zone arc. this shouldnt be here.
-    const auto val = r.get<ActorXpZoneSizeComponent>(p).radius_meters;
-    const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
-    const auto val_mod = stats_c.apply_modifiers(val, key);
-    const auto zone_radius_p = meters_to_pixels(val_mod) / zoom;
-    auto col = r.get<DefaultColour>(p).colour;
-    col.a = (int)(0.04f * 255);
-    const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
-    // // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
+    // const auto val = r.get<ActorXpZoneSizeComponent>(p).radius_meters;
+    // const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
+    // const auto val_mod = stats_c.apply_modifiers(val, key);
+    // const auto zone_radius_p = meters_to_pixels(val_mod) / zoom;
+    // auto col = r.get<DefaultColour>(p).colour;
+    // col.a = (int)(0.04f * 255);
+    // const ImU32 im_col = IM_COL32(col.r, col.g, col.b, col.a);
+    // auto grey = ImColor(0.3f, 0.3f, 0.3f, 1.0f);
     // DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
 
     // draw the gun arc.
-    const auto range_val = r.get<WeaponRange>(weapon_e).meters;
-    const auto range_key = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RANGE));
-    const auto range_val_mod = stats_c.apply_modifiers(range_val, range_key);
-    const auto range_radius_p = meters_to_pixels(range_val_mod) / zoom;
-    float thickness = 1.0;
-    // float radius = (50 + entity_to_guncount[p] * 2) / zoom;
-    // float radius = (50 + 2) / zoom;
-    float radius = range_radius_p;
-    auto arc_col = r.get<DefaultColour>(p).colour;
-    arc_col.a = (int)(0.15f * 255);
-    const ImU32 arc_im_col = IM_COL32(arc_col.r, arc_col.g, arc_col.b, arc_col.a);
-    float center_angle_deg = engine::dir_to_angle_radians(dir) * engine::Rad2Deg;
-    DrawArc(screenspace, radius, center_angle_deg, arc, thickness, arc_im_col, true);
+    const auto& stats_c = r.get<StatModifierComponent>(p);
+    FadeRangeArc(r, p, hardpoint_c, dt);
+    DrawRangeArc(r, p, weapon_e, hardpoint_c, stats_c, arc, pos, dir, zoom);
 
     // draw the arc where the gun cant shoot.
     // float thickness = 0.5;
