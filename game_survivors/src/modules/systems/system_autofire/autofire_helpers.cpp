@@ -114,8 +114,9 @@ get_bullet_def(entt::registry& r, entt::entity par_e, entt::entity wep_e)
     exit(1); // crash
   }
 
-  BulletDef bullet_def(wep_e);
+  BulletDef bullet_def;
   bullet_def.key = "bullet_default";
+  bullet_def.parent_e = wep_e;
   bullet_def.team = AvailableTeams::player;
   bullet_def.size = { mod_bul_size_x, mod_bul_size_y };
   bullet_def.damage = mod_bul_damage;

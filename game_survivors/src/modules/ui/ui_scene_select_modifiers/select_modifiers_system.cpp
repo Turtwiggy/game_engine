@@ -98,6 +98,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
 
   for (int i = 0; i < (int)(ui_c.state.cells.size()); i++) {
     auto& cell = ui_c.state.cells[i];
+    const bool is_next_button = ui_c.state.cells[i]->name.find("Next") != std::string::npos;
 
     auto a_def = SelectableButtonDef{
       .label = to_upper(cell->name),
@@ -118,10 +119,14 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
       .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
-    if (selectable_button(r, a_def))
+    if (selectable_button(r, a_def)) {
       cell->action();
 
-    if (ui_c.state.cells[i]->name.find("Next") != std::string::npos)
+      if (is_next_button)
+        break;
+    }
+
+    if (is_next_button)
       continue; // dont update the next button
 
     const auto mod = magic_enum::enum_cast<MODIFIER_OPTIONS>(i).value();

@@ -130,8 +130,9 @@ update_manualfire_system(entt::registry& r, const float dt)
     const int bullet_damage = r.get<BulletDamage>(wep_e).damage;
     // const int bullet_speed = r.get<BulletSpeed>(wep_e).speed;
 
-    BulletDef bullet_def(wep_e);
+    BulletDef bullet_def;
     bullet_def.key = "bullet_default";
+    bullet_def.parent_e = wep_e;
     bullet_def.size = { 6, 4 };
     bullet_def.team = AvailableTeams::player;
     bullet_def.damage = bullet_damage;

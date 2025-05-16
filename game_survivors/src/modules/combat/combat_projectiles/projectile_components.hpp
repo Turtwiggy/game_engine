@@ -27,16 +27,6 @@ struct BulletDef
 
   WEAPON_DAMAGE damage_type = WEAPON_DAMAGE::KINETIC;
   std::vector<WeaponBehaviour> wep_behaviours;
-
-  // BulletDef() = delete;
-  BulletDef() = default;
-  BulletDef(entt::entity parent)
-    : parent_e(parent) {
-      // if (parent == entt::null) {
-      //   throw std::runtime_error("Invalid bullet parent");
-      //   exit(1); // crash app
-      // }
-    };
 };
 
 struct WeaponDef

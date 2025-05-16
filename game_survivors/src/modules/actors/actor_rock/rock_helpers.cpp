@@ -347,8 +347,12 @@ create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<E
     fixture_c.fixture = fixture;
 
     auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
+
     r.emplace<HasParentComponent>(fixture_e, island_e);
     fixture->GetUserData().pointer = (uint32)fixture_e; // box2d: give link to entt
+
+    auto& child_c = r.get_or_emplace<HasChildrenComponent>(island_e);
+    child_c.children.push_back(fixture_e);
   }
 };
 

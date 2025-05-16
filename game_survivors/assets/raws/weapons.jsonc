@@ -1,26 +1,49 @@
 {
   "weapon_upgrades": [
     
-    { "u_key": "HP_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all your bullets in to one powerful bullet." },
-    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "desc": "Double your projectiles; shoot in the opposite direction." },
-    { "u_key": "HP_UPGRADE_C", "wb_key": "HEAVY_PISTOL_CRIT_UPGRADE", "desc": "Improves crit. (Chance & Damage).", "stats": [
+    { "u_key": "HP_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all projectiles in to one BIG BUOY!" },
+    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "desc": "Shoot in the opposite direction." },
+    { "u_key": "HP_UPGRADE_C", "wb_key": "HEAVY_PISTOL_CRIT_UPGRADE", "desc": "Improved crit.", "stats": [
       { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 20 },
       { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
     ] },
     { "u_key": "HP_UPGRADE_D", "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET", "desc": "Every 10 bullets, shoot a fan of bullets." },
     { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE", "desc": "Change damage type to fire." },
 
-    { "u_key": "GS_UPGRADE_A", "wb_key": "", "desc": "" },
-    { "u_key": "GS_UPGRADE_B", "wb_key": "", "desc": "" },
-    { "u_key": "GS_UPGRADE_C", "wb_key": "", "desc": "" },
-    { "u_key": "GS_UPGRADE_D", "wb_key": "", "desc": "" },
-    { "u_key": "GS_UPGRADE_E", "wb_key": "", "desc": "" },
+    { "u_key": "GS_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all projectiles in to one BIG BUOY!" },
+    { "u_key": "GS_UPGRADE_B", "wb_key": "DOUBLE_PROJECTILES", "desc": "Double your projectiles." },
+    { "u_key": "GS_UPGRADE_C", "wb_key": "SHOTGUN_CLIPSIZE_UPGRADE", "desc": "Improved clip size.", "stats": [
+      { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_percent_increase", "value": 30 }, // rare
+      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
+    ] },
+    { "u_key": "GS_UPGRADE_D", "wb_key": "SHOTGUN_DAMAGE_UPGRADE", "desc": "Improved damage.", "stats": [
+      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
+      { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 1.0 } // rare
+    ] },
+    { "u_key": "GS_UPGRADE_E", "wb_key": "SHOTGUN_FIRERATE_UPGRADE", "desc": "Improved firerate.", "stats": [
+      { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 25 }, // rare
+      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
+    ] },
 
-    { "u_key": "SC_UPGRADE_A", "wb_key": "", "desc": "" },
-    { "u_key": "SC_UPGRADE_B", "wb_key": "", "desc": "" },
-    { "u_key": "SC_UPGRADE_C", "wb_key": "", "desc": "" },
-    { "u_key": "SC_UPGRADE_D", "wb_key": "", "desc": "" },
-    { "u_key": "SC_UPGRADE_E", "wb_key": "", "desc": "" },
+    { "u_key": "SC_UPGRADE_A", "wb_key": "SMG_DAMAGE_UPGRADE", "desc": "Improved damage, firerate, reload speed.", "stats": [
+      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 20 }, // rare
+      { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 20 }, // rare
+      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -20 } // rare
+    ]},
+    { "u_key": "SC_UPGRADE_B", "wb_key": "SMG_CRIT_UPGRADE", "desc": "Improved crit.", "stats": [
+      { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 9 }, // rare
+      { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 20 } // uncommon
+    ] },
+    { "u_key": "SC_UPGRADE_C", "wb_key": "SMG_FIREBALL_UPGRADE", "desc": "Every 5th shot, shoot a fireball." },
+    { "u_key": "SC_UPGRADE_D", "wb_key": "SMG_KNOCKBACK_UPGRADE", "desc": "Improved damage, knockback.", "stats": [
+      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
+      { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 1.0 } // rare
+    ] },
+    { "u_key": "SC_UPGRADE_E", "wb_key": "SMG_CLIPSIZE_UPGRADE", "desc": "Improved clip size, firerate, worse reload time.", "stats": [
+      { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_percent_increase", "value": 200 }, // rare
+      { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 200 }, // rare
+      { "stat": "WEAPON_RELOAD",      "type": "stat_flat_increase", "value": 2 } // make reloaad time 2 seconds
+    ] },
 
     { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "", "desc": "" },
     { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "", "desc": "" },
@@ -76,7 +99,7 @@
         "BULLET_SIZE": 4        
       },
       "upgrades": [
-        "GS_UPGRADE_A",
+        "GS_UPGRADE_A", 
         "GS_UPGRADE_B",
         "GS_UPGRADE_C",
         "GS_UPGRADE_D",

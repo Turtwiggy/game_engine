@@ -35,8 +35,9 @@ update_actor_snake_projectiles_system(entt::registry& r)
     const auto bullet_speed = 1.20f;
     const auto bullet_size = glm::vec2{ 12, 12 };
 
-    BulletDef bullet_def(e); // note: not a weapon parent, but an enemy
+    BulletDef bullet_def;
     bullet_def.key = "bullet_snake";
+    bullet_def.parent_e = e; // note: not a weapon parent, but an enemy
     bullet_def.size = bullet_size;
     bullet_def.team = AvailableTeams::enemy;
     bullet_def.damage = 2; // TODO: make enemy bullet correct damage

@@ -183,8 +183,8 @@ update_autofire_system(entt::registry& r, const float dt)
                            WeaponClipSize,
                            WeaponFireRate,
                            WeaponReloadRate,
-                           WeaponRange,
-                           WeaponBehaviourComponent>();
+                           const WeaponRange,
+                           const WeaponBehaviourComponent>();
 
   for (const auto& [wep_e,
                     wep_t,
@@ -314,6 +314,10 @@ update_autofire_system(entt::registry& r, const float dt)
 
     WeaponDef altered_w_def = wep_def;
     BulletDef altered_b_def = bul_def;
+
+    // Double Projectiles?
+    if (has(weapon_behaviours_c.behaviours, WeaponBehaviour::DOUBLE_PROJECTILES))
+      altered_w_def.projectiles *= 2.0f;
 
     // Merge all bullets in to one mega bullet?
     if (has(weapon_behaviours_c.behaviours, WeaponBehaviour::MEGABULLET)) {

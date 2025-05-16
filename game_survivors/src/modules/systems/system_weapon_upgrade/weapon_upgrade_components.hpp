@@ -12,7 +12,7 @@ namespace game2d {
 enum class WeaponBehaviour
 {
   // done
-  SPLINTER,
+  SPLINTER, // splinter on death
 
   // cannon [heavy]
   MEGABULLET,
@@ -22,10 +22,21 @@ enum class WeaponBehaviour
   CHANGE_DAMAGE_TO_FIRE,
 
   // cannon [grapeshot]
-  // ...
+  // MEGABULLET,
+  DOUBLE_PROJECTILES,
+  SHOTGUN_CLIPSIZE_UPGRADE,
+  SHOTGUN_DAMAGE_UPGRADE,
+  SHOTGUN_FIRERATE_UPGRADE,
 
   // cannon [gatling]
-  // ...
+  SMG_DAMAGE_UPGRADE,
+  SMG_CRIT_UPGRADE,
+  SMG_FIREBALL_UPGRADE,
+  SMG_KNOCKBACK_UPGRADE,
+  SMG_CLIPSIZE_UPGRADE,
+
+  // turret
+  // todo
 
   // todo
   CHANGE_DAMAGE_TO_KINETIC,

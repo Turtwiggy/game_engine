@@ -335,9 +335,9 @@ update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int
       // check global enemy count multiplier
       float max = data.max;
       {
-        auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_HEALTH);
+        auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_COUNT);
         if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get())) {
-          SDL_Log("Spawning enemy count modified by: %f", o->multiplier);
+          // SDL_Log("Spawning enemy count modified by: %f", o->multiplier);
           max *= o->multiplier;
         }
       }
@@ -416,9 +416,9 @@ update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, in
 
     // check global enemy count multiplier
     {
-      auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_HEALTH);
+      auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_COUNT);
       if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get())) {
-        SDL_Log("Spawning enemy count modified by: %f", o->multiplier);
+        // SDL_Log("Spawning enemy count modified by: %f", o->multiplier);
         max *= o->multiplier;
       }
     }

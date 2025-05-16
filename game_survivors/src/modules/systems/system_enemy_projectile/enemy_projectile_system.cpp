@@ -43,8 +43,9 @@ update_enemy_projectile_system(entt::registry& r)
     int bullet_speed = r.get<BulletSpeed>(e).speed;
     auto bullet_size = r.get<BulletSize>(e).size;
 
-    BulletDef bullet_def(e); // note: not a weapon parent, but an enemy
+    BulletDef bullet_def;
     bullet_def.key = "bullet_archerfish";
+    bullet_def.parent_e = e; // note: not a weapon parent, but an enemy
     bullet_def.size = bullet_size;
     bullet_def.team = AvailableTeams::enemy;
     bullet_def.damage = 1; // TODO: make enemy bullet correct damage

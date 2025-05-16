@@ -13,10 +13,10 @@
     {
       "key": "ACTOR_HEALTH_MAX",
       "levels": [
-        { "cost": 2, "type": "stat_flat_increase", "value": 5 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 5 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 5 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 5 },
+        { "cost": 2, "type": "stat_flat_increase", "value": 1 },
+        { "cost": 2, "type": "stat_flat_increase", "value": 2 },
+        { "cost": 2, "type": "stat_flat_increase", "value": 3 },
+        { "cost": 2, "type": "stat_flat_increase", "value": 4 },
         { "cost": 2, "type": "stat_flat_increase", "value": 5 }
       ]
     },
@@ -33,11 +33,11 @@
     {
       "key": "ACTOR_SPEED",
       "levels": [
-        { "cost": 2, "type": "stat_percent_increase", "value": 10 },
-        { "cost": 3, "type": "stat_percent_increase", "value": 10 },
-        { "cost": 4, "type": "stat_percent_increase", "value": 10 },
-        { "cost": 5, "type": "stat_percent_increase", "value": 10 },
-        { "cost": 6, "type": "stat_percent_increase", "value": 10 }
+        { "cost": 2, "type": "stat_percent_increase", "value": 5 },
+        { "cost": 3, "type": "stat_percent_increase", "value": 5 },
+        { "cost": 4, "type": "stat_percent_increase", "value": 5 },
+        { "cost": 5, "type": "stat_percent_increase", "value": 5 },
+        { "cost": 6, "type": "stat_percent_increase", "value": 5 }
       ]
     },
     { "key": "ACTOR_XP_ZONE_SIZE", "levels": [

@@ -19,10 +19,13 @@ in VS_OUT
 {{ generate_user_samplers }}
 uniform int RENDERER_TEX_UNIT_COUNT;
 
+// #define FLUIDSIM 0
+#ifdef FLUIDSIM 
 uniform sampler2D tex_fluid;
 uniform int tex_fluid_tex_unit;
 uniform float tex_fluid_texel_size;
 uniform bool tex_fluid_shading;
+#endif
 
 void
 main()
@@ -56,6 +59,7 @@ main()
 {{ generate_sampler_if_statements }}
   }
 
+#ifdef FLUIDSIM 
   if(index == tex_fluid_tex_unit){
     vec2 uv = v_uv;
     vec3 c = texture(tex_fluid, uv).rgb;
@@ -81,6 +85,7 @@ main()
     out_colour = vec4(c, a);
     return;
   }
+#endif
 
   // Sample texture directly
   if ((v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f)) { // a whole texture

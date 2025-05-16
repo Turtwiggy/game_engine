@@ -4,6 +4,8 @@
 
 #include "engine/entt/helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
@@ -33,6 +35,15 @@ update_ui_debug_weapons_system(entt::registry& r)
       ImGui::Text("Wep Upgrade Key: %s", wep_upg.c_str());
   }
 
+  for (const auto& [e, weapon_b_c] : r.view<WeaponBehaviourComponent>().each()) {
+    ImGui::Text("weapon.");
+    for (const auto& wb : weapon_b_c.behaviours) {
+      const auto enum_str = std::string(magic_enum::enum_name(wb));
+      ImGui::Text("weapon behaviour: %s", enum_str.c_str());
+    }
+  }
+
+  ImGui::NewLine();
   ImGui::SeparatorText("Weapon Upgrades");
   for (const auto& wep_upg : weps_c.weapon_upgrades) {
     ImGui::Text("%s %s %s", wep_upg.u_key.c_str(), wep_upg.wb_key.c_str(), wep_upg.desc.c_str());

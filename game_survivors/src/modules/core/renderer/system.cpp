@@ -49,6 +49,7 @@ struct UboData
   float zoom = 0;
   float tilesize = 50;
 };
+static UboData data;
 
 int
 get_renderer_tex_unit_count(const SINGLE_RendererInfo& ri)
@@ -117,7 +118,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
-  const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
+  // const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
   // const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
@@ -156,9 +157,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     SDL_Log("%s", std::format("user tex key: {}", key).c_str());
     ri.instanced.set_int(key, tex.tex_unit.unit);
   }
-  ri.instanced.set_int("tex_fluid", tex_unit_fluid);
-  ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
-  ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
+  // ri.instanced.set_int("tex_fluid", tex_unit_fluid);
+  // ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
+  // ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
 
   ri.outline.reload(r);
   ri.outline.bind();
@@ -206,12 +207,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_bool("is_fullscreen", true);
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
-  ri.mix_lighting_and_scene.set_bool("add_grid", false);
+  ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
-  ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
+  // ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
   ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
@@ -220,33 +221,25 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // bind fluidsim data
   //
 
-  CHECK_OPENGL_ERROR(14);
-
-  ri.fluid_sim.splatProgram.reload(r);
-  ri.fluid_sim.splatProgram.bind();
-
-  ri.fluid_sim.advectProgram.reload(r);
-  ri.fluid_sim.advectProgram.bind();
-
-  ri.fluid_sim.curlProgram.reload(r);
-  ri.fluid_sim.curlProgram.bind();
-
-  ri.fluid_sim.vorticityProgram.reload(r);
-  ri.fluid_sim.vorticityProgram.bind();
-
-  ri.fluid_sim.divergenceProgram.reload(r);
-  ri.fluid_sim.divergenceProgram.bind();
-
-  ri.fluid_sim.pressureProgram.reload(r);
-  ri.fluid_sim.pressureProgram.bind();
-
-  ri.fluid_sim.gradientSubtractProgram.reload(r);
-  ri.fluid_sim.gradientSubtractProgram.bind();
-
-  ri.fluid_sim.textureProgram.reload(r);
-  ri.fluid_sim.textureProgram.bind();
-
-  CHECK_OPENGL_ERROR(13);
+  /*
+    ri.fluid_sim.splatProgram.reload(r);
+    ri.fluid_sim.splatProgram.bind();
+    ri.fluid_sim.advectProgram.reload(r);
+    ri.fluid_sim.advectProgram.bind();
+    ri.fluid_sim.curlProgram.reload(r);
+    ri.fluid_sim.curlProgram.bind();
+    ri.fluid_sim.vorticityProgram.reload(r);
+    ri.fluid_sim.vorticityProgram.bind();
+    ri.fluid_sim.divergenceProgram.reload(r);
+    ri.fluid_sim.divergenceProgram.bind();
+    ri.fluid_sim.pressureProgram.reload(r);
+    ri.fluid_sim.pressureProgram.bind();
+    ri.fluid_sim.gradientSubtractProgram.reload(r);
+    ri.fluid_sim.gradientSubtractProgram.bind();
+    ri.fluid_sim.textureProgram.reload(r);
+    ri.fluid_sim.textureProgram.bind();
+    CHECK_OPENGL_ERROR(13);
+    */
 
   // ri.blur.reload(r);
   // ri.blur.bind();
@@ -281,7 +274,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
-  ri.passes.push_back(RenderPass(PassName::fluid_sim));
+  // ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
   ri.passes.push_back(RenderPass(PassName::outline));
@@ -357,29 +350,6 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   // init(): create a dynamic VBO
   ri.renderer.init();
 
-  // create a texture
-  //   constexpr static int N_MAX_CIRCLES = 100;
-  //   {
-  //     GLuint tex = 0;
-  //     glGenTextures(1, &tex);
-  //     glBindTexture(GL_TEXTURE_2D, tex);
-  //     ri.tex_unit_circles = tex;
-  //     // allocate texture storage
-  //     const int num_rows = N_MAX_CIRCLES;
-  //     const int num_cols = sizeof(game2d::CircleComponent) / sizeof(float); // floats per comp
-  //     const auto size = glm::ivec2{ num_cols, num_rows };
-  // #if defined(__EMSCRIPTEN__)
-  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-  // #else
-  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-  // #endif
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  //     SDL_Log("%s", std::format("created texture object... id: {}", tex).c_str());
-  //   }
-
   // generate ubo
   {
     GLuint ubo;
@@ -396,22 +366,23 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   }
 
   // update ubo data
-  // {
-  //   const auto camera_e = get_first<OrthographicCamera>(r);
-  //   const auto& camera_t = r.get<TransformComponent>(camera_e);
-  //   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-  //   static UboData data;
-  //   data.time = 0;
-  //   data.view = camera_c.view;
-  //   data.camera_pos = { camera_t.position.x, camera_t.position.y };
-  //   data.zoom = camera_c.zoom_nonlinear;
-  //   auto grid_e = get_first<Effect_GridComponent>(r);
-  //   if (grid_e != entt::null)
-  //     data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
-  //   glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
-  //   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
-  //   // glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-  // }
+  {
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+    data.time = 0;
+    data.view = camera_c.view;
+    data.camera_pos = { camera_t.position.x, camera_t.position.y };
+    data.zoom = camera_c.zoom_nonlinear;
+    auto grid_e = get_first<Effect_GridComponent>(r);
+    if (grid_e != entt::null)
+      data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
+
+    glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+  }
 
   rebind(r, ri);
 
@@ -485,16 +456,12 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto& screenshake_c = get_first_component<SINGLE_ScreenshakeComponent>(r);
 
   // update ubo data
-  static UboData data;
   data.projection_zoomed = camera_c.projection_zoomed;
   data.view = camera_c.view;
   data.camera_pos = { camera_t.position.x, camera_t.position.y };
   data.time = time;
   data.zoom = camera_c.zoom_nonlinear;
   data.screenshake = screenshake_c.strength;
-  auto grid_e = get_first<Effect_GridComponent>(r);
-  if (grid_e != entt::null)
-    data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
 
   // .w as 0 indicates player inactive.
   for (int i = 0; i < 4; i++)
@@ -524,31 +491,17 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   // const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
   // const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
 
-  static bool showing_grid = false;
-  static bool showing_grid_updated = true;
-  const bool show_grid = get_first<Effect_GridComponent>(r) != entt::null;
-  if (show_grid && !showing_grid)
-    showing_grid_updated = true;
-  if (!show_grid && showing_grid)
-    showing_grid_updated = true;
-  if (showing_grid_updated) {
-    ri.mix_lighting_and_scene.bind();
-    ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
-    showing_grid_updated = false;
-  }
-  showing_grid = show_grid;
-
   for (const auto& pass : ri.passes) {
     // const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
     // const auto& pass_enum = pass.pass;
 
     // fluidsim uses a square texture, not viewport sized texture
-    if (pass.pass != PassName::fluid_sim) {
-      Framebuffer::bind_fbo(pass.fbos[0]);
-      RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
-      RenderCommand::set_clear_colour_srgb(black);
-      RenderCommand::clear();
-    }
+    // if (pass.pass != PassName::fluid_sim) {
+
+    Framebuffer::bind_fbo(pass.fbos[0]);
+    RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
+    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::clear();
 
     pass.update(r, dt, mouse_pos);
   }
@@ -565,12 +518,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::clear();
 
     // Which pass to render finally?
-    PassName p = PassName::mix_lighting_and_scene;
-    // if (get_first<SINGLE_EffectCrt>(r) != entt::null) {
-    //   auto& crt_c = get_first_component<SINGLE_EffectCrt>(r);
-    //   if (crt_c.enabled)
-    //     p = PassName::crt_effect;
-    // }
+    const PassName p = PassName::mix_lighting_and_scene;
 
     // Note: ImGui::Image takes in TexID not TexUnit
     const auto& pass = ri.passes[(int)p];

@@ -207,7 +207,8 @@ get_pass_idx(const SINGLE_RendererInfo& ri, const PassName name)
 
   const auto type_name = std::string(magic_enum::enum_name(name));
   SDL_Log("%s", std::format("no render pass of name: {}", type_name).c_str());
-  exit(1); // explode
+  // exit(1); // explode
+  return -1;
 };
 
 int

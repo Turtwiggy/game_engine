@@ -20,6 +20,8 @@
 namespace game2d {
 using namespace engine; // for macro
 
+#define FLUIDSIM_DISABLED 1
+
 const auto render_quad = [](entt::registry& r, const engine::Shader& shader, const glm::ivec2& size) {
   auto& ri = SINGLE_RendererInfo::instance;
 
@@ -41,6 +43,10 @@ const auto render_quad = [](entt::registry& r, const engine::Shader& shader, con
 void
 rebind_fluidsim(entt::registry& r, FluidSimData& data)
 {
+#if defined(FLUIDSIM_DISABLED)
+  return;
+#endif
+
   // velocity, double buffer
   glActiveTexture(GL_TEXTURE0 + data.velocity.info[0].tex.tex_unit.unit);
   glBindTexture(GL_TEXTURE_2D, data.velocity.info[0].tex.tex_id.id);
@@ -71,6 +77,10 @@ rebind_fluidsim(entt::registry& r, FluidSimData& data)
 void
 load_fluidsim(entt::registry& r, FluidSimData& data, int& used_texture_units)
 {
+#if defined(FLUIDSIM_DISABLED)
+  return;
+#endif
+
   data.splatProgram = engine::Shader(r, "assets/shaders/sim/fluid.vert", "assets/shaders/sim/splat.frag");
   data.advectProgram = engine::Shader(r, "assets/shaders/sim/fluid.vert", "assets/shaders/sim/advect.frag");
   data.curlProgram = engine::Shader(r, "assets/shaders/sim/fluid.vert", "assets/shaders/sim/curl.frag");
@@ -121,6 +131,9 @@ load_fluidsim(entt::registry& r, FluidSimData& data, int& used_texture_units)
 int
 get_texs_used_by_fluidsim()
 {
+#if defined(FLUIDSIM_DISABLED)
+  return 0;
+#endif
   return 8;
 }
 
@@ -129,6 +142,8 @@ setup_fluidsim_update(entt::registry& r)
 {
   auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::fluid_sim);
+  if (pass_idx == -1)
+    return;
   auto& pass = ri.passes[pass_idx];
   const int tex_unit = get_tex_unit(ri, PassName::fluid_sim);
 
@@ -137,9 +152,11 @@ setup_fluidsim_update(entt::registry& r)
     auto& input_c = get_first_component<SINGLE_InputComponent>(r);
     auto& data = ri.fluid_sim;
 
-    // fluidsim disabled
-    // note for future: something is wrong with the mouse_pos to simspace conversion
+// fluidsim disabled
+// note for future: something is wrong with the mouse_pos to simspace conversion
+#if defined(FLUIDSIM_DISABLED)
     return;
+#endif
 
     // mouse info
     static glm::vec2 prev_frame_pos{ 0, 0 };
