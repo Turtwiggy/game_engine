@@ -10,6 +10,8 @@ namespace game2d {
 enum class MODIFIER_OPTIONS
 {
   ROCKS,
+  ENEMY_HEALTH,
+  ENEMY_COUNT,
 
   count
 };
@@ -40,12 +42,34 @@ struct Option_Rocks : public IModifierOption
   void update(entt::registry& r, int& hindex) override;
 };
 
+struct Option_EnemyHealth : public IModifierOption
+{
+  float multiplier = 1.0f;
+
+  Option_EnemyHealth()
+    : IModifierOption(MODIFIER_OPTIONS::ENEMY_HEALTH, "Enemy Health", UIValueType::SCROLL) {};
+
+  void update(entt::registry& r, int& hindex) override;
+};
+
+struct Option_EnemyCount : public IModifierOption
+{
+  float multiplier = 1.0f;
+
+  Option_EnemyCount()
+    : IModifierOption(MODIFIER_OPTIONS::ENEMY_COUNT, "Enemy Count", UIValueType::SCROLL) {};
+
+  void update(entt::registry& r, int& hindex) override;
+};
+
 // Persistent data for the modifiers
 struct SINGLE_ModifiersData
 {
   std::vector<std::shared_ptr<IModifierOption>> options{
     //
     std::make_shared<Option_Rocks>(),
+    std::make_shared<Option_EnemyHealth>(),
+    std::make_shared<Option_EnemyCount>(),
     //
   };
 };

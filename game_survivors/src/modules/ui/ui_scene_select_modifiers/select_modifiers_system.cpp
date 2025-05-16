@@ -121,14 +121,13 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
     if (selectable_button(r, a_def))
       cell->action();
 
-    auto option = get_modifier_option(r, MODIFIER_OPTIONS::ROCKS);
+    if (ui_c.state.cells[i]->name.find("Next") != std::string::npos)
+      continue; // dont update the next button
+
+    const auto mod = magic_enum::enum_cast<MODIFIER_OPTIONS>(i).value();
+    auto option = get_modifier_option(r, mod);
     if (option == nullptr)
       continue; // option not impl?
-
-    // islands only modifier
-    // TODO: fix this when more modifiers are added
-    if (i != 0)
-      continue;
 
     // Update option...
     const bool active = cell == ui_c.state.active;
@@ -143,8 +142,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
       option->update(r, h_value);
     }
 
-    const auto enum_val = magic_enum::enum_cast<GAME_OPTIONS>(i).value();
-    const auto display_button = [&r, window_wh](auto& o, bool& data, auto label) {
+    const auto display_button = [&r, window_wh](auto& o, bool& data, const auto label) {
       ImGui::SameLine(window_wh.x * 0.75f);
       if (ImGui::Checkbox(label, &data)) {
         int tmp = (int)data;
@@ -152,9 +150,46 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
       }
     };
 
+    const auto display_increment = [&r, window_wh](auto& o, int& h_value, const float& data, const std::string label) {
+      ImGui::SameLine(window_wh.x * 0.75f);
+
+      float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
+      if (ImGui::ArrowButton(std::string{ label + "_l" }.c_str(), ImGuiDir_Left)) {
+        h_value--;
+        o->update(r, h_value);
+      }
+
+      ImGui::SameLine(0.0f, spacing);
+      // const auto display_txt = o->display_val();
+      ImGui::Text("%0.2fx", data);
+
+      ImGui::SameLine(0.0f, spacing);
+      if (ImGui::ArrowButton(std::string{ label + "_r" }.c_str(), ImGuiDir_Right)) {
+        h_value++;
+        o->update(r, h_value);
+      }
+    };
+
+    // todo: base it of the option type
     // if (option->value_type == UIValueType::BUTTON)
+
     if (auto* o = dynamic_cast<Option_Rocks*>(option.get()))
       display_button(o, o->populate_rocks, "##rocks");
+
+    if (auto* o = dynamic_cast<Option_EnemyHealth*>(option.get())) {
+      auto& h_value = dynamic_cast<OptionsCell*>(cell.get())->value;
+
+      float data = o->multiplier;
+      display_increment(o, h_value, data, "##enemy_health");
+      o->multiplier = data;
+    }
+
+    if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get())) {
+      auto& h_value = dynamic_cast<OptionsCell*>(cell.get())->value;
+      float data = o->multiplier;
+      display_increment(o, h_value, data, "##enemy_count");
+      o->multiplier = data;
+    }
   }
 
   ImGui::End();

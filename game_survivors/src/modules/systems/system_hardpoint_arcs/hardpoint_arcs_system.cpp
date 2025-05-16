@@ -74,7 +74,6 @@ FadeRangeArc(entt::registry& r, entt::entity parent_e, HardpointComponent& hardp
   hardpoint_c.outline_alpha_time_left_cur -= hardpoint_c.outline_fade_speed * dt;
   hardpoint_c.outline_alpha_time_left_cur = glm::max(0.0f, hardpoint_c.outline_alpha_time_left_cur);
   hardpoint_c.outline_alpha_cur = engine::scale(hardpoint_c.outline_alpha_time_left_cur, 0.0f, 5.0f, 0.0f, 0.2f);
-  imgui_draw_float("outline", hardpoint_c.outline_alpha_cur);
 };
 
 void

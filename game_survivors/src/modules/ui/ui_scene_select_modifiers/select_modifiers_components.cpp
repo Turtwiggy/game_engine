@@ -19,6 +19,24 @@ Option_Rocks::update(entt::registry& r, int& hindex)
 }
 
 void
+Option_EnemyHealth::update(entt::registry& r, int& hindex)
+{
+  hindex = glm::clamp(hindex, 1, 100); // 1x - 100x
+
+  // update value.
+  multiplier = (int)hindex;
+}
+
+void
+Option_EnemyCount::update(entt::registry& r, int& hindex)
+{
+  hindex = glm::clamp(hindex, 1, 50); // 1x - 5x
+
+  // update value. allow 0.1 increments
+  multiplier = (hindex / 10.0f);
+}
+
+void
 SINGLE_UISelectModifiersMenuState::do_init(entt::registry& r)
 {
   for (int i = 0; i < (int)MODIFIER_OPTIONS::count; i++) {
@@ -28,6 +46,12 @@ SINGLE_UISelectModifiersMenuState::do_init(entt::registry& r)
     OptionsCell c;
     c.name = modifier_option_enum_to_display_string(r, enum_val);
     c.value = 0;
+
+    if (enum_val == MODIFIER_OPTIONS::ENEMY_HEALTH)
+      c.value = 1;
+    if (enum_val == MODIFIER_OPTIONS::ENEMY_COUNT)
+      c.value = 10;
+
     state.cells.push_back(std::make_shared<OptionsCell>(c));
   }
 

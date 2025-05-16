@@ -37,6 +37,8 @@
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
+#include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
+#include "modules/ui/ui_scene_select_modifiers/select_modifiers_helpers.hpp"
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "spawner_components.hpp"
 #include "spawner_helpers.hpp"
@@ -100,6 +102,15 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     auto& death_c = r.get<OnDeathCallbacks>(e);
     auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
     death_c.callbacks.push_back(drop_xp_callback);
+  }
+
+  // check global hp multipler
+  {
+    auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_HEALTH);
+    if (auto* o = dynamic_cast<Option_EnemyHealth*>(option.get())) {
+      SDL_Log("Spawning enemy with global hp modifier: %f", o->multiplier);
+      hp *= o->multiplier;
+    }
   }
 
   give_life(r, e, rnd_pos_around_player, enemy_size);
@@ -321,8 +332,18 @@ update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int
       if (!has_wave_data)
         live_spawn_data_c.wavespawner_data[wave_key] = {};
 
+      // check global enemy count multiplier
+      float max = data.max;
+      {
+        auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_HEALTH);
+        if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get())) {
+          SDL_Log("Spawning enemy count modified by: %f", o->multiplier);
+          max *= o->multiplier;
+        }
+      }
+
       // spawn conditions
-      bool allowed_to_spawn = (enemies + data.num_per_spawn) <= data.max;
+      bool allowed_to_spawn = (enemies + data.num_per_spawn) <= max;
 
       // limit: if you only want to spawn X enemies this wave instead of continuous
       if (data.num_per_wave.has_value()) {
@@ -380,10 +401,10 @@ update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, in
     // configs
     const auto enemy_key = spawn_data.key;
     const auto max_to_spawn_this_wave_opt = on_disk_wave.data.num_per_wave;
-    const auto max = on_disk_wave.data.max;
     const auto number_per_spawn = on_disk_wave.data.num_per_spawn;
     const auto hp = on_disk_wave.data.hp;
     // const auto cooldown = on_disk_wave.data.spawn_cooldown;
+    float max = on_disk_wave.data.max;
 
     // live data
     int enemies = 0;
@@ -392,6 +413,15 @@ update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, in
     const auto has_wave_data = live_spawn_data_c.enemyspawner_data.contains(wave_key);
     if (!has_wave_data)
       live_spawn_data_c.enemyspawner_data[wave_key] = {};
+
+    // check global enemy count multiplier
+    {
+      auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_HEALTH);
+      if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get())) {
+        SDL_Log("Spawning enemy count modified by: %f", o->multiplier);
+        max *= o->multiplier;
+      }
+    }
 
     // spawn conditions
     bool allowed_to_spawn = (enemies + number_per_spawn) <= max;
