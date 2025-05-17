@@ -3,9 +3,12 @@
 #include "engine/entt/helpers.hpp"
 #include "event_upgrade_aquired_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
@@ -70,6 +73,14 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
     evts_c.dispatcher->trigger(lv_evt);
     evts_c.dispatcher->update();
   }
+
+  // Update WeaponDef and BulletDef
+  if (r.all_of<WeaponComponent>(upg_e)) {
+    SDL_Log("Updating WeaponDef & BulletDef");
+    r.emplace_or_replace<WeaponDef>(upg_e, get_weapon_def(r, par_e, upg_e));
+    r.emplace_or_replace<BulletDef>(upg_e, get_bullet_def(r, par_e, upg_e));
+  } else
+    SDL_Log("The thing that was upgraded wasnt a weapon (maybe an actor e.g. boat)");
 
   //
 }

@@ -32,6 +32,26 @@
 namespace game2d {
 
 void
+draw_crosshair(entt::registry& r, const glm::vec2 pos, const glm::vec2 dir, const engine::SRGBColour& col)
+{
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+  const auto zoom = camera_c.zoom_nonlinear;
+  const float radius = (50 + 2) / zoom;
+  engine::Ray ray;
+  ray.origin = { pos.x, pos.y, 0.0 };
+  ray.dir = { dir.x, dir.y, 0.0 };
+  const auto crosshair_pos = engine::ray_at(ray, radius);
+
+  Sprite adj_tgt_s;
+  adj_tgt_s.pos = crosshair_pos;
+  adj_tgt_s.sprite = "CROSSHAIR_2";
+  adj_tgt_s.size = { 16, 16 };
+  adj_tgt_s.col = col;
+  draw_sprite(r, adj_tgt_s);
+};
+
+void
 filter_enemies_by_shoot_angle(entt::registry& r,
                               std::vector<std::pair<int, entt::entity>>& enemies,
                               const HardpointComponent& hardpoint_c,
@@ -141,26 +161,6 @@ get_nearest_target(entt::registry& r, const entt::entity wep_e, const TransformC
 };
 
 void
-draw_crosshair(entt::registry& r, const glm::vec2 pos, const glm::vec2 dir, const engine::SRGBColour& col)
-{
-  const auto camera_e = get_first<OrthographicCamera>(r);
-  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-  const auto zoom = camera_c.zoom_nonlinear;
-  const float radius = (50 + 2) / zoom;
-  engine::Ray ray;
-  ray.origin = { pos.x, pos.y, 0.0 };
-  ray.dir = { dir.x, dir.y, 0.0 };
-  const auto crosshair_pos = engine::ray_at(ray, radius);
-
-  Sprite adj_tgt_s;
-  adj_tgt_s.pos = crosshair_pos;
-  adj_tgt_s.sprite = "CROSSHAIR_2";
-  adj_tgt_s.size = { 16, 16 };
-  adj_tgt_s.col = col;
-  draw_sprite(r, adj_tgt_s);
-};
-
-void
 update_autofire_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
@@ -176,187 +176,123 @@ update_autofire_system(entt::registry& r, const float dt)
   // imgui_draw_float("shot lead amount", lead_amount);
 #endif
 
-  const auto view = r.view<TransformComponent,
-                           const WeaponComponent,
-                           const HasParentComponent,
-                           AutofireComponent,
-                           WeaponClipSize,
-                           WeaponFireRate,
-                           WeaponReloadRate,
-                           const WeaponRange,
-                           const WeaponBehaviourComponent>();
+  {
+    const auto view =
+      r.view<const WeaponComponent, const WeaponDef, const HasParentComponent, TransformComponent, AutofireComponent>();
+    for (const auto& [wep_e, weapon_c, wep_def, parent_c, wep_t, autofire_c] : view.each()) {
+      const auto par_e = parent_c.parent;
+      const auto& par_inp = r.get<const InputComponent>(par_e);
+      const auto& par_t = r.get<const TransformComponent>(par_e);
+      const auto& par_col = r.get<const DefaultColour>(par_e).colour;
+      const auto par_pos = glm::vec2{ par_t.position.x, par_t.position.y };
+      const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
 
-  for (const auto& [wep_e,
-                    wep_t,
-                    wep_c,
-                    parent_c,
-                    autofire_c,
-                    weapon_clip_size_c,
-                    weapon_fire_rate_c,
-                    weapon_reload_rate_c,
-                    weapon_range_c,
-                    weapon_behaviours_c] : view.each()) {
-
-    const auto p = parent_c.parent;
-    if (p == entt::null || !r.valid(p)) {
-      r.remove<HasParentComponent>(wep_e);
-      return;
-    }
-
-    const auto& parent_t = r.get<const TransformComponent>(p);
-    const auto& parent_col = r.get<const DefaultColour>(p).colour;
-    const auto& parent_input = r.get<const InputComponent>(p);
-
-    const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
-    const auto par_pos = glm::vec2{ parent_t.position.x, parent_t.position.y };
-
-    // Get modded weapon values.
-    const auto wep_def = get_weapon_def(r, p, wep_e);
-
-    // If the player is holding the right analogue, overwrite the shoot_angle.
-    const float deadzone = 0.05f;
-    auto override_autofire = false;
-    auto dir = glm::vec2();
-    auto dir_to_enemy = glm::vec2();
-    if (glm::abs(parent_input.rx) > deadzone || glm::abs(parent_input.ry) > deadzone) {
-      override_autofire = true;
-      autofire_c.target = entt::null;
-      dir = { parent_input.rx, parent_input.ry };
-      dir_to_enemy = { parent_input.rx, parent_input.ry };
-      draw_crosshair(r, par_pos, dir_to_enemy, parent_col);
-    }
-
-    if (!override_autofire) {
-      if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
-        auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
-        if (nearest_e == entt::null)
-          continue;
-        autofire_c.target = nearest_e;
+      // If the player is holding the right analogue, overwrite the shoot_angle.
+      const float deadzone = 0.05f;
+      auto override_autofire = false;
+      auto dir = glm::vec2();
+      auto dir_to_enemy = glm::vec2();
+      if (glm::abs(par_inp.rx) > deadzone || glm::abs(par_inp.ry) > deadzone) {
+        override_autofire = true;
+        autofire_c.target = entt::null;
+        dir = { par_inp.rx, par_inp.ry };
+        dir_to_enemy = { par_inp.rx, par_inp.ry };
+        draw_crosshair(r, par_pos, dir_to_enemy, par_col);
       }
 
-      const auto tgt = autofire_c.target;
-      const auto tgt_pos = get_position(r, tgt);
+      // update the crosshair position
+      // autofire_c.draw_cursor_position.x = lerp(autofire_c.draw_cursor_position.x, crosshair_pos.x, dt);
+      // autofire_c.draw_cursor_position.y = lerp(autofire_c.draw_cursor_position.y, crosshair_pos.y, dt);
 
-      // Note: Adjust the angle, so that the auto-fire leads it's shot a little
-      const auto tgt_vel_m = r.get<PhysicsBodyComponent>(tgt).body->GetLinearVelocity();
-      const auto tgt_vel_p = meters_to_pixels(tgt_vel_m);
-      const auto smarter_tgt_pos = tgt_pos + glm::vec2{ tgt_vel_p.x * lead_amount, tgt_vel_p.y * lead_amount };
+      // debug the actual firing target
+      // {
+      //   Sprite adj_tgt_s;
+      //   adj_tgt_s.pos = smarter_tgt_pos;
+      //   adj_tgt_s.sprite = "CROSSHAIR_2";
+      //   adj_tgt_s.size = { 8, 8 };
+      //   adj_tgt_s.col = parent_col;
+      //   adj_tgt_s.col.a = 255 * 0.5f;
+      //   draw_sprite(r, adj_tgt_s);
+      // }
 
-      // A ray from the player to the smarter target position.
-      // Get the point that is slightly shorter than the full distance from player to the enemy.
-      dir = engine::normalize_safe(smarter_tgt_pos - par_pos);
-      dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);
+      // draw the crosshair for autofire only when able to shoot
+      if (!override_autofire) {
+        if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
+          auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
+          if (nearest_e == entt::null)
+            continue;
+          autofire_c.target = nearest_e;
+        }
+
+        const auto tgt = autofire_c.target;
+        const auto tgt_pos = get_position(r, tgt);
+
+        // Note: Adjust the angle, so that the auto-fire leads it's shot a little
+        const auto tgt_vel_m = r.get<PhysicsBodyComponent>(tgt).body->GetLinearVelocity();
+        const auto tgt_vel_p = meters_to_pixels(tgt_vel_m);
+        const auto smarter_tgt_pos = tgt_pos + glm::vec2{ tgt_vel_p.x * lead_amount, tgt_vel_p.y * lead_amount };
+
+        // A ray from the player to the smarter target position.
+        // Get the point that is slightly shorter than the full distance from player to the enemy.
+        dir = engine::normalize_safe(smarter_tgt_pos - par_pos);
+        dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);
+        draw_crosshair(r, par_pos, dir_to_enemy, par_col);
+      }
+
+      // rotate the gun to the target
+      const float shoot_angle = engine::dir_to_angle_radians(dir_to_enemy);
+      wep_t.rotation_radians.z = shoot_angle;
     }
+  }
 
-    // update the crosshair position
-    // autofire_c.draw_cursor_position.x = lerp(autofire_c.draw_cursor_position.x, crosshair_pos.x, dt);
-    // autofire_c.draw_cursor_position.y = lerp(autofire_c.draw_cursor_position.y, crosshair_pos.y, dt);
+  // handle sending ShootEvent
+  {
+    const auto view = r.view<const WeaponDef, const HasParentComponent, WeaponFireRate, WeaponReloadRate, WeaponClipSize>();
+    for (const auto& [wep_e, wep_def, parent_c, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c] :
+         view.each()) {
 
-    // debug the actual firing target
-    // {
-    //   Sprite adj_tgt_s;
-    //   adj_tgt_s.pos = smarter_tgt_pos;
-    //   adj_tgt_s.sprite = "CROSSHAIR_2";
-    //   adj_tgt_s.size = { 8, 8 };
-    //   adj_tgt_s.col = parent_col;
-    //   adj_tgt_s.col.a = 255 * 0.5f;
-    //   draw_sprite(r, adj_tgt_s);
-    // }
+      // you gotta reload
+      if (weapon_reload_rate_c.seconds_cur > 0.0) {
+        weapon_reload_rate_c.seconds_cur -= dt;
+        continue;
+      }
 
-    // rotate the gun to the target
-    const float shoot_angle = engine::dir_to_angle_radians(dir_to_enemy);
-    wep_t.rotation_radians.z = shoot_angle;
+      // you've reloaded
+      if (weapon_clip_size_c.bullets_cur <= 0) {
+        weapon_clip_size_c.bullets_cur = wep_def.bullets_max;
+        weapon_fire_rate_c.seconds_between_shots_left = 0.0f;
+      }
 
-    // if the weapon is reloading, just do that.
-    if (weapon_reload_rate_c.seconds_cur > 0.0) {
-      weapon_reload_rate_c.seconds_cur -= dt;
-      continue;
+      // Check if you're fire-rate limited.
+      // note: updates the _max time based on the modded firerate
+      weapon_fire_rate_c.seconds_between_shots_max = 1.0f / wep_def.fire_rate;
+      if (weapon_fire_rate_c.seconds_between_shots_left >= 0.0) {
+        weapon_fire_rate_c.seconds_between_shots_left -= dt;
+        continue;
+      }
+
+      // Check the clip size before firing.
+      if (weapon_clip_size_c.bullets_cur <= 0) { // time to reload
+        weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
+        continue;
+      }
+
+      // Shoot a bullet! (in this case, the bullet is a turret)
+      weapon_clip_size_c.bullets_cur--;
+      weapon_fire_rate_c.seconds_between_shots_left = weapon_fire_rate_c.seconds_between_shots_max;
+
+      // do the shoot event
+      const auto p = parent_c.parent;
+      ShootEvent shoot_evt;
+      shoot_evt.parent_e = p;
+      shoot_evt.weapon_e = wep_e;
+      evts_c.dispatcher->trigger(shoot_evt);
+      evts_c.dispatcher->update();
+
+      // Check the clip size after firing.
+      if (weapon_clip_size_c.bullets_cur <= 0)
+        weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
     }
-
-    // draw the crosshair for autofire only when able to shoot
-    if (!override_autofire)
-      draw_crosshair(r, par_pos, dir_to_enemy, parent_col);
-
-    // you've reloaded
-    if (weapon_clip_size_c.bullets_cur <= 0) {
-      weapon_clip_size_c.bullets_cur = wep_def.bullets_max;
-      weapon_fire_rate_c.seconds_between_shots_left = 0.0f;
-    }
-
-    const BulletDef bul_def = get_bullet_def(r, p, wep_e);
-
-    // Check if you're fire-rate limited.
-    // note: updates the _max time based on the modded firerate
-    weapon_fire_rate_c.seconds_between_shots_max = 1.0f / wep_def.fire_rate;
-    if (weapon_fire_rate_c.seconds_between_shots_left >= 0.0) {
-      weapon_fire_rate_c.seconds_between_shots_left -= dt;
-      continue;
-    }
-
-    // Check the clip size before firing.
-    if (weapon_clip_size_c.bullets_cur <= 0) { // time to reload
-      weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
-      continue;
-    }
-
-    // Shoot a bullet! (which can be multiple projectiles)
-    weapon_clip_size_c.bullets_cur--;
-    weapon_fire_rate_c.seconds_between_shots_left = weapon_fire_rate_c.seconds_between_shots_max;
-
-    // Check the clip size after firing.
-    if (weapon_clip_size_c.bullets_cur <= 0)
-      weapon_reload_rate_c.seconds_cur = wep_def.reload_rate;
-
-    // request to play audio
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_0" });
-    // request screenshake
-    // create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::SHOOT });
-
-    WeaponDef altered_w_def = wep_def;
-    BulletDef altered_b_def = bul_def;
-
-    // Double Projectiles?
-    if (has(weapon_behaviours_c.behaviours, WeaponBehaviour::DOUBLE_PROJECTILES))
-      altered_w_def.projectiles *= 2.0f;
-
-    // Merge all bullets in to one mega bullet?
-    if (has(weapon_behaviours_c.behaviours, WeaponBehaviour::MEGABULLET)) {
-      const auto in = WeaponBehaviourMegabulletIn{ .wep_def = wep_def, .bul_def = bul_def };
-      const auto out = weapon_behaviour_megabullet(r, in);
-      altered_w_def = out.wep_def;
-      altered_b_def = out.bul_def;
-    }
-
-    // Spawn X amount of bullets
-    // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
-    // If the weapon has enough weapon spread (e.g. 90 degrees)
-    // It could still shoot at the limited angles.
-    const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, altered_w_def.spread_deg * engine::Deg2Rad);
-    for (int i = 0; i < altered_w_def.projectiles; i++) {
-      const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
-      const auto bullet_dir = engine::angle_radians_to_direction(ar[i]);
-      const auto bullet_vel = altered_b_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
-      r.get<PhysicsBodyComponent>(bullet_e).body->SetLinearVelocity(bullet_vel);
-    }
-
-    // shoot bullets in opposite direction?
-    if (has(weapon_behaviours_c.behaviours, WeaponBehaviour::SHOOT_BULLETS_OPPOSITE_DIRECTION)) {
-      const auto in = WeaponBehaviourBulletOppositeDirectionIn{
-        .wep_def = altered_w_def,
-        .bul_def = altered_b_def,
-        .wep_pos = wep_pos,
-        .angles_rad = ar,
-      };
-      weapon_behaviour_shoot_in_opposite_direction(r, in);
-    }
-
-    // Some traits fire on nth shots
-    // Every time a weapon fires, send a shoot event.
-    ShootEvent shoot_evt;
-    shoot_evt.parent_e = p;
-    shoot_evt.weapon_e = wep_e;
-    evts_c.dispatcher->trigger(shoot_evt);
-    evts_c.dispatcher->update();
   }
 }
 

@@ -4,6 +4,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/std/vector/helpers.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
@@ -36,7 +37,9 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   if (!has(trait_c->behaviours, behaviour))
     return;
 
+  const auto& wep_def = r.get<WeaponDef>(wep_e);
   auto& fanfire_c = r.get_or_emplace<FanfireTraitComponent>(wep_e);
+  fanfire_c.shots_until_fanfire = wep_def.bullets_max;
   fanfire_c.shots_until_fanfire_left -= 1;
 
   // activation: based on number of shots fired
@@ -46,7 +49,7 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
 
   // do the fanfire
   // Note: count the bullet as one of the player's bullets.
-  BulletDef bul_def = get_bullet_def(r, from_e, wep_e);
+  BulletDef bul_def = r.get<BulletDef>(wep_e);
   bul_def.damage *= 0.2;   // deal 20% damage
   bul_def.size = { 4, 4 }; // fanfire bullets slightly smaller
   bul_def.damage_type = WEAPON_DAMAGE::KINETIC;

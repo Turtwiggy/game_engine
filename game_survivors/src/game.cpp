@@ -81,7 +81,6 @@
 #include "modules/systems/system_upgrade_hp_max/upgrade_hp_max_system.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
-#include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_system.hpp"
 #include "modules/ui/ui_ability_system/ui_ability_system.hpp"
 #include "modules/ui/ui_audio/system.hpp"
 #include "modules/ui/ui_back_button/ui_back_button_system.hpp"
@@ -100,7 +99,6 @@
 #include "modules/ui/ui_hierarchy/system.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_components.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_system.hpp"
-#include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_system.hpp"
 #include "modules/ui/ui_popup_pause/ui_popup_pause_components.hpp"
 #include "modules/ui/ui_popup_pause/ui_popup_pause_system.hpp"
@@ -309,7 +307,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (state.state != GameState::PAUSED && !pause) {
     update_animator_system(r, dt);
     update_animation_rotate_system(r, dt);
-    // update_manualfire_system(r, dt);
     update_combat_elemental_damage_system(r, dt);
     update_combat_scale_on_hit_system(r, dt);
     update_combo_unlock_system(r);
@@ -325,7 +322,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_player_out_of_bounds_system(r, dt);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
-    update_weapon_sea_turret_system(r, dt);
     update_ability_system(r, dt);
 
     update_death_throes_system(r, dt);

@@ -14,7 +14,9 @@
 #include "modules/events/event_death_exploder_screenshake/exploder_screenshake.hpp"
 #include "modules/events/event_death_treasure_enemy/treasure_enemy_death_helpers.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
+#include "modules/events/event_shoot_autofire/event_shoot_autofire_helpers.hpp"
 #include "modules/events/event_shoot_fireball/trait_shoot_fireball.hpp"
+#include "modules/events/event_shoot_to_deploy_turrets/event_shoot_turrets_helpers.hpp"
 #include "modules/events/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/events/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/events/event_upgrade_aquired/event_upgrade_aquired_helpers.hpp"
@@ -46,6 +48,8 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_lifesteal>(r);
 
+  ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__autofire>(r);
+  ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__deploy_turrets>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_fanfire>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__shoot_fireball>(r);
 

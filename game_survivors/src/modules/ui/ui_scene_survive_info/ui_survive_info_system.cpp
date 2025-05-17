@@ -125,8 +125,8 @@ update_ui_survive_info_system(entt::registry& r)
     const auto& weps_c = r.get<HasChildrenComponent>(e);
     for (const auto wep_e : weps_c.children) {
 
-      const auto bul_def = get_bullet_def(r, e, wep_e);
-      const auto wep_def = get_weapon_def(r, e, wep_e);
+      const auto bul_def = r.get<BulletDef>(wep_e);
+      const auto wep_def = r.get<WeaponDef>(wep_e);
 
       // clang-format off
       ImGui::NewLine();

@@ -73,7 +73,7 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
   weapons_c.children.push_back(wep_e);
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e });
 
-  set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
+  // set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
   set_position(r, wep_e, get_position(r, e));
 };
 
@@ -176,12 +176,15 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
 
   std::vector<entt::entity> weapons;
 
+  const auto e = spawn(r, key);
+  r.emplace<StatModifierComponent>(e); //  upgrades
+
   // Spawn autofire weappons
   for (const auto& hardpoint_data : hull.hardpoints) {
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
     // hardpoint_data.arc = 360;
     // hardpoint_data.arc_mid = 0;
-    auto weapon_e = spawn_weapon(r, weapon_data, weapon_key);
+    auto weapon_e = spawn_weapon(r, e, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(weapon_e, HardpointComponent{ hardpoint_data });
 
     // add weapon data, but could add a Weapon_OnDiskDatakey isntead
@@ -216,7 +219,6 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   //   weapons.push_back(weapon_e);
   // }
 
-  const auto e = spawn(r, key);
   give_life(r, e, pos, hull_size);
   r.emplace<PlayerComponent>(e, num);
   r.emplace<CameraFollow>(e);
@@ -331,10 +333,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   auto fixture_e = get_fixture_by_tag(r, e, "fixture_xp_zone");
   r.emplace<XpZoneComponent>(fixture_e);
 
-  // upgrades...
-  r.emplace<StatModifierComponent>(e);
-
-  for (const auto& wep_e : weapons)
+  for (const auto wep_e : weapons)
     connect_parent_and_weapon(r, e, wep_e);
 
   // This is more like which controller should control this player

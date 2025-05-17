@@ -42,7 +42,7 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
     const auto par_e = r.get<HasParentComponent>(wep_e).parent;
 
     // Note: count the bullet as one of the player's bullets.
-    BulletDef bul_def = get_bullet_def(r, par_e, wep_e);
+    BulletDef bul_def = r.get<BulletDef>(wep_e);
     bul_def.damage *= 0.1;   // deal 10% damage
     bul_def.size = { 4, 4 }; // splinter bullets slightly smaller
     bul_def.damage_type = WEAPON_DAMAGE::KINETIC;

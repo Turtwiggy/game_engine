@@ -5,12 +5,14 @@
 #include "engine/lifecycle/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "weapon_components.hpp"
@@ -18,7 +20,7 @@
 namespace game2d {
 
 entt::entity
-spawn_weapon(entt::registry& r, const Weapon_OnDiskData& w_data, std::string key)
+spawn_weapon(entt::registry& r, const entt::entity par_e, const Weapon_OnDiskData& w_data, std::string key)
 {
   glm::vec2 weapon_size = { 3, 6 };
 
@@ -74,6 +76,9 @@ spawn_weapon(entt::registry& r, const Weapon_OnDiskData& w_data, std::string key
   r.emplace<BulletKnockback>(wep_e, BulletKnockback{ BULLET_KNOCKBACK });
   r.emplace<BulletCrit>(wep_e, BulletCrit{ .crit_chance = BULLET_CRIT_CHANCE, .crit_damage = BULLET_CRIT_DAMAGE });
   r.emplace<BulletLifesteal>(wep_e, BulletLifesteal{ .percent_0_100 = BULLET_LIFESTEAL });
+
+  r.emplace<WeaponDef>(wep_e, get_weapon_def(r, par_e, wep_e));
+  r.emplace<BulletDef>(wep_e, get_bullet_def(r, par_e, wep_e));
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;
