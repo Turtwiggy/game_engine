@@ -49,6 +49,7 @@
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_ability/ability_system.hpp"
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
+#include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_autofire/autofire_system.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_system.hpp"
 #include "modules/systems/system_cooldown/cooldown_system.hpp"
@@ -121,6 +122,7 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -284,6 +286,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_camera_system(r, dt);
   update_audio_system(r, dt);
+  update_audio_mix_system(r);
   update_player_controller_system(r, mouse_pos);
   update_screenshake_system(r, dt);
   update_input_open_ui_system(r);

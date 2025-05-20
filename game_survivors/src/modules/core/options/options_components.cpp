@@ -42,9 +42,13 @@ Option_AudioMasterVolume::load(engine::SINGLE_Application& app, entt::registry& 
 
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
+  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
 
-  if (!on_disk_opt.has_value())
+  if (!on_disk_opt.has_value()) {
+    data.value = 0.5f;
+    audio_c.volume_master = data.value;
     return;
+  }
   auto on_disk_val = on_disk_opt.value();
 
   // Convert the on_disk_val to your representation.
@@ -53,7 +57,6 @@ Option_AudioMasterVolume::load(engine::SINGLE_Application& app, entt::registry& 
   data = ondisk_data;
 
   // update the system.
-  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
   audio_c.volume_master = data.value;
 };
 
@@ -102,9 +105,13 @@ Option_AudioMusicVolume::load(engine::SINGLE_Application& app, entt::registry& r
 
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
+  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
 
-  if (!on_disk_opt.has_value())
+  if (!on_disk_opt.has_value()) {
+    data.value = 0.5f;
+    audio_c.volume_music = data.value;
     return;
+  }
   auto on_disk_val = on_disk_opt.value();
 
   // Convert the on_disk_val to your representation.
@@ -113,7 +120,6 @@ Option_AudioMusicVolume::load(engine::SINGLE_Application& app, entt::registry& r
   data = ondisk_data;
 
   // update the system.
-  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
   audio_c.volume_music = data.value;
 };
 
@@ -162,9 +168,14 @@ Option_AudioSFXVolume::load(engine::SINGLE_Application& app, entt::registry& r)
 
   const auto enum_as_str = std::string(magic_enum::enum_name(option));
   const auto on_disk_opt = savefile_get_key(r, enum_as_str);
+  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
 
-  if (!on_disk_opt.has_value())
+  if (!on_disk_opt.has_value()) {
+    data.value = 0.25f;
+    audio_c.volume_sfx = data.value;
     return;
+  }
+
   auto on_disk_val = on_disk_opt.value();
 
   // Convert the on_disk_val to your representation.
@@ -173,7 +184,6 @@ Option_AudioSFXVolume::load(engine::SINGLE_Application& app, entt::registry& r)
   data = ondisk_data;
 
   // update the system.
-  auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
   audio_c.volume_sfx = data.value;
 };
 

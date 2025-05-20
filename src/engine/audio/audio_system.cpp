@@ -8,6 +8,7 @@
 #include "audio_components.hpp"
 #include "engine/audio/audio_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "modules/events/events_core/events_components.hpp"
 
 namespace game2d {
 
@@ -97,6 +98,7 @@ update_audio_system(entt::registry& r, const float dt)
 #endif
   GET_FIRST_OR_RETURN(SINGLE_AudioComponent, r, audio_e, audio_c);
   GET_FIRST_OR_RETURN(SINGLE_GameStateComponent, r, state_e, state_c);
+  const auto& evts_c = get_first_component<SINGLE_Events>(r);
 
   // dampen music if paused
   // bool paused = state_c.state == GameState::PAUSED;
@@ -143,9 +145,23 @@ update_audio_system(entt::registry& r, const float dt)
   // state: playing -> free
   for (const auto& [e, source] : r.view<AudioSource>().each()) {
 
-    source.state = AudioSourceState::FREE;
-    if (Mix_Playing(source.channel))
-      source.state = AudioSourceState::PLAYING;
+    const auto is_playing = Mix_Playing(source.channel) == 1;
+    const auto old_state = source.state;
+    source.state = is_playing ? AudioSourceState::PLAYING : AudioSourceState::FREE;
+
+    if (old_state == AudioSourceState::PLAYING && !is_playing) {
+      // track potentially completed.
+      if (source.sound_type == SoundType::BACKGROUND) {
+        SDL_Log("bg sound complete: %s", source.sound.c_str());
+        AudioCompleteEvent evt;
+        evt.tag = source.sound;
+        evts_c.dispatcher->trigger(evt);
+        evts_c.dispatcher->update();
+      }
+
+      source.state = AudioSourceState::FREE;
+      source.sound = "";
+    }
 
     if (source.state == AudioSourceState::FREE)
       free_audio_sources.push_back(e);
@@ -178,16 +194,18 @@ update_audio_system(entt::registry& r, const float dt)
       continue;
     }
 
-    entt::entity audio_source_e = free_audio_sources.front();
+    const Sound s = get_sound(audio_c, request.tag);
+    const entt::entity audio_source_e = free_audio_sources.front();
     free_audio_sources.erase(free_audio_sources.begin());
     auto& audio_source_c = r.get<AudioSource>(audio_source_e);
     audio_source_c.state = AudioSourceState::PLAYING;
-
-    const Sound s = get_sound(audio_c, request.tag);
+    audio_source_c.sound = tag;
     audio_source_c.sound_type = s.type;
     update_audio_channel_volume(audio_source_c, volume_sfx, volume_music, dampen_music);
 
+    // start play
     const int channel = Mix_PlayChannel(audio_source_c.channel, s.buffer, request.looping ? -1 : 0);
+
     if (channel != audio_source_c.channel)
       SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());
 

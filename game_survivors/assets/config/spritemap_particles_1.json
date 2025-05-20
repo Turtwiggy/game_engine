@@ -1,0 +1,14 @@
+{
+  "spritesheet": {
+    "name": "particles_1",
+    "px_total": 4096,
+    "py_total": 5120,
+    "px": 512,
+    "py": 512,
+    "nx": 8,
+    "ny": 10
+  },
+  "sprites": [
+    { "name": "default_512", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] }
+  ]
+}

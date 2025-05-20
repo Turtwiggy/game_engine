@@ -14,6 +14,11 @@ struct AudioRequestPlayEvent
   bool looping = false;
 };
 
+struct AudioCompleteEvent
+{
+  std::string tag;
+};
+
 // classes to support System()
 
 enum class AudioSourceState
@@ -33,6 +38,7 @@ struct AudioSource
   int channel = -1;
   AudioSourceState state = AudioSourceState::FREE;
   SoundType sound_type = SoundType::BACKGROUND;
+  std::string sound = "";
 
   AudioSource() = default;
   AudioSource(const int c)

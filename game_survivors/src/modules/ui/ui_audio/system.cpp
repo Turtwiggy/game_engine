@@ -89,11 +89,14 @@ update_ui_audio_system(entt::registry& r)
   ImGui::Text("Audio Sources: %zu", sources.size());
 
   for (const auto& [e, source] : sources.each()) {
-    ImGui::Text("Channel %i", source.channel);
+    ImGui::Text("channel %i ", source.channel);
     ImGui::SameLine();
 
     const auto type_name = std::string(magic_enum::enum_name(source.state));
-    ImGui::Text("%s", type_name.c_str());
+    ImGui::Text("%s ", type_name.c_str());
+
+    ImGui::SameLine();
+    ImGui::Text("%s", source.sound.c_str());
 
     ImGui::SameLine();
     const auto vol = Mix_Volume(source.channel, -1);

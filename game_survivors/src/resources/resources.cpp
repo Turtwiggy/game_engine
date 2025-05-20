@@ -22,13 +22,13 @@ get_default_textures()
     ri.user_textures.push_back(tex);
   };
 
-  add_tex("kennynl_1bit_pack/monochrome_transparent_packed.png", "spritemap_kennynl.json");
-  add_tex("kennynl_gameicons/gameicons.png", "spritemap_kennynl_icons.json");
+  add_tex("kenneynl_1bit_pack/monochrome_transparent_packed.png", "spritemap_kenneynl.json");
+  add_tex("kenneynl_gameicons/gameicons.png", "spritemap_kenneynl_icons.json");
+  add_tex("kenneynl_particles/particle_sheet_1.png", "spritemap_particles_1.json");
+  add_tex("kenneynl_particles/particle_sheet_2.png", "spritemap_particles_2.json");
   add_tex("blueberry_dark.png", "spritemap_studio_logo.json");
   add_tex("smoke_fx_5.png", "spritemap_smoke_fx_5.json");
   add_tex("custom.png", "spritemap_custom.json");
-  // add_tex("animation_idle.png", "spritemap_animation_idle.json");
-  // add_tex("junkers.png", "spritemap_junkers.json");
   add_tex("grime_bar.png", "spritemap_grime_bar.json");
   add_tex("snake.png", "spritemap_snake.json");
   add_tex("spritestack_rhib.png", "spritestack_rhib.json");
@@ -55,33 +55,34 @@ get_default_audio()
 {
   std::string path = engine::get_exe_path_without_exe_name();
   path += "assets/audio/";
+  std::string sfx_path = path + "sfx/";
+  std::string mus_path = path + "music/";
+  std::string amb_path = path + "ambience/";
 
   SINGLE_AudioComponent audio;
 
-  audio.sounds.push_back(
-    { "SHOTGUN_SHOOT_0", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
-
-  audio.sounds.push_back({ "SHOTGUN_RELOAD_0", path + "RELOAD_Pump_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "TAKE_DAMAGE_0", path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
+  audio.sounds.push_back({ "WATER_AMBIENCE_0",
+                           amb_path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.mp3",
+                           SoundType::BACKGROUND });
 
   // audio.sounds.push_back({ "BUOY_0", path + "marblehead_bell_buoy_nrm_23.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back(
-    { "WATER_AMBIENCE_0", path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back({ "MENU_0", path + "sergepavkin_smooth-waters_quieter.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back({ "SELECT_0", path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back({ "GAME_0", path + "gp_lady-of-the-80s.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back({ "GAME_1", path + "gp_hero-of-the-80s.mp3", SoundType::BACKGROUND });
+    { "SHOTGUN_SHOOT_0", sfx_path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "SHOTGUN_RELOAD_0", sfx_path + "RELOAD_Pump_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "TAKE_DAMAGE_0", sfx_path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
+  audio.sounds.push_back({ "UI_HOVER_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "UI_SELECT_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "XP_0", sfx_path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "SHOOT_0", sfx_path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
 
-  audio.sounds.push_back({ "UI_HOVER_0", path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "UI_SELECT_0", path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "MENU_0", mus_path + "sergepavkin_smooth-waters_quieter.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "SELECT_0", mus_path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "UPGRADE_0", mus_path + "pixabay_ninja.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "GAME_0", mus_path + "psychronic-antimatter-ancestor.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "GAME_1", mus_path + "psychronic-digital-driving-force.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "GAME_2", mus_path + "psychronic-fight-for-the-future.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "GAME_3", mus_path + "psychronic-wacky-fight.mp3", SoundType::BACKGROUND });
 
-  audio.sounds.push_back({ "XP_0", path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo.wav", SoundType::SFX });
-  // audio.sounds.push_back({ "XP_02", path + "UI_SCI-FI_Tone_Bright_Dry_13_stereo.wav", SoundType::SFX });
-  // audio.sounds.push_back({ "XP_03", path + "UI_SCI-FI_Tone_Bright_Dry_14_stereo.wav", SoundType::SFX });
-
-  audio.sounds.push_back({ "SHOOT_0", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
-
-  // audio.sounds.push_back({ "COMBAT_01", path + ".mp3", SoundType::BACKGROUND });
   // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
   // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });
 

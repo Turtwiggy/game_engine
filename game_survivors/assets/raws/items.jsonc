@@ -120,7 +120,7 @@
     },
     {
       "name": "actor_enemy_melee_1",
-      "renderable": { "sprite": "HORSESHOE_CRAB", "colour": "red" },
+      "renderable": { "sprite": "HORSESHOE_CRAB", "colour": "white" },
       "traits": [ {"key": "DIRECT" } ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": false } ]
@@ -128,7 +128,7 @@
     // hermit crab
     {
       "name": "actor_enemy_melee_2",
-      "renderable": { "sprite": "HERMIT_CRAB", "colour": "magenta" },
+      "renderable": { "sprite": "HERMIT_CRAB", "colour": "white" },
       "traits": [ {"key": "ARC_ANGLE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
@@ -149,7 +149,7 @@
     },
     {
       "name": "actor_enemy_exploder",
-      "renderable": { "sprite": "PUFFERFISH", "colour": "gold_yellow" },
+      "renderable": { "sprite": "PUFFERFISH", "colour": "white" },
       "traits": [ {"key": "DIRECT"}, {"key": "EXPLODE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
@@ -232,7 +232,7 @@
       "name": "item_xp",
       "display_name": "XP",
       "display_desc": "Delicious experience. num num num num.",
-      "renderable": { "sprite": "GEM", "colour": "white" },
+      "renderable": { "sprite": "PEARL_0", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
     },

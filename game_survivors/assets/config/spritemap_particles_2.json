@@ -1,0 +1,30 @@
+{
+  "spritesheet": {
+    "name": "particles_2",
+    "px_total": 4096,
+    "py_total": 1024,
+    "px": 512,
+    "py": 512,
+    "nx": 8,
+    "ny": 2
+  },
+  "sprites": [
+    { "name": "flame_r_0",      "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "flame_r_1",      "frames": [ { "x": 1, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "muzzle_flash_0", "frames": [ { "x": 2, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "muzzle_flash_1", "frames": [ { "x": 3, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "muzzle_flash_2", "frames": [ { "x": 4, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "muzzle_flash_3", "frames": [ { "x": 5, "y": 0, "w": 1, "h": 1 } ] },
+    { "name": "muzzle_flash_4", "frames": [ { "x": 6, "y": 0, "w": 1, "h": 1 } ] },
+
+    { "name": "anim_muzzle_flash", "frames": [ 
+        { "x": 2, "y": 0, "w": 1, "h": 1 },
+        { "x": 3, "y": 0, "w": 1, "h": 1 },
+        { "x": 4, "y": 0, "w": 1, "h": 1 },
+        { "x": 5, "y": 0, "w": 1, "h": 1 },
+        { "x": 6, "y": 0, "w": 1, "h": 1 }
+      ] 
+    }
+
+  ]
+}

@@ -18,6 +18,6 @@ contains(const AABB aabb, const glm::vec2 point)
   const auto ymin = aabb.tl.y;
   const auto ymax = aabb.tl.y + aabb.wh.y;
   return (point.x >= xmin) && (point.x <= xmax) && (point.y >= ymin) && (point.y <= ymax);
-}
+};
 
 } // namespace game2d

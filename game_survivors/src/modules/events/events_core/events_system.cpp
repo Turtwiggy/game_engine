@@ -1,5 +1,6 @@
 #include "events_system.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "events_components.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_helpers.hpp"
@@ -22,6 +23,7 @@
 #include "modules/events/event_upgrade_aquired/event_upgrade_aquired_helpers.hpp"
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_components.hpp"
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
+#include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_stats/stats_helpers.hpp"
 
 namespace game2d {
@@ -57,6 +59,8 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__exploder_screenshake>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__treasure_enemy>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__update_stats>(r);
+
+  ed.dispatcher->sink<AudioCompleteEvent>().connect<&handle_audio_complete_event__new_game_track>(r);
 
   ed.dispatcher->sink<UpgradeEvent>().connect<&handle_upgrade_event>(r);
 

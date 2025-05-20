@@ -21,7 +21,7 @@
     ]},
 
     { "name": "CIRCLE", "frames": [ { "x": 12, "y": 0, "w": 2, "h": 2 } ] },
-
+    { "name": "PEARL_0", "frames": [ { "x": 12, "y": 2, "w": 1, "h": 1 } ] },
 
     { "name": "HERMIT_CRAB_TOP", "frames": [ { "x": 0, "y": 4, "w": 2, "h": 2 } ] },
     { "name": "HERMIT_CRAB_BOTTOM", "frames": [ { "x": 2, "y": 4, "w": 2, "h": 2 } ] },

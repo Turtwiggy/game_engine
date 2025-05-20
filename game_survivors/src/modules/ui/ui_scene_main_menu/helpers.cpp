@@ -98,7 +98,7 @@ ui_mute_sound_icon(entt::registry& r)
   ImGui::Begin("Mute Sound Icon", nullptr, icon_flags);
 
   // draw an audio icon
-  const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
+  const auto tex_id = search_for_texture_id_by_texture_path(ri, "kenneynl_gameicons")->id;
   const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
 
   // bool toggle_changed = false;

@@ -31,6 +31,7 @@
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_ability/ability_components.hpp"
+#include "modules/systems/system_audio_mix/audio_mix_components.hpp"
 #include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
@@ -431,12 +432,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::survive) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "GAME_0", .looping = true });
     create_empty<SINGLE_SurviveStatsComponent>(r);
     create_empty<Effect_GridComponent>(r);
     create_empty<SINGLE_XpComponent>(r);
     create_empty<SINGLE_LevelUpUI>(r);
     create_empty<SINGLE_GameoverUI>(r);
+    create_empty<RequestGameTrack>(r);
 
     // Reset temporary gold
     auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);

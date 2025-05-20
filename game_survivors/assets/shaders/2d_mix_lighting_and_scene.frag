@@ -19,6 +19,7 @@ uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
+uniform bool invert_colours;
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
@@ -363,6 +364,11 @@ void main()
   // float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
   // vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
   // out_color.rgb *= vig;
+
+  if(invert_colours)
+  {
+    out_color.rgb = vec3(1.0) - out_color.rgb;
+  }
 
   out_color.a = 1.0f;
 }
