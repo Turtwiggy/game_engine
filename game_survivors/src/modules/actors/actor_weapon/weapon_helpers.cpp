@@ -22,7 +22,7 @@ namespace game2d {
 entt::entity
 spawn_weapon(entt::registry& r, const entt::entity par_e, const Weapon_OnDiskData& w_data, std::string key)
 {
-  glm::vec2 weapon_size = { 3, 6 };
+  glm::vec2 weapon_size = { 6, 3 };
 
   const auto wep_e = spawn(r, key);
   give_life(r, wep_e, { 0, 0 }, weapon_size);

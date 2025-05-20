@@ -10,11 +10,8 @@
 namespace game2d {
 
 entt::entity
-spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size)
+spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size, float sprite_fps)
 {
-  static float sprite_fps = 24;
-  // imgui_draw_float("sprite_fps", sprite_fps);
-
   const auto effect_e = spawn(r, "empty");
   give_life(r, effect_e, pos, size);
   r.remove<OnDeathCallbacks>(effect_e); // not sure if this is correct

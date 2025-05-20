@@ -1,3 +1,4 @@
+#include "modules/events/event_shoot_muzzleflash/event_shoot_muzzleflash.hpp"
 #include "pch.hpp"
 
 #include "game.hpp"
@@ -122,7 +123,6 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
-
 
 namespace game2d {
 using namespace std::literals;
@@ -305,6 +305,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_hardpoint_arcs_system(r, dt);
   update_sprite_spritestack_system(r, dt);
   update_actor_rocks_system(r); // before update_spawner_system
+
+#if defined(_DEBUG)
+  update_muzzleflash_system(r);
+#endif
 
   const auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {

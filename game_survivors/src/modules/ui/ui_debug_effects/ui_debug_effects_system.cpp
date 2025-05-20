@@ -24,17 +24,29 @@ update_ui_debug_effects_system(entt::registry& r)
 
   imgui_begin("DebugEffects");
 
-  if (ImGui::Button("Explosion0"))
-    spawn_fx(r, "EXPLODE_FX_0", { 0, 0 }, { 128, 128 });
+  static float sprite_fps = 24;
+  imgui_draw_float("sprite_fps", sprite_fps);
 
-  if (ImGui::Button("Explosion1"))
-    spawn_fx(r, "EXPLODE_FX_1", { 0, 0 }, { 128, 128 });
+  if (ImGui::Button("EXPLODE_FX_6"))
+    spawn_fx(r, "EXPLODE_FX_6", { 0, 0 }, { 128, 128 }, sprite_fps);
 
-  if (ImGui::Button("Block0"))
-    spawn_fx(r, "BLOCK_FX_0", { 0, 0 }, { 128, 128 });
+  if (ImGui::Button("EXPLODE_FX_7"))
+    spawn_fx(r, "EXPLODE_FX_7", { 0, 0 }, { 128, 128 }, sprite_fps);
 
-  if (ImGui::Button("Block1"))
-    spawn_fx(r, "BLOCK_FX_1", { 0, 0 }, { 128, 128 });
+  if (ImGui::Button("BLOCK_FX_0"))
+    spawn_fx(r, "BLOCK_FX_0", { 0, 0 }, { 128, 128 }, sprite_fps);
+
+  if (ImGui::Button("BLOCK_FX_1"))
+    spawn_fx(r, "BLOCK_FX_1", { 0, 0 }, { 128, 128 }, sprite_fps);
+
+  if (ImGui::Button("S6_EXPLODE_FX_7"))
+    spawn_fx(r, "S6_EXPLODE_FX_7", { 0, 0 }, { 128, 128 }, sprite_fps);
+
+  if (ImGui::Button("S6_EXPLODE_FX_14"))
+    spawn_fx(r, "S6_EXPLODE_FX_14", { 0, 0 }, { 128, 128 }, sprite_fps);
+
+  if (ImGui::Button("S6_EXPLODE_FX_21"))
+    spawn_fx(r, "S6_EXPLODE_FX_21", { 0, 0 }, { 128, 128 }, sprite_fps);
 
   ImGui::End();
 }

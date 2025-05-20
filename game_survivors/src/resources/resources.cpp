@@ -24,10 +24,9 @@ get_default_textures()
 
   add_tex("kenneynl_1bit_pack/monochrome_transparent_packed.png", "spritemap_kenneynl.json");
   add_tex("kenneynl_gameicons/gameicons.png", "spritemap_kenneynl_icons.json");
-  add_tex("kenneynl_particles/particle_sheet_1.png", "spritemap_particles_1.json");
-  add_tex("kenneynl_particles/particle_sheet_2.png", "spritemap_particles_2.json");
   add_tex("blueberry_dark.png", "spritemap_studio_logo.json");
-  add_tex("smoke_fx_5.png", "spritemap_smoke_fx_5.json");
+  add_tex("smoke_fx_5.png", "spritemap_smoke_fx_5.jsonc");
+  add_tex("smoke_fx_6.png", "spritemap_smoke_fx_6.jsonc");
   add_tex("custom.png", "spritemap_custom.json");
   add_tex("grime_bar.png", "spritemap_grime_bar.json");
   add_tex("snake.png", "spritemap_snake.json");

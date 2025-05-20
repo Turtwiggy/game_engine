@@ -29,7 +29,7 @@ draw_wombo_combo(const WomboComboIn& in);
 void
 imgui_draw_entity(entt::registry& r, const std::string& label, const entt::entity& e, entt::entity& selected_e);
 
-void
+bool
 imgui_draw_string(const std::string& label, std::string& v);
 
 void

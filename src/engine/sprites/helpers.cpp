@@ -5,6 +5,7 @@
 
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
+#include "modules/core/raws/raws_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 
@@ -22,12 +23,27 @@ load_sprites(SINGLE_Animations& anims, const Texture& texture)
 {
   const auto path = texture.spritesheet_path;
   SDL_Log("%s", std::format("loading sprite config: {}", path).c_str());
+
+  // load from disk
   std::ifstream f(path);
+  std::stringstream buffer;
+  buffer << f.rdbuf();
+  const std::string data_with_comments = buffer.str();
+
+  // remove comments from .jsonc file
+  std::istringstream stream(data_with_comments);
+  std::ostringstream output;
+  std::string line;
+  while (std::getline(stream, line)) {
+    std::string cleaned_line = remove_comment(line);
+    output << cleaned_line << "\n";
+  }
 
   // if there's an error here,
   // as it's the first thing loaded,
   // it probably means: assets haven't been provided for the build
-  const json data = json::parse(f);
+  const std::string string_without_comments = output.str();
+  const json data = nlohmann::json::parse(string_without_comments);
 
   auto ss = data["spritesheet"];
   Spritesheet spritesheet;

@@ -40,12 +40,12 @@ draw_wombo_combo(const WomboComboIn& in)
   return out;
 };
 
-void
+bool
 imgui_draw_string(const std::string& label, std::string& v)
 {
   ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
-  ImGui::InputText((std::string("##") + label).c_str(), &v);
+  return ImGui::InputText((std::string("##") + label).c_str(), &v);
 };
 
 void

@@ -74,7 +74,7 @@ update_ui_survive_timer_system(entt::registry& r)
       const float padding_x = 10.0;
 
       if (r.view<BossComponent>().size() > 0) {
-        const std::string str = "Defeat Steve";
+        const std::string str = "Defeat Sea-Snake!";
         const auto str_size = ImGui::CalcTextSize(str.c_str());
         ImGui::Text("");
         ImGui::SameLine(ui_wh.x - str_size.x);

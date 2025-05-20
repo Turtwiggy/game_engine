@@ -6,6 +6,6 @@
 namespace game2d {
 
 entt::entity
-spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size);
+spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size, float sprite_fps = 30);
 
 } // namespace game2d
