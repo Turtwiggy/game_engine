@@ -7,6 +7,7 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
@@ -160,6 +161,39 @@ get_nearest_target(entt::registry& r, const entt::entity wep_e, const TransformC
   return nearest_e;
 };
 
+glm::vec2
+calculate_aim_dir(const glm::vec2 a_pos,
+                  const glm::vec2 a_vel,
+                  const glm::vec2 b_pos,
+                  const glm::vec2 b_vel,
+                  const float bul_speed)
+{
+  const auto rel_pos = b_pos - a_pos;
+  const auto rel_vel = b_vel - a_vel;
+
+  const float a = glm::dot(rel_vel, rel_vel) - bul_speed * bul_speed;
+  const float b = 2.0f * glm::dot(rel_pos, rel_vel);
+  const float c = glm::dot(rel_pos, rel_pos);
+  const float discriminant = b * b - 4 * a * c;
+
+  // no intercept possible, just aim directly at the target.
+  if (discriminant <= 0)
+    return engine::normalize_safe(rel_pos);
+
+  const float sqrt_discriminant = (float)glm::sqrt(discriminant);
+  const float t1 = (-b + sqrt_discriminant) / (2.0f * a);
+  const float t2 = (-b + sqrt_discriminant) / (2.0f * a);
+  const float t = glm::max(t1, t2); // earliest positive time
+
+  // no intercept time.
+  if (t <= 0)
+    return engine::normalize_safe(rel_pos);
+
+  // aim at the intercept point
+  const auto intercept_point = b_pos + b_vel * t;
+  return engine::normalize_safe(intercept_point - a_pos);
+};
+
 void
 update_autofire_system(entt::registry& r, const float dt)
 {
@@ -168,80 +202,72 @@ update_autofire_system(entt::registry& r, const float dt)
 #endif
   GET_FIRST_OR_RETURN(SINGLE_Physics, r, phys_e, phys_c);
   GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
-
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
-  static float lead_amount = 0.4f;
-#if defined(_DEBUG)
-  // imgui_draw_float("shot lead amount", lead_amount);
-#endif
-
   {
-    const auto view =
-      r.view<const WeaponComponent, const WeaponDef, const HasParentComponent, TransformComponent, AutofireComponent>();
-    for (const auto& [wep_e, weapon_c, wep_def, parent_c, wep_t, autofire_c] : view.each()) {
+    const auto view = r.view<const WeaponComponent,
+                             const WeaponDef,
+                             const BulletDef,
+                             const WeaponRange,
+                             const HasParentComponent,
+                             TransformComponent,
+                             AutofireComponent>();
+    for (const auto& [wep_e, weapon_c, wep_def, bul_def, wep_range_c, parent_c, wep_t, autofire_c] : view.each()) {
       const auto par_e = parent_c.parent;
       const auto& par_inp = r.get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
+      const auto par_vel_m = r.get<const PhysicsBodyComponent>(par_e).body->GetLinearVelocity();
       const auto par_pos = glm::vec2{ par_t.position.x, par_t.position.y };
       const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
 
       // If the player is holding the right analogue, overwrite the shoot_angle.
       const float deadzone = 0.05f;
       auto override_autofire = false;
-      auto dir = glm::vec2();
       auto dir_to_enemy = glm::vec2();
       if (glm::abs(par_inp.rx) > deadzone || glm::abs(par_inp.ry) > deadzone) {
         override_autofire = true;
         autofire_c.target = entt::null;
-        dir = { par_inp.rx, par_inp.ry };
         dir_to_enemy = { par_inp.rx, par_inp.ry };
         draw_crosshair(r, par_pos, dir_to_enemy, par_col);
+
+        // rotate the gun to the target
+        wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);
+        continue;
       }
 
-      // update the crosshair position
-      // autofire_c.draw_cursor_position.x = lerp(autofire_c.draw_cursor_position.x, crosshair_pos.x, dt);
-      // autofire_c.draw_cursor_position.y = lerp(autofire_c.draw_cursor_position.y, crosshair_pos.y, dt);
-
-      // debug the actual firing target
-      // {
-      //   Sprite adj_tgt_s;
-      //   adj_tgt_s.pos = smarter_tgt_pos;
-      //   adj_tgt_s.sprite = "CROSSHAIR_2";
-      //   adj_tgt_s.size = { 8, 8 };
-      //   adj_tgt_s.col = parent_col;
-      //   adj_tgt_s.col.a = 255 * 0.5f;
-      //   draw_sprite(r, adj_tgt_s);
-      // }
-
-      // draw the crosshair for autofire only when able to shoot
-      if (!override_autofire) {
-        if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
-          auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
-          if (nearest_e == entt::null)
-            continue;
-          autofire_c.target = nearest_e;
-        }
-
-        const auto tgt = autofire_c.target;
-        const auto tgt_pos = get_position(r, tgt);
-
-        // Note: Adjust the angle, so that the auto-fire leads it's shot a little
-        const auto tgt_vel_m = r.get<PhysicsBodyComponent>(tgt).body->GetLinearVelocity();
-        const auto tgt_vel_p = meters_to_pixels(tgt_vel_m);
-        const auto smarter_tgt_pos = tgt_pos + glm::vec2{ tgt_vel_p.x * lead_amount, tgt_vel_p.y * lead_amount };
-
-        // A ray from the player to the smarter target position.
-        // Get the point that is slightly shorter than the full distance from player to the enemy.
-        dir = engine::normalize_safe(smarter_tgt_pos - par_pos);
-        dir_to_enemy = engine::normalize_safe(smarter_tgt_pos - wep_pos);
-        draw_crosshair(r, par_pos, dir_to_enemy, par_col);
+      if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
+        auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
+        if (nearest_e == entt::null)
+          continue;
+        autofire_c.target = nearest_e;
       }
+
+      // check your target is still within distance
+      // (optional) theres a line of sight between you and it
+      const auto d = par_pos - get_position(r, autofire_c.target);
+      const auto d2 = d.x * d.x + d.y * d.y;
+      const auto d2_threshold = pow(meters_to_pixels(wep_range_c.meters), 2);
+      if (d2 > d2_threshold)
+        autofire_c.target = entt::null;
+      if (autofire_c.target == entt::null)
+        continue;
+
+      const auto bullet_speed_p = meters_to_pixels(bul_def.speed);
+      const auto tgt = autofire_c.target;
+      const auto tgt_pos = get_position(r, tgt);
+      const auto tgt_vel_m = r.get<PhysicsBodyComponent>(tgt).body->GetLinearVelocity();
+      const glm::vec2 tgt_vel_p = meters_to_pixels(tgt_vel_m);
+      const auto you_pos = par_pos;
+      const auto you_vel_m = par_vel_m;
+      const auto you_vel_p = meters_to_pixels(you_vel_m);
+      const auto aim_dir = calculate_aim_dir(you_pos, you_vel_p, tgt_pos, tgt_vel_p, bullet_speed_p);
+
+      dir_to_enemy = engine::normalize_safe(aim_dir);
+      draw_crosshair(r, par_pos, dir_to_enemy, par_col);
 
       // rotate the gun to the target
-      const float shoot_angle = engine::dir_to_angle_radians(dir_to_enemy);
-      wep_t.rotation_radians.z = shoot_angle;
+      wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);
     }
   }
 

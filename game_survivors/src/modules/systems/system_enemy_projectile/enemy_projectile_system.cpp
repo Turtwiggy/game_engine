@@ -40,8 +40,8 @@ update_enemy_projectile_system(entt::registry& r)
     const auto nrm_dir = engine::normalize_safe(raw_dir);
 
     // int bullet_damage = r.get<BulletDamage>(e).damage;
-    int bullet_speed = r.get<BulletSpeed>(e).speed;
-    auto bullet_size = r.get<BulletSize>(e).size;
+    const auto bullet_speed = r.get<BulletSpeed>(e).speed;
+    const auto bullet_size = r.get<BulletSize>(e).size;
 
     BulletDef bullet_def;
     bullet_def.key = "bullet_archerfish";

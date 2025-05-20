@@ -55,17 +55,19 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
     altered_b_def = out.bul_def;
   }
 
-  // using this is pretty sketch
+  // using directly from transform is pretty sketch
   const float shoot_angle = wep_t.rotation_radians.z;
 
   // Spawn X amount of bullets
   // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
   // If the weapon has enough weapon spread (e.g. 90 degrees)
   // It could still shoot at the limited angles.
-  const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, altered_w_def.spread_deg * engine::Deg2Rad);
+  const auto par_vel_meters = r.get<PhysicsBodyComponent>(par_e).body->GetLinearVelocity();
+  const auto spread_rad = altered_w_def.spread_deg * engine::Deg2Rad;
+  const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, spread_rad);
   for (int i = 0; i < altered_w_def.projectiles; i++) {
     const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
-    const auto bullet_dir = engine::angle_radians_to_direction(ar[i]);
+    const auto bullet_dir = engine::normalize_safe(engine::angle_radians_to_direction(ar[i]));
     const auto bullet_vel = altered_b_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
     r.get<PhysicsBodyComponent>(bullet_e).body->SetLinearVelocity(bullet_vel);
   }

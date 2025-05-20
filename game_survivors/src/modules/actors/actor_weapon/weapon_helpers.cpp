@@ -53,7 +53,7 @@ spawn_weapon(entt::registry& r, const entt::entity par_e, const Weapon_OnDiskDat
   const float BULLET_KNOCKBACK = get_or_default("BULLET_KNOCKBACK", 0.0f);
   const float BULLET_PIERCE = get_or_default("BULLET_PIERCE", 1.0f);
   const float BULLET_SIZE = get_or_default("BULLET_SIZE", 6.0f);
-  const float BULLET_SPEED = get_or_default("BULLET_SPEED", 1.0f);               // meters
+  const float BULLET_SPEED = get_or_default("BULLET_SPEED", 1.5f);               // meters
   const float BULLET_CRIT_CHANCE = get_or_default("BULLET_CRIT_CHANCE", 0.0f);   // 0-100
   const float BULLET_CRIT_DAMAGE = get_or_default("BULLET_CRIT_DAMAGE", 150.0f); // 100%+
   const float BULLET_LIFESTEAL = get_or_default("BULLET_LIFESTEAL", 0.0f);       // 0-100% of your bullet damage
