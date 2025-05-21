@@ -517,7 +517,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::procedural_snake) {
     create_empty<CameraFreeMove>(r);
 
-    const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, "Dinghy", "");
+    const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, "dinghy", "weapon_deck_cannon");
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {

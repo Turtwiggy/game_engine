@@ -93,6 +93,11 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
   if (type == SectionType::HEAD) {
     SnakeData snake_c;
 
+    // default is 32x32. the snake head is 1 square longer
+    snake_c.snake_segment_size.x = 16 * 3;
+    snake_c.snake_segment_size.y = 16 * 2;
+    snake_c.distance_between_segment_pixels = snake_c.snake_segment_size.x;
+
     // create targets
     snake_c.target_e_0 = spawn(r, "empty");
     give_life(r, snake_c.target_e_0, { 100, 100 }, { 0, 0 });
@@ -104,8 +109,8 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
 
   auto& snake_c = get_first_component<SnakeData>(r);
 
-  const auto offscreen_pos = glm::vec2{ 2000, 2000 }; // todo: probably fix this
-  const auto pos = glm::vec2{ offscreen_pos.x + idx * snake_c.distance_betwee_segment_pixels, offscreen_pos.y };
+  const auto offscreen_pos = glm::vec2{ 2000, 2000 }; // spawn the snake offscreen
+  const auto pos = glm::vec2{ offscreen_pos.x + idx * snake_c.distance_between_segment_pixels, offscreen_pos.y };
   give_life(r, segment_e, pos, snake_c.snake_segment_size);
   set_position(r, segment_e, pos);
   set_colour(r, segment_e, { 255, 255, 255, 255 });
@@ -115,9 +120,9 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
   }
 
   // allow neck bone to bend more?
-  std ::vector<float> segment_bending(10.0f, snake_c.snake_segments);
-  segment_bending[0] = 20;
-  segment_bending[1] = 10;
+  std::vector<float> segment_bending(snake_c.snake_segments, 30.0f);
+  segment_bending[0] = 30;
+  segment_bending[1] = 30;
 
   //
   // Connect with Physics Joints
@@ -144,8 +149,8 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
     // create a distance constraint...
     b2DistanceJointDef def;
     def.Initialize(body_a, body_b, body_a->GetWorldCenter(), body_b->GetWorldCenter());
-    def.minLength = pixels_to_meters(snake_c.distance_betwee_segment_pixels);
-    def.maxLength = pixels_to_meters(snake_c.distance_betwee_segment_pixels);
+    def.minLength = pixels_to_meters(snake_c.distance_between_segment_pixels);
+    def.maxLength = pixels_to_meters(snake_c.distance_between_segment_pixels);
     float frequencyHz = 1.0f;  // this should be less than half of the frequency of the timestep
     float dampingRatio = 1.0f; // typically between 0 and 1. at 1 oscillations should vanish
     b2LinearStiffness(def.stiffness, def.damping, frequencyHz, dampingRatio, def.bodyA, def.bodyB);
@@ -263,7 +268,6 @@ update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
 
     const auto cur_pos = get_position(r, e);
     const auto nxt_pos = get_position(r, next_e);
-
     const auto raw_dir = nxt_pos - cur_pos;
     const auto angle = engine::dir_to_angle_radians(raw_dir);
     auto& transform_c = r.get<TransformComponent>(next_e);

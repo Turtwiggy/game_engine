@@ -10,7 +10,7 @@
   },
   "sprites": [
     { "name": "snake_head", "frames": [ { "x": 0, "y": 0, "w": 3, "h": 2} ] },
-    { "name": "snake_body_0", "frames": [ { "x": 5, "y": 0, "w": 2, "h": 2 } ] },
-    { "name": "snake_tail", "frames": [ { "x": 9, "y": 0, "w": 2, "h": 2 } ] }
+    { "name": "snake_body_0", "frames": [ { "x": 4, "y": 0, "w": 2, "h": 2 } ] },
+    { "name": "snake_tail", "frames": [ { "x": 8, "y": 0, "w": 2, "h": 2 } ] }
   ]
 }

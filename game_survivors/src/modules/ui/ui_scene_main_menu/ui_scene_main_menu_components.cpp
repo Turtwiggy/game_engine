@@ -37,6 +37,10 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
     create_empty<RequestToShowOptionsMenu>(r);
   };
   const auto exit_action = [&r]() { create_empty<RequestQuitApplication>(r); };
+  // const auto debug_snake_action = [&]() {
+  //   open = false;
+  //   move_to_scene_start(r, Scene::procedural_snake);
+  // };
 
   const auto make_cell = [&](auto name, auto action) -> std::shared_ptr<Cell>& {
     Cell c;
@@ -46,6 +50,9 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
     return state.cells.back();
   };
 
+  // #if defined(_DEBUG)
+  //   auto debug_snake = make_cell("Debug Snake", debug_snake_action);
+  // #endif
   auto a = make_cell("Play", play_action);
   auto b = make_cell("Upgrades", upgrade_action);
   auto c = make_cell("Options", options_action);
@@ -56,6 +63,9 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   // nav
   //
   std::vector<std::shared_ptr<Cell>> vertical_cells = { a, b, c, d };
+  // #if defined(_DEBUG)
+  //   vertical_cells.push_back(debug_snake);
+  // #endif
   create_as_vertical_layout(vertical_cells);
 
   // put the modifiers button on the right of the play button
