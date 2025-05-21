@@ -10,6 +10,7 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
@@ -207,7 +208,8 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     if (is_hull) {
       const auto& hull = hulls_c.hulls[cell->value];
       display_stats.push_back({ .key = "Hardpoints", .val = std::to_string(hull.hardpoints.size()) });
-      display_stats.push_back({ .key = "Size", .val = std::to_string(hull.width * hull.height) });
+      display_stats.push_back({ .key = "Width", .val = std::format("{:.1f}m", pixels_to_meters(hull.width * 10)) });
+      display_stats.push_back({ .key = "Height", .val = std::format("{:.1f}m", pixels_to_meters(hull.height * 10)) });
     }
 
     if (is_weapon) {

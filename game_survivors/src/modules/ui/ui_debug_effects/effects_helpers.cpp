@@ -5,6 +5,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_components.hpp"
 
 namespace game2d {
@@ -30,6 +31,7 @@ spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size, flo
   r.emplace<EntityTimedLifecycle>(effect_e, lifecycle_c);
   r.emplace<SetAlphaBasedOnLifecycleComponent>(effect_e);
 
+  set_z_index(r, effect_e, ZLayer::VFX);
   return effect_e;
 }
 

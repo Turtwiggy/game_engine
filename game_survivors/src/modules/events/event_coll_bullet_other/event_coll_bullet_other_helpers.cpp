@@ -133,6 +133,9 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
       const auto nrm_dir = engine::normalize_safe(raw_dir);
       const float knockback_force = bullet_knockback_c.knockback_force;
       enemy_body_c.body->SetLinearVelocity(knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
+
+      // spawn impact vfx at the bullet position
+      spawn_fx(r, "S6_EXPLODE_FX_14", get_position(r, bullet_e_parent), { 24, 24 });
     }
   }
 }
