@@ -186,6 +186,7 @@ update_ui_hierarchy_system(entt::registry& r)
     if (auto* sc = r.try_get<SpriteComponent>(eid)) {
       // select sprite
       imgui_draw_ivec2("Sprite: ", sc->tex_pos.x, sc->tex_pos.y);
+      ImGui::Text("RGBA: %0.2f %0.2f %0.2f %0.2f", sc->colour.r, sc->colour.g, sc->colour.b, sc->colour.a);
     }
 
     // if (ImGui::BeginPopup("AddComponent")) {

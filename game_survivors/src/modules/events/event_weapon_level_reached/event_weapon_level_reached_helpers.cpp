@@ -144,7 +144,7 @@ handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEve
 #if defined(_DEBUG)
   // static engine::RandomState roll_rnd(0); // same roll every time
 #else
-  static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
+  // static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
 #endif
 
   // let the player choose which upgrade to pick from upgrades you dont have.

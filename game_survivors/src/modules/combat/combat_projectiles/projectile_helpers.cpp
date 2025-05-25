@@ -25,6 +25,16 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
 
   const auto bullet_e = spawn(r, bullet_def.key);
   give_life(r, bullet_e, pos, bullet_def.size);
+  auto& callbacks_c = r.get<OnDeathCallbacks>(bullet_e);
+  callbacks_c.callbacks.clear();
+  const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
+    RequestToSpawnParticles request;
+    request.key = "default_explode";
+    request.position = get_position(r, e);
+    create_empty<RequestToSpawnParticles>(r, request);
+  };
+  callbacks_c.callbacks.push_back(spawn_particles_callback);
+
   r.emplace<HasParentComponent>(bullet_e, HasParentComponent{ parent_e });
 
   auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
@@ -59,8 +69,6 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   wb_c.behaviours.insert(bullet_def.wep_behaviours.begin(), bullet_def.wep_behaviours.end());
 
   set_z_index(r, bullet_e, ZLayer::PROJECTILE);
-  // set_colour(r, bullet_e, r.get<DefaultColour>(parent_e).colour);
-
   return bullet_e;
 }
 

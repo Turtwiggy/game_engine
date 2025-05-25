@@ -111,7 +111,7 @@ add_explode_on_death_callback(entt::registry& r,
     RequestToSpawnParticles request;
     request.key = key;
     request.position = get_position(r, e);
-    request.radius_pixels = explosion_radius_pixels;
+    request.radius_pixels_upper = explosion_radius_pixels;
     create_empty<RequestToSpawnParticles>(r, request);
   };
   callbacks_c.callbacks.push_back(spawn_particles_callback);

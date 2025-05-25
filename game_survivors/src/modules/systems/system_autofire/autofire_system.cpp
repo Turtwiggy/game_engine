@@ -195,6 +195,13 @@ calculate_aim_dir(const glm::vec2 a_pos,
 };
 
 void
+aim_in_movement_direction(entt::registry& r, const b2Vec2 par_vel, const entt::entity wep_e)
+{
+  auto& wep_t = r.get<TransformComponent>(wep_e);
+  wep_t.rotation_radians.z = engine::dir_to_angle_radians({ par_vel.x, par_vel.y });
+};
+
+void
 update_autofire_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
@@ -238,8 +245,10 @@ update_autofire_system(entt::registry& r, const float dt)
 
       if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
         auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
-        if (nearest_e == entt::null)
+        if (nearest_e == entt::null) {
+          aim_in_movement_direction(r, par_vel_m, wep_e);
           continue;
+        }
         autofire_c.target = nearest_e;
       }
 
@@ -250,8 +259,10 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto d2_threshold = pow(meters_to_pixels(wep_range_c.meters), 2);
       if (d2 > d2_threshold)
         autofire_c.target = entt::null;
-      if (autofire_c.target == entt::null)
+      if (autofire_c.target == entt::null) {
+        aim_in_movement_direction(r, par_vel_m, wep_e);
         continue;
+      }
 
       const auto bullet_speed_p = meters_to_pixels(bul_def.speed);
       const auto tgt = autofire_c.target;

@@ -60,7 +60,9 @@ handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
 
   // if you have a target, shoot that
   if (auto* autofire_c = r.try_get<AutofireComponent>(wep_e)) {
-    if (autofire_c->target != entt::null)
+    if (!r.valid(autofire_c->target) || autofire_c->target == entt::null) {
+      autofire_c->target = entt::null;
+    } else
       dir = engine::normalize_safe(get_position(r, autofire_c->target) - get_position(r, wep_e));
   }
 

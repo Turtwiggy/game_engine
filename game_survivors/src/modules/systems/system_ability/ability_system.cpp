@@ -3,6 +3,7 @@
 #include "ability_components.hpp"
 #include "ability_system.hpp"
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
@@ -10,6 +11,7 @@
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/systems/system_particles/components.hpp"
 
 namespace game2d {
 
@@ -116,6 +118,12 @@ update_ability_system(entt::registry& r, const float dt)
 
     if (allowed_to_use_ability_2) {
       if (has_action(input_c.ability2, ActionStateEnum::DOWN)) {
+
+        RequestToSpawnParticles request;
+        request.key = "vfx_boop";
+        request.position = get_position(r, e);
+        create_empty<RequestToSpawnParticles>(r, request);
+
         boop_ability(r, e);
         ability_c.ability_2_in_progress = true;
       }

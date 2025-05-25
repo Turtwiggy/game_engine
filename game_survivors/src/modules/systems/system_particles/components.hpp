@@ -9,15 +9,30 @@ namespace game2d {
 struct Particle
 {
   int time_to_live_ms = 3 * 1000;
-  glm::vec2 start_size = { 10, 10 };
-  glm::vec2 end_size = { 10, 10 };
+
+  // size curve
+  std::vector<glm::vec2> size_curve{ { 0, 0 }, { 16, 16 }, { 0, 0 } };
+
   glm::vec2 position{ 0, 0 }; // seems wrong
   glm::vec2 velocity{ 0, 0 };
+
   bool fade = true;
   engine::SRGBColour start_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 
-  // not implemented
-  // engine::SRGBColour end_colour;
+  // spawn in a circle around the position?
+  float random_radius_bound_lower = 0;
+  float random_radius_bound_upper = 0;
+
+  // if 0, no random velocity,
+  // otherwise generates velocity in [-val, val]
+  float random_velocity_bound = 0;
+
+  // moves the velocity away from the center of the particle
+  bool velocity_in_dir = false;
+  bool velocity_away = true;
+
+  bool make_darker_based_on_distance_from_center = false;
+  // engine::SRGBColour end_colour;  // not implemented
 };
 
 struct ParticleEmitter
@@ -47,8 +62,7 @@ struct ScaleOverTimeComponent
 {
   float timer = 0.0f;
   float seconds_until_complete = 3.0f;
-  glm::vec2 start_size = { 16.0f, 16.0f };
-  glm::vec2 end_size = { 0.0f, 0.0f };
+  std::vector<glm::vec2> size_curve{ { 16, 16 }, { 0, 0 } };
 };
 
 // the emitter that spawns the particle
@@ -59,8 +73,6 @@ struct ParticleEmitterComponent
 
   bool expires = false;
   int particles_to_spawn_before_emitter_expires = 0;
-
-  bool random_velocity = false;
 };
 
 struct RequestToSpawnParticles
@@ -68,7 +80,8 @@ struct RequestToSpawnParticles
   glm::ivec2 position{ 0, 0 };
   std::string key = "default_explode";
 
-  float radius_pixels = 0.0f;
+  float radius_pixels_lower = 0.0f;
+  float radius_pixels_upper = 0.0f;
   entt::entity parent = entt::null;
 };
 
