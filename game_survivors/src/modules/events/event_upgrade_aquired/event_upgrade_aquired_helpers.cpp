@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "event_upgrade_aquired_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
@@ -9,6 +10,7 @@
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_particles/components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
@@ -32,6 +34,19 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   const auto& stats = evt.roll_result.stats;
   const auto& traits = evt.roll_result.traits;
   const auto rarity_str = std::string(magic_enum::enum_name(evt.roll_result.rarity));
+
+  {
+    RequestToSpawnParticles request;
+    request.key = "vfx_levelup_inner";
+    request.position = get_position(r, par_e);
+    create_empty<RequestToSpawnParticles>(r, request);
+  }
+  {
+    RequestToSpawnParticles request;
+    request.key = "vfx_levelup_outer";
+    request.position = get_position(r, par_e);
+    create_empty<RequestToSpawnParticles>(r, request);
+  }
 
   // Upgrade stats.
   auto& stats_c = r.get<StatModifierComponent>(par_e);

@@ -650,6 +650,12 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   ImGui::Text("- Check SteamInput bindings.");
   ImGui::Text("- Check with a HTML5 gamepad tester.");
 
+  if (ImGui::Button("Reset")) {
+    for (int i = 0; i < ui_c.players; i++)
+      ui_c.handles[i] = 0;
+    ui_c.handles_joined_this_frame.clear();
+  }
+
   ImGui::End();
 
   ImGui::PopStyleVar(2);

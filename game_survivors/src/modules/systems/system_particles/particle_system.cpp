@@ -14,12 +14,10 @@
 
 namespace game2d {
 
+// note: percent [0, 1]
 int
-get_idx(const float time, const float duration, const int size)
+get_idx(const float percent, const int size)
 {
-  if (duration == 0.0f)
-    return 0;
-  const float percent = time / duration;             // a value between 0 and 1
   const int index = (int)std::floor(percent * size); // a value between 0 and size
   return std::clamp(index, 0, size);                 // check between 0 and size
 };
@@ -53,7 +51,7 @@ update_particle_system(entt::registry& r, const float dt)
     if (pd.random_radius_bound_upper > 0.0f) {
       distance = engine::rand_det_s(rnd.rng, pd.random_radius_bound_lower, pd.random_radius_bound_upper);
       const float angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
-      const auto dir = engine::angle_radians_to_direction(angle);
+      const auto dir = engine::normalize_safe(engine::angle_radians_to_direction(angle));
       const auto ray = engine::Ray{
         .origin = { pd.position.x, pd.position.y, 0.0f },
         .dir = { dir.x, dir.y, 0.0f },
@@ -73,14 +71,16 @@ update_particle_system(entt::registry& r, const float dt)
     }
 
     // set velocity
-    const int rnd_x = engine::rand_det_s(rnd.rng, -pd.random_velocity_bound, pd.random_velocity_bound);
-    const int rnd_y = engine::rand_det_s(rnd.rng, -pd.random_velocity_bound, pd.random_velocity_bound);
-    pd.velocity = glm::ivec2{ rnd_x, rnd_y };
+    if (pd.random_velocity_bound > 0.0f) {
+      const int rnd_x = engine::rand_det_s(rnd.rng, -pd.random_velocity_bound, pd.random_velocity_bound);
+      const int rnd_y = engine::rand_det_s(rnd.rng, -pd.random_velocity_bound, pd.random_velocity_bound);
+      pd.velocity = glm::ivec2{ rnd_x, rnd_y };
+    }
 
     // get your position vs your adj position, and set the vel as the dir
     if (pd.velocity_in_dir && adj_pos != pd.position) {
       const glm::vec2 dir = engine::normalize_safe(adj_pos - pd.position);
-      pd.velocity = 50.0f * dir;
+      pd.velocity = pd.random_velocity_bound * dir;
 
       if (!pd.velocity_away)
         pd.velocity *= -1;
@@ -124,21 +124,28 @@ update_particle_system(entt::registry& r, const float dt)
   const auto& particle_view = r.view<TransformComponent, ScaleOverTimeComponent, const EntityTimedLifecycle>();
   for (const auto& [e, transform, scale, life] : particle_view.each()) {
 
-    // todo make parametric not linear
-
     float t = scale.timer / scale.seconds_until_complete;
     if (t >= 1.0f)
       t = 1.0f;
-
     if (t >= 1.0f)
       continue; // done
 
-    const auto i0 = get_idx(scale.timer, scale.seconds_until_complete, (int)(scale.size_curve.size() - 1));
+    const float percent = t;
+
+    // parabola value in range [0, 1]
+    if (!scale.linear)
+      t *= t;
+    // SDL_Log("T: %f", t);
+
+    const auto i0 = get_idx(percent, (int)(scale.size_curve.size() - 1));
     const auto a = scale.size_curve[i0];
     const auto b = scale.size_curve[i0 + 1];
 
-    const float amount_x = engine::lerp(a.x, b.x, t);
-    const float amount_y = engine::lerp(a.y, b.y, t);
+    const auto lower = i0 / (float)(scale.size_curve.size() - 1);
+    const auto upper = (i0 + 1) / (float)(scale.size_curve.size() - 1);
+    const float lerp_val = engine::scale(percent, lower, upper, 0.0f, 1.0f);
+    const float amount_x = engine::lerp(a.x, b.x, lerp_val);
+    const float amount_y = engine::lerp(a.y, b.y, lerp_val);
     transform.scale = { amount_x, amount_y, 1 };
 
     scale.timer += dt;

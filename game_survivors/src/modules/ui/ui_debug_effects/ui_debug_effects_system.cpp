@@ -6,6 +6,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "modules/systems/system_particles/components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
@@ -18,13 +19,9 @@ update_ui_debug_effects_system(entt::registry& r)
   ZoneScoped;
 #endif
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-
   const auto effects_ui = gesert_menubar_state(menu_c, "DebugEffects");
-
-#if !defined(_DEBUG)
   if (!effects_ui.enabled)
     return;
-#endif
 
   imgui_begin("DebugEffects");
   const auto vfx_offset = glm::vec2{ 200, 0 };
@@ -68,8 +65,21 @@ update_ui_debug_effects_system(entt::registry& r)
   request_particles("fire_particles");
   request_particles("death_exploder", 50);
   request_particles("vfx_boop");
-  request_particles("vfx_levelup");
-  request_particles("vfx_inner");
+  request_particles("vfx_levelup_outer");
+  request_particles("vfx_levelup_inner");
+
+  // static bool invert = false;
+  // static bool changed = false;
+  // auto& ri_c = SINGLE_RendererInfo::instance;
+  // auto& invert_c = ri_c.mix_lighting_and_scene;
+  // if (ImGui::Button("Invert"))
+  //   changed = true;
+  // if (changed) {
+  //   changed = false;
+  //   invert = !invert;
+  //   ri_c.mix_lighting_and_scene.bind();
+  //   ri_c.mix_lighting_and_scene.set_bool("invert_colours", invert);
+  // }
 
   ImGui::End();
 }

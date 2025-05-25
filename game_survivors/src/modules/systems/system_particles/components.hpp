@@ -12,6 +12,7 @@ struct Particle
 
   // size curve
   std::vector<glm::vec2> size_curve{ { 0, 0 }, { 16, 16 }, { 0, 0 } };
+  bool linear_scale = true;
 
   glm::vec2 position{ 0, 0 }; // seems wrong
   glm::vec2 velocity{ 0, 0 };
@@ -63,6 +64,7 @@ struct ScaleOverTimeComponent
   float timer = 0.0f;
   float seconds_until_complete = 3.0f;
   std::vector<glm::vec2> size_curve{ { 16, 16 }, { 0, 0 } };
+  bool linear = true;
 };
 
 // the emitter that spawns the particle
@@ -83,6 +85,7 @@ struct RequestToSpawnParticles
   float radius_pixels_lower = 0.0f;
   float radius_pixels_upper = 0.0f;
   entt::entity parent = entt::null;
+  std::optional<engine::SRGBColour> colour = std::nullopt;
 };
 
 } // namespace game2d
