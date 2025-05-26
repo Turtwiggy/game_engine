@@ -2,8 +2,6 @@
 
 #include "event_shoot_autofire_helpers.hpp"
 
-#include "engine/audio/audio_components.hpp"
-#include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
@@ -29,9 +27,6 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
 
   if (!r.all_of<AutofireComponent>(wep_e))
     return;
-
-  // request to play audio
-  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "SHOOT_0" });
 
   const auto& wep_t = r.get<const TransformComponent>(wep_e);
   const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };

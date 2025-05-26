@@ -172,7 +172,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
   create_persistent<SINGLE_PersistentUpgrades>(r, load_upgrades("assets/raws/persistent_upgrades.jsonc"));
-  create_persistent<SINGLE_Weapons>(r, load_weapons("assets/raws/weapons.jsonc"));
+  create_persistent<SINGLE_Weapons>(r, load_weapons(r, "assets/raws/weapons.jsonc"));
   create_persistent<SINGLE_OnDiskSpawners>(r, load_spawns("assets/raws/spawns.jsonc"));
   create_persistent<SINGLE_UpgradeToName>(r, load_upgrade_names("assets/raws/upgrade_names.jsonc"));
 

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "event_coll_player_gold_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"

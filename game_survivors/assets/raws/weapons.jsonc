@@ -58,6 +58,7 @@
       "key": "weapon_deck_cannon",
       "name": "Cannon [Heavy]", // heavy pistol
       "desc": "Shoot [Heavy] cannonballs at the closest target.",
+      "audio": ["RIFLE_01", "RIFLE_02"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
       "data": {
@@ -85,6 +86,7 @@
       "key": "weapon_grapeshot_cannon",
       "name": "Cannon [Grapeshot]", // shotgun
       "desc": "Shoot [Grapeshot] cannonballs at the closest target. Short range. Multi-shot.",
+      "audio": ["SHOTGUN_01", "SHOTGUN_02", "SHOTGUN_03", "SHOTGUN_04"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
       "data": {
@@ -111,6 +113,7 @@
       "key": "weapon_swivel_cannon",
       "name": "Cannon [Gatling]",       // SMG-type
       "desc": "Shoot [Small] rounds at the closest target. High firereate.",
+      "audio": ["SMG_01", "SMG_02", "SMG_03"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
       "data": {
@@ -137,6 +140,7 @@
       "key": "weapon_sea_turret",
       "name": "SEABOB Turret",
       "desc": "Deploy [Turrets] as you move that fire [Heavy]",
+      "audio": ["TURRET_01", "TURRET_02"],
       "weapon_type": "DEPLOY",
       "weapon_damage": "KINETIC",
       "data": {

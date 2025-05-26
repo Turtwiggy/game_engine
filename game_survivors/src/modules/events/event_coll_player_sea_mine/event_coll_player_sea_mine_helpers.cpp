@@ -1,7 +1,9 @@
-#include "event_coll_player_sea_mine_helpers.hpp"
+#include "pch.hpp"
 
 #include "event_coll_player_sea_mine_components.hpp"
+#include "event_coll_player_sea_mine_helpers.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_exploder/actor_exploder_helpers.hpp"
@@ -35,6 +37,13 @@ handle_player_enter_sea_mine(entt::registry& r, const OnCollisionEnter& evt)
 
   const float bomb_radius_pixels = 200;
   add_explode_on_death_callback(r, item_par_e, bomb_radius_pixels, filter_criteria, "death_sea_mine");
+
+  // explode audio
+  const auto spawn_audio = [](entt::registry& r, const entt::entity e) {
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "BOMB_EXPLOSION_01" });
+  };
+  auto& callbacks_c = r.get<OnDeathCallbacks>(item_par_e);
+  callbacks_c.callbacks.push_back(spawn_audio);
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   dead.dead.push_back(item_par_e);

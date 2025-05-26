@@ -64,7 +64,7 @@ update_audio_mix_system(entt::registry& r)
 #endif
     static engine::RandomState rnd(seed);
 
-    const int rand_track = engine::rand_det_s(rnd.rng, 0, tracks - 1);
+    const int rand_track = engine::rand_det_s(rnd.rng, 0, tracks);
     const auto tag = "GAME_" + std::to_string(rand_track);
     SDL_Log("chosen gametrack: %s", tag.c_str());
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = tag, .looping = false });

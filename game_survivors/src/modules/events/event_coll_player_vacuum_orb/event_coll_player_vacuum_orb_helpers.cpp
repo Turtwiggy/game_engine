@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "event_coll_player_vacuum_orb_helpers.hpp"
 
 #include "engine/lifecycle/components.hpp"

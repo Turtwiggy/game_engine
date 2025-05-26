@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "event_coll_bullet_other_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -117,9 +119,10 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
       // create_popup(r, get_position(r, bullet_e_parent), "blocked!");
 
       // create a block vfx
-      static engine::RandomState rnd(0);
-      const auto random_idx = engine::rand_det_s(rnd.rng, 0, 1); // 0 or 1
-      const auto fx_str = std::format("BLOCK_FX_{}", random_idx);
+      // static engine::RandomState rnd(0);
+      // const auto random_idx = engine::rand_det_s(rnd.rng, 0, 2); // 0 or 1
+      // SDL_Log("Block random idx: %i", random_idx);
+      const auto fx_str = std::format("BLOCK_FX_{}", 0);
       spawn_fx(r, fx_str, get_position(r, bullet_e_parent), { 32, 32 });
     }
   }

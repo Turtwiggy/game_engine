@@ -42,6 +42,7 @@ rand_det_s(T& rnd, const float M, const float MN)
   return scaled * (MN - M) + M;
 };
 
+// note: non inclusive, so e.g. M=0, MN=4, produces [0, 1, 2, 3]
 template<typename T>
 inline int
 rand_det_s(T& rnd, const int M, const int MN)

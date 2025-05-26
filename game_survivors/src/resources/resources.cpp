@@ -64,16 +64,6 @@ get_default_audio()
                            amb_path + "Water, Wave, Ocean, Beach Waves, Medium, Lapping  SND0009.mp3",
                            SoundType::BACKGROUND });
 
-  // audio.sounds.push_back({ "BUOY_0", path + "marblehead_bell_buoy_nrm_23.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back(
-    { "SHOTGUN_SHOOT_0", sfx_path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "SHOTGUN_RELOAD_0", sfx_path + "RELOAD_Pump_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "TAKE_DAMAGE_0", sfx_path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
-  audio.sounds.push_back({ "UI_HOVER_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "UI_SELECT_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "XP_0", sfx_path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "SHOOT_0", sfx_path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
-
   audio.sounds.push_back({ "MENU_0", mus_path + "sergepavkin_smooth-waters_quieter.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "SELECT_0", mus_path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "UPGRADE_0", mus_path + "pixabay_ninja.mp3", SoundType::BACKGROUND });
@@ -81,6 +71,31 @@ get_default_audio()
   audio.sounds.push_back({ "GAME_1", mus_path + "psychronic-digital-driving-force.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_2", mus_path + "psychronic-fight-for-the-future.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_3", mus_path + "psychronic-wacky-fight.mp3", SoundType::BACKGROUND });
+
+  // audio.sounds.push_back({ "BUOY_0", path + "marblehead_bell_buoy_nrm_23.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "UI_HOVER_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "UI_SELECT_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "XP_0", sfx_path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo.wav", SoundType::SFX });
+
+  audio.sounds.push_back({ "BOMB_EXPLOSION_01", sfx_path + "cannon_shot_nrm.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "ENEMY_EXPLODER_01", sfx_path + "exploder_explosion_1.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "ENEMY_EXPLODER_02", sfx_path + "exploder_explosion_2.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "ENEMY_EXPLODER_03", sfx_path + "exploder_explosion_3.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "ENEMY_EXPLODER_04", sfx_path + "exploder_explosion_4.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "HIT_01", sfx_path + "boat_hit_01.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "HIT_02", sfx_path + "boat_hit_02.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "HIT_03", sfx_path + "boat_hit_03.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "RIFLE_01", sfx_path + "rifle_01.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "RIFLE_02", sfx_path + "rifle_02.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "SHOTGUN_01", sfx_path + "shotgun_01.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "SHOTGUN_02", sfx_path + "shotgun_02.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "SHOTGUN_03", sfx_path + "shotgun_03.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "SHOTGUN_04", sfx_path + "shotgun_04.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "SMG_01", sfx_path + "smg_01.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "SMG_02", sfx_path + "smg_02.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "SMG_03", sfx_path + "smg_03.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "TURRET_01", sfx_path + "drop_turret_no_shot.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "TURRET_02", sfx_path + "drop_turret_with_shot.mp3", SoundType::SFX });
 
   // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
   // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });

@@ -89,7 +89,7 @@ get_random_player_target(entt::registry& r)
   const auto& players_view = r.view<PlayerComponent>();
   if (players_view.size() == 0)
     return entt::null;
-  const int rnd = engine::rand_det_s(target_rnd.rng, 0, int(players_view.size()));
+  const int rnd = engine::rand_det_s(target_rnd.rng, 0, (int)players_view.size());
   return players_view[rnd];
 };
 
@@ -106,14 +106,14 @@ rnd_position_around_point(entt::registry& r, const glm::ivec2 center, float radi
   const float rnd_val_0 = engine::rand_01(rnd.rng);
 
   // generate a random angle 0 to 2PI
-  float angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
+  const float angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
 
   // generate a random distance from 0 to radius
-  float distance = engine::rand_det_s(rnd.rng, radius_min, radius_max);
+  const float distance = engine::rand_det_s(rnd.rng, radius_min, radius_max);
 
   const auto dir = engine::angle_radians_to_direction(angle);
-  float spawn_x = center.x + dir.x * distance;
-  float spawn_y = center.y + dir.y * distance;
+  const float spawn_x = center.x + dir.x * distance;
+  const float spawn_y = center.y + dir.y * distance;
   return { spawn_x, spawn_y };
 };
 

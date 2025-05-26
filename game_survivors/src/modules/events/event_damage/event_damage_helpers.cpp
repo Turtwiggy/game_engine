@@ -3,10 +3,12 @@
 #include "event_damage_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_elemental_damage/elemental_damage_components.hpp"
@@ -133,7 +135,7 @@ void
 handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 {
   const auto to_e = evt.to;
-  const auto parent_e = r.get<HasParentComponent>(to_e).parent;
+  const auto parent_e = r.get<const HasParentComponent>(to_e).parent;
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
@@ -156,6 +158,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   static engine::RandomState dodge_rnd(0);
   static engine::RandomState crit_rnd(0);
+  static engine::RandomState audio_hit_rnd(0);
 
   const auto* your_stats_c = r.try_get<StatModifierComponent>(parent_e);
   if (your_stats_c) {
@@ -192,6 +195,13 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   // apply damage
   hp->hp -= damage;
+
+  // player hit audio
+  if (const auto* player_c = r.try_get<const PlayerComponent>(parent_e)) {
+    const auto hit_idx = engine::rand_det_s(audio_hit_rnd.rng, 1, 4);
+    const auto hit_str = std::format("HIT_0{}", hit_idx);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = hit_str });
+  }
 
   create_damage_popup(r, damage, crit, parent_e);
 

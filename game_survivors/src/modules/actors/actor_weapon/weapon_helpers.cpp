@@ -2,6 +2,8 @@
 
 #include "weapon_helpers.hpp"
 
+#include "engine/audio/audio_components.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
@@ -85,7 +87,7 @@ spawn_weapon(entt::registry& r, const entt::entity par_e, const Weapon_OnDiskDat
 };
 
 SINGLE_Weapons
-load_weapons(std::string filepath)
+load_weapons(entt::registry& r, std::string filepath)
 {
   SDL_Log("loading weapons... %s", filepath.c_str());
 
@@ -112,6 +114,17 @@ load_weapons(std::string filepath)
   for (auto& weapon : weapons_c.weapons) {
     weapon.type_as_enum = magic_enum::enum_cast<WEAPON_TYPE>(weapon.weapon_type).value();
     weapon.damage_as_enum = magic_enum::enum_cast<WEAPON_DAMAGE>(weapon.weapon_damage).value();
+
+    // validate audio file exists.
+    const auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
+    for (const auto& audio_tag : weapon.audio) {
+      const auto matching_sound = [&](const Sound& s) { return s.tag == audio_tag; };
+      auto it = std::find_if(audio_c.sounds.begin(), audio_c.sounds.end(), matching_sound);
+      if (it == audio_c.sounds.end()) {
+        const auto err = std::format("missing sound {} declared in weapons.json. weapon: {}", audio_tag, weapon.key);
+        throw std::runtime_error(err);
+      }
+    }
   }
 
   // validate weapon upgrades.

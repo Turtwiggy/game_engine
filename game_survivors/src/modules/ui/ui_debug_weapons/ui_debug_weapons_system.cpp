@@ -2,6 +2,7 @@
 
 #include "ui_debug_weapons_system.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
@@ -31,8 +32,27 @@ update_ui_debug_weapons_system(entt::registry& r)
   for (const auto& wep : weps_c.weapons) {
     ImGui::Text("Weapon: %s", wep.name.c_str());
 
-    for (const std::string& wep_upg : wep.upgrades)
-      ImGui::Text("Wep Upgrade Key: %s", wep_upg.c_str());
+    ImGui::Text("Wep Upgrade Keys");
+    for (int i = 0; const std::string& wep_upg : wep.upgrades) {
+      if (i > 0)
+        ImGui::SameLine();
+      ImGui::Text("%s", wep_upg.c_str());
+      i++;
+    }
+
+    ImGui::Text("Wep Audio");
+    for (int i = 0; const auto& wep_audio : wep.audio) {
+      // if (i > 0)
+      // ImGui::SameLine();
+      ImGui::Text("%s ", wep_audio.c_str());
+
+      ImGui::SameLine();
+      std::string button_tag = "Play##" + wep_audio;
+      if (ImGui::Button(button_tag.c_str()))
+        create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = wep_audio, .looping = false });
+
+      i++;
+    }
   }
 
   for (const auto& [e, weapon_b_c] : r.view<WeaponBehaviourComponent>().each()) {

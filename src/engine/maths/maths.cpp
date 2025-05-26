@@ -78,9 +78,9 @@ distance_squared(const glm::vec3& i)
 glm::vec3
 rand_unit_vector(RandomState& rnd)
 {
-  auto a = rand_det_s(rnd.rng, 0.0f, 2.0f * PI);
-  auto z = rand_det_s(rnd.rng, -1.0f, 1.0f);
-  auto r = glm::sqrt(1 - z * z);
+  const auto a = rand_det_s(rnd.rng, 0.0f, 2.0f * PI);
+  const auto z = rand_det_s(rnd.rng, -1.0f, 1.0f);
+  const auto r = glm::sqrt(1 - z * z);
   return glm::vec3(r * glm::cos(a), r * glm::sin(a), z);
 };
 

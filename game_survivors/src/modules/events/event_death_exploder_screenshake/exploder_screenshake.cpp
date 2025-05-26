@@ -1,6 +1,10 @@
+#include "pch.hpp"
+
 #include "exploder_screenshake.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/maths/maths.hpp"
 #include "modules/systems/system_screenshake/components.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
 
@@ -25,6 +29,11 @@ handle_death_event__exploder_screenshake(entt::registry& r, const DeathEvent& ev
     return;
 
   create_empty<RequestScreenshakeComponent>(r, RequestScreenshakeComponent{ ScreenshakeType::EXPLODE });
+
+  static engine::RandomState rnd(0);
+  const int random_sound_idx = engine::rand_det_s(rnd.rng, 1, 5); // play a explode sound effect [1-4]
+  SDL_Log("random_sound_idx: %i", random_sound_idx);
+  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "ENEMY_EXPLODER_01" });
 };
 
 } // namespace game2d

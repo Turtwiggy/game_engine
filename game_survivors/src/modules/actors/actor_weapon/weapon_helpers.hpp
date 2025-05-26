@@ -13,7 +13,7 @@ spawn_weapon(entt::registry& r,
              std::string key = "weapon_boat_default");
 
 SINGLE_Weapons
-load_weapons(std::string directory);
+load_weapons(entt::registry& r, std::string directory);
 
 std::vector<entt::entity>
 get_weapons(entt::registry& r, entt::entity player_e);
