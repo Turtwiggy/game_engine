@@ -2,16 +2,15 @@
   "spritesheet": {    
     "name": "pbr",    
     "px_total": 82,   
-    "py_total": 1140,  
+    "py_total": 1170,  
     "px": 82,
     "py": 30,
     "nx": 1,
-    "ny": 38
+    "ny": 39
   },
   "sprites": [        
-    { "name": "pbr_0", "frames": [{"x": 0, "y": 0 }], "angle": 180 },
-    { "name": "pbr_1", "frames": [{"x": 0, "y": 1 }], "angle": 180 },
-    { "name": "pbr_2", "frames": [{ "x": 0, "y": 2 }], "angle": 180 },
+    { "name": "pbr_1", "frames": [{"x": 0, "y":  1 }], "angle": 180 },
+    { "name": "pbr_2", "frames": [{"x": 0, "y":  2 }], "angle": 180 },
     { "name": "pbr_3", "frames": [{ "x": 0, "y": 3 }], "angle": 180 },
     { "name": "pbr_4", "frames": [{ "x": 0, "y": 4 }], "angle": 180 },
     { "name": "pbr_5", "frames": [{ "x": 0, "y": 5 }], "angle": 180 },
@@ -46,6 +45,7 @@
     { "name": "pbr_34", "frames": [{ "x": 0, "y": 34 }], "angle": 180 },
     { "name": "pbr_35", "frames": [{ "x": 0, "y": 35 }], "angle": 180 },
     { "name": "pbr_36", "frames": [{ "x": 0, "y": 36 }], "angle": 180 },
-    { "name": "pbr_37", "frames": [{ "x": 0, "y": 37 }], "angle": 180 }
+    { "name": "pbr_37", "frames": [{ "x": 0, "y": 37 }], "angle": 180 },
+    { "name": "pbr_38", "frames": [{ "x": 0, "y": 38 }], "angle": 180 }
   ]
 }

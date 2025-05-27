@@ -19,7 +19,7 @@
 namespace game2d {
 
 void
-spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity parent_e)
+spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
 {
   // deploy a thing!
 
@@ -28,32 +28,33 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity parent_e)
   // treat turrets as heavy pistols?
   // Note: upgrades apply to both the turret weapon (i.e. turret launcher,)
   // and the weapon that the sea-turret is spawned with (e.g. heavy pistol)
-  // const auto sea_turret_wep_data = r.get<const Weapon_OnDiskData>(wep_e);
 
+  // const auto sea_turret_wep_data = r.get<const Weapon_OnDiskData>(wep_e);
   const auto heavy_pistol_data = weapons.weapons[0]; // todo: dont use idx
-  auto turret_e = spawn_weapon(r, wep_e, heavy_pistol_data, "weapon_sea_turret");
+
+  const auto turret_e = spawn_weapon(r, player_e, heavy_pistol_data, "weapon_sea_turret");
   set_position(r, turret_e, get_position(r, wep_e));
-  set_colour(r, turret_e, r.get<DefaultColour>(parent_e).colour);
+  set_colour(r, turret_e, r.get<DefaultColour>(player_e).colour);
 
   // turret-specific components
   r.emplace<EntityTimedLifecycle>(turret_e, 6 * 1000);
   r.emplace<AutofireComponent>(turret_e);
-  r.emplace<HasParentComponent>(turret_e, wep_e);
+  r.emplace<HasParentComponent>(turret_e, player_e);
 }
 
 void
 handle_shoot_event__deploy_turrets(entt::registry& r, const ShootEvent& evt)
 {
-  const auto from_e = evt.parent_e;
+  const auto par_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
 
-  if (from_e == entt::null || wep_e == entt::null)
+  if (par_e == entt::null || wep_e == entt::null)
     return;
 
   if (!r.all_of<WeaponSeaTurret>(wep_e))
     return;
 
-  spawn_sea_turret(r, wep_e, from_e);
+  spawn_sea_turret(r, wep_e, par_e);
 }
 
 } // namespace game2d

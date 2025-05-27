@@ -45,7 +45,7 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
 
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto camera_pos = get_position(r, camera_e);
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto& anims = SINGLE_Animations::instance;
 
   const auto& view = r.view<TransformComponent, SpritestackComponent, SpriteComponent>();
   for (const auto& [e, t, ssc, sprite] : view.each()) {

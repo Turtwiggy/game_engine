@@ -134,8 +134,12 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
       auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);
       const auto raw_dir = get_position(r, other_e_parent) - get_position(r, bullet_e_parent);
       const auto nrm_dir = engine::normalize_safe(raw_dir);
+
       const float knockback_force = bullet_knockback_c.knockback_force;
-      enemy_body_c.body->SetLinearVelocity(knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
+
+      // clamp knockback force.
+      const float clamped_knockback_force = glm::min(knockback_force, 2.0f);
+      enemy_body_c.body->SetLinearVelocity(clamped_knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
 
       // spawn impact vfx at the bullet position
       spawn_fx(r, "S6_EXPLODE_FX_14", get_position(r, bullet_e_parent), { 24, 24 });

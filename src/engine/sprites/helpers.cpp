@@ -110,7 +110,7 @@ void
 set_sprite(entt::registry& r, const entt::entity e, const std::string& sprite)
 {
   const auto& ri = SINGLE_RendererInfo::instance;
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto& anims = SINGLE_Animations::instance;
   const auto [spritesheet, anim] = find_animation(anims, sprite);
 
   auto& sc = r.get<SpriteComponent>(e);
@@ -130,7 +130,8 @@ std::pair<ImVec2, ImVec2>
 convert_sprite_to_uv(entt::registry& r, const std::string& sprite)
 {
   // convert to imgui representation
-  const auto [ss, frames] = find_animation(get_first_component<SINGLE_Animations>(r), sprite);
+  const auto& anims = SINGLE_Animations::instance;
+  const auto [ss, frames] = find_animation(anims, sprite);
   const int size_x = ss.px_total;
   const int size_y = ss.py_total;
   const int cols_x = ss.nx;

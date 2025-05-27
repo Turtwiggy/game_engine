@@ -35,7 +35,7 @@ update_particle_system(entt::registry& r, const float dt)
     // spawn at e
     pd.position = get_position(r, e);
 
-    if (auto* target_c = r.try_get<DynamicTargetComponent>(e)) {
+    if (const auto* target_c = r.try_get<const DynamicTargetComponent>(e)) {
       if (!r.valid(target_c->target)) {
         r.remove<DynamicTargetComponent>(e);
         return;
@@ -107,12 +107,15 @@ update_particle_system(entt::registry& r, const float dt)
 
       } else {
         spawn_particle_helper(emitter, particle_emitter_e);
-        emitter.particles_to_spawn_before_emitter_expires--;
 
-        // limit number of particles spawned
-        if (emitter.expires && emitter.particles_to_spawn_before_emitter_expires < 0) {
-          r.destroy(particle_emitter_e); // emitter expired!
-          continue;
+        if (emitter.expires) {
+          emitter.particles_to_spawn_before_emitter_expires--;
+
+          // limit number of particles spawned
+          if (emitter.particles_to_spawn_before_emitter_expires < 0) {
+            r.destroy(particle_emitter_e); // emitter expired!
+            continue;
+          }
         }
       }
 

@@ -20,7 +20,7 @@ get_index(const float time, const float duration, const int size)
 void
 update_animator_system(entt::registry& r, const float dt)
 {
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto& anims = SINGLE_Animations::instance;
 
   // #if defined(_DEBUG)
   //   static float duration = 1.0f;

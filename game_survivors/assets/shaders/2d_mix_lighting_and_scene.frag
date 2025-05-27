@@ -17,6 +17,7 @@ in VS_OUT
 uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
+uniform sampler2D tex_shine_shells;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
 uniform bool invert_colours;
@@ -350,8 +351,6 @@ void main()
       out_color.rgb = srgb_water;
   }
 
-  // ACES tonemap
-  // out_color.rgb = Tonemap_ACES(out_color.rgb);
 
   if(outline_col.r > 0.0f)
       out_color.rgb = vec3(1.0, 0.0, 0.0);
@@ -365,10 +364,12 @@ void main()
   // vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
   // out_color.rgb *= vig;
 
-  if(invert_colours)
-  {
-    out_color.rgb = vec3(1.0) - out_color.rgb;
-  }
+  vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
+  if(tex_shells.r > 0.0)
+    out_color.rgb = lin_to_srgb(tex_shells);
+
+  // ACES tonemap
+  // out_color.rgb = Tonemap_ACES(out_color.rgb);
 
   out_color.a = 1.0f;
 }

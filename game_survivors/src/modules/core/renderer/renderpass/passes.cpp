@@ -4,12 +4,12 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
+#include "modules/actors/actor_enemy/components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/effects_outline/outline_components.hpp"
-#include "modules/effects_parallax_mouse/parallax_mouse_components.hpp"
 
 #include "engine/opengl/render_command.hpp"
 
@@ -179,12 +179,7 @@ setup_linear_main_update(entt::registry& r)
                                         transform.rotation_radians.y,
                                         sc.angle_radians + transform.rotation_radians.z };
         desc.colour = sc.colour;
-
-        // if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
-        //   desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
-
         desc.tex_unit = sc.tex_unit;
-
         desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
         desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
         desc.sprites_max = { sc.total_sx, sc.total_sy };
@@ -206,9 +201,9 @@ setup_sprites_to_outline_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     auto& ri = SINGLE_RendererInfo::instance;
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+    // const auto camera_e = get_first<OrthographicCamera>(r);
+    // const auto& camera_t = r.get<TransformComponent>(camera_e);
+    // const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     ri.renderer.reset_quad_vert_count();
     ri.renderer.begin_batch();
@@ -222,10 +217,6 @@ setup_sprites_to_outline_update(entt::registry& r)
                                       transform.rotation_radians.y,
                                       sc.angle_radians + transform.rotation_radians.z };
       desc.colour = sc.colour;
-
-      // if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
-      //   desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
-
       desc.tex_unit = sc.tex_unit;
       desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
       desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
@@ -249,35 +240,78 @@ setup_outline_update(entt::registry& r)
     auto& ri = SINGLE_RendererInfo::instance;
 
     ri.outline.bind();
-
     render_fullscreen_quad(r, ri.outline, ri.viewport_size_render_at);
+  };
+};
 
-    // ri.renderer.reset_quad_vert_count();
-    // ri.renderer.begin_batch();
-    // const auto& view = r.view<const TransformComponent, const SpriteComponent, const SpriteOutline>();
+void
+setup_sprites_with_shield_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::sprites_with_shield);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+    auto& ri = SINGLE_RendererInfo::instance;
 
-    // for (const auto& [e, transform, sc, outline_c] : view.each()) {
-    //   engine::quad_renderer::RenderDescriptor desc;
-    //   desc.pos_tl = transform.position - (transform.scale * 0.5f);
-    //   desc.size = transform.scale;
-    //   desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
-    //                                   transform.rotation_radians.y,
-    //                                   sc.angle_radians + transform.rotation_radians.z };
-    //   desc.colour = sc.colour;
+    ri.renderer.reset_quad_vert_count();
+    ri.renderer.begin_batch();
+    const auto& view = r.view<const TransformComponent, const SpriteComponent, const ShieldComponent>();
 
-    //   // if (const auto* pc = r.try_get<const ParallaxMouseComponent>(e))
-    //   //   desc.parallax = { pc->translation.x, pc->translation.y, pc->rotation.x, pc->rotation.y };
+    for (const auto& [e, transform, sc, shield_c] : view.each()) {
+      engine::quad_renderer::RenderDescriptor desc;
+      desc.pos_tl = transform.position - (transform.scale * 0.5f);
+      desc.size = transform.scale;
+      desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                      transform.rotation_radians.y,
+                                      sc.angle_radians + transform.rotation_radians.z };
+      desc.colour = sc.colour;
+      desc.tex_unit = sc.tex_unit;
+      desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+      desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+      desc.sprites_max = { sc.total_sx, sc.total_sy };
 
-    //   desc.tex_unit = sc.tex_unit;
-    //   desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
-    //   desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
-    //   desc.sprites_max = { sc.total_sx, sc.total_sy };
+      ri.renderer.draw_sprite(desc, ri.instanced);
+    }
 
-    //   ri.renderer.draw_sprite(desc, ri.outline);
-    // }
+    ri.renderer.end_batch();
+    ri.renderer.flush(ri.instanced);
+  };
+};
+void
+setup_shine_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::shine);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+    auto& ri = SINGLE_RendererInfo::instance;
 
-    // ri.renderer.end_batch();
-    // ri.renderer.flush(ri.outline);
+    ri.shine.bind();
+
+    ri.renderer.reset_quad_vert_count();
+    ri.renderer.begin_batch();
+    const auto& view = r.view<const TransformComponent, const SpriteComponent, const ShieldComponent>();
+
+    for (const auto& [e, transform, sc, shield_c] : view.each()) {
+      engine::quad_renderer::RenderDescriptor desc;
+      desc.pos_tl = transform.position - (transform.scale * 0.5f);
+      desc.size = transform.scale;
+      desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                      transform.rotation_radians.y,
+                                      sc.angle_radians + transform.rotation_radians.z };
+      desc.colour = sc.colour;
+      desc.tex_unit = sc.tex_unit;
+      desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+      desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+      desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+      ri.renderer.draw_sprite(desc, ri.shine);
+    }
+
+    ri.renderer.end_batch();
+    ri.renderer.flush(ri.shine);
+
+    // render_fullscreen_quad(r, ri.shine, ri.viewport_size_render_at);
   };
 };
 
@@ -492,10 +526,6 @@ setup_crt_effect_update(entt::registry& r)
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
     const auto& ri = SINGLE_RendererInfo::instance;
-
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     render_fullscreen_quad(r, ri.crt, ri.viewport_size_render_at);
   };

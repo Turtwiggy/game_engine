@@ -164,7 +164,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     SINGLE_Animations anims;
     for (const auto& tex : ri.user_textures)
       load_sprites(anims, tex);
-    create_persistent<SINGLE_Animations>(r, anims);
+    SINGLE_Animations::instance = anims;
   }
 
   create_persistent<SINGLE_PauseMenuState>(r);

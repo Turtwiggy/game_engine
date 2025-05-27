@@ -85,15 +85,15 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     "dinghy",
     "rhib",
     "pbr",
-    "trimaran",
   };
 
   // i.e. which layer makes mose sense to have as the hitbox?
+  // note: ignoring {0, 0}. so if dinghy_1 is frame {0, 1} = 0,
+  // the int value 1 in this vector represents 1 frame after that.
   const std::vector<int> spritestack_base_layer{
     1,
     9,
     26,
-    184, // todo: fix this number
   };
 
   auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);
@@ -101,20 +101,20 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     return false; // oops! spritestack not implemented
   const auto idx = static_cast<int>(it - supported_spritestacks.begin());
 
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
-  const auto [spritesheet, anim] = find_animation(anims, sprite + "_0"s);
-  const int sprites_for_total_sprite = spritesheet.ny;
+  const auto& anims = SINGLE_Animations::instance;
+  const auto [spritesheet, anim] = find_animation(anims, sprite + "_1"s);
+  const int sprites_for_total_sprite = spritesheet.ny - 1; // note: -1 because {0, 0} should be empty
 
   entt::entity root_entity = entt::null;
   glm::vec2 pos{ 0, 0 };
 
-  //
   // iterate from e.g. [-26, 12] for a ydepth of 38, where the center is 26 now
-  //
-
   const int root_spritestack_img_idx = -spritestack_base_layer[idx];
   const int max = sprites_for_total_sprite + root_spritestack_img_idx;
-  int counter = 0; // iterate through the spritestack frames
+
+  // iterate through the spritestack frames
+  // note: {0, 0} is an empty frame, so start the counter at 1.
+  int counter = 1;
 
   for (int i = root_spritestack_img_idx; i < max; i++) {
     const auto i_as_str = std::to_string(counter++);
@@ -187,9 +187,6 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     // hardpoint_data.arc_mid = 0;
     auto weapon_e = spawn_weapon(r, e, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(weapon_e, HardpointComponent{ hardpoint_data });
-
-    // add weapon data, but could add a Weapon_OnDiskDatakey isntead
-    r.emplace<Weapon_OnDiskData>(weapon_e, weapon_data);
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE)
       r.emplace<AutofireComponent>(weapon_e);

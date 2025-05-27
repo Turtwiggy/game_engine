@@ -45,7 +45,7 @@ handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
     .team = AvailableTeams::player,
     .damage = 10,
     .pierce = 10,
-    .speed = 0.05f, // m/s
+    .speed = 0.25f, // m/s
     .bounces = 0,
     .crit_chance = 0,
     .lifesteal = 0,

@@ -16,9 +16,13 @@ setup_linear_main_update(entt::registry& r);
 
 void
 setup_sprites_to_outline_update(entt::registry& r);
-
 void
 setup_outline_update(entt::registry& r);
+
+void
+setup_sprites_with_shield_update(entt::registry& r);
+void
+setup_shine_update(entt::registry& r);
 
 void
 setup_lighting_emitters_and_occluders_update(entt::registry& r);

@@ -171,27 +171,21 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
       for (size_t i = 0; i < tex_keys.size(); i++) {
         auto key = tex_keys[i];
         if (i == 0) {
-          // std::string l1 = "out_colour *= tex2dss()";
-          std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
-          // std::string l1 = "out_colour *= tex2dss(" + key + ", sprite_uv, bias, aa_scale);\n";
-          std::string l1 = "out_colour *= texture(" + key + ", sprite_uv);\n";
-          // std::string l2 = "return;\n";
-          std::string l3 = "}\n";
+          const std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
+          const std::string l1 = "col *= texture(" + key + ", sprite_uv);\n";
+          const std::string l2 = "}\n";
           generated.append(l0);
           generated.append(l1);
-          // generated.append(l2);
-          generated.append(l3);
+          generated.append(l2);
           continue;
         }
-        auto i_str = std::to_string(i);
-        std::string l0 = "else if(index == RENDERER_TEX_UNIT_COUNT+" + i_str + "){\n";
-        std::string l1 = "out_colour *= texture(" + key + ", sprite_uv);\n";
-        std::string l2 = "return;\n";
-        std::string l3 = "}\n";
+        const auto i_str = std::to_string(i);
+        const std::string l0 = "else if(index == RENDERER_TEX_UNIT_COUNT+" + i_str + "){\n";
+        const std::string l1 = "col *= texture(" + key + ", sprite_uv);\n";
+        const std::string l2 = "}\n";
         generated.append(l0);
         generated.append(l1);
         generated.append(l2);
-        generated.append(l3);
       }
 
       // SDL_Log("generated: %s", generated.c_str());

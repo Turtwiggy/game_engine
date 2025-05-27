@@ -507,6 +507,10 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   emitter.particle_to_emit = pdesc;
   emitter.expires = true;
   emitter.spawn_all_particles_at_once = true;
+  if (key.find("default_trail") != std::string::npos) {
+    emitter.expires = false;
+    emitter.spawn_all_particles_at_once = false;
+  }
   if (key.find("default_explode") != std::string::npos) {
     emitter.particles_to_spawn_before_emitter_expires = 1;
   }

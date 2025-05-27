@@ -221,6 +221,8 @@ update_autofire_system(entt::registry& r, const float dt)
                              AutofireComponent>();
     for (const auto& [wep_e, weapon_c, wep_def, bul_def, wep_range_c, parent_c, wep_t, autofire_c] : view.each()) {
       const auto par_e = parent_c.parent;
+      if (par_e == entt::null || !r.valid(par_e))
+        continue;
       const auto& par_inp = r.get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;

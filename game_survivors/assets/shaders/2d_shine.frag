@@ -14,18 +14,22 @@ in VS_OUT
   vec2 v_vertex;
 } fs_in;
 
+layout(std140) uniform Data {
+  mat4 projection_zoomed;
+  mat4 view;
+  vec2 camera_pos;
+  vec2 screenshake;
+  vec4[4] player_positions; // xy: pos, z: angle, w: active
+  float time;
+  float zoom;
+  float tilesize;
+};
+
 // this key is replaced by the engine with
 // e.g. "uniform sampler2D tex_monochrome_transparent_packed"
 {{ generate_user_samplers }}
 uniform int RENDERER_TEX_UNIT_COUNT;
-
-// #define FLUIDSIM 0
-#ifdef FLUIDSIM 
-uniform sampler2D tex_fluid;
-uniform int tex_fluid_tex_unit;
-uniform float tex_fluid_texel_size;
-uniform bool tex_fluid_shading;
-#endif
+uniform sampler2D tex;
 
 void
 main()
@@ -37,16 +41,11 @@ main()
   vec2 v_sprite_max = fs_in.v_sprite_max;
   int index = int(fs_in.v_tex_unit);
 
-  // out_colour.a = 1.0f;
+  out_colour.a = 1.0f;
 
-  // special case: render the "empty" sprite as just the colour
-  if(index == RENDERER_TEX_UNIT_COUNT && (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f)) {
-    out_colour = v_colour;
-    out_colour.a = 1.0f;
-    return;
-  }
-
-  // A spritesheet texture
+  // the engine generates code here e.g. 
+  // if(index == RENDERER_TEX_UNIT_COUNT)
+  //   out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
   {
     // v_uv goes from 0 to 1
     // convert from 0 to 1 to the width/height desired
@@ -54,26 +53,22 @@ main()
       (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
       (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
     );
-
-    // the engine generates code here e.g. 
-    // if(index == RENDERER_TEX_UNIT_COUNT) {
-    //   col *= texture(tex_monochrome_transparent_packed, sprite_uv);
-    //   return;
-    // }
   vec4 col = vec4(1.0f);
-
-{{ generate_sampler_if_statements }}
-
-    out_colour = v_colour * col;
+    {{ generate_sampler_if_statements }}
+  out_colour = v_colour * col;
   }
 
-#ifdef FLUIDSIM 
-  if(index == tex_fluid_tex_unit){
-    vec2 uv = v_uv;
-    vec3 c = texture(tex_fluid, uv).rgb;
-    float a = max(c.r, max(c.g, c.b));
-    out_colour = vec4(c, a);
-    return;
+  float u_time = time;
+  // float mask = texture(tex, v_uv).r;
+  vec3 shine_col = vec3(1.0, 0.3, 0.3);
+
+  //
+  // based off:
+  // https://www.shadertoy.com/view/NtGczV
+  //
+  {
+    vec3 a = mix(out_colour.rgb, vec3(1.), step(.995, (sin(v_uv.x-v_uv.y-u_time*2.0))));
+    vec3 b = mix(a, vec3(1.), step(.997, (sin(v_uv.x-v_uv.y-(0.1+u_time)*2.0))));
+    out_colour.rgb = shine_col * b;
   }
-#endif
 }

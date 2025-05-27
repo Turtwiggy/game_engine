@@ -2,14 +2,13 @@
   "spritesheet": {
     "name": "rhib",
     "px_total": 55,
-    "py_total": 540,
+    "py_total": 570,
     "px": 55,
     "py": 30,
     "nx": 1,
-    "ny": 18
+    "ny": 19
   },
   "sprites": [
-    { "name": "rhib_0", "frames": [ { "x": 0, "y": 0 } ], "angle": 180 },
     { "name": "rhib_1", "frames": [ { "x": 0, "y": 1 } ], "angle": 180 },
     { "name": "rhib_2", "frames": [ { "x": 0, "y": 2 } ], "angle": 180 },
     { "name": "rhib_3", "frames": [ { "x": 0, "y": 3 } ], "angle": 180 },
@@ -26,6 +25,7 @@
     { "name": "rhib_14", "frames": [ { "x": 0, "y": 14 } ], "angle": 180 },
     { "name": "rhib_15", "frames": [ { "x": 0, "y": 15 } ], "angle": 180 },
     { "name": "rhib_16", "frames": [ { "x": 0, "y": 16 } ], "angle": 180 },
-    { "name": "rhib_17", "frames": [ { "x": 0, "y": 17 } ], "angle": 180 }
+    { "name": "rhib_17", "frames": [ { "x": 0, "y": 17 } ], "angle": 180 },
+    { "name": "rhib_18", "frames": [ { "x": 0, "y": 18 } ], "angle": 180 }
   ]
 }

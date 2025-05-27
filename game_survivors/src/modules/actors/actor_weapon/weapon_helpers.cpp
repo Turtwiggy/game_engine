@@ -22,7 +22,7 @@
 namespace game2d {
 
 entt::entity
-spawn_weapon(entt::registry& r, const entt::entity par_e, const Weapon_OnDiskData& w_data, std::string key)
+spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDiskData& w_data, std::string key)
 {
   glm::vec2 weapon_size = { 6, 3 };
 
@@ -35,7 +35,7 @@ spawn_weapon(entt::registry& r, const entt::entity par_e, const Weapon_OnDiskDat
   r.emplace<WeaponLevelComponent>(wep_e);
   r.emplace<WeaponDamageTypeComponent>(wep_e, w_data.damage_as_enum);
   r.emplace<WeaponBehaviourComponent>(wep_e);
-  // r.emplace<Weapon_OnDiskData>(wep_e); // already added
+  r.emplace<Weapon_OnDiskData>(wep_e, w_data);
 
   const auto get_or_default = [&](std::string key, float def) -> float {
     if (w_data.data.contains(key))
@@ -79,8 +79,8 @@ spawn_weapon(entt::registry& r, const entt::entity par_e, const Weapon_OnDiskDat
   r.emplace<BulletCrit>(wep_e, BulletCrit{ .crit_chance = BULLET_CRIT_CHANCE, .crit_damage = BULLET_CRIT_DAMAGE });
   r.emplace<BulletLifesteal>(wep_e, BulletLifesteal{ .percent_0_100 = BULLET_LIFESTEAL });
 
-  r.emplace<WeaponDef>(wep_e, get_weapon_def(r, par_e, wep_e));
-  r.emplace<BulletDef>(wep_e, get_bullet_def(r, par_e, wep_e));
+  r.emplace<WeaponDef>(wep_e, get_weapon_def(r, player_e, wep_e));
+  r.emplace<BulletDef>(wep_e, get_bullet_def(r, player_e, wep_e));
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;

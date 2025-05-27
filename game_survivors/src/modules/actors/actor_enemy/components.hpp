@@ -17,4 +17,9 @@ struct SwarmLordComponent
   bool placeholder = true;
 };
 
+struct ShieldComponent
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

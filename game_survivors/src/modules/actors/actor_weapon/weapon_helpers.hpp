@@ -8,7 +8,7 @@ namespace game2d {
 
 entt::entity
 spawn_weapon(entt::registry& r,
-             const entt::entity par_e,
+             const entt::entity player_e,
              const Weapon_OnDiskData& w_data,
              std::string key = "weapon_boat_default");
 

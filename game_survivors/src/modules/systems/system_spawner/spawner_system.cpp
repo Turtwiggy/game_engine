@@ -145,11 +145,11 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.remove<TransformComponent>(e);
     r.remove<SpriteComponent>(e);
     const auto& pb_c = r.get<PhysicsBodyComponent>(e);
-    for (int i = 0; const auto& fixture_e : pb_c.fixtures) {
+    for (int i = 0; const auto fixture_e : pb_c.fixtures) {
 
+      const auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
       r.emplace<TransformComponent>(fixture_e);
       r.emplace<SpriteComponent>(fixture_e);
-      auto col = engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
       r.emplace<DefaultColour>(fixture_e, col);
       set_colour(r, fixture_e, col);
       set_position(r, fixture_e, rnd_pos_around_player);
@@ -165,6 +165,8 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
         set_sprite(r, fixture_e, "HERMIT_CRAB_BOTTOM");
       if (i == 1) // shield
         set_sprite(r, fixture_e, "HERMIT_CRAB_TOP");
+      if (i == 1) // shield
+        r.emplace<ShieldComponent>(fixture_e);
 
       i++;
     }
@@ -195,6 +197,8 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
         set_sprite(r, fixture_e, "REDCLAW_CRAB_LEFT");
       if (i == 1) // shield
         set_sprite(r, fixture_e, "REDCLAW_CRAB_RIGHT");
+      if (i == 1) // shield
+        r.emplace<ShieldComponent>(fixture_e);
 
       i++;
     }

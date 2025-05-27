@@ -26,7 +26,11 @@ handle_shoot_event__audio(entt::registry& r, const ShootEvent& evt)
   const auto& weapon_data = r.get<const Weapon_OnDiskData>(wep_e);
   const auto& weapon_audio_tags = weapon_data.audio;
 
-  // todo: randomize audio, dont just choose [0]
+  // // todo: randomize audio, dont just choose [0]
+  // if (weapon_audio_tags.size() == 0) {
+  //   const std::string err = std::format("no audio provided for weapon: {}", weapon_data.key);
+  //   throw std::runtime_error(err);
+  // }
   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = weapon_audio_tags[0] });
 }
 

@@ -117,6 +117,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_water = get_tex_unit(PassName::water);
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
+  const int tex_unit_sprites_with_shield = get_tex_unit(PassName::sprites_with_shield);
+  const int tex_unit_shine_shells = get_tex_unit(PassName::shine);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   // const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
@@ -160,6 +162,18 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // ri.instanced.set_int("tex_fluid", tex_unit_fluid);
   // ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
   // ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
+
+  ri.shine.reload(r);
+  ri.shine.bind();
+  ri.shine.set_uniform_block_binding("Data", 0);
+  ri.shine.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
+  ri.shine.set_bool("do_zoom", true);
+  ri.shine.set_mat4("projection", camera.projection);
+  for (const auto& tex : ri.user_textures) {
+    const std::string key = "tex_" + clean_path(tex.path);
+    ri.shine.set_int(key, tex.tex_unit.unit);
+  }
+  ri.shine.set_int("tex", tex_unit_sprites_with_shield);
 
   ri.outline.reload(r);
   ri.outline.bind();
@@ -211,6 +225,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
+  ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
   // ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
 
@@ -278,6 +293,9 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
   ri.passes.push_back(RenderPass(PassName::outline));
+  ri.passes.push_back(RenderPass(PassName::sprites_with_shield));
+  ri.passes.push_back(RenderPass(PassName::shine));
+
   // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // // Use the Jump flood algorithm to generate a voroi diagram,
   // // then convert that in to a distance field
@@ -325,6 +343,7 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
   ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
     Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
@@ -392,6 +411,8 @@ init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
   setup_outline_update(r);
+  setup_sprites_with_shield_update(r);
+  setup_shine_update(r);
   // setup_lighting_emitters_and_occluders_update(r);
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);

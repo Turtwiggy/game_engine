@@ -52,6 +52,8 @@ struct SINGLE_Animations
 {
   // key: spritesheet path. value: vector of loaded animations
   std::vector<std::pair<Spritesheet, std::vector<SpriteAnimation>>> animations;
+
+  static SINGLE_Animations instance;
 };
 
 // Used by renderer

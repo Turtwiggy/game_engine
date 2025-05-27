@@ -29,10 +29,12 @@ enum class PassName
 {
   water,
   floor_mask,
-  fluid_sim,
   linear_main,
   sprites_to_outline,
   outline,
+  sprites_with_shield,
+  shine,
+
   // lighting_emitters_and_occluders,
   // voronoi_seed,
   // jump_flood,
@@ -44,6 +46,7 @@ enum class PassName
   // blur_pingpong_1,
   // bloom,
 
+  fluid_sim,
   count,
 };
 
@@ -71,7 +74,6 @@ public:
 // Attributes only updated by renderer system, read by anything.
 struct SINGLE_RendererInfo
 {
-
   std::vector<RenderPass> passes;
 
   std::vector<Texture> user_textures;
@@ -89,6 +91,7 @@ struct SINGLE_RendererInfo
   // shaders
   engine::Shader water;
   engine::Shader instanced;
+  engine::Shader shine;
   engine::Shader lighting_emitters_and_occluders;
   engine::Shader voronoi_seed; // this shader stores the uv coordinates in the texture
   engine::Shader jump_flood;
@@ -96,6 +99,7 @@ struct SINGLE_RendererInfo
   engine::Shader mix_lighting_and_scene;
   engine::Shader outline;
   engine::Shader crt;
+
   // engine::Shader blur;
   // engine::Shader bloom;
 
