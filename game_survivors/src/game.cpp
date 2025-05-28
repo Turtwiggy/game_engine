@@ -1,4 +1,3 @@
-#include "modules/events/event_shoot_muzzleflash/event_shoot_muzzleflash.hpp"
 #include "pch.hpp"
 
 #include "game.hpp"
@@ -6,6 +5,7 @@
 #include "engine/audio/audio_system.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/system.hpp"
 #include "engine/imgui/ui_imgui_colours.hpp"
 #include "engine/lifecycle/lifecycle_system.hpp"
@@ -40,6 +40,7 @@
 #include "modules/core/renderer/system.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
+#include "modules/events/event_shoot_muzzleflash/event_shoot_muzzleflash.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/events/events_core/events_system.hpp"
 #include "modules/scene/scene_components.hpp"
@@ -434,13 +435,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
 #if defined(_DEBUG)
   // hack: reload RAWS
-  // const auto& input = get_first_component<SINGLE_InputComponent>(r);
-  // if (get_key_down(input, SDL_SCANCODE_9)) {
-  //   SDL_Log("%s", std::format("reloading raws...").c_str());
-  //   destroy_first<Raws>(r);
-  //   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
-  //   move_to_scene_start(r, Scene::menu);
-  // }
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_9)) {
+    SDL_Log("%s", std::format("reloading raws...").c_str());
+    destroy_first<Raws>(r);
+    create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
+    move_to_scene_start(r, Scene::menu);
+  }
 #endif
 
   // draw a custom mouse cursor

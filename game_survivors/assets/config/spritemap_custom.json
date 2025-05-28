@@ -46,6 +46,9 @@
     { "name": "ICON_WHEEL", "frames": [ { "x": 0, "y": 28, "w": 4, "h": 4 } ]},
     { "name": "ICON_SAILBOAT", "frames": [ { "x": 4, "y": 28, "w": 4, "h": 4 } ]},
     { "name": "ICON_CARGOBOAT", "frames": [ { "x": 8, "y": 28, "w": 4, "h": 4 } ]},
-    { "name": "ICON_WAND", "frames": [ { "x": 12, "y": 28, "w": 4, "h": 4 } ]}
+    { "name": "ICON_WAND", "frames": [ { "x": 12, "y": 28, "w": 4, "h": 4 } ]},
+
+    { "name": "TEMPORARY_PUFFERFISH_0", "frames": [ { "x": 2, "y": 20, "w": 4, "h": 4 } ]},
+    { "name": "TEMPORARY_PUFFERFISH_1", "frames": [ { "x": 6, "y": 20, "w": 4, "h": 4 } ]}
   ]
 }
