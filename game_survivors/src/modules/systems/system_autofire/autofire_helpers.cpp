@@ -70,7 +70,6 @@ get_weapon_def(entt::registry& r, const entt::entity player_e, const entt::entit
   weapon_def.bullets_max = mod_wep_clip_size;
   weapon_def.reload_rate = mod_wep_reload;
   weapon_def.range = mod_wep_range;
-
   return weapon_def;
 };
 

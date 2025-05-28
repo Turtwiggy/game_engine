@@ -27,7 +27,7 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
 
   // treat turrets as heavy pistols?
   // Note: upgrades apply to both the turret weapon (i.e. turret launcher,)
-  // and the weapon that the sea-turret is spawned with (e.g. heavy pistol)
+  // todo: validate the weapon that the sea-turret is spawned with (e.g. heavy pistol) has upgrades
 
   // const auto sea_turret_wep_data = r.get<const Weapon_OnDiskData>(wep_e);
   const auto heavy_pistol_data = weapons.weapons[0]; // todo: dont use idx
@@ -35,6 +35,11 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   const auto turret_e = spawn_weapon(r, player_e, heavy_pistol_data, "weapon_sea_turret");
   set_position(r, turret_e, get_position(r, wep_e));
   set_colour(r, turret_e, r.get<DefaultColour>(player_e).colour);
+
+  const auto bul_def = get_bullet_def(r, player_e, turret_e);
+  const auto wep_def = get_weapon_def(r, player_e, turret_e);
+  r.emplace<WeaponDef>(turret_e, wep_def);
+  r.emplace<BulletDef>(turret_e, bul_def);
 
   // turret-specific components
   r.emplace<EntityTimedLifecycle>(turret_e, 6 * 1000);

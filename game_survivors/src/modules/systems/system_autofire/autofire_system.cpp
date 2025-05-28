@@ -227,7 +227,6 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
       const auto par_vel_m = r.get<const PhysicsBodyComponent>(par_e).body->GetLinearVelocity();
-      const auto par_pos = glm::vec2{ par_t.position.x, par_t.position.y };
       const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
 
       // If the player is holding the right analogue, overwrite the shoot_angle.
@@ -238,7 +237,7 @@ update_autofire_system(entt::registry& r, const float dt)
         override_autofire = true;
         autofire_c.target = entt::null;
         dir_to_enemy = { par_inp.rx, par_inp.ry };
-        draw_crosshair(r, par_pos, dir_to_enemy, par_col);
+        draw_crosshair(r, wep_pos, dir_to_enemy, par_col);
 
         // rotate the gun to the target
         wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);
@@ -256,7 +255,7 @@ update_autofire_system(entt::registry& r, const float dt)
 
       // check your target is still within distance
       // (optional) theres a line of sight between you and it
-      const auto d = par_pos - get_position(r, autofire_c.target);
+      const auto d = wep_pos - get_position(r, autofire_c.target);
       const auto d2 = d.x * d.x + d.y * d.y;
       const auto d2_threshold = pow(meters_to_pixels(wep_range_c.meters), 2);
       if (d2 > d2_threshold)
@@ -271,13 +270,13 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto tgt_pos = get_position(r, tgt);
       const auto tgt_vel_m = r.get<PhysicsBodyComponent>(tgt).body->GetLinearVelocity();
       const glm::vec2 tgt_vel_p = meters_to_pixels(tgt_vel_m);
-      const auto you_pos = par_pos;
+      const auto you_pos = wep_pos;
       const auto you_vel_m = par_vel_m;
       const auto you_vel_p = meters_to_pixels(you_vel_m);
       const auto aim_dir = calculate_aim_dir(you_pos, you_vel_p, tgt_pos, tgt_vel_p, bullet_speed_p);
 
       dir_to_enemy = engine::normalize_safe(aim_dir);
-      draw_crosshair(r, par_pos, dir_to_enemy, par_col);
+      draw_crosshair(r, wep_pos, dir_to_enemy, par_col);
 
       // rotate the gun to the target
       wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);

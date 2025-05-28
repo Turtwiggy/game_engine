@@ -22,6 +22,7 @@
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/core/camera/components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
@@ -33,6 +34,7 @@
 #include "modules/systems/system_ability/ability_components.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_components.hpp"
 #include "modules/systems/system_autofire/autofire_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
@@ -185,15 +187,17 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
     // hardpoint_data.arc = 360;
     // hardpoint_data.arc_mid = 0;
-    auto weapon_e = spawn_weapon(r, e, weapon_data, weapon_key);
-    r.emplace<HardpointComponent>(weapon_e, HardpointComponent{ hardpoint_data });
+    auto wep_e = spawn_weapon(r, e, weapon_data, weapon_key);
+    r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
+    r.emplace<WeaponDef>(wep_e, get_weapon_def(r, e, wep_e));
+    r.emplace<BulletDef>(wep_e, get_bullet_def(r, e, wep_e));
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE)
-      r.emplace<AutofireComponent>(weapon_e);
+      r.emplace<AutofireComponent>(wep_e);
     if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
-      r.emplace<WeaponSeaTurret>(weapon_e);
+      r.emplace<WeaponSeaTurret>(wep_e);
 
-    weapons.push_back(weapon_e);
+    weapons.push_back(wep_e);
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
       break; // only spawn 1 deployer

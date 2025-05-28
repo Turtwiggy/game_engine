@@ -79,9 +79,6 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
   r.emplace<BulletCrit>(wep_e, BulletCrit{ .crit_chance = BULLET_CRIT_CHANCE, .crit_damage = BULLET_CRIT_DAMAGE });
   r.emplace<BulletLifesteal>(wep_e, BulletLifesteal{ .percent_0_100 = BULLET_LIFESTEAL });
 
-  r.emplace<WeaponDef>(wep_e, get_weapon_def(r, player_e, wep_e));
-  r.emplace<BulletDef>(wep_e, get_bullet_def(r, player_e, wep_e));
-
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;
 };
