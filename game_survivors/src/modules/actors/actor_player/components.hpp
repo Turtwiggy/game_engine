@@ -22,7 +22,7 @@ struct PlayerComponent
 struct ActorSpeedComponent
 {
   float base_speed = 1.0;
-  float current_speed = 1.0; // (base+sprint)
+  float current_speed = 1.0; // e.g.(base+sprint)
 };
 
 // attached to the player fixture

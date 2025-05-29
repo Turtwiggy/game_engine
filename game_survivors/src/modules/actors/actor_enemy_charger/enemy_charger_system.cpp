@@ -6,6 +6,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
@@ -41,9 +42,9 @@ update_enemy_charger_system(entt::registry& r)
       ApplyForceToDynamicTarget tgt_c;
       tgt_c.orbit = false;
       tgt_c.reduce_thrusters = false;
-      tgt_c.speed = charger_c.approach_speed; // m/s
       r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
       r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
+      r.get<ActorSpeedComponent>(e).current_speed = charger_c.approach_speed;
 
       charger_c.state = ChargerEnemyState::APPROACHING;
     }

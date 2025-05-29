@@ -1,5 +1,7 @@
 #include "pch.hpp"
 
+#include "ui_ability_system.hpp"
+
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
@@ -11,7 +13,6 @@
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/systems/system_ability/ability_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
-#include "ui_ability_system.hpp"
 
 namespace game2d {
 
@@ -38,7 +39,6 @@ update_ui_ability_system(entt::registry& r)
   const auto screen_size = ImVec2{ (float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y };
   ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
   ImGui::SetNextWindowSize(screen_size, ImGuiCond_Always);
-
   ImGui::Begin("overlay", NULL, flags);
 
   const auto tl = ImGui::GetWindowPos();

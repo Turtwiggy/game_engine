@@ -88,6 +88,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   auto e = spawn(r, key);
   r.emplace<EnemyComponent>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
+  r.emplace_or_replace<ActorSpeedComponent>(e);
 
   // Make it a variant.
   // outline it
@@ -124,21 +125,30 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // pufferfish
   if (key == "actor_enemy_exploder") {
     r.emplace<DeathThroesComponent>(e);
-    r.get<ApplyForceToDynamicTarget>(e).speed = 2.0f;
+    const auto speed = 2.0f;
+    auto& speed_c = r.get<ActorSpeedComponent>(e);
+    speed_c.base_speed = speed;
+    speed_c.current_speed = speed;
   }
 
   // horseshoe crab
   if (key == "actor_enemy_melee_1") {
-    r.get<ApplyForceToDynamicTarget>(e).speed = 2.0f;
     r.emplace<RotateToVelocityComponent>(e);
     r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
+
+    const auto speed = 2.0f;
+    auto& speed_c = r.get<ActorSpeedComponent>(e);
+    speed_c.base_speed = speed;
+    speed_c.current_speed = speed;
   }
 
   // hermit crab
   if (key == "actor_enemy_melee_2") {
-
     // note: anything with ARC_ANGLE wants an ActorSpeedComponent
-    r.emplace<ActorSpeedComponent>(e, 0.015f);
+    const auto speed = 0.015f;
+    auto& speed_c = r.get<ActorSpeedComponent>(e);
+    speed_c.base_speed = speed;
+    speed_c.current_speed = speed;
 
     // remove your single sprite, and create 2 sprites.
     // one for your legs, one for your house
@@ -175,7 +185,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // red claw crab
   if (key == "actor_enemy_melee_3") {
     // note: anything with ARC_ANGLE wants an ActorSpeedComponent
-    r.emplace<ActorSpeedComponent>(e, 0.015f);
+    const auto speed = 0.015f;
+    auto& speed_c = r.get<ActorSpeedComponent>(e);
+    speed_c.base_speed = speed;
+    speed_c.current_speed = speed;
 
     // remove your single sprite, and create 2 sprites.
     // one for your left half, one for your right half
@@ -219,8 +232,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.emplace<SwarmLordComponent>(e);
   }
   if (key == "actor_enemy_swarmlord_minion") {
-    auto& force_c = r.get<ApplyForceToDynamicTarget>(e);
-    force_c.speed = 2.0f;
+    const auto speed = 2.0f;
+    auto& speed_c = r.get<ActorSpeedComponent>(e);
+    speed_c.base_speed = speed;
+    speed_c.current_speed = speed;
   }
 
   // sea urchin
@@ -247,6 +262,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // sea horse
   if (key == "actor_enemy_charger") {
+    //
   }
 
   auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");

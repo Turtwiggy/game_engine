@@ -24,6 +24,7 @@ enum class UpgradeableStat
   BULLET_DAMAGE,
   BULLET_KNOCKBACK,
   BULLET_LIFESTEAL, // %hp you recover when a bullet hits
+  BULLET_LIFETIME,
   BULLET_PIERCE,
   BULLET_SIZE,
   BULLET_SPEED,

@@ -16,48 +16,34 @@
 
 namespace game2d {
 
-class EnemyInRangeCallback : public b2QueryCallback
+bool
+EnemyInRangeCallback::ReportFixture(b2Fixture* fixture)
 {
-public:
-  entt::registry& r;
-  float nearestDistanceSquared = std::numeric_limits<float>::max();
+  b2Body* body = fixture->GetBody();
+  const auto e = (entt::entity)body->GetUserData().pointer;
 
-  entt::entity self;
-  std::vector<entt::entity> enemies;
+  if (e == self)
+    return true; // continue query
 
-  EnemyInRangeCallback(entt::registry& r_ref, entt::entity e)
-    : r(r_ref)
-    , self(e) {};
+  if (!is_enemy(body))
+    return true; // continue query
 
-  bool ReportFixture(b2Fixture* fixture) override
-  {
-    b2Body* body = fixture->GetBody();
-    const auto e = (entt::entity)body->GetUserData().pointer;
+  enemies.push_back(e);
+  return true; // continue query
+}
 
-    if (e == self)
-      return true; // continue query
+bool
+EnemyInRangeCallback::is_enemy(b2Body* body)
+{
+  const entt::entity e = (entt::entity)body->GetUserData().pointer;
+  if (e == entt::null || !r.valid(e))
+    return false;
+  const bool enemy = r.try_get<EnemyComponent>(e) != nullptr;
+  return enemy;
 
-    if (!is_enemy(body))
-      return true; // continue query
-
-    enemies.push_back(e);
-
-    return true; // Continue the query
-  }
-
-  bool is_enemy(b2Body* body)
-  {
-    const entt::entity e = (entt::entity)body->GetUserData().pointer;
-    if (e == entt::null || !r.valid(e))
-      return false;
-
-    const bool enemy = r.try_get<EnemyComponent>(e) != nullptr;
-    return enemy;
-
-    // bullets have TeamComponent on
-    // return r.get<TeamComponent>(e).team == AvailableTeams::enemy;
-  }
-};
+  // bullets have TeamComponent on
+  // return r.get<TeamComponent>(e).team == AvailableTeams::enemy;
+}
 
 void
 add_explode_on_death_callback(entt::registry& r,

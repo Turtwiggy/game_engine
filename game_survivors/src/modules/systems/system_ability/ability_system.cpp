@@ -59,6 +59,7 @@ anchor_down(entt::registry& r, entt::entity e)
   r.emplace_or_replace<LockedInSpotComponent>(e);
 }
 
+/*
 void
 anchor_held(entt::registry& r, entt::entity e, const InputComponent& input_c, const PhysicsBodyComponent& body_c)
 {
@@ -69,17 +70,18 @@ anchor_held(entt::registry& r, entt::entity e, const InputComponent& input_c, co
   const float angle = engine::dir_to_angle_radians({ input_c.lx, input_c.ly });
   body_c.body->SetTransform(body_c.body->GetPosition(), angle);
 }
+*/
 
 void
 speedboost_ability(entt::registry& r, entt::entity e, const InputComponent& input_c, const PhysicsBodyComponent& body_c)
 {
   // reset speed
-  auto& speed_c = r.get<ActorSpeedComponent>(e);
-  speed_c.current_speed = speed_c.base_speed;
+  // auto& speed_c = r.get<ActorSpeedComponent>(e);
+  // speed_c.current_speed = speed_c.base_speed;
 
   // remove lock
-  if (auto* locked_c = r.try_get<LockedInSpotComponent>(e))
-    r.remove<LockedInSpotComponent>(e);
+  // if (auto* locked_c = r.try_get<LockedInSpotComponent>(e))
+  //   r.remove<LockedInSpotComponent>(e);
 
   // Give a speed boost? tokyo drifffftttttt
   // const float meters_per_second = 10.0f * speed_c.base_speed;

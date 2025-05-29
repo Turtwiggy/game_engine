@@ -75,7 +75,7 @@ get_default_audio()
   // audio.sounds.push_back({ "BUOY_0", path + "marblehead_bell_buoy_nrm_23.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "UI_HOVER_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
   audio.sounds.push_back({ "UI_SELECT_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "XP_0", sfx_path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "XP_0", sfx_path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo_nrm.mp3", SoundType::SFX });
 
   audio.sounds.push_back({ "BOMB_EXPLOSION_01", sfx_path + "cannon_shot_nrm.mp3", SoundType::SFX });
   audio.sounds.push_back({ "ENEMY_EXPLODER_01", sfx_path + "exploder_explosion_1.mp3", SoundType::SFX });

@@ -57,7 +57,7 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
   // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
   // If the weapon has enough weapon spread (e.g. 90 degrees)
   // It could still shoot at the limited angles.
-  const auto par_vel_meters = r.get<PhysicsBodyComponent>(par_e).body->GetLinearVelocity();
+  const auto par_vel_meters = r.get<const PhysicsBodyComponent>(par_e).body->GetLinearVelocity();
   const auto spread_rad = altered_w_def.spread_deg * engine::Deg2Rad;
   const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, spread_rad);
   for (int i = 0; i < altered_w_def.projectiles; i++) {

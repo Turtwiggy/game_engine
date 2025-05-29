@@ -73,7 +73,9 @@
       "name": "weapon_sea_turret",
       "display_name": "Sea Turret",
       "display_desc": "More gun is better gun.",
-      "renderable": { "sprite": "EMPTY", "colour": "white" }
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
     },
     {
       "name": "weapon_cryo_drone",

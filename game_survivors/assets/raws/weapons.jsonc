@@ -1,55 +1,62 @@
 {
   "weapon_upgrades": [
     
-    { "u_key": "HP_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all projectiles in to one BIG BUOY!" },
-    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "desc": "Shoot in the opposite direction." },
-    { "u_key": "HP_UPGRADE_C", "wb_key": "HEAVY_PISTOL_CRIT_UPGRADE", "desc": "Improved crit.", "stats": [
+    { "u_key": "HP_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all projectiles. [+BIG BUOY!]" },
+    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "desc": "[+bullets:opposite]" },
+    { "u_key": "HP_UPGRADE_C", "wb_key": "HEAVY_PISTOL_CRIT_UPGRADE", "desc": "[+crit]", "stats": [
       { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 20 },
       { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
     ] },
-    { "u_key": "HP_UPGRADE_D", "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET", "desc": "Every 10 bullets, shoot a fan of bullets." },
-    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE", "desc": "Change damage type to fire." },
+    { "u_key": "HP_UPGRADE_D", "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET", "desc": "Every 10 bullets [+fanfire]" },
+    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE", "desc": "[+damage:fire]" },
 
-    { "u_key": "GS_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all projectiles in to one BIG BUOY!" },
-    { "u_key": "GS_UPGRADE_B", "wb_key": "DOUBLE_PROJECTILES", "desc": "Double your projectiles." },
-    { "u_key": "GS_UPGRADE_C", "wb_key": "SHOTGUN_CLIPSIZE_UPGRADE", "desc": "Improved clip size.", "stats": [
+    { "u_key": "GS_UPGRADE_A", "wb_key": "MEGABULLET", "desc": "Combine all projectiles. [+BIG BUOY!]" },
+    { "u_key": "GS_UPGRADE_B", "wb_key": "DOUBLE_PROJECTILES", "desc": "[+2x projectiles]" },
+    { "u_key": "GS_UPGRADE_C", "wb_key": "SHOTGUN_CLIPSIZE_UPGRADE", "desc": "[+clipsize][+reloadspeed]", "stats": [
       { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_percent_increase", "value": 30 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
     ] },
-    { "u_key": "GS_UPGRADE_D", "wb_key": "SHOTGUN_DAMAGE_UPGRADE", "desc": "Improved damage.", "stats": [
+    { "u_key": "GS_UPGRADE_D", "wb_key": "SHOTGUN_DAMAGE_UPGRADE", "desc": "[+damage]", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
       { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 1.0 } // rare
     ] },
-    { "u_key": "GS_UPGRADE_E", "wb_key": "SHOTGUN_FIRERATE_UPGRADE", "desc": "Improved firerate.", "stats": [
+    { "u_key": "GS_UPGRADE_E", "wb_key": "SHOTGUN_FIRERATE_UPGRADE", "desc": "[+firerate]", "stats": [
       { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 25 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
     ] },
 
-    { "u_key": "SC_UPGRADE_A", "wb_key": "SMG_DAMAGE_UPGRADE", "desc": "Improved damage, firerate, reload speed.", "stats": [
+    { "u_key": "SC_UPGRADE_A", "wb_key": "SMG_DAMAGE_UPGRADE", "desc": "[+damage][+firerate][+reloadspeed].", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 20 }, // rare
       { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 20 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -20 } // rare
     ]},
-    { "u_key": "SC_UPGRADE_B", "wb_key": "SMG_CRIT_UPGRADE", "desc": "Improved crit.", "stats": [
+    { "u_key": "SC_UPGRADE_B", "wb_key": "SMG_CRIT_UPGRADE", "desc": "[+crit]", "stats": [
       { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 9 }, // rare
       { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 20 } // uncommon
     ] },
-    { "u_key": "SC_UPGRADE_C", "wb_key": "SMG_FIREBALL_UPGRADE", "desc": "Every 5th shot, shoot a fireball." },
-    { "u_key": "SC_UPGRADE_D", "wb_key": "SMG_KNOCKBACK_UPGRADE", "desc": "Improved damage, knockback.", "stats": [
+    { "u_key": "SC_UPGRADE_C", "wb_key": "SMG_FIREBALL_UPGRADE", "desc": "Every 5th shot [+fireball]" },
+    { "u_key": "SC_UPGRADE_D", "wb_key": "SMG_KNOCKBACK_UPGRADE", "desc": "[+damage][+knockback]", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
-      { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 1.0 } // rare
+      { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 0.25 } 
     ] },
-    { "u_key": "SC_UPGRADE_E", "wb_key": "SMG_CLIPSIZE_UPGRADE", "desc": "Improved clip size, firerate, worse reload time.", "stats": [
+    { "u_key": "SC_UPGRADE_E", "wb_key": "SMG_CLIPSIZE_UPGRADE", "desc": "[+clipsize][+firerate][-reloadspeed] .", "stats": [
       { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_percent_increase", "value": 200 }, // rare
       { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 200 }, // rare
-      { "stat": "WEAPON_RELOAD",      "type": "stat_flat_increase", "value": 2 } // make reloaad time 2 seconds
+      { "stat": "WEAPON_RELOAD",      "type": "stat_flat_increase", "value": 2 } // increase reload time 2 seconds
     ] },
 
-    { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "", "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "", "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "", "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_D", "wb_key": "", "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "", "desc": "" }
+    { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "TURRET_FOLLOW_PLAYER", "desc": "[+move]" },
+    { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "TURRET_SLOW_ENEMIES", "desc": "[+aoe][+slow]" },
+    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "TURRET_EXTRA_TURRETS_UPGRADE", "desc": "[+2 turrets][+damage]", "stats": [
+      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
+      { "stat": "WEAPON_PROJECTILES", "type": "stat_flat_increase", "value": 2 } // rare
+    ] },
+    { "u_key": "SEATURRET_UPGRADE_D", "wb_key": "TURRET_EXPLODE_ON_DEATH", "desc": "[+explode][-lifetime]", "stats": [
+      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 10 }, 
+      { "stat": "BULLET_LIFETIME",    "type": "stat_percent_increase", "value": -50 }
+    ]
+    },
+    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_ICE", "desc": "[+damage:ice]" }
   ],
 
   "weapons": [

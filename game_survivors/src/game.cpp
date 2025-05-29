@@ -51,6 +51,7 @@
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_ability/ability_system.hpp"
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
+#include "modules/systems/system_aoe_slow/aoe_slow_system.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_autofire/autofire_system.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_system.hpp"
@@ -91,6 +92,7 @@
 #include "modules/ui/ui_collisions/system.hpp"
 #include "modules/ui/ui_colours/ui_colours_system.hpp"
 #include "modules/ui/ui_debug_effects/ui_debug_effects_system.hpp"
+#include "modules/ui/ui_debug_elemental/ui_debug_elemental_system.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_system.hpp"
@@ -331,6 +333,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);
+    update_aoe_slow_system(r, dt);
 
     update_death_throes_system(r, dt);
     update_enemy_charger_system(r);
@@ -401,6 +404,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
+    update_ui_debug_elemental_system(r);
     update_ui_debug_menubar_system(r);
     update_ui_debug_upgrades_system(r);
     update_ui_imgui_colours_system(r);

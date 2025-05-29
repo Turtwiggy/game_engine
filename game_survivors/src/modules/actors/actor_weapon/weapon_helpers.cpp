@@ -59,12 +59,14 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
   const float BULLET_CRIT_CHANCE = get_or_default("BULLET_CRIT_CHANCE", 0.0f);   // 0-100
   const float BULLET_CRIT_DAMAGE = get_or_default("BULLET_CRIT_DAMAGE", 150.0f); // 100%+
   const float BULLET_LIFESTEAL = get_or_default("BULLET_LIFESTEAL", 0.0f);       // 0-100% of your bullet damage
+  const float BULLET_LIFETIME = get_or_default("BULLET_LIFETIME", 3.0f);         // 0-100% of your bullet damage
 
   // load weapons from config
   r.emplace<WeaponSpread>(wep_e, WeaponSpread{ WEAPON_SPREAD });
   r.emplace<WeaponProjectiles>(wep_e, WeaponProjectiles{ .projectiles = (int)WEAPON_PROJECTILES });
   r.emplace<WeaponClipSize>(wep_e, WeaponClipSize{ .bullets_max = (int)WEAPON_CLIP_SIZE });
-  auto firerate_c = WeaponFireRate{ .base_firerate = WEAPON_FIRERATE, .seconds_between_shots_max = 1.0f / WEAPON_FIRERATE };
+  const auto firerate_c =
+    WeaponFireRate{ .base_firerate = WEAPON_FIRERATE, .seconds_between_shots_max = 1.0f / WEAPON_FIRERATE };
   r.emplace<WeaponFireRate>(wep_e, firerate_c);
   r.emplace<WeaponReloadRate>(wep_e, WeaponReloadRate{ .seconds_base_max = WEAPON_RELOAD });
   r.emplace<WeaponRange>(wep_e, WeaponRange{ .meters = WEAPON_RANGE });
@@ -78,6 +80,7 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
   r.emplace<BulletKnockback>(wep_e, BulletKnockback{ BULLET_KNOCKBACK });
   r.emplace<BulletCrit>(wep_e, BulletCrit{ .crit_chance = BULLET_CRIT_CHANCE, .crit_damage = BULLET_CRIT_DAMAGE });
   r.emplace<BulletLifesteal>(wep_e, BulletLifesteal{ .percent_0_100 = BULLET_LIFESTEAL });
+  r.emplace<BulletLifetime>(wep_e, BulletLifetime{ .seconds = BULLET_LIFETIME });
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;

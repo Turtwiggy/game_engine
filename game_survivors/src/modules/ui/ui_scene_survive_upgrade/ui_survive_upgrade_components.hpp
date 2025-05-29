@@ -279,15 +279,15 @@ const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> 
   }
   if (upgrade == UpgradeableStat::BULLET_KNOCKBACK) {
     if (rarity == Rarity::COMMON)
-      amount = 0.2f;
+      amount = 0.1f;
     if (rarity == Rarity::UNCOMMON)
-      amount = 0.5f;
+      amount = 0.2f;
     if (rarity == Rarity::RARE)
-      amount = 1.0f;
+      amount = 0.3f;
     if (rarity == Rarity::LEGENDARY)
-      amount = 1.5f;
+      amount = 0.4f;
     if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 2.0f;
+      amount = 0.5f;
     return { amount, "stat_flat_increase" };
   }
   if (upgrade == UpgradeableStat::BULLET_LIFESTEAL) {

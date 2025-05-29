@@ -36,10 +36,10 @@ handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
         const auto xp_parent = r.get<HasParentComponent>(xp_fixture_e).parent;
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = false;
-        tgt_c.speed = 10.0f;
         tgt_c.reduce_thrusters = false;
         r.emplace_or_replace<ApplyForceToDynamicTarget>(xp_parent, tgt_c);
         r.emplace_or_replace<PhysicsDynamicTarget>(xp_parent, player_par_e);
+        r.emplace_or_replace<ActorSpeedComponent>(xp_parent, ActorSpeedComponent{ .base_speed = 10, .current_speed = 10 });
       };
 
       callbacks_c.callbacks.push_back(make_xp_fly_to_player);

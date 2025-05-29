@@ -48,6 +48,11 @@ struct BulletKnockback
   float knockback_force = 0.0f;
 };
 
+struct BulletLifetime
+{
+  float seconds = 3;
+};
+
 struct WeaponFireRate
 {
   float base_firerate = 2; // shots per second

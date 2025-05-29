@@ -87,6 +87,7 @@ get_bullet_def(entt::registry& r, const entt::entity player_e, const entt::entit
   const auto key_bullet_crit_chance = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_CRIT_CHANCE));
   const auto key_bullet_crit_damage = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_CRIT_DAMAGE));
   const auto key_bullet_lifesteal = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_LIFESTEAL));
+  const auto key_bullet_liftime = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_LIFETIME));
 
   const auto val_bullet_bounce = r.get<const BulletBounce>(wep_e).bounces_left;
   const auto val_bullet_size = r.get<const BulletSize>(wep_e).size;
@@ -97,6 +98,7 @@ get_bullet_def(entt::registry& r, const entt::entity player_e, const entt::entit
   const auto val_bullet_crit_chance = r.get<const BulletCrit>(wep_e).crit_chance;
   const auto val_bullet_crit_damage = r.get<const BulletCrit>(wep_e).crit_damage;
   const auto val_bullet_lifesteal = r.get<const BulletLifesteal>(wep_e).percent_0_100;
+  const auto val_bullet_lifetime_ms = r.get<const BulletLifetime>(wep_e).seconds * 1000;
 
   const auto mod_bul_bounce = (int)upgrades_c.apply_modifiers(val_bullet_bounce, key_bullet_bounce);
   const auto mod_bul_size_x = upgrades_c.apply_modifiers(val_bullet_size.x, key_bullet_size);
@@ -108,6 +110,7 @@ get_bullet_def(entt::registry& r, const entt::entity player_e, const entt::entit
   const auto mod_bul_crit_chance = upgrades_c.apply_modifiers(val_bullet_crit_chance, key_bullet_crit_chance);
   const auto mod_bul_crit_damage = upgrades_c.apply_modifiers(val_bullet_crit_damage, key_bullet_crit_damage);
   const auto mod_bul_lifesteal = upgrades_c.apply_modifiers(val_bullet_lifesteal, key_bullet_lifesteal);
+  const auto mod_bul_lifetime_ms = upgrades_c.apply_modifiers(val_bullet_lifetime_ms, key_bullet_liftime);
 
   if (wep_e == entt::null || player_e == entt::null) {
     SDL_Log("Error creating BulletDef; invalid parents");
@@ -124,10 +127,10 @@ get_bullet_def(entt::registry& r, const entt::entity player_e, const entt::entit
   bullet_def.speed = mod_bul_speed;
   bullet_def.knockback_force = mod_bul_knockback;
   bullet_def.bounces = mod_bul_bounce;
-  bullet_def.lifecycle = 3 * 1000;
   bullet_def.crit_chance = mod_bul_crit_chance;
   bullet_def.crit_damage = mod_bul_crit_damage;
   bullet_def.lifesteal = mod_bul_lifesteal;
+  bullet_def.lifecycle = mod_bul_lifetime_ms;
 
   auto behaviours_set = r.get<WeaponBehaviourComponent>(wep_e).behaviours;
   bullet_def.wep_behaviours = { behaviours_set.begin(), behaviours_set.end() };

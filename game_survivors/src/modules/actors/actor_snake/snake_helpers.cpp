@@ -10,6 +10,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
@@ -133,10 +134,10 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
   if (type == SectionType::HEAD) {
     // the head follows a dynamic target
     ApplyForceToDynamicTarget target_c;
-    target_c.speed = 5.0f;
     target_c.orbit = false;
     r.emplace<ApplyForceToDynamicTarget>(segment_e, target_c);
     r.emplace<PhysicsDynamicTarget>(segment_e, snake_c.target_e_0);
+    r.emplace<ActorSpeedComponent>(segment_e, ActorSpeedComponent{ .base_speed = 5.0, .current_speed = 5.0 });
   }
 
   if (type == SectionType::BODY || type == SectionType::TAIL) {
@@ -240,15 +241,16 @@ update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
   set_position(r, snake_c.target_e_1, { pos1.x, pos1.y });
 
   // adjust the snake speed
-  auto view = r.view<ApplyForceToDynamicTarget, PhysicsDynamicTarget, BossComponent>();
+  auto view = r.view<ActorSpeedComponent, PhysicsDynamicTarget, const BossComponent>();
   auto segments = r.view<SnakeSegment>();
-  for (const auto& [e, force_c, target_c, boss_c] : view.each()) {
+  for (const auto& [e, speed_c, target_c, boss_c] : view.each()) {
 
     // -2 because head and tail curently dont have SnakeSegment attached
     float percent = (int)segments.size() / (float)(snake_c.snake_segments - 2);
 
     // slow the snake down as the segments die
-    force_c.speed = percent * snake_speed;
+    speed_c.base_speed = percent * snake_speed;
+    speed_c.current_speed = percent * snake_speed;
   }
 
   // swap targets every X seconds

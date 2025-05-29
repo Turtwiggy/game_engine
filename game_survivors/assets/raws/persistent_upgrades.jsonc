@@ -75,7 +75,13 @@
       { "cost": 8, "type": "stat_percent_increase", "value": 80 },
       { "cost": 10, "type": "stat_percent_increase", "value": 100 }
     ]},
-    {"key": "BULLET_KNOCKBACK", "levels": []},
+    {"key": "BULLET_KNOCKBACK", "levels": [
+      { "cost": 1, "type": "stat_flat_increase", "value": 0.05 },
+      { "cost": 2, "type": "stat_flat_increase", "value": 0.10 },
+      { "cost": 3, "type": "stat_flat_increase", "value": 0.15 },
+      { "cost": 4, "type": "stat_flat_increase", "value": 0.20 },
+      { "cost": 5, "type": "stat_flat_increase", "value": 0.25 }
+    ]},
     {"key": "BULLET_LIFESTEAL", "levels": [
       { "cost": 1, "type": "stat_flat_increase", "value": 0.05 },
       { "cost": 2, "type": "stat_flat_increase", "value": 0.10 },

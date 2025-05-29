@@ -1,0 +1,10 @@
+#pragma once
+
+#include <entt/fwd.hpp>
+
+namespace game2d {
+
+void
+update_aoe_slow_system(entt::registry& r, const float dt);
+
+} // namespace game2d

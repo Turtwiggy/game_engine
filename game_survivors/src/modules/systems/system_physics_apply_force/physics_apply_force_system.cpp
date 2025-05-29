@@ -49,7 +49,11 @@ apply_inside_out_force(const ApplyForceToDynamicTarget& req, glm::vec2 nrm_dir, 
 };
 
 glm::vec2
-calculate_desired_velocity(entt::registry& r, b2Body* a_body, entt::entity b_e, const ApplyForceToDynamicTarget& req)
+calculate_desired_velocity(entt::registry& r,
+                           b2Body* a_body,
+                           entt::entity b_e,
+                           const ActorSpeedComponent& speed_c,
+                           const ApplyForceToDynamicTarget& req)
 {
   auto a_pos = a_body->GetPosition();
   auto b_pos = pixels_to_meters(get_position(r, b_e));
@@ -60,17 +64,17 @@ calculate_desired_velocity(entt::registry& r, b2Body* a_body, entt::entity b_e, 
 
   // full-speed ahead!
   if (!req.reduce_thrusters)
-    return req.speed * nrm_dir;
+    return speed_c.current_speed * nrm_dir;
 
   // full-speed ahead!
   const float distance = glm::length(raw_dir);
   if (distance > req.distance_to_reduce_thrust)
-    return req.speed * nrm_dir;
+    return speed_c.current_speed * nrm_dir;
 
   // Adjust the desired vel to account for target's velocity,
   // reduce speed the closer to the target you get
   const float percent = glm::clamp((distance / req.distance_to_reduce_thrust), 0.0f, 1.0f);
-  const glm::vec2 reduced_vel = percent * req.speed * nrm_dir;
+  const glm::vec2 reduced_vel = percent * speed_c.current_speed * nrm_dir;
 
   // try adding perpendcular vel to make it orbit
   // the closer you get, the stronger the orbit vel becomes
@@ -78,7 +82,7 @@ calculate_desired_velocity(entt::registry& r, b2Body* a_body, entt::entity b_e, 
   glm::vec2 orbit_vel{ 0.0f, 0.0f };
   if (req.orbit) {
     const auto perp = glm::vec2{ -nrm_dir.y, nrm_dir.x };
-    orbit_vel = (1 - percent) * req.speed * perp;
+    orbit_vel = (1 - percent) * speed_c.current_speed * perp;
 
     // If you're too close, apply a push-out force.
     // orbit_vel += 0.1f * req.speed * apply_inside_out_force(req, nrm_dir, distance);
@@ -95,6 +99,7 @@ calculate_desired_velocity(entt::registry& r, b2Body* a_body, entt::entity b_e, 
 };
 
 #if defined(_DEBUG)
+
 struct DebugApproachDir
 {
   glm::vec2 pos;
@@ -126,9 +131,12 @@ update_physics_apply_force_system(entt::registry& r)
   debug_vel_instances.clear();
 #endif
   {
-    const auto& view =
-      r.view<PhysicsBodyComponent, TransformComponent, const ApplyForceToDynamicTarget, const PhysicsDynamicTarget>();
-    for (const auto& [e, body_c, t_c, req_c, target_c] : view.each()) {
+    const auto& view = r.view<PhysicsBodyComponent,
+                              TransformComponent,
+                              const ActorSpeedComponent,
+                              const ApplyForceToDynamicTarget,
+                              const PhysicsDynamicTarget>();
+    for (const auto& [e, body_c, t_c, speed_c, req_c, target_c] : view.each()) {
 
       // check your target hasn't died
       const auto target_e = target_c.target;
@@ -143,7 +151,7 @@ update_physics_apply_force_system(entt::registry& r)
       const auto cur_vel = a_body->GetLinearVelocity();
 
       // Compute the desired velocity of your spaceship.
-      const auto desired_vel = calculate_desired_velocity(r, a_body, b_ent, req_c);
+      const auto desired_vel = calculate_desired_velocity(r, a_body, b_ent, speed_c, req_c);
 
       // debug_vel_instances.push_back(DebugVelocityError{
       //   .tgt_vel = { desired_vel.x, desired_vel.y },
@@ -247,7 +255,7 @@ update_physics_apply_force_system(entt::registry& r)
       // start flankin'
       const glm::vec2 flank_raw_dir = flankpoint - you_pos;
       const glm::vec2 flank_nrm_dir = engine::normalize_safe(flank_raw_dir);
-      const float speed = speed_c.base_speed; // m/s
+      const float speed = speed_c.current_speed; // m/s
       const float mass = body_c.body->GetMass();
       const b2Vec2 vel = speed * b2Vec2{ flank_nrm_dir.x, flank_nrm_dir.y };
       const b2Vec2 impulse = mass * vel;
@@ -268,34 +276,6 @@ update_physics_apply_force_system(entt::registry& r)
 #endif
     }
   }
-
-  /*
-  // ApplyLinearVelocityToDynamicTarget
-  {
-    const auto& view = r.view<const ApplyLinearVelocityToDynamicTarget,
-                              PhysicsBodyComponent,
-                              const PhysicsDynamicTarget,
-                              const ActorSpeedComponent>();
-    for (const auto& [e, req_c, body_c, tgt_c, speed_c] : view.each()) {
-
-      // check your target hasn't died
-      const auto target_e = tgt_c.target;
-      if (target_e == entt::null || !r.valid(target_e)) {
-        SDL_Log("Target invalid. Should retarget.");
-        r.remove<PhysicsDynamicTarget>(e);
-        continue;
-      }
-
-      const auto& you_body = body_c.body;
-      const auto& tgt_body = r.get<PhysicsBodyComponent>(tgt_c.target).body;
-
-      const auto you_pos = glm::vec2{ you_body->GetPosition().x, you_body->GetPosition().y };
-      const auto tgt_pos = glm::vec2{ tgt_body->GetPosition().x, tgt_body->GetPosition().y };
-
-      // body_c->Se
-    }
-  }
-  */
 }
 
 void

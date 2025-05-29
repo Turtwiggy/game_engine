@@ -170,12 +170,28 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   }
 
   // apply elemental damage ticks.
-  if (evt.type != WEAPON_DAMAGE::KINETIC) {
-    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
-    // time should be relative to the element?
+  if (evt.type == WEAPON_DAMAGE::FIRE) {
     const float time = 3.0f;
-    // TODO: dont just push to .fire
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
     elemental_damage_c.fire.push_back({ WEAPON_DAMAGE::FIRE, time });
+  }
+  //
+  else if (evt.type == WEAPON_DAMAGE::ICE) {
+    const float time = 3.0f;
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    elemental_damage_c.ice.push_back({ WEAPON_DAMAGE::ICE, time });
+  }
+  //
+  else if (evt.type == WEAPON_DAMAGE::SHOCK) {
+    const float time = 3.0f;
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    elemental_damage_c.shock.push_back({ WEAPON_DAMAGE::SHOCK, time });
+  }
+  //
+  else if (evt.type == WEAPON_DAMAGE::POISON) {
+    const float time = 3.0f;
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    elemental_damage_c.poison.push_back({ WEAPON_DAMAGE::POISON, time });
   }
 
   float damage = calculate_damage_to_take(r, evt);
