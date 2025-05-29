@@ -4,6 +4,7 @@
 #include "rock_helpers.hpp"
 #include "rock_system.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
@@ -35,6 +36,7 @@ draw_rocks(entt::registry& r)
       const auto spawned_e = spawn(r, "empty");
       give_life(r, spawned_e, { 0, 0 }, { 0, 0 });
       set_position_and_size_with_line(r, spawned_e, line_info);
+      set_colour(r, spawned_e, col);
     }
 
     i++;

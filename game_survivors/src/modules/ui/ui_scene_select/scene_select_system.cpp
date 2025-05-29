@@ -225,7 +225,8 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       // show the other weapon stats.
       if (weapon.key == "weapon_sea_turret") {
         auto deployed_weapon = weapons_c.weapons[0];
-        display_stats.push_back({ .key = "      [DEPLOYS]", .val = deployed_weapon.name });
+        display_stats.push_back({ .key = "", .val = "" });
+        display_stats.push_back({ .key = "[DEPLOYS]", .val = deployed_weapon.name });
         for (const auto& [key, val] : deployed_weapon.data) {
           auto clean_key = key;
           clean_key = str_remove_all_occurances(clean_key, "WEAPON_");

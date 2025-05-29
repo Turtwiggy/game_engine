@@ -154,8 +154,8 @@
         "WEAPON_CLIP_SIZE": 1    , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
         "WEAPON_FIRERATE": 0.2   , // per second
-        "WEAPON_RELOAD": 3       , // seconds
-        "WEAPON_RANGE": 4.0        // meters
+        "WEAPON_RELOAD": 3        // seconds
+        // "WEAPON_RANGE": 4.0        // meters
         // "BULLET_DAMAGE": 8       ,
         // "BULLET_KNOCKBACK": 0.3  , // force
         // "BULLET_PIERCE": 3       ,

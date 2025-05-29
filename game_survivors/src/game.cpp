@@ -395,7 +395,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_upgrade_system(r);
     update_ui_gameover_system(r);
-    update_ui_ability_system(r);
+    // update_ui_ability_system(r);
   }
 
 #if defined(_DEBUG)
