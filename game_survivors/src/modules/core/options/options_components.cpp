@@ -171,7 +171,7 @@ Option_AudioSFXVolume::load(engine::SINGLE_Application& app, entt::registry& r)
   auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);
 
   if (!on_disk_opt.has_value()) {
-    data.value = 0.25f;
+    data.value = 0.5f;
     audio_c.volume_sfx = data.value;
     return;
   }

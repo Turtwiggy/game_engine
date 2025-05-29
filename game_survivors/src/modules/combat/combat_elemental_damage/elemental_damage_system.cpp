@@ -27,6 +27,9 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
   for (const auto& [fixture_e, tick_c, parent_c] : r.view<TickDamageComponent, const HasParentComponent>().each()) {
     const auto par_e = parent_c.parent;
 
+    if (par_e == entt::null || !r.valid(par_e))
+      continue;
+
     // take elemental damage every 0.5s
     tick_c.time_since_last_damage += dt;
     if (tick_c.time_since_last_damage < tick_c.time_since_last_damage_max)

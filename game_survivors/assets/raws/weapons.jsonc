@@ -155,11 +155,11 @@
         "WEAPON_PROJECTILES": 1  ,
         "WEAPON_FIRERATE": 0.2   , // per second
         "WEAPON_RELOAD": 3       , // seconds
-        "WEAPON_RANGE": 4.0      , // meters
-        "BULLET_DAMAGE": 8       ,
-        "BULLET_KNOCKBACK": 0.3  , // force
-        "BULLET_PIERCE": 3       ,
-        "BULLET_SIZE": 2         
+        "WEAPON_RANGE": 4.0        // meters
+        // "BULLET_DAMAGE": 8       ,
+        // "BULLET_KNOCKBACK": 0.3  , // force
+        // "BULLET_PIERCE": 3       ,
+        // "BULLET_SIZE": 2         
         // "LIFETIME": 10             // seconds
       },
       "upgrades": [

@@ -5,6 +5,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
@@ -32,25 +33,29 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   // deploy a thing!
 
   const auto& weapons = get_first_component<SINGLE_Weapons>(r);
+  const auto& behaviours = r.get<WeaponBehaviourComponent>(wep_e).behaviours;
 
   // treat turrets as heavy pistols?
-  // Note: upgrades apply to both the turret weapon (i.e. turret launcher,)
-  // todo: validate the weapon that the sea-turret is spawned with (e.g. heavy pistol) has upgrades
+  // Note: upgrades apply to both the turret weapon (i.e. sea-turret launcher)
+  // and the weapon that is spawned with (e.g. heavy pistol)
+  // this works because the upgrades are applied to the player,
+  // and adjust e.g. firerate in get_weapon_def & get_bullet_def
 
   // const auto sea_turret_wep_data = r.get<const Weapon_OnDiskData>(wep_e);
   const auto heavy_pistol_data = weapons.weapons[0]; // todo: dont use idx
-
   const auto turret_e = spawn_weapon(r, player_e, heavy_pistol_data, "weapon_sea_turret");
-  set_position(r, turret_e, get_position(r, wep_e));
+
+  // offset the turret spawning in a random unit vector.
+  static engine::RandomState rnd;
+  const auto offset = 10.0f * engine::rand_unit_vector(rnd);
+  set_position(r, turret_e, get_position(r, wep_e) + glm::vec2{ offset.x, offset.y });
   set_colour(r, turret_e, r.get<DefaultColour>(player_e).colour);
 
-  // todo: shouldnt get_bullet_def every time this is called
   auto wep_def = get_weapon_def(r, player_e, turret_e);
   auto bul_def = get_bullet_def(r, player_e, turret_e);
 
   // note: if the parent turret-deployer has "CHANGE_DAMAGE_TO_ICE"
   // change the damage type spawned by the child spawned turret.
-  const auto& behaviours = r.get<WeaponBehaviourComponent>(wep_e).behaviours;
   if (has(behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_ICE))
     bul_def.damage_type = WEAPON_DAMAGE::ICE;
 
@@ -110,7 +115,9 @@ handle_shoot_event__deploy_turrets(entt::registry& r, const ShootEvent& evt)
   if (!r.all_of<WeaponSeaTurret>(wep_e))
     return;
 
-  spawn_sea_turret(r, wep_e, par_e);
+  const auto wep_def = get_weapon_def(r, par_e, wep_e);
+  for (int i = 0; i < wep_def.projectiles; i++)
+    spawn_sea_turret(r, wep_e, par_e);
 }
 
 } // namespace game2d

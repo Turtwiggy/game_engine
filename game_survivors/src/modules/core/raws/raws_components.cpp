@@ -466,8 +466,8 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   }
   //
   else if (key.find("death_turret_explode") != std::string::npos) {
-    pdesc.size_curve = { { 2.0f * req.radius_pixels_upper, 2.0f * req.radius_pixels_upper }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(0.75 * 1000);
+    pdesc.size_curve = { { 3.0f * req.radius_pixels_upper, 3.0f * req.radius_pixels_upper }, { 0, 0 } };
+    pdesc.time_to_live_ms = static_cast<int>(0.8f * 1000);
     pdesc.start_colour = hex_to_srgb("#b1c9c3"); // turret death col
     pdesc.linear_scale = false;
   }

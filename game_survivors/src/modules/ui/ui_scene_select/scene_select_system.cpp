@@ -165,9 +165,9 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   if (is_ability) {
   }
 
-  const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.05f * box_wh.y);
-  const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
-  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.23f * box_wh.y);
+  const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.04f * box_wh.y);
+  const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.09f * box_wh.y);
+  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.21f * box_wh.y);
 
   // header text.
   {
@@ -220,6 +220,19 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
         clean_key = str_remove_all_occurances(clean_key, "BULLET_");
         display_stats.push_back({ .key = clean_key, .val = std::format("{:.2f}", val) });
       }
+
+      // hack: if you're a sea turret, you deploy other weapons.
+      // show the other weapon stats.
+      if (weapon.key == "weapon_sea_turret") {
+        auto deployed_weapon = weapons_c.weapons[0];
+        display_stats.push_back({ .key = "      [DEPLOYS]", .val = deployed_weapon.name });
+        for (const auto& [key, val] : deployed_weapon.data) {
+          auto clean_key = key;
+          clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
+          clean_key = str_remove_all_occurances(clean_key, "BULLET_");
+          display_stats.push_back({ .key = clean_key, .val = std::format("{:.2f}", val) });
+        }
+      }
     }
 
     const auto text_wh = ImGui::CalcTextSize("A");
@@ -230,7 +243,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       auto l_stat_pos = stat_pos;
       auto r_stat_pos = stat_pos;
       l_stat_pos.x = box_tl.x + 0.1f * box_wh.x;
-      r_stat_pos.x = box_tl.x + 0.66f * box_wh.x;
+      r_stat_pos.x = box_tl.x + 0.60f * box_wh.x;
       l_stat_pos.y += text_wh.y * idx;
       r_stat_pos.y += text_wh.y * idx;
 
@@ -255,7 +268,7 @@ update_player_select_ui(entt::registry& r,
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-  const auto font_enum = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+  const auto font_enum = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
   const auto font_size = (float)font_enum;
   auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);

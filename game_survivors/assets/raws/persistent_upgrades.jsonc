@@ -89,6 +89,8 @@
       { "cost": 4, "type": "stat_flat_increase", "value": 0.20 },
       { "cost": 5, "type": "stat_flat_increase", "value": 0.25 }
     ]},
+    {"key": "BULLET_LIFETIME", "levels": [
+    ]},
     {"key": "BULLET_PIERCE", "levels": [
       { "cost": 1, "type": "stat_flat_increase", "value": 1 },
       { "cost": 2, "type": "stat_flat_increase", "value": 2 },

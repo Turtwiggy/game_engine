@@ -96,7 +96,7 @@ update_ui_blur_system(entt::registry& r, const float dt)
   //   init = true;
   // }
 
-  ImGui::Begin("Blur", nullptr, blur_flags);
+  ImGui::Begin("blur", nullptr, blur_flags);
   ImGui::End();
 
   ImGui::PopStyleColor();
