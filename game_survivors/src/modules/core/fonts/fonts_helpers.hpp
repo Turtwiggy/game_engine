@@ -5,8 +5,8 @@
 
 namespace game2d {
 
-// From 720p => 1080p, multiply ui by some scale. it could be 1.5
-constexpr float scale_size = 1.25f;
+// From 720p => 1080p
+constexpr float scale_size = 1.5f;
 
 enum class FontSize
 {
@@ -30,9 +30,6 @@ enum class FontSize
   HEADER = 100,
   HEADER_SCALED = static_cast<int>(HEADER * scale_size),
   // note: >150 seems to not load or something.
-
-  GAME_TIMER = 48,
-  GAME_TIMER_SCALED = static_cast<int>(GAME_TIMER * scale_size),
 };
 
 ImFont*

@@ -225,7 +225,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const ImVec2 ui_br = { ui_tl.x + ui_wh.x, ui_tl.y + ui_wh.y };
 
   // fonts
-  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 3 : 4];
+  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 4 : 5];
   const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_20 : FontSize::TEXT_SIZE_20_SCALED;
   const auto header_font_size = (float)header_font_enum;
   auto* header_font = get_inter_font(r, header_font_enum);

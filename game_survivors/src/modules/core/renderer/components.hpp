@@ -4,7 +4,6 @@
 #include "engine/opengl/shader.hpp"
 #include "modules/core/renderer/fluidsim/components.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
-#include "modules/core/renderer/helpers/texture.hpp"
 
 #include "imgui.h"
 #include <entt/fwd.hpp>
@@ -57,7 +56,7 @@ struct RenderPass
 
   // one framebuffer can have multiple attachments,
   // in the form of multiple tex_ids.
-  std::vector<Texture> texs;
+  std::vector<engine::Texture> texs;
 
   // the function that gets called during the render
   std::function<void(entt::registry&, float, glm::vec2)> update;
@@ -76,7 +75,7 @@ struct SINGLE_RendererInfo
 {
   std::vector<RenderPass> passes;
 
-  std::vector<Texture> user_textures;
+  std::vector<engine::Texture> user_textures;
   int final_jflood_texunit = 0;
 
   // int tex_unit_circles = 0;

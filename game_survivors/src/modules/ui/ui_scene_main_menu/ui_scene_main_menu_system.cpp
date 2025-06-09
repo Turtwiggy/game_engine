@@ -44,9 +44,6 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
 
-  const ImVec2 button_size = { 200.0f * font_scale, 50.0f * font_scale };
-  const ImVec2 space_between_buttons = { 0, 4 * font_scale };
-
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
@@ -56,7 +53,16 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.2f));
 
+  const ImVec2 button_size = { 200.0f * font_scale, 50.0f * font_scale };
+  const ImVec2 space_between_buttons = { 0, 4 * font_scale };
+
+  const int n_buttons_y = 6;
+  const auto size = ImVec2{ font_scale * 300, n_buttons_y * button_size.y };
+  ImGui::SetNextWindowSize(size);
+
   imgui_begin("MainMenu");
+  const ImVec2 ui_tl = ImGui::GetWindowPos();
+  const ImVec2 ui_wh = ImGui::GetWindowSize();
 
   process_input_for_ui_all_handles(r, ui_c.state);
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
@@ -88,13 +94,16 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         cell->action();
     };
 
+    const auto pos_x = (ui_wh.x * 0.5f) - (button_size.x * 0.5f);
+    ImGui::SetCursorPosX(pos_x);
+
     draw_button(base, 0);
 
     if (base->r != nullptr) {
       ImGui::SameLine();
       std::shared_ptr<Cell>& cell = base->r;
 
-      const auto icon_button_size = ImVec2{ 40.0f * font_scale, 40.0f * font_scale };
+      const auto icon_button_size = ImVec2{ 32.0f * font_scale, 32.0f * font_scale };
       auto tl = ImGui::GetCursorPos();
       tl.x += space_between_buttons.y;
       tl.y += button_size.y - icon_button_size.y;

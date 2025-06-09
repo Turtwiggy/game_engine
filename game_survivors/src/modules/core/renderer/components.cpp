@@ -20,9 +20,9 @@ RenderPass::setup(const glm::ivec2& fbo_size, const int framebuffers)
   // Setup the texture objects
   for (int i = 0; i < framebuffers; i++) {
     for (int j = 0; j < colour_buffers_per_texture; j++) {
-      Texture t;
-      t.tex_unit = TextureUnit(global_tex_unit_count++);
-      t.tex_id = TextureId{ 0 };
+      engine::Texture t;
+      t.tex_unit = engine::TextureUnit(global_tex_unit_count++);
+      t.tex_id = engine::TextureId{ 0 };
       t.path = std::string(magic_enum::enum_name(pass)) + std::to_string(i);
       texs.push_back(t);
     }

@@ -1,6 +1,11 @@
 #include "pch.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "modules/core/animations/wiggle/components.hpp"
+#include "modules/core/camera/orthographic.hpp"
+#include "modules/core/fonts/fonts_helpers.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
@@ -27,8 +32,9 @@ show_if_in_menu(entt::registry& r,
   if (ui_e != entt::null)
     ui_c = &r.get<T>(ui_e);
 
-  if (ui_c && ui_c->open)
+  if (ui_c && ui_c->open) {
     wst_c.text = text;
+  };
 
   if (icon.has_value() && ui_c && ui_c->open)
     header_c.icon = icon.value();
@@ -61,6 +67,27 @@ update_ui_scene_header_system(entt::registry& r)
     txt_c.text = "Prepare";
     h_c.icon = "ICON_WHEEL";
   }
+
+  const auto& ri_c = SINGLE_RendererInfo::instance;
+  // idx: 2&3 should be the fingerpaint header font
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
+  auto* font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 2 : 3];
+  const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, txt_c.text.c_str());
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+  const auto zoom = camera_c.zoom_nonlinear;
+
+  // pos_x is 0 because camera is already at center
+  const auto half_wh = ImVec2(ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f);
+  auto pos = glm::vec2(0, -half_wh.y + ri_c.viewport_size_render_at.y * (2.5 / 12.0f));
+  pos -= 0.5f * glm::vec2{ text_size.x, text_size.y };
+  pos *= zoom; // take in to account zoom.
+
+  set_position(r, megaheader_e, pos);
+
+  auto& wiggle_c = r.get_or_emplace<WiggleUpAndDown>(megaheader_e);
+  if (wiggle_c.base_position != pos)
+    wiggle_c.base_position = pos;
 }
 
 } // namespace game2d

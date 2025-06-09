@@ -66,13 +66,15 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   ImGui::PushFont(font);
 
   // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
-  // auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 3 : 4];
-  // const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto header_font_enum = FontSize::TEXT_SIZE_16;
   auto* header_font = get_inter_font(r, header_font_enum);
 
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 6 });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 3, 6 });
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
 
   const auto viewport_tl = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
   const auto viewport_wh = ImVec2(ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
@@ -82,6 +84,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   ImGui::SetNextWindowSizeConstraints({ 400, 200 }, { 1000, 1000 });
 
   imgui_begin("OptionsMenu");
+
   auto* draw_list = ImGui::GetWindowDrawList();
   const ImVec2 window_tl = ImGui::GetWindowPos();
   const ImVec2 window_wh = ImGui::GetWindowSize();
@@ -96,16 +99,15 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const ImVec2 button_size = { 200.0f, TEXT_SIZE.y + 2.0f };
   const float padding_x = 10;
 
-  // which is the active cell index
-  const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
-  const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
-
   for (int i = 0; i < (int)ui_c.state.cells.size(); i++) {
     auto& base = ui_c.state.cells[i];
     auto* cell = dynamic_cast<OptionsCell*>(base.get());
 
-    int col_idx = 0;
-    int row_idx = cell_idx;
+    // which is the active cell index
+    const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
+    const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
+    const int col_idx = 0;
+    const int row_idx = cell_idx;
     const bool active = base == ui_c.state.active;
 
     auto a_def = SelectableButtonDef{
@@ -115,13 +117,12 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       .cell = base,
       .active_cell = ui_c.state.active,
 
-      // could replace both .text_X with .text_pivot
-      .text_centered = false,
+      .text_pivot = { 0.0f, 0.5f }, // center_y
       .text_offset = { padding_x, 0 },
       .font = font,
 
       // hide the buttons
-      .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      .active_outline_col = { 1.0f, 0.0f, 0.0f, 1.0f },
       .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
@@ -153,18 +154,22 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       if (dm == engine::DisplayMode::fullscreen_borderless) {
 
         // Skip this option in the select menu
-        if (v_value_changed && active && enum_val == GAME_OPTIONS::VIDEO_RESOLUTION) {
-          if (v_value_changed_u)
-            row_idx++;
-          if (v_value_changed_d)
-            row_idx--;
+        if (active && enum_val == GAME_OPTIONS::VIDEO_RESOLUTION) {
+          if (v_value_changed) {
+            if (v_value_changed_u)
+              ui_c.state.active = ui_c.state.cells[row_idx - 1]; // prv
+            else if (v_value_changed_d)
+              ui_c.state.active = ui_c.state.cells[row_idx + 1]; // nxt
+            else
+              ui_c.state.active = ui_c.state.cells[row_idx + 1]; // force next
+          }
         }
 
-        // ImGui::SetCursorPos({ padding_x, ImGui::GetCursorPos().y });
+        ImGui::NewLine();
+        ImGui::SameLine(padding_x);
         ImGui::TextColored(im_inactive_col, "RESOLUTION (auto)");
 
-        ImGui::SameLine();
-        // ImGui::SetCursorScreenPos({ window_tl.x + window_wh.x * 0.50f, ImGui::GetCursorScreenPos().y });
+        ImGui::SameLine(window_wh.x * 0.5f);
         ImGui::TextColored(im_inactive_col, "%i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
         continue;
       }
@@ -262,7 +267,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
   ImGui::End();
   ImGui::PopFont();
-  ImGui::PopStyleVar(2);
+  ImGui::PopStyleVar(6);
 }
 
 } // namespace game2d

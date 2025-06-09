@@ -25,11 +25,12 @@ init_fonts_system()
   // idx: 1
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f);
 
-  // idx: 2
+  // idx: 2 & 3
   io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f);
-  // idx: 3 upgrade menu header
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f * 1.5);
+
+  // idx: 4 & 5 upgrade menu header
   io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f);
-  // idx: 4 upgrade menu header scaled
   io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f * scale_size);
 
   const int count = magic_enum::enum_count<FontSize>();

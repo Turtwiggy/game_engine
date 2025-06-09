@@ -2,7 +2,7 @@
 
 // my libs
 #include "components.hpp"
-#include "modules/core/renderer/components.hpp"
+#include "engine/opengl/texture.hpp"
 
 #include <entt/fwd.hpp>
 
@@ -11,7 +11,7 @@
 namespace game2d {
 
 void
-load_sprites(SINGLE_Animations& anims, const Texture& texture);
+load_sprites(SINGLE_Animations& anims, const engine::Texture& texture);
 
 std::pair<Spritesheet, SpriteAnimation>
 find_animation(const SINGLE_Animations& anims, const std::string& name);

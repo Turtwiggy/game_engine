@@ -35,7 +35,7 @@ Additionally, a full solution might look like:
 
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/shader.hpp"
-#include "modules/core/renderer/helpers/texture.hpp"
+#include "engine/opengl/texture.hpp"
 
 #include <array>
 
@@ -44,7 +44,7 @@ namespace game2d {
 struct FboAndTexInfo
 {
   engine::FramebufferID fbo_id;
-  Texture tex;
+  engine::Texture tex;
 };
 
 struct SingleBufferInfo

@@ -19,7 +19,7 @@ struct Frame
 };
 
 void
-load_sprites(SINGLE_Animations& anims, const Texture& texture)
+load_sprites(SINGLE_Animations& anims, const engine::Texture& texture)
 {
   const auto path = texture.spritesheet_path;
   SDL_Log("%s", std::format("loading sprite config: {}", path).c_str());

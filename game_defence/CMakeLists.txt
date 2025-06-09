@@ -32,9 +32,9 @@ find_packages()
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 
-file(GLOB_RECURSE SRC_FILES
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
   ${IMGUI_SOURCE}
-  ${OPTICK_SOURCE}
+  ${CMAKE_SOURCE_DIR}/thirdparty/glad/include/glad/glad.c
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
 )
@@ -55,13 +55,12 @@ link_libs(game_defence)
 target_include_directories(game_defence PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
-  ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src
-  ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
+  ${CMAKE_SOURCE_DIR}/thirdparty/entt/src
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
-  ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
+  ${CMAKE_SOURCE_DIR}/thirdparty/glad/include
 )
 
 # rename executable

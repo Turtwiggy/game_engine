@@ -351,11 +351,11 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update ui scaling
   {
     const auto& ri = SINGLE_RendererInfo::instance;
-    const float base_x = 1280; // note: this was the res the ui was created at
+    // const float base_x = 1280; // note: this was the res the ui was created at
     const float base_y = 720;
     const float scale = ri.viewport_size_render_at.y / base_y;
     auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
-    ui_scale.scaling = scale <= 1.0 ? 1.0f : 1.25f;
+    ui_scale.scaling = scale <= 1.0f ? 1.0f : scale_size;
 
 #if defined(_DEBUG)
     // auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);

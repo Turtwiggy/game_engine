@@ -98,11 +98,8 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
 
   const auto text_size = font->CalcTextSizeA(font->FontSize, p_wh.x, -1, label.c_str());
   auto text_pos = ImVec2{ p_tl.x, p_tl.y };
-
-  if (def.text_centered) {
-    text_pos.x += 0.5f * (p_wh.x - text_size.x);
-    text_pos.y += 0.5f * (p_wh.y - text_size.y);
-  }
+  text_pos.x += def.text_pivot.x * (p_wh.x - text_size.x);
+  text_pos.y += def.text_pivot.y * (p_wh.y - text_size.y);
 
   text_pos += def.text_offset;
   draw_list->AddText(font, font->FontSize, text_pos, text_col, label.c_str());
@@ -112,10 +109,10 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     const auto& icon = def.icon.value();
     const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
     const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
-    const ImVec2 icon_size{ def.size.x, def.size.y };
+    // const ImVec2 icon_size{ def.size.x, def.size.y };
     const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
 
-    const auto icon_padding = 4;
+    const auto icon_padding = 6;
     const auto icon_p_tl = ImVec2{ p_tl.x + icon_padding, p_tl.y + icon_padding };
     const auto icon_p_br = ImVec2{ p_br.x - icon_padding, p_br.y - icon_padding };
     draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_tl, icon_br, text_col);

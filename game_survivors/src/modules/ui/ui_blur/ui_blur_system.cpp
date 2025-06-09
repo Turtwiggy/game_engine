@@ -45,8 +45,8 @@ update_ui_blur_system(entt::registry& r, const float dt)
   const float fade_in_speed = 4.0f;
 
   // blur with select menu...
-  // if (scene_c.s == Scene::select_ships)
-  //   blur_amount += fade_in_speed * dt;
+  if (scene_c.s == Scene::select_ships)
+    blur_amount += fade_in_speed * dt;
 
   // blur with options menu...
   if (options_c.open)

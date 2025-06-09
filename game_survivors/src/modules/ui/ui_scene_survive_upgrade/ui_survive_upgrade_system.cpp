@@ -138,8 +138,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
   const auto line_size = 40.0f * ui_scale;
   const float desired_y = (card_size.y * cards) + ((cards - 1) * card_padding_y) + upg_header_height;
 
-  // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
-  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 3 : 4];
+  // idx: 4 should be fingerpaint, idx: 5 should be fingerpaint scaled.
+  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 4 : 5];
 
   const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   auto* font = get_inter_font(r, text_font_enum);

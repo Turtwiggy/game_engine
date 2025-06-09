@@ -16,7 +16,7 @@ get_default_textures()
   path += "assets/";
 
   const auto add_tex = [&ri, &path](const std::string& p, const std::string& sp) {
-    Texture tex;
+    engine::Texture tex;
     tex.path = path + "textures/" + p;
     tex.spritesheet_path = path + "config/" + sp;
     ri.user_textures.push_back(tex);

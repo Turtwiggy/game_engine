@@ -177,9 +177,10 @@ update_ui_survive_hp_bars_system(entt::registry& r)
       const auto& weapon_clip_c = r.get<WeaponClipSize>(wep_e);
       const auto& weapon_reload_c = r.get<WeaponReloadRate>(wep_e);
       const float bullets_in_clip = weapon_clip_c.bullets_cur / (float)wep_def.bullets_max;
-      const float reload_percent = weapon_reload_c.seconds_cur / (float)wep_def.reload_rate;
+      const float reload_percent = glm::clamp(weapon_reload_c.seconds_cur / (float)wep_def.reload_rate, 0.0f, 1.0f);
 
       float percent_to_display = 0.0f;
+      bool is_reloading = false;
 
       // if we've got bullets, show your current bullets
       if (weapon_clip_c.bullets_cur > 0)
@@ -187,8 +188,10 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 
       // if no bullets, show reload time
       // (make it 1.0-X to show bar as increasing while reloading)
-      if (weapon_clip_c.bullets_cur == 0)
+      if (weapon_clip_c.bullets_cur == 0) {
         percent_to_display = 1.0 - reload_percent;
+        is_reloading = true;
+      }
 
       // bar background.
       {
@@ -206,9 +209,11 @@ update_ui_survive_hp_bars_system(entt::registry& r)
         const auto bar_r = ImVec2{ pos_r.x - bar_padding_x, pos_r.y - bar_padding_y };
         const auto bar_w = bar_r.x - bar_l.x;
         const auto bar_r_adj = ImVec2{ bar_r.x - ((1.0f - percent_to_display) * bar_w), bar_r.y };
-        const auto my_gunbar_bg = hex_to_srgb("#E8DA58");
-        const auto im_gunbar_bg = convert_my_to_im(my_gunbar_bg);
-        draw_list->AddRectFilled(bar_l, bar_r_adj, im_gunbar_bg, bar_rounding);
+        const auto my_gunbar_fg = hex_to_srgb("#E8DA58");
+        const auto im_gunbar_fg = convert_my_to_im(my_gunbar_fg);
+        const auto my_gunbar_reloading_fg = hex_to_srgb("#FF0000");
+        const auto im_gunbar_reloading_fg = convert_my_to_im(my_gunbar_reloading_fg);
+        draw_list->AddRectFilled(bar_l, bar_r_adj, is_reloading ? im_gunbar_reloading_fg : im_gunbar_fg, bar_rounding);
       }
 
       // weapon text

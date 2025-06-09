@@ -59,8 +59,6 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
   ImGui::PushFont(font);
 
   // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
-  // auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 3 : 4];
-  // const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto header_font_enum = FontSize::TEXT_SIZE_16;
   auto* header_font = get_inter_font(r, header_font_enum);
 
@@ -107,8 +105,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
       .cell = cell,
       .active_cell = ui_c.state.active,
 
-      // could replace both .text_X with .text_pivot
-      .text_centered = false,
+      .text_pivot = { 0.0f, 0.0f },
       .text_offset = { padding_x, 0 },
       .font = font,
 

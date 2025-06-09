@@ -481,10 +481,10 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
         c1.action = []() {};
         ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c1));
 
-        OptionsCell c2;
-        c2.name = "Ability";
-        c2.action = []() {};
-        ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c2));
+        // OptionsCell c2;
+        // c2.name = "Ability";
+        // c2.action = []() {};
+        // ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c2));
 
         create_as_vertical_layout(ui_state_c.state.cells);
 

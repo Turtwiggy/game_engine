@@ -44,7 +44,7 @@ struct SelectableButtonDef
   bool update_selected_only_with_mouse = false;
   bool update_selected_on_mouse_move = true;
 
-  bool text_centered = true;
+  glm::vec2 text_pivot{ 0.5f, 0.5f }; // 0.5, 0.5 = center
   ImVec2 text_offset{ 0, 0 };
   ImFont* font = nullptr;
 

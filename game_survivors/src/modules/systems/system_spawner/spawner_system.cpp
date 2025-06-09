@@ -481,9 +481,9 @@ update_spawner_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
 
   // dont update survive timer when theres a boss
-  const bool boss_is_alive = r.view<const BossComponent>().size() > 0;
-  if (boss_is_alive)
-    return;
+  // const bool boss_is_alive = r.view<const BossComponent>().size() > 0;
+  // if (boss_is_alive)
+  //   return;
 
   // Update survive timer
   survive_c.time_left_cur -= dt;

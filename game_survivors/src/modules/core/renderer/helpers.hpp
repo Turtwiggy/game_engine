@@ -2,6 +2,7 @@
 
 // game2d
 #include "components.hpp"
+#include "engine/opengl/texture.hpp"
 #include "modules/core/renderer/components.hpp"
 
 // other libs
@@ -20,16 +21,16 @@ check_if_viewport_resize(SINGLE_RendererInfo& ri);
 
 //
 
-std::optional<TextureUnit>
+std::optional<engine::TextureUnit>
 search_for_texture_unit_by_texture_path(const SINGLE_RendererInfo& ri, const std::string& search);
 
-std::optional<TextureId>
+std::optional<engine::TextureId>
 search_for_texture_id_by_texture_path(const SINGLE_RendererInfo& ri, const std::string& search);
 
-std::optional<TextureUnit>
+std::optional<engine::TextureUnit>
 search_for_texture_unit_by_spritesheet_path(const SINGLE_RendererInfo& ri, const std::string& search);
 
-std::optional<TextureId>
+std::optional<engine::TextureId>
 search_for_texture_id_by_spritesheet_path(const SINGLE_RendererInfo& ri, const std::string& search);
 
 //
