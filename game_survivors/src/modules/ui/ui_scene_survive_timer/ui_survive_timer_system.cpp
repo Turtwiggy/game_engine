@@ -92,7 +92,7 @@ update_ui_survive_timer_system(entt::registry& r)
     const auto icon_size_half = 10.0f * header_font_scale;
     const auto icon_padding = 0;
     const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-    const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+    const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
     const auto bar_center = ImVec2{ 0.5f * (bar_tl.x + bar_br.x), 0.5f * (bar_tl.y + bar_br.y) };
     const auto icon_tl = ImVec2(bar_center.x - icon_size_half, bar_center.y - icon_size_half);
     const auto icon_br = ImVec2(bar_center.x + icon_size_half, bar_center.y + icon_size_half);

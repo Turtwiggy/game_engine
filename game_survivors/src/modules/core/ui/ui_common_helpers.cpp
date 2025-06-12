@@ -107,15 +107,16 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   // draw as an icon
   if (def.icon.has_value()) {
     const auto& icon = def.icon.value();
+    const auto space_x = p_br.x - p_tl.x;
+    const auto space_y = p_br.y - p_tl.y;
+    const auto pos_x = p_tl.x + 0.5f * (space_x - def.icon_size.x);
+    const auto pos_y = p_tl.y + 0.5f * (space_y - def.icon_size.y);
+    const auto icon_p_tl = ImVec2{ pos_x, pos_y };
+    const auto icon_p_br = ImVec2{ pos_x + def.icon_size.x, pos_y + def.icon_size.y };
     const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
-    const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
-    // const ImVec2 icon_size{ def.size.x, def.size.y };
-    const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
-
-    const auto icon_padding = 6;
-    const auto icon_p_tl = ImVec2{ p_tl.x + icon_padding, p_tl.y + icon_padding };
-    const auto icon_p_br = ImVec2{ p_br.x - icon_padding, p_br.y - icon_padding };
-    draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_tl, icon_br, text_col);
+    const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
+    const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, icon);
+    draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_uv_tl, icon_uv_br, text_col);
   }
 
   // "commit changes"

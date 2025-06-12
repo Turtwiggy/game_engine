@@ -15,7 +15,7 @@ public:
   ~ImGui_Manager();
 
   void initialize(GameWindow& window);
-  void begin_frame(const GameWindow& window);
+  void begin_frame();
   void end_frame(const GameWindow& window);
   void process_event(const SDL_Event* event);
 };

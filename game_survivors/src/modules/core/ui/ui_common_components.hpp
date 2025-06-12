@@ -34,6 +34,7 @@ struct SelectableButtonDef
 {
   std::string label;
   std::optional<std::string> icon = std::nullopt;
+  ImVec2 icon_size{ 0, 0 };
   ImVec2 size{ 20, 20 };
   bool input;
 

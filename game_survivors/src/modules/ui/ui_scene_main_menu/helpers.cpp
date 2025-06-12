@@ -99,7 +99,7 @@ ui_mute_sound_icon(entt::registry& r)
 
   // draw an audio icon
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "kenneynl_gameicons")->id;
-  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
 
   // bool toggle_changed = false;
   // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
@@ -168,10 +168,10 @@ draw_icon(entt::registry& r, std::string icon, float font_scale)
   ImGui::SetCursorPos(pos);
 
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "custom")->id;
-  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
   const ImVec2 icon_size{ size * font_scale, size * font_scale };
   const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
-  ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_greenish);
+  ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_greenish, {});
 };
 
 void

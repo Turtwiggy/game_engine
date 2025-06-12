@@ -149,14 +149,14 @@ ImGui_Manager::initialize(GameWindow& window)
 }
 
 void
-ImGui_Manager::begin_frame(const GameWindow& window)
+ImGui_Manager::begin_frame()
 {
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
 
   ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplSDL2_NewFrame(window.get_handle());
+  ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
 }
 

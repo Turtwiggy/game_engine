@@ -34,7 +34,7 @@ update_ui_survive_info_system(entt::registry& r)
 
   const auto& ri = SINGLE_RendererInfo::instance;
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
-  const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  const ImTextureID im_id = (ImTextureID)(void*)(intptr_t)tex_id;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;

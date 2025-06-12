@@ -6,7 +6,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
@@ -86,11 +85,14 @@ static engine::RandomState target_rnd(0);
 entt::entity
 get_random_player_target(entt::registry& r)
 {
-  const auto& players_view = r.view<PlayerComponent>();
+  const auto players_view = r.view<PlayerComponent>();
   if (players_view.size() == 0)
     return entt::null;
   const int rnd = engine::rand_det_s(target_rnd.rng, 0, (int)players_view.size());
-  return players_view[rnd];
+
+  auto it = players_view.begin();
+  std::advance(it, rnd);
+  return *it;
 };
 
 glm::vec2

@@ -209,8 +209,8 @@ update_ui_survive_upgrade_system(entt::registry& r)
       ImVec2(player_ui_tl.x + 0.5f * (player_ui_wh.x - card_size.x), player_ui_tl.y + 0.5f * (player_ui_wh.y - desired_y));
     const auto clamped_wh = card_size;
 
-    const auto* head_f = fingerpaint_font;
-    const auto* f = font; // body font
+    auto* head_f = fingerpaint_font;
+    auto* f = font; // body font
 
     // add upgrade header for column
     const auto im_player_col = convert_my_to_im(default_player_colours[player_idx]);

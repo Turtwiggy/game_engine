@@ -21,7 +21,7 @@ update_ui_hierarchy_system(entt::registry& r)
 #endif
   GET_FIRST_OR_RETURN(SINGLE_DebugMenuBar, r, menu_e, menu_c);
 
-  const size_t entities = r.storage<entt::entity>().in_use();
+  const size_t entities = r.storage<entt::entity>().size();
   static entt::entity selected_entity = entt::null;
   static std::vector<Category> categories;
 

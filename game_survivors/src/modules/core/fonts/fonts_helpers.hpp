@@ -3,7 +3,6 @@
 #include <entt/fwd.hpp>
 #include <imgui.h>
 
-
 namespace game2d {
 
 // From 720p => 1080p
@@ -48,6 +47,6 @@ ImVec2
 calc_wh(const ImVec2 tl, const ImVec2 br);
 
 ImVec2
-center_text(const ImFont* font, const std::string& text, const ImVec2& pos, const ImVec2 pivot = { 0.5f, 0.5f });
+center_text(ImFont* font, const std::string& text, const ImVec2& pos, const ImVec2 pivot = { 0.5f, 0.5f });
 
 } // namespace game2d

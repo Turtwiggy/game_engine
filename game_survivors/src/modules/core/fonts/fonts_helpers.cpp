@@ -56,7 +56,7 @@ calc_wh(const ImVec2 tl, const ImVec2 br)
 };
 
 ImVec2
-center_text(const ImFont* font, const std::string& text, const ImVec2& pos, const ImVec2 pivot)
+center_text(ImFont* font, const std::string& text, const ImVec2& pos, const ImVec2 pivot)
 {
   const auto size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
   return pos - ImVec2{ size.x * pivot.x, size.y * pivot.y };

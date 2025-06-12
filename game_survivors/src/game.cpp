@@ -455,7 +455,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // const auto pos = ImVec2(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
     // ImDrawList* draw_list = ImGui::GetForegroundDrawList();
     // const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
-    // const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+    // const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
     // ImVec2 tl{ 0.0f, 0.0f };
     // ImVec2 br{ 1.0f, 1.0f };
     // const auto result = convert_sprite_to_uv(r, "CURSOR_0");

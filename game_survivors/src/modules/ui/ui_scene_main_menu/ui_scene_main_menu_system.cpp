@@ -57,7 +57,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   const ImVec2 space_between_buttons = { 0, 4 * font_scale };
 
   const int n_buttons_y = 6;
-  const auto size = ImVec2{ font_scale * 300, n_buttons_y * button_size.y };
+  const auto size = ImVec2{ font_scale * 400, n_buttons_y * button_size.y };
   ImGui::SetNextWindowSize(size);
 
   imgui_begin("MainMenu");
@@ -103,7 +103,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       ImGui::SameLine();
       std::shared_ptr<Cell>& cell = base->r;
 
-      const auto icon_button_size = ImVec2{ 32.0f * font_scale, 32.0f * font_scale };
+      const auto icon_button_size = ImVec2{ 40.0f * font_scale, 40.0f * font_scale };
       auto tl = ImGui::GetCursorPos();
       tl.x += space_between_buttons.y;
       tl.y += button_size.y - icon_button_size.y;
@@ -112,6 +112,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       auto a_def = SelectableButtonDef{
         .label = "##" + cell->name,
         .icon = "ICON_WAND",
+        .icon_size = { 32, 32 },
         .size = icon_button_size,
         .input = do_act,
         .cell = cell,

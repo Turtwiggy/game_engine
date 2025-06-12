@@ -10,7 +10,7 @@
 void
 engine::start_frame(SINGLE_Application& app)
 {
-  app.imgui.begin_frame(app.window);
+  app.imgui.begin_frame();
 };
 
 void

@@ -241,11 +241,11 @@ update_ui_scene_upgrades_system(entt::registry& r)
 
   // draw a moneybag for your gold
   const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
+  const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
   const ImVec2 icon_size{ 32 * font_scale, 32 * font_scale };
   const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
   ImGui::SetCursorPosX(0.5f * (ui_wh.x - icon_size.x));
-  ImGui::Image(im_id, icon_size, gold_tl, gold_br, im_gold_col);
+  ImGui::Image(im_id, icon_size, gold_tl, gold_br, im_gold_col, {});
 
   ImGui::PushFont(text_font);
 
@@ -283,7 +283,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
     ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
 
     const auto [cursor_tl, cursor_br] = convert_sprite_to_uv(r, "CURSOR_1"s);
-    ImGui::Image(im_id, icon_size, cursor_tl, cursor_br, ImVec4(1.0, 0.0, 0.0, 1.0));
+    ImGui::Image(im_id, icon_size, cursor_tl, cursor_br, ImVec4(1.0, 0.0, 0.0, 1.0), {});
   }
 
   // Draw upgrades in a grid.
@@ -307,7 +307,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
 
     ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
     const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "AMMO_BOX"s);
-    ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_icon_col);
+    ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_icon_col, {});
 
     // update selection with mouse as well
     const auto is_hovered = ImGui::IsItemHovered();

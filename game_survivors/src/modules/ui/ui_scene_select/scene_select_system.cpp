@@ -192,7 +192,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
     const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
     const auto font_size = (float)font_enum;
-    const auto* font = get_inter_font(r, font_enum);
+    auto* font = get_inter_font(r, font_enum);
 
     const float width_limit = box_wh.x - (2.0f * 4);
     const auto text_size = font->CalcTextSizeA(font_size, width_limit, width_limit, desc.c_str());
