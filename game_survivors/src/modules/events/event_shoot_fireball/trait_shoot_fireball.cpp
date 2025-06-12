@@ -55,7 +55,7 @@ handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
   // shoot a fireball!
   const auto pos = get_position(r, wep_e);
 
-  const auto b2_vel = r.get<PhysicsBodyComponent>(from_e).body->GetLinearVelocity();
+  const auto b2_vel = b2Body_GetLinearVelocity(r.get<PhysicsBodyComponent>(from_e).bodyId);
   glm::vec2 dir = glm::vec2{ b2_vel.x, b2_vel.y };
 
   // if you have a target, shoot that
@@ -68,7 +68,7 @@ handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
 
   const auto bullet_e = spawn_projectile(r, fireball_def, pos);
   const auto bullet_vel = fireball_def.speed * b2Vec2{ dir.x, dir.y };
-  r.get<PhysicsBodyComponent>(bullet_e).body->SetLinearVelocity(bullet_vel);
+  b2Body_SetLinearVelocity(r.get<PhysicsBodyComponent>(bullet_e).bodyId, bullet_vel);
 
   // fireballs to player col
   // const auto& player_col = r.get<DefaultColour>(from_e).colour;

@@ -208,7 +208,7 @@ update_autofire_system(entt::registry& r, const float dt)
   ZoneScoped;
 #endif
   GET_FIRST_OR_RETURN(SINGLE_Physics, r, phys_e, phys_c);
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   {
@@ -226,7 +226,7 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto& par_inp = r.get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
-      const auto par_vel_m = r.get<const PhysicsBodyComponent>(par_e).body->GetLinearVelocity();
+      const auto par_vel_m = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(par_e).bodyId);
       const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
 
       // If the player is holding the right analogue, overwrite the shoot_angle.
@@ -268,7 +268,7 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto bullet_speed_p = meters_to_pixels(bul_def.speed);
       const auto tgt = autofire_c.target;
       const auto tgt_pos = get_position(r, tgt);
-      const auto tgt_vel_m = r.get<PhysicsBodyComponent>(tgt).body->GetLinearVelocity();
+      const auto tgt_vel_m = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(tgt).bodyId);
       const glm::vec2 tgt_vel_p = meters_to_pixels(tgt_vel_m);
       const auto you_pos = wep_pos;
       const auto you_vel_m = par_vel_m;

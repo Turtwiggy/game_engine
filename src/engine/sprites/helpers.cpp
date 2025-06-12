@@ -56,8 +56,17 @@ load_sprites(SINGLE_Animations& anims, const engine::Texture& texture)
   spritesheet.nx = ss["nx"];
   spritesheet.ny = ss["ny"];
 
-  if (spritesheet.px_total != texture.size.x || spritesheet.py_total != texture.size.y)
-    throw std::runtime_error("Texture Size / Spritesheet Size mismatch");
+// note: this case can happen if textures are not loaded, as when run by tests
+#if !defined(TESTS)
+  if (spritesheet.px_total != texture.size.x || spritesheet.py_total != texture.size.y) {
+    auto err = std::format("Texture Size / Spritesheet Size mismatch {} {} {} {}",
+                           spritesheet.px_total,
+                           texture.size.x,
+                           spritesheet.py_total,
+                           texture.size.y);
+    throw std::runtime_error(err);
+  }
+#endif
 
   std::vector<SpriteAnimation> sprites;
 

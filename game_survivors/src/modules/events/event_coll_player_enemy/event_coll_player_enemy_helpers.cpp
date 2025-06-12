@@ -3,7 +3,6 @@
 #include "event_coll_player_enemy_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
@@ -15,13 +14,14 @@
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/events/event_coll/event_coll_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
 
 namespace game2d {
 
 void
 handle_player_enemy_explosive_coll(entt::registry& r, entt::entity enemy_e)
 {
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
 
   // Note, for enemies, checking the item template, not the live
   const auto key = r.get<ItemKey>(enemy_e).key;
@@ -58,6 +58,7 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
 {
   // PlayerFixtureComponent will be on the fixture level
   // TeamComponent will be on the body level
+
   const auto [player_fixture_e, enemy_fixture_e] = coll<PlayerFixtureComponent, EnemyComponent>(r, coll_evt.a, coll_evt.b);
   if (player_fixture_e == entt::null || enemy_fixture_e == entt::null)
     return;
@@ -69,7 +70,7 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
     return;
   coll.emplace(player_fixture_e); // new coll
 
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
 
   const auto player_parent_e = r.get<HasParentComponent>(player_fixture_e).parent;
   const auto enemy_parent_e = r.get<HasParentComponent>(enemy_fixture_e).parent;
@@ -93,7 +94,7 @@ handle_player_enemy_coll_enter(entt::registry& r, const OnCollisionEnter& coll_e
   // ding ding, you hit. now stop and move away
   // This sets the velocity this frame,
   // but then gets taken over by physics again
-  enemy_phys.body->SetLinearVelocity(1.0f * b2Vec2{ dir.x, dir.y });
+  b2Body_SetLinearVelocity(enemy_phys.bodyId, 1.0f * b2Vec2{ dir.x, dir.y });
 };
 
 void

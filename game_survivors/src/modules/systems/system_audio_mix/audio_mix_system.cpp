@@ -1,4 +1,3 @@
-#include "modules/scene/scene_components.hpp"
 #include "pch.hpp"
 
 #include "audio_mix_system.hpp"
@@ -9,6 +8,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
+#include "modules/scene/scene_components.hpp"
 
 namespace game2d {
 

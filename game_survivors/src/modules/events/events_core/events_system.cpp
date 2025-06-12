@@ -35,8 +35,8 @@ static entt::dispatcher dispatcher;
 void
 init_events_system(entt::registry& r)
 {
-  create_persistent<SINGLE_Events>(r, SINGLE_Events{ &dispatcher });
-  auto& ed = get_first_component<SINGLE_Events>(r);
+  SINGLE_Events::instance = SINGLE_Events{ &dispatcher };
+  auto& ed = SINGLE_Events::instance;
 
   // link event => function
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_other_coll>(r);
@@ -77,11 +77,8 @@ update_events_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto dispatcher_e = get_first<SINGLE_Events>(r);
-  if (dispatcher_e == entt::null)
-    return;
-  auto& ed = r.get<SINGLE_Events>(dispatcher_e);
-  ed.dispatcher->update(); // dispatch events
+  auto& evts_c = SINGLE_Events::instance;
+  evts_c.dispatcher->update(); // dispatch events
 
   // Call the callbacks for postfixedupdate callbacks
   GET_FIRST_OR_RETURN(SINGLE_PostFixedUpdateCallbacks, r, callbacks_e, callbacks_c);

@@ -11,17 +11,11 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_player/components.hpp"
-#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
-#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "snake_components.hpp"
-
-#include <box2d/b2_distance_joint.h>
-#include <box2d/b2_math.h>
-#include <box2d/b2_revolute_joint.h>
 
 namespace game2d {
 
@@ -137,38 +131,45 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
     target_c.orbit = false;
     r.emplace<ApplyForceToDynamicTarget>(segment_e, target_c);
     r.emplace<PhysicsDynamicTarget>(segment_e, snake_c.target_e_0);
-    r.emplace<ActorSpeedComponent>(segment_e, ActorSpeedComponent{ .base_speed = 5.0, .current_speed = 5.0 });
   }
 
   if (type == SectionType::BODY || type == SectionType::TAIL) {
 
-    auto& body_a = r.get<PhysicsBodyComponent>(previous_e).body;
-    auto& body_b = r.get<PhysicsBodyComponent>(segment_e).body;
-    body_b->SetLinearDamping(5.0f);
-    body_b->SetFixedRotation(false);
+    const auto body_id_a = r.get<PhysicsBodyComponent>(previous_e).bodyId;
+    const auto body_id_b = r.get<PhysicsBodyComponent>(segment_e).bodyId;
+    b2Body_SetLinearDamping(body_id_b, 5.0f);
+    b2Body_SetFixedRotation(body_id_b, false);
 
     // create a distance constraint...
-    b2DistanceJointDef def;
-    def.Initialize(body_a, body_b, body_a->GetWorldCenter(), body_b->GetWorldCenter());
+    const b2Vec2 pivot1 = b2Body_GetPosition(body_id_a);
+    const b2Vec2 pivot2 = b2Body_GetPosition(body_id_b);
+    b2DistanceJointDef def = b2DefaultDistanceJointDef();
+    def.hertz = 1.0f;        // this should be less than half of the frequency of the timestep
+    def.dampingRatio = 1.0f; // typically between 0 and 1. at 1 oscillations should vanish
+    def.bodyIdA = body_id_a;
+    def.bodyIdB = body_id_b;
+    def.localAnchorA = b2Body_GetLocalPoint(def.bodyIdA, pivot1);
+    def.localAnchorB = b2Body_GetLocalPoint(def.bodyIdB, pivot2);
+    def.enableLimit = true;
     def.minLength = pixels_to_meters(snake_c.distance_between_segment_pixels);
     def.maxLength = pixels_to_meters(snake_c.distance_between_segment_pixels);
-    float frequencyHz = 1.0f;  // this should be less than half of the frequency of the timestep
-    float dampingRatio = 1.0f; // typically between 0 and 1. at 1 oscillations should vanish
-    b2LinearStiffness(def.stiffness, def.damping, frequencyHz, dampingRatio, def.bodyA, def.bodyB);
-    physics_c.world->CreateJoint(&def);
+    b2CreateDistanceJoint(physics_c.worldId, &def);
 
     // create a revolute joint...
-    b2RevoluteJointDef rdef;
-    rdef.Initialize(body_a, body_b, body_a->GetWorldCenter());
+    b2RevoluteJointDef rdef = b2DefaultRevoluteJointDef();
+    rdef.bodyIdA = body_id_a;
+    rdef.bodyIdB = body_id_b;
+    rdef.localAnchorA = b2Body_GetLocalPoint(body_id_a, b2Body_GetPosition(body_id_a));
+    rdef.localAnchorB = b2Body_GetLocalPoint(body_id_b, b2Body_GetPosition(body_id_a)); // rel to a
     rdef.enableLimit = true;
     rdef.lowerAngle = -segment_bending[idx - 1] * engine::Deg2Rad;
     rdef.upperAngle = segment_bending[idx - 1] * engine::Deg2Rad;
-    physics_c.world->CreateJoint(&rdef);
-  }
+    b2CreateRevoluteJoint(physics_c.worldId, &rdef);
+  };
 
   // Allow rotation
   auto& pb_c = r.get<PhysicsBodyComponent>(segment_e);
-  pb_c.body->SetFixedRotation(false);
+  b2Body_SetFixedRotation(pb_c.bodyId, false);
   r.emplace<SetTransformRotationBasedOnPhysicsVelocity>(segment_e);
 
   // Add HP

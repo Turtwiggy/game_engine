@@ -251,9 +251,9 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     DeathEvent d_evt;
     d_evt.killed_by = evt.from;                            // can be entt::null
     d_evt.dead = r.get<HasParentComponent>(evt.to).parent; // parent not fixture
-    auto& evts = get_first_component<SINGLE_Events>(r);
-    evts.dispatcher->trigger(d_evt);
-    evts.dispatcher->update();
+    auto& evts_c = SINGLE_Events::instance;
+    evts_c.dispatcher->trigger(d_evt);
+    evts_c.dispatcher->update();
   }
 };
 

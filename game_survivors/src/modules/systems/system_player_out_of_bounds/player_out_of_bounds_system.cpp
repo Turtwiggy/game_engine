@@ -24,7 +24,7 @@ update_player_out_of_bounds_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
 
   constexpr int map_radius = 900;
   constexpr int map_radius_sqr = map_radius * map_radius;

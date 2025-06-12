@@ -17,7 +17,7 @@ handle_player_enter_gold(entt::registry& r, const OnCollisionEnter& evt)
   const auto [pfixture_e, item_e] = coll<PlayerFixtureComponent, ItemGoldComponent>(r, evt.a, evt.b);
   if (pfixture_e == entt::null || item_e == entt::null)
     return;
-  const auto& evts_c = get_first_component<SINGLE_Events>(r);
+  auto& evts_c = SINGLE_Events::instance;
   auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
 
   gold_c.temp_amount += 5;

@@ -43,7 +43,7 @@ update_enemy_charger_system(entt::registry& r)
       tgt_c.orbit = false;
       tgt_c.reduce_thrusters = false;
       r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
-      r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(1.0);
+      b2Body_SetLinearDamping(r.get<PhysicsBodyComponent>(e).bodyId, 1.0f);
       r.get<ActorSpeedComponent>(e).current_speed = charger_c.approach_speed;
 
       charger_c.state = ChargerEnemyState::APPROACHING;

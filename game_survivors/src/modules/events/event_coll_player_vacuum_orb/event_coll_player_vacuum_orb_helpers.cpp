@@ -2,6 +2,7 @@
 
 #include "event_coll_player_vacuum_orb_helpers.hpp"
 
+#include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "event_coll_player_vacuum_orb_components.hpp"
@@ -31,7 +32,7 @@ handle_player_enter_vacuum_orb(entt::registry& r, const OnCollisionEnter& evt)
     for (const auto& [xp_e, xp_c, fixture_c] : xp_view.each()) {
 
       // change xp from static to dynamic.
-      fixture_c.body->SetType(b2BodyType::b2_dynamicBody);
+      b2Body_SetType(fixture_c.bodyId, b2BodyType::b2_dynamicBody);
 
       // Add components to xp parent not fixture.
       const auto xp_parent = r.get<HasParentComponent>(xp_e).parent;
@@ -40,7 +41,6 @@ handle_player_enter_vacuum_orb(entt::registry& r, const OnCollisionEnter& evt)
       tgt_c.reduce_thrusters = false;
       r.emplace_or_replace<ApplyForceToDynamicTarget>(xp_parent, tgt_c);
       r.emplace_or_replace<PhysicsDynamicTarget>(xp_parent, player_par_e);
-      r.emplace_or_replace<ActorSpeedComponent>(xp_parent, ActorSpeedComponent{ .base_speed = 10, .current_speed = 10 });
     }
   };
 

@@ -23,7 +23,7 @@ const std::vector<int> core_weapon_levels = { 4, 8, 12 };
 void
 handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
 {
-  auto& evts_c = get_first_component<SINGLE_Events>(r);
+  auto& evts_c = SINGLE_Events::instance;
 
   // note: upg_e is either on the player, or on the weapon
   const auto par_e = evt.par_e;

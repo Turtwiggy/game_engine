@@ -43,10 +43,11 @@ boop_ability(entt::registry& r, entt::entity e)
 
       const auto raw_dir = get_position(r, par_e) - pos;
       const auto nrm_dir = engine::normalize_safe(raw_dir);
-      const auto& thing_body = r.get<PhysicsBodyComponent>(par_e).body;
-      const auto mass = thing_body->GetMass();
+      const auto thing_body_id = r.get<PhysicsBodyComponent>(par_e).bodyId;
+      const auto mass = b2Body_GetMass(thing_body_id);
       const auto impuse = mass * impulse_amount;
-      thing_body->ApplyLinearImpulseToCenter(impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
+      b2Body_ApplyLinearImpulseToCenter(thing_body_id, impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
+
       break; // if you collide with a valid fixture, apply force once.
     }
   }
@@ -55,37 +56,13 @@ boop_ability(entt::registry& r, entt::entity e)
 void
 anchor_down(entt::registry& r, entt::entity e)
 {
-  // signal state
-  r.emplace_or_replace<LockedInSpotComponent>(e);
+  r.emplace_or_replace<LockedInSpotComponent>(e); // signal state
 }
-
-/*
-void
-anchor_held(entt::registry& r, entt::entity e, const InputComponent& input_c, const PhysicsBodyComponent& body_c)
-{
-  // stop movement.
-  auto& speed_c = r.get<ActorSpeedComponent>(e).current_speed = 0.0f;
-
-  // let player rotate freely
-  const float angle = engine::dir_to_angle_radians({ input_c.lx, input_c.ly });
-  body_c.body->SetTransform(body_c.body->GetPosition(), angle);
-}
-*/
 
 void
 speedboost_ability(entt::registry& r, entt::entity e, const InputComponent& input_c, const PhysicsBodyComponent& body_c)
 {
-  // reset speed
-  // auto& speed_c = r.get<ActorSpeedComponent>(e);
-  // speed_c.current_speed = speed_c.base_speed;
-
-  // remove lock
-  // if (auto* locked_c = r.try_get<LockedInSpotComponent>(e))
-  //   r.remove<LockedInSpotComponent>(e);
-
-  // Give a speed boost? tokyo drifffftttttt
-  // const float meters_per_second = 10.0f * speed_c.base_speed;
-  body_c.body->ApplyForceToCenter({ 5000.0f * input_c.lx, 5000.0f * input_c.ly }, true);
+  b2Body_ApplyForceToCenter(body_c.bodyId, { 5000.0f * input_c.lx, 5000.0f * input_c.ly }, true);
 };
 
 void

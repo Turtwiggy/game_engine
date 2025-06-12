@@ -10,6 +10,8 @@ namespace game2d {
 struct SINGLE_Events
 {
   entt::dispatcher* dispatcher;
+
+  static SINGLE_Events instance;
 };
 
 struct SINGLE_PostFixedUpdateCallbacks

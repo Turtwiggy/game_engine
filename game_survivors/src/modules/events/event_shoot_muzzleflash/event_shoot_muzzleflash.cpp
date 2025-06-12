@@ -23,7 +23,7 @@ static float s = 24.0f;
 static float scalar = 0.2f;
 
 void
-update_muzzleflash_system(entt::registry& r)
+update_debug_muzzleflash_system(entt::registry& r)
 {
   // imgui_draw_float("s", s);
   // imgui_draw_float("scalar", scalar);

@@ -41,13 +41,6 @@
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 #endif
 
-#include <box2d/b2_body.h>
-#include <box2d/b2_circle_shape.h>
-#include <box2d/b2_contact.h>
-#include <box2d/b2_dynamic_tree.h>
-#include <box2d/b2_fixture.h>
-#include <box2d/b2_math.h>
-#include <box2d/b2_world_callbacks.h>
 #include <box2d/box2d.h>
 
 #include <entt/entt.hpp>

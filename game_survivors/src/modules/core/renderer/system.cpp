@@ -68,7 +68,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const auto& wh = ri.viewport_size_render_at;
 
   // Super sampling, innit
-  const glm::vec2 double_wh = { 2.0 * wh.x, 2.0f * wh.y };
+  const glm::vec2 double_wh = { 2.0f * wh.x, 2.0f * wh.y };
 
   for (RenderPass& rp : ri.passes) {
     if (rp.pass == PassName::fluid_sim)
@@ -268,11 +268,9 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 };
 
 void
-init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
+init_render_system(const glm::vec2 screen_wh, entt::registry& r)
 {
   auto& ri = SINGLE_RendererInfo::instance;
-
-  const glm::ivec2 screen_wh = app.window.get_size();
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
   const auto& fbo_size = ri.viewport_size_render_at;

@@ -11,7 +11,6 @@
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
-#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 
 namespace game2d {
 
@@ -60,7 +59,7 @@ update_enemy_projectile_system(entt::registry& r)
 
     // set velocity
     auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
-    body_c.body->SetLinearVelocity({ bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y });
+    b2Body_SetLinearVelocity(body_c.bodyId, { bullet_speed * nrm_dir.x, bullet_speed * nrm_dir.y });
 
     // get the enemies bullets to spin
     r.remove<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);

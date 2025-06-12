@@ -5,7 +5,7 @@
 #include "modules/systems/system_particles/components.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
 
-#include <box2d/b2_fixture.h>
+#include <box2d/box2d.h>
 #include <entt/fwd.hpp>
 #include <glm/fwd.hpp>
 #include <nlohmann/detail/macro_scope.hpp>
@@ -152,6 +152,7 @@ struct Item
   std::string display_name;
   std::string display_desc;
   Renderable renderable;
+  float speed = 0.0f;
   std::optional<HpStats> stats = std::nullopt;
   std::optional<Use> use = std::nullopt;
   std::optional<Defence> defence = std::nullopt;
@@ -167,6 +168,7 @@ struct Item
                                               display_name,
                                               display_desc,
                                               renderable,
+                                              speed,
                                               stats,
                                               use,
                                               defence,
@@ -210,8 +212,8 @@ find_item(entt::registry& r, std::string key);
 entt::entity
 create_transform(entt::registry& r, const std::string& name);
 
-b2Fixture*
-create_fixture(b2Body* body, const PhysicsFixtureDef& fix, b2Vec2 size_in_meters);
+b2ShapeId
+create_fixture(b2BodyId bodyId, const PhysicsFixtureDef& fix, b2Vec2 size_in_meters);
 
 void
 give_life(entt::registry& r,

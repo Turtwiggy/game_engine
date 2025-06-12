@@ -2,10 +2,12 @@
 
 #include "event_coll_player_hp_helpers.hpp"
 
+#include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "event_coll_player_hp_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/events/events_core/events_components.hpp"
 
 namespace game2d {
 
@@ -15,7 +17,7 @@ handle_player_enter_hp(entt::registry& r, const OnCollisionEnter& evt)
   const auto [pfixture_e, item_e] = coll<PlayerFixtureComponent, ItemHealingPackComponent>(r, evt.a, evt.b);
   if (pfixture_e == entt::null || item_e == entt::null)
     return;
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
 
   // WantToHealEvent heal_evt;
   // evts_c.dispatcher->trigger(heal_evt);

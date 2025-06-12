@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 // header
 #include "lifecycle_system.hpp"
 
@@ -5,6 +7,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/core/raws/raws_components.hpp"
 
 namespace game2d {
 
@@ -63,7 +66,7 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
 
     // Update physics
     if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
-      physics_c.world->DestroyBody(pb->body);
+      b2DestroyBody(pb->bodyId);
 
     // Update entt
     if (r.valid(e))
@@ -86,17 +89,17 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       const auto parent_e = has_parent->parent;
       if (parent_e == entt::null) {
         auto* tag_c = r.try_get<TagComponent>(e);
-        // auto* item_key_c = r.try_get<ItemKey>(e);
-        // SDL_Log("%s has a null parent, key: %s", tag_c->tag.c_str(), item_key_c->key.c_str());
+        auto* item_key_c = r.try_get<ItemKey>(e);
+        SDL_Log("%s has a null parent, key: %s", tag_c->tag.c_str(), item_key_c->key.c_str());
         dead.dead.push_back(e);
       }
       if (!r.valid(parent_e)) {
         auto* tag_c = r.try_get<TagComponent>(e);
-        // auto* item_key_c = r.try_get<ItemKey>(e);
-        // SDL_Log("%s has an invalid parent, key: %s, parent_e: %i",
-        //         tag_c->tag.c_str(),
-        //         item_key_c->key.c_str(),
-        //         static_cast<uint32_t>(parent_e));
+        auto* item_key_c = r.try_get<ItemKey>(e);
+        SDL_Log("%s has an invalid parent, key: %s, parent_e: %i",
+                tag_c->tag.c_str(),
+                item_key_c->key.c_str(),
+                static_cast<uint32_t>(parent_e));
         dead.dead.push_back(e);
       }
     }

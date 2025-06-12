@@ -21,7 +21,7 @@ struct SnakeData
   entt::entity target_e_1 = entt::null;
   // entt::entity target_e_2 = entt::null;
 
-  int snake_segments = 20;
+  int snake_segments = 12;
   glm::vec2 snake_segment_size = glm::vec2{ 32, 32 };
   float distance_between_segment_pixels = snake_segment_size.x;
 

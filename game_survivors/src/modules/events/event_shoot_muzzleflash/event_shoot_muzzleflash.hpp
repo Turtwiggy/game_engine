@@ -6,7 +6,7 @@
 namespace game2d {
 
 void
-update_muzzleflash_system(entt::registry& r);
+update_debug_muzzleflash_system(entt::registry& r);
 
 void
 handle_shoot_event__muzzleflash(entt::registry& r, const ShootEvent& evt);

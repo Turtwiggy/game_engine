@@ -75,8 +75,7 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
     tgt_c.distance_to_reduce_thrust = 6.0; // meters to shoot from
     r.emplace<ApplyForceToDynamicTarget>(turret_e, tgt_c);
     r.emplace<PhysicsDynamicTarget>(turret_e, player_e);
-    r.emplace<ActorSpeedComponent>(turret_e);
-    r.get<PhysicsBodyComponent>(turret_e).body->SetLinearDamping(1.0);
+    b2Body_SetLinearDamping(r.get<const PhysicsBodyComponent>(turret_e).bodyId, 1.0f);
   }
 
   if (has(behaviours, WeaponBehaviour::TURRET_SLOW_ENEMIES)) {

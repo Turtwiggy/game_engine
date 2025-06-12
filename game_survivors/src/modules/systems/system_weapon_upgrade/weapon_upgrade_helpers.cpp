@@ -51,7 +51,7 @@ weapon_behaviour_shoot_in_opposite_direction(entt::registry& r, const WeaponBeha
     const auto altered_angle = engine::clamp_axis(angles_rad[i] - engine::PI); // flip the dir
     const auto bullet_dir = engine::angle_radians_to_direction(altered_angle);
     const b2Vec2 bullet_vel = bul_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
-    r.get<PhysicsBodyComponent>(bullet_e).body->SetLinearVelocity(bullet_vel);
+    b2Body_SetLinearVelocity(r.get<PhysicsBodyComponent>(bullet_e).bodyId, bullet_vel);
   }
 
   return {};

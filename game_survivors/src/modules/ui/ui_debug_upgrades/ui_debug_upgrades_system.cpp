@@ -99,7 +99,7 @@ update_ui_debug_upgrades_system(entt::registry& r)
   ZoneScoped;
 #endif
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
 
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
   auto state = gesert_menubar_state(menu_c, "Upgrades");

@@ -31,6 +31,7 @@
 #include "modules/core/camera/camera_system.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/camera/orthographic.hpp"
+#include "modules/core/debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/io/io_components.hpp"
 #include "modules/core/io/io_helpers.hpp"
@@ -81,11 +82,9 @@
 #include "modules/systems/system_spawner/spawner_helpers.hpp"
 #include "modules/systems/system_spawner/spawner_system.hpp"
 #include "modules/systems/system_spritestack/spritestack_system.hpp"
-#include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_hp_max/upgrade_hp_max_system.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
-#include "modules/ui/ui_ability_system/ui_ability_system.hpp"
 #include "modules/ui/ui_audio/system.hpp"
 #include "modules/ui/ui_back_button/ui_back_button_system.hpp"
 #include "modules/ui/ui_blur/ui_blur_system.hpp"
@@ -160,7 +159,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     SINGLE_RendererInfo::instance = get_default_textures();
     create_persistent<OrthographicCamera>(r);
     r.emplace<TransformComponent>(get_first<OrthographicCamera>(r));
-    init_render_system(app, r); // load textures
+    init_render_system(app.window.get_size(), r); // load textures
   }
   {
     const auto& ri = SINGLE_RendererInfo::instance;
@@ -310,7 +309,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_actor_rocks_system(r); // before update_spawner_system
 
 #if defined(_DEBUG)
-  update_muzzleflash_system(r);
+  // update_debug_muzzleflash_system(r);
+  // update_debug_fixtures_system(r);
 #endif
 
   const auto& state = get_first_component<SINGLE_GameStateComponent>(r);
@@ -341,7 +341,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_enemy_projectile_system(r);
     update_enemy_swarmlord_system(r);
     update_snake(r, mouse_pos, dt);
-    update_actor_snake_projectiles_system(r);
+    // update_actor_snake_projectiles_system(r);
 
     update_upgrade_hp_max_system(r);
     update_upgrade_hp_regen_system(r, dt);

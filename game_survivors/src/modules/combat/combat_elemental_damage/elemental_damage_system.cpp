@@ -22,7 +22,7 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
 
   for (const auto& [fixture_e, tick_c, parent_c] : r.view<TickDamageComponent, const HasParentComponent>().each()) {
     const auto par_e = parent_c.parent;

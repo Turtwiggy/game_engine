@@ -14,41 +14,24 @@ void
 emplace_or_replace_physics_world(entt::registry& r)
 {
   // store one physics world...
-  static b2World* world = new b2World(b2Vec2(0.0f, 0.0f));
-  static PhysicsEvents* listener = new PhysicsEvents(r);
-
-  // Add callback
-  static bool first_time = true;
-  if (first_time) {
-    world->SetContactListener(listener);
-    first_time = false;
-  }
+  b2WorldDef world_def = b2DefaultWorldDef();
+  world_def.gravity = { 0.0f, 0.0f };
+  static b2WorldId worldId = b2CreateWorld(&world_def);
 
   // cleanup physics world...
   static bool needs_deleting = false;
   if (needs_deleting) {
     SDL_Log("%s", std::format("cleaning up physics world..").c_str());
 
-    b2Joint* joint = world->GetJointList();
-    while (joint) {
-      b2Joint* j = joint;
-      joint = joint->GetNext();
-      world->DestroyJoint(j);
-    }
-
-    b2Body* body = world->GetBodyList();
-    while (body) {
-      b2Body* b = body;
-      body = body->GetNext();
-      world->DestroyBody(b);
-    }
+    b2DestroyWorld(worldId);
+    worldId = b2_nullWorldId;
+    worldId = b2CreateWorld(&world_def);
   }
 
   needs_deleting = true;
-  SDL_Log("%s", std::format("physics world set to clean up... (deleted: {})", needs_deleting).c_str());
+  SDL_Log("%s", std::format("physics world set to clean up... (needs_deleting: {})", needs_deleting).c_str());
 
-  destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
-  destroy_first_and_create<SINGLE_PhysicsEvents>(r, SINGLE_PhysicsEvents{ listener });
+  destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ worldId });
   r.emplace<Persistent>(get_first<SINGLE_Physics>(r));
 };
 
@@ -67,11 +50,11 @@ get_fixture(entt::registry& r, entt::entity e)
 entt::entity
 get_fixture_by_tag(entt::registry& r, entt::entity e, std::string tag)
 {
-  const auto& body_c = r.get<PhysicsBodyComponent>(e);
+  const auto& body_c = r.get<const PhysicsBodyComponent>(e);
   for (const entt::entity fix_e : body_c.fixtures) {
-    const auto& fix_c = r.get<PhysicsFixtureComponent>(fix_e);
+    const auto& fix_c = r.get<const PhysicsFixtureComponent>(fix_e);
     // const auto* b2_fixture = fix_c.fixture;
-    const auto& fix_tag = r.get<TagComponent>(fix_e);
+    const auto& fix_tag = r.get<const TagComponent>(fix_e);
     if (fix_tag.tag == tag)
       return fix_e;
   }
@@ -102,78 +85,32 @@ get_fixture_def_by_tag(entt::registry& r, entt::entity e, std::string tag)
   return fixture_def_opt.value();
 };
 
-class SearchAreaCallback : public b2QueryCallback
-{
-public:
-  float nearest_distance_squared = std::numeric_limits<float>::max();
-  std::unordered_set<entt::entity> results;
-
-  // Something hit the matching criteria
-  bool ReportFixture(b2Fixture* fixture) override
-  {
-    auto* body = fixture->GetBody();
-    auto body_e = (entt::entity)body->GetUserData().pointer;
-    results.emplace(body_e);
-    return true; // keep going to find all fixtures in query area
-  };
-};
-
-class FilteredSearchAreaCallback : public b2QueryCallback
-{
-public:
-  float nearest_distance_squared = std::numeric_limits<float>::max();
-
-  // first val: the body_e.
-  // second val: the fixture_e that was collided with
-  std::unordered_map<entt::entity, std::vector<CollisionWithFixtureResult>> results;
-
-  b2Vec2 position;
-  entt::registry& r;
-  const std::function<bool(entt::registry&, entt::entity)>& cond;
-
-  FilteredSearchAreaCallback(entt::registry& r,
-                             const b2Vec2& center,
-                             const std::function<bool(entt::registry&, entt::entity)>& cond)
-    : position(center)
-    , r(r)
-    , cond(cond) {};
-
-  // Something hit the matching criteria
-  bool ReportFixture(b2Fixture* fixture) override
-  {
-    auto* body = fixture->GetBody();
-    const auto body_e = (entt::entity)body->GetUserData().pointer;
-    const auto fixture_e = (entt::entity)fixture->GetUserData().pointer;
-
-    // Filter the fixtures
-    if (cond(r, body_e)) {
-      const b2Vec2 diff = body->GetPosition() - position;
-
-      CollisionWithFixtureResult res;
-      res.d2 = diff.LengthSquared();
-      res.fixture_e = fixture_e;
-
-      if (!results.contains(body_e))
-        results[body_e] = {};
-      results[body_e].push_back(res);
-    }
-
-    return true; // keep going to find all fixtures in query area
-  };
-};
-
 std::unordered_set<entt::entity>
 get_all_in_area(entt::registry& r, b2Vec2 center_m, float d_in_meters)
 {
-  SearchAreaCallback callback;
+  const auto& physics_c = get_first_component<SINGLE_Physics>(r);
+
   b2AABB aabb;
   aabb.lowerBound = b2Vec2{ center_m.x - d_in_meters, center_m.y - d_in_meters };
   aabb.upperBound = b2Vec2{ center_m.x + d_in_meters, center_m.y + d_in_meters };
 
-  const auto& physics_c = get_first_component<SINGLE_Physics>(r);
-  physics_c.world->QueryAABB(&callback, aabb);
+  struct QueryContext
+  {
+    std::unordered_set<entt::entity> results;
+  };
+  QueryContext context;
 
-  return callback.results;
+  const auto overlap_callback = [](const b2ShapeId shapeId, void* context) -> bool {
+    QueryContext* queryContext = static_cast<QueryContext*>(context);
+    const b2BodyId bodyId = b2Shape_GetBody(shapeId);
+
+    const auto eid = entt::entity{ static_cast<entt::id_type>(reinterpret_cast<uintptr_t>(b2Body_GetUserData(bodyId))) };
+    queryContext->results.emplace(eid);
+    return true; // return true to continue the query
+  };
+
+  b2World_OverlapAABB(physics_c.worldId, aabb, b2DefaultQueryFilter(), overlap_callback, &context);
+  return context.results;
 };
 
 std::unordered_map<entt::entity, std::vector<CollisionWithFixtureResult>>
@@ -182,16 +119,48 @@ get_all_in_area_filtered(entt::registry& r,
                          const float d_in_meters,
                          const std::function<bool(entt::registry&, entt::entity)>& cond)
 {
-  FilteredSearchAreaCallback callback(r, { center_in_meters.x, center_in_meters.y }, cond);
+  // FilteredSearchAreaCallback callback(r, { center_in_meters.x, center_in_meters.y }, cond);
 
   b2AABB aabb;
   aabb.lowerBound = b2Vec2{ center_in_meters.x - d_in_meters, center_in_meters.y - d_in_meters };
   aabb.upperBound = b2Vec2{ center_in_meters.x + d_in_meters, center_in_meters.y + d_in_meters };
 
   const auto& physics_c = get_first_component<SINGLE_Physics>(r);
-  physics_c.world->QueryAABB(&callback, aabb);
+  const b2Vec2 position = { center_in_meters.x, center_in_meters.y };
 
-  return callback.results;
+  struct QueryContext
+  {
+    std::unordered_map<entt::entity, std::vector<CollisionWithFixtureResult>> results;
+    const std::function<bool(entt::registry&, entt::entity)>& cond;
+    entt::registry& r;
+    b2Vec2 position;
+  };
+  QueryContext context{ .cond = cond, .r = r, .position = position };
+
+  const auto overlap_callback = [](const b2ShapeId shapeId, void* context) -> bool {
+    QueryContext* queryContext = static_cast<QueryContext*>(context);
+
+    const b2BodyId bodyId = b2Shape_GetBody(shapeId);
+    const auto body_e = static_cast<entt::entity>(reinterpret_cast<uintptr_t>(b2Body_GetUserData(bodyId)));
+    const auto fixture_e = static_cast<entt::entity>(reinterpret_cast<uintptr_t>(b2Shape_GetUserData(shapeId)));
+
+    // Filter the fixtures
+    if (queryContext->cond(queryContext->r, body_e)) {
+      const b2Vec2 diff = b2Body_GetPosition(bodyId) - queryContext->position;
+
+      CollisionWithFixtureResult res;
+      res.d2 = diff.x * diff.x + diff.y * diff.y;
+      res.fixture_e = fixture_e;
+      if (!queryContext->results.contains(body_e))
+        queryContext->results[body_e] = {};
+      queryContext->results[body_e].push_back(res);
+    }
+
+    return true; // return true to continue the query
+  };
+  b2World_OverlapAABB(physics_c.worldId, aabb, b2DefaultQueryFilter(), overlap_callback, &context);
+
+  return context.results;
 };
 
 float

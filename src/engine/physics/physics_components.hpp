@@ -1,7 +1,5 @@
 #pragma once
 
-#include <box2d/b2_fixture.h>
-#include <box2d/b2_math.h>
 #include <box2d/box2d.h>
 #include <entt/fwd.hpp>
 #include <glm/fwd.hpp>
@@ -45,9 +43,9 @@ struct PhysicsFixtureDef
   // optionals...
   float density = 1.0f;
   float friction = 0.0f;
-  float restitution = 1.0f;
   std::vector<vec2f> offset;
   std::vector<vec2f> size_in_pixels;
+  // void* user_data = nullptr;
 
   friend void to_json(nlohmann ::json& j, const PhysicsFixtureDef& t)
   {
@@ -56,7 +54,6 @@ struct PhysicsFixtureDef
     j["is_sensor"] = t.is_sensor;
     j["density"] = t.density;
     j["friction"] = t.friction;
-    j["restitution"] = t.restitution;
     j["offset"] = t.offset;
     j["size"] = t.size_in_pixels;
   }
@@ -69,8 +66,6 @@ struct PhysicsFixtureDef
       j.at("density").get_to(t.density);
     if (j.contains("friction"))
       j.at("friction").get_to(t.friction);
-    if (j.contains("restitution"))
-      j.at("restitution").get_to(t.restitution);
     if (j.contains("offset"))
       j.at("offset").get_to(t.offset);
     if (j.contains("size"))
@@ -82,20 +77,19 @@ struct PhysicsFixtureDef
 
 struct PhysicsBodyComponent
 {
-  b2Body* body = nullptr;
-
+  b2BodyId bodyId;
   std::vector<entt::entity> fixtures{};
 };
 
 struct PhysicsFixtureComponent
 {
-  b2Body* body = nullptr; // parent body
-  b2Fixture* fixture = nullptr;
+  b2BodyId bodyId; // parent body
+  b2ShapeId shapeId;
 };
 
 struct SINGLE_Physics
 {
-  b2World* world;
+  b2WorldId worldId = b2_nullWorldId;
 };
 
 struct SeparateTransformAndAABB

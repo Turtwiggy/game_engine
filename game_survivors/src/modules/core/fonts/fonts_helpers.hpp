@@ -1,12 +1,13 @@
 #pragma once
 
-#include "imgui.h"
 #include <entt/fwd.hpp>
+#include <imgui.h>
+
 
 namespace game2d {
 
 // From 720p => 1080p
-constexpr float scale_size = 1.5f;
+constexpr float scale_size = 1.0f;
 
 enum class FontSize
 {

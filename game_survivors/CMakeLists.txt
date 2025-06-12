@@ -28,6 +28,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-msvc.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/steam.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/box2d.cmake)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   # add_definitions(-DCMAKE_CXX_INCLUDE_WHAT_YOU_USE=include-what-you-use)
@@ -78,17 +79,22 @@ link_libs(game_survivors)
 link_libs_steam(game_survivors)
 target_link_libraries(game_survivors PUBLIC TracyClient)
 
+# note: need to copy the box2d.dll next to the game.
+message("searching for box2d at... ${BOX2D_LIB}")
+target_link_libraries(game_survivors PRIVATE ${BOX2D_LIB})
+
 #
 target_include_directories(game_survivors PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
   ${Stb_INCLUDE_DIR}
-  ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/game_survivors/src
+  ${CMAKE_SOURCE_DIR}/thirdparty/box2d/include
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/src
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/sdk/public
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/game_survivors/src
 )
 
 # rename executable

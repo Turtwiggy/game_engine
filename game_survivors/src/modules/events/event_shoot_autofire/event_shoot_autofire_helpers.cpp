@@ -57,14 +57,14 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
   // Note: even though the angle that the weapon can fire at is limited (e.g. 30 degrees)
   // If the weapon has enough weapon spread (e.g. 90 degrees)
   // It could still shoot at the limited angles.
-  const auto par_vel_meters = r.get<const PhysicsBodyComponent>(par_e).body->GetLinearVelocity();
+  const auto vel_meters = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(par_e).bodyId);
   const auto spread_rad = altered_w_def.spread_deg * engine::Deg2Rad;
   const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, spread_rad);
   for (int i = 0; i < altered_w_def.projectiles; i++) {
     const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
     const auto bullet_dir = engine::normalize_safe(engine::angle_radians_to_direction(ar[i]));
     const auto bullet_vel = altered_b_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
-    r.get<PhysicsBodyComponent>(bullet_e).body->SetLinearVelocity(bullet_vel);
+    b2Body_SetLinearVelocity(r.get<PhysicsBodyComponent>(bullet_e).bodyId, bullet_vel);
   }
 
   // shoot bullets in opposite direction?

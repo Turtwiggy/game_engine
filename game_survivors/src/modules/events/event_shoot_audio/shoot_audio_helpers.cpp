@@ -1,4 +1,3 @@
-
 #include "pch.hpp"
 
 #include "shoot_audio_helpers.hpp"

@@ -44,9 +44,9 @@ update_death_throes_system(entt::registry& r, const float dt)
     DeathEvent d_evt;
     d_evt.killed_by = death_c.evt_from;
     d_evt.dead = e; // parent not fixture
-    auto& evts = get_first_component<SINGLE_Events>(r);
-    evts.dispatcher->trigger(d_evt);
-    evts.dispatcher->update();
+    auto& evts_c = SINGLE_Events::instance;
+    evts_c.dispatcher->trigger(d_evt);
+    evts_c.dispatcher->update();
 
     SDL_Log("Completed death throes");
     dead.dead.push_back(e);

@@ -233,9 +233,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<HullKeyComponent>(e, hull_key);
 
   // Upgradeable stats
-  r.emplace<ActorSpeedComponent>(e, ActorSpeedComponent{ .base_speed = 0.02f, .current_speed = 0.02f }); // meters per second
-  r.emplace<ActorHealthRegenComponent>(e, 0.0f);                                                         // hp per second
-  r.emplace<ActorDodgeComponent>(e, 0.0f);                                                               // dodge percent
+  r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
+  r.emplace<ActorDodgeComponent>(e, 0.0f);       // dodge percent
   r.emplace<ActorStaminaComponent>(e);
 
   // Add an xp zone with the config-defined size
@@ -289,7 +288,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   }
 
   // Apply some drag, bro
-  r.get<PhysicsBodyComponent>(e).body->SetLinearDamping(0.75f);
+  b2Body_SetLinearDamping(r.get<PhysicsBodyComponent>(e).bodyId, 0.75f);
 
   // make a string lowercase?????
   std::string hull_lower = "";

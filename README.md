@@ -33,6 +33,13 @@ thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
 or
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-mingw-static.txt
+
+# build box2d
+cd thirdparty/box2d
+mkdir build
+# cmake -DBOX2D_SAMPLES=OFF -DBUILD_SHARED_LIBS=ON ..
+cmake -DBOX2D_SAMPLES=OFF ..
+cmake --build . --config Debug
 ```
 
 Mac Setup

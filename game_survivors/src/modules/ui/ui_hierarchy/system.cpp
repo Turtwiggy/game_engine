@@ -140,7 +140,7 @@ update_ui_hierarchy_system(entt::registry& r)
     }
 
     if (auto* pb = r.try_get<PhysicsBodyComponent>(eid)) {
-      const auto& pos_m = pb->body->GetPosition();
+      const auto& pos_m = b2Body_GetPosition(pb->bodyId);
       float tmp_x = pos_m.x;
       float tmp_y = pos_m.y;
       imgui_draw_vec2("Physics Pos (in meters): ", tmp_x, tmp_y);
@@ -155,18 +155,19 @@ update_ui_hierarchy_system(entt::registry& r)
       // tmp_y = size.y;
       // imgui_draw_vec2("Physics Size: ", tmp_x, tmp_y);
 
-      const auto& vel = pb->body->GetLinearVelocity();
+      const auto& vel = b2Body_GetLinearVelocity(pb->bodyId);
       tmp_x = vel.x;
       tmp_y = vel.y;
       imgui_draw_vec2("Physics LinearVelocity", tmp_x, tmp_y);
 
-      tmp_x = pb->body->GetAngle();
+      const auto angle = b2Rot_GetAngle(b2Body_GetRotation(pb->bodyId));
+      tmp_x = angle;
       imgui_draw_float("Physics Angle", tmp_x);
 
-      tmp_x = pb->body->GetLinearDamping();
+      tmp_x = b2Body_GetLinearDamping(pb->bodyId);
       imgui_draw_float("LinearDamping", tmp_x);
 
-      auto body_type = pb->body->GetType();
+      auto body_type = b2Body_GetType(pb->bodyId);
       if (body_type == b2_kinematicBody)
         ImGui::Text("Physics Type is b2_kinematicBody.");
       if (body_type == b2_dynamicBody)
@@ -174,12 +175,17 @@ update_ui_hierarchy_system(entt::registry& r)
       if (body_type == b2_staticBody)
         ImGui::Text("Physics Type is b2_staticBody.");
 
-      for (auto* fixture = pb->body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
-        bool is_sensor = fixture->IsSensor();
+      int count = b2Body_GetShapeCount(pb->bodyId);
+      std::vector<b2ShapeId> array;
+      array.resize(count);
+      b2Body_GetShapes(pb->bodyId, array.data(), count);
+
+      for (const b2ShapeId id : array) {
+        bool is_sensor = b2Shape_IsSensor(id);
         imgui_draw_bool("Physics Fixture: is_sensor", is_sensor);
       }
 
-      bool is_bullet = pb->body->IsBullet();
+      bool is_bullet = b2Body_IsBullet(pb->bodyId);
       imgui_draw_bool("Physics: is_bullet", is_bullet);
     }
 

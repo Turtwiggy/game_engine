@@ -7,7 +7,6 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
@@ -15,35 +14,6 @@
 #include "modules/systems/system_particles/components.hpp"
 
 namespace game2d {
-
-bool
-EnemyInRangeCallback::ReportFixture(b2Fixture* fixture)
-{
-  b2Body* body = fixture->GetBody();
-  const auto e = (entt::entity)body->GetUserData().pointer;
-
-  if (e == self)
-    return true; // continue query
-
-  if (!is_enemy(body))
-    return true; // continue query
-
-  enemies.push_back(e);
-  return true; // continue query
-}
-
-bool
-EnemyInRangeCallback::is_enemy(b2Body* body)
-{
-  const entt::entity e = (entt::entity)body->GetUserData().pointer;
-  if (e == entt::null || !r.valid(e))
-    return false;
-  const bool enemy = r.try_get<EnemyComponent>(e) != nullptr;
-  return enemy;
-
-  // bullets have TeamComponent on
-  // return r.get<TeamComponent>(e).team == AvailableTeams::enemy;
-}
 
 void
 add_explode_on_death_callback(entt::registry& r,
@@ -56,7 +26,7 @@ add_explode_on_death_callback(entt::registry& r,
 
   // deal damage in area around you
   const auto explode_on_death = [cond, explosion_radius_pixels](entt::registry& r, entt::entity e) {
-    GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+    auto& evts_c = SINGLE_Events::instance;
 
     // n.b.: radius so half
     const float explosion_radius_meters = pixels_to_meters(explosion_radius_pixels);

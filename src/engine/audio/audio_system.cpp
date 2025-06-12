@@ -98,7 +98,7 @@ update_audio_system(entt::registry& r, const float dt)
 #endif
   GET_FIRST_OR_RETURN(SINGLE_AudioComponent, r, audio_e, audio_c);
   GET_FIRST_OR_RETURN(SINGLE_GameStateComponent, r, state_e, state_c);
-  const auto& evts_c = get_first_component<SINGLE_Events>(r);
+  const auto& evts_c = SINGLE_Events::instance;
 
   // dampen music if paused
   // bool paused = state_c.state == GameState::PAUSED;

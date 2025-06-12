@@ -4,6 +4,7 @@
 #include "event_coll_player_sea_mine_helpers.hpp"
 
 #include "engine/audio/audio_components.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_exploder/actor_exploder_helpers.hpp"

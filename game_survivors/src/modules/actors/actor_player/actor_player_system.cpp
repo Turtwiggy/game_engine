@@ -42,7 +42,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
       glm::vec2 l_nrm_dir = l_nrm_raw; // not normalized
 
       // Apply more force the more your mass
-      const float mass = body_c.body->GetMass();
+      const float mass = b2Body_GetMass(body_c.bodyId);
 
       // Speed is an upgradeable stat
       // note: if you are sprinting, your current_speed is modified.
@@ -69,7 +69,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
       }
 
       const b2Vec2 tgt_vel = 100.0f * speed * b2Vec2{ l_nrm_dir.x, l_nrm_dir.y };
-      const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
+      const b2Vec2 cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
 
       const b2Vec2 vel_err = tgt_vel - cur_vel;
       const b2Vec2 force = 100.0f * (vel_err);
@@ -77,10 +77,10 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 
       // try and catch the "sudden" stops that kill all momentum
       if (glm::abs(l_nrm_dir.x) > 0.0f && glm::abs(l_nrm_dir.y) > 0.0f)
-        body_c.body->ApplyForceToCenter(force, true);
+        b2Body_ApplyForceToCenter(body_c.bodyId, force, true);
 
       // if (glm::abs(l_nrm_dir.x) > 0.0f && glm::abs(l_nrm_dir.y) > 0.0f)
-      // body_c.body->SetLinearVelocity(cur_vel + max_vel_change);
+      // b2Body_SetLinearVelocity(body_c.bodyId, cur_vel + max_vel_change);
 
       // const b2Vec2 impulse = mass * speed * b2Vec2{ l_nrm_dir.x, l_nrm_dir.y };
       // body_c.body->ApplyLinearImpulseToCenter(impulse, true);
@@ -94,10 +94,10 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float angle_speed = 50.0f; // higher number = faster to rotate
     const float max_angle = 30.0f * engine::Deg2Rad;
 
-    const auto cur_angle = body_c.body->GetAngle();
+    const auto cur_angle = b2Rot_GetAngle(b2Body_GetRotation(body_c.bodyId));
     const float wrapped_cur_angle = engine::clamp_axis(cur_angle);
 
-    const auto cur_vel = body_c.body->GetLinearVelocity();
+    const auto cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
     const float new_angle = engine::dir_to_angle_radians({ cur_vel.x, cur_vel.y });
 
     // Calculate angle diff
@@ -112,8 +112,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float fin_angle = exp_decay(wrapped_cur_angle, tgt_angle, angle_speed, dt);
 
     // SDL_Log("cur: %f tgt: %f, new: %f", cur_angle, tgt_angle, new_angle);
-
-    body_c.body->SetTransform(body_c.body->GetPosition(), fin_angle);
+    b2Body_SetTransform(body_c.bodyId, b2Body_GetPosition(body_c.bodyId), b2MakeRot(fin_angle));
   }
 };
 

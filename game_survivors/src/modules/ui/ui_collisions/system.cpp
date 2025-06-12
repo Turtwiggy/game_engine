@@ -18,6 +18,9 @@ update_ui_collisions_system(entt::registry& r)
   const auto& physics = get_first_component<SINGLE_Physics>(r);
   const auto& ri = SINGLE_RendererInfo::instance;
 
+  if (!b2World_IsValid(physics.worldId))
+    return;
+
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoBackground;
@@ -35,10 +38,12 @@ update_ui_collisions_system(entt::registry& r)
   ImGui::Begin("Collisions", NULL, flags);
 
   ImGui::SameLine();
-  ImGui::Text("BodyCount(): %i ", physics.world->GetBodyCount());
+  ImGui::Text("BodyCount(): %i ", b2World_GetAwakeBodyCount(physics.worldId));
 
   ImGui::SameLine();
-  ImGui::Text("ContactCount(): %i", physics.world->GetContactCount());
+  const b2SensorEvents s_events = b2World_GetSensorEvents(physics.worldId);
+  const b2ContactEvents c_events = b2World_GetContactEvents(physics.worldId);
+  ImGui::Text("BeginContactCount(): %i BeginSensorEvents(): %i", c_events.beginCount, s_events.beginCount);
 
   ImGui::End();
 }

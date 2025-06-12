@@ -22,8 +22,8 @@ update_parallax_mouse_system(entt::registry& r, const float dt, const glm::ivec2
 
     static float velocity_x = 0.0f;
     static float velocity_y = 0.0f;
-    velocity_x = body_c.body->GetLinearVelocity().x;
-    velocity_y = body_c.body->GetLinearVelocity().y;
+    velocity_x = b2Body_GetLinearVelocity(body_c.bodyId).x;
+    velocity_y = b2Body_GetLinearVelocity(body_c.bodyId).y;
     // ImGui::Text("vel: %f %f", velocity_x, velocity_y);
     const glm::vec2 vel_impulse = { -velocity_x / 10.0f, -velocity_y / 10.0f };
 

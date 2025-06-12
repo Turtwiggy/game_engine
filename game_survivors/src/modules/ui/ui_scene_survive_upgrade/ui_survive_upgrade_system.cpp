@@ -43,7 +43,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
   GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
 

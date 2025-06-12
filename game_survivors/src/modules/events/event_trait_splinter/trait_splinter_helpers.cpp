@@ -58,7 +58,7 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
       auto& body_c = r.get<PhysicsBodyComponent>(bullet_e);
       const auto bullet_dir = engine::angle_radians_to_direction(a);
       const auto bullet_vel = bul_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
-      body_c.body->SetLinearVelocity(bullet_vel);
+      b2Body_SetLinearVelocity(body_c.bodyId, bullet_vel);
 
       // colour splinter bullets differently?
       set_colour(r, bullet_e, { 0.6f, 0.9f, 0.6f, 1.0f });

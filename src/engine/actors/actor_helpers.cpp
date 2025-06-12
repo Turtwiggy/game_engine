@@ -18,7 +18,7 @@ glm::vec2
 get_position(entt::registry& r, const entt::entity e)
 {
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
-    return meters_to_pixels(pb->body->GetPosition());
+    return meters_to_pixels(b2Body_GetPosition(pb->bodyId));
 
   const auto& t = r.get<TransformComponent>(e);
   return { t.position.x, t.position.y };
@@ -41,7 +41,7 @@ set_position(entt::registry& r, const entt::entity e, const glm::vec2 pos_in_pix
   }
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
-    pb->body->SetTransform(pixels_to_meters(pos_in_pixels), 0);
+    b2Body_SetTransform(pb->bodyId, pixels_to_meters(pos_in_pixels), b2Rot_identity);
 
   auto& t_c = r.get<TransformComponent>(e);
   t_c.position = glm::vec3{ pos_in_pixels.x, pos_in_pixels.y, 0.0f };
@@ -64,19 +64,17 @@ set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir)
   t.rotation_radians.z = angle;
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
-    pb->body->SetTransform(pb->body->GetPosition(), angle);
+    b2Body_SetTransform(pb->bodyId, b2Body_GetPosition(pb->bodyId), b2MakeRot(angle));
 }
 
 glm::vec2
 get_fixture_size(entt::registry& r, const entt::entity fixture_e)
 {
   const auto& fixture_c = r.get<PhysicsFixtureComponent>(fixture_e);
-  const auto* fixture = fixture_c.fixture;
-
-  const auto aabb = fixture->GetAABB(0);
+  const auto shapeId = fixture_c.shapeId;
+  const auto aabb = b2Shape_GetAABB(shapeId);
   const float width = aabb.upperBound.x - aabb.lowerBound.x;
   const float height = aabb.upperBound.y - aabb.lowerBound.y;
-
   return meters_to_pixels({ width, height });
 };
 
@@ -88,19 +86,19 @@ get_size(entt::registry& r, const entt::entity e)
     aabb.lowerBound = b2Vec2(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
     aabb.upperBound = b2Vec2(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest());
 
-    for (const b2Fixture* fixture = pb->body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
-      const b2Shape* shape = fixture->GetShape();
-      // Get the number of vertices
-      int32 childCount = shape->GetChildCount();
-      for (int32 i = 0; i < childCount; ++i) {
-        b2AABB shapeAABB;
-        shape->ComputeAABB(&shapeAABB, pb->body->GetTransform(), i);
-        aabb.Combine(shapeAABB);
-      }
-    }
+    const auto body_aabb = b2Body_ComputeAABB(pb->bodyId);
+    // const int count = b2Body_GetShapeCount(pb->bodyId);
+    // std::vector<b2ShapeId> array;
+    // array.resize(count);
+    // b2Body_GetShapes(pb->bodyId, array.data(), count);
+    // for (int i = 0; i < count; i++) {
+    //   const b2ShapeId shape_id = array[i];
+    //   const auto aabb = b2Shape_GetAABB(shape_id);
+    // }
 
-    const float width = aabb.upperBound.x - aabb.lowerBound.x;
-    const float height = aabb.upperBound.y - aabb.lowerBound.y;
+    const float width = body_aabb.upperBound.x - body_aabb.lowerBound.x;
+    const float height = body_aabb.upperBound.y - body_aabb.lowerBound.y;
+
     return meters_to_pixels({ width, height });
   }
 

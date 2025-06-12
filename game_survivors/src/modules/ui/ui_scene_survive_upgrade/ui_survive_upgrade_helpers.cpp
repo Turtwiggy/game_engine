@@ -122,7 +122,7 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       Cell c;
       c.name = "Aquire";
       c.action = [&r, upg_e, res, player_e]() {
-        auto& evts_c = get_first_component<SINGLE_Events>(r);
+        auto& evts_c = SINGLE_Events::instance;
         UpgradeEvent evt;
         evt.par_e = player_e;
         evt.upg_e = upg_e; // upg_e is wep_e or par_e

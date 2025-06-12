@@ -24,7 +24,7 @@ draw_rocks(entt::registry& r)
 {
   int i = 0;
 
-  for (const auto& [e, debug_c] : r.view<DebugContoursComponent>().each()) {
+  for (const auto& [e, debug_c] : r.view<const DebugContoursComponent>().each()) {
 
     for (const auto& edge : debug_c.sorted_edges) {
 

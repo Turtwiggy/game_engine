@@ -14,6 +14,7 @@
 #include "modules/events/event_coll/event_coll_components.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_debug_effects/effects_helpers.hpp"
 #include "modules/ui/ui_worldspace_text/helpers.hpp"
@@ -57,7 +58,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
     return;
   coll.emplace(other_e_parent);
 
-  GET_FIRST_OR_RETURN(SINGLE_Events, r, evts_e, evts_c)
+  auto& evts_c = SINGLE_Events::instance;
 
   // note: these values have already been
   // modified with upgrades at the point they were created
@@ -95,7 +96,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 
   const auto reverse_velocity = [&r, bullet_e_parent]() {
     auto& bullet_body_c = r.get<PhysicsBodyComponent>(bullet_e_parent);
-    bullet_body_c.body->SetLinearVelocity(-1.0 * bullet_body_c.body->GetLinearVelocity());
+    b2Body_SetLinearVelocity(bullet_body_c.bodyId, -1.0 * b2Body_GetLinearVelocity(bullet_body_c.bodyId));
   };
 
   const auto is_scenery = r.try_get<RockComponent>(other_e_parent) != nullptr;
@@ -139,7 +140,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 
       // clamp knockback force.
       const float clamped_knockback_force = glm::min(knockback_force, 2.0f);
-      enemy_body_c.body->SetLinearVelocity(clamped_knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
+      b2Body_SetLinearVelocity(enemy_body_c.bodyId, clamped_knockback_force * b2Vec2{ nrm_dir.x, nrm_dir.y });
 
       // spawn impact vfx at the bullet position
       spawn_fx(r, "S6_EXPLODE_FX_14", get_position(r, bullet_e_parent), { 24, 24 });

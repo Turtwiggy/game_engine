@@ -28,7 +28,8 @@ update_actor_snake_projectiles_system(entt::registry& r)
     reset_cooldown(cooldown_c);
 
     const auto pos = get_position(r, e);
-    const auto dir = engine::angle_radians_to_direction(body_c.body->GetAngle());
+    const auto angle = b2Rot_GetAngle(b2Body_GetRotation(body_c.bodyId));
+    const auto dir = engine::angle_radians_to_direction(angle);
     const auto pos_perp = glm::vec2{ -dir.y, dir.x };
     const auto neg_perp = -1.0f * pos_perp;
 
@@ -58,10 +59,8 @@ update_actor_snake_projectiles_system(entt::registry& r)
     // set velocity
     auto& bul_body_c_0 = r.get<PhysicsBodyComponent>(bullet_e_0);
     auto& bul_body_c_1 = r.get<PhysicsBodyComponent>(bullet_e_1);
-    bul_body_c_0.body->SetLinearVelocity({ bullet_speed * pos_perp.x, bullet_speed * pos_perp.y });
-    bul_body_c_1.body->SetLinearVelocity({ bullet_speed * neg_perp.x, bullet_speed * neg_perp.y });
-
-    //
+    b2Body_SetLinearVelocity(bul_body_c_0.bodyId, { bullet_speed * pos_perp.x, bullet_speed * pos_perp.y });
+    b2Body_SetLinearVelocity(bul_body_c_1.bodyId, { bullet_speed * neg_perp.x, bullet_speed * neg_perp.y });
   }
 }
 

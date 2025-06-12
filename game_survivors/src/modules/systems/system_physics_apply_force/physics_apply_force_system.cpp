@@ -50,14 +50,13 @@ apply_inside_out_force(const ApplyForceToDynamicTarget& req, glm::vec2 nrm_dir, 
 
 glm::vec2
 calculate_desired_velocity(entt::registry& r,
-                           b2Body* a_body,
+                           b2BodyId a_body,
                            entt::entity b_e,
                            const ActorSpeedComponent& speed_c,
                            const ApplyForceToDynamicTarget& req)
 {
-  auto a_pos = a_body->GetPosition();
-  auto b_pos = pixels_to_meters(get_position(r, b_e));
-
+  const auto a_pos = b2Body_GetPosition(a_body);
+  const auto b_pos = pixels_to_meters(get_position(r, b_e));
   b2Vec2 dir_b2d = b_pos - a_pos;
   const auto raw_dir = glm::vec2{ dir_b2d.x, dir_b2d.y };
   const auto nrm_dir = engine::normalize_safe(raw_dir);
@@ -91,7 +90,7 @@ calculate_desired_velocity(entt::registry& r,
   // If your target is a physics object, adjust for their velocity
   glm::vec2 b_vel{ 0, 0 };
   if (auto* b_body_c = r.try_get<PhysicsBodyComponent>(b_e)) {
-    auto b2_b_vel = b_body_c->body->GetLinearVelocity();
+    auto b2_b_vel = b2Body_GetLinearVelocity(b_body_c->bodyId);
     b_vel = { b2_b_vel.x, b2_b_vel.y };
   }
 
@@ -147,11 +146,10 @@ update_physics_apply_force_system(entt::registry& r)
       }
 
       const auto b_ent = target_c.target;
-      auto& a_body = body_c.body;
-      const auto cur_vel = a_body->GetLinearVelocity();
+      const auto cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
 
       // Compute the desired velocity of your spaceship.
-      const auto desired_vel = calculate_desired_velocity(r, a_body, b_ent, speed_c, req_c);
+      const auto desired_vel = calculate_desired_velocity(r, body_c.bodyId, b_ent, speed_c, req_c);
 
       // debug_vel_instances.push_back(DebugVelocityError{
       //   .tgt_vel = { desired_vel.x, desired_vel.y },
@@ -159,7 +157,7 @@ update_physics_apply_force_system(entt::registry& r)
       // });
 
       // Calculate the velocity error
-      const float mass = body_c.body->GetMass();
+      const float mass = b2Body_GetMass(body_c.bodyId);
       const float rate_of_change = 1.0f;
       const b2Vec2 vel_err = b2Vec2{ desired_vel.x, desired_vel.y } - cur_vel;
       const b2Vec2 force = mass * (rate_of_change * vel_err);
@@ -168,7 +166,7 @@ update_physics_apply_force_system(entt::registry& r)
       // to stop exTrEmE forces
 
       // Apply the force
-      a_body->ApplyForceToCenter(force, true);
+      b2Body_ApplyForceToCenter(body_c.bodyId, force, true);
     }
   }
 
@@ -176,7 +174,7 @@ update_physics_apply_force_system(entt::registry& r)
   {
     const auto& view = r.view<const ApplyForceInDirectionComponent, PhysicsBodyComponent>();
     for (const auto& [e, dir_c, body_c] : view.each()) {
-      const auto& cur_vel = body_c.body->GetLinearVelocity();
+      const auto cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
       const auto vel_err = b2Vec2{ dir_c.tgt_vel.x, dir_c.tgt_vel.y } - cur_vel;
 
       // how much force to apply?
@@ -184,12 +182,12 @@ update_physics_apply_force_system(entt::registry& r)
       const b2Vec2 force = proportional_gain * vel_err;
 
       // Apply the force
-      body_c.body->ApplyForceToCenter(force, true);
+      b2Body_ApplyForceToCenter(body_c.bodyId, force, true);
 
       // Set ship angle as velocity
-      const auto& vel = body_c.body->GetLinearVelocity();
+      const auto& vel = b2Body_GetLinearVelocity(body_c.bodyId);
       const float angle = engine::dir_to_angle_radians({ vel.x, vel.y }) + engine::PI;
-      body_c.body->SetTransform(body_c.body->GetPosition(), angle);
+      b2Body_SetTransform(body_c.bodyId, b2Body_GetPosition(body_c.bodyId), b2MakeRot(angle));
     }
   }
 
@@ -216,11 +214,13 @@ update_physics_apply_force_system(entt::registry& r)
         continue;
       }
 
-      const auto& you_body = body_c.body;
-      const auto& tgt_body = r.get<PhysicsBodyComponent>(tgt_c.target).body;
+      const auto you_body = body_c.bodyId;
+      const auto tgt_body = r.get<PhysicsBodyComponent>(tgt_c.target).bodyId;
 
-      const auto you_pos = glm::vec2{ you_body->GetPosition().x, you_body->GetPosition().y };
-      const auto tgt_pos = glm::vec2{ tgt_body->GetPosition().x, tgt_body->GetPosition().y };
+      const auto apos = b2Body_GetPosition(you_body);
+      const auto bpos = b2Body_GetPosition(tgt_body);
+      const auto you_pos = glm::vec2(apos.x, apos.y);
+      const auto tgt_pos = glm::vec2(bpos.x, bpos.y);
 
       const auto raw_dir = you_pos - tgt_pos;
       const auto nrm_dir = engine::normalize_safe(raw_dir);
@@ -256,10 +256,10 @@ update_physics_apply_force_system(entt::registry& r)
       const glm::vec2 flank_raw_dir = flankpoint - you_pos;
       const glm::vec2 flank_nrm_dir = engine::normalize_safe(flank_raw_dir);
       const float speed = speed_c.current_speed; // m/s
-      const float mass = body_c.body->GetMass();
+      const float mass = b2Body_GetMass(body_c.bodyId);
       const b2Vec2 vel = speed * b2Vec2{ flank_nrm_dir.x, flank_nrm_dir.y };
       const b2Vec2 impulse = mass * vel;
-      body_c.body->ApplyLinearImpulseToCenter(impulse, true);
+      b2Body_ApplyLinearImpulseToCenter(body_c.bodyId, impulse, true);
 
 #if defined(_DEBUG)
       // debug_instances.push_back({

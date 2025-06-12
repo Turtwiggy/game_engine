@@ -135,9 +135,9 @@ update_combo_unlock_system(entt::registry& r)
       DeathEvent d_evt;
       d_evt.killed_by = entt::null;
       d_evt.dead = e; // parent not fixture
-      auto& evts = get_first_component<SINGLE_Events>(r);
-      evts.dispatcher->trigger(d_evt);
-      evts.dispatcher->update();
+      auto& evts_c = SINGLE_Events::instance;
+      evts_c.dispatcher->trigger(d_evt);
+      evts_c.dispatcher->update();
 
       // prevent re-sending event due to unlock code matching
       r.remove<ComboUnlockComponent>(e);

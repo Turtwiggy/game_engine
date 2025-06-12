@@ -122,7 +122,9 @@ identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_t
     for (const auto& found : areas)
       island.push_back(generated[engine::grid::grid_position_to_index({ found.x, found.y }, wh)]);
 
+    //
     // validate island(s)
+    //
 
     // ignore islands that are too small.
     const auto min_island_size = 4;
@@ -299,9 +301,6 @@ create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<E
 {
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
-  if (contours.size() < 3)
-    return;
-
   // glm::vec2 centroid{ 0, 0 };
   //   centroid += glm::vec2{ 0.5f * (p.a.x + p.b.x), 0.5f * (p.a.y + p.b.y) };
   // for (const auto& p : contours)
@@ -311,49 +310,57 @@ create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<E
   //   pixels_to_meters(centroid.y),
   // };
 
-  b2BodyDef def;
+  b2BodyDef def = b2DefaultBodyDef();
   def.type = b2_staticBody;
-  b2Body* body = physics_c.world->CreateBody(&def);
-  // box2d: give link to entt
-  body->GetUserData().pointer = (uintptr_t)island_e;
-  auto& body_c = r.emplace<PhysicsBodyComponent>(island_e, PhysicsBodyComponent{ .body = body });
+  def.userData = (void*)static_cast<uintptr_t>(entt::to_integral(island_e));
+  const auto bodyId = b2CreateBody(physics_c.worldId, &def);
+  const auto& body_c = r.emplace<PhysicsBodyComponent>(island_e, PhysicsBodyComponent{ .bodyId = bodyId });
 
-  // Create Fixture
-  {
-    std::vector<glm::ivec2> contour_pixels;
-    for (int i = 0; i < contours.size(); i++) {
-      if (i > 0) {
-        const auto hmm_b = glm::ivec2(contours[i - 1].b.x, contours[i - 1].b.y);
-        const auto hmm_a = glm::ivec2(contours[i - 0].a.x, contours[i - 0].a.y);
-        // assert(hmm_a == hmm_b);
-      }
-      contour_pixels.push_back(glm::ivec2{ contours[i].a.x, contours[i].a.y });
+  // Create Fixture(s)
+  std::vector<glm::ivec2> contour_pixels;
+  for (int i = 0; i < contours.size(); i++) {
+    if (i > 0) {
+      const auto hmm_b = glm::ivec2(contours[i - 1].b.x, contours[i - 1].b.y);
+      const auto hmm_a = glm::ivec2(contours[i - 0].a.x, contours[i - 0].a.y);
+      assert(hmm_a == hmm_b);
     }
-
-    std::vector<b2Vec2> contor_meters;
-    std::transform(contour_pixels.begin(), contour_pixels.end(), std::back_inserter(contor_meters), [](const glm::vec2& d) {
-      return b2Vec2{ pixels_to_meters(d.x), pixels_to_meters(d.y) };
-    });
-
-    b2ChainShape chain;
-    chain.CreateLoop(contor_meters.data(), (int32)contor_meters.size());
-
-    b2FixtureDef f_def;
-    f_def.shape = &chain;
-    auto* fixture = body->CreateFixture(&f_def);
-
-    PhysicsFixtureComponent fixture_c;
-    fixture_c.body = body;
-    fixture_c.fixture = fixture;
-
-    auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
-
-    r.emplace<HasParentComponent>(fixture_e, island_e);
-    fixture->GetUserData().pointer = (uint32)fixture_e; // box2d: give link to entt
-
-    auto& child_c = r.get_or_emplace<HasChildrenComponent>(island_e);
-    child_c.children.push_back(fixture_e);
+    contour_pixels.push_back(glm::ivec2{ contours[i].a.x, contours[i].a.y });
   }
+
+  std::vector<b2Vec2> contor_meters;
+  std::transform(contour_pixels.begin(), contour_pixels.end(), std::back_inserter(contor_meters), [](const glm::vec2& d) {
+    return b2Vec2{ pixels_to_meters(d.x), pixels_to_meters(d.y) };
+  });
+
+  // Add my sanity checks here, because b2ValidateHull just returns true or false.
+  // bool valid = true;
+  // if (contor_meters.size() < 3)
+  //   valid = false;
+  // if (contor_meters.size() >= B2_MAX_POLYGON_VERTICES)
+  //   valid = false;
+  // const b2Hull hull = b2ComputeHull(contor_meters.data(), (int)contor_meters.size());
+  // if (!valid || !b2ValidateHull(&hull)) {
+  //   SDL_Log("invalid hull for island.");
+  //   return;
+  // }
+  // const b2Polygon polygon = b2MakePolygon(&hull, 1.0f);
+  // b2ShapeDef shape_def = b2DefaultShapeDef();
+  // const auto shape_id = b2CreatePolygonShape(bodyId, &shape_def, &polygon);
+
+  b2ChainDef chain_def = b2DefaultChainDef();
+  chain_def.points = contor_meters.data();
+  chain_def.count = (int)contor_meters.size();
+  chain_def.isLoop = true;
+  b2ChainId chain_id = b2CreateChain(body_c.bodyId, &chain_def);
+
+  // PhysicsFixtureComponent fixture_c;
+  // fixture_c.bodyId = bodyId;
+  // fixture_c.shapeId = shape_id;
+  // auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
+  // r.emplace<HasParentComponent>(fixture_e, island_e);
+  // b2Body_SetUserData(fixture_c.bodyId, (void*)fixture_e); // box2d: give link to entt
+  // auto& child_c = r.get_or_emplace<HasChildrenComponent>(island_e);
+  // child_c.children.push_back(fixture_e);
 };
 
 void
@@ -388,11 +395,11 @@ generate_rocks(entt::registry& r, const float cutoff)
   const auto generated = generate_noise(r, cutoff, frequency, seed);
 
   // whats the smallest & largest noise in the distribution
-  auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
-  const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() < b.noise.value(); };
-  const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() > b.noise.value(); };
-  const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
-  const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
+  // auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
+  // const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() < b.noise.value(); };
+  // const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() > b.noise.value(); };
+  // const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
+  // const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
 
   // identify the noise into islands.
   const auto islands = identify_islands(generated, 0.5f);
@@ -422,7 +429,7 @@ generate_rocks(entt::registry& r, const float cutoff)
 
     // island contours in to box2d to create collisions
     create_box2d_shape(r, island_e, offset_contours);
-    generate_rock_bounding_box(r, island_e);
+    // generate_rock_bounding_box(r, island_e);
 
     /*
     for (const auto& info : island) {

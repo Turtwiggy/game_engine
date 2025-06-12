@@ -1,10 +1,14 @@
+#include "pch.hpp"
+
 #include "debug_fixtures_system.hpp"
 
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/renderer/transform.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 
 namespace game2d {
@@ -14,30 +18,33 @@ update_debug_fixtures_system(entt::registry& r)
 {
   const auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
-  for (b2Body* body = physics_c.world->GetBodyList(); body; body = body->GetNext()) {
-    for (b2Fixture* fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
+  const auto view = r.view<const PhysicsBodyComponent, const TagComponent>();
+  for (const auto& [e, body_c, tag_c] : view.each()) {
+    const auto body_id = body_c.bodyId;
 
-      // Retrieve fixture details
-      const b2Shape* shape = fixture->GetShape();
-      const auto fixture_e = (entt::entity)fixture->GetUserData().pointer;
+    int count = b2Body_GetShapeCount(body_id);
+    std::vector<b2ShapeId> array;
+    array.resize(count);
+    b2Body_GetShapes(body_id, array.data(), count);
 
-      if (shape->GetType() == b2Shape::e_circle) {
-        const auto* circle = static_cast<const b2CircleShape*>(shape);
-        const float radius_m = circle->m_radius;
-        const float radius = meters_to_pixels(radius_m);
-        const auto pos_m = b2Vec2{ body->GetPosition().x, body->GetPosition().y };
-        const auto pos = meters_to_pixels(pos_m);
+    for (int i = 0; const auto shape_id : array) {
+      const auto type = b2Shape_GetType(shape_id);
+      if (type == b2_circleShape) {
+
+        /*
+        const auto circle = b2Shape_GetCircle(shape_id);
+        const auto pos_m = circle.center;
+        const auto rad_m = circle.radius;
+        const auto pos = meters_to_pixels(pos_m) + glm::vec2{ t_c.position.x, t_c.position.y };
+        const auto rad = meters_to_pixels(rad_m);
 
         constexpr int segments = 32;
         constexpr float angle_step = engine::TWO_PI / segments;
-
-        glm::vec2 prev_vert = pos + glm::vec2(radius, 0);
-
+        glm::vec2 prev_vert = pos + glm::vec2(rad, 0);
         for (int i = 1; i <= segments; i++) {
-          float angle = i * angle_step;
-          glm::vec2 cur_vert = pos + radius * glm::vec2{ cos(angle), sin(angle) };
-          auto line = generate_line(cur_vert, prev_vert, 2.0f);
-
+          const auto angle = i * angle_step;
+          const auto cur_vert = pos + rad * glm::vec2{ cos(angle), sin(angle) };
+          const auto line = generate_line(cur_vert, prev_vert, 2.0f);
           Sprite s;
           s.sprite = "EMPTY";
           s.pos = line.position;
@@ -46,32 +53,53 @@ update_debug_fixtures_system(entt::registry& r)
           s.col.a = 0.5f * 255;
           s.z_idx = ZLayer::BACKGROUND;
           draw_sprite(r, s);
-
           prev_vert = cur_vert;
         }
+        */
       }
 
-      else if (shape->GetType() == b2Shape::e_polygon) {
+      // assume box
+      else if (type == b2_polygonShape) {
 
-        const auto* polygon = static_cast<const b2PolygonShape*>(shape);
+        /*
+          const auto polygon = b2Shape_GetPolygon(shape_id);
+          const auto center_m = polygon.centroid;
+          const auto aabb_m = b2Shape_GetAABB(shape_id);
+          const auto size_m = aabb_m.upperBound - aabb_m.lowerBound;
+          const auto pos_m = b2Body_GetPosition(body_id);
 
-        const b2Transform transform = body->GetTransform();
-        b2AABB aabb;
-        polygon->ComputeAABB(&aabb, transform, 0);
+          // Create the sprite
+          const auto col = (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f);
+          Sprite s;
+          s.sprite = "EMPTY";
+          s.pos = meters_to_pixels(center_m) + meters_to_pixels(pos_m);
+          s.size = meters_to_pixels(size_m);
+          s.col = engine::SRGBColour{ col.x, col.y, col.z, col.w };
+          s.z_idx = ZLayer::BACKGROUND;
+          draw_sprite(r, s);
+          */
 
-        // Calculate size and position
-        const auto size_m = aabb.upperBound - aabb.lowerBound;
-        const auto center_m = 0.5f * (aabb.upperBound + aabb.lowerBound);
+      } else if (type == b2_chainSegmentShape) {
 
-        // Create the sprite
+        const auto chain = b2Shape_GetChainSegment(shape_id);
+        const auto segment = chain.segment;
+        const auto line = generate_line(meters_to_pixels(segment.point1), meters_to_pixels(segment.point2), 10.0f);
+
         Sprite s;
         s.sprite = "EMPTY";
-        s.pos = meters_to_pixels(center_m);
-        s.size = meters_to_pixels(size_m);
+        s.pos = line.position;
+        s.size = line.scale;
+        s.z_rotation = line.rotation;
         s.col.a = 0.5f * 255;
         s.z_idx = ZLayer::BACKGROUND;
         draw_sprite(r, s);
+
+      } else {
+        // what shape?
+        int k = 1;
       }
+
+      i++;
     }
   }
 }
