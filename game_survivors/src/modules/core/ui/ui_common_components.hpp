@@ -66,8 +66,6 @@ enum class UIAction
   BACK,
 };
 
-// Note: this is limited.
-// should support things like navigating left&right
 struct UIState
 {
   std::shared_ptr<Cell> active = nullptr;

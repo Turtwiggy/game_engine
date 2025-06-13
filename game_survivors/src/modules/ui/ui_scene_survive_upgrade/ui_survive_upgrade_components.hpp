@@ -437,4 +437,10 @@ struct CardDataUI
   bool selected = false;
 };
 
+struct CardUIUpgradeComponent
+{
+  const float time_to_confirm_max = 0.6f;
+  float time_to_confirm_cur = 0.0f;
+};
+
 } // namespace game2d

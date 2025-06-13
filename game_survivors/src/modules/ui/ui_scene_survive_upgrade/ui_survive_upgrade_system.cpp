@@ -4,6 +4,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
@@ -37,7 +38,7 @@ sum_array_values()
 };
 
 void
-update_ui_survive_upgrade_system(entt::registry& r)
+update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
   ZoneScoped;
@@ -190,7 +191,25 @@ update_ui_survive_upgrade_system(entt::registry& r)
     state_c.actions.clear();
     const auto input = generate_from_handle(r, steam_state_c.handles[player_idx]);
     process_input_for_ui(r, state_c, input);
-    const bool do_act = std::find(state_c.actions.begin(), state_c.actions.end(), UIAction::SELECT) != state_c.actions.end();
+
+    // make it so the user holds the confirm button
+    bool do_act = false;
+    auto& card_ui_c = r.get_or_emplace<CardUIUpgradeComponent>(player_e);
+    {
+      const bool do_act_held = has_action(input.button_s, ActionStateEnum::HELD);
+
+      // reset timer
+      if (!do_act_held)
+        card_ui_c.time_to_confirm_left_cur = 0.0f;
+
+      // if button held, increase timer
+      if (do_act_held)
+        card_ui_c.time_to_confirm_left_cur += dt;
+
+      // if timer > threshold, do the act.
+      if (card_ui_c.time_to_confirm_left_cur >= card_ui_c.time_to_confirm_max)
+        do_act = true;
+    }
 
     // debug background
     // const auto pad_tl = ImVec2{ player_ui_tl.x, player_ui_tl.y };
@@ -348,8 +367,21 @@ update_ui_survive_upgrade_system(entt::registry& r)
       // if selected, draw a circle in the box.
       if (data.selected) {
         const auto circle_center = calc_center(icon_tl, icon_wh);
-        // draw_list->AddCircle(circle_center, 6.0f, im_player_col);
-        draw_list->AddCircleFilled(circle_center, 5.0f, im_player_col);
+
+        if (card_ui_c.time_to_confirm_left_cur == 0.0f) {
+          // draw_list->AddCircle(circle_center, 6.0f, im_player_col);
+          draw_list->AddCircleFilled(circle_center, 5.0f, im_player_col);
+        }
+
+        // add a circle with your hold percentage.
+        // et the percent that the player is holding
+        const float angle =
+          engine::scale(card_ui_c.time_to_confirm_left_cur, 0.0f, card_ui_c.time_to_confirm_max, 0.0f, 2.0f * engine::PI);
+        const float max_angle = 2.0f * engine::PI;
+        const float start_angle = -engine::PI / 2; // Starting at the top (12 o'clock position)
+        const float end_angle = start_angle + (angle / max_angle) * 2.0f * engine::PI;
+        draw_list->PathArcTo(circle_center, 5.0f, start_angle, end_angle);
+        draw_list->PathStroke(im_player_col, 0, 1.0f);
       }
 
       SelectableButtonDef def{
