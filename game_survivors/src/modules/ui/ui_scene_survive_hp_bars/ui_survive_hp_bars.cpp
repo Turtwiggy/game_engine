@@ -5,6 +5,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
@@ -151,10 +152,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     // weapon reload / bullet info
     //
 
-    const auto* weapons_c = r.try_get<HasChildrenComponent>(players_e_vec[i]);
-    if (!weapons_c)
-      continue;
-    const auto weapons_e_vec = weapons_c->children;
+    const auto weapons_e_vec = get_weapons(r, players_e_vec[i]);
     const auto num_active_weapons = (int)weapons_e_vec.size();
 
     const float space_between_hp_bar_and_weapon_info = 4;
@@ -221,7 +219,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
       if (r.all_of<Weapon_OnDiskData, WeaponLevelComponent>(wep_e)) {
         const auto& wep_ondiskdata = r.get<Weapon_OnDiskData>(wep_e);
         const auto& wep_level_c = r.get<WeaponLevelComponent>(wep_e);
-        const auto text = std::format("{} Lv {}", wep_ondiskdata.name, wep_level_c.level);
+        const auto text = std::format("[{}] {} Lv {}", j, wep_ondiskdata.name, wep_level_c.level);
         draw_list->AddText(font, font_size, txt_pos, IM_COL32(255, 255, 255, 255), text.c_str());
       }
 

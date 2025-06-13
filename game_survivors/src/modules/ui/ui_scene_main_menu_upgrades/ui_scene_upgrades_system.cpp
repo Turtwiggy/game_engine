@@ -16,6 +16,7 @@
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 #include "resources/data.hpp"
 #include "ui_scene_upgrades_components.hpp"
 #include "ui_scene_upgrades_helpers.hpp"
@@ -112,13 +113,6 @@ get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::
   const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
   if (it != upgrade_c.upgrades.end())
     n_stat_upgrades = (int)((*it).levels.size());
-
-  // remove ACTOR_ from the display key
-  // auto display_stat_key = row.col_name;
-  // const std::string str_to_remove = "ACTOR_";
-  // const auto actor_pos = display_stat_key.find(str_to_remove);
-  // if (actor_pos != std::string::npos)
-  //   display_stat_key = display_stat_key.substr(str_to_remove.length(), display_stat_key.length());
 
   // Prefix the button with the your_aquired out of available_aquired
   // display_stat_key
@@ -331,6 +325,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
 
   if (ui_c.selected_stat.has_value()) {
     const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(ui_c.selected_stat.value()));
+    const auto display_str = make_stat_name_pretty_name(stat_str);
 
     const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
     const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
@@ -342,7 +337,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
 
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);
     // ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
-    ImGui::TextColored(im_text_col, "%s", u.key.c_str());
+    ImGui::TextColored(im_text_col, "%s", display_str.c_str());
 
     // loaded on-disk values
     int your_level = 0;
@@ -354,7 +349,6 @@ update_ui_scene_upgrades_system(entt::registry& r)
     for (int i = 0; i < u.levels.size(); i++) {
       const UpgradeLevel& l = u.levels[i];
       const bool aquired = i < your_level;
-      ;
 
       std::string str = "";
       if (l.type == "stat_percent_increase")

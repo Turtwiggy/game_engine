@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
@@ -60,12 +61,16 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
       const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
 
+      // level up one random weapon.
+      const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
+      const auto wep_e = weapons_e[rnd_wep_upg_idx];
+
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,
         .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
         // WEAPON_x and BULLET_x do level weapon
         // .weapons = { weapon_e }, // note: only leveling first.
-        .weapons = weapons_e,
+        .weapons = { wep_e },
         .level_weapons = true,
       });
     }
@@ -97,7 +102,6 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 void
 populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 {
-
   SDL_Log("Populating upgrade ui...");
   const int max_num_players = 4;
 
@@ -121,7 +125,7 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     for (const UpgradeRollResult& res : upg_c->results) {
       Cell c;
       c.name = "Aquire";
-      c.action = [&r, upg_e, res, player_e]() {
+      c.action = [upg_e, res, player_e]() {
         auto& evts_c = SINGLE_Events::instance;
         UpgradeEvent evt;
         evt.par_e = player_e;
@@ -196,6 +200,32 @@ load_upgrade_names(const std::string& path)
   }
 
   return data;
-}
+};
+
+std::string
+make_stat_name_pretty_name(const std::string stat)
+{
+  std::string result = stat;
+
+  // remove ACTOR_
+  result = str_remove_all_occurances(result, "ACTOR_");
+
+  // convert from bold uppercase to regular.
+  // e.g. "WEAPON_RANGE" to "Weapon Range"
+  std::string result_lower = "";
+  bool capitalize_next = true;
+  for (const auto c : result) {
+    if (c == '_') {
+      result_lower.push_back(' '); // replace underscores
+      capitalize_next = true;
+    } else if (capitalize_next) {
+      result_lower.push_back(std::toupper(c));
+      capitalize_next = false;
+    } else
+      result_lower.push_back(std::tolower(c));
+  }
+
+  return result_lower;
+};
 
 } // namespace game2d

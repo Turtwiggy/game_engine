@@ -21,4 +21,7 @@ get_player_e_from_idx(entt::registry& r, int player_idx);
 SINGLE_UpgradeToName
 load_upgrade_names(const std::string& path);
 
+std::string
+make_stat_name_pretty_name(const std::string stat);
+
 } // namespace game2d

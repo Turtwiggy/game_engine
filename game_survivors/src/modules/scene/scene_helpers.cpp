@@ -376,6 +376,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   audio::sdl_mixer::stop_all_audio(r);
 
+  // clear all the inputs when moving scene
+  const auto g_input_e = get_first<InputComponent, Persistent>(r);
+  auto& g_input_c = r.get<InputComponent>(g_input_e);
+  g_input_c = {};
+
   if (s == Scene::splashscreen) {
     create_empty<SINGLE_SplashScreen>(r);
 

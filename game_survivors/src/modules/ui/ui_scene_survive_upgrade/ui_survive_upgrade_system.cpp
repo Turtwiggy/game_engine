@@ -3,7 +3,10 @@
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -119,16 +122,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
     return;
   ui_c.open = true;
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoCollapse;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-
   const float upg_header_height = 50.0f * ui_scale;
   const int cards = 3;
   const auto card_size = ImVec2{ 225 * ui_scale, 150 * ui_scale };
@@ -154,9 +148,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-
-  ImGui::Begin("UpgradeUI", nullptr, flags);
-
+  imgui_begin("UpgradeUI");
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();
   auto* draw_list = ImGui::GetWindowDrawList();
@@ -233,7 +225,6 @@ update_ui_survive_upgrade_system(entt::registry& r)
     auto card_ui_wh = calc_wh(card_ui_tl, card_ui_br);
 
     const int cards = glm::min((int)upgrades_c->results.size(), (int)state_c.cells.size());
-
     for (int card_idx = 0; card_idx < cards; card_idx++) {
 
       // card data.
@@ -243,8 +234,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       const auto rarity = result.rarity;
       const auto rarity_str = std::string(magic_enum::enum_name(rarity));
 
-      std::string header_text = "Weapon Upgrade!";
-      std::string upgrade_str = "";
+      std::string header_text = "Upgrade!";
       std::string desc_txt = "";
 
       // Display weapon behaviours
@@ -271,22 +261,33 @@ update_ui_survive_upgrade_system(entt::registry& r)
       for (const auto& s : result.stats) {
         const std::string stat = s.stat;
         const std::string type = s.type;
+        const std::string stat_pretty = make_stat_name_pretty_name(s.stat);
+
         const float value = s.value;
         const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
 
         // append stat to description
         if (type == "stat_flat_increase")
-          desc_txt += std::format("{} +{:0.1f}\n", stat, value);
+          desc_txt += std::format("{} +{:0.1f}\n", stat_pretty, value);
         else if (type == "stat_percent_increase")
-          desc_txt += std::format("{} +{:0.1f}%\n", stat, value);
+          desc_txt += std::format("{} +{:0.1f}%\n", stat_pretty, value);
         else
           throw std::runtime_error("unknown stat type");
       }
 
       // associate upgrade with one of your weapons
       if (result.level_weapons) {
-        for (const auto& wep_e : result.weapons)
-          desc_txt += std::format("\n+1 to {} level", r.get<ItemKey>(wep_e).key);
+        const auto weapons_e = get_weapons(r, player_e);
+
+        for (const auto wep_e : result.weapons) {
+          std::optional<int> wep_e_idx_opt = index_of(weapons_e, wep_e);
+          if (!wep_e_idx_opt.has_value())
+            continue;
+          const int idx = wep_e_idx_opt.value();
+          const auto& wep_ondiskdata = r.get<Weapon_OnDiskData>(wep_e);
+          // const auto key = r.get<ItemKey>(wep_e).key;
+          desc_txt += std::format("\n[{}] {} +1 Lv", idx, wep_ondiskdata.name);
+        }
       }
 
       // which is the active cell index
@@ -352,7 +353,7 @@ update_ui_survive_upgrade_system(entt::registry& r)
       }
 
       SelectableButtonDef def{
-        .label = "##aquire_" + rarity_str + "_" + upgrade_str,
+        .label = "##aquire_" + rarity_str + "_" + header_text,
         .size = card_ui_wh,
         .input = do_act,
         .cell = state_c.cells[card_idx],
