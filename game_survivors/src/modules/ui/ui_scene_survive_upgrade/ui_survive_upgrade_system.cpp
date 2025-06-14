@@ -200,14 +200,14 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
       // reset timer
       if (!do_act_held)
-        card_ui_c.time_to_confirm_left_cur = 0.0f;
+        card_ui_c.time_to_confirm_cur = 0.0f;
 
       // if button held, increase timer
       if (do_act_held)
-        card_ui_c.time_to_confirm_left_cur += dt;
+        card_ui_c.time_to_confirm_cur += dt;
 
       // if timer > threshold, do the act.
-      if (card_ui_c.time_to_confirm_left_cur >= card_ui_c.time_to_confirm_max)
+      if (card_ui_c.time_to_confirm_cur >= card_ui_c.time_to_confirm_max)
         do_act = true;
     }
 
@@ -368,7 +368,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
       if (data.selected) {
         const auto circle_center = calc_center(icon_tl, icon_wh);
 
-        if (card_ui_c.time_to_confirm_left_cur == 0.0f) {
+        if (card_ui_c.time_to_confirm_cur == 0.0f) {
           // draw_list->AddCircle(circle_center, 6.0f, im_player_col);
           draw_list->AddCircleFilled(circle_center, 5.0f, im_player_col);
         }
@@ -376,7 +376,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
         // add a circle with your hold percentage.
         // et the percent that the player is holding
         const float angle =
-          engine::scale(card_ui_c.time_to_confirm_left_cur, 0.0f, card_ui_c.time_to_confirm_max, 0.0f, 2.0f * engine::PI);
+          engine::scale(card_ui_c.time_to_confirm_cur, 0.0f, card_ui_c.time_to_confirm_max, 0.0f, 2.0f * engine::PI);
         const float max_angle = 2.0f * engine::PI;
         const float start_angle = -engine::PI / 2; // Starting at the top (12 o'clock position)
         const float end_angle = start_angle + (angle / max_angle) * 2.0f * engine::PI;

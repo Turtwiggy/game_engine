@@ -37,6 +37,7 @@ thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-mingw-static.txt
 # build box2d
 cd thirdparty/box2d
 mkdir build
+cd build
 # cmake -DBOX2D_SAMPLES=OFF -DBUILD_SHARED_LIBS=ON ..
 cmake -DBOX2D_SAMPLES=OFF ..
 cmake --build . --config Debug

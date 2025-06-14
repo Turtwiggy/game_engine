@@ -45,6 +45,21 @@ jobs:
         run: |
           mkdir build
           cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+      
+      - name: check-if-box2d-cached 
+        uses: actions/cache@v4
+        with:
+          path: thirdparty/box2d/build
+          key: ${{ runner.os }}-box2d
+
+      - name: build-box2d
+        if: steps.check-if-box2d-cached.outputs.cache-hit != 'true'
+        run: |
+          cd thirdparty/box2d
+          mkdir build
+          cd build
+          cmake -DBOX2D_SAMPLES=OFF ..
+          cmake --build . --config Release
 
       - name: build-tests
         run: cmake --build build --config Release --target game_survivors_tests
