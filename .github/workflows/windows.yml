@@ -55,7 +55,7 @@ jobs:
           cd build
           cmake -DBOX2D_SAMPLES=OFF -DBOX2D_UNIT_TESTS=OFF .. -G Ninja
           cmake --build . --config Release
-          ls thirdparty/box2d/build
+          ls 
 
       - name: configure-windows
         run: |
