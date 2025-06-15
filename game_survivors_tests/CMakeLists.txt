@@ -61,7 +61,8 @@ target_link_libraries(game_survivors_tests PRIVATE GTest::gmock GTest::gtest GTe
 # copy the box2d.dll next to the game
 if(NOT EXISTS "${BOX2D_DLL}")
   message("copying box2d dll next to .exe ${BOX2D_DLL}")
-  add_custom_command(TARGET game_survivors_tests POST_BUILD
+  add_custom_command(
+    TARGET game_survivors_tests PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${BOX2D_DLL}
     $<TARGET_FILE_DIR:game_survivors_tests>
@@ -145,7 +146,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
     set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
     message("Copying steam .dll next to .exe")
     set(dst ${CMAKE_CURRENT_BINARY_DIR})
-    add_custom_command(TARGET game_survivors_tests POST_BUILD
+    add_custom_command(
+      TARGET game_survivors_tests POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${steam_lib}/steam_api64.dll
       $<TARGET_FILE_DIR:game_survivors_tests>

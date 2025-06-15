@@ -79,7 +79,17 @@ link_libs(game_survivors)
 link_libs_steam(game_survivors)
 target_link_libraries(game_survivors PUBLIC TracyClient)
 
-# note: need to copy the box2d.dll next to the game.
+# note: copy the box2d.dll next to the game.
+if(NOT EXISTS "${BOX2D_DLL}")
+  message("copying box2d dll next to .exe ${BOX2D_DLL}")
+  add_custom_command(
+    TARGET game_survivors_tests PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${BOX2D_DLL}
+    $<TARGET_FILE_DIR:game_survivors_tests>
+  )
+endif()
+
 message("searching for box2d at... ${BOX2D_LIB}")
 target_link_libraries(game_survivors PRIVATE ${BOX2D_LIB})
 
