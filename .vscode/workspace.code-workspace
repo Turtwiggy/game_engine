@@ -6,5 +6,18 @@
     {
       "path": "C:/Software/Steam/controller_config"
     }
-  ]
+  ],
+  "settings": {
+    "terminal.integrated.profiles.windows": {
+      "MSVC": {
+        "path": "cmd.exe",
+        "args": [
+          "/d",
+          "/k",
+          "C:\\Software\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat",
+          "x64"
+        ]
+      }
+    },
+  }
 }

@@ -35,12 +35,13 @@ or
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-mingw-static.txt
 
 # build box2d
+# note: activate the microsoft developer prompt before building, e.g.
+# & 'C:\Software\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat'
 cd thirdparty/box2d
 mkdir build
 cd build
-# cmake -DBOX2D_SAMPLES=OFF -DBUILD_SHARED_LIBS=ON ..
-cmake -DBOX2D_SAMPLES=OFF ..
-cmake --build . --config Debug
+cmake -DBOX2D_SAMPLES=OFF -DBOX2D_UNIT_TESTS=OFF -DBUILD_SHARED_LIBS=ON ..
+cmake --build . --config Release
 ```
 
 Mac Setup
