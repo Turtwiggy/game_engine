@@ -59,7 +59,6 @@ jobs:
         run: |
           ls thirdparty/box2d/build
           cp thirdparty/box2d/build/bin/Release/box2d.dll build/game_survivors_tests/
-          cmake -E create_symlink game_survivors/assets build/game_survivors_tests/assets
           cmake --build build --config Release --target game_survivors_tests
 
       - name: run-tests

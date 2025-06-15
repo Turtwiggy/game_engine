@@ -171,7 +171,7 @@ if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   if(UNIX)
     message("creating symlink... (unix)")
     add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
+      TARGET ${PROJECT_NAME} PRE_LINK
       COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
       DEPENDS ${dst_sym}
       COMMENT "symbolic link resources folder from ${src} => ${dst}"

@@ -133,7 +133,7 @@ IF(EMSCRIPTEN)
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")
   add_custom_command(
-    TARGET ${PROJECT_NAME} PRE_BUILD
+    TARGET ${PROJECT_NAME} PRE_LINK
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
     DEPENDS ${dst}
     COMMENT "symbolic link resources folder from ${src} => ${dst}"
