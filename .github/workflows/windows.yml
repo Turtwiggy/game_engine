@@ -64,7 +64,7 @@ jobs:
       - name: run-tests
         run: |
           ./build/game_survivors_tests/game_survivors_tests.exe
-          ./build/game_survivors_tests/game_survivors_tests.exe | findstr -i "pass"
+          ./build/game_survivors_tests/game_survivors_tests.exe | findstr /i "FAILED" && exit /b 1
 
       - name: build-game
         run: cmake --build build --config Release --target game_survivors
