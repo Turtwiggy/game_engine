@@ -12,6 +12,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/steam.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/box2d.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/build_misc.cmake)
 
 project(game_survivors_tests VERSION 0.1.0)
 message("game_survivors_tests...")
@@ -57,19 +58,6 @@ link_libs(game_survivors_tests)
 link_libs_steam(game_survivors_tests)
 target_link_libraries(game_survivors_tests PUBLIC TracyClient)
 target_link_libraries(game_survivors_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
-
-# copy the box2d.dll next to the game
-if(NOT EXISTS "${BOX2D_DLL}")
-  message("copying box2d dll next to .exe ${BOX2D_DLL}")
-  add_custom_command(
-    TARGET game_survivors_tests PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${BOX2D_DLL}
-    $<TARGET_FILE_DIR:game_survivors_tests>
-  )
-endif()
-
-message("searching for box2d at... ${BOX2D_LIB}")
 target_link_libraries(game_survivors_tests PRIVATE ${BOX2D_LIB})
 
 target_include_directories(game_survivors_tests PRIVATE
@@ -140,63 +128,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE MATCHES Debug)
   # )
 endif()
 
-# Copy the steam .dll next to the .exe (even if the tests doesnt use it)
-if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
-  if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll")
-    set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
-    message("Copying steam .dll next to .exe")
-    set(dst ${CMAKE_CURRENT_BINARY_DIR})
-    add_custom_command(
-      TARGET game_survivors_tests POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      ${steam_lib}/steam_api64.dll
-      $<TARGET_FILE_DIR:game_survivors_tests>
-    )
-  endif()
+# copy the box2d.dll next to the game
+if(NOT EXISTS "${BOX2D_DLL}")
+  message("copying box2d next to dll...")
+  copy_file_next_to_exe(game_survivors_tests ${BOX2D_DLL})
 endif()
 
-# Create symlink for assets only in debug mode.
-# This is due to the way I've implemented github
-# actions for building release. Github actins will
-# copy over the /assets folder in the release mode,
-# and would fail if this symlink was created here.
-if(${CMAKE_BUILD_TYPE} MATCHES Debug)
-  message("creating symlink...")
-  set(src ${CMAKE_SOURCE_DIR}/game_survivors/assets)
-  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+# Copy the steam .dll next to the .exe (even if the tests doesnt use it)
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
+  set(steam_dir ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
+  set(steam_dll ${steam_dir}/steam_api64.dll)
+  copy_file_next_to_exe(game_survivors_tests ${steam_dll})
+endif()
 
-  message("creating symlink src... ${src}")
-  message("creating symlink dst... ${dst}")
-
-  if(UNIX)
-    message("creating symlink... (unix)")
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_LINK
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst_sym}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  else()
-    message("creating symlink... (windows)")
-    file(TO_NATIVE_PATH "${src}" _srcDir)
-    file(TO_NATIVE_PATH "${dst}" _dstDir)
-
-    if(NOT EXISTS ${_dstDir})
-      # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink
-      # mklink [[/d] | [/h] | [/j]] <link> <target>
-      # <link>	Specifies the name of the symbolic link being created.
-      # <target>	Specifies the path (relative or absolute) that the new symbolic link refers to.
-      #
-      add_custom_command(
-        TARGET ${PROJECT_NAME} PRE_BUILD
-        COMMAND cmd.exe /c mklink /D "${_dstDir}" "${_srcDir}"
-        COMMENT "Creating symlink on Windows"
-      )
-    ELSE()
-      message("creating symlink... (already exists)")
-    ENDIF()
-  ENDIF()
-ENDIF()
+create_symlinks(game_survivors_tests)
 
 # If COMMAND specifies an executable target (created by add_executable)
 # it will automatically be replaced by the location of the executable
