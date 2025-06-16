@@ -58,8 +58,12 @@ jobs:
       - name: build-tests
         run: cmake --build build --config Release --target game_survivors_tests
 
+      # note: symlink for /assets should be created in configure-windows step.
+      # also, it is run from the . directory so that its next to the /assets folder.
       - name: run-tests
-        run: ./build/game_survivors_tests/game_survivors_tests.exe
+        run: |
+          pushd build/game_survivors_tests
+          ./game_survivors_tests.exe
 
       - name: build-game
         run: cmake --build build --config Release --target game_survivors
