@@ -19,35 +19,49 @@ function(create_symlinks project)
     file(TO_NATIVE_PATH "${src}" _srcDir)
     file(TO_NATIVE_PATH "${dst}" _dstDir)
 
-    if(NOT EXISTS ${_dstDir})
-      # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink
-      # mklink [[/d] | [/h] | [/j]] <link> <target>
-      # <link>	Specifies the name of the symbolic link being created.
-      # <target>	Specifies the path (relative or absolute) that the new symbolic link refers to.
-      #
-      add_custom_command(
-        TARGET ${PROJECT_NAME} PRE_BUILD
-        COMMAND cmd.exe /c mklink /D "${_dstDir}" "${_srcDir}"
-        COMMENT "Creating symlink on Windows"
-      )
-    ELSE()
+    if(EXISTS ${_dstDir})
       message("creating symlink... (already exists)")
-    ENDIF()
+      return()
+    endif()
+
+    # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink
+    # mklink [[/d] | [/h] | [/j]] <link> <target>
+    # <link>	Specifies the name of the symbolic link being created.
+    # <target>	Specifies the path (relative or absolute) that the new symbolic link refers to.
+    #
+    execute_process(
+      COMMAND cmd.exe /c mklink /D "${_dstDir}" "${_srcDir}"
+      RESULT_VARIABLE result
+      ERROR_VARIABLE error
+    )
+
+    if(NOT result EQUAL 0)
+      message(WARNING "Failed to create symlink: ${error}")
+    endif()
   ENDIF()
 endfunction()
 
-function(copy_file_next_to_exe project file)
-  if(NOT EXISTS ${file})
-    message(WARNING "File not found: ${file}")
+function(copy_file_next_to_exe project file_src file_dst)
+  if(NOT EXISTS ${file_src})
+    message(WARNING "File not found: ${file_src}")
     return()
   endif()
 
-  message("copy file to .exe ${file}")
+  if(EXISTS ${file_dst})
+    message("File exists at dst: ${file_dst}")
+    return()
+  endif()
 
-  add_custom_command(
-    TARGET ${project} PRE_LINK
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${file}
-    $<TARGET_FILE_DIR:${project}>
+  message("copying... ${file_src} => ${file_dst}")
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${file_src} ${file_dst}
+    RESULT_VARIABLE result
+    ERROR_VARIABLE error
   )
+
+  if(NOT result EQUAL 0)
+    message(WARNING "Failed to copy file: ${error}")
+  else()
+    message("File copied.")
+  endif()
 endfunction()

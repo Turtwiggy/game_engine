@@ -56,19 +56,13 @@ jobs:
           cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: build-tests
-        run: |
-          ls thirdparty/box2d/build
-          cp thirdparty/box2d/build/bin/Release/box2d.dll build/game_survivors_tests/
-          cmake --build build --config Release --target game_survivors_tests
+        run: cmake --build build --config Release --target game_survivors_tests
 
       - name: run-tests
-        run: |
-          ./build/game_survivors_tests/game_survivors_tests.exe
+        run: ./build/game_survivors_tests/game_survivors_tests.exe
 
       - name: build-game
-        run: | 
-          cp thirdparty/box2d/build/bin/Release/box2d.dll build/game_survivors/
-          cmake --build build --config Release --target game_survivors
+        run: cmake --build build --config Release --target game_survivors
 
       - name: copy-game-assets
         run: |
