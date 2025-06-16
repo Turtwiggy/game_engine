@@ -37,12 +37,17 @@ function(create_symlinks project)
 endfunction()
 
 function(copy_file_next_to_exe project file)
-  if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll")
-    set(steam_lib ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
-    message("copying file... ${file}")
-    add_custom_command(
-      TARGET ${project} PRE_LINK
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different file $<TARGET_FILE_DIR:${project}>
-    )
+  if(NOT EXISTS ${file})
+    message(WARNING "File not found: ${file}")
+    return()
   endif()
+
+  message("copy file to .exe ${file}")
+
+  add_custom_command(
+    TARGET ${project} PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${file}
+    $<TARGET_FILE_DIR:${project}>
+  )
 endfunction()
