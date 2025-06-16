@@ -385,8 +385,12 @@ update_player_select_ui(entt::registry& r,
       // draw confirm timer.
       //
 
-      const auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
-      const auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
+      auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
+      auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
+      if (back_str == "...")
+        back_str = "ESC";
+      if (confirm_str == "...")
+        confirm_str = "ENTER";
 
       const auto ready_text = std::format("Hold {} to ready.", confirm_str);
       const auto back_text = std::format("Hold {} for main menu.", back_str);

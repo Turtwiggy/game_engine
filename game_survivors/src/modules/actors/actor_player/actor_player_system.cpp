@@ -17,7 +17,6 @@
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
-#include <SDL_scancode.h>
 
 namespace game2d {
 
@@ -35,11 +34,19 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 
   {
     const auto& view =
-      r.view<const InputComponent, const MovementDirectComponent, PhysicsBodyComponent, const ActorSpeedComponent>();
+      r.view<const InputComponent, const MovementDirectComponent, const PhysicsBodyComponent, const ActorSpeedComponent>();
     for (const auto& [e, input_c, movetype_c, body_c, speed_c] : view.each()) {
 
-      const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
-      glm::vec2 l_nrm_dir = l_nrm_raw; // not normalized
+      const glm::vec2 l_raw = { input_c.lx, input_c.ly };
+
+      // normalize values if the magnitude is above 1
+      // and leave small values un-normalized
+      glm::vec2 l_nrm{ l_raw.x, l_raw.y };
+      const float mag = glm::length(l_raw);
+      if (mag > 1.0f) {
+        l_nrm.x = l_raw.x / mag;
+        l_nrm.y = l_raw.y / mag;
+      }
 
       // Apply more force the more your mass
       const float mass = b2Body_GetMass(body_c.bodyId);
@@ -56,19 +63,15 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 
       // use a scaled deadzone.
       const float deadzone = 0.10f;
-      const float magnitude = glm::length(l_nrm_dir);
-      if (magnitude < deadzone)
-        l_nrm_dir = { 0, 0 };
+      const float magnitude = glm::length(l_nrm);
+      if (mag < deadzone)
+        l_nrm = { 0, 0 };
       else {
-        // scale input from deadzone to full range
-        // const float x = engine::scale(l_nrm_dir.x, deadzone, 1.0f, 0.0f, 1.0f);
-        // const float y = engine::scale(l_nrm_dir.y, deadzone, 1.0f, 0.0f, 1.0f);
-
         float scale = (magnitude - deadzone) / (1.0f - deadzone);
-        l_nrm_dir *= scale / magnitude;
+        l_nrm *= scale / magnitude;
       }
 
-      const b2Vec2 tgt_vel = 100.0f * speed * b2Vec2{ l_nrm_dir.x, l_nrm_dir.y };
+      const b2Vec2 tgt_vel = 100.0f * speed * b2Vec2{ l_nrm.x, l_nrm.y };
       const b2Vec2 cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
 
       const b2Vec2 vel_err = tgt_vel - cur_vel;
@@ -76,7 +79,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
       // SDL_Log("vel_err: %f, %f, force: %f %f", vel_err.x, vel_err.y, force.x, force.y);
 
       // try and catch the "sudden" stops that kill all momentum
-      if (glm::abs(l_nrm_dir.x) > 0.0f && glm::abs(l_nrm_dir.y) > 0.0f)
+      if (glm::abs(l_nrm.x) > 0.0f || glm::abs(l_nrm.y) > 0.0f)
         b2Body_ApplyForceToCenter(body_c.bodyId, force, true);
 
       // if (glm::abs(l_nrm_dir.x) > 0.0f && glm::abs(l_nrm_dir.y) > 0.0f)
@@ -123,36 +126,37 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
   ZoneScoped;
 #endif
   const auto& steam_gs_c = get_first_component<SINGLE_SteamControllerGameState>(r);
-  const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& sdl_input_c = get_first_component<SINGLE_InputComponent>(r);
   int sdl_controllers_used = 0;
 
   // reset all inputs;
-  const auto inp_view = r.view<InputComponent>();
-  {
-    for (const auto& [e, input_c] : inp_view.each()) {
-      input_c.pause.clear();
-      input_c.ability1.clear();
-      input_c.ability2.clear();
-      input_c.dpad_u.clear();
-      input_c.dpad_d.clear();
-      input_c.dpad_l.clear();
-      input_c.dpad_r.clear();
-      input_c.button_n.clear();
-      input_c.button_s.clear();
-      input_c.button_e.clear();
-      input_c.button_w.clear();
-    }
+  for (const auto& [e, input_c] : r.view<InputComponent>().each()) {
+    input_c.lx = 0.0f;
+    input_c.ly = 0.0f;
+    input_c.rx = 0.0f;
+    input_c.ry = 0.0f;
+    input_c.pause.clear();
+    input_c.ability1.clear();
+    input_c.ability2.clear();
+    input_c.dpad_u.clear();
+    input_c.dpad_d.clear();
+    input_c.dpad_l.clear();
+    input_c.dpad_r.clear();
+    input_c.button_n.clear();
+    input_c.button_s.clear();
+    input_c.button_e.clear();
+    input_c.button_w.clear();
   }
 
   // keyboards
   {
-    const auto& view = r.view<InputComponent, KeyboardComponent>();
+    const auto& view = r.view<InputComponent, const KeyboardComponent>();
     for (const auto& [e, i, keyboard_c] : view.each()) {
-      i.ly += get_key_held(input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
-      i.ly += get_key_held(input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
-      i.lx += get_key_held(input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
-      i.lx += get_key_held(input_c, SDL_SCANCODE_D) ? 1.0f : 0.0f;
+      i.ly += get_key_held(sdl_input_c, SDL_SCANCODE_W) ? -1.0f : 0.0f;
+      i.ly += get_key_held(sdl_input_c, SDL_SCANCODE_S) ? 1.0f : 0.0f;
+      i.lx += get_key_held(sdl_input_c, SDL_SCANCODE_A) ? -1.0f : 0.0f;
+      i.lx += get_key_held(sdl_input_c, SDL_SCANCODE_D) ? 1.0f : 0.0f;
 
       if (get_mouse_lmb_press())
         i.ability1.push_back(ActionStateEnum::DOWN);
@@ -167,12 +171,12 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
       if (get_mouse_rmb_release())
         i.ability2.push_back(ActionStateEnum::RELEASE);
 
-      auto generate_actions_from_keyboard = [&input_c](std::vector<ActionStateEnum>& acts, const SDL_Scancode key) {
-        if (get_key_down(input_c, key))
+      auto generate_actions_from_keyboard = [&sdl_input_c](std::vector<ActionStateEnum>& acts, const SDL_Scancode key) {
+        if (get_key_down(sdl_input_c, key))
           acts.push_back(ActionStateEnum::DOWN);
-        if (get_key_held(input_c, key))
+        if (get_key_held(sdl_input_c, key))
           acts.push_back(ActionStateEnum::HELD);
-        if (get_key_up(input_c, key))
+        if (get_key_up(sdl_input_c, key))
           acts.push_back(ActionStateEnum::RELEASE);
       };
       generate_actions_from_keyboard(i.pause, SDL_SCANCODE_ESCAPE);
@@ -192,7 +196,7 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // controllers via steam
   {
-    const auto& view = r.view<InputComponent, SteamControllerComponent>();
+    const auto& view = r.view<InputComponent, const SteamControllerComponent>();
     for (const auto& [e, i, controller_c] : view.each()) {
       for (const auto handle : controller_c.handles) {
 
@@ -205,10 +209,10 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
         // need to improve this...
         const auto input = generate_from_handle(r, handle);
-        i.lx = input.lx;
-        i.ly = input.ly;
-        i.rx = input.rx;
-        i.ry = input.ry;
+        i.lx += input.lx;
+        i.ly += input.ly;
+        i.rx += input.rx;
+        i.ry += input.ry;
         i.pause.insert(i.pause.end(), input.pause.begin(), input.pause.end());
         i.ability1.insert(i.ability1.end(), input.ability1.begin(), input.ability1.end());
         i.ability2.insert(i.ability2.end(), input.ability2.begin(), input.ability2.end());
@@ -226,7 +230,7 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // clamp inputs
   {
-    for (const auto& [e, i] : inp_view.each()) {
+    for (const auto& [e, i] : r.view<InputComponent>().each()) {
       i.lx = glm::clamp(i.lx, -1.0f, 1.0f);
       i.ly = glm::clamp(i.ly, -1.0f, 1.0f);
       i.rx = glm::clamp(i.rx, -1.0f, 1.0f);

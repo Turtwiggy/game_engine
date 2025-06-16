@@ -225,7 +225,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
     // add upgrade header for column
     const auto im_player_col = convert_my_to_im(default_player_colours[player_idx]);
-    const auto upg_text = "Upgrade";
+    const auto upg_text = "Hold to Upgrade";
     const auto upg_pos = ImVec2{ clamped_tl.x + 0.5f * clamped_wh.x, clamped_tl.y }; // top center
     const auto upg_center = center_text(head_f, upg_text, upg_pos, { 0.5f, 0.0f });
     draw_list->AddText(head_f, head_f->FontSize, upg_center, im_player_col, upg_text);

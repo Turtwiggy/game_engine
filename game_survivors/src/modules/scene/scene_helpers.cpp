@@ -379,7 +379,19 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   // clear all the inputs when moving scene
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
   auto& g_input_c = r.get<InputComponent>(g_input_e);
-  g_input_c = {};
+  {
+    g_input_c.pause.clear();
+    g_input_c.ability1.clear();
+    g_input_c.ability2.clear();
+    g_input_c.dpad_u.clear();
+    g_input_c.dpad_d.clear();
+    g_input_c.dpad_l.clear();
+    g_input_c.dpad_r.clear();
+    g_input_c.button_n.clear();
+    g_input_c.button_s.clear();
+    g_input_c.button_e.clear();
+    g_input_c.button_w.clear();
+  }
 
   if (s == Scene::splashscreen) {
     create_empty<SINGLE_SplashScreen>(r);
