@@ -439,13 +439,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
 #if defined(_DEBUG)
   // hack: reload RAWS
-  const auto& input = get_first_component<SINGLE_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_9)) {
-    SDL_Log("%s", std::format("reloading raws...").c_str());
-    destroy_first<Raws>(r);
-    create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
-    move_to_scene_start(r, Scene::menu);
-  }
+  // const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  // if (get_key_down(input, SDL_SCANCODE_9)) {
+  //   SDL_Log("%s", std::format("reloading raws...").c_str());
+  //   destroy_first<Raws>(r);
+  //   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
+  //   move_to_scene_start(r, Scene::menu);
+  // }
 #endif
 
   // draw a custom mouse cursor

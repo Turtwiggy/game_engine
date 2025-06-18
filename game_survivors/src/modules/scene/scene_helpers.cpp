@@ -28,6 +28,7 @@
 #include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/lights/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -231,6 +232,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<OutOfBoundsTimer>(e);
   r.emplace<AbilityComponent>(e);
   r.emplace<HullKeyComponent>(e, hull_key);
+  r.emplace<LightEmitterComponent>(e);
 
   // Upgradeable stats
   r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second

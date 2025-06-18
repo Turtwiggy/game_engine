@@ -20,6 +20,7 @@ layout(std140) uniform Data {
   vec2 camera_pos;
   vec2 screenshake;
   vec4[4] player_positions; // xy: pos, z: angle, w: active
+  vec4[32] light_positions;
   float time;
   float zoom;
   float tilesize;

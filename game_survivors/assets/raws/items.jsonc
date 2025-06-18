@@ -153,6 +153,28 @@
         { "tag": "shield", "type": "box", "is_sensor": false, "offset":[{"x":8, "y":0}], "size": [{"x":16, "y": 32}]}
       ]
     },
+    // anglerfish
+    {
+      "name": "actor_enemy_4",
+      "speed": 0.015,
+      "renderable": { "sprite": "ABYSSAL_ANGLERFISH", "colour": "white" },
+      "traits": [ {"key": "ARC_ANGLE"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ 
+        { "tag": "fixture_core", "type": "box", "is_sensor": false }
+      ]
+    },
+    // hogfish
+    {
+      "name": "actor_enemy_5",
+      "speed": 1.0,
+      "renderable": { "sprite": "HOGFISH", "colour": "white" },
+      "traits": [ {"key": "DIRECT"} ], 
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ 
+        { "tag": "fixture_core", "type": "box", "is_sensor": false, "size": [{"x":96, "y": 64}] }
+      ]
+    },
     {
       "name": "actor_enemy_exploder",
       "speed": 2.0,

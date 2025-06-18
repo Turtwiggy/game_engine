@@ -15,6 +15,7 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
+#include "modules/core/renderer/lights/components.hpp"
 #include "modules/core/renderer/renderpass/passes.hpp"
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
@@ -45,6 +46,7 @@ struct UboData
   glm::vec2 camera_pos{ 0, 0 };
   glm::vec2 screenshake{ 0, 0 };
   glm::vec4 player_positions[4]; // try to avoid padding issues with vec4
+  glm::vec4 light_positions[32];
   float time = 0;
   float zoom = 0;
   float tilesize = 50;
@@ -482,23 +484,20 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   data.zoom = camera_c.zoom_nonlinear;
   data.screenshake = screenshake_c.strength;
 
-  // .w as 0 indicates player inactive.
-  for (int i = 0; i < 4; i++)
-    data.player_positions[i].w = 0.0f;
+  // .w as 0 indicates light inactive.
+  const int n_lights = 32;
+  for (int i = 0; i < n_lights; i++)
+    data.light_positions[i].w = 0.0f;
 
-  const auto players_view = r.view<const PlayerComponent, const TransformComponent>();
-  for (int i = 0; const auto& [e, player_c, t_c] : players_view.each()) {
-    data.player_positions[i].x = t_c.position.x;
-    data.player_positions[i].y = t_c.position.y;
-
-    // HACK: trial a wedge angle representing a flashlight for the player.
-    float angle = clamp_axis(t_c.rotation_radians.z);
-    // static float angle = 0.0f;
-    // angle += 1.0f * dt;
-    // angle = clamp_axis(angle);
-    data.player_positions[i].z = angle;
-    data.player_positions[i].w = 1.0f;
+  const auto view = r.view<const LightEmitterComponent, const TransformComponent>();
+  for (int i = 0; const auto& [e, light_c, t_c] : view.each()) {
+    data.light_positions[i].x = t_c.position.x;
+    data.light_positions[i].y = t_c.position.y;
+    data.light_positions[i].z = 0.0f; // could be angle the unit is facing
+    data.light_positions[i].w = 1.0f;
     i++;
+    if (i == n_lights)
+      break;
   }
 
   // Note: this updates the entire array.

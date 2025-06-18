@@ -35,7 +35,7 @@
     { "name": "ARCHERFISH", "frames": [ { "x": 8, "y": 6, "w": 2, "h": 2 } ] },
     { "name": "JELLYFISH", "frames": [ { "x": 10, "y": 6, "w": 2, "h": 2 } ], "angle": -45 },
     { "name": "ABYSSAL_ANGLERFISH", "frames": [ { "x": 12, "y": 6, "w": 2, "h": 2 } ] },
-    { "name": "HOGFISH", "frames": [ { "x": 14, "y": 6, "w": 2, "h": 2 } ] },
+    { "name": "HOGFISH", "frames": [ { "x": 14, "y": 6, "w": 3, "h": 2 } ] },
 
     { "name": "SEA_URCHIN", "frames": [ { "x": 0, "y": 10, "w": 2, "h": 2 } ]},
     { "name": "SEA_HORSE", "frames": [ { "x": 2, "y": 10, "w": 2, "h": 2 } ]},

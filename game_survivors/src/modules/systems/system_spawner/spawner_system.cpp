@@ -25,6 +25,7 @@
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
+#include "modules/core/renderer/lights/components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_components.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_helpers.hpp"
@@ -75,6 +76,8 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     enemy_size = { 16, 16 };
   if (key == "actor_enemy_grower")
     enemy_size = { 0, 0 };
+  if (key == "actor_enemy_5")            // hogfish
+    enemy_size = { 48 * 2.0, 32 * 2.0 }; // i want big hogs!
 
   // oyster
   entt::entity halo_e = entt::null;
@@ -195,6 +198,15 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     }
   }
 
+  // anglerfish
+  if (key == "actor_enemy_4") {
+    r.emplace<LightEmitterComponent>(e);
+  }
+
+  // hogfish
+  if (key == "actor_enemy_5") {
+  }
+
   // archerfish
   if (key == "actor_enemy_projectile") {
     r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust = 6.0f;
@@ -279,11 +291,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     hp_c.max_hp = hp;
   }
 
-  // r.emplace<DefenceComponent>(fixture_e);
-
   // move at player, this gotta be changed for more interesting types
   r.emplace<DynamicTargetComponent>(e, target_e);
   r.emplace<PhysicsDynamicTarget>(e, target_e);
+  // r.emplace<DefenceComponent>(fixture_e);
 
   return e;
 };

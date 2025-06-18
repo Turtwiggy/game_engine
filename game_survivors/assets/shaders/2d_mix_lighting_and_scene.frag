@@ -22,18 +22,20 @@ uniform vec2 viewport_wh;
 uniform bool add_grid;
 uniform bool invert_colours;
 
+#define NR_MAX_LIGHTS 32
+
 layout(std140) uniform Data {
   mat4 projection_zoomed;
   mat4 view;
   vec2 camera_pos;
   vec2 screenshake;
   vec4[4] player_positions; // xy: pos, z: angle, w: active
+  vec4[NR_MAX_LIGHTS] light_positions; // note: xy: pos, z: angle, w: active
   float time;
   float zoom;
   float tilesize;
 };
 
-#define NR_MAX_CIRCLES 100
 
 struct Light
 {
@@ -267,15 +269,15 @@ void main()
 
     float d = 1e10;
 
-    for(int i = 0; i < 4; i++){
+    for(int i = 0; i < 32; i++){
 
       // pos.z being 0 indicicates player inactive
-      if(player_positions[i].w < 1.0f){
+      if(light_positions[i].w < 1.0f){
         continue;
       }
 
-      vec2 ppos = vec2(player_positions[i].x, player_positions[i].y );
-      float angle = player_positions[i].z;
+      vec2 ppos = vec2(light_positions[i].x, light_positions[i].y );
+      float angle = light_positions[i].z;
 
       // convert worldspace to between -1 and 1.
       vec2 ss = (((ppos - screen_min)/viewport_wh) * 2.0) - 1.0;
@@ -286,16 +288,16 @@ void main()
       float degrees_to_rad = PI / 180.0;
 
       // circle
-      float size = 4.0 * 50.0;
-			// float d0 = sdCircle(p, size / (aspect_x * 100));
-      // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      float size = 3.0 * 50.0;
+			float d0 = sdCircle(p, size / (aspect_x * 100));
+      d0 = clamp(d0, -1.0, 1.0); // inside distances only
 
       // flashlight lighting with wedge sdf
       // https://www.shadertoy.com/view/wldXWB
-      vec2 a = 0.01 * -angle_to_dir(angle + 60 * degrees_to_rad );
-      vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
-      vec2 c = 0.01 * -angle_to_dir(angle - 60 * degrees_to_rad );
-      float d0 = sdWedge(p, a, b, c);
+      // vec2 a = 0.01 * -angle_to_dir(angle + 60 * degrees_to_rad );
+      // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
+      // vec2 c = 0.01 * -angle_to_dir(angle - 60 * degrees_to_rad );
+      // float d0 = sdWedge(p, a, b, c);
       // d0 = clamp(d0, -1.0, 1.0); // inside distances only
 
       // float pk = 8.0f; // width
@@ -310,16 +312,22 @@ void main()
       // d0 = clamp(d0, -1.0, 1.0); // inside distances only
 
       // smooth it in
-      // float dt = opSmoothUnion(d, d0, 0.1);
-      // d = min(d, dt);
-      d = d0;
-      break;  
+      float dt = opSmoothUnion(d, d0, 0.1);
+      d = min(d, dt);
+      // d = d0;
+      // break;
     }
 
     // coloring
-    vec3 col = (d>0.0) ? vec3(1.0,0.0,0.0) : vec3(0.65,0.85,1.0);
+    vec3 col = (d>0.0) ? vec3(1.0,1.0, 1.0) : vec3(1.0,1.0,1.0);
     // col *= 1.0 - exp(-20.0*abs(d));
+
+    // light falloff outside the "light"
     col *= exp(-6.0*abs(d));
+
+    // no falloff inside the "light"
+    col = d < 0.0 ? vec3(1.0, 1.0, 1.0) : col;
+
     // col *= 0.8 + 0.2*cos(150.0*d);
     // col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
 
@@ -329,15 +337,17 @@ void main()
     // lighting_col = d < 0 ? vec3(clamp(1 - (1 + d), 0, 1)) : vec3(clamp(d, 0, 1));
     // lighting_col.rgb = vec3(d);
     lighting_col.rgb = col;
+    lighting_col = d == 1e10 ? vec3(1.0): lighting_col;
   }
 
   vec4 scene_lin = texture(tex_scene_0, v_uv);
   vec4 outline_col = texture(tex_outline, v_uv);
 
   // todo: add lighting to lin
-  // out_color.r *= max(0.2, lighting_col.r);
-  // out_color.g *= max(0.2, lighting_col.g);
-  // out_color.b *= max(0.2, lighting_col.b);
+
+  // out_color.r = max(0.2, lighting_col.r);
+  // out_color.g = max(0.2, lighting_col.g);
+  // out_color.b = max(0.2, lighting_col.b);
   // out_color.r *= max(0.5, 1.0f - (pow(lighting_col.r, 2)));
   // out_color.g *= max(0.5, 1.0f - (pow(lighting_col.g, 2)));
   // out_color.b *= max(0.5, 1.0f - (pow(lighting_col.b, 2)));
@@ -346,11 +356,10 @@ void main()
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
 
   if (length(scene_lin.rgb) > 0.0) {
-      out_color.rgb = srgb_final;
+    out_color.rgb = lighting_col * srgb_final;
   } else {
-      out_color.rgb = srgb_water;
+    out_color.rgb = lighting_col * srgb_water;
   }
-
 
   if(outline_col.r > 0.0f)
       out_color.rgb = vec3(1.0, 0.0, 0.0);
