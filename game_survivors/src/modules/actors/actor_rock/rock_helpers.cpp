@@ -378,7 +378,7 @@ generate_rock_bounding_box(entt::registry& r, entt::entity e)
   }
 
   r.emplace<BoundingBoxComponent>(e, bb_c);
-}
+};
 
 void
 generate_rocks(entt::registry& r, const float cutoff)
@@ -392,7 +392,18 @@ generate_rocks(entt::registry& r, const float cutoff)
 
   // note: press kp 7 to regenerate
   SDL_Log("Generating rocks, cutoff: %f", cutoff);
-  const auto generated = generate_noise(r, cutoff, frequency, seed);
+  auto generated = generate_noise(r, cutoff, frequency, seed);
+
+  // Modify the noise, so that the center is always an island.
+  for (int x = 20; x < 30; x++) {
+    for (int y = 20; y < 30; y++) {
+      const auto at_grid_xy = [&](NoiseInfo& info) { return info.xy == glm::ivec2{ x, y }; };
+      auto it = std::find_if(generated.begin(), generated.end(), at_grid_xy);
+      if (it == generated.end())
+        continue;
+      it->noise = 1.0; // make it solid
+    }
+  }
 
   // whats the smallest & largest noise in the distribution
   // auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });

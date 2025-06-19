@@ -122,6 +122,7 @@ float sdRoundSquare( in vec2 p, in float s, in float r )
     return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r;
 }
 
+float cro(in vec2 a, in vec2 b ) { return a.x*b.y - a.y*b.x; }
 float dot2( in vec2 v ) { return dot(v,v); }
 float cro2( in vec2 a, in vec2 b ) { return a.x*b.y - a.y*b.x; }
 
@@ -138,6 +139,38 @@ float sdWedge( in vec2 q, in vec2 a, in vec2 c, in vec2 b )
               cro2(q,b) ));
 }
 
+// c is the sin/cos of the angle. r is the radius
+float sdPie( in vec2 p, in vec2 c, in float r )
+{
+  p.x = abs(p.x);
+  float l = length(p) - r;
+	float m = length(p - c*clamp(dot(p,c),0.0,r) );
+  return max(l,m*sign(c.y*p.x-c.x*p.y));
+}
+
+// https://www.shadertoy.com/view/4lcBWn
+float sdUnevenCapsule( in vec2 p, in vec2 pa, in vec2 pb, in float ra, in float rb )
+{
+  p  -= pa;
+  pb -= pa;
+  float h = dot(pb,pb);
+  vec2  q = vec2( dot(p,vec2(pb.y,-pb.x)), dot(p,pb) )/h;
+  
+  //-----------
+  
+  q.x = abs(q.x);
+  
+  float b = ra-rb;
+  vec2  c = vec2(sqrt(h-b*b),b);
+  
+  float k = cro(c,q);
+  float m = dot(c,q);
+  float n = dot(q,q);
+  
+      if( k < 0.0 ) return sqrt(h*(n            )) - ra;
+  else if( k > c.x ) return sqrt(h*(n+1.0-2.0*q.y)) - rb;
+                    return m                       - ra;
+}
 
 float sdParabola( in vec2 pos, in float k )
 {
@@ -286,30 +319,57 @@ void main()
       vec2 p = uv + ss;
       float PI = 3.14159265359;
       float degrees_to_rad = PI / 180.0;
+      float d0 = 0.0f;
 
       // circle
-      float size = 3.0 * 50.0;
-			float d0 = sdCircle(p, size / (aspect_x * 100));
-      d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      // -10 is < [-pi, pi], meaning it cant be an angle
+      if(angle == -10.0f)
+      {
+        float size = 3.0 * 50.0;
+        d0 = sdCircle(p, size / (aspect_x * 100));
+        d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      }
 
       // flashlight lighting with wedge sdf
       // https://www.shadertoy.com/view/wldXWB
-      // vec2 a = 0.01 * -angle_to_dir(angle + 60 * degrees_to_rad );
-      // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
-      // vec2 c = 0.01 * -angle_to_dir(angle - 60 * degrees_to_rad );
-      // float d0 = sdWedge(p, a, b, c);
-      // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      else 
+      {
+        // vec2 a = 1.0 * -angle_to_dir(angle + 60 * degrees_to_rad );
+        // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
+        // vec2 c = 1.0 * -angle_to_dir(angle - 60 * degrees_to_rad );
+        // d0 = sdWedge(p, a, b, c);
+        // not interested in super far away distances
+        // if(d0 <= -1.0)
+        //   continue;
 
-      // float pk = 8.0f; // width
-      // float d0 = sdParabola(p, pk);
-      // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+        vec2 a = vec2(0.0, 0.0); // 0, 0 is the worldspace pos 
+        vec2 b = 0.6 * -angle_to_dir(angle);
+        float ra = 0.25;
+        float rb = 0.6;
+        d0 = sdUnevenCapsule(p, a, b, ra, rb);
 
-      // vec2 v1 = a;
-      // vec2 v2 = b;
-      // vec2 v3 = b;
-      // vec2 v4 = c;
-      // float d0 = sdQuad( p, v1, v2, v3, v4 );
-      // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+        // Calculate the direction vector for the player's angle
+        // vec2 a = angle_to_dir(angle);
+        // float t = 3.14 * time * (0.5 + 0.5 * cos(3.14 * 0));
+        // d0 = sdPie(p,vec2(sin(a.x),cos(a.y)), 1.0);
+        // if(d0 < -1)
+        //   d0 = 1.0 - abs(d0);
+        // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+
+        // float pk = 8.0f; // width
+        // float d0 = sdParabola(p, pk);
+        // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+
+        // vec2 a = 1.0 * -angle_to_dir(angle + 30 * degrees_to_rad );
+        // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
+        // vec2 c = 1.0 * -angle_to_dir(angle - 30 * degrees_to_rad );
+        // vec2 v1 = a;
+        // vec2 v2 = b;
+        // vec2 v3 = b;
+        // vec2 v4 = c;
+        // d0 = sdQuad( p, v1, v2, v3, v4 );
+        // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      }
 
       // smooth it in
       float dt = opSmoothUnion(d, d0, 0.1);
@@ -319,47 +379,43 @@ void main()
     }
 
     // coloring
-    vec3 col = (d>0.0) ? vec3(1.0,1.0, 1.0) : vec3(1.0,1.0,1.0);
+    vec3 no_light_col = vec3(0.0,0.0,0.0);
+    vec3 light_col = vec3(255/255.0f, 255/255.0f, 255/255.0f); // 3100k
+    vec3 col = (d>0.0) ? no_light_col : light_col;
+    col *= 1.0 - exp(-6.0*abs(d));
+    // col *= 0.8 + 0.2*cos(128.0*abs(d));
+    col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.015,abs(d)) );
+
+    // vec3 col = (d>0.0) ? vec3(1.0,1.0, 1.0) : vec3(1.0,1.0,1.0);
     // col *= 1.0 - exp(-20.0*abs(d));
 
     // light falloff outside the "light"
-    col *= exp(-6.0*abs(d));
+    // col *= exp(-6.0*abs(d));
 
     // no falloff inside the "light"
-    col = d < 0.0 ? vec3(1.0, 1.0, 1.0) : col;
+    // col = d < 0.0 ? vec3(1.0, 1.0, 1.0) : col;
 
     // col *= 0.8 + 0.2*cos(150.0*d);
     // col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
 
     // lighting_col.r = 1.0;
-    // lighting_col.g = 1.0;
-    // lighting_col.b = 1.0;
-    // lighting_col = d < 0 ? vec3(clamp(1 - (1 + d), 0, 1)) : vec3(clamp(d, 0, 1));
     // lighting_col.rgb = vec3(d);
     lighting_col.rgb = col;
+
+    // if no lights (d == 1e10), set vec3 to 1.0 to display full scene
     lighting_col = d == 1e10 ? vec3(1.0): lighting_col;
   }
 
   vec4 scene_lin = texture(tex_scene_0, v_uv);
   vec4 outline_col = texture(tex_outline, v_uv);
-
-  // todo: add lighting to lin
-
-  // out_color.r = max(0.2, lighting_col.r);
-  // out_color.g = max(0.2, lighting_col.g);
-  // out_color.b = max(0.2, lighting_col.b);
-  // out_color.r *= max(0.5, 1.0f - (pow(lighting_col.r, 2)));
-  // out_color.g *= max(0.5, 1.0f - (pow(lighting_col.g, 2)));
-  // out_color.b *= max(0.5, 1.0f - (pow(lighting_col.b, 2)));
-
-  vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
 
   if (length(scene_lin.rgb) > 0.0) {
-    out_color.rgb = lighting_col * srgb_final;
+    out_color.rgb = lin_to_srgb( lighting_col * scene_lin.rgb );
   } else {
     out_color.rgb = lighting_col * srgb_water;
-  }
+  } 
+  // out_color.rgb = lighting_col;
 
   if(outline_col.r > 0.0f)
       out_color.rgb = vec3(1.0, 0.0, 0.0);

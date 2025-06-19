@@ -9,6 +9,6 @@ entt::entity
 create_snake(entt::registry& r);
 
 void
-update_snake(entt::registry& r, glm::vec2 mouse_pos, float dt);
+update_actor_snake(entt::registry& r, glm::vec2 mouse_pos, float dt);
 
 } // namespace game2d

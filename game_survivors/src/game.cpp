@@ -15,6 +15,7 @@
 #include "game_state.hpp"
 #include "modules/actors/actor_enemy_charger/enemy_charger_system.hpp"
 #include "modules/actors/actor_enemy_grower/enemy_grower_system.hpp"
+#include "modules/actors/actor_lighthouse/lighthouse_system.hpp"
 #include "modules/actors/actor_player/actor_player_system.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_system.hpp"
@@ -335,13 +336,14 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ability_system(r, dt);
     update_aoe_slow_system(r, dt);
 
+    update_actor_lighthouse_system(r, dt);
     update_death_throes_system(r, dt);
     update_enemy_charger_system(r);
     update_enemy_grower_system(r, dt);
     update_enemy_projectile_system(r);
     update_enemy_swarmlord_system(r);
-    update_snake(r, mouse_pos, dt);
-    // update_actor_snake_projectiles_system(r);
+    update_actor_snake(r, mouse_pos, dt);
+    update_actor_snake_projectiles_system(r);
 
     update_upgrade_hp_max_system(r);
     update_upgrade_hp_regen_system(r, dt);

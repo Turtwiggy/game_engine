@@ -17,12 +17,15 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actors/actor_hull/hull_components.hpp"
+#include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/actors/actor_rock/rock_system.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
+#include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/camera/components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
@@ -66,6 +69,7 @@
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_helpers.hpp"
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+#include "modules/ui/ui_worldspace_text/helpers.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -163,10 +167,11 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
 };
 
 entt::entity
-spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::string hull_key, std::string weapon_key)
+spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, std::string weapon_key)
 {
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
   const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+  const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
 
   auto get_key = []<typename T>(const std::vector<T>& data, const std::string& key) -> std::optional<T> {
     const auto it = std::find_if(data.begin(), data.end(), [&key](const T& item) { return item.key == key; });
@@ -174,8 +179,8 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
       return std::nullopt;
     return (*it);
   };
-  const ShipHullData hull = get_key(hulls_c.hulls, hull_key).value();
-  const Weapon_OnDiskData weapon_data = get_key(weps_c.weapons, weapon_key).value();
+  const auto hull = get_key(hulls_c.hulls, hull_key).value();
+  const auto weapon_data = get_key(weps_c.weapons, weapon_key).value();
   const auto hull_size = glm::vec2{ hull.width, hull.height };
 
   std::vector<entt::entity> weapons;
@@ -233,6 +238,7 @@ spawn_player(entt::registry& r, std::string key, glm::ivec2 pos, int num, std::s
   r.emplace<AbilityComponent>(e);
   r.emplace<HullKeyComponent>(e, hull_key);
   r.emplace<LightEmitterComponent>(e);
+  r.emplace<LightTypeWedge>(e);
 
   // Upgradeable stats
   r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
@@ -465,8 +471,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // spawn rocks
     auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
     auto rock_opt = get_modifier_option(r, MODIFIER_OPTIONS::ROCKS);
-    if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks)
+    if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks) {
       create_empty<RequestGenerateRocks>(r);
+      // need islands and rocks to exist before player spawns,
+      // to determine player spawn location
+      update_actor_rocks_system(r);
+    }
 
     std::vector<HullChoice> hull_keys = {
       HullChoice{ .player_idx = 0, .player_boat_key = "dinghy" },
@@ -508,7 +518,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
         throw std::runtime_error("weapon_str not set");
       SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
 
-      const auto p = spawn_player(r, "actor_player", { 0, 0 }, i, boat_str, weapon_str);
+      const auto p = spawn_player(r, "actor_player", i, boat_str, weapon_str);
 
       if (handle_joined)
         r.get<SteamControllerComponent>(p).handles.push_back(handle);
@@ -531,12 +541,24 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
     for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
       hp_c.hp = hp_c.max_hp;
+
+    // create a "lighthouse" at the center of the map.
+    auto lighthouse_e = spawn(r, "actor_lighthouse");
+    give_life(r, lighthouse_e, { 0, 0 }, { 32, 32 });
+    set_sprite(r, lighthouse_e, "ARROW_RIGHT");
+    // add_spritestack(r, lighthouse_e, "lighthouse"); // todo
+    r.emplace<LighthouseComponent>(lighthouse_e);
+    r.emplace<LightEmitterComponent>(lighthouse_e);
+    r.emplace<LightTypeWedge>(lighthouse_e);
+    auto popup_e = create_popup(r, { 0, 0 }, "Lighthouse");
+    r.remove<EntityTimedLifecycle>(popup_e);
+    r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
   }
 
   if (s == Scene::procedural_snake) {
     create_empty<CameraFreeMove>(r);
 
-    const auto p = spawn_player(r, "actor_player", { 0, 0 }, 0, "dinghy", "weapon_deck_cannon");
+    const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {

@@ -489,15 +489,31 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   for (int i = 0; i < n_lights; i++)
     data.light_positions[i].w = 0.0f;
 
-  const auto view = r.view<const LightEmitterComponent, const TransformComponent>();
-  for (int i = 0; const auto& [e, light_c, t_c] : view.each()) {
-    data.light_positions[i].x = t_c.position.x;
-    data.light_positions[i].y = t_c.position.y;
-    data.light_positions[i].z = 0.0f; // could be angle the unit is facing
-    data.light_positions[i].w = 1.0f;
-    i++;
+  // update light emitters (that arnt players)
+  int i = 0;
+
+  const auto view0 = r.view<const LightEmitterComponent, const TransformComponent, const LightTypeWedge>();
+  for (const auto& [e, light_c, t_c, type_c] : view0.each()) {
     if (i == n_lights)
       break;
+    const auto dir = angle_radians_to_direction(t_c.rotation_radians.z);
+    const float offset = 0.0f;
+    data.light_positions[i].x = t_c.position.x + dir.x * offset;
+    data.light_positions[i].y = t_c.position.y + dir.y * offset;
+    data.light_positions[i].z = engine::clamp_axis(t_c.rotation_radians.z);
+    data.light_positions[i].w = 1.0f;
+    i++;
+  }
+
+  const auto view1 = r.view<const LightEmitterComponent, const TransformComponent, const LightTypeCircle>();
+  for (const auto& [e, light_c, t_c, type_c] : view1.each()) {
+    if (i == n_lights)
+      break;
+    data.light_positions[i].x = t_c.position.x;
+    data.light_positions[i].y = t_c.position.y;
+    data.light_positions[i].z = -10.0f; // -10 is < [-pi, pi], meaning it cant be an angle
+    data.light_positions[i].w = 1.0f;
+    i++;
   }
 
   // Note: this updates the entire array.

@@ -122,6 +122,10 @@
       ]
     },
     {
+      "name": "actor_lighthouse",
+      "renderable": { "sprite": "EMPTY", "colour":  "white" }
+    },
+    {
       "name": "actor_enemy_melee_1",
       "speed": 2.0,
       "renderable": { "sprite": "HORSESHOE_CRAB", "colour": "white" },

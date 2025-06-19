@@ -40,7 +40,7 @@ split_string_nearest_space(const std::string& str, const int& len)
   return results;
 };
 
-void
+entt::entity
 create_popup(entt::registry& r, glm::vec2 pos, std::string text)
 {
   WorldspaceTextComponent wst_c;
@@ -72,6 +72,7 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
   r.emplace<EntityTimedLifecycle>(popup_e, 1 * 3000);
   r.emplace<WiggleUpAndDown>(popup_e, WiggleUpAndDown{ .base_position = pos });
   set_position(r, popup_e, pos);
+  return popup_e;
 }
 
 } // namespace game2d

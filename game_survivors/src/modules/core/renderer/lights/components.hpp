@@ -24,4 +24,13 @@ struct LightEmitterComponent
   bool placeholder = true;
 };
 
+struct LightTypeCircle
+{
+  bool placeholder = true;
+};
+struct LightTypeWedge
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

@@ -201,6 +201,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // anglerfish
   if (key == "actor_enemy_4") {
     r.emplace<LightEmitterComponent>(e);
+    r.emplace<LightTypeCircle>(e);
   }
 
   // hogfish
