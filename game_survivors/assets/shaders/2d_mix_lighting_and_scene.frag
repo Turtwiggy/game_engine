@@ -21,6 +21,7 @@ uniform sampler2D tex_shine_shells;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
 uniform bool invert_colours;
+uniform bool add_vignette;
 
 #define NR_MAX_LIGHTS 32
 
@@ -260,8 +261,8 @@ void main()
 
   // sdf grid
   vec3 grid_col = vec3(0.0f);
-  if(add_grid) {
-
+  // if(add_grid) 
+  {
     float aspect_y = viewport_wh.y / viewport_wh.x;
     float grid_size = 50.0;
 
@@ -286,7 +287,6 @@ void main()
         grid_col = vec3(0.04); // line
   }
 
-
   //
   // SDF for lights?
   //
@@ -305,10 +305,10 @@ void main()
     for(int i = 0; i < 32; i++){
 
       // pos.z being 0 indicicates player inactive
-      if(light_positions[i].w < 1.0f){
-        continue;
+      if(light_positions[i].w < 1.0f){       
+        continue; // TODO: remove this if statement
       }
-
+ 
       vec2 ppos = vec2(light_positions[i].x, light_positions[i].y );
       float angle = light_positions[i].z;
 
@@ -376,12 +376,16 @@ void main()
       d = min(d, dt);
       // d = d0;
       // break;
+
+      // mask out light if not active.
+      // d0 *= light_active;
     }
 
     // coloring
     vec3 no_light_col = vec3(0.0,0.0,0.0);
     vec3 light_col = vec3(255/255.0f, 255/255.0f, 255/255.0f); // 3100k
-    vec3 col = (d>0.0) ? no_light_col : light_col;
+
+    vec3 col = mix(light_col, no_light_col, float(d > 0.0));
     col *= 1.0 - exp(-6.0*abs(d));
     // col *= 0.8 + 0.2*cos(128.0*abs(d));
     col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.015,abs(d)) );
@@ -410,28 +414,43 @@ void main()
   vec4 outline_col = texture(tex_outline, v_uv);
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
 
-  if (length(scene_lin.rgb) > 0.0) {
-    out_color.rgb = lin_to_srgb( lighting_col * scene_lin.rgb );
-  } else {
-    out_color.rgb = lighting_col * srgb_water;
-  } 
+  vec3 col_scene = lin_to_srgb( lighting_col * scene_lin.rgb );
+  vec3 col_water = lighting_col * srgb_water;
+  float use_scene = sign(length(col_scene.rgb));
+  out_color.rgb = mix(
+      col_water,  // Used if length(col_scene) == 0
+      col_scene,  // Used if length(col_scene) > 0
+      use_scene   // Binary selector (0 or 1)
+  );
   // out_color.rgb = lighting_col;
 
-  if(outline_col.r > 0.0f)
-      out_color.rgb = vec3(1.0, 0.0, 0.0);
+  // if(outline_col.r > 0.0f)
+  //     out_color.rgb = vec3(1.0, 0.0, 0.0);
+  out_color.rgb = mix(
+      out_color.rgb,           
+      vec3(1.0, 0.0, 0.0),     // Red (used if condition is true)
+      sign(outline_col.r) // 1.0 if outline_col.r > 0.0, else 0.0
+  );
 
   out_color.rgb += grid_col;
 
-  // vignette
-  // vec2 vig_uv = fragCoord.xy / iResolution.xy;
-  // vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
-  // float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
-  // vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
-  // out_color.rgb *= vig;
-
   vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
-  if(tex_shells.r > 0.0)
-    out_color.rgb = lin_to_srgb(tex_shells);
+  // if(tex_shells.r > 0.0)
+    // out_color.rgb = lin_to_srgb(tex_shells);
+  out_color.rgb = mix(
+    out_color.rgb, 
+    lin_to_srgb(tex_shells), 
+    length(tex_shells.r)
+  );
+
+  // vignette
+  // if(add_vignette){
+  vec2 vig_uv = fragCoord.xy / iResolution.xy;
+  vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
+  float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
+  vig = pow(vig, 0.1); // change pow for modifying the extend of the  vignettea
+  out_color.rgb *= vig;
+  // }
 
   // ACES tonemap
   // out_color.rgb = Tonemap_ACES(out_color.rgb);

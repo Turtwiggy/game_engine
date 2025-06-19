@@ -238,7 +238,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
   r.emplace<AbilityComponent>(e);
   r.emplace<HullKeyComponent>(e, hull_key);
   r.emplace<LightEmitterComponent>(e);
-  r.emplace<LightTypeWedge>(e);
+  r.emplace<LightTypeCircle>(e);
 
   // Upgradeable stats
   r.emplace<ActorHealthRegenComponent>(e, 0.0f); // hp per second
@@ -542,17 +542,22 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
       hp_c.hp = hp_c.max_hp;
 
-    // create a "lighthouse" at the center of the map.
-    auto lighthouse_e = spawn(r, "actor_lighthouse");
-    give_life(r, lighthouse_e, { 0, 0 }, { 32, 32 });
-    set_sprite(r, lighthouse_e, "ARROW_RIGHT");
-    // add_spritestack(r, lighthouse_e, "lighthouse"); // todo
-    r.emplace<LighthouseComponent>(lighthouse_e);
-    r.emplace<LightEmitterComponent>(lighthouse_e);
-    r.emplace<LightTypeWedge>(lighthouse_e);
-    auto popup_e = create_popup(r, { 0, 0 }, "Lighthouse");
-    r.remove<EntityTimedLifecycle>(popup_e);
-    r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
+    // create a "lighthouse" on each of the islands.
+    for (const auto [e, island_c, bb_c] : r.view<const RockComponent, const BoundingBoxComponent>().each()) {
+
+      const auto center = 0.5f * (bb_c.br + bb_c.tl);
+
+      auto lighthouse_e = spawn(r, "actor_lighthouse");
+      give_life(r, lighthouse_e, center, { 32, 32 });
+      set_sprite(r, lighthouse_e, "ARROW_RIGHT");
+      // add_spritestack(r, lighthouse_e, "lighthouse"); // todo
+      r.emplace<LighthouseComponent>(lighthouse_e);
+      r.emplace<LightEmitterComponent>(lighthouse_e);
+      r.emplace<LightTypeWedge>(lighthouse_e);
+      auto popup_e = create_popup(r, center, "Lighthouse");
+      r.remove<EntityTimedLifecycle>(popup_e);
+      r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
+    }
   }
 
   if (s == Scene::procedural_snake) {

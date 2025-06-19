@@ -156,11 +156,11 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
   ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
-  for (const auto& tex : ri.user_textures) {
-    const std::string key = "tex_" + clean_path(tex.path);
-    SDL_Log("%s", std::format("user tex key: {}", key).c_str());
-    ri.instanced.set_int(key, tex.tex_unit.unit);
+  for (int i = 0; i < (int)ri.user_textures.size(); i++) {
+    const auto& tex = ri.user_textures[i];
+    ri.instanced.set_int("u_textures[" + std::to_string(i) + "]", tex.tex_unit.unit);
   }
+
   // ri.instanced.set_int("tex_fluid", tex_unit_fluid);
   // ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
   // ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
@@ -171,11 +171,11 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.shine.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
   ri.shine.set_bool("do_zoom", true);
   ri.shine.set_mat4("projection", camera.projection);
-  for (const auto& tex : ri.user_textures) {
-    const std::string key = "tex_" + clean_path(tex.path);
-    ri.shine.set_int(key, tex.tex_unit.unit);
+  for (int i = 0; i < (int)ri.user_textures.size(); i++) {
+    const auto& tex = ri.user_textures[i];
+    ri.shine.set_int("u_textures[" + std::to_string(i) + "]", tex.tex_unit.unit);
   }
-  ri.shine.set_int("tex", tex_unit_sprites_with_shield);
+  // ri.shine.set_int("tex", tex_unit_sprites_with_shield);
 
   ri.outline.reload(r);
   ri.outline.bind();
@@ -223,12 +223,13 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_bool("is_fullscreen", true);
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
-  ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
+  ri.mix_lighting_and_scene.set_bool("add_grid", true);
+  ri.mix_lighting_and_scene.set_bool("add_vignette", true);
   // ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
 
   const auto& camera_c = get_first_component<OrthographicCamera>(r);
@@ -586,8 +587,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         }
       }
       // Debug user Texture
-      for (int i = 0; const auto& tex : ri.user_textures) {
-        const std::string label = std::string("Debug") + std::to_string(i++) + tex.path;
+      for (const auto& tex : ri.user_textures) {
+        const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, tex.path, tex.tex_id.id);
         ImGui::Begin(label.c_str());
         ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         const uint64_t id = tex.tex_id.id;

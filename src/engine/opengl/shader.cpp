@@ -139,20 +139,18 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
     const std::string key0 = "{{ generate_user_samplers }}";
     const size_t pos0 = code.find(key0);
     if (pos0 != std::string::npos) {
-      std::string generated = "";
 
-      // generate uniform sampler2D user texture key
-      for (const auto& key : tex_keys) {
-        generated += "uniform sampler2D ";
-        generated += key + "; \n";
-      }
+      const int n_textures = (int)tex_keys.size();
+
+      // use a texture array
+      std::string generated = "uniform sampler2D u_textures[" + std::to_string(n_textures) + "];";
 
       // SDL_Log("generated: %s", generated.c_str());
       code.replace(pos0, key0.length(), generated);
     }
   }
 
-  // generate big if statement for sampling
+  // generate sampling
   {
     const std::string key1 = "{{ generate_sampler_if_statements }}";
     const size_t pos1 = code.find(key1);
@@ -168,27 +166,16 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
 
       std::string generated = "";
 
-      for (size_t i = 0; i < tex_keys.size(); i++) {
-        auto key = tex_keys[i];
-        if (i == 0) {
-          const std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
-          const std::string l1 = "col *= texture(" + key + ", sprite_uv);\n";
-          const std::string l2 = "}\n";
-          generated.append(l0);
-          generated.append(l1);
-          generated.append(l2);
-          continue;
-        }
-        const auto i_str = std::to_string(i);
-        const std::string l0 = "else if(index == RENDERER_TEX_UNIT_COUNT+" + i_str + "){\n";
-        const std::string l1 = "col *= texture(" + key + ", sprite_uv);\n";
-        const std::string l2 = "}\n";
-        generated.append(l0);
-        generated.append(l1);
-        generated.append(l2);
-      }
+      // for (size_t i = 0; i < tex_keys.size(); i++) {
+      //   auto key = tex_keys[i];
+      // const std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
+      // const std::string l1 = "col *= texture(" + key + ", sprite_uv);\n";
 
+      const std::string l0 = "col *= texture(u_textures[index - RENDERER_TEX_UNIT_COUNT], sprite_uv);";
+
+      generated += l0;
       // SDL_Log("generated: %s", generated.c_str());
+
       code.replace(pos1, key1.length(), generated);
 
       // SDL_Log("%s", code.c_str());

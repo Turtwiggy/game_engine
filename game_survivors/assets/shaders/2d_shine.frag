@@ -30,7 +30,6 @@ layout(std140) uniform Data {
 // e.g. "uniform sampler2D tex_monochrome_transparent_packed"
 {{ generate_user_samplers }}
 uniform int RENDERER_TEX_UNIT_COUNT;
-uniform sampler2D tex;
 
 void
 main()
@@ -44,9 +43,7 @@ main()
 
   out_colour.a = 1.0f;
 
-  // the engine generates code here e.g. 
-  // if(index == RENDERER_TEX_UNIT_COUNT)
-  //   out_colour *= tex2dss(tex_monochrome_transparent_packed, sprite_uv, bias, aa_scale);
+  // the engine generates code here
   {
     // v_uv goes from 0 to 1
     // convert from 0 to 1 to the width/height desired
@@ -54,13 +51,12 @@ main()
       (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
       (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
     );
-  vec4 col = vec4(1.0f);
-    {{ generate_sampler_if_statements }}
-  out_colour = v_colour * col;
+    vec4 col = vec4(1.0f);
+{{ generate_sampler_if_statements }}
+    out_colour = v_colour * col;
   }
 
   float u_time = time;
-  // float mask = texture(tex, v_uv).r;
   vec3 shine_col = vec3(1.0, 0.3, 0.3);
 
   //

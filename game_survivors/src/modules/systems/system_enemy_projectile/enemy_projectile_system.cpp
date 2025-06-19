@@ -50,7 +50,7 @@ update_enemy_projectile_system(entt::registry& r)
     bullet_def.damage = 1; // TODO: make enemy bullet correct damage
     bullet_def.pierce = 1;
     bullet_def.speed = bullet_speed;
-    bullet_def.lifecycle = 10 * 1000;
+    bullet_def.lifecycle = 5 * 1000;
     // bullet_def.traits = // no traits for enemies?
 
     const auto bullet_e = spawn_projectile(r, bullet_def, pos);

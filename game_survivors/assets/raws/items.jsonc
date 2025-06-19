@@ -190,7 +190,7 @@
     {
       "name": "actor_enemy_projectile",
       "speed": 1.0,
-      "renderable": { "sprite": "ARCHERFISH", "colour": "green" },
+      "renderable": { "sprite": "ARCHERFISH", "colour": "white" },
       "traits": [ {"key": "KEEP_DISTANCE"}, {"key": "PROJECTILE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]

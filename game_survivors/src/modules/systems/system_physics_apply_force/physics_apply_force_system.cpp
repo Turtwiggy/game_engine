@@ -16,7 +16,7 @@ namespace game2d {
 
 // vertex at vx, vy
 // x-axis roots at r1, r2
-auto parabola = [](float x, float r1, float r2, float vx, float vy) -> float {
+const auto parabola = [](float x, float r1, float r2, float vx, float vy) -> float {
   // r1 = -10, r2 = 10, vx = 0, vy = 1;
   const auto scale = vy / ((vx - r1) * (vx - r2));
   const auto y = scale * (x - r1) * (x - r2);

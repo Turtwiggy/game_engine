@@ -56,14 +56,8 @@ main()
     );
 
     // the engine generates code here e.g. 
-    // if(index == RENDERER_TEX_UNIT_COUNT) {
-    //   col *= texture(tex_monochrome_transparent_packed, sprite_uv);
-    //   return;
-    // }
   vec4 col = vec4(1.0f);
-
 {{ generate_sampler_if_statements }}
-
     out_colour = v_colour * col;
   }
 

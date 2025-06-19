@@ -440,7 +440,7 @@ generate_rocks(entt::registry& r, const float cutoff)
 
     // island contours in to box2d to create collisions
     create_box2d_shape(r, island_e, offset_contours);
-    // generate_rock_bounding_box(r, island_e);
+    generate_rock_bounding_box(r, island_e);
 
     /*
     for (const auto& info : island) {
