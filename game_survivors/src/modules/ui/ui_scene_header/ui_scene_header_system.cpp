@@ -46,7 +46,7 @@ update_ui_scene_header_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
   const auto megaheader_e = get_first<MegaHeaderComponent>(r);
   if (megaheader_e == entt::null)
     return;

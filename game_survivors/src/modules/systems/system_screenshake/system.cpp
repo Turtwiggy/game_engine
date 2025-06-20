@@ -22,7 +22,7 @@ update_screenshake_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_ScreenshakeComponent, r, shake_e, shake_c);
+  auto& shake_c = SINGLE_ScreenshakeComponent::instance;
 
 #if defined(_DEBUG)
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);

@@ -20,6 +20,10 @@ get_index(const float time, const float duration, const int size)
 void
 update_animator_system(entt::registry& r, const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const auto& anims = SINGLE_Animations::instance;
 
   // #if defined(_DEBUG)

@@ -25,6 +25,10 @@ convert_box2d_coll_to_entt(entt::registry& r, const b2ShapeId a, const b2ShapeId
 void
 update_physics_system(entt::registry& r, const uint64_t ms_dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const auto physics_e = get_first<SINGLE_Physics>(r);
   if (physics_e == entt::null)
     return;
@@ -77,12 +81,11 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
   // update renderer
   {
     // const auto& view = r.view<const PhysicsBodyComponent, TransformComponent>(entt::exclude<SeparateTransformAndAABB>);
-    const auto& view = r.view<const PhysicsBodyComponent, TransformComponent>();
+    const auto view = r.view<const PhysicsBodyComponent, TransformComponent>();
     for (const auto& [e, body_c, transform_c] : view.each()) {
 
       const auto pos = meters_to_pixels(b2Body_GetPosition(body_c.bodyId));
-      transform_c.position.x = pos.x;
-      transform_c.position.y = pos.y;
+      transform_c.position = { pos.x, pos.y, 0.0 };
 
       // don't update the sprite scale.
       // when the physics object rotates,
@@ -102,19 +105,13 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
         continue;
       }
       const auto parent_pos_pixels = get_position(r, parent_e);
-
-      // const auto aabb = fixture_c.fixture->GetAABB(0);
-      // const auto offset = meters_to_pixels(aabb.GetCenter() - fixture_c.body->GetWorldCenter());
-      // transform_c.position.x = parent_pos_pixels.x + offset.x;
-      // transform_c.position.y = parent_pos_pixels.y + offset.y;
       transform_c.position.x = parent_pos_pixels.x;
       transform_c.position.y = parent_pos_pixels.y;
     }
   }
 
   {
-    const auto& view =
-      r.view<const PhysicsBodyComponent, TransformComponent, const SetTransformRotationBasedOnPhysicsBody>();
+    const auto view = r.view<const PhysicsBodyComponent, TransformComponent, const SetTransformRotationBasedOnPhysicsBody>();
     for (const auto& [e, body_c, transform_c, req_c] : view.each()) {
       const auto angle = b2Rot_GetAngle(b2Body_GetRotation(body_c.bodyId));
       transform_c.rotation_radians.z = angle;
@@ -122,7 +119,7 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
   }
 
   {
-    const auto& view =
+    const auto view =
       r.view<const PhysicsBodyComponent, TransformComponent, const SetTransformRotationBasedOnPhysicsVelocity>();
     for (const auto& [e, body_c, transform_c, req_c] : view.each()) {
       const auto vel = b2Body_GetLinearVelocity(body_c.bodyId);

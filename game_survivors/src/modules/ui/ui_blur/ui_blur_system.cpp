@@ -24,11 +24,11 @@ update_ui_blur_system(entt::registry& r, const float dt)
   auto& ri_c = SINGLE_RendererInfo::instance;
   ;
   GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c);
-  GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
   GET_FIRST_OR_RETURN(SINGLE_OptionsMenuState, r, options_e, options_c);
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, pause_e, pause_c);
   const auto menu_upgrade_e = get_first<SINGLE_PersistentUpgradesMenuUI>(r);
   const auto game_upgrade_e = get_first<SINGLE_LevelUpUI>(r);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
 
   SINGLE_PersistentUpgradesMenuUI* menu_upgrade_c = nullptr;
   SINGLE_LevelUpUI* game_upgrade_c = nullptr;

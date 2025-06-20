@@ -52,7 +52,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
 
 #if defined(_DEBUG)
-  // auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  // const auto& scene_c = SINGLE_CurrentScene::instance;
   // if (scene_c.s == Scene::menu) {
   //   gesert_component<SINGLE_XpComponent>(r);
   //   gesert_component<SINGLE_LevelUpUI>(r);

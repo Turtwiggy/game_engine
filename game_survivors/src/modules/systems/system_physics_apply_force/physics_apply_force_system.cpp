@@ -125,16 +125,20 @@ static std::vector<DebugVelocityError> debug_vel_instances;
 void
 update_physics_apply_force_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   // Force to DynamicTarget
 #if defined(_DEBUG)
   debug_vel_instances.clear();
 #endif
   {
-    const auto& view = r.view<PhysicsBodyComponent,
-                              TransformComponent,
-                              const ActorSpeedComponent,
-                              const ApplyForceToDynamicTarget,
-                              const PhysicsDynamicTarget>();
+    const auto view = r.view<const PhysicsBodyComponent,
+                             const TransformComponent,
+                             const ActorSpeedComponent,
+                             const ApplyForceToDynamicTarget,
+                             const PhysicsDynamicTarget>();
     for (const auto& [e, body_c, t_c, speed_c, req_c, target_c] : view.each()) {
 
       // check your target hasn't died
@@ -172,7 +176,7 @@ update_physics_apply_force_system(entt::registry& r)
 
   // Force in Direction
   {
-    const auto& view = r.view<const ApplyForceInDirectionComponent, PhysicsBodyComponent>();
+    const auto view = r.view<const ApplyForceInDirectionComponent, const PhysicsBodyComponent>();
     for (const auto& [e, dir_c, body_c] : view.each()) {
       const auto cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
       const auto vel_err = b2Vec2{ dir_c.tgt_vel.x, dir_c.tgt_vel.y } - cur_vel;
@@ -200,10 +204,10 @@ update_physics_apply_force_system(entt::registry& r)
   debug_instances.clear();
 #endif
   {
-    const auto& view = r.view<const ApplyForceToApproachTargetFromAngle,
-                              PhysicsBodyComponent,
-                              const PhysicsDynamicTarget,
-                              const ActorSpeedComponent>();
+    const auto view = r.view<const ApplyForceToApproachTargetFromAngle,
+                             const PhysicsBodyComponent,
+                             const PhysicsDynamicTarget,
+                             const ActorSpeedComponent>();
     for (const auto& [e, req_c, body_c, tgt_c, speed_c] : view.each()) {
 
       // check your target hasn't died

@@ -30,6 +30,10 @@ const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
 void
 fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const float dt = ms_dt / 1000.0f;
 
   {
@@ -242,6 +246,10 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
 void
 fixed_update_player_controller_system(entt::registry& r, const uint64_t ms_dt, const glm::ivec2& mouse_pos)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   // What happens if multiple fixedupdate() before?
 
   fixedupdate_movement_direct(r, ms_dt);

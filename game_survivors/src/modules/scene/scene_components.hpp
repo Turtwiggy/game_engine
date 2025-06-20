@@ -19,6 +19,8 @@ enum class Scene
 struct SINGLE_CurrentScene
 {
   Scene s = Scene::menu;
+
+  static SINGLE_CurrentScene instance;
 };
 
 } // namespace game2d

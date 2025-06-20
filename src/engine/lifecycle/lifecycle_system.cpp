@@ -14,17 +14,20 @@ namespace game2d {
 void
 update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const auto& physics_c = get_first_component<SINGLE_Physics>(r);
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   // update all components with timed lifecycle
-  const auto& view = r.view<EntityTimedLifecycle>(entt::exclude<WaitForInitComponent>);
-  view.each([&dead, &milliseconds_dt](auto entity, auto& lifecycle) {
-    if (lifecycle.milliseconds_alive > lifecycle.milliseconds_alive_max)
-      dead.dead.push_back(entity);
-
-    lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
-  });
+  const auto view = r.view<EntityTimedLifecycle>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, lifecycle_c] : view.each()) {
+    if (lifecycle_c.milliseconds_alive > lifecycle_c.milliseconds_alive_max)
+      dead.dead.push_back(e);
+    lifecycle_c.milliseconds_alive += static_cast<int>(milliseconds_dt);
+  };
 
   // Death callbacks.
   // OnDeathCallbacks can cause more dead.dead entities (explosions)
@@ -73,7 +76,10 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
       r.destroy(e);
   }
 
-// Check invalid entities...
+  // Check invalid entities...
+
+  /*
+
 #if defined(_DEBUG)
   const auto& storage = r.storage<entt::entity>();
   for (const std::tuple<entt::entity>& ent_tuple : storage.each()) {
@@ -105,6 +111,8 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     }
   }
 #endif
+
+*/
 
   // process create requests
   const auto requests = r.view<WaitForInitComponent>();

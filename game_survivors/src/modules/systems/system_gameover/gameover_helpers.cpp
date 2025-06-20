@@ -11,7 +11,7 @@ bool
 is_gameover(entt::registry& r)
 {
   // gameover to only occur in survive scene
-  const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
   if (scene_c.s != Scene::survive)
     return false;
 

@@ -10,6 +10,8 @@ struct SINGLE_ScreenshakeComponent
   float time_left = 0.0f;
 
   glm::vec2 strength{ 0, 0 };
+
+  static SINGLE_ScreenshakeComponent instance;
 };
 
 enum class ScreenshakeType

@@ -19,7 +19,7 @@ require_pause(entt::registry& r)
 
   // Don't pause in the "main" scene.
   // otherwise this would count as a "pause" when options is open
-  auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
   if (scene_c.s == Scene::menu)
     return false;
 

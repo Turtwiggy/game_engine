@@ -27,11 +27,9 @@ uniform bool add_vignette;
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
-  mat4 view;
+	mat4 view;
   vec2 camera_pos;
-  vec2 screenshake;
-  vec4[4] player_positions; // xy: pos, z: angle, w: active
-  vec4[NR_MAX_LIGHTS] light_positions; // note: xy: pos, z: angle, w: active
+	vec4[32] light_positions;
   float time;
   float zoom;
   float tilesize;

@@ -45,7 +45,6 @@ struct UboData
   glm::mat4 view = glm::mat4(1.0f);
   glm::vec2 camera_pos{ 0, 0 };
   glm::vec2 screenshake{ 0, 0 };
-  glm::vec4 player_positions[4]; // try to avoid padding issues with vec4
   glm::vec4 light_positions[32];
   float time = 0;
   float zoom = 0;
@@ -444,7 +443,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-
+  const auto& scene = SINGLE_CurrentScene::instance;
+  auto& ri = SINGLE_RendererInfo::instance;
   static const engine::SRGBColour black(0, 0, 0, 0);
 
 #if defined(_DEBUG)
@@ -453,9 +453,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   static float time = 0.0f;
   time += dt;
-
-  const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
-  auto& ri = SINGLE_RendererInfo::instance;
 
   if (check_if_viewport_resize(ri))
     rebind(r, ri);
@@ -475,7 +472,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_t = r.get<TransformComponent>(camera_e);
   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
-  const auto& screenshake_c = get_first_component<SINGLE_ScreenshakeComponent>(r);
+  const auto& screenshake_c = SINGLE_ScreenshakeComponent::instance;
 
   // update ubo data
   data.projection_zoomed = camera_c.projection_zoomed;
@@ -487,8 +484,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   // .w as 0 indicates light inactive.
   const int n_lights = 32;
-  for (int i = 0; i < n_lights; i++)
-    data.light_positions[i].w = 0.0f;
+  memset(&data.light_positions[0].w, 0, n_lights * sizeof(data.light_positions[0].w));
 
   // update light emitters (that arnt players)
   int i = 0;

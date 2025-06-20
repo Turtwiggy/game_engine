@@ -14,7 +14,7 @@ update_ui_fps_counter_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  bool show_fps_counter = false;
+  bool show_fps_counter = true;
 
   auto options_e = get_first<SINGLE_OptionsMenuState>(r);
   if (options_e != entt::null) {

@@ -26,7 +26,7 @@ update_ui_back_button_system(entt::registry& r)
 #endif
   auto& ri_c = SINGLE_RendererInfo::instance;
   ;
-  GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
 
   auto& ui_c = gesert_component<UI_BackButton>(r);

@@ -15,6 +15,10 @@ namespace game2d {
 void
 update_create_item_system(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   auto view = r.view<CreateItemRequest>();
   for (const auto& [e, req_c] : view.each()) {
 

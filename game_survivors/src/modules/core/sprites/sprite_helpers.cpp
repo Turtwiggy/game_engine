@@ -14,6 +14,10 @@ namespace game2d {
 void
 begin_frame_sprite(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   auto& imsprite = get_first_component<SINGLE_ImSprite>(r);
   auto& pool = imsprite.pool;
   auto& cached = imsprite.cached;

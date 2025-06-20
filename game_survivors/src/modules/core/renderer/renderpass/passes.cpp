@@ -42,6 +42,10 @@ setup_water_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -72,6 +76,10 @@ setup_floor_mask_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::floor_mask);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
     const auto& camera_c = get_first_component<OrthographicCamera>(r);
 
@@ -115,6 +123,10 @@ setup_linear_main_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -200,6 +212,10 @@ setup_sprites_to_outline_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::sprites_to_outline);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
     // const auto camera_e = get_first<OrthographicCamera>(r);
     // const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -237,6 +253,10 @@ setup_outline_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::outline);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
 
     ri.outline.bind();
@@ -251,6 +271,10 @@ setup_sprites_with_shield_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::sprites_with_shield);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
 
     ri.renderer.reset_quad_vert_count();
@@ -284,6 +308,10 @@ setup_shine_update(entt::registry& r)
   const auto pass_idx = get_pass_idx(ri, PassName::shine);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
 
     ri.shine.bind();
@@ -324,6 +352,10 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt) {
+  #if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
@@ -401,6 +433,10 @@ setup_voronoi_seed_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [&ri](entt::registry& r) {
+  #if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -422,6 +458,10 @@ setup_jump_flood_pass(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [&pass](entt::registry& r) {
+  #if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
     auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -482,6 +522,10 @@ setup_voronoi_distance_field_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt) {
+  #if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
     const auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -509,6 +553,9 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
     const auto& ri = SINGLE_RendererInfo::instance;
 
     engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
@@ -525,6 +572,10 @@ setup_crt_effect_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
     const auto& ri = SINGLE_RendererInfo::instance;
 
     render_fullscreen_quad(r, ri.crt, ri.viewport_size_render_at);

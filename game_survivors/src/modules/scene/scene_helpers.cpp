@@ -369,11 +369,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   // do not use create_persistent here. anything created
   // here should be expected to be removed between scenes
-  create_empty<SINGLE_CurrentScene>(r);
+  SINGLE_CurrentScene::instance = {};
+  SINGLE_ScreenshakeComponent::instance = {};
   create_empty<SINGLE_EntityBinComponent>(r);
   create_empty<SINGLE_GameStateComponent>(r);
   create_empty<SINGLE_InputComponent>(r);
-  create_empty<SINGLE_ScreenshakeComponent>(r);
   create_empty<SINGLE_ImSprite>(r);
   begin_frame_sprite(r); // initialize cached for sprites
 
@@ -576,7 +576,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_snake(r);
   }
 
-  auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  auto& scene = SINGLE_CurrentScene::instance;
   scene.s = s; // done
 };
 
@@ -588,7 +588,7 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
   const auto scene_name = std::string(magic_enum::enum_name(s));
   SDL_Log("%s", std::format("additive scene. scene set to: {}", scene_name).c_str());
 
-  auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  auto& scene = SINGLE_CurrentScene::instance;
   scene.s = s; // done
 };
 

@@ -50,10 +50,10 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  GET_FIRST_OR_RETURN(SINGLE_CurrentScene, r, scene_e, scene_c);
   GET_FIRST_OR_RETURN(SINGLE_DisconnectedControllerUI, r, ui_e, ui_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_steam_e, ui_steam_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
 
   const float x_align_0 = 0.33f;
   const float x_align_1 = 0.5f;

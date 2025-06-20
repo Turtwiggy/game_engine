@@ -16,11 +16,9 @@ in VS_OUT
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
-  mat4 view;
+	mat4 view;
   vec2 camera_pos;
-  vec2 screenshake;
-  vec4[4] player_positions; // xy: pos, z: angle, w: active
-  vec4[32] light_positions;
+	vec4[32] light_positions;
   float time;
   float zoom;
   float tilesize;

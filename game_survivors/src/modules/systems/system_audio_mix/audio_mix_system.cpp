@@ -26,7 +26,7 @@ handle_audio_complete_event__new_game_track(entt::registry& r, const AudioComple
     return;
 
   // not in the survive scene
-  const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
   if (scene_c.s != Scene::survive)
     return;
 

@@ -461,7 +461,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
-  const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
 
   const int max_num_players = 4;
   const auto num_active_players = glm::max(1, (int)steam_c.n_active);

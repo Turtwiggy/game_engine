@@ -32,8 +32,8 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   // only allow pause in survive scene
-  auto& scene = get_first_component<SINGLE_CurrentScene>(r);
-  if (scene.s != Scene::survive)
+  const auto& scene_c = SINGLE_CurrentScene::instance;
+  if (scene_c.s != Scene::survive)
     return;
 
   // TEMPORARY: input to generate open/close events

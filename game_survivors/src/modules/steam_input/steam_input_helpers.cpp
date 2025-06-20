@@ -182,6 +182,10 @@ generate_button_state(SINGLE_SteamControllers& steam_c, InputHandle_t handle)
 void
 update_steam_input(entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
 
   // check connect/disconnects

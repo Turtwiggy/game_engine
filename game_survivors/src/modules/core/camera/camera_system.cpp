@@ -140,7 +140,7 @@ update_camera_system(entt::registry& r, const float dt)
   }
 
   // Add camerashake
-  const auto& screenshake_c = get_first_component<SINGLE_ScreenshakeComponent>(r);
+  const auto& screenshake_c = SINGLE_ScreenshakeComponent::instance;
   const auto screenshake_amount = screenshake_c.strength;
 
   const float screen_x = -ri.viewport_size_render_at.x * 0.5f;

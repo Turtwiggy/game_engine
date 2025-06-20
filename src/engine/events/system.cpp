@@ -23,6 +23,10 @@ init_input_system(entt::registry& r)
 void
 update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   auto& input = get_first_component<SINGLE_InputComponent>(r);
   input.update_since_last_fixed_update = true;
 

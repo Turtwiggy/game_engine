@@ -434,7 +434,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
 #endif
   static float timer = 0.0f;
 
-  const auto& scene_c = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& scene_c = SINGLE_CurrentScene::instance;
   if (scene_c.s != Scene::menu) {
     timer = 0.0f;
     return;

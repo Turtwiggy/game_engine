@@ -78,6 +78,7 @@
 #include "modules/systems/system_quit/quit_system.hpp"
 #include "modules/systems/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/systems/system_scene_splashscreen_move_to_next/system.hpp"
+#include "modules/systems/system_screenshake/components.hpp"
 #include "modules/systems/system_screenshake/system.hpp"
 #include "modules/systems/system_spawner/spawner_components.hpp"
 #include "modules/systems/system_spawner/spawner_helpers.hpp"
@@ -275,7 +276,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   ZoneScoped;
 #endif
 
-  const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  const auto& scene = SINGLE_CurrentScene::instance;
   const float dt = milliseconds_dt / 1000.0f;
   const auto mouse_pos = mouse_position_in_worldspace(r);
 
