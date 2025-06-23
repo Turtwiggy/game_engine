@@ -136,19 +136,19 @@ void main()
 		tmp_uv.x *= aspect_x;
 		tmp_uv *= zoom;
 
-		vec2 pos = vec2(0, 0); // worldspace for the circle center
-		float tilesize = 50.0;
-		float radius = 8.0;
-		float size = tilesize * radius;
+		// worldspace for the circle center
+		vec2 pos = vec2(0, 0); 
 
 		// convert worldspace to between -1 and 1.
 		vec2 ss = (((pos - screen_min)/viewport_wh) * 2.0) - 1.0;
 		ss.x *= aspect_x;
 		vec2 p = tmp_uv + ss;
 
-		d = sdfCircle(p, size / (aspect_x * 100.0f));
+		float tilesize = 50;
+		float tiles = 18;
+		float radius = ((tilesize * tiles) / viewport_wh.y) * 2;
+		d = sdfCircle(p, radius);
 	}
-
 
 	vec2 uv = v_uv - 0.5;
 	uv *= zoom;
@@ -161,36 +161,30 @@ void main()
 
 	vec2 tex_uv = v_uv; // raw texture uv
 	tex_uv.y = 1 - tex_uv.y;
-	// hmm_uv /= 1.2;
 
 	// inside distances only
 	d = clamp(d, -1, 1); 
 
-	// hmm_uv.y = clamp(hmm_uv.y, 0.8, 0.4);
-	// t *= d < 0.0 ? abs(d) * 0.85 : t;
-	t *= abs(d);
-	// t *= 0.1;
-	// t = clamp(t, 0.5, 0.6);
-
 	// Multiply intensity values by a colour curve based off the uv
 	t *= exp(-length2(abs(0.7*tex_uv - 1.0))); // add gradient
 	
-	vec3 col= vec3(0.0);
-	if( d < 0 ){ // safe-zone
-		float r = 0.05;
-		float g = min(1.1*t, 1.0);
-		float b = min(pow(t, 0.75-t), 1.0); // colour curve
-		col = sqrt(sqrt(t)) * vec3(r, g, b);
-	} else {
-		float r = min(pow(t, 1.0-t), 1.0); // colour curve
-		float g = min(1.1*t, 1.0);
-		float b = 0.05;
-		col = sqrt(sqrt(t)) * vec3(r, g, b);
-	}
+	vec3 col = vec3(0.0);
 
-	// vec3 col = vec3(r, g, b);
-	// col.rgb = vec3(0.1, 0.3, 0.5);
-	// col.rgb *= 0.5;
+	vec3 water_col = vec3(
+		 0.05,
+		 min(1.1*t, 1.0),
+		 min(pow(t, 0.75-t), 1.0) // colour curve
+	);
+
+	vec3 danger_col = vec3(
+		 min(pow(t, 1.0-t), 1.0), // colour curve
+		 min(1.1*t, 1.0),
+		 0.05
+	);
+
+	col = sqrt(sqrt(t)) * mix(danger_col, water_col, float(d < 0));	
+	col *= 1.0 - exp(-6.0*abs(d)); // dark edges
+
 	out_colour.rgb = col;
 
 	// vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);

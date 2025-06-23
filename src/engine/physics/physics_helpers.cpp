@@ -20,12 +20,15 @@ struct SampleContext
 class Sample
 {
 public:
+  static constexpr int m_maxTasks = 64;
+  // static constexpr int m_maxThreads = 64;
+
   SampleContext* m_context;
+
   enki::TaskScheduler* m_scheduler;
   class SampleTask* m_tasks;
   int m_taskCount;
   int m_threadCount;
-  static constexpr int m_maxTasks = 128;
 };
 
 class SampleTask : public enki::ITaskSet
@@ -57,11 +60,11 @@ EnqueueTask(b2TaskCallback* task, int32_t itemCount, int32_t minRange, void* tas
     return &sampleTask;
   } else {
     // This is not fatal but the maxTasks should be increased
-    // assert(false);
+    assert(false);
     task(0, itemCount, 0, taskContext);
     return nullptr;
   }
-};
+}
 
 static void
 FinishTask(void* taskPtr, void* userContext)
@@ -71,29 +74,28 @@ FinishTask(void* taskPtr, void* userContext)
     Sample* sample = static_cast<Sample*>(userContext);
     sample->m_scheduler->WaitforTask(sampleTask);
   }
-};
+}
+
+// store one physics world...
+static b2WorldId worldId = b2_nullWorldId;
+static SampleContext m_context;
+static Sample m_sample;
+static b2WorldDef world_def;
+static bool init = false;
+
+void
+physics_reset_task_count()
+{
+  if (!init)
+    return;
+  m_sample.m_taskCount = 0;
+}
 
 void
 emplace_or_replace_physics_world(entt::registry& r)
 {
-  // store one physics world...
-  static b2WorldId worldId = b2_nullWorldId;
-  static SampleContext m_context;
-  static Sample m_sample;
-  static b2WorldDef world_def;
-
-  static bool init = false;
   if (!init) {
     init = true;
-
-    world_def = b2DefaultWorldDef();
-    world_def.gravity = { 0.0f, 0.0f };
-    world_def.workerCount = m_context.workerCount;
-    world_def.enqueueTask = EnqueueTask;
-    world_def.finishTask = FinishTask;
-    world_def.userTaskContext = &m_sample;
-    world_def.enableSleep = true;
-    worldId = b2CreateWorld(&world_def);
 
     const int maxThreadCount = enki::GetNumHardwareThreads();
     const int half_threads = (int)(maxThreadCount * 0.5f);
@@ -106,6 +108,15 @@ emplace_or_replace_physics_world(entt::registry& r)
     m_sample.m_tasks = new SampleTask[m_sample.m_maxTasks];
     m_sample.m_taskCount = 0;
     m_sample.m_threadCount = 1 + m_context.workerCount;
+
+    world_def = b2DefaultWorldDef();
+    world_def.gravity = { 0.0f, 0.0f };
+    world_def.workerCount = m_context.workerCount;
+    world_def.enqueueTask = EnqueueTask;
+    world_def.finishTask = FinishTask;
+    world_def.userTaskContext = &m_sample;
+    world_def.enableSleep = true;
+    worldId = b2CreateWorld(&world_def);
   }
 
   // cleanup physics world...

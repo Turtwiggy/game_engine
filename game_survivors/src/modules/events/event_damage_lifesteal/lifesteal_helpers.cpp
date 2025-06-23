@@ -29,10 +29,11 @@ handle_damage_event_lifesteal(entt::registry& r, const DamageEvent& evt)
   if (wep_e == entt::null || !r.valid(wep_e))
     return; // you're a freestanding bullet now
 
-  // if the weapon is valid, the parent should be valid
   const auto par_e = r.get<HasParentComponent>(wep_e).parent;
-  const auto par_fixture_e = get_fixture_by_tag(r, par_e, "fixture_player");
+  if (par_e == entt::null || !r.valid(par_e))
+    return;
 
+  const auto par_fixture_e = get_fixture_by_tag(r, par_e, "fixture_player");
   const auto lifesteal_mul = bullet_lifesteal_c->percent_0_100 / 100.0f;
 
   auto& hp_c = r.get<HealthComponent>(par_fixture_e);

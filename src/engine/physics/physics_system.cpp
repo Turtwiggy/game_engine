@@ -32,13 +32,14 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
   const auto physics_e = get_first<SINGLE_Physics>(r);
   if (physics_e == entt::null)
     return;
-  const auto& physics = get_first_component<SINGLE_Physics>(r);
+  auto& physics = get_first_component<SINGLE_Physics>(r);
 
   // update world
   {
     const auto dt = ms_dt / 1000.0f;
     const int substep_count = 4;
     b2World_Step(physics.worldId, dt, substep_count);
+    physics_reset_task_count();
   }
 
   // Generate contact events.

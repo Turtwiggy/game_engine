@@ -280,9 +280,9 @@ void main()
     float grid_width = 0.02;
     float margin = 0.5;
     if(abs(sdGrid(grid_p, margin)) >= grid_width)
-        grid_col = vec3(0.0);  // background
+      grid_col = vec3(0.0);  // background
     else
-        grid_col = vec3(0.04); // line
+      grid_col = vec3(0.04); // line
   }
 
   //
@@ -306,15 +306,15 @@ void main()
       if(light_positions[i].w < 1.0f){       
         continue; // TODO: remove this if statement
       }
- 
-      vec2 ppos = vec2(light_positions[i].x, light_positions[i].y );
+
+      vec2 l_pos = vec2(light_positions[i].x, light_positions[i].y );
       float angle = light_positions[i].z;
 
       // convert worldspace to between -1 and 1.
-      vec2 ss = (((ppos - screen_min)/viewport_wh) * 2.0) - 1.0;
+      vec2 ss = (((l_pos - screen_min)/viewport_wh) * 2.0) - 1.0;
       ss.x *= aspect_x;
-
       vec2 p = uv + ss;
+
       float PI = 3.14159265359;
       float degrees_to_rad = PI / 180.0;
       float d0 = 0.0f;
@@ -324,7 +324,13 @@ void main()
       if(angle == -10.0f)
       {
         float size = 3.0 * 50.0;
-        d0 = sdCircle(p, size / (aspect_x * 100));
+
+        // problem: when radius is 1.0, the circle fills up the whole of the viewport.
+        // but I want the radius to always be consistent amount of pixels independant of screensize
+        float desired_pixel_radius = 50.0 * 10;
+        float radius = (desired_pixel_radius / viewport_wh.y); // normalized to NDC
+
+        d0 = sdCircle(p, radius);
         d0 = clamp(d0, -1.0, 1.0); // inside distances only
       }
 
@@ -332,6 +338,12 @@ void main()
       // https://www.shadertoy.com/view/wldXWB
       else 
       {
+        vec2 a = vec2(0.0, 0.0); // 0, 0 is the worldspace pos 
+        vec2 b =  ( 50 * 10.0 *-angle_to_dir(angle)) / viewport_wh.y;
+        float ra = (50 * 2.5) / viewport_wh.y;
+        float rb = (50 * 10.0) / viewport_wh.y;
+        d0 = sdUnevenCapsule(p, a, b, ra, rb);
+
         // vec2 a = 1.0 * -angle_to_dir(angle + 60 * degrees_to_rad );
         // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
         // vec2 c = 1.0 * -angle_to_dir(angle - 60 * degrees_to_rad );
@@ -340,11 +352,6 @@ void main()
         // if(d0 <= -1.0)
         //   continue;
 
-        vec2 a = vec2(0.0, 0.0); // 0, 0 is the worldspace pos 
-        vec2 b = 0.6 * -angle_to_dir(angle);
-        float ra = 0.25;
-        float rb = 0.6;
-        d0 = sdUnevenCapsule(p, a, b, ra, rb);
 
         // Calculate the direction vector for the player's angle
         // vec2 a = angle_to_dir(angle);
@@ -382,23 +389,10 @@ void main()
     // coloring
     vec3 no_light_col = vec3(0.0,0.0,0.0);
     vec3 light_col = vec3(255/255.0f, 255/255.0f, 255/255.0f); // 3100k
-
     vec3 col = mix(light_col, no_light_col, float(d > 0.0));
     col *= 1.0 - exp(-6.0*abs(d));
-    // col *= 0.8 + 0.2*cos(128.0*abs(d));
-    col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.015,abs(d)) );
-
-    // vec3 col = (d>0.0) ? vec3(1.0,1.0, 1.0) : vec3(1.0,1.0,1.0);
-    // col *= 1.0 - exp(-20.0*abs(d));
-
-    // light falloff outside the "light"
-    // col *= exp(-6.0*abs(d));
-
-    // no falloff inside the "light"
-    // col = d < 0.0 ? vec3(1.0, 1.0, 1.0) : col;
-
+    col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.005,abs(d)) );
     // col *= 0.8 + 0.2*cos(150.0*d);
-    // col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
 
     // lighting_col.r = 1.0;
     // lighting_col.rgb = vec3(d);
@@ -422,8 +416,7 @@ void main()
   );
   // out_color.rgb = lighting_col;
 
-  // if(outline_col.r > 0.0f)
-  //     out_color.rgb = vec3(1.0, 0.0, 0.0);
+  // if(outline_col.r > 0.0f) out_color.rgb = vec3(1.0, 0.0, 0.0);
   out_color.rgb = mix(
       out_color.rgb,           
       vec3(1.0, 0.0, 0.0),     // Red (used if condition is true)
@@ -433,8 +426,7 @@ void main()
   out_color.rgb += grid_col;
 
   vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
-  // if(tex_shells.r > 0.0)
-    // out_color.rgb = lin_to_srgb(tex_shells);
+  // if(tex_shells.r > 0.0) out_color.rgb = lin_to_srgb(tex_shells);
   out_color.rgb = mix(
     out_color.rgb, 
     lin_to_srgb(tex_shells), 

@@ -30,6 +30,9 @@ struct CollisionWithFixtureResult
 void
 emplace_or_replace_physics_world(entt::registry& r);
 
+void
+physics_reset_task_count();
+
 entt::entity
 get_fixture(entt::registry& r, entt::entity e);
 
