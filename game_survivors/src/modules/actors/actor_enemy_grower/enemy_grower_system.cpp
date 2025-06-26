@@ -19,16 +19,15 @@ update_enemy_grower_system(entt::registry& r, float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  static float speed = 5.0f;
-
-  const auto view = r.view<GrowerComponent, TransformComponent>();
-  for (const auto& [body_e, grower_c, t_c] : view.each()) {
+  const auto view = r.view<const GrowerComponent, TransformComponent, DefaultSizeComponent>();
+  for (const auto& [body_e, grower_c, t_c, default_size_c] : view.each()) {
 
     const auto fixture_e = get_fixture_by_tag(r, body_e, "fixture_core");
 
     auto& hp_c = r.get<HealthComponent>(fixture_e);
 
-    const float diameter_pixels = engine::scale(hp_c.hp, 0, hp_c.max_hp, 32, 256);
+    // const float diameter_pixels = engine::scale(hp_c.hp, 0, hp_c.max_hp, 32, 256);
+    const float diameter_pixels = 64; // fixed size. updates once.
 
     // update fixture
     update_circle_fixture_size(r, body_e, fixture_e, diameter_pixels);
@@ -37,7 +36,7 @@ update_enemy_grower_system(entt::registry& r, float dt)
     const auto size = glm::vec2{ diameter_pixels, diameter_pixels };
     t_c.scale.x = size.x;
     t_c.scale.y = size.y;
-    r.get<DefaultSizeComponent>(body_e).size = size;
+    default_size_c.size = size;
   }
 }
 

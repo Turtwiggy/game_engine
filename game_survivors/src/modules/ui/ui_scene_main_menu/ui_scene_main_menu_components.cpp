@@ -46,13 +46,20 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
     return state.cells.back();
   };
 
-// #define DEBUG_SNAKE 1
+  // #define DEBUG_SNAKE 1
+
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   const auto debug_snake_action = [&]() {
     open = false;
-    move_to_scene_start(r, Scene::procedural_snake);
+    move_to_scene_start(r, Scene::develop_snake);
   };
   auto debug_snake = make_cell("Debug Snake", debug_snake_action);
+#endif
+
+#define DEBUG_ISLANDS 1
+#if defined(_DEBUG) && defined(DEBUG_ISLANDS)
+  const auto debug_islands_action = [&]() { move_to_scene_start(r, Scene::develop_islands); };
+  const auto debug_islands = make_cell("Debug Islands", debug_islands_action);
 #endif
 
   auto a = make_cell("Play", play_action);
@@ -67,6 +74,9 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   std::vector<std::shared_ptr<Cell>> vertical_cells = { a, b, c, d };
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   vertical_cells.push_back(debug_snake);
+#endif
+#if defined(_DEBUG) && defined(DEBUG_ISLANDS)
+  vertical_cells.push_back(debug_islands);
 #endif
   create_as_vertical_layout(vertical_cells);
 

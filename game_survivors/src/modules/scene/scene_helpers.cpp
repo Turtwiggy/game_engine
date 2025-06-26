@@ -9,7 +9,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/grid.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -352,6 +351,127 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 };
 
 void
+spawn_players(entt::registry& r)
+{
+  std::vector<HullChoice> hull_keys = {
+    HullChoice{ .player_idx = 0, .player_boat_key = "dinghy" },
+    HullChoice{ .player_idx = 1, .player_boat_key = "dinghy" },
+    HullChoice{ .player_idx = 2, .player_boat_key = "dinghy" },
+    HullChoice{ .player_idx = 3, .player_boat_key = "dinghy" },
+  };
+
+  const auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
+  if (transfer_scene_e != entt::null) {
+    const auto& transfer_scene_c = r.get<SelectSceneToSurviveScene>(transfer_scene_e);
+    hull_keys.clear();
+    hull_keys = transfer_scene_c.chosen_boats;
+    r.destroy(transfer_scene_e);
+  }
+
+  // players
+  // TODO: replace this player spawn system to a more dynamic
+  // spawn system that lets players join halfway through
+  const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
+  const int n_max_players = 4;
+
+  for (int i = 0; i < n_max_players; i++) {
+
+    // controller connected for players
+    const auto handle = controller_ui.handles[i];
+    const bool handle_joined = handle_is_joined(controller_ui, handle);
+
+    // note: always has 1 player using keyboard
+    if (i > 0 && !handle_joined)
+      continue; // no controller for p2-4
+
+    // validate weapons are set
+    const auto boat_str = hull_keys[i].player_boat_key;
+    if (boat_str == "")
+      throw std::runtime_error("boat_str not set");
+    const auto weapon_str = hull_keys[i].player_gun_key;
+    if (weapon_str == "")
+      throw std::runtime_error("weapon_str not set");
+    SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
+
+    const auto p = spawn_player(r, "actor_player", i, boat_str, weapon_str);
+
+    if (handle_joined)
+      r.get<SteamControllerComponent>(p).handles.push_back(handle);
+
+    if (i == 0)
+      r.emplace<KeyboardComponent>(p);
+  }
+
+  load_persistent_upgrades_and_apply_to_player(r);
+
+  // bugfix: this makes sure the player has the correct health on spawn after loading upgrades.
+  update_upgrade_hp_max_system(r);
+  const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
+  for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
+    hp_c.hp = hp_c.max_hp;
+}
+
+void
+spawn_lighthouses(entt::registry& r)
+{
+  // create a "lighthouse" on each of the islands.
+  for (const auto [e, island_c, bb_c] : r.view<const RockComponent, const BoundingBoxComponent>().each()) {
+    const auto center = 0.5f * (bb_c.br + bb_c.tl);
+    auto lighthouse_e = spawn(r, "actor_lighthouse");
+    give_life(r, lighthouse_e, center, { 32, 32 });
+    set_sprite(r, lighthouse_e, "ARROW_RIGHT");
+    // add_spritestack(r, lighthouse_e, "lighthouse"); // todo
+    r.emplace<LighthouseComponent>(lighthouse_e);
+    r.emplace<LightEmitterComponent>(lighthouse_e);
+    r.emplace<LightTypeWedge>(lighthouse_e);
+    auto popup_e = create_popup(r, center, "Lighthouse");
+    r.remove<EntityTimedLifecycle>(popup_e);
+    r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
+  }
+};
+
+void
+spawn_islands(entt::registry& r)
+{
+  auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
+  auto rock_opt = get_modifier_option(r, MODIFIER_OPTIONS::ROCKS);
+  if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks) {
+    create_empty<RequestGenerateRocks>(r);
+    // need islands and rocks to exist before player spawns,
+    // to determine player spawn location
+    update_actor_rocks_system(r);
+  }
+};
+
+bool
+crossing_number_algorithm__point_is_inside(const glm::vec2& point, const std::vector<Edge>& polygon)
+{
+  int intersections = 0;
+
+  for (int i = 0; i < polygon.size(); i++) {
+    const auto a = polygon[i].a;
+    const auto b = polygon[i].b;
+    const float x1 = (float)a.x;
+    const float y1 = (float)a.y;
+    const float x2 = (float)b.x;
+    const float y2 = (float)b.y;
+
+    if ((y1 <= point.y && y2 > point.y) || (y2 <= point.y && y1 > point.y)) {
+
+      // Calculate the x-coordinate where the edge intersects the horizontal line
+      float intersection_x = x1 + (point.y - y1) * (x2 - x1) / (y2 - y1);
+
+      // If the intersection is to the right of the point, count it as a crossing
+      if (intersection_x > point.x)
+        intersections++;
+    }
+  }
+
+  // If the number of intersections is odd, the point is inside
+  return intersections % 2 == 1;
+};
+
+void
 move_to_scene_start(entt::registry& r, const Scene& s)
 {
   const auto scene_name = std::string(magic_enum::enum_name(s));
@@ -468,99 +588,19 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
     gold_c.temp_amount = 0;
 
-    // spawn rocks
-    auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
-    auto rock_opt = get_modifier_option(r, MODIFIER_OPTIONS::ROCKS);
-    if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks) {
-      create_empty<RequestGenerateRocks>(r);
-      // need islands and rocks to exist before player spawns,
-      // to determine player spawn location
-      update_actor_rocks_system(r);
-    }
-
-    std::vector<HullChoice> hull_keys = {
-      HullChoice{ .player_idx = 0, .player_boat_key = "dinghy" },
-      HullChoice{ .player_idx = 1, .player_boat_key = "dinghy" },
-      HullChoice{ .player_idx = 2, .player_boat_key = "dinghy" },
-      HullChoice{ .player_idx = 3, .player_boat_key = "dinghy" },
-    };
-
-    const auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
-    if (transfer_scene_e != entt::null) {
-      const auto& transfer_scene_c = r.get<SelectSceneToSurviveScene>(transfer_scene_e);
-      hull_keys.clear();
-      hull_keys = transfer_scene_c.chosen_boats;
-      r.destroy(transfer_scene_e);
-    }
-
-    // players
-    // TODO: replace this player spawn system to a more dynamic
-    // spawn system that lets players join halfway through
-    const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
-    const int n_max_players = 4;
-
-    for (int i = 0; i < n_max_players; i++) {
-
-      // controller connected for players
-      const auto handle = controller_ui.handles[i];
-      const bool handle_joined = handle_is_joined(controller_ui, handle);
-
-      // note: always has 1 player using keyboard
-      if (i > 0 && !handle_joined)
-        continue; // no controller for p2-4
-
-      // validate weapons are set
-      const auto boat_str = hull_keys[i].player_boat_key;
-      if (boat_str == "")
-        throw std::runtime_error("boat_str not set");
-      const auto weapon_str = hull_keys[i].player_gun_key;
-      if (weapon_str == "")
-        throw std::runtime_error("weapon_str not set");
-      SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
-
-      const auto p = spawn_player(r, "actor_player", i, boat_str, weapon_str);
-
-      if (handle_joined)
-        r.get<SteamControllerComponent>(p).handles.push_back(handle);
-
-      if (i == 0)
-        r.emplace<KeyboardComponent>(p);
-    }
-
     // The survive timer that various spawners read from
     const auto survive_timer_e = create_empty<SurviveTimerComponent>(r);
+
+    spawn_islands(r);
+    spawn_players(r);
+    spawn_lighthouses(r);
 
     // populate spawners from configs
     create_empty<SpawnerLiveData>(r);
     init_spawners(r);
-
-    load_persistent_upgrades_and_apply_to_player(r);
-
-    // bugfix: this makes sure the player has the correct health on spawn after loading upgrades.
-    update_upgrade_hp_max_system(r);
-    const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
-    for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
-      hp_c.hp = hp_c.max_hp;
-
-    // create a "lighthouse" on each of the islands.
-    for (const auto [e, island_c, bb_c] : r.view<const RockComponent, const BoundingBoxComponent>().each()) {
-
-      const auto center = 0.5f * (bb_c.br + bb_c.tl);
-
-      auto lighthouse_e = spawn(r, "actor_lighthouse");
-      give_life(r, lighthouse_e, center, { 32, 32 });
-      set_sprite(r, lighthouse_e, "ARROW_RIGHT");
-      // add_spritestack(r, lighthouse_e, "lighthouse"); // todo
-      r.emplace<LighthouseComponent>(lighthouse_e);
-      r.emplace<LightEmitterComponent>(lighthouse_e);
-      r.emplace<LightTypeWedge>(lighthouse_e);
-      auto popup_e = create_popup(r, center, "Lighthouse");
-      r.remove<EntityTimedLifecycle>(popup_e);
-      r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
-    }
   }
 
-  if (s == Scene::procedural_snake) {
+  if (s == Scene::develop_snake) {
     create_empty<CameraFreeMove>(r);
 
     const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");
@@ -572,8 +612,64 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       break;
     }
 
-    // create a snake yo
-    create_snake(r);
+    create_snake(r); // create a snake yo
+  }
+
+  if (s == Scene::develop_islands) {
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    create_empty<SINGLE_SurviveStatsComponent>(r);
+    create_empty<Effect_GridComponent>(r);
+    create_empty<SINGLE_XpComponent>(r);
+    create_empty<SINGLE_LevelUpUI>(r);
+    create_empty<SINGLE_GameoverUI>(r);
+    create_empty<RequestGameTrack>(r);
+
+    spawn_islands(r);
+
+    const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");
+    r.emplace<KeyboardComponent>(p);
+
+    const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
+    for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
+      auto handle = controller_ui.handles[i];
+      r.get<SteamControllerComponent>(p).handles.push_back(handle);
+      break;
+    }
+
+    // spawn_players(r);
+    spawn_lighthouses(r);
+
+    // given each island...
+    for (const auto [e, island_c, bb_c, contours_c] :
+         r.view<const RockComponent, const BoundingBoxComponent, const DebugContoursComponent>().each()) {
+      const auto center = 0.5f * (bb_c.br + bb_c.tl);
+
+      const auto tl = bb_c.tl;
+      const auto wh = bb_c.br - bb_c.tl;
+
+      const int tilesize = 25;
+      const float half_tilesize = tilesize * 0.5f;
+      const float min_x = bb_c.tl.x + half_tilesize;
+      const float min_y = bb_c.tl.y + half_tilesize;
+      const float max_x = bb_c.tl.x + wh.x - half_tilesize;
+      const float max_y = bb_c.tl.y + wh.y - half_tilesize;
+      for (float x = min_x; x <= max_x; x += tilesize) {
+        for (float y = min_y; y <= max_y; y += tilesize) {
+
+          const float tol = 2.5;
+
+          if (!crossing_number_algorithm__point_is_inside({ x, y }, contours_c.sorted_edges)) {
+            const auto e = spawn(r, "empty");
+            give_life(r, e, { x, y }, { 5, 5 });
+            set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+            continue;
+          }
+
+          const auto e = spawn(r, "empty");
+          give_life(r, e, { x, y }, { 5, 5 });
+        }
+      }
+    }
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

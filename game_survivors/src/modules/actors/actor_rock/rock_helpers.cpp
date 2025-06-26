@@ -395,8 +395,8 @@ generate_rocks(entt::registry& r, const float cutoff)
   auto generated = generate_noise(r, cutoff, frequency, seed);
 
   // Modify the noise, so that the center is always an island.
-  for (int x = 20; x < 30; x++) {
-    for (int y = 20; y < 30; y++) {
+  for (int x = 23; x < 27; x++) {
+    for (int y = 23; y < 27; y++) {
       const auto at_grid_xy = [&](NoiseInfo& info) { return info.xy == glm::ivec2{ x, y }; };
       auto it = std::find_if(generated.begin(), generated.end(), at_grid_xy);
       if (it == generated.end())

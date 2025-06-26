@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -31,9 +32,14 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, ui_e, ui_c);
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-  // only allow pause in survive scene
+  const std::vector<Scene> scene_to_show_pause_menu{
+    Scene::survive,
+    Scene::develop_snake,
+    Scene::develop_islands,
+  };
+
   const auto& scene_c = SINGLE_CurrentScene::instance;
-  if (scene_c.s != Scene::survive)
+  if (!has(scene_to_show_pause_menu, scene_c.s))
     return;
 
   // TEMPORARY: input to generate open/close events

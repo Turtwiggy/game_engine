@@ -10,7 +10,9 @@ enum class Scene
   select_modifiers,
   select_ships,
   survive,
-  procedural_snake,
+
+  develop_snake,
+  develop_islands,
 
   test, // used by tests
   count

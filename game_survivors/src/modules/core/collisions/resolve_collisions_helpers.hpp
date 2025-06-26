@@ -9,14 +9,14 @@ std::pair<entt::entity, entt::entity>
 coll(entt::registry& r, entt::entity a, entt::entity b)
 {
   {
-    const auto* a_has_type_a = r.try_get<A>(a);
-    const auto* b_has_type_b = r.try_get<B>(b);
+    const auto a_has_type_a = r.any_of<A>(a);
+    const auto b_has_type_b = r.any_of<B>(b);
     if (a_has_type_a && b_has_type_b)
       return { a, b };
   }
   {
-    const auto* a_has_type_b = r.try_get<B>(a);
-    const auto* b_has_type_a = r.try_get<A>(b);
+    const auto a_has_type_b = r.any_of<B>(a);
+    const auto b_has_type_a = r.any_of<A>(b);
     if (a_has_type_b && b_has_type_a)
       return { b, a };
   }

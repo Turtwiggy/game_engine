@@ -123,9 +123,8 @@ glm::vec2
 rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
 {
   const int attempts = 5;
-  const float map_x = 700;
+  const float map_x = 800;
   const float map_tilesize = 50;
-  auto candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, map_x);
 
   const auto get_players_gridpos = [&]() -> std::vector<glm::ivec2> {
     std::vector<glm::ivec2> gridpos;
@@ -161,32 +160,17 @@ rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
   for (int i = 0; i < attempts; i++) {
     bool valid = true;
 
-    glm::ivec2 gp = engine::grid::worldspace_to_grid_space(candidate, map_tilesize);
-    std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> n_gp =
-      engine::grid::get_neighbour_gridpos_with_diagonals({ gp.x, gp.y });
+    const auto candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, map_x);
+    const auto gp = engine::grid::worldspace_to_grid_space(candidate, map_tilesize);
+    const auto n_gp = engine::grid::get_neighbour_gridpos_with_diagonals({ gp.x, gp.y });
 
-    // check no overlapping grid cell or neighbour grid cells.
-    {
-      const auto it = std::find(offlimit_gridpos.begin(), offlimit_gridpos.end(), gp);
-      if (it != offlimit_gridpos.end())
-        valid = false;
-    }
-    {
-      for (const auto [dir, gp] : n_gp) {
-        const auto it = std::find(offlimit_gridpos.begin(), offlimit_gridpos.end(), gp);
-        if (it != offlimit_gridpos.end()) {
-          valid = false;
-          break;
-        }
-      }
-    }
-
-    if (valid)
-      break;
-    candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, 700.0f);
+    const auto it = std::find(offlimit_gridpos.begin(), offlimit_gridpos.end(), gp);
+    if (it == offlimit_gridpos.end())
+      return candidate;
   }
 
-  return candidate;
+  SDL_Log("spawn error; candidate not found for rnd_position_in_map_but_not_inside_players_or_islands()");
+  return { 0, 0 };
 };
 
 } // namespace game2d
