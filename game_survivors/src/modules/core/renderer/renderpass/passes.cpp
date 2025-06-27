@@ -129,8 +129,8 @@ setup_linear_main_update(entt::registry& r)
 
     auto& ri = SINGLE_RendererInfo::instance;
     const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+    const auto& camera_t = r.get<const TransformComponent>(camera_e);
+    const auto& camera_c = r.get<const OrthographicCamera>(camera_e);
 
     // glEnable(GL_BLEND);
     // glEnable(GL_DEPTH_TEST);
@@ -170,31 +170,52 @@ setup_linear_main_update(entt::registry& r)
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
 
-      auto group = r.group<TransformComponent, SpriteComponent>();
+      // Instead of using group.sort (which can be slow for large groups),
+      // collect entities and sort pointers to their data, then render in order.
 
-      // sort by z-index; adds ~0.5ms
-      group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
-        const auto& a = group.get<TransformComponent>(lhs);
-        const auto& b = group.get<TransformComponent>(rhs);
-        if (a.z_index != b.z_index)
-          return a.z_index < b.z_index;
-        // sort by eid if the layers are the same
-        return lhs > rhs;
+      // auto group = r.group<TransformComponent, SpriteComponent>();
+      // // sort by z-index; adds ~0.5ms
+      // group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
+      //   const auto& a = group.get<TransformComponent>(lhs);
+      //   const auto& b = group.get<TransformComponent>(rhs);
+      //   if (a.z_index != b.z_index)
+      //     return a.z_index < b.z_index;
+      //   // sort by eid if the layers are the same
+      //   return lhs > rhs;
+      // });
+
+      // Collect entities and their z-index into a vector
+      std::vector<std::tuple<int, entt::entity, const TransformComponent*, const SpriteComponent*>> sorted_entities;
+      auto view = r.view<const TransformComponent, const SpriteComponent>();
+      sorted_entities.reserve(view.size_hint());
+
+      for (const auto e : view) {
+        const auto& transform = view.get<const TransformComponent>(e);
+        const auto& sc = view.get<const SpriteComponent>(e);
+        sorted_entities.emplace_back(transform.z_index, e, &transform, &sc);
+      }
+
+      // Sort by z-index, then by entity id for stable ordering
+      std::sort(sorted_entities.begin(), sorted_entities.end(), [](const auto& a, const auto& b) {
+        if (std::get<0>(a) != std::get<0>(b))
+          return std::get<0>(a) < std::get<0>(b);
+        return std::get<1>(a) > std::get<1>(b);
       });
 
-      for (const auto& [e, transform, sc] : group.each()) {
+      // Render in sorted order
+      for (const auto& [z, e, transform, sc] : sorted_entities) {
 
         engine::quad_renderer::RenderDescriptor desc;
-        desc.pos_tl = transform.position - (transform.scale * 0.5f);
-        desc.size = transform.scale;
-        desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
-                                        transform.rotation_radians.y,
-                                        sc.angle_radians + transform.rotation_radians.z };
-        desc.colour = sc.colour;
-        desc.tex_unit = sc.tex_unit;
-        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
-        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
-        desc.sprites_max = { sc.total_sx, sc.total_sy };
+        desc.pos_tl = transform->position - (transform->scale * 0.5f);
+        desc.size = transform->scale;
+        desc.yaw_pitch_roll_radians = { transform->rotation_radians.x,
+                                        transform->rotation_radians.y,
+                                        sc->angle_radians + transform->rotation_radians.z };
+        desc.colour = sc->colour;
+        desc.tex_unit = sc->tex_unit;
+        desc.sprite_offset = { sc->tex_pos.x, sc->tex_pos.y };
+        desc.sprite_width = { sc->tex_pos.w, sc->tex_pos.h };
+        desc.sprites_max = { sc->total_sx, sc->total_sy };
 
         ri.renderer.draw_sprite(desc, ri.instanced);
       }

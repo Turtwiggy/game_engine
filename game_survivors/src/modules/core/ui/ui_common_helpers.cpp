@@ -3,7 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "modules/actors/actor_player/actor_player_helpers.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
@@ -155,31 +155,31 @@ process_input_for_ui_all_handles(entt::registry& r, UIState& state)
 void
 process_input_for_ui(entt::registry& r, UIState& state, const InputComponent& inp_c)
 {
-  if (has_action(inp_c.dpad_u, ActionStateEnum::DOWN)) {
+  if (has(inp_c.dpad_u, ActionStateEnum::DOWN)) {
     if (state.active->u != nullptr)
       state.active = state.active->u;
     state.actions.push_back(UIAction::NAV_MOVE_U);
   }
-  if (has_action(inp_c.dpad_d, ActionStateEnum::DOWN)) {
+  if (has(inp_c.dpad_d, ActionStateEnum::DOWN)) {
     if (state.active->d != nullptr)
       state.active = state.active->d;
     state.actions.push_back(UIAction::NAV_MOVE_D);
   }
-  if (has_action(inp_c.dpad_l, ActionStateEnum::DOWN)) {
+  if (has(inp_c.dpad_l, ActionStateEnum::DOWN)) {
     if (state.active->l != nullptr)
       state.active = state.active->l;
     state.actions.push_back(UIAction::NAV_MOVE_L);
   }
-  if (has_action(inp_c.dpad_r, ActionStateEnum::DOWN)) {
+  if (has(inp_c.dpad_r, ActionStateEnum::DOWN)) {
     if (state.active->r != nullptr)
       state.active = state.active->r;
     state.actions.push_back(UIAction::NAV_MOVE_R);
   }
 
-  if (has_action(inp_c.button_s, ActionStateEnum::DOWN))
+  if (has(inp_c.button_s, ActionStateEnum::DOWN))
     state.actions.push_back(UIAction::SELECT);
 
-  if (has_action(inp_c.button_e, ActionStateEnum::DOWN))
+  if (has(inp_c.button_e, ActionStateEnum::DOWN))
     state.actions.push_back(UIAction::BACK);
 };
 

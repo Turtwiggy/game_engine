@@ -12,4 +12,7 @@ generate_rocks(entt::registry& r, const float cutoff);
 engine::SRGBColour
 lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent);
 
+void
+generate_rocks_interior(entt::registry& r);
+
 } // namespace game2d

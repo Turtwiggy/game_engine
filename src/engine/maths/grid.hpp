@@ -38,20 +38,20 @@ std::vector<std::pair<GridDirection, glm::ivec2>>
 get_neighbour_gridpos_with_diagonals(const glm::ivec2& xy);
 
 [[nodiscard]] inline glm::vec2
-grid_space_to_world_space(const glm::ivec2 pos, const int grid_size)
+gridspace_to_worldspace(const glm::ivec2 pos, const int grid_size)
 {
   return glm::vec2{ pos.x, pos.y } * static_cast<float>(grid_size);
 };
 
 [[nodiscard]] inline glm::vec2
-grid_space_to_world_space_center(const glm::ivec2 pos, const int grid_size)
+gridspace_to_worldspace_center(const glm::ivec2 pos, const int grid_size)
 {
-  const glm::vec2 p = grid_space_to_world_space(pos, grid_size);
+  const glm::vec2 p = gridspace_to_worldspace(pos, grid_size);
   return p + glm::vec2{ grid_size / 2.0f, grid_size / 2.0f };
 };
 
 [[nodiscard]] inline glm::ivec2
-worldspace_to_grid_space(const glm::vec2& pos, const int grid_size)
+worldspace_to_gridspace(const glm::vec2& pos, const int grid_size)
 {
   const int grid_x = static_cast<int>(glm::abs(pos.x) / static_cast<float>(grid_size));
   const int grid_y = static_cast<int>(glm::abs(pos.y) / static_cast<float>(grid_size));
@@ -76,7 +76,7 @@ worldspace_to_grid_space(const glm::vec2& pos, const int grid_size)
 [[nodiscard]] inline glm::ivec2
 worldspace_to_clamped_gridspace(const glm::ivec2 pos, const int grid_size, const int xmax, const int ymax)
 {
-  auto gridpos = engine::grid::worldspace_to_grid_space(pos, grid_size);
+  auto gridpos = engine::grid::worldspace_to_gridspace(pos, grid_size);
   gridpos.x = glm::clamp(gridpos.x, 0, xmax - 1);
   gridpos.y = glm::clamp(gridpos.y, 0, ymax - 1);
   return gridpos;
@@ -161,7 +161,7 @@ get_grid_cells(const glm::vec2& pos_tl, const glm::vec2& size, const int tilesiz
   for (float y = pos_tl.y; y <= pos_tl.y + size.y; y += tilesize) {
     for (float x = pos_tl.x; x <= pos_tl.x + size.x; x += tilesize) {
       const auto worldspace_pos = glm::vec2{ x, y };
-      const auto gridspace_pos = engine::grid::worldspace_to_grid_space(worldspace_pos, tilesize);
+      const auto gridspace_pos = engine::grid::worldspace_to_gridspace(worldspace_pos, tilesize);
       cells.push_back((gridspace_pos));
     }
   }

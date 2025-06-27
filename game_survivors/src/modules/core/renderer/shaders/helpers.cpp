@@ -62,7 +62,7 @@ update_lights(entt::registry& r, SINGLE_RendererInfo& ri)
       l.enabled = true;
 
       // to worldspace
-      l.pos = engine::grid::grid_space_to_world_space_center(map_l, map_c.tilesize);
+      l.pos = engine::grid::gridspace_to_worldspace_center(map_l, map_c.tilesize);
 
       // worldspace to screenspace
       const auto& wh = ri.viewport_size_render_at;

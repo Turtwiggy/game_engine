@@ -66,6 +66,7 @@
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/systems/system_input_open_ui/input_open_ui_system.hpp"
+#include "modules/systems/system_island_nearest/island_nearest_system.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_item_gold/gold_helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
@@ -332,6 +333,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_alpha_based_on_lifecycle_system(r);
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
+    update_island_nearest_system(r, mouse_pos);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);

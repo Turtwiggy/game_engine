@@ -9,13 +9,6 @@
 
 namespace game2d {
 
-bool
-has_action(const std::vector<ActionStateEnum>& action, const ActionStateEnum act)
-{
-  auto it = std::find(action.begin(), action.end(), act);
-  return it != action.end();
-};
-
 InputComponent
 generate_from_handle(entt::registry& r, const InputHandle_t handle)
 {

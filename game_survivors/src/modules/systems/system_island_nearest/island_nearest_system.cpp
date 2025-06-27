@@ -1,0 +1,84 @@
+#include "pch.hpp"
+
+#include "island_nearest_system.hpp"
+
+#include "engine/actors/actor_helpers.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/sprites/sprite_helpers.hpp"
+
+namespace game2d {
+
+void
+update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
+{
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+  const auto& islands_c = SINGLE_Islands::instance;
+
+  for (const auto& [id, eid] : islands_c.id_to_island_eid)
+    set_colour(r, eid, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+  const int tilesize = 25;
+
+  // mouse select an island tile
+  {
+    const auto worldpos = mouse_pos;
+    const auto worldpos_adj = worldpos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
+    const auto gridpos = engine::grid::worldspace_to_gridspace(worldpos_adj, tilesize);
+    draw_sprite(r,
+                Sprite{
+                  .sprite = "EMPTY",
+                  .pos = worldpos,
+                  .size = { 5, 5 },
+                  .z_idx = ZLayer::FOREGROUND,
+                  .col = { 0.0f, 0.0f, 1.0f, 1.0f },
+                });
+
+    const auto id = engine::encode_cantor_pairing_function(gridpos.x, gridpos.y);
+    if (islands_c.id_to_island_eid.contains(id)) {
+      const auto island_eid = islands_c.id_to_island_eid.at(id);
+      set_colour(r, island_eid, { 0.0f, 1.0f, 0.0f, 1.0f });
+    }
+  }
+
+  // Player's neighbour gridpos selct tiles.
+  {
+    for (const auto& [e, player_c, t_c] : r.view<const PlayerComponent, const TransformComponent>().each()) {
+
+      const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
+      const auto pos_adj = pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
+      const auto gridpos = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
+      const auto n_gpos = engine::grid::get_neighbour_gridpos_with_diagonals(gridpos);
+
+      for (const auto [grid_dir, n_gp] : n_gpos) {
+        const auto id = engine::encode_cantor_pairing_function(n_gp.x, n_gp.y);
+
+        // auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
+        // n_pos += glm::vec2{ tilesize, tilesize };
+        // draw_sprite(r,
+        //             Sprite{
+        //               .sprite = "EMPTY",
+        //               .pos = n_pos,
+        //               .size = { 5, 5 },
+        //               .z_idx = ZLayer::FOREGROUND,
+        //               .col = { 1.0f, 0.0f, 1.0f, 0.3f },
+        //             });
+
+        if (!islands_c.id_to_island_eid.contains(id))
+          continue;
+
+        // you're now neighbouring an island
+        const auto island_eid = islands_c.id_to_island_eid.at(id);
+        set_colour(r, island_eid, { 0.0f, 1.0f, 0.0f, 1.0f });
+      }
+    }
+  }
+}
+
+} // namespace game2d

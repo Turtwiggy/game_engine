@@ -26,13 +26,13 @@ generate_poisson(const PoissonIn& in)
   const auto add_sample = [&](const glm::vec2 sample) {
     active_samples.push_back(sample);
 
-    const auto grid_pos = engine::grid::worldspace_to_grid_space(sample, grid_size);
+    const auto grid_pos = engine::grid::worldspace_to_gridspace(sample, grid_size);
     const auto grid_idx = engine::grid::grid_position_to_index(grid_pos, grid_w);
     auto& vec = results.try_emplace(grid_idx).first->second;
     vec.push_back(sample);
   };
   const auto is_far_enough = [&](const glm::vec2 sample) {
-    const auto grid_pos = engine::grid::worldspace_to_grid_space(sample, grid_size);
+    const auto grid_pos = engine::grid::worldspace_to_gridspace(sample, grid_size);
 
     const int xmin = grid_pos.x - 2;
     const int ymin = grid_pos.y - 2;

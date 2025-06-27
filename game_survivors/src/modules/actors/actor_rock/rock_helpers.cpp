@@ -2,12 +2,13 @@
 
 #include "rock_helpers.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
 #include "engine/map/components.hpp"
+#include "engine/maths/collision.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/maths/noise.hpp"
@@ -15,6 +16,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/core/raws/raws_components.hpp"
 
 namespace game2d {
 
@@ -29,12 +31,6 @@ lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent)
   const float col_b = engine::lerp(a_lin.b, b_lin.b, percent);
 
   return engine::LinearToSRGB({ col_r, col_g, col_b, 1.0f });
-};
-
-struct NoiseInfo
-{
-  std::optional<float> noise = std::nullopt;
-  glm::ivec2 xy = { 0, 0 };
 };
 
 // configs
@@ -259,7 +255,7 @@ generate_contours(entt::registry& r,
       const auto e0 = idxs[0];
       const auto e1 = idxs[1];
 
-      const auto xy = engine::grid::grid_space_to_world_space({ x, y }, tilesize);
+      const auto xy = engine::grid::gridspace_to_worldspace({ x, y }, tilesize);
       glm::vec2 p0 = xy;
       glm::vec2 p1 = xy;
 
@@ -393,6 +389,7 @@ generate_rocks(entt::registry& r, const float cutoff)
   // note: press kp 7 to regenerate
   SDL_Log("Generating rocks, cutoff: %f", cutoff);
   auto generated = generate_noise(r, cutoff, frequency, seed);
+  SINGLE_Islands::instance.info = generated;
 
   // Modify the noise, so that the center is always an island.
   for (int x = 23; x < 27; x++) {
@@ -471,7 +468,7 @@ generate_rocks(entt::registry& r, const float cutoff)
       const engine::SRGBColour rock_col{ tmp.x, tmp.y, tmp.z, tmp.w };
 
       const int offset = (int)(-wh * 0.5f);
-      const auto worldspace = engine::grid::grid_space_to_world_space_center({ xy.x + offset, xy.y + offset }, tilesize);
+      const auto worldspace = engine::grid::gridspace_to_worldspace_center({ xy.x + offset, xy.y + offset }, tilesize);
 
       // const auto rock_e = spawn(r, "actor_enemy_rocks");
       // give_life(r, rock_e, worldspace, { tilesize, tilesize });
@@ -510,5 +507,65 @@ generate_rocks(entt::registry& r, const float cutoff)
   }
   */
 };
+
+void
+generate_rocks_interior(entt::registry& r)
+{
+  // whats the smallest & largest noise in the distribution
+  // auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
+  // const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() < b.noise.value(); };
+  // const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() > b.noise.value(); };
+  // const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
+  // const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
+
+  // given each island...
+  for (const auto [island_e, island_c, bb_c, contours_c] :
+       r.view<const RockComponent, const BoundingBoxComponent, const DebugContoursComponent>().each()) {
+    const auto center = 0.5f * (bb_c.br + bb_c.tl);
+
+    const int tilesize = 25;
+    const float half_tilesize = tilesize * 0.5f;
+
+    const auto tl = bb_c.tl;
+    const auto wh = bb_c.br - bb_c.tl;
+    const auto tl_gridpos = engine::grid::worldspace_to_gridspace(bb_c.tl, tilesize);
+
+    const float min_x = bb_c.tl.x + half_tilesize;
+    const float min_y = bb_c.tl.y + half_tilesize;
+    const float max_x = bb_c.tl.x + wh.x - half_tilesize;
+    const float max_y = bb_c.tl.y + wh.y - half_tilesize;
+    for (float x = min_x; x <= max_x; x += tilesize) {
+      for (float y = min_y; y <= max_y; y += tilesize) {
+
+        const float tol = 2.5;
+
+        if (!crossing_number_algorithm__point_is_inside({ x, y }, contours_c.sorted_edges)) {
+          // const auto debug_e = spawn(r, "empty");
+          // give_life(r, debug_e, { x, y }, { 5, 5 });
+          // set_colour(r, debug_e, { 1.0f, 0.0f, 0.0f, 1.0f });
+          continue;
+        }
+
+        const auto debug_e = spawn(r, "empty");
+        give_life(r, debug_e, { x, y }, { tilesize, tilesize });
+
+        // todo: reimplement sand etc colouring
+        set_colour(r, debug_e, { 0.3f, 0.3f, 0.3f, 1.0f });
+
+        // gridpos is in global worldspace
+        const auto gridpos = engine::grid::worldspace_to_gridspace({ x, y }, tilesize);
+        const auto id = engine::encode_cantor_pairing_function(gridpos.x, gridpos.y);
+
+        // the island_gridspace is relative to the tl of the island
+        // const auto island_gridspace = tl_gridpos - gridpos;
+
+        auto& island_c = SINGLE_Islands::instance;
+        island_c.id_to_island_eid.emplace(id, debug_e);
+      }
+    }
+  }
+
+  const auto& island_info_c = SINGLE_Islands::instance;
+}
 
 } // namespace game2d

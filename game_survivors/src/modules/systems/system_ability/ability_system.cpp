@@ -7,6 +7,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
@@ -83,20 +84,20 @@ update_ability_system(entt::registry& r, const float dt)
     const bool allowed_to_use_ability_2 = ability_c.ability_2_cooldown_left <= 0.0f;
 
     if (allowed_to_use_ability_1) {
-      if (has_action(input_c.ability1, ActionStateEnum::DOWN)) {
+      if (has(input_c.ability1, ActionStateEnum::DOWN)) {
         speedboost_ability(r, e, input_c, body_c);
         ability_c.ability_1_in_progress = true;
       }
-      if (has_action(input_c.ability1, ActionStateEnum::HELD)) {
+      if (has(input_c.ability1, ActionStateEnum::HELD)) {
       }
-      if (has_action(input_c.ability1, ActionStateEnum::RELEASE)) {
+      if (has(input_c.ability1, ActionStateEnum::RELEASE)) {
         ability_c.ability_1_in_progress = false;
         ability_c.ability_1_cooldown_left = ability_c.ability_1_cooldown;
       }
     }
 
     if (allowed_to_use_ability_2) {
-      if (has_action(input_c.ability2, ActionStateEnum::DOWN)) {
+      if (has(input_c.ability2, ActionStateEnum::DOWN)) {
 
         RequestToSpawnParticles request;
         request.key = "vfx_boop";
@@ -106,9 +107,9 @@ update_ability_system(entt::registry& r, const float dt)
         boop_ability(r, e);
         ability_c.ability_2_in_progress = true;
       }
-      if (has_action(input_c.ability2, ActionStateEnum::HELD)) {
+      if (has(input_c.ability2, ActionStateEnum::HELD)) {
       }
-      if (has_action(input_c.ability2, ActionStateEnum::RELEASE)) {
+      if (has(input_c.ability2, ActionStateEnum::RELEASE)) {
         ability_c.ability_2_in_progress = false;
         ability_c.ability_2_cooldown_left = ability_c.ability_2_cooldown;
       }

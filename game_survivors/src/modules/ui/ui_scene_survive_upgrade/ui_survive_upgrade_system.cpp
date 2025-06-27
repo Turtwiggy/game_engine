@@ -9,7 +9,6 @@
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
-#include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
@@ -196,7 +195,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     bool do_act = false;
     auto& card_ui_c = r.get_or_emplace<CardUIUpgradeComponent>(player_e);
     {
-      const bool do_act_held = has_action(input.button_s, ActionStateEnum::HELD);
+      const bool do_act_held = has(input.button_s, ActionStateEnum::HELD);
 
       // reset timer
       if (!do_act_held)

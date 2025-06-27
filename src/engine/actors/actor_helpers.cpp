@@ -29,7 +29,7 @@ get_grid_position(entt::registry& r, const entt::entity e)
 {
   const auto& map = get_first_component<MapComponent>(r);
   const auto pos = get_position(r, e);
-  return engine::grid::worldspace_to_grid_space(pos, map.tilesize);
+  return engine::grid::worldspace_to_gridspace(pos, map.tilesize);
 }
 
 void
@@ -51,7 +51,7 @@ void
 set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 gridpos)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
-  const glm::ivec2 pos = engine::grid::grid_space_to_world_space_center(gridpos, map_c.tilesize);
+  const glm::ivec2 pos = engine::grid::gridspace_to_worldspace_center(gridpos, map_c.tilesize);
   set_position(r, e, pos);
 }
 

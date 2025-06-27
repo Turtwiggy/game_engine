@@ -129,7 +129,7 @@ rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
   const auto get_players_gridpos = [&]() -> std::vector<glm::ivec2> {
     std::vector<glm::ivec2> gridpos;
     for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
-      const auto gp = engine::grid::worldspace_to_grid_space(get_position(r, e), map_tilesize);
+      const auto gp = engine::grid::worldspace_to_gridspace(get_position(r, e), map_tilesize);
       gridpos.push_back(gp);
     }
     return gridpos;
@@ -143,7 +143,7 @@ rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
 
       for (float y = tl.y; y < br.y; y += map_tilesize) {
         for (float x = tl.x; x < br.x; x += map_tilesize) {
-          const auto gp = engine::grid::worldspace_to_grid_space({ x, y }, map_tilesize);
+          const auto gp = engine::grid::worldspace_to_gridspace({ x, y }, map_tilesize);
           gridpos.push_back(gp);
         }
       }
@@ -161,7 +161,7 @@ rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
     bool valid = true;
 
     const auto candidate = rnd_position_around_point(r, { 0, 0 }, 0.0f, map_x);
-    const auto gp = engine::grid::worldspace_to_grid_space(candidate, map_tilesize);
+    const auto gp = engine::grid::worldspace_to_gridspace(candidate, map_tilesize);
     const auto n_gp = engine::grid::get_neighbour_gridpos_with_diagonals({ gp.x, gp.y });
 
     const auto it = std::find(offlimit_gridpos.begin(), offlimit_gridpos.end(), gp);

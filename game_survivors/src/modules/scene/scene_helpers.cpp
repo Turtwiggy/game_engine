@@ -19,6 +19,7 @@
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/actors/actor_rock/rock_helpers.hpp"
 #include "modules/actors/actor_rock/rock_system.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
@@ -433,6 +434,7 @@ spawn_lighthouses(entt::registry& r)
 void
 spawn_islands(entt::registry& r)
 {
+
   auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
   auto rock_opt = get_modifier_option(r, MODIFIER_OPTIONS::ROCKS);
   if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks) {
@@ -441,34 +443,6 @@ spawn_islands(entt::registry& r)
     // to determine player spawn location
     update_actor_rocks_system(r);
   }
-};
-
-bool
-crossing_number_algorithm__point_is_inside(const glm::vec2& point, const std::vector<Edge>& polygon)
-{
-  int intersections = 0;
-
-  for (int i = 0; i < polygon.size(); i++) {
-    const auto a = polygon[i].a;
-    const auto b = polygon[i].b;
-    const float x1 = (float)a.x;
-    const float y1 = (float)a.y;
-    const float x2 = (float)b.x;
-    const float y2 = (float)b.y;
-
-    if ((y1 <= point.y && y2 > point.y) || (y2 <= point.y && y1 > point.y)) {
-
-      // Calculate the x-coordinate where the edge intersects the horizontal line
-      float intersection_x = x1 + (point.y - y1) * (x2 - x1) / (y2 - y1);
-
-      // If the intersection is to the right of the point, count it as a crossing
-      if (intersection_x > point.x)
-        intersections++;
-    }
-  }
-
-  // If the number of intersections is odd, the point is inside
-  return intersections % 2 == 1;
 };
 
 void
@@ -591,7 +565,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // The survive timer that various spawners read from
     const auto survive_timer_e = create_empty<SurviveTimerComponent>(r);
 
-    spawn_islands(r);
+    spawn_islands(r); // before spawn_players
     spawn_players(r);
     spawn_lighthouses(r);
 
@@ -624,11 +598,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_GameoverUI>(r);
     create_empty<RequestGameTrack>(r);
 
-    spawn_islands(r);
+    spawn_islands(r); // before spawn_players
 
+    // spawn_players(r);
     const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");
     r.emplace<KeyboardComponent>(p);
-
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
       auto handle = controller_ui.handles[i];
@@ -636,40 +610,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       break;
     }
 
-    // spawn_players(r);
+    generate_rocks_interior(r);
     spawn_lighthouses(r);
-
-    // given each island...
-    for (const auto [e, island_c, bb_c, contours_c] :
-         r.view<const RockComponent, const BoundingBoxComponent, const DebugContoursComponent>().each()) {
-      const auto center = 0.5f * (bb_c.br + bb_c.tl);
-
-      const auto tl = bb_c.tl;
-      const auto wh = bb_c.br - bb_c.tl;
-
-      const int tilesize = 25;
-      const float half_tilesize = tilesize * 0.5f;
-      const float min_x = bb_c.tl.x + half_tilesize;
-      const float min_y = bb_c.tl.y + half_tilesize;
-      const float max_x = bb_c.tl.x + wh.x - half_tilesize;
-      const float max_y = bb_c.tl.y + wh.y - half_tilesize;
-      for (float x = min_x; x <= max_x; x += tilesize) {
-        for (float y = min_y; y <= max_y; y += tilesize) {
-
-          const float tol = 2.5;
-
-          if (!crossing_number_algorithm__point_is_inside({ x, y }, contours_c.sorted_edges)) {
-            const auto e = spawn(r, "empty");
-            give_life(r, e, { x, y }, { 5, 5 });
-            set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
-            continue;
-          }
-
-          const auto e = spawn(r, "empty");
-          give_life(r, e, { x, y }, { 5, 5 });
-        }
-      }
-    }
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

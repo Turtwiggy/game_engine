@@ -93,6 +93,9 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
     for (const auto& [e, rock_c] : view.each())
       dead_c.dead.push_back(e);
 
+    // clear the id <=> eid map
+    SINGLE_Islands::instance.id_to_island_eid.clear();
+
     generate_rocks(r, cutoff);
     draw_rocks(r);
   });

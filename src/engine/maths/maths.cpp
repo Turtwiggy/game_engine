@@ -119,22 +119,36 @@ rotate_point(const glm::vec2& point, const float angle_radians)
   };
 };
 
-uint64_t
-encode_cantor_pairing_function(int x, int y)
+int
+zigzag_decode(uint32_t x)
 {
+  return (x >> 1) ^ (-(x & 1));
+};
+
+uint32_t
+zigzag_encode(int x)
+{
+  return (x << 1) ^ (x >> (sizeof(int) * 8 - 1));
+};
+
+uint64_t
+encode_cantor_pairing_function(int x_in, int y_in)
+{
+  uint32_t x = zigzag_encode(x_in);
+  uint32_t y = zigzag_encode(y_in);
+
   // If you don't want to make a distinction between the pairs (a, b) and (b, a),
   // then sort a and b before applying the pairing function.
+  // if (y < x) {
+  //   // Swap X and Y
+  //   int temp = x;
+  //   x = y;
+  //   y = temp;
+  // }
 
   if (x < 0 || y < 0) {
     SDL_Log("%s", std::format("encode cantor pairing function not implemented negative ints").c_str());
     exit(1); // crash
-  }
-
-  if (y < x) {
-    // Swap X and Y
-    int temp = x;
-    x = y;
-    y = temp;
   }
 
   int64_t p = 0;
@@ -154,6 +168,7 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
 {
   x = 0;
   y = 0;
+
   size_t i = 0;
   while (p) {
     x |= ((uint32_t)(p & 1) << i);
@@ -162,6 +177,9 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
     p >>= 1;
     i++;
   }
+
+  x = zigzag_decode(x);
+  y = zigzag_decode(y);
 };
 
 float

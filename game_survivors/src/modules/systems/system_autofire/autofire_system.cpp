@@ -220,6 +220,7 @@ update_autofire_system(entt::registry& r, const float dt)
                              TransformComponent,
                              AutofireComponent>();
     for (const auto& [wep_e, weapon_c, wep_def, bul_def, wep_range_c, parent_c, wep_t, autofire_c] : view.each()) {
+
       const auto par_e = parent_c.parent;
       if (par_e == entt::null || !r.valid(par_e))
         continue;
@@ -245,11 +246,18 @@ update_autofire_system(entt::registry& r, const float dt)
       }
 
       if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
-        auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
-        if (nearest_e == entt::null) {
-          aim_in_movement_direction(r, par_vel_m, wep_e);
+        aim_in_movement_direction(r, par_vel_m, wep_e);
+
+        // stop spamming costly get_nearest_target by checking for targets ever ~1s
+        if (autofire_c.target_aquisition_cooldown_cur > 0.0f) {
+          autofire_c.target_aquisition_cooldown_cur -= dt;
           continue;
         }
+        autofire_c.target_aquisition_cooldown_cur = autofire_c.target_aquisition_cooldown_max;
+
+        auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
+        if (nearest_e == entt::null)
+          continue;
         autofire_c.target = nearest_e;
       }
 
