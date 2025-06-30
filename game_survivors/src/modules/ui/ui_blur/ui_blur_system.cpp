@@ -85,7 +85,7 @@ update_ui_blur_system(entt::registry& r, const float dt)
   ImGuiWindowFlags blur_flags = 0;
   blur_flags |= ImGuiWindowFlags_NoDecoration;
   blur_flags |= ImGuiWindowFlags_NoSavedSettings;
-  blur_flags |= ImGuiWindowFlags_NoMouseInputs;
+  blur_flags |= ImGuiWindowFlags_NoInputs;
   blur_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   blur_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
   // blur_flags |= ImGuiWindowFlags_NoBackground; // yes background

@@ -97,8 +97,6 @@ update_island_movement_system(entt::registry& r)
           const auto& evts_c = SINGLE_Events::instance;
           evts_c.dispatcher->trigger(evt);
           evts_c.dispatcher->update();
-
-          // TOD: if something dies, remove from occupied.
         }
 
         continue; // neighbour is full

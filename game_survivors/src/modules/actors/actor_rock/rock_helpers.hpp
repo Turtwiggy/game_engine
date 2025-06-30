@@ -16,6 +16,9 @@ void
 generate_island_interior(entt::registry& r);
 
 void
-generate_island_life(entt::registry& r);
+generate_island_life__base_island(entt::registry& r);
+
+void
+generate_island_life__other_islands(entt::registry& r);
 
 } // namespace game2d

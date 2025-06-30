@@ -550,7 +550,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     spawn_islands(r); // before spawn_players
     generate_island_interior(r);
-    generate_island_life(r);
+    generate_island_life__base_island(r);
+    generate_island_life__other_islands(r);
 
     spawn_players(r);
 
@@ -585,7 +586,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     spawn_islands(r); // before spawn_players
     generate_island_interior(r);
-    generate_island_life(r);
+    generate_island_life__base_island(r);
+    generate_island_life__other_islands(r);
 
     // spawn_players(r);
     const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");

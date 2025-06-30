@@ -41,7 +41,7 @@ draw_rocks(entt::registry& r)
 
     i++;
   }
-}
+};
 
 void
 update_actor_rocks_system(entt::registry& r)

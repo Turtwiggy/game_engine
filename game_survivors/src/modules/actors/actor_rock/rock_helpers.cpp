@@ -568,38 +568,76 @@ get_unoccupied(const DebugContoursComponent& island_c)
   return unoccupied;
 }
 
-void
-generate_island_life(entt::registry& r)
+entt::entity
+get_center_island_eid(entt::registry& r)
 {
+  const auto& island_ids_to_eid = SINGLE_Islands::instance.id_to_island_eid;
+
+  // Extract all unique entt::entity values into a vector
+  std::unordered_set<entt::entity> unique_entities;
+  for (const auto& [id, eid] : island_ids_to_eid)
+    unique_entities.emplace(eid);
+
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto wh = SINGLE_Islands::instance.wh;
+  const auto center_worldspace = glm::vec2{ 0, 0 }; // base island hould always have a tile at 0, 0
+  const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
+  const auto center_id = engine::encode_cantor_pairing_function(center_gridspace.x, center_gridspace.y);
+  const auto center_eid = SINGLE_Islands::instance.id_to_island_eid.at(center_id);
+  assert(center_id != entt::null);
+  return center_eid;
+};
+
+void
+spawn_lighthouse(entt::registry& r, DebugContoursComponent& island_c, const glm::ivec2 gridpos)
+{
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+
+  const auto thing_e = spawn(r, "actor_lighthouse");
+  auto pos = engine::grid::gridspace_to_worldspace_center(gridpos, tilesize);
+  pos += glm::vec2{ tilesize * 0.5f, tilesize * 0.5f }; // off grid
+  give_life(r, thing_e, pos, { tilesize, tilesize });
+
+  // todo: set random rotation and slightly varying speed
+  r.emplace<LighthouseComponent>(thing_e);
+  r.emplace<LightEmitterComponent>(thing_e);
+  r.emplace<LightTypeWedge>(thing_e);
+  // auto popup_e = create_popup(r, center, "Lighthouse");
+  // r.remove<EntityTimedLifecycle>(popup_e);
+  // r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
+
+  island_c.occupied_island_xy.push_back({ gridpos, thing_e });
+}
+
+void
+generate_island_life__base_island(entt::registry& r)
+{
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+
+  // on the base island
+  const auto center_island_eid = get_center_island_eid(r);
+  auto& island_c = r.get<DebugContoursComponent>(center_island_eid);
+  auto& bb_c = r.get<BoundingBoxComponent>(center_island_eid);
+
+  // give the base island a lighthouse
+  const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
+  const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
+  spawn_lighthouse(r, island_c, center_gridspace);
+}
+
+void
+generate_island_life__other_islands(entt::registry& r)
+{
+  const auto center_island_eid = get_center_island_eid(r);
+
   // spawn things on the islands
   static engine::RandomState spawn_rnd(0);
 
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   for (const auto& [e, contours_c, bb_c] : r.view<DebugContoursComponent, const BoundingBoxComponent>().each()) {
 
-    // TODO: add back lighthouses
-    /*
-    {
-      const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
-      const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
-      // const auto xy = contours_c.island_xy[2]; // todo: get center
-
-      const auto thing_e = spawn(r, "actor_lighthouse");
-      auto pos = engine::grid::gridspace_to_worldspace_center(center_gridspace, tilesize);
-      pos += glm::vec2{ tilesize * 0.5f, tilesize * 0.5f }; // off grid
-      give_life(r, thing_e, pos, { tilesize, tilesize });
-
-      // todo: set random rotation and slightly varying speed
-      r.emplace<LighthouseComponent>(thing_e);
-      r.emplace<LightEmitterComponent>(thing_e);
-      r.emplace<LightTypeWedge>(thing_e);
-      // auto popup_e = create_popup(r, center, "Lighthouse");
-      // r.remove<EntityTimedLifecycle>(popup_e);
-      // r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
-
-      contours_c.occupied_island_xy.push_back({ center_gridspace, thing_e });
-    }
-    */
+    if (e == center_island_eid)
+      continue; // dont spawn mobs on the base island
 
     // TODO: generate a spawn rate table for enemies.
 

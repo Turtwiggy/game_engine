@@ -13,6 +13,7 @@
 #include "modules/events/event_damage/event_damage_helpers.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_helpers.hpp"
 #include "modules/events/event_death_exploder_screenshake/exploder_screenshake.hpp"
+#include "modules/events/event_death_islander_remove_from_island/islander_remove_from_island_helpers.hpp"
 #include "modules/events/event_death_treasure_enemy/treasure_enemy_death_helpers.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/events/event_shoot_audio/shoot_audio_helpers.hpp"
@@ -63,6 +64,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__exploder_screenshake>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__treasure_enemy>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__update_stats>(r);
+  ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__islander_remove_from_island>(r);
 
   ed.dispatcher->sink<AudioCompleteEvent>().connect<&handle_audio_complete_event__new_game_track>(r);
 
