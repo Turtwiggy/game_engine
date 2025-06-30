@@ -21,22 +21,30 @@ struct RequestGenerateRocks
   bool placeholder = true;
 };
 
-struct DebugContoursComponent
-{
-  std::vector<Edge> edges;
-  std::vector<Edge> sorted_edges;
-};
-
 struct NoiseInfo
 {
   std::optional<float> noise = std::nullopt;
   glm::ivec2 xy = { 0, 0 };
 };
 
+struct DebugContoursComponent
+{
+  std::vector<Edge> edges;
+  std::vector<Edge> sorted_edges;
+  std::vector<NoiseInfo> island_noise; // note: xy is not offset in island_noise
+
+  std::vector<glm::ivec2> all_island_xy;
+  std::vector<std::pair<glm::ivec2, entt::entity>> occupied_island_xy;
+};
+
 struct SINGLE_Islands
 {
+  const int wh = 50;
+  const float frequency = 0.1f;
+  const int tilesize = 25;
+
   // the noise that generated all the islands
-  std::vector<NoiseInfo> info;
+  std::vector<NoiseInfo> generated;
 
   // the grid id (stored via cantor pairing function) <=> island entity map
   std::unordered_map<uint64_t, entt::entity> id_to_island_eid;

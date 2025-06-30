@@ -5,7 +5,6 @@
 #include "engine/audio/audio_system.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
-#include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/system.hpp"
 #include "engine/imgui/ui_imgui_colours.hpp"
 #include "engine/lifecycle/lifecycle_system.hpp"
@@ -32,7 +31,6 @@
 #include "modules/core/camera/camera_system.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/camera/orthographic.hpp"
-#include "modules/core/debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/io/io_components.hpp"
 #include "modules/core/io/io_helpers.hpp"
@@ -42,7 +40,6 @@
 #include "modules/core/renderer/system.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/effect_crt/crt_components.hpp"
-#include "modules/events/event_shoot_muzzleflash/event_shoot_muzzleflash.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/events/events_core/events_system.hpp"
 #include "modules/scene/scene_components.hpp"
@@ -66,7 +63,9 @@
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/systems/system_input_open_ui/input_open_ui_system.hpp"
+#include "modules/systems/system_island_movement/island_movement_system.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_system.hpp"
+#include "modules/systems/system_island_return_to_boat/island_return_to_boat_system.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_item_gold/gold_helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
@@ -79,7 +78,6 @@
 #include "modules/systems/system_quit/quit_system.hpp"
 #include "modules/systems/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/systems/system_scene_splashscreen_move_to_next/system.hpp"
-#include "modules/systems/system_screenshake/components.hpp"
 #include "modules/systems/system_screenshake/system.hpp"
 #include "modules/systems/system_spawner/spawner_components.hpp"
 #include "modules/systems/system_spawner/spawner_helpers.hpp"
@@ -333,7 +331,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_alpha_based_on_lifecycle_system(r);
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
+
     update_island_nearest_system(r, mouse_pos);
+    update_island_movement_system(r);
+    update_island_return_to_boat_system(r);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);

@@ -123,7 +123,23 @@
     },
     {
       "name": "actor_lighthouse",
-      "renderable": { "sprite": "EMPTY", "colour":  "white" }
+      "renderable": { "sprite": "ARROW_RIGHT", "colour":  "white" }
+    },
+      {
+      "name": "actor_islanddweller_player",
+      "renderable": { "sprite": "PERSON_25_0", "colour":  "white" }
+    },
+    {
+      "name": "actor_islanddweller_pirate",
+      "renderable": { "sprite": "PERSON_25_0", "colour":  "dark_orange" }
+    },
+    {
+      "name": "actor_islanddweller_spider",
+      "renderable": { "sprite": "SPIDER_28_5", "colour":  "dark_orange" }
+    },
+    {
+      "name": "actor_islanddweller_scorpion",
+      "renderable": { "sprite": "SCORPION_24_5", "colour":  "dark_orange" }
     },
     {
       "name": "actor_enemy_melee_1",

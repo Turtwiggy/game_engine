@@ -33,6 +33,9 @@ update_gameover_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_GoldComponent, r, gold_e, gold_c);
   GET_FIRST_OR_RETURN(SINGLE_SurviveStatsComponent, r, stats_e, stats_c);
 
+  //
+  // win condition: survive the timer
+  //
   for (const auto& [e, timer_c] : r.view<const SurviveTimerComponent>().each()) {
 
     const int seconds = static_cast<int>(timer_c.time_left_cur) % 60;
@@ -61,9 +64,10 @@ update_gameover_system(entt::registry& r)
     }
   }
 
-  const auto& view = r.view<PlayerComponent>();
-  if (view.size() == 0) {
-    // you lose!
+  //
+  // lose condition: all players dead
+  //
+  if (r.view<PlayerComponent>().size() == 0) {
     GameOverComponent gameover_c;
     gameover_c.win_condition = false;
     gameover_c.reason = "All players dead";

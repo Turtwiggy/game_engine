@@ -14,9 +14,15 @@
 #include "engine/maths/noise.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
+#include "modules/core/renderer/lights/components.hpp"
 
 namespace game2d {
 
@@ -33,14 +39,11 @@ lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent)
   return engine::LinearToSRGB({ col_r, col_g, col_b, 1.0f });
 };
 
-// configs
-const int wh = 50;
-const float frequency = 0.1f;
-const float tilesize = 25.0f;
-
 std::vector<NoiseInfo>
 generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
 {
+  const auto wh = SINGLE_Islands::instance.wh;
+
   std::vector<NoiseInfo> generated;
   for (int y = 0; y < wh; y++) {
     for (int x = 0; x < wh; x++) {
@@ -86,6 +89,8 @@ generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
 std::vector<std::vector<NoiseInfo>>
 identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_threshold)
 {
+  const auto wh = SINGLE_Islands::instance.wh;
+
   // get the coordinates of any noise that is > threshold
   auto f = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
 
@@ -128,7 +133,7 @@ identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_t
       continue; // discard island
 
     // ignore islands that border the edge.
-    const auto borders_map_edge = [](const NoiseInfo& ni) {
+    const auto borders_map_edge = [wh](const NoiseInfo& ni) {
       return ni.xy.x == 0 || ni.xy.x == wh - 1 || ni.xy.y == 0 || ni.xy.y == wh - 1;
     };
     auto it = std::find_if(island.begin(), island.end(), borders_map_edge);
@@ -195,6 +200,8 @@ generate_contours(entt::registry& r,
                   const float tilesize,
                   const float isovalue_threshold)
 {
+  const auto wh = SINGLE_Islands::instance.wh;
+
   enum class EDGES
   {
     L = 1,
@@ -297,15 +304,6 @@ create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<E
 {
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
-  // glm::vec2 centroid{ 0, 0 };
-  //   centroid += glm::vec2{ 0.5f * (p.a.x + p.b.x), 0.5f * (p.a.y + p.b.y) };
-  // for (const auto& p : contours)
-  // centroid /= (int)contours.size();
-  // const glm::vec2 pos_in_meters = {
-  //   pixels_to_meters(centroid.x),
-  //   pixels_to_meters(centroid.y),
-  // };
-
   b2BodyDef def = b2DefaultBodyDef();
   def.type = b2_staticBody;
   def.userData = (void*)static_cast<uintptr_t>(entt::to_integral(island_e));
@@ -327,21 +325,6 @@ create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<E
   std::transform(contour_pixels.begin(), contour_pixels.end(), std::back_inserter(contor_meters), [](const glm::vec2& d) {
     return b2Vec2{ pixels_to_meters(d.x), pixels_to_meters(d.y) };
   });
-
-  // Add my sanity checks here, because b2ValidateHull just returns true or false.
-  // bool valid = true;
-  // if (contor_meters.size() < 3)
-  //   valid = false;
-  // if (contor_meters.size() >= B2_MAX_POLYGON_VERTICES)
-  //   valid = false;
-  // const b2Hull hull = b2ComputeHull(contor_meters.data(), (int)contor_meters.size());
-  // if (!valid || !b2ValidateHull(&hull)) {
-  //   SDL_Log("invalid hull for island.");
-  //   return;
-  // }
-  // const b2Polygon polygon = b2MakePolygon(&hull, 1.0f);
-  // b2ShapeDef shape_def = b2DefaultShapeDef();
-  // const auto shape_id = b2CreatePolygonShape(bodyId, &shape_def, &polygon);
 
   b2ChainDef chain_def = b2DefaultChainDef();
   chain_def.points = contor_meters.data();
@@ -388,26 +371,28 @@ generate_rocks(entt::registry& r, const float cutoff)
 
   // note: press kp 7 to regenerate
   SDL_Log("Generating rocks, cutoff: %f", cutoff);
-  auto generated = generate_noise(r, cutoff, frequency, seed);
-  SINGLE_Islands::instance.info = generated;
+  const auto frequency = SINGLE_Islands::instance.frequency;
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto wh = SINGLE_Islands::instance.wh;
 
-  // Modify the noise, so that the center is always an island.
-  for (int x = 23; x < 27; x++) {
-    for (int y = 23; y < 27; y++) {
-      const auto at_grid_xy = [&](NoiseInfo& info) { return info.xy == glm::ivec2{ x, y }; };
-      auto it = std::find_if(generated.begin(), generated.end(), at_grid_xy);
-      if (it == generated.end())
-        continue;
-      it->noise = 1.0; // make it solid
+  {
+    auto generated = generate_noise(r, cutoff, frequency, seed);
+
+    // Modify the noise, so that the center is always an island.
+    for (int x = 23; x < 27; x++) {
+      for (int y = 23; y < 27; y++) {
+        const auto at_grid_xy = [&](NoiseInfo& info) { return info.xy == glm::ivec2{ x, y }; };
+        auto it = std::find_if(generated.begin(), generated.end(), at_grid_xy);
+        if (it == generated.end())
+          continue;
+        it->noise = 0.8; // make it solid
+      }
     }
+
+    SINGLE_Islands::instance.generated = std::move(generated);
   }
 
-  // whats the smallest & largest noise in the distribution
-  // auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
-  // const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() < b.noise.value(); };
-  // const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() > b.noise.value(); };
-  // const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
-  // const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
+  const auto& generated = SINGLE_Islands::instance.generated;
 
   // identify the noise into islands.
   const auto islands = identify_islands(generated, 0.5f);
@@ -432,6 +417,7 @@ generate_rocks(entt::registry& r, const float cutoff)
     DebugContoursComponent debug_c;
     debug_c.edges = contours.contours;
     debug_c.sorted_edges = offset_contours;
+    debug_c.island_noise = island;
     r.emplace<DebugContoursComponent>(island_e, debug_c);
     r.emplace<TeamComponent>(island_e, TeamComponent{ AvailableTeams::neutral });
 
@@ -439,92 +425,79 @@ generate_rocks(entt::registry& r, const float cutoff)
     create_box2d_shape(r, island_e, offset_contours);
     generate_rock_bounding_box(r, island_e);
 
-    /*
-    for (const auto& info : island) {
-      const auto xy = info.xy;
-
-      //  remap [min_noise, max_noise] to [0, 1];
-      const auto noise = engine::scale(info.noise.value(), min_it->noise.value(), max_it->noise.value(), 0.0f, 1.0f);
-
-      // https://colorhunt.co/palette/a86523e9a319fad59afcefcb
-      // https://colorhunt.co/palette/626f47a4b465f5ecd5f0bb78
-      const auto sand_l = engine::SRGBColour{ 252, 238, 203, 255 };
-      const auto sand_d = engine::SRGBColour{ 250, 213, 154, 255 };
-      const auto grass_l = engine::SRGBColour{ 164, 180, 101, 255 };
-      const auto grass_d = engine::SRGBColour{ 98, 111, 71, 255 };
-      const float boundary_a = 0.1f;
-      const float boundary_b = 0.2f;
-      const float boundary_c = 1.0f;
-
-      // engine::SRGBColour rock_col{ 1.0f, 1.0f, 1.0f, 1.0f };
-      // if (noise < boundary_a) // light sand <=> dark sand
-      //   rock_col = lerp_colour(sand_l, sand_d, (noise - 0.0f) / (boundary_a - 0.0f));
-      // else if (noise < boundary_b)
-      //   rock_col = lerp_colour(sand_d, grass_d, (noise - boundary_a) / (boundary_b - boundary_a));
-      // else
-      //   rock_col = lerp_colour(grass_d, grass_l, (noise - boundary_b) / (boundary_c - boundary_b));
-
-      const auto tmp = (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f);
-      const engine::SRGBColour rock_col{ tmp.x, tmp.y, tmp.z, tmp.w };
-
-      const int offset = (int)(-wh * 0.5f);
-      const auto worldspace = engine::grid::gridspace_to_worldspace_center({ xy.x + offset, xy.y + offset }, tilesize);
-
-      // const auto rock_e = spawn(r, "actor_enemy_rocks");
-      // give_life(r, rock_e, worldspace, { tilesize, tilesize });
-      // set_colour(r, rock_e, rock_col); // make the colour represent the noise value.
-      // r.emplace<RockComponent>(rock_e);
-      // r.emplace<TeamComponent>(rock_e, AvailableTeams::neutral);
-      // r.get<DefaultColour>(rock_e).colour = rock_col;
-      // r.remove<OnDeathCallbacks>(rock_e);
-      // const auto rock_fixture_e = get_fixture_by_tag(r, rock_e, "fixture_core");
-      // r.emplace<HealthComponent>(rock_fixture_e, HealthComponent{ 5000, 5000 });
-    }
-    */
     i++;
   }
 
   SDL_Log("Spawned: %i rocks", r.view<const RockComponent>().size());
-
-  /*
-  // e.g. wh 2000x2000 / rad (250*250) spawns <64 rocks
-  PoissonIn in;
-  in.seed = 0;
-  in.radius = 400;
-  in.wh = { 2000, 2000 };
-  in.tl = { -in.wh.x * 0.5f, -in.wh.y * 0.5f };
-  const auto out = generate_poisson(in);
-  SDL_Log("Spawned %i poisson points for rocks", (int)out.results.size());
-  for (const auto& point : out.results) {
-  // spawn rock cluster
-  auto rock_e = spawn(r, "actor_enemy_rocks");
-  give_life(r, rock_e, point, { 256, 256 });
-  r.emplace<TeamComponent>(rock_e, TeamComponent{ AvailableTeams::neutral });
-
-  // rotate the rocks
-  static engine::RandomState rock_rnd(0);
-  r.get<TransformComponent>(rock_e).rotation_radians.z = engine::rand_det_s(rock_rnd.rng, 0.0f, engine::TWO_PI);
-  }
-  */
 };
 
-void
-generate_rocks_interior(entt::registry& r)
+engine::SRGBColour
+get_colour_of_tile(entt::registry& r,
+                   const glm::vec2 xy,
+                   const glm::ivec2 unoffset_xy,
+                   const DebugContoursComponent& contours_c,
+                   const float min_noise,
+                   const float max_noise)
 {
+  auto rock_col = engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f };
+  const auto& info = contours_c.island_noise;
+  const auto at_xy = [&unoffset_xy](const NoiseInfo& noise) { return noise.xy == unoffset_xy; };
+  const auto it = std::find_if(info.begin(), info.end(), at_xy); // the noise info should always exist
+  if (it == info.end()) {
+    //
+    // noise info for island missing; something aint right
+    //
+    const auto debug_e = spawn(r, "empty");
+    give_life(r, debug_e, { xy.x, xy.y }, { 5, 5 });
+    set_colour(r, debug_e, rock_col);
+    return rock_col;
+  }
+  const auto ni = (*it);
+
+  //  remap [min_noise, max_noise] to [0, 1];
+  const auto noise = engine::scale(ni.noise.value(), min_noise, max_noise, 0.0f, 1.0f);
+
+  // https://colorhunt.co/palette/a86523e9a319fad59afcefcb
+  // https://colorhunt.co/palette/626f47a4b465f5ecd5f0bb78
+  const auto sand_l = engine::SRGBColour{ 252, 238, 203, 255 };
+  const auto sand_d = engine::SRGBColour{ 250, 213, 154, 255 };
+  const auto grass_l = engine::SRGBColour{ 164, 180, 101, 255 };
+  const auto grass_d = engine::SRGBColour{ 98, 111, 71, 255 };
+
+  // boundary (noise) between [0, 1] where we change the colours
+  const float boundary_a = 0.1f;
+  const float boundary_b = 0.2f;
+  const float boundary_c = 1.0f;
+
+  if (noise < boundary_a) // light sand <=> dark sand
+    rock_col = lerp_colour(sand_l, sand_d, (noise - 0.0f) / (boundary_a - 0.0f));
+  else if (noise < boundary_b)
+    rock_col = lerp_colour(sand_d, grass_d, (noise - boundary_a) / (boundary_b - boundary_a));
+  else
+    rock_col = lerp_colour(grass_d, grass_l, (noise - boundary_b) / (boundary_c - boundary_b));
+
+  return rock_col;
+}
+
+void
+generate_island_interior(entt::registry& r)
+{
+  auto& islands_c = SINGLE_Islands::instance;
+  const auto& generated = islands_c.generated;
+  const auto tilesize = islands_c.tilesize;
+  const float half_tilesize = tilesize * 0.5f;
+
   // whats the smallest & largest noise in the distribution
-  // auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
-  // const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() < b.noise.value(); };
-  // const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() > b.noise.value(); };
-  // const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
-  // const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
+  auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
+  const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() < b.noise.value(); };
+  const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() > b.noise.value(); };
+  const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
+  const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
 
   // given each island...
   for (const auto [island_e, island_c, bb_c, contours_c] :
-       r.view<const RockComponent, const BoundingBoxComponent, const DebugContoursComponent>().each()) {
+       r.view<const RockComponent, const BoundingBoxComponent, DebugContoursComponent>().each()) {
     const auto center = 0.5f * (bb_c.br + bb_c.tl);
-
-    const int tilesize = 25;
-    const float half_tilesize = tilesize * 0.5f;
 
     const auto tl = bb_c.tl;
     const auto wh = bb_c.br - bb_c.tl;
@@ -546,26 +519,116 @@ generate_rocks_interior(entt::registry& r)
           continue;
         }
 
+        const auto pos = glm::vec2{ x, y };
+        const auto xy = engine::grid::worldspace_to_gridspace(pos, tilesize);
+        contours_c.all_island_xy.push_back(xy);
+
+        // note: we offset the islands by (-0.5 * wh)
+        // this is not reflected in the island_noise (which contains xy grid coords)
+        // when searching, undo this offset
+        const int map_wh = islands_c.wh;
+        const auto offset = (int)(-map_wh * 0.5f);
+        const auto unoffset_xy = xy - offset + glm::ivec2{ 1, 1 };
+
+        // work out colour of tile given noise.
+        const auto rock_col =
+          get_colour_of_tile(r, pos, unoffset_xy, contours_c, min_it->noise.value(), max_it->noise.value());
+
         const auto debug_e = spawn(r, "empty");
-        give_life(r, debug_e, { x, y }, { tilesize, tilesize });
+        r.get<TagComponent>(debug_e).tag = "empty-IslandSquare";
+        give_life(r, debug_e, pos, { 3, 3 });
+        // give_life(r, debug_e, pos, { tilesize, tilesize });
+        set_colour(r, debug_e, rock_col); // make the colour represent the noise value.
+        set_z_index(r, debug_e, ZLayer::FLOOR);
 
-        // todo: reimplement sand etc colouring
-        set_colour(r, debug_e, { 0.3f, 0.3f, 0.3f, 1.0f });
-
-        // gridpos is in global worldspace
-        const auto gridpos = engine::grid::worldspace_to_gridspace({ x, y }, tilesize);
-        const auto id = engine::encode_cantor_pairing_function(gridpos.x, gridpos.y);
+        const auto id = engine::encode_cantor_pairing_function(xy.x, xy.y);
+        islands_c.id_to_island_eid.emplace(id, island_e);
 
         // the island_gridspace is relative to the tl of the island
         // const auto island_gridspace = tl_gridpos - gridpos;
-
-        auto& island_c = SINGLE_Islands::instance;
-        island_c.id_to_island_eid.emplace(id, debug_e);
       }
     }
   }
+}
 
-  const auto& island_info_c = SINGLE_Islands::instance;
+std::vector<glm::ivec2>
+get_unoccupied(const DebugContoursComponent& island_c)
+{
+  const auto& all = island_c.all_island_xy;
+  const auto& occupied = island_c.occupied_island_xy;
+
+  std::vector<glm::ivec2> unoccupied;
+  for (const auto& xy : all) {
+    auto it = std::find_if(occupied.begin(), occupied.end(), [&xy](const auto& p) { return p.first == xy; });
+    if (it != occupied.end())
+      continue;
+    unoccupied.push_back(xy);
+  }
+
+  return unoccupied;
+}
+
+void
+generate_island_life(entt::registry& r)
+{
+  // spawn things on the islands
+  static engine::RandomState spawn_rnd(0);
+
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  for (const auto& [e, contours_c, bb_c] : r.view<DebugContoursComponent, const BoundingBoxComponent>().each()) {
+
+    // TODO: add back lighthouses
+    /*
+    {
+      const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
+      const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
+      // const auto xy = contours_c.island_xy[2]; // todo: get center
+
+      const auto thing_e = spawn(r, "actor_lighthouse");
+      auto pos = engine::grid::gridspace_to_worldspace_center(center_gridspace, tilesize);
+      pos += glm::vec2{ tilesize * 0.5f, tilesize * 0.5f }; // off grid
+      give_life(r, thing_e, pos, { tilesize, tilesize });
+
+      // todo: set random rotation and slightly varying speed
+      r.emplace<LighthouseComponent>(thing_e);
+      r.emplace<LightEmitterComponent>(thing_e);
+      r.emplace<LightTypeWedge>(thing_e);
+      // auto popup_e = create_popup(r, center, "Lighthouse");
+      // r.remove<EntityTimedLifecycle>(popup_e);
+      // r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
+
+      contours_c.occupied_island_xy.push_back({ center_gridspace, thing_e });
+    }
+    */
+
+    // TODO: generate a spawn rate table for enemies.
+
+    {
+      const auto unoccupied = get_unoccupied(contours_c);
+      const auto xy = unoccupied[(int)engine::rand_det_s(spawn_rnd.rng, 0, (int)unoccupied.size())];
+      const auto thing_e = spawn(r, "actor_islanddweller_pirate");
+      auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
+      pos += glm::vec2{ tilesize, tilesize }; // off grid
+      give_life(r, thing_e, pos, { tilesize, tilesize });
+      r.emplace<IslandDwellerComponent>(thing_e);
+      r.emplace<HealthComponent>(thing_e, HealthComponent{ 3, 3 });
+
+      contours_c.occupied_island_xy.push_back({ xy, thing_e });
+    }
+
+    {
+      const auto unoccupied = get_unoccupied(contours_c);
+      const auto xy = unoccupied[(int)engine::rand_det_s(spawn_rnd.rng, 0, (int)unoccupied.size())];
+      const auto thing_e = spawn(r, "actor_islanddweller_spider");
+      auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
+      pos += glm::vec2{ tilesize, tilesize }; // off grid
+      give_life(r, thing_e, pos, { tilesize, tilesize });
+      r.emplace<IslandDwellerComponent>(thing_e);
+      r.emplace<HealthComponent>(thing_e, HealthComponent{ 3, 3 });
+
+      contours_c.occupied_island_xy.push_back({ xy, thing_e });
+    }
+  }
 }
 
 } // namespace game2d

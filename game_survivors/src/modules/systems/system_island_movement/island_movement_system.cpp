@@ -1,0 +1,139 @@
+#include "pch.hpp"
+
+#include "island_movement_system.hpp"
+
+#include "engine/actors/actor_helpers.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/renderer/transform.hpp"
+#include "engine/std/vector/helpers.hpp"
+#include "island_movement_components.hpp"
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/combat/combat_core/components.hpp"
+#include "modules/core/sprites/sprite_helpers.hpp"
+#include "modules/events/event_damage/event_damage_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
+
+namespace game2d {
+
+void
+update_island_movement_system(entt::registry& r)
+{
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
+  const auto view = r.view<const MovementIslandComponent, const TransformComponent, const InputComponent>();
+  // ImGui::Text("There are %i things with MovementIslandComponent", (int)view.size_hint());
+
+  for (const auto& [e, movement_c, t_c, input_c] : view.each()) {
+    // set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
+
+    const bool move_l = has(input_c.dpad_l, ActionStateEnum::DOWN);
+    const bool move_r = has(input_c.dpad_r, ActionStateEnum::DOWN);
+    const bool move_u = has(input_c.dpad_u, ActionStateEnum::DOWN);
+    const bool move_d = has(input_c.dpad_d, ActionStateEnum::DOWN);
+
+    const auto tilesize = SINGLE_Islands::instance.tilesize;
+    const auto island_e = movement_c.island_e;
+    auto& island_c = r.get<DebugContoursComponent>(island_e);
+
+    const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
+    const auto pos_adj = pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
+    const auto gp = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
+
+    const std::vector<std::pair<bool, glm::ivec2>> dirs{
+      { move_u, { 0, -1 } },
+      { move_d, { 0, 1 } },
+      { move_r, { 1, 0 } },
+      { move_l, { -1, 0 } },
+    };
+
+    const auto is_unoccupied = [&](const glm::ivec2 gp) -> bool {
+      const auto it = std::find_if(island_c.occupied_island_xy.begin(),
+                                   island_c.occupied_island_xy.end(),
+                                   [&](const auto& other) { return other.first == gp; });
+      return it == island_c.occupied_island_xy.end();
+    };
+    const auto e_at_xy = [&](const glm::ivec2 gp) -> entt::entity {
+      const auto it = std::find_if(island_c.occupied_island_xy.begin(),
+                                   island_c.occupied_island_xy.end(),
+                                   [&](const auto& other) { return other.first == gp; });
+      if (it == island_c.occupied_island_xy.end())
+        return entt::null;
+      return (*it).second;
+    };
+
+    for (const auto& [move, dir] : dirs) {
+      const auto n_gp = gp + dir;
+
+      const auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
+      const auto n_pos_adj = n_pos + glm::vec2{ tilesize, tilesize };
+      draw_sprite(r,
+                  Sprite{
+                    .sprite = "EMPTY",
+                    .pos = n_pos_adj,
+                    .size = { 6, 6 },
+                    .col = { 0.0f, 1.0f, 0.0f, 1.0f },
+                  });
+
+      if (!move)
+        continue; // no input for this direction
+
+      if (!is_unoccupied(n_gp)) {
+        SDL_Log("tile is occupied...");
+
+        const entt::entity n_e = e_at_xy(n_gp);
+        if (const auto* hp_c = r.try_get<HealthComponent>(n_e)) {
+
+          // note: this is a grid-based damage system with no fixtures.
+          const DamageEvent evt{
+            .from = entt::null,
+            .to_parent = n_e,
+            .to_fixture = n_e, // same as parent, as no fixture
+            .amount = 1,
+            .type = WEAPON_DAMAGE::KINETIC,
+          };
+          const auto& evts_c = SINGLE_Events::instance;
+          evts_c.dispatcher->trigger(evt);
+          evts_c.dispatcher->update();
+
+          // TOD: if something dies, remove from occupied.
+        }
+
+        continue; // neighbour is full
+      }
+
+      if (!has(island_c.all_island_xy, n_gp)) {
+        SDL_Log("tile is off the island...");
+        continue; // you'd move off the island!
+      }
+
+      SDL_Log("island dweller wants to move: %i %i", dir.x, dir.y);
+
+      const auto it = std::find_if(island_c.occupied_island_xy.begin(),
+                                   island_c.occupied_island_xy.end(),
+                                   [&](const auto& other) { return other.first == gp; });
+
+      if (it == island_c.occupied_island_xy.end()) {
+        SDL_Log("Thing that wants to move is not in the occupied_island vector");
+        exit(1); // crash: you're not on the occupied island
+      }
+
+      // remove at your current position
+      island_c.occupied_island_xy.erase(it);
+
+      // add to updated position.
+      island_c.occupied_island_xy.push_back({ n_gp, e });
+
+      // update transform (should improve this)
+      auto new_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
+      new_pos += glm::vec2{ tilesize, tilesize };
+      set_position(r, e, new_pos);
+
+      break; // only move in 1 dir
+    }
+  }
+}
+
+} // namespace game2d

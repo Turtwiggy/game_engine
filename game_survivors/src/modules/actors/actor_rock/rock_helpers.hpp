@@ -13,6 +13,9 @@ engine::SRGBColour
 lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent);
 
 void
-generate_rocks_interior(entt::registry& r);
+generate_island_interior(entt::registry& r);
+
+void
+generate_island_life(entt::registry& r);
 
 } // namespace game2d

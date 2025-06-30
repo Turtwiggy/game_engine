@@ -4,12 +4,9 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/physics_components.hpp"
-#include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_elemental_damage/elemental_damage_components.hpp"
-#include "modules/core/raws/raws_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_particles/components.hpp"
@@ -59,8 +56,9 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
     // fire: while on fire, just take damage relative to the fire stacks
     if (fire_stacks > 0) {
       DamageEvent evt;
-      evt.from = entt::null;             // likely dead
-      evt.to = fixture_e;                // fixture_e
+      evt.from = entt::null; // likely dead
+      evt.to_parent = par_e;
+      evt.to_fixture = fixture_e;
       evt.type = WEAPON_DAMAGE::KINETIC; // send kinetic so more elemental isnt applied
       evt.amount = 1.0f * fire_stacks;   // how much elemental damage?
       evts_c.dispatcher->trigger(evt);

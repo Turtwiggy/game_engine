@@ -72,7 +72,8 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   {
     DamageEvent evt;
     evt.from = bullet_e_parent;
-    evt.to = other_fixture_e;
+    evt.to_parent = other_e_parent;
+    evt.to_fixture = other_fixture_e;
     evt.type = bullet_damage_type_c.type;
     evt.amount = bullet_damage_c.damage;
     evts_c.dispatcher->trigger(evt);

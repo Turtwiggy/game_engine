@@ -48,11 +48,13 @@ add_explode_on_death_callback(entt::registry& r,
         SDL_Log("Exploooosion! hit: %s", tag_c.tag.c_str());
 
         // Send explosion damage event
-        DamageEvent evt;
-        evt.from = entt::null; // likely dead
-        evt.to = fixture_e;
-        evt.type = WEAPON_DAMAGE::KINETIC;
-        evt.amount = is_player ? 4 : 50; // todo: replace with "correct" damage for explosion
+        const DamageEvent evt{
+          .from = entt::null, // exploder probably just died
+          .to_parent = par_e,
+          .to_fixture = fixture_e,
+          .amount = is_player ? 4.0f : 50.0f, // todo: replace with "correct" damage for explosion
+          .type = WEAPON_DAMAGE::KINETIC,
+        };
         evts_c.dispatcher->trigger(evt);
         evts_c.dispatcher->update();
         break; // if you collide with a valid fixture, damage once

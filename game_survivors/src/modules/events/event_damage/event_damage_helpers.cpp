@@ -78,9 +78,6 @@ float
 calculate_damage_to_take(entt::registry& r, const DamageEvent& evt)
 {
   const auto amount = evt.amount;
-  const auto type = evt.type;
-  const auto e = evt.to; // Note: evt.to is a fixture
-  const auto e_from = evt.from;
 
   // damage shouldnt be negative
   return glm::max(amount, 0.0f);
@@ -134,8 +131,8 @@ check_if_crit(entt::registry& r, const DamageEvent& evt, engine::RandomState& rn
 void
 handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 {
-  const auto to_e = evt.to;
-  const auto parent_e = r.get<const HasParentComponent>(to_e).parent;
+  const auto parent_e = evt.to_parent;
+  const auto fixture_e = evt.to_fixture;
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
@@ -145,13 +142,13 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     return;
 
   // note: evt.to is a fixture, not the parent with all the components on
-  auto* hp = r.try_get<HealthComponent>(to_e);
+  auto* hp = r.try_get<HealthComponent>(fixture_e);
   if (!hp)
     return;
 
   // .. pop & flash the fixture
-  if (const auto* t_c = r.try_get<TransformComponent>(to_e))
-    r.emplace_or_replace<RequestHitScaleComponent>(to_e);
+  if (const auto* t_c = r.try_get<TransformComponent>(fixture_e))
+    r.emplace_or_replace<RequestHitScaleComponent>(fixture_e);
   // .. pop & flash the parent transform
   else
     r.emplace_or_replace<RequestHitScaleComponent>(parent_e);
@@ -160,8 +157,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   static engine::RandomState crit_rnd(0);
   static engine::RandomState audio_hit_rnd(0);
 
-  const auto* your_stats_c = r.try_get<StatModifierComponent>(parent_e);
-  if (your_stats_c) {
+  if (const auto* your_stats_c = r.try_get<StatModifierComponent>(parent_e)) {
     // did you dodge?
     if (check_if_dodge(r, parent_e, dodge_rnd, *your_stats_c)) {
       create_popup(r, get_position(r, parent_e), "0");
@@ -172,25 +168,25 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   // apply elemental damage ticks.
   if (evt.type == WEAPON_DAMAGE::FIRE) {
     const float time = 3.0f;
-    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(fixture_e);
     elemental_damage_c.fire.push_back({ WEAPON_DAMAGE::FIRE, time });
   }
   //
   else if (evt.type == WEAPON_DAMAGE::ICE) {
     const float time = 3.0f;
-    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(fixture_e);
     elemental_damage_c.ice.push_back({ WEAPON_DAMAGE::ICE, time });
   }
   //
   else if (evt.type == WEAPON_DAMAGE::SHOCK) {
     const float time = 3.0f;
-    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(fixture_e);
     elemental_damage_c.shock.push_back({ WEAPON_DAMAGE::SHOCK, time });
   }
   //
   else if (evt.type == WEAPON_DAMAGE::POISON) {
     const float time = 3.0f;
-    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(to_e);
+    auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(fixture_e);
     elemental_damage_c.poison.push_back({ WEAPON_DAMAGE::POISON, time });
   }
 
@@ -249,8 +245,8 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
     // Send death event.
     DeathEvent d_evt;
-    d_evt.killed_by = evt.from;                            // can be entt::null
-    d_evt.dead = r.get<HasParentComponent>(evt.to).parent; // parent not fixture
+    d_evt.killed_by = evt.from; // can be entt::null
+    d_evt.dead = parent_e;      // parent not fixture
     auto& evts_c = SINGLE_Events::instance;
     evts_c.dispatcher->trigger(d_evt);
     evts_c.dispatcher->update();

@@ -9,6 +9,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
@@ -72,8 +73,10 @@ update_ability_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  for (const auto& [e, player_c, input_c, body_c, ability_c] :
-       r.view<const PlayerComponent, const InputComponent, const PhysicsBodyComponent, AbilityComponent>().each()) {
+
+  const auto view = r.view<const PlayerComponent, const InputComponent, const PhysicsBodyComponent, AbilityComponent>(
+    entt::exclude<DroppedAnchorComponent>);
+  for (const auto& [e, player_c, input_c, body_c, ability_c] : view.each()) {
 
     if (ability_c.ability_1_cooldown_left > 0.0f)
       ability_c.ability_1_cooldown_left -= dt;

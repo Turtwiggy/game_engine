@@ -9,6 +9,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -16,6 +18,7 @@
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/actors/actor_hull/hull_components.hpp"
+#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
@@ -413,28 +416,8 @@ spawn_players(entt::registry& r)
 }
 
 void
-spawn_lighthouses(entt::registry& r)
-{
-  // create a "lighthouse" on each of the islands.
-  for (const auto [e, island_c, bb_c] : r.view<const RockComponent, const BoundingBoxComponent>().each()) {
-    const auto center = 0.5f * (bb_c.br + bb_c.tl);
-    auto lighthouse_e = spawn(r, "actor_lighthouse");
-    give_life(r, lighthouse_e, center, { 32, 32 });
-    set_sprite(r, lighthouse_e, "ARROW_RIGHT");
-    // add_spritestack(r, lighthouse_e, "lighthouse"); // todo
-    r.emplace<LighthouseComponent>(lighthouse_e);
-    r.emplace<LightEmitterComponent>(lighthouse_e);
-    r.emplace<LightTypeWedge>(lighthouse_e);
-    auto popup_e = create_popup(r, center, "Lighthouse");
-    r.remove<EntityTimedLifecycle>(popup_e);
-    r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
-  }
-};
-
-void
 spawn_islands(entt::registry& r)
 {
-
   auto& data_c = get_first_component<SINGLE_ModifiersData>(r);
   auto rock_opt = get_modifier_option(r, MODIFIER_OPTIONS::ROCKS);
   if (dynamic_cast<Option_Rocks*>(rock_opt.get())->populate_rocks) {
@@ -566,8 +549,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto survive_timer_e = create_empty<SurviveTimerComponent>(r);
 
     spawn_islands(r); // before spawn_players
+    generate_island_interior(r);
+    generate_island_life(r);
+
     spawn_players(r);
-    spawn_lighthouses(r);
 
     // populate spawners from configs
     create_empty<SpawnerLiveData>(r);
@@ -599,6 +584,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<RequestGameTrack>(r);
 
     spawn_islands(r); // before spawn_players
+    generate_island_interior(r);
+    generate_island_life(r);
 
     // spawn_players(r);
     const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");
@@ -609,9 +596,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
       break;
     }
-
-    generate_rocks_interior(r);
-    spawn_lighthouses(r);
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

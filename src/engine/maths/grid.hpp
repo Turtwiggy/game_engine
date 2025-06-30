@@ -47,7 +47,7 @@ gridspace_to_worldspace(const glm::ivec2 pos, const int grid_size)
 gridspace_to_worldspace_center(const glm::ivec2 pos, const int grid_size)
 {
   const glm::vec2 p = gridspace_to_worldspace(pos, grid_size);
-  return p + glm::vec2{ grid_size / 2.0f, grid_size / 2.0f };
+  return p + glm::vec2{ grid_size * 0.5f, grid_size * 0.5f };
 };
 
 [[nodiscard]] inline glm::ivec2
