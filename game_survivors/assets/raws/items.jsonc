@@ -125,9 +125,13 @@
       "name": "actor_lighthouse",
       "renderable": { "sprite": "ARROW_RIGHT", "colour":  "white" }
     },
-      {
+    {
       "name": "actor_islanddweller_player",
       "renderable": { "sprite": "PERSON_25_0", "colour":  "white" }
+    },
+    {
+      "name": "actor_islanddweller_common_person",
+      "renderable": { "sprite": "PERSON_25_0", "colour":  "green" }
     },
     {
       "name": "actor_islanddweller_pirate",

@@ -63,6 +63,7 @@
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/systems/system_input_open_ui/input_open_ui_system.hpp"
+#include "modules/systems/system_island_ai/island_ai_system.hpp"
 #include "modules/systems/system_island_movement/island_movement_system.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_system.hpp"
 #include "modules/systems/system_island_return_to_boat/island_return_to_boat_system.hpp"
@@ -126,6 +127,7 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -332,6 +334,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
 
+    update_island_ai_system(r, dt);
     update_island_nearest_system(r, mouse_pos);
     update_island_movement_system(r);
     update_island_return_to_boat_system(r);

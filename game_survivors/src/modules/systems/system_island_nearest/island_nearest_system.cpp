@@ -13,6 +13,7 @@
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -107,6 +108,9 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
         // Spawn the player at the open space.
         auto island_player_e = spawn(r, "actor_islanddweller_player");
         give_life(r, island_player_e, n_pos, { tilesize, tilesize });
+        r.emplace<PlayerComponent>(island_player_e);
+        r.emplace<TeamComponent>(island_player_e, TeamComponent{ AvailableTeams::player });
+        r.emplace<HealthComponent>(island_player_e, HealthComponent{ .max_hp = 3, .hp = 3 });
 
         // Add inputs to the island dweller.
         r.emplace<MovementIslandComponent>(island_player_e,

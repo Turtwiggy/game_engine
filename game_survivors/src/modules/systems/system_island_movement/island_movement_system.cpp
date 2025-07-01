@@ -23,12 +23,14 @@ update_island_movement_system(entt::registry& r)
   ZoneScoped;
 #endif
 
-  const auto view = r.view<const MovementIslandComponent, const TransformComponent, const InputComponent>();
+  const auto view =
+    r.view<const MovementIslandComponent, const TransformComponent, const InputComponent, const TeamComponent>();
   // ImGui::Text("There are %i things with MovementIslandComponent", (int)view.size_hint());
 
-  for (const auto& [e, movement_c, t_c, input_c] : view.each()) {
+  for (const auto& [e, movement_c, t_c, input_c, team_c] : view.each()) {
     // set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
 
+    const auto is_player = r.all_of<const PlayerComponent>(e);
     const bool move_l = has(input_c.dpad_l, ActionStateEnum::DOWN);
     const bool move_r = has(input_c.dpad_r, ActionStateEnum::DOWN);
     const bool move_u = has(input_c.dpad_u, ActionStateEnum::DOWN);
@@ -67,15 +69,17 @@ update_island_movement_system(entt::registry& r)
     for (const auto& [move, dir] : dirs) {
       const auto n_gp = gp + dir;
 
-      const auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
-      const auto n_pos_adj = n_pos + glm::vec2{ tilesize, tilesize };
-      draw_sprite(r,
-                  Sprite{
-                    .sprite = "EMPTY",
-                    .pos = n_pos_adj,
-                    .size = { 6, 6 },
-                    .col = { 0.0f, 1.0f, 0.0f, 1.0f },
-                  });
+      if (is_player) {
+        const auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
+        const auto n_pos_adj = n_pos + glm::vec2{ tilesize, tilesize };
+        draw_sprite(r,
+                    Sprite{
+                      .sprite = "EMPTY",
+                      .pos = n_pos_adj,
+                      .size = { 6, 6 },
+                      .col = { 0.0f, 1.0f, 0.0f, 1.0f },
+                    });
+      }
 
       if (!move)
         continue; // no input for this direction
@@ -84,7 +88,15 @@ update_island_movement_system(entt::registry& r)
         SDL_Log("tile is occupied...");
 
         const entt::entity n_e = e_at_xy(n_gp);
-        if (const auto* hp_c = r.try_get<HealthComponent>(n_e)) {
+        if (const auto* hp_c = r.try_get<const HealthComponent>(n_e)) {
+
+          // dont damage friendly-team things
+          const auto& neighbour_team_c = r.get<const TeamComponent>(n_e);
+          const bool same_team = neighbour_team_c.team == team_c.team;
+          if (same_team) {
+            SDL_Log("A player collided with a friendly entity");
+            continue;
+          }
 
           // note: this is a grid-based damage system with no fixtures.
           const DamageEvent evt{
@@ -107,7 +119,8 @@ update_island_movement_system(entt::registry& r)
         continue; // you'd move off the island!
       }
 
-      SDL_Log("island dweller wants to move: %i %i", dir.x, dir.y);
+      // It's possible that some damage has killed you.
+      // SDL_Log("island dweller wants to move: %i %i", dir.x, dir.y);
 
       const auto it = std::find_if(island_c.occupied_island_xy.begin(),
                                    island_c.occupied_island_xy.end(),
@@ -115,7 +128,8 @@ update_island_movement_system(entt::registry& r)
 
       if (it == island_c.occupied_island_xy.end()) {
         SDL_Log("Thing that wants to move is not in the occupied_island vector");
-        exit(1); // crash: you're not on the occupied island
+        // exit(1); // crash: you're not on the occupied island
+        continue;
       }
 
       // remove at your current position

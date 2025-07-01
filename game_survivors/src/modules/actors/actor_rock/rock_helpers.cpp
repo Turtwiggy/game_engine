@@ -17,12 +17,15 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/lights/components.hpp"
+#include "modules/systems/system_island_ai/island_ai_components.hpp"
+#include "modules/systems/system_island_movement/island_movement_components.hpp"
 
 namespace game2d {
 
@@ -379,8 +382,8 @@ generate_rocks(entt::registry& r, const float cutoff)
     auto generated = generate_noise(r, cutoff, frequency, seed);
 
     // Modify the noise, so that the center is always an island.
-    for (int x = 23; x < 27; x++) {
-      for (int y = 23; y < 27; y++) {
+    for (int x = 22; x < 28; x++) {
+      for (int y = 22; y < 28; y++) {
         const auto at_grid_xy = [&](NoiseInfo& info) { return info.xy == glm::ivec2{ x, y }; };
         auto it = std::find_if(generated.begin(), generated.end(), at_grid_xy);
         if (it == generated.end())
@@ -609,6 +612,32 @@ spawn_lighthouse(entt::registry& r, DebugContoursComponent& island_c, const glm:
   island_c.occupied_island_xy.push_back({ gridpos, thing_e });
 }
 
+entt::entity
+spawn_islander(entt::registry& r, const entt::entity island_e, std::string tag, const AvailableTeams team)
+{
+  static engine::RandomState spawn_rnd(0);
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  auto& island_c = r.get<DebugContoursComponent>(island_e);
+
+  const auto unoccupied = get_unoccupied(island_c);
+  const auto xy = unoccupied[(int)engine::rand_det_s(spawn_rnd.rng, 0, (int)unoccupied.size())];
+  const auto thing_e = spawn(r, tag);
+  auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
+  pos += glm::vec2{ tilesize, tilesize }; // off grid
+  give_life(r, thing_e, pos, { tilesize, tilesize });
+  r.emplace<IslandDwellerComponent>(thing_e);
+  r.emplace<HealthComponent>(thing_e, HealthComponent{ 3, 3 });
+  r.emplace<TeamComponent>(thing_e, TeamComponent{ .team = team });
+
+  // let the thing move
+  // add brains to enemies
+  r.emplace<MovementIslandComponent>(thing_e, MovementIslandComponent{ .island_e = island_e });
+  r.emplace<IslanderAiComponent>(thing_e);
+
+  island_c.occupied_island_xy.push_back({ xy, thing_e });
+  return thing_e;
+};
+
 void
 generate_island_life__base_island(entt::registry& r)
 {
@@ -623,6 +652,8 @@ generate_island_life__base_island(entt::registry& r)
   const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
   const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
   spawn_lighthouse(r, island_c, center_gridspace);
+  spawn_islander(r, center_island_eid, "actor_islanddweller_common_person", AvailableTeams::player);
+  spawn_islander(r, center_island_eid, "actor_islanddweller_common_person", AvailableTeams::player);
 }
 
 void
@@ -631,41 +662,16 @@ generate_island_life__other_islands(entt::registry& r)
   const auto center_island_eid = get_center_island_eid(r);
 
   // spawn things on the islands
-  static engine::RandomState spawn_rnd(0);
 
   const auto tilesize = SINGLE_Islands::instance.tilesize;
-  for (const auto& [e, contours_c, bb_c] : r.view<DebugContoursComponent, const BoundingBoxComponent>().each()) {
+  for (const auto& [e, island_c, bb_c] : r.view<DebugContoursComponent, const BoundingBoxComponent>().each()) {
 
     if (e == center_island_eid)
       continue; // dont spawn mobs on the base island
 
     // TODO: generate a spawn rate table for enemies.
-
-    {
-      const auto unoccupied = get_unoccupied(contours_c);
-      const auto xy = unoccupied[(int)engine::rand_det_s(spawn_rnd.rng, 0, (int)unoccupied.size())];
-      const auto thing_e = spawn(r, "actor_islanddweller_pirate");
-      auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
-      pos += glm::vec2{ tilesize, tilesize }; // off grid
-      give_life(r, thing_e, pos, { tilesize, tilesize });
-      r.emplace<IslandDwellerComponent>(thing_e);
-      r.emplace<HealthComponent>(thing_e, HealthComponent{ 3, 3 });
-
-      contours_c.occupied_island_xy.push_back({ xy, thing_e });
-    }
-
-    {
-      const auto unoccupied = get_unoccupied(contours_c);
-      const auto xy = unoccupied[(int)engine::rand_det_s(spawn_rnd.rng, 0, (int)unoccupied.size())];
-      const auto thing_e = spawn(r, "actor_islanddweller_spider");
-      auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
-      pos += glm::vec2{ tilesize, tilesize }; // off grid
-      give_life(r, thing_e, pos, { tilesize, tilesize });
-      r.emplace<IslandDwellerComponent>(thing_e);
-      r.emplace<HealthComponent>(thing_e, HealthComponent{ 3, 3 });
-
-      contours_c.occupied_island_xy.push_back({ xy, thing_e });
-    }
+    spawn_islander(r, e, "actor_islanddweller_pirate", AvailableTeams::enemy);
+    spawn_islander(r, e, "actor_islanddweller_spider", AvailableTeams::enemy);
   }
 }
 

@@ -33,7 +33,7 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
     return;
   }
 
-  SDL_Log("Removing %i %i from island %zu", gp.x, gp.y, (uint32_t)island_e);
+  SDL_Log("something died! removing %i %i from island %zu", gp.x, gp.y, (uint32_t)island_e);
   island_c.occupied_island_xy.erase(it);
 }
 
