@@ -16,7 +16,6 @@
 #include "modules/actors/actor_enemy_grower/enemy_grower_components.hpp"
 #include "modules/actors/actor_enemy_treasure/enemy_treasure_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
-#include "modules/actors/actor_snake/snake_components.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
@@ -471,6 +470,10 @@ update_spawner_system(entt::registry& r, const float dt)
   // const bool boss_is_alive = r.view<const BossComponent>().size() > 0;
   // if (boss_is_alive)
   //   return;
+
+  // wait for any player to board a boat.
+  if (!survive_c.game_started)
+    return;
 
   // Update survive timer
   survive_c.time_left_cur -= dt;

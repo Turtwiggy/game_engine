@@ -15,6 +15,7 @@
 #include "modules/events/event_death_exploder_screenshake/exploder_screenshake.hpp"
 #include "modules/events/event_death_islander_remove_from_island/islander_remove_from_island_helpers.hpp"
 #include "modules/events/event_death_treasure_enemy/treasure_enemy_death_helpers.hpp"
+#include "modules/events/event_island_to_boat/island_to_boat_helpers.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/events/event_shoot_audio/shoot_audio_helpers.hpp"
 #include "modules/events/event_shoot_autofire/event_shoot_autofire_helpers.hpp"
@@ -71,6 +72,8 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<UpgradeEvent>().connect<&handle_upgrade_event>(r);
 
   ed.dispatcher->sink<WeaponLevelReachedEvent>().connect<handle_weapon_level_reached_event>(r);
+
+  ed.dispatcher->sink<IslandToBoatEvent>().connect<handle_island_to_boat_event__start_game>(r);
 }
 
 void

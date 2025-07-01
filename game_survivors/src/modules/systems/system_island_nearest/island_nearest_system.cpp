@@ -2,22 +2,17 @@
 
 #include "island_nearest_system.hpp"
 
-#include "engine/actors/actor_helpers.hpp"
+#include "island_nearest_helpers.hpp"
+
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
-#include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/std/vector/helpers.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
-#include "modules/combat/combat_core/components.hpp"
-#include "modules/core/raws/raws_components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
-#include "modules/steam_input/steam_input_components.hpp"
-#include "modules/systems/system_island_movement/island_movement_components.hpp"
 
 namespace game2d {
 
@@ -84,10 +79,9 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
         engine::decode_cantor_pairing_function(id, x, y);
         assert(x == n_gp.x && y == n_gp.y);
 
-        const auto at_xy = [&](const std::pair<glm::ivec2, entt::entity>& data) { return data.first == glm::ivec2{ x, y }; };
-        const auto it = std::find_if(island_c.occupied_island_xy.begin(), island_c.occupied_island_xy.end(), at_xy);
-        if (it != island_c.occupied_island_xy.end())
-          continue; // tile is occupied.
+        // tile is occupied.
+        if (occupied(r, island_c, n_gp))
+          continue;
 
         // draw a sprite indicating you can land...
         auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
@@ -105,31 +99,8 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
         if (!has(player_input_c.button_s, ActionStateEnum::DOWN))
           continue;
 
-        // Spawn the player at the open space.
-        auto island_player_e = spawn(r, "actor_islanddweller_player");
-        give_life(r, island_player_e, n_pos, { tilesize, tilesize });
-        r.emplace<PlayerComponent>(island_player_e);
-        r.emplace<TeamComponent>(island_player_e, TeamComponent{ AvailableTeams::player });
-        r.emplace<HealthComponent>(island_player_e, HealthComponent{ .max_hp = 3, .hp = 3 });
-
-        // Add inputs to the island dweller.
-        r.emplace<MovementIslandComponent>(island_player_e,
-                                           MovementIslandComponent{
-                                             .island_e = island_e,
-                                             .boat_e = e,
-                                           });
-        if (r.all_of<SteamControllerComponent>(e))
-          r.emplace<SteamControllerComponent>(island_player_e, r.get<SteamControllerComponent>(e));
-        if (r.all_of<KeyboardComponent>(e))
-          r.emplace<KeyboardComponent>(island_player_e, r.get<KeyboardComponent>(e));
-
-        // Remove inputs from the boat.
-        r.remove<MovementDirectComponent>(e);
-        r.emplace<DroppedAnchorComponent>(e);
-        // r.remove<InputComponent>(e); // dont remove input component
-
-        // set the tile as occupied.
-        island_c.occupied_island_xy.push_back({ n_gp, island_player_e });
+        const auto boat_e = e;
+        land_player_on_island(r, island_c, n_gp, boat_e, island_e);
 
         break; // give movement to one thing
       }

@@ -11,6 +11,8 @@
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/events/event_island_to_boat/island_to_boat_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 
 namespace game2d {
@@ -53,7 +55,11 @@ update_island_return_to_boat_system(entt::registry& r)
     r.remove<DroppedAnchorComponent>(boat_e);
     r.emplace<MovementDirectComponent>(boat_e);
 
-    //
+    // send an event
+    IslandToBoatEvent evt;
+    auto& evts_c = SINGLE_Events::instance;
+    evts_c.dispatcher->trigger(evt);
+    evts_c.dispatcher->update();
   }
 }
 

@@ -13,6 +13,7 @@
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 
 namespace game2d {
 
@@ -51,21 +52,6 @@ update_island_movement_system(entt::registry& r)
       { move_l, { -1, 0 } },
     };
 
-    const auto is_unoccupied = [&](const glm::ivec2 gp) -> bool {
-      const auto it = std::find_if(island_c.occupied_island_xy.begin(),
-                                   island_c.occupied_island_xy.end(),
-                                   [&](const auto& other) { return other.first == gp; });
-      return it == island_c.occupied_island_xy.end();
-    };
-    const auto e_at_xy = [&](const glm::ivec2 gp) -> entt::entity {
-      const auto it = std::find_if(island_c.occupied_island_xy.begin(),
-                                   island_c.occupied_island_xy.end(),
-                                   [&](const auto& other) { return other.first == gp; });
-      if (it == island_c.occupied_island_xy.end())
-        return entt::null;
-      return (*it).second;
-    };
-
     for (const auto& [move, dir] : dirs) {
       const auto n_gp = gp + dir;
 
@@ -84,10 +70,10 @@ update_island_movement_system(entt::registry& r)
       if (!move)
         continue; // no input for this direction
 
-      if (!is_unoccupied(n_gp)) {
+      if (occupied(r, island_c, n_gp)) {
         SDL_Log("tile is occupied...");
 
-        const entt::entity n_e = e_at_xy(n_gp);
+        const auto n_e = e_at_xy(r, island_c, n_gp);
         if (const auto* hp_c = r.try_get<const HealthComponent>(n_e)) {
 
           // dont damage friendly-team things

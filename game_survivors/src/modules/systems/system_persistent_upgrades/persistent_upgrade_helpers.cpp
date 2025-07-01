@@ -7,7 +7,6 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/io/io_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
-#include "modules/systems/system_traits/trait_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 
 namespace game2d {

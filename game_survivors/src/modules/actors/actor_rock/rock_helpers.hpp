@@ -12,6 +12,9 @@ generate_rocks(entt::registry& r, const float cutoff);
 engine::SRGBColour
 lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent);
 
+entt::entity
+get_center_island_eid(entt::registry& r);
+
 void
 generate_island_interior(entt::registry& r);
 

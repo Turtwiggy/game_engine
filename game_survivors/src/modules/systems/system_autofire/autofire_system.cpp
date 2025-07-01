@@ -15,6 +15,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
@@ -224,6 +225,7 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto par_e = parent_c.parent;
       if (par_e == entt::null || !r.valid(par_e))
         continue;
+
       const auto& par_inp = r.get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
@@ -296,6 +298,14 @@ update_autofire_system(entt::registry& r, const float dt)
     const auto view = r.view<const WeaponDef, const HasParentComponent, WeaponFireRate, WeaponReloadRate, WeaponClipSize>();
     for (const auto& [wep_e, wep_def, parent_c, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c] :
          view.each()) {
+
+      const auto par_e = parent_c.parent;
+      if (par_e == entt::null || !r.valid(par_e))
+        continue;
+
+      // parent has dropped anchor, stop firing.
+      if (r.all_of<DroppedAnchorComponent>(par_e))
+        continue;
 
       // you gotta reload
       if (weapon_reload_rate_c.seconds_cur > 0.0) {

@@ -10,7 +10,6 @@
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
-#include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -19,7 +18,6 @@
 #include "game_state.hpp"
 #include "modules/actors/actor_hull/hull_components.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
-#include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"
@@ -28,7 +26,6 @@
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
-#include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/camera/components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
@@ -43,6 +40,7 @@
 #include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 #include "modules/systems/system_particles/components.hpp"
@@ -72,7 +70,6 @@
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_helpers.hpp"
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
-#include "modules/ui/ui_worldspace_text/helpers.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -170,11 +167,10 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
 };
 
 entt::entity
-spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, std::string weapon_key)
+spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, std::string weapon_key, const glm::vec2 pos)
 {
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
   const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
-  const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
 
   auto get_key = []<typename T>(const std::vector<T>& data, const std::string& key) -> std::optional<T> {
     const auto it = std::find_if(data.begin(), data.end(), [&key](const T& item) { return item.key == key; });
@@ -354,6 +350,34 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
   return e;
 };
 
+glm::vec2
+get_player_spawn_point_around_starting_island(entt::registry& r, int idx)
+{
+  // const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
+  const auto base_island_eid = get_center_island_eid(r);
+  const auto& base_island_c = r.get<const DebugContoursComponent>(base_island_eid);
+  const auto& base_island_aabb = r.get<const BoundingBoxComponent>(base_island_eid);
+
+  // given a bounding box with .tl and .br
+  // and given a player index [0, 1, 2, 3],
+  // spawn players on the top center, right center, bottom center, and left center edges of the bounding box
+  // Determine spawn position for each player based on index
+  // clang-format off
+  glm::vec2 pos{0, 0};
+  const float center_x = (base_island_aabb.tl.x + base_island_aabb.br.x) * 0.5f;
+  const float center_y = (base_island_aabb.tl.y + base_island_aabb.br.y) * 0.5f;
+  const float offset = 32.0f; // Distance from edge towards outside
+  switch (idx) {
+    case 0: pos = { center_x, base_island_aabb.tl.y - offset }; break; // t
+    case 1: pos = { base_island_aabb.br.x + offset, center_y }; break; // r
+    case 2: pos = { center_x, base_island_aabb.br.y + offset }; break; // b
+    case 3: pos = { base_island_aabb.tl.x - offset, center_y }; break; // l
+  }
+  // clang-format on
+
+  return pos;
+}
+
 void
 spawn_players(entt::registry& r)
 {
@@ -397,7 +421,8 @@ spawn_players(entt::registry& r)
       throw std::runtime_error("weapon_str not set");
     SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
 
-    const auto p = spawn_player(r, "actor_player", i, boat_str, weapon_str);
+    const auto pos = get_player_spawn_point_around_starting_island(r, i);
+    const auto p = spawn_player(r, "actor_player", i, boat_str, weapon_str, pos);
 
     if (handle_joined)
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
@@ -552,8 +577,24 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     generate_island_interior(r);
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
-
     spawn_players(r);
+
+    // forcefully land all boats to start.
+    for (int i = 0; const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+
+      auto base_island_e = get_center_island_eid(r);
+      auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
+      const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
+      const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
+      const auto tilesize = SINGLE_Islands::instance.tilesize;
+      const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
+      const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
+      const auto center_worldspace_adj = center_worldspace + (glm::vec2{ tilesize, tilesize } * player_dir[i]);
+      const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
+      land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
+
+      i++;
+    }
 
     // populate spawners from configs
     create_empty<SpawnerLiveData>(r);
@@ -563,7 +604,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::develop_snake) {
     create_empty<CameraFreeMove>(r);
 
-    const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");
+    const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
+    const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon", pos);
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
@@ -590,13 +632,40 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     generate_island_life__other_islands(r);
 
     // spawn_players(r);
-    const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon");
-    r.emplace<KeyboardComponent>(p);
+    // const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
+    const auto pos0 = get_player_spawn_point_around_starting_island(r, 0);
+    const auto pos1 = get_player_spawn_point_around_starting_island(r, 1);
+    const auto pos2 = get_player_spawn_point_around_starting_island(r, 2);
+    const auto pos3 = get_player_spawn_point_around_starting_island(r, 3);
+    const auto p0 = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon", pos0);
+    const auto p1 = spawn_player(r, "actor_player", 1, "dinghy", "weapon_deck_cannon", pos1);
+    const auto p2 = spawn_player(r, "actor_player", 2, "dinghy", "weapon_deck_cannon", pos2);
+    const auto p3 = spawn_player(r, "actor_player", 3, "dinghy", "weapon_deck_cannon", pos3);
+
+    // assign keyboard/controllers
+    r.emplace<KeyboardComponent>(p0);
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
       auto handle = controller_ui.handles[i];
-      r.get<SteamControllerComponent>(p).handles.push_back(handle);
+      r.get<SteamControllerComponent>(p0).handles.push_back(handle);
       break;
+    }
+
+    // forcefully land all boats to start.
+    for (int i = 0; const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+
+      auto base_island_e = get_center_island_eid(r);
+      auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
+      const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
+      const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
+      const auto tilesize = SINGLE_Islands::instance.tilesize;
+      const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
+      const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
+      const auto center_worldspace_adj = center_worldspace + (glm::vec2{ tilesize, tilesize } * player_dir[i]);
+      const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
+      land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
+
+      i++;
     }
   }
 

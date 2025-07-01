@@ -39,11 +39,11 @@ add_explode_on_death_callback(entt::registry& r,
 
       for (const auto& fixture_coll_result : colL_fixtures) {
         const auto fixture_e = fixture_coll_result.fixture_e;
-        const bool has_hp = r.try_get<HealthComponent>(fixture_e);
+        const bool has_hp = r.all_of<HealthComponent>(fixture_e);
         if (!has_hp)
           continue; // shield or xp zone or something without health
 
-        const bool is_player = r.try_get<PlayerComponent>(par_e);
+        const bool is_player = r.all_of<PlayerComponent>(par_e);
         const auto& tag_c = r.get<TagComponent>(par_e);
         SDL_Log("Exploooosion! hit: %s", tag_c.tag.c_str());
 

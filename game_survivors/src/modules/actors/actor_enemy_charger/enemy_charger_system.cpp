@@ -70,8 +70,7 @@ update_enemy_charger_system(entt::registry& r)
     if (charger_c.state == ChargerEnemyState::CHARGE_UP) {
 
       // flash while charging...
-      auto* scale_c = r.try_get<RequestHitScaleComponent>(e);
-      if (!scale_c)
+      if (!r.all_of<RequestHitScaleComponent>(e))
         r.emplace<RequestHitScaleComponent>(e);
 
       if (cooldown_c.time > 0.0f)
