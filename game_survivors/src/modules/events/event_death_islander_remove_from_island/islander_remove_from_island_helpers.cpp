@@ -4,14 +4,23 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "islander_remove_from_island_helpers.hpp"
+#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/events/event_island_to_boat/island_to_boat_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
+#include "modules/systems/system_island_movement/island_movement_components.hpp"
 
 namespace game2d {
 
 void
 handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEvent& evt)
 {
-  auto dead_e = evt.dead;
+  const auto dead_e = evt.dead;
+
+  // only remove islanders
+  if (!r.all_of<MovementIslandComponent>(dead_e))
+    return;
 
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   const auto pos = get_position(r, dead_e);
@@ -35,6 +44,27 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
 
   SDL_Log("something died! removing %i %i from island %zu", gp.x, gp.y, (uint32_t)island_e);
   island_c.occupied_island_xy.erase(it);
+
+  // What to do if that islander was a player's islander is now dead?
+  // fro the moment, jsut return control to the boat
+  auto* movement_c = r.try_get<MovementIslandComponent>(dead_e);
+  if (movement_c && movement_c->boat_e != entt::null) {
+    auto boat_e = movement_c->boat_e;
+    r.remove<DroppedAnchorComponent>(boat_e);
+    r.emplace<MovementDirectComponent>(boat_e);
+
+    // send an event
+    IslandToBoatEvent evt;
+    auto& evts_c = SINGLE_Events::instance;
+    evts_c.dispatcher->trigger(evt);
+    evts_c.dispatcher->update();
+  }
+
+  // Check if the island is now clear?
+  // todo: dont count players in this check
+  if (island_c.occupied_island_xy.size() == 0) {
+    SDL_Log("Island cleared of enemies");
+  }
 }
 
 } // namespace game2d

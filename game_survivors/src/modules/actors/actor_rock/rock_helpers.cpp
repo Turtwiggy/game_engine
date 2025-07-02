@@ -602,7 +602,13 @@ spawn_islander(entt::registry& r,
                const AvailableTeams team,
                const bool has_brain = false)
 {
-  static engine::RandomState spawn_rnd(0);
+
+#if defined(_DEBUG)
+  static engine::RandomState spawn_rnd(0); // same roll every time
+#else
+  static engine::RandomState spawn_rnd(engine::get_system_time_for_seed());
+#endif
+
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   auto& island_c = r.get<DebugContoursComponent>(island_e);
 

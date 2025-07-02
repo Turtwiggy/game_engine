@@ -8,9 +8,9 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/std/vector/helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
-#include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/systems/system_particles/components.hpp"
@@ -27,8 +27,8 @@ boop_ability(entt::registry& r, entt::entity e)
 
   const std::function<bool(entt::registry&, entt::entity)> filter_criteria = [](entt::registry& r, entt::entity e) -> bool {
     bool valid_target = false;
-    valid_target |= r.try_get<EnemyComponent>(e) != nullptr;
-    valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
+    valid_target |= r.all_of<EnemyComponent>(e);
+    valid_target |= r.all_of<PlayerBoatComponent>(e);
     return valid_target;
   };
   const auto things_with_health = get_all_in_area_filtered(r, center_m, distance_m, filter_criteria);

@@ -3,11 +3,9 @@
 #include "modules/ui/ui_worldspace_text/system.hpp"
 
 #include "components.hpp"
-#include "engine/entt/helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/renderer/components.hpp"
-#include "modules/ui/ui_scene_header/ui_scene_header_components.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -23,11 +21,11 @@ update_ui_worldspace_text_system(entt::registry& r)
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoSavedSettings;
+  flags |= ImGuiWindowFlags_NoBackground;
 
   const auto screen_size = ImVec2{ (float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y };
   ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });

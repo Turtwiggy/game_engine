@@ -3,9 +3,9 @@
 #include "ui_survive_upgrade_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/std/string/helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
@@ -34,7 +34,7 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     auto player_e = get_player_e_from_idx(r, i);
     if (player_e == entt::null)
       continue;
-    const auto& player_c = r.get<PlayerComponent>(player_e);
+    const auto& player_c = r.get<const PlayerBoatComponent>(player_e);
 
     UpgradeResultsComponent results_c;
 
@@ -151,7 +151,7 @@ is_choosing_upgrade(entt::registry& r)
 entt::entity
 get_player_e_from_idx(entt::registry& r, int player_idx)
 {
-  const auto player_es = view_to_vector_of_ents<PlayerComponent>(r);
+  const auto player_es = view_to_vector_of_ents<PlayerBoatComponent>(r);
 
   auto player_with_idx = [&r, player_idx](const entt::entity player_e) {
     auto& player_c = r.get<PlayerComponent>(player_e);

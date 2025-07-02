@@ -12,6 +12,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_enemy_charger/enemy_charger_components.hpp"
 #include "modules/actors/actor_exploder/actor_exploder_helpers.hpp"
@@ -323,7 +324,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
                                                                                       entt::entity e) -> bool {
           bool valid_target = false;
           valid_target |= r.try_get<EnemyComponent>(e) != nullptr;
-          valid_target |= r.try_get<PlayerComponent>(e) != nullptr;
+          valid_target |= r.try_get<PlayerBoatComponent>(e) != nullptr;
           return valid_target;
         };
 

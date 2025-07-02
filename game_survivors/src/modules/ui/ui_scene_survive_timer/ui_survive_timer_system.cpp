@@ -5,14 +5,12 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "modules/actors/actor_player/components.hpp"
-#include "modules/actors/actor_snake/snake_components.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
-#include "resources/data.hpp"
 #include "ui_survive_timer_components.hpp"
 
 namespace game2d {
@@ -26,7 +24,7 @@ update_ui_survive_timer_system(entt::registry& r)
   const auto& ri_c = SINGLE_RendererInfo::instance;
   const glm::vec2 tr = ri_c.viewport_size_render_at;
 
-  const auto players_view = r.view<PlayerComponent>();
+  const auto players_view = r.view<PlayerBoatComponent>();
   if (players_view.size() == 0)
     return; // no players, dont count down timer
 

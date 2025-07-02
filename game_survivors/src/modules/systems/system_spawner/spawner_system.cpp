@@ -12,6 +12,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_enemy_grower/enemy_grower_components.hpp"
 #include "modules/actors/actor_enemy_treasure/enemy_treasure_components.hpp"
@@ -51,7 +52,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   const auto& ri = SINGLE_RendererInfo::instance;
 
   // hack: multiply hp by number of players.
-  const auto num_players = r.view<PlayerComponent>().size();
+  const auto num_players = r.view<const PlayerBoatComponent>().size();
   hp *= glm::max((float)num_players, 1.0f);
 
   // TODO: could have an "aggro meter" per player?

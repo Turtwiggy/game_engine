@@ -16,6 +16,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_hull/hull_components.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
@@ -186,6 +187,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 
   const auto e = spawn(r, key);
   r.emplace<StatModifierComponent>(e); //  upgrades
+  r.emplace<PlayerBoatComponent>(e);
 
   // Spawn autofire weappons
   for (const auto& hardpoint_data : hull.hardpoints) {
@@ -454,6 +456,29 @@ spawn_islands(entt::registry& r)
 };
 
 void
+set_players_as_landed(entt::registry& r)
+{
+  // forcefully land all boats to start.
+  for (int i = 0; const auto& [e, player_c] : r.view<const PlayerBoatComponent>().each()) {
+
+    auto base_island_e = get_center_island_eid(r);
+    auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
+    const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
+    const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
+    const auto tilesize = SINGLE_Islands::instance.tilesize;
+    const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
+
+    const auto center_worldspace_tl = glm::vec2{ 0, 0 } - glm::vec2{ tilesize * 0.5, tilesize * 0.5 };
+    const auto offset = glm::vec2{ tilesize * 0.5, tilesize * 0.5 } * player_dir[i];
+    const auto center_worldspace_adj = center_worldspace_tl + offset;
+    const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
+    land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
+
+    i++;
+  }
+};
+
+void
 move_to_scene_start(entt::registry& r, const Scene& s)
 {
   const auto scene_name = std::string(magic_enum::enum_name(s));
@@ -578,23 +603,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
     spawn_players(r);
-
-    // forcefully land all boats to start.
-    for (int i = 0; const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
-
-      auto base_island_e = get_center_island_eid(r);
-      auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
-      const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
-      const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
-      const auto tilesize = SINGLE_Islands::instance.tilesize;
-      const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
-      const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
-      const auto center_worldspace_adj = center_worldspace + (glm::vec2{ tilesize, tilesize } * player_dir[i]);
-      const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
-      land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
-
-      i++;
-    }
+    set_players_as_landed(r);
 
     // populate spawners from configs
     create_empty<SpawnerLiveData>(r);
@@ -651,22 +660,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       break;
     }
 
-    // forcefully land all boats to start.
-    for (int i = 0; const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
-
-      auto base_island_e = get_center_island_eid(r);
-      auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
-      const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
-      const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
-      const auto tilesize = SINGLE_Islands::instance.tilesize;
-      const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
-      const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
-      const auto center_worldspace_adj = center_worldspace + (glm::vec2{ tilesize, tilesize } * player_dir[i]);
-      const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
-      land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
-
-      i++;
-    }
+    set_players_as_landed(r);
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

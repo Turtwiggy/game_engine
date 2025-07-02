@@ -6,6 +6,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
@@ -85,7 +86,7 @@ static engine::RandomState target_rnd(0);
 entt::entity
 get_random_player_target(entt::registry& r)
 {
-  const auto players_view = r.view<PlayerComponent>();
+  const auto players_view = r.view<PlayerBoatComponent>();
   if (players_view.size() == 0)
     return entt::null;
   const int rnd = engine::rand_det_s(target_rnd.rng, 0, (int)players_view.size());
@@ -128,7 +129,7 @@ rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
 
   const auto get_players_gridpos = [&]() -> std::vector<glm::ivec2> {
     std::vector<glm::ivec2> gridpos;
-    for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+    for (const auto& [e, player_c] : r.view<const PlayerBoatComponent>().each()) {
       const auto gp = engine::grid::worldspace_to_gridspace(get_position(r, e), map_tilesize);
       gridpos.push_back(gp);
     }

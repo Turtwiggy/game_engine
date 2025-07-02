@@ -3,6 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
@@ -63,7 +64,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   const float distance_from_bottom_of_screen = 15.0f;
   const float space_between_bars = 45.0f * font_scale;
 
-  const auto players_e_vec = view_to_vector_of_ents<PlayerComponent>(r);
+  const auto players_e_vec = view_to_vector_of_ents<PlayerBoatComponent>(r);
   const auto num_active_players = (int)players_e_vec.size();
   int n_weapons = max_weapons_per_players(r, players_e_vec);
 

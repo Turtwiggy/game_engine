@@ -6,6 +6,7 @@
 #include "engine/enum/enum_helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
@@ -122,7 +123,7 @@ update_ui_debug_upgrades_system(entt::registry& r)
 
   const bool add_wep_behaviour = ImGui::Button("Add Weapon Behaviour");
   if (add_wep_behaviour) {
-    for (const auto& [e, player_c] : r.view<const PlayerComponent>().each()) {
+    for (const auto& [e, player_c] : r.view<const PlayerBoatComponent>().each()) {
 
       UpgradeRollResult roll;
       roll.rarity = Rarity::COMMON;

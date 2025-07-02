@@ -9,6 +9,7 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_enemy_treasure/enemy_treasure_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
@@ -58,7 +59,7 @@ update_combo_unlock_system(entt::registry& r)
     const auto pos_meters = pixels_to_meters(pos_pixels);
     const auto search_radius_meters = pixels_to_meters(100);
     const auto is_player = [](entt::registry& r, entt::entity parent_e) -> bool {
-      return r.try_get<PlayerComponent>(parent_e) != nullptr;
+      return r.all_of<PlayerBoatComponent>(parent_e);
     };
     const auto players_map = get_all_in_area_filtered(r, pos_meters, search_radius_meters, is_player);
 
