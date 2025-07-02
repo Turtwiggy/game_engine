@@ -76,11 +76,11 @@ update_quip_system(entt::registry& r, const float dt)
     // r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
 
     WorldspaceTextComponent wst_c;
-    // wst_c.show_background = true;
-    // wst_c.alpha = 0.65f;
-    // wst_c.offset.y = (-get_size(r, actor_e).y - size_y);
 
     wst_c.layout = [&](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
+      auto* draw_list = ImGui::GetWindowDrawList();
+      const auto ss_pos_tl = ImGui::GetCursorScreenPos();
+
       const auto text_col = hex_to_srgb("#ffffff");
 
       const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
@@ -97,22 +97,17 @@ update_quip_system(entt::registry& r, const float dt)
 
       std::string label = std::format("let's go!");
 
-      // // center x
-      // const auto& style = ImGui::GetStyle();
-      // const float alignment = 0.5f;
-      // const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
-      // float avail = ImGui::GetContentRegionAvail().x;
-      // float off = (avail - size) * alignment;
-      // if (off > 0.0f)
-      //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+      // add a background
+      const float padding = 4;
+      const auto size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, label.c_str());
+      const auto ss_pos_br = ImVec2{ ss_pos_tl.x + size.x, ss_pos_tl.y + size.y };
+      draw_list->AddRectFilled({ ss_pos_tl.x - padding, ss_pos_tl.y - padding },
+                               { ss_pos_br.x + padding, ss_pos_br.y + padding },
+                               IM_COL32(77, 101, 141, 200),
+                               6);
 
-      // // center y
-      // const float size_y = ImGui::CalcTextSize(label.c_str()).y + style.FramePadding.y * 2.0f;
-      // float avail_y = ImGui::GetContentRegionAvail().y;
-      // float off_y = (avail_y - size_y) * alignment;
-      // if (off_y > 0.0f)
-      //   ImGui::SetCursorPosY(ImGui::GetCursorPosY() + off_y);
-
+      // add text
+      ImGui::SetCursorScreenPos(ss_pos_tl);
       ImGui::TextColored(im_crit_col, "%s", label.c_str());
 
       ImGui::PopFont();
