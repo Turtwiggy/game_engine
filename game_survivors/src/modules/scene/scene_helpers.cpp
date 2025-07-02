@@ -9,7 +9,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/maths/grid.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -18,7 +17,6 @@
 #include "game_state.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_hull/hull_components.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"
@@ -41,7 +39,6 @@
 #include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
-#include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 #include "modules/systems/system_particles/components.hpp"
@@ -52,7 +49,7 @@
 #include "modules/systems/system_screenshake/components.hpp"
 #include "modules/systems/system_spawner/spawner_helpers.hpp"
 #include "modules/systems/system_sprint/sprint_components.hpp"
-#include "modules/systems/system_spritestack/spritestack_components.hpp"
+#include "modules/systems/system_spritestack/spritestack_helpers.hpp"
 #include "modules/systems/system_stats/stats_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
@@ -84,87 +81,6 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 
   // set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
   set_position(r, wep_e, get_position(r, e));
-};
-
-bool
-add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
-{
-  const std::vector<std::string> supported_spritestacks{
-    "dinghy",
-    "rhib",
-    "pbr",
-  };
-
-  // i.e. which layer makes mose sense to have as the hitbox?
-  // note: ignoring {0, 0}. so if dinghy_1 is frame {0, 1} = 0,
-  // the int value 1 in this vector represents 1 frame after that.
-  const std::vector<int> spritestack_base_layer{
-    1,
-    9,
-    26,
-  };
-
-  auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);
-  if (it == supported_spritestacks.end())
-    return false; // oops! spritestack not implemented
-  const auto idx = static_cast<int>(it - supported_spritestacks.begin());
-
-  const auto& anims = SINGLE_Animations::instance;
-  const auto [spritesheet, anim] = find_animation(anims, sprite + "_1"s);
-  const int sprites_for_total_sprite = spritesheet.ny - 1; // note: -1 because {0, 0} should be empty
-
-  entt::entity root_entity = entt::null;
-  glm::vec2 pos{ 0, 0 };
-
-  // iterate from e.g. [-26, 12] for a ydepth of 38, where the center is 26 now
-  const int root_spritestack_img_idx = -spritestack_base_layer[idx];
-  const int max = sprites_for_total_sprite + root_spritestack_img_idx;
-
-  // iterate through the spritestack frames
-  // note: {0, 0} is an empty frame, so start the counter at 1.
-  int counter = 1;
-
-  for (int i = root_spritestack_img_idx; i < max; i++) {
-    const auto i_as_str = std::to_string(counter++);
-    const auto tag_str = sprite + "_"s + i_as_str;
-
-    entt::entity spawned_e = entt::null;
-
-    // this sets the SpriteComponent on the player
-    if (i == 0)
-      spawned_e = e;
-
-    else
-      spawned_e = create_transform(r, tag_str);
-
-    // needs to be emplaced in order to maintain spritestack
-    r.emplace<SpriteComponent>(spawned_e);
-
-    set_sprite(r, spawned_e, sprite + "_"s + i_as_str);
-
-    //
-    // i goes from e.g. [-26, 12] on a 38 ydepth.
-    // that works pretty well for z-index, where 0 represents "default"
-    // however, z-index is sorted a.z_idx < b.z_idx,
-    // but here i represents a sprite index, where -26 is the top sprite, not bottom.
-    // hence, flip it, yo
-    //
-    // e.g. -26 should be 26
-    // e.g. 0 should be 0
-    // e.g. 12 should be -12
-    //
-    const int flipped_i = -1 * i;
-    auto& t_c = r.get<TransformComponent>(spawned_e);
-    t_c.z_index = flipped_i;
-
-    SpritestackComponent spritestack_c(i);
-    spritestack_c.spritestack_total = sprites_for_total_sprite;
-    spritestack_c.root = e;
-    spritestack_c.tag = tag_str;
-    r.emplace<SpritestackComponent>(spawned_e, spritestack_c);
-  }
-
-  return true;
 };
 
 entt::entity
@@ -352,34 +268,6 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
   return e;
 };
 
-glm::vec2
-get_player_spawn_point_around_starting_island(entt::registry& r, int idx)
-{
-  // const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
-  const auto base_island_eid = get_center_island_eid(r);
-  const auto& base_island_c = r.get<const DebugContoursComponent>(base_island_eid);
-  const auto& base_island_aabb = r.get<const BoundingBoxComponent>(base_island_eid);
-
-  // given a bounding box with .tl and .br
-  // and given a player index [0, 1, 2, 3],
-  // spawn players on the top center, right center, bottom center, and left center edges of the bounding box
-  // Determine spawn position for each player based on index
-  // clang-format off
-  glm::vec2 pos{0, 0};
-  const float center_x = (base_island_aabb.tl.x + base_island_aabb.br.x) * 0.5f;
-  const float center_y = (base_island_aabb.tl.y + base_island_aabb.br.y) * 0.5f;
-  const float offset = 32.0f; // Distance from edge towards outside
-  switch (idx) {
-    case 0: pos = { center_x, base_island_aabb.tl.y - offset }; break; // t
-    case 1: pos = { base_island_aabb.br.x + offset, center_y }; break; // r
-    case 2: pos = { center_x, base_island_aabb.br.y + offset }; break; // b
-    case 3: pos = { base_island_aabb.tl.x - offset, center_y }; break; // l
-  }
-  // clang-format on
-
-  return pos;
-}
-
 void
 spawn_players(entt::registry& r)
 {
@@ -452,29 +340,6 @@ spawn_islands(entt::registry& r)
     // need islands and rocks to exist before player spawns,
     // to determine player spawn location
     update_actor_rocks_system(r);
-  }
-};
-
-void
-set_players_as_landed(entt::registry& r)
-{
-  // forcefully land all boats to start.
-  for (int i = 0; const auto& [e, player_c] : r.view<const PlayerBoatComponent>().each()) {
-
-    auto base_island_e = get_center_island_eid(r);
-    auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
-    const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
-    const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
-    const auto tilesize = SINGLE_Islands::instance.tilesize;
-    const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
-
-    const auto center_worldspace_tl = glm::vec2{ 0, 0 } - glm::vec2{ tilesize * 0.5, tilesize * 0.5 };
-    const auto offset = glm::vec2{ tilesize * 0.5, tilesize * 0.5 } * player_dir[i];
-    const auto center_worldspace_adj = center_worldspace_tl + offset;
-    const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
-    land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
-
-    i++;
   }
 };
 
@@ -643,13 +508,13 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // spawn_players(r);
     // const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
     const auto pos0 = get_player_spawn_point_around_starting_island(r, 0);
-    const auto pos1 = get_player_spawn_point_around_starting_island(r, 1);
-    const auto pos2 = get_player_spawn_point_around_starting_island(r, 2);
-    const auto pos3 = get_player_spawn_point_around_starting_island(r, 3);
+    // const auto pos1 = get_player_spawn_point_around_starting_island(r, 1);
+    // const auto pos2 = get_player_spawn_point_around_starting_island(r, 2);
+    // const auto pos3 = get_player_spawn_point_around_starting_island(r, 3);
     const auto p0 = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon", pos0);
-    const auto p1 = spawn_player(r, "actor_player", 1, "dinghy", "weapon_deck_cannon", pos1);
-    const auto p2 = spawn_player(r, "actor_player", 2, "dinghy", "weapon_deck_cannon", pos2);
-    const auto p3 = spawn_player(r, "actor_player", 3, "dinghy", "weapon_deck_cannon", pos3);
+    // const auto p1 = spawn_player(r, "actor_player", 1, "dinghy", "weapon_deck_cannon", pos1);
+    // const auto p2 = spawn_player(r, "actor_player", 2, "dinghy", "weapon_deck_cannon", pos2);
+    // const auto p3 = spawn_player(r, "actor_player", 3, "dinghy", "weapon_deck_cannon", pos3);
 
     // assign keyboard/controllers
     r.emplace<KeyboardComponent>(p0);

@@ -121,9 +121,12 @@
         { "tag": "fixture_xp_zone", "type": "circle","is_sensor": true }
       ]
     },
+    //
+    // island stuff
+    // 
     {
       "name": "actor_lighthouse",
-      "renderable": { "sprite": "ARROW_RIGHT", "colour":  "white" }
+      "renderable": { "sprite": "CHESS_CASTLE", "colour":  "white" }
     },
     {
       "name": "actor_islanddweller_player",
@@ -133,6 +136,37 @@
       "name": "actor_islanddweller_common_person",
       "renderable": { "sprite": "PERSON_25_0", "colour":  "green" }
     },
+    {
+      "name": "actor_islanddweller_animal_duck_0",
+      "renderable": { "sprite": "DUCK_0", "colour":  "green" }
+    },
+    {
+      "name": "actor_islanddweller_animal_duck_1",
+      "renderable": { "sprite": "DUCK_1", "colour":  "green" }
+    },
+    {
+      "name": "actor_islanddweller_animal_cow",
+      "renderable": { "sprite": "COW", "colour":  "green" }
+    },
+    {
+      "name": "actor_islanddweller_animal_horse",
+      "renderable": { "sprite": "HORSE", "colour":  "green" }
+    },
+    {
+      "name": "actor_islanddweller_animal_pig",
+      "renderable": { "sprite": "PIG", "colour":  "green" }
+    },
+    {
+      "name": "actor_islanddweller_animal_cat",
+      "renderable": { "sprite": "CAT", "colour":  "green" }
+    },
+    {
+      "name": "actor_islanddweller_animal_dog",
+      "renderable": { "sprite": "DOG", "colour":  "green" }
+    },
+    //
+    // island enemies
+    //
     {
       "name": "actor_islanddweller_pirate",
       "renderable": { "sprite": "PERSON_25_0", "colour":  "dark_orange" }
@@ -145,6 +179,9 @@
       "name": "actor_islanddweller_scorpion",
       "renderable": { "sprite": "SCORPION_24_5", "colour":  "dark_orange" }
     },
+    //
+    // sea-enemies
+    //
     {
       "name": "actor_enemy_melee_1",
       "speed": 2.0,

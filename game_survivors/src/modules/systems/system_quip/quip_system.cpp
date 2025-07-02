@@ -55,17 +55,17 @@ update_quip_system(entt::registry& r, const float dt)
   }
 
 #if defined(_DEBUG)
-  const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
-  if (get_key_down(input_c, SDL_SCANCODE_8)) {
-    const auto view = r.view<const IslanderAiComponent, TeamComponent>();
-    for (const auto& [e, islander_ai_c, team_c] : view.each()) {
-      if (team_c.team == AvailableTeams::enemy)
-        continue;
-      auto thing_to_quip = e;
-      create_empty<RequestQuip>(r, RequestQuip{ .thing_to_quip = thing_to_quip });
-      break;
-    }
-  }
+  // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  // if (get_key_down(input_c, SDL_SCANCODE_8)) {
+  //   const auto view = r.view<const IslanderAiComponent, TeamComponent>();
+  //   for (const auto& [e, islander_ai_c, team_c] : view.each()) {
+  //     if (team_c.team == AvailableTeams::enemy)
+  //       continue;
+  //     auto thing_to_quip = e;
+  //     create_empty<RequestQuip>(r, RequestQuip{ .thing_to_quip = thing_to_quip });
+  //     break;
+  //   }
+  // }
 #endif
 
   process_requests<RequestQuip>(r, [&](const RequestQuip& req) {

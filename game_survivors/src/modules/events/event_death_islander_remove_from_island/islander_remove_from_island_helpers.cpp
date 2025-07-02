@@ -7,9 +7,12 @@
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/actors/actor_rock/rock_helpers.hpp"
+#include "modules/combat/combat_core/components.hpp"
 #include "modules/events/event_island_to_boat/island_to_boat_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
+#include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 
 namespace game2d {
 
@@ -60,10 +63,26 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
     evts_c.dispatcher->update();
   }
 
-  // Check if the island is now clear?
-  // todo: dont count players in this check
-  if (island_c.occupied_island_xy.size() == 0) {
+  // Check if the island is now clear of enemies
+  int enemies_remaining = 0;
+  for (const auto& [gp, e] : island_c.occupied_island_xy) {
+    const auto& team_c = r.get<TeamComponent>(e);
+    if (team_c.team == AvailableTeams::enemy) {
+      enemies_remaining++;
+    }
+  }
+
+  const auto unoccupied = get_unoccupied_tiles(island_c);
+  if (enemies_remaining == 0 && unoccupied.size() > 0) {
+#if defined(_DEBUG)
+    static engine::RandomState lighthouse_rnd(0); // same roll every time
+#else
+    static engine::RandomState lighthouse_rnd(engine::get_system_time_for_seed());
+#endif
+
     SDL_Log("Island cleared of enemies");
+    auto rnd_unoccipied_idx = engine::rand_det_s(lighthouse_rnd.rng, 0, (int)unoccupied.size());
+    spawn_lighthouse(r, island_c, unoccupied[rnd_unoccipied_idx]);
   }
 }
 

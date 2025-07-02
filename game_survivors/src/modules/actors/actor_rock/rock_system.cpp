@@ -13,7 +13,6 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/line.hpp"
 #include "modules/core/raws/raws_components.hpp"
-#include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 

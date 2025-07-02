@@ -143,7 +143,14 @@
     { "name": "WEAPON_BOW_4", "frames": [ { "x": 41, "y": 6 } ], "angle": -45.0 },
     { "name": "WEAPON_QUIVER", "frames": [ { "x": 42, "y": 6 } ], "angle": -45.0 },
 
-    { "name": "DUCK", "frames": [ { "x": 25, "y": 7 } ] },
+    { "name": "DUCK_0", "frames": [ { "x": 25, "y": 7 } ] },
+    { "name": "DUCK_1", "frames": [ { "x": 26, "y": 7 } ] },
+    { "name": "COW", "frames": [ { "x": 27, "y": 7 } ] },
+    { "name": "HORSE", "frames": [ { "x": 28, "y": 7 } ] },
+    { "name": "PIG", "frames": [ { "x": 29, "y": 7 } ] },
+    { "name": "CAT", "frames": [ { "x": 30, "y": 7 } ] },
+    { "name": "DOG", "frames": [ { "x": 31, "y": 7 } ] },
+
     { "name": "WEAPON_SWORD_32_7", "frames": [ { "x": 32, "y": 7 } ], "angle": -45.0 },
     { "name": "WEAPON_SWORD_33_7", "frames": [ { "x": 33, "y": 7 } ], "angle": -45.0 },
     { "name": "WEAPON_SWORD_34_7", "frames": [ { "x": 34, "y": 7 } ], "angle": -45.0 },
@@ -309,6 +316,8 @@
     { "name": "TEXT_div", "frames": [ { "x": 39, "y": 20 } ] },
     { "name": "TEXT_eq", "frames": [ { "x": 40, "y": 20 } ] },
     { "name": "TEXT_@", "frames": [ { "x": 41, "y": 20 } ] },
+    { "name": "CHESS_PAWN", "frames": [ { "x": 42, "y": 20 } ] },
+    { "name": "CHESS_CASTLE", "frames": [ { "x": 43, "y": 20 } ] },
 
     { "name": "SPACE_VEHICLE_1", "frames": [ { "x": 12, "y": 21 } ], "angle": -90.0 },
     { "name": "SPACE_VEHICLE_2", "frames": [ { "x": 13, "y": 21 } ], "angle": 90.0 },

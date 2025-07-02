@@ -3,6 +3,7 @@
 #include "engine/renderer/transform.hpp"
 #include "lighthouse_components.hpp"
 #include "lighthouse_system.hpp"
+#include "modules/core/renderer/lights/components.hpp"
 
 namespace game2d {
 
@@ -16,8 +17,8 @@ update_actor_lighthouse_system(entt::registry& r, const float dt)
   static float rotate_speed = 0.1f;
   // imgui_draw_float("rotate_speed", rotate_speed);
 
-  const auto view = r.view<LighthouseComponent, TransformComponent>();
-  for (const auto& [e, lighthouse_c, t_c] : view.each()) {
+  const auto view = r.view<const LighthouseComponent, const LightTypeWedge, TransformComponent>();
+  for (const auto& [e, lighthouse_c, wedge_c, t_c] : view.each()) {
     t_c.rotation_radians.z += dt * rotate_speed;
   }
 }

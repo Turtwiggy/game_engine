@@ -15,6 +15,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
@@ -587,33 +588,29 @@ spawn_lighthouse(entt::registry& r, DebugContoursComponent& island_c, const glm:
   // todo: set random rotation and slightly varying speed
   r.emplace<LighthouseComponent>(thing_e);
   r.emplace<LightEmitterComponent>(thing_e);
-  r.emplace<LightTypeWedge>(thing_e);
+  // r.emplace<LightTypeWedge>(thing_e);
+  r.emplace<LightTypeCircle>(thing_e);
   // auto popup_e = create_popup(r, center, "Lighthouse");
   // r.remove<EntityTimedLifecycle>(popup_e);
   // r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
 
   island_c.occupied_island_xy.push_back({ gridpos, thing_e });
-}
+};
 
 entt::entity
 spawn_islander(entt::registry& r,
+               engine::RandomState& rnd,
                const entt::entity island_e,
                std::string tag,
                const AvailableTeams team,
                const bool has_brain = false)
 {
 
-#if defined(_DEBUG)
-  static engine::RandomState spawn_rnd(0); // same roll every time
-#else
-  static engine::RandomState spawn_rnd(engine::get_system_time_for_seed());
-#endif
-
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   auto& island_c = r.get<DebugContoursComponent>(island_e);
 
   const auto unoccupied = get_unoccupied_tiles(island_c);
-  const auto xy = unoccupied[(int)engine::rand_det_s(spawn_rnd.rng, 0, (int)unoccupied.size())];
+  const auto xy = unoccupied[(int)engine::rand_det_s(rnd.rng, 0, (int)unoccupied.size())];
   const auto thing_e = spawn(r, tag);
   auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
   pos += glm::vec2{ tilesize, tilesize }; // off grid
@@ -631,6 +628,12 @@ spawn_islander(entt::registry& r,
   return thing_e;
 };
 
+#if defined(_DEBUG)
+static engine::RandomState spawn_rnd(0); // same roll every time
+#else
+static engine::RandomState spawn_rnd(engine::get_system_time_for_seed());
+#endif
+
 void
 generate_island_life__base_island(entt::registry& r)
 {
@@ -642,11 +645,26 @@ generate_island_life__base_island(entt::registry& r)
   auto& bb_c = r.get<BoundingBoxComponent>(center_island_eid);
 
   // give the base island a lighthouse
-  const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
-  const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
+  // const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
+  // const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
+  const auto center_gridspace = glm::ivec2{ 0, 0 };
   spawn_lighthouse(r, island_c, center_gridspace);
-  spawn_islander(r, center_island_eid, "actor_islanddweller_common_person", AvailableTeams::player, true);
-  spawn_islander(r, center_island_eid, "actor_islanddweller_common_person", AvailableTeams::player, true);
+
+  std::vector<std::string> animal_keys = {
+    "actor_islanddweller_common_person", //
+    "actor_islanddweller_animal_duck_0", //
+    "actor_islanddweller_animal_duck_1", //
+    "actor_islanddweller_animal_cow",    //
+    "actor_islanddweller_animal_horse",  //
+    "actor_islanddweller_animal_pig",    //
+    "actor_islanddweller_animal_cat",    //
+    "actor_islanddweller_animal_dog",    //
+  };
+
+  const auto idx_0 = engine::rand_det_s(spawn_rnd.rng, (int)0, (int)animal_keys.size());
+  const auto idx_1 = engine::rand_det_s(spawn_rnd.rng, (int)0, (int)animal_keys.size());
+  spawn_islander(r, spawn_rnd, center_island_eid, animal_keys[idx_0], AvailableTeams::player, true);
+  spawn_islander(r, spawn_rnd, center_island_eid, animal_keys[idx_1], AvailableTeams::player, true);
 }
 
 void
@@ -663,9 +681,61 @@ generate_island_life__other_islands(entt::registry& r)
       continue; // dont spawn mobs on the base island
 
     // TODO: generate a spawn rate table for enemies.
-    spawn_islander(r, e, "actor_islanddweller_pirate", AvailableTeams::enemy, true);
-    spawn_islander(r, e, "actor_islanddweller_spider", AvailableTeams::enemy, true);
+    spawn_islander(r, spawn_rnd, e, "actor_islanddweller_pirate", AvailableTeams::enemy, true);
+    spawn_islander(r, spawn_rnd, e, "actor_islanddweller_spider", AvailableTeams::enemy, true);
+    spawn_islander(r, spawn_rnd, e, "actor_islanddweller_scorpion", AvailableTeams::enemy, true);
   }
-}
+};
+
+void
+set_players_as_landed(entt::registry& r)
+{
+  // forcefully land all boats to start.
+  for (int i = 0; const auto& [e, player_c] : r.view<const PlayerBoatComponent>().each()) {
+
+    auto base_island_e = get_center_island_eid(r);
+    auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
+    const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
+    const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
+    const auto tilesize = SINGLE_Islands::instance.tilesize;
+    const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
+
+    const auto center_worldspace_tl = glm::vec2{ 0, 0 } - glm::vec2{ tilesize * 0.5, tilesize * 0.5 };
+    const auto offset = glm::vec2{ tilesize * 0.5, tilesize * 0.5 } * player_dir[i];
+    const auto center_worldspace_adj = center_worldspace_tl + offset;
+    const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
+    land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
+
+    i++;
+  }
+};
+
+glm::vec2
+get_player_spawn_point_around_starting_island(entt::registry& r, int idx)
+{
+  // const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
+  const auto base_island_eid = get_center_island_eid(r);
+  const auto& base_island_c = r.get<const DebugContoursComponent>(base_island_eid);
+  const auto& base_island_aabb = r.get<const BoundingBoxComponent>(base_island_eid);
+
+  // given a bounding box with .tl and .br
+  // and given a player index [0, 1, 2, 3],
+  // spawn players on the top center, right center, bottom center, and left center edges of the bounding box
+  // Determine spawn position for each player based on index
+  // clang-format off
+  glm::vec2 pos{0, 0};
+  const float center_x = (base_island_aabb.tl.x + base_island_aabb.br.x) * 0.5f;
+  const float center_y = (base_island_aabb.tl.y + base_island_aabb.br.y) * 0.5f;
+  const float offset = 32.0f; // Distance from edge towards outside
+  switch (idx) {
+    case 0: pos = { center_x, base_island_aabb.tl.y - offset }; break; // t
+    case 1: pos = { base_island_aabb.br.x + offset, center_y }; break; // r
+    case 2: pos = { center_x, base_island_aabb.br.y + offset }; break; // b
+    case 3: pos = { base_island_aabb.tl.x - offset, center_y }; break; // l
+  }
+  // clang-format on
+
+  return pos;
+};
 
 } // namespace game2d

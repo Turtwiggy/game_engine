@@ -323,11 +323,9 @@ void main()
       // -10 is < [-pi, pi], meaning it cant be an angle
       if(angle == -10.0f)
       {
-        float size = 3.0 * 50.0;
-
         // problem: when radius is 1.0, the circle fills up the whole of the viewport.
         // but I want the radius to always be consistent amount of pixels independant of screensize
-        float desired_pixel_radius = 50.0 * 10;
+        float desired_pixel_radius = 50.0 * 12;
         float radius = (desired_pixel_radius / viewport_wh.y); // normalized to NDC
 
         d0 = sdCircle(p, radius);
