@@ -113,7 +113,8 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
     auto& cell = ui_c.state.cells[i];
 
     auto a_def = SelectableButtonDef{
-      .label = cell->name,
+      .display_str = cell->name,
+      .imgui_hash = "##" + cell->name,
       .size = size,
       .input = do_act,
       .cell = cell,

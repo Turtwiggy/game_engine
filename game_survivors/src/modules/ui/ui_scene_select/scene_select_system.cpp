@@ -7,22 +7,17 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/std/string/helpers.hpp"
-#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
-#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/scene/scene_components.hpp"
-#include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
-#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
@@ -70,8 +65,8 @@ void
 draw_selections(entt::registry& r,
                 SINGLE_SelectSceneData& ui_c,
                 const std::shared_ptr<Cell>& base,
-                int player_idx,
-                int cell_idx,
+                const int player_idx,
+                const int cell_idx,
                 const ImVec2 pos,
                 const ImVec2 button_size,
                 const bool active)
@@ -80,7 +75,7 @@ draw_selections(entt::registry& r,
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
   auto& player_state = ui_c.player_choice_state[player_idx];
 
-  auto* cell = dynamic_cast<OptionsCell*>(base.get());
+  auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
   const bool is_hull = cell_idx == 0;
   const bool is_weapon = cell_idx == 1;
   const bool is_ability = cell_idx == 2;
@@ -89,16 +84,16 @@ draw_selections(entt::registry& r,
 
   // convert index to hull choice
   if (is_hull) {
-    cell->value = engine::wrap(cell->value, hulls_c.hulls.size() - 1);
-    const auto& hull = hulls_c.hulls[cell->value];
+    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size() - 1);
+    const auto& hull = hulls_c.hulls[cell.value];
     name = hull.name;
     player_state.player_boat_key = hull.key;
   }
 
   // convert index to weapon choice
   if (is_weapon) {
-    cell->value = engine::wrap(cell->value, weapons_c.weapons.size() - 1);
-    const auto& weapon = weapons_c.weapons[cell->value];
+    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size() - 1);
+    const auto& weapon = weapons_c.weapons[cell.value];
     name = weapon.name.c_str();
     player_state.player_gun_key = weapon.key;
   }
@@ -144,7 +139,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   const auto& cs = player_ui_c.state.cells;
   const auto cell_it = std::find(cs.begin(), cs.end(), active_cell);
   const auto cell_idx = static_cast<int>(cell_it - cs.begin());
-  auto* cell = dynamic_cast<OptionsCell*>(cell_it->get());
+  auto& cell = *(dynamic_cast<OptionsCell*>(cell_it->get()));
   const bool is_hull = cell_idx == 0;
   const bool is_weapon = cell_idx == 1;
   const bool is_ability = cell_idx == 2;
@@ -153,12 +148,14 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   std::string info_desc = "";
 
   if (is_hull) {
-    const auto& hull = hulls_c.hulls[cell->value];
+    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size() - 1);
+    const auto& hull = hulls_c.hulls[cell.value];
     info_key = hull.name;
     info_desc = hull.desc;
   }
   if (is_weapon) {
-    const auto& weapon = weapons_c.weapons[cell->value];
+    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size() - 1);
+    const auto& weapon = weapons_c.weapons[cell.value];
     info_key = weapon.name;
     info_desc = weapon.desc;
   }
@@ -206,14 +203,14 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     std::vector<DisplayStat> display_stats;
 
     if (is_hull) {
-      const auto& hull = hulls_c.hulls[cell->value];
+      const auto& hull = hulls_c.hulls[cell.value];
       display_stats.push_back({ .key = "Hardpoints", .val = std::to_string(hull.hardpoints.size()) });
       display_stats.push_back({ .key = "Width", .val = std::format("{:.1f}m", pixels_to_meters(hull.width * 10)) });
       display_stats.push_back({ .key = "Height", .val = std::format("{:.1f}m", pixels_to_meters(hull.height * 10)) });
     }
 
     if (is_weapon) {
-      const auto& weapon = weapons_c.weapons[cell->value];
+      const auto& weapon = weapons_c.weapons[cell.value];
       for (const auto& [key, val] : weapon.data) {
         auto clean_key = key;
         clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
@@ -288,8 +285,6 @@ update_player_select_ui(entt::registry& r,
   const ImVec2 window_tl = ImGui::GetWindowPos();
   const ImVec2 window_wh = ImGui::GetWindowSize();
   const ImVec2 player_wh = { window_wh.x / max_num_players, window_wh.y };
-  // const auto num_active_players = glm::max(1, (int)steam_c.n_active);
-  // const auto num_active_players = 4;
 
   // center it.
   const auto center_x = window_tl.x + 0.5f * window_wh.x;
@@ -303,74 +298,76 @@ update_player_select_ui(entt::registry& r,
     const bool connected = handle_is_connected(steam_c, handle);
     const bool joined = handle_is_joined(steam_ui_c, handle);
 
+    // always show one player. player_idx either using keyboard or controller
+    if (player_idx != 0 && !(connected && joined))
+      break;
+
     auto& player_ui_c = ui_c.player_ui_state[player_idx];
     auto& player_state_c = ui_c.player_choice_state[player_idx];
 
-    // always show one player. player_idx either using keyboard or controller
-    if ((connected && joined) || player_idx == 0) {
-      auto& active_cell = player_ui_c.state.active;
-      auto& h_value = dynamic_cast<OptionsCell*>(active_cell.get())->value;
-      const ImVec2 button_size = { 100.0f * ui_scaling, 24.0f * ui_scaling };
-      const auto& s = player_ui_c.state.actions;
-      const bool do_act = std::find(s.begin(), s.end(), UIAction::SELECT) != s.end();
-      const bool r_pressed = std::find(s.begin(), s.end(), UIAction::NAV_MOVE_R) != s.end();
-      const bool l_pressed = std::find(s.begin(), s.end(), UIAction::NAV_MOVE_L) != s.end();
-      if (l_pressed)
-        h_value--;
-      if (r_pressed)
-        h_value++;
+    auto& active_cell = player_ui_c.state.active;
+    auto& h_value = dynamic_cast<OptionsCell*>(active_cell.get())->value;
+    const ImVec2 button_size = { 100.0f * ui_scaling, 24.0f * ui_scaling };
+    const auto& s = player_ui_c.state.actions;
+    const bool do_act = std::find(s.begin(), s.end(), UIAction::SELECT) != s.end();
+    const bool r_pressed = std::find(s.begin(), s.end(), UIAction::NAV_MOVE_R) != s.end();
+    const bool l_pressed = std::find(s.begin(), s.end(), UIAction::NAV_MOVE_L) != s.end();
+    if (l_pressed)
+      h_value--;
+    if (r_pressed)
+      h_value++;
 
-      // const auto width = 300;
-      const auto height = 420 * ui_scaling; // or 1/6th of the screen
+    // const auto width = 300;
+    const auto height = 420 * ui_scaling; // or 1/6th of the screen
 
-      // if pivot is 0, the top of the ui would be rendered at the center of the screen
-      // if pivot is 1. the bot of the ui would be rendered at the center of the screen
-      const auto pivot = 0.35f;
+    // if pivot is 0, the top of the ui would be rendered at the center of the screen
+    // if pivot is 1. the bot of the ui would be rendered at the center of the screen
+    const auto pivot = 0.35f;
 
-      const auto main_quarter_tl = ImVec2{ first_tl_x + x_pad, center_y - (height * pivot) };
-      const auto main_quarter_wh = ImVec2{ player_wh.x - 2.0f * x_pad, height };
-      const auto main_quarter_br =
-        ImVec2{ main_quarter_tl.x + main_quarter_wh.x - x_pad, main_quarter_tl.y + main_quarter_wh.y };
+    const auto main_quarter_tl = ImVec2{ first_tl_x + x_pad, center_y - (height * pivot) };
+    const auto main_quarter_wh = ImVec2{ player_wh.x - 2.0f * x_pad, height };
+    const auto main_quarter_br =
+      ImVec2{ main_quarter_tl.x + main_quarter_wh.x - x_pad, main_quarter_tl.y + main_quarter_wh.y };
 
-      auto* draw_list = ImGui::GetWindowDrawList();
+    auto* draw_list = ImGui::GetWindowDrawList();
 
-      const auto my_player_col = default_player_colours[player_idx];
-      const auto im_player_col = convert_my_to_im(my_player_col);
+    const auto my_player_col = default_player_colours[player_idx];
+    const auto im_player_col = convert_my_to_im(my_player_col);
 
-      // draw a background
-      draw_list->AddRectFilled(main_quarter_tl, main_quarter_br, im_window_bg_col, 6);
-      draw_list->AddRect(main_quarter_tl, main_quarter_br, im_player_col, 6, ImDrawFlags_RoundCornersAll, 2);
+    // draw a background
+    draw_list->AddRectFilled(main_quarter_tl, main_quarter_br, im_window_bg_col, 6);
+    draw_list->AddRect(main_quarter_tl, main_quarter_br, im_player_col, 6, ImDrawFlags_RoundCornersAll, 2);
 
-      // Draw categories + values
-      const auto space_between_buttons = 10;
-      auto button_tl = main_quarter_tl;
-      button_tl.y += 10; // y padding on the first button
-      button_tl.x -= 10; // put it outside the frame?
-      for (int i = 0; i < player_ui_c.state.cells.size(); i++) {
-        auto& base = player_ui_c.state.cells[i];
-        const bool active = base == player_ui_c.state.active;
+    // Draw categories + values
+    const auto space_between_buttons = 10;
+    auto button_tl = main_quarter_tl;
+    button_tl.y += 10; // y padding on the first button
+    button_tl.x -= 10; // put it outside the frame?
+    for (int i = 0; i < player_ui_c.state.cells.size(); i++) {
+      auto& base = player_ui_c.state.cells[i];
+      const bool active = base == player_ui_c.state.active;
 
-        ImGui::SetCursorPos(button_tl);
+      ImGui::SetCursorPos(button_tl);
 
-        SelectableButtonDef def{
-          .label = base->name,
-          .size = button_size,
-          .input = do_act,
-          .cell = base,
-          .active_cell = player_ui_c.state.active,
-          .font = font,
-        };
-        if (selectable_button(r, def))
-          base->action();
+      SelectableButtonDef def{
+        .display_str = base->name,
+        .imgui_hash = "##" + base->name + std::to_string(player_idx),
+        .size = button_size,
+        .input = do_act,
+        .cell = base,
+        .active_cell = player_ui_c.state.active,
+        .font = font,
+      };
+      if (selectable_button(r, def))
+        base->action();
 
-        const float pos_l = main_quarter_tl.x + button_size.x;
-        const float pos_w = main_quarter_br.x - pos_l;
-        const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
-        draw_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
+      const float pos_l = main_quarter_tl.x + button_size.x;
+      const float pos_w = main_quarter_br.x - pos_l;
+      const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
+      draw_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
 
-        if (i + 1 < player_ui_c.state.cells.size())
-          button_tl.y += button_size.y + space_between_buttons;
-      }
+      if (i + 1 < player_ui_c.state.cells.size())
+        button_tl.y += button_size.y + space_between_buttons;
 
       //
       // begin info section.
@@ -435,9 +432,7 @@ update_player_select_ui(entt::registry& r,
       draw_bar(text_tl_1, percent_1, bar_offset);
       ImGui::SetCursorPos(text_tl_1);
       ImGui::Text("%s", back_text.c_str());
-
-    } else
-      break; // no more players
+    }
 
     // move horizontally
     first_tl_x += player_wh.x;

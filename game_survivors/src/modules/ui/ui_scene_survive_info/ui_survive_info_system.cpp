@@ -7,13 +7,14 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "game_state.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_sprint/sprint_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
@@ -56,12 +57,12 @@ update_ui_survive_info_system(entt::registry& r)
 
   ImGui::Begin("health", NULL, flags);
 
-  const auto& view = r.view<PlayerComponent, DefaultColour>();
+  const auto& view = r.view<PlayerComponent, PlayerBoatComponent, DefaultColour>();
 
   // sort by player number
   // group.sort<PlayerComponent>([](const auto& a, const auto& b) { return a.idx < b.idx; });
 
-  for (const auto [e, player_c, col_c] : view.each()) {
+  for (const auto [e, player_c, player_boat_c, col_c] : view.each()) {
 
     const auto im_col =
       ImVec4{ col_c.colour.r / 255.0f, col_c.colour.g / 255.0f, col_c.colour.b / 255.0f, col_c.colour.a / 255.0f };

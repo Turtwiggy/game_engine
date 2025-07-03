@@ -7,6 +7,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
@@ -43,7 +44,7 @@ add_explode_on_death_callback(entt::registry& r,
         if (!has_hp)
           continue; // shield or xp zone or something without health
 
-        const bool is_player = r.all_of<PlayerComponent>(par_e);
+        const bool is_player = r.all_of<PlayerBoatComponent>(par_e);
         const auto& tag_c = r.get<TagComponent>(par_e);
         SDL_Log("Exploooosion! hit: %s", tag_c.tag.c_str());
 

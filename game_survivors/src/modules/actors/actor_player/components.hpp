@@ -33,9 +33,6 @@ struct PlayerFixtureComponent
 
 struct KeyboardComponent
 {
-  // A circle deadzone around the player where input becomes (0, 0)
-  int keyboard_deadzone_sqr = 40 * 40;
-
   // input
   SDL_Scancode W = SDL_SCANCODE_W;
   SDL_Scancode A = SDL_SCANCODE_A;

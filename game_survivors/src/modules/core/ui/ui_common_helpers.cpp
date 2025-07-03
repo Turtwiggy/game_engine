@@ -13,6 +13,7 @@
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 
 namespace game2d {
+using namespace std::literals;
 
 bool
 selectable_button(entt::registry& r, SelectableButtonDef& def)
@@ -47,7 +48,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
   const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
 
-  const std::string id = "##menuselectable" + def.cell->name;
+  const std::string id = def.imgui_hash;
   ImGui::Selectable(id.c_str(), false, 0, size);
   const bool is_hovered = ImGui::IsItemHovered();
   const bool is_clicked = ImGui::IsItemClicked();
@@ -85,16 +86,11 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   draw_list->AddRectFilled(p_tl, p_br, bg_col, rounding);
   draw_list->AddRect(p_tl, p_br, outline_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
-  // Drawssome text based on state.
-  auto label = def.label;
-
-  auto pos = def.label.find("##");
-  if (pos != std::string::npos)
-    label = label.substr(0, pos);
-
   auto font = def.font;
   if (font == nullptr)
     font = ImGui::GetIO().Fonts->Fonts[0];
+
+  const auto label = def.display_str;
 
   const auto text_size = font->CalcTextSizeA(font->FontSize, p_wh.x, -1, label.c_str());
   auto text_pos = ImVec2{ p_tl.x, p_tl.y };

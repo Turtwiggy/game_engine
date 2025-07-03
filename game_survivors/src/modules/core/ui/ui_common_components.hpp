@@ -32,7 +32,9 @@ struct Cell
 
 struct SelectableButtonDef
 {
-  std::string label;
+  std::string display_str;
+  std::string imgui_hash;
+
   std::optional<std::string> icon = std::nullopt;
   ImVec2 icon_size{ 0, 0 };
   ImVec2 size{ 20, 20 };

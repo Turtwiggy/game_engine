@@ -111,7 +111,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     const bool active = base == ui_c.state.active;
 
     auto a_def = SelectableButtonDef{
-      .label = to_upper(cell->name),
+      .display_str = to_upper(cell->name),
+      .imgui_hash = "##" + cell->name,
       .size = button_size,
       .input = do_act,
       .cell = base,

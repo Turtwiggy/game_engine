@@ -99,7 +99,8 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
     const bool is_next_button = ui_c.state.cells[i]->name.find("Next") != std::string::npos;
 
     auto a_def = SelectableButtonDef{
-      .label = to_upper(cell->name),
+      .display_str = to_upper(cell->name),
+      .imgui_hash = "##" + to_upper(cell->name),
       .size = button_size,
       .input = do_act,
       .cell = cell,

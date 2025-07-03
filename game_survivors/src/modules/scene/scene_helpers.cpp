@@ -317,6 +317,7 @@ spawn_players(entt::registry& r)
     if (handle_joined)
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
 
+    // keyboard assigned to first player.
     if (i == 0)
       r.emplace<KeyboardComponent>(p);
   }
@@ -467,7 +468,23 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     generate_island_interior(r);
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
+
+    // const auto pos0 = get_player_spawn_point_around_starting_island(r, 0);
+    // const auto pos1 = get_player_spawn_point_around_starting_island(r, 1);
+    // const auto pos2 = get_player_spawn_point_around_starting_island(r, 2);
+    // const auto pos3 = get_player_spawn_point_around_starting_island(r, 3);
+    // const auto p0 = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon", pos0);
+    // const auto p1 = spawn_player(r, "actor_player", 1, "dinghy", "weapon_deck_cannon", pos1);
+    // const auto p2 = spawn_player(r, "actor_player", 2, "dinghy", "weapon_deck_cannon", pos2);
+    // const auto p3 = spawn_player(r, "actor_player", 3, "dinghy", "weapon_deck_cannon", pos3);
+    // load_persistent_upgrades_and_apply_to_player(r);
+    // // bugfix: this makes sure the player has the correct health on spawn after loading upgrades.
+    // update_upgrade_hp_max_system(r);
+    // const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
+    // for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
+    //   hp_c.hp = hp_c.max_hp;
     spawn_players(r);
+
     set_players_as_landed(r);
 
     // populate spawners from configs

@@ -124,7 +124,7 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 
     for (const UpgradeRollResult& res : upg_c->results) {
       Cell c;
-      c.name = "Aquire";
+      c.name = ""; // replaced with the upgrade name when upgrade is populated
       c.action = [upg_e, res, player_e]() {
         auto& evts_c = SINGLE_Events::instance;
         UpgradeEvent evt;
@@ -149,16 +149,16 @@ is_choosing_upgrade(entt::registry& r)
 };
 
 entt::entity
-get_player_e_from_idx(entt::registry& r, int player_idx)
+get_player_e_from_idx(entt::registry& r, const int player_idx)
 {
   const auto player_es = view_to_vector_of_ents<PlayerBoatComponent>(r);
 
-  auto player_with_idx = [&r, player_idx](const entt::entity player_e) {
+  const auto player_with_idx = [&r, player_idx](const entt::entity player_e) {
     auto& player_c = r.get<PlayerComponent>(player_e);
     return player_c.idx == player_idx;
   };
 
-  auto player_it = std::find_if(player_es.begin(), player_es.end(), player_with_idx);
+  const auto player_it = std::find_if(player_es.begin(), player_es.end(), player_with_idx);
   if (player_it == player_es.end())
     return entt::null; // player not joined
 

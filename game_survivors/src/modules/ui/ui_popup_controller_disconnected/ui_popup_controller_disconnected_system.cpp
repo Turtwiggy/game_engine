@@ -233,7 +233,8 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     const ImVec2 button_size = { 160.0f, (TEXT_SIZE.y * 2.0f) + 2.0f };
 
     auto a_def = SelectableButtonDef{
-      .label = "Resume",
+      .display_str = "Resume",
+      .imgui_hash = "##resumebutton",
       .size = button_size,
       .input = do_act && button_active,
       .cell = ui_c.state.cells[0], // only one button (continue)

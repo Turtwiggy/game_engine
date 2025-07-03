@@ -13,8 +13,6 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
-#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
-#include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
 
@@ -27,8 +25,8 @@ update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c, cons
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
   set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
 
-  const int nz_handles = (int)non_zero_handles(steam_state_c.handles).size();
-  const int joined_players = glm::max(1, nz_handles); // at least 1 keyboard player
+  const auto nz_handles = non_zero_handles(steam_state_c.handles);
+  const int joined_players = glm::max(1, (int)nz_handles.size()); // at least 1 keyboard player
 
   for (int i = 0; i < 4; i++) {
 
@@ -41,27 +39,27 @@ update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c, cons
       break;
 
     // note: generate_from_handle, because no PlayerComponent exists.
-    std::optional<InputComponent> input_opt = std::nullopt;
+    InputComponent inp_c;
 
     // add keyboard inputs.
     if (i == 0) {
-      const auto input_e = get_first<InputComponent, Persistent>(r);
-      const auto& input_c = r.get<InputComponent>(input_e);
-      input_opt = input_c;
+      const auto input_c = generate_from_keyboard(r);
+      merge_inputs(inp_c, input_c);
     }
 
-    // add controller inputs (overwrites keyboard inputs)
-    if (nz_handles != 0)
-      input_opt = generate_from_handle(r, steam_state_c.handles[i]);
-
-    const auto input = input_opt.value();
+    // add controller inputs
+    if (i < (int)nz_handles.size()) {
+      const auto handle = nz_handles[i];
+      const auto input_c = generate_from_handle(r, handle);
+      merge_inputs(inp_c, input_c);
+    }
 
     ui_state_c.state.actions.clear();
-    process_input_for_ui(r, ui_state_c.state, input);
+    process_input_for_ui(r, ui_state_c.state, inp_c);
 
     // check if confirm/back is held.
-    const auto& b_s = input.button_s;
-    const auto& b_e = input.button_e;
+    const auto& b_s = inp_c.button_s;
+    const auto& b_e = inp_c.button_e;
     const bool do_act_held = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
     const bool do_act_release = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
     const bool do_back_held = std::find(b_e.begin(), b_e.end(), ActionStateEnum::HELD) != b_e.end();

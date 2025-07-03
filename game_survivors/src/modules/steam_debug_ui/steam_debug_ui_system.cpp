@@ -40,15 +40,6 @@ update_steam_debug_ui_system(entt::registry& r)
     return;
   }
 
-  // static auto mode = ActionSet::ActionSet_GameControls;
-  // static auto modes = engine::enum_class_to_vec_str<ActionSet>();
-  // WomboComboIn combo_in(modes);
-  // combo_in.label = "ActionSet";
-  // combo_in.current_index = static_cast<int>(mode);
-  // WomboComboOut combo_out = draw_wombo_combo(combo_in);
-  // if (combo_in.current_index != combo_out.selected)
-  //   mode = static_cast<AS>(combo_out.selected);
-
   // bool escape_pressed = get_key_down(input_c, SDL_SCANCODE_ESCAPE);
   // m_pGameEngine->BIsControllerActionActive( eControllerDigitalAction_PauseMenu ) ||
   // m_pGameEngine->BIsControllerActionActive( eControllerDigitalAction_MenuCancel ) )

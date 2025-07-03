@@ -28,6 +28,7 @@
 #include "modules/systems/system_physics_apply_force/components.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_debug_effects/effects_helpers.hpp"
 #include "raws_helpers.hpp"
 
 namespace game2d {
@@ -403,8 +404,8 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
 
   // note: * 3.0f as it should be 2.0f (as width = 2.0 * radius),
   // but the explosions sprite doesnt fill up the entire width, so scale it up.
-  // if (key.find("death_exploder") != std::string::npos)
-  // return spawn_fx(r, "EXPLODE_FX_6", req.position, { req.radius_pixels * 3.0f, req.radius_pixels * 3.0f });
+  if (key.find("death_exploder") != std::string::npos)
+    return spawn_fx(r, "EXPLODE_FX_6", req.position, { req.radius_pixels_upper * 3.0f, req.radius_pixels_upper * 3.0f });
   // if (key.find("death_sea_mine") != std::string::npos)
   // return spawn_fx(r, "S6_EXPLODE_FX_7", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
 
@@ -447,14 +448,14 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   }
   //
   else if (key.find("death_exploder") != std::string::npos) {
-    pdesc.size_curve = { { 16, 16 }, { 0, 0 } };
+    pdesc.size_curve = { { req.radius_pixels_upper, req.radius_pixels_upper }, { 0, 0 } };
     pdesc.time_to_live_ms = static_cast<int>(0.75 * 1000);
     pdesc.random_radius_bound_lower = -req.radius_pixels_upper;
     pdesc.random_radius_bound_upper = req.radius_pixels_upper;
     pdesc.random_velocity_bound = 50;
     pdesc.velocity_in_dir = true;
     pdesc.make_darker_based_on_distance_from_center = true;
-    pdesc.start_colour = hex_to_srgb("#0096ff"); // death col
+    pdesc.start_colour = hex_to_srgb("#ffffff"); // death col
     pdesc.linear_scale = false;
   }
   //

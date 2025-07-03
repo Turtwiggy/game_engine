@@ -647,10 +647,10 @@ generate_island_life__base_island(entt::registry& r)
   // give the base island a lighthouse
   // const auto center_worldspace = 0.5f * (bb_c.br + bb_c.tl);
   // const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
-  const auto center_gridspace = glm::ivec2{ 0, 0 };
-  spawn_lighthouse(r, island_c, center_gridspace);
+  const auto island_center_gridspace = glm::ivec2{ -1, -1 }; // the island is not symmetrical
+  spawn_lighthouse(r, island_c, island_center_gridspace);
 
-  std::vector<std::string> animal_keys = {
+  const auto animal_keys = std::vector<std::string>{
     "actor_islanddweller_common_person", //
     "actor_islanddweller_animal_duck_0", //
     "actor_islanddweller_animal_duck_1", //

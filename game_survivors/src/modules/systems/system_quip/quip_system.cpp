@@ -103,7 +103,7 @@ update_quip_system(entt::registry& r, const float dt)
       const auto ss_pos_br = ImVec2{ ss_pos_tl.x + size.x, ss_pos_tl.y + size.y };
       draw_list->AddRectFilled({ ss_pos_tl.x - padding, ss_pos_tl.y - padding },
                                { ss_pos_br.x + padding, ss_pos_br.y + padding },
-                               IM_COL32(77, 101, 141, 200),
+                               IM_COL32(0, 0, 0, 200),
                                6);
 
       // add text

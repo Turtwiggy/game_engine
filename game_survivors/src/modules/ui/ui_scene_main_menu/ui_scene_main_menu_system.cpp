@@ -81,7 +81,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
     const auto draw_button = [&](std::shared_ptr<Cell>& cell, int my_col_index) {
       auto a_def = SelectableButtonDef{
-        .label = cell->name,
+        .display_str = cell->name,
+        .imgui_hash = "##" + cell->name,
         .size = button_size,
         .input = do_act,
         .cell = cell,
@@ -110,7 +111,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
       ImGui::SetCursorPos(tl);
 
       auto a_def = SelectableButtonDef{
-        .label = "##" + cell->name,
+        .display_str = "",
+        .imgui_hash = "##" + cell->name,
         .icon = "ICON_WAND",
         .icon_size = { 32, 32 },
         .size = icon_button_size,

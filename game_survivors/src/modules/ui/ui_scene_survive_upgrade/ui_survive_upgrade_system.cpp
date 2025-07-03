@@ -1,12 +1,16 @@
 #include "pch.hpp"
 
-#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
+#include "ui_survive_upgrade_components.hpp"
+#include "ui_survive_upgrade_helpers.hpp"
+#include "ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/std/vector/helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
+#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -14,15 +18,15 @@
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
-#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
-#include "ui_survive_upgrade_helpers.hpp"
 
 namespace game2d {
 
@@ -46,11 +50,12 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
-  auto& evts_c = SINGLE_Events::instance;
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
   GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
+  auto& evts_c = SINGLE_Events::instance;
 
 #if defined(_DEBUG)
+
   // const auto& scene_c = SINGLE_CurrentScene::instance;
   // if (scene_c.s == Scene::menu) {
   //   gesert_component<SINGLE_XpComponent>(r);
@@ -63,6 +68,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   //     init = true;
   //   }
   // }
+
   // Cheats..!! CHEATSS!!! CHEEEATTTSSSSSSS!!!!!!!
   {
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
@@ -94,13 +100,81 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
       ImGui::End();
     }
   }
+
+  /*
+ImGui::Begin("DebugPlayerInputs");
+{
+  const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
+  // for (const auto handle : controller_ui.handles)
+  //   ImGui::Text("Handle: %zu", (uint64)handle);
+
+  for (int i = 0; const auto& [e, player_c, input_c] : r.view<const PlayerComponent, const InputComponent>().each()) {
+    ImGui::PushID((uint32_t)e);
+
+    ImGui::Text("p%i lx %f ly %f", player_c.idx, input_c.lx, input_c.ly);
+
+    if (r.all_of<PlayerBoatComponent>(e)) {
+      ImGui::SameLine();
+      ImGui::Text("(boat)");
+
+      if (!r.all_of<MovementDirectComponent>(e))
+        r.emplace<MovementDirectComponent>(e);
+    }
+
+    if (r.all_of<MovementIslandComponent>(e)) {
+      ImGui::SameLine();
+      ImGui::Text("(islander)");
+    }
+    if (r.all_of<KeyboardComponent>(e)) {
+      ImGui::SameLine();
+      ImGui::Text("(keyboard)");
+    }
+    if (r.all_of<SteamControllerComponent>(e)) {
+      ImGui::SameLine();
+      auto& steam_c = r.get<SteamControllerComponent>(e);
+      ImGui::Text("(controller) handles: %i", (int)steam_c.handles.size());
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Control")) {
+      const auto view0 = r.view<SteamControllerComponent>(entt::exclude<Persistent>);
+      for (auto entity : view0)
+        r.remove<SteamControllerComponent>(entity);
+      const auto view1 = r.view<KeyboardComponent>();
+      for (auto entity : view1)
+        r.remove<KeyboardComponent>(entity);
+
+      // note:assign all handles to the player.
+      // (i.e. all controllers)
+      // only use for debug
+      SteamControllerComponent steam_c;
+      steam_c.handles = non_zero_handles(controller_ui.handles);
+      if (steam_c.handles.size() > 0)
+        r.emplace<SteamControllerComponent>(e, steam_c);
+      r.emplace<KeyboardComponent>(e);
+    }
+
+    ImGui::Separator();
+    ImGui::PopID();
+    i++;
+  }
+}
+ImGui::End();
+*/
+
 #endif
 
   // check the probabilities are mathing to 100%
   static_assert(sum_array_values() == 100);
 
+#if defined(_DEBUG)
+  const int max_num_players = 4;
+  const int num_active_players = 4;
+#else
   const int max_num_players = 4;
   const int num_active_players = non_zero_handles(steam_state_c.handles).size();
+#endif
+
   const auto text_col = ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
 
   if (ui_c.ui_states.size() == 0)
@@ -170,6 +244,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
       continue;
     }
+    ImGui::PushID((uint32_t)player_e);
 
     const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
     if (upgrades.size() == 0) {
@@ -177,6 +252,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
       // move horizontally
       player_ui_tl.x += player_ui_wh.x;
       player_ui_br.x += player_ui_wh.x;
+      ImGui::PopID();
 
       continue; // this player isnt upgrading
     }
@@ -188,7 +264,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     // update input
     auto& state_c = ui_c.ui_states[player_idx];
     state_c.actions.clear();
-    const auto input = generate_from_handle(r, steam_state_c.handles[player_idx]);
+    const auto input = r.get<const InputComponent>(player_e);
     process_input_for_ui(r, state_c, input);
 
     // make it so the user holds the confirm button
@@ -384,7 +460,9 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
       }
 
       SelectableButtonDef def{
-        .label = "##aquire_" + rarity_str + "_" + header_text,
+        .display_str = state_c.cells[card_idx]->name,
+        .imgui_hash = "##aquire_" + header_text + "_" + rarity_str,
+
         .size = card_ui_wh,
         .input = do_act,
         .cell = state_c.cells[card_idx],
@@ -416,6 +494,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     // move horizontally
     player_ui_tl.x += player_ui_wh.x;
     player_ui_br.x += player_ui_wh.x;
+    ImGui::PopID();
   }
 
   ImGui::End();

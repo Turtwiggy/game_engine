@@ -95,7 +95,8 @@ update_ui_back_button_system(entt::registry& r)
   auto& cell = ui_c.state.cells[0];
 
   SelectableButtonDef def{
-    .label = cell->name,
+    .display_str = cell->name,
+    .imgui_hash = "##" + cell->name,
     .size = button_size,
     .cell = cell,
     .active_cell = ui_c.state.active,

@@ -2,7 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "gameover_system.hpp"
-#include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/core/io/io_helpers.hpp"
 #include "modules/systems/system_gameover/gameover_components.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
@@ -67,7 +67,7 @@ update_gameover_system(entt::registry& r)
   //
   // lose condition: all players dead
   //
-  if (r.view<PlayerComponent>().size() == 0) {
+  if (r.view<PlayerBoatComponent>().size() == 0) {
     GameOverComponent gameover_c;
     gameover_c.win_condition = false;
     gameover_c.reason = "All players dead";

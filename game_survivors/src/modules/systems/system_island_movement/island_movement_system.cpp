@@ -15,6 +15,16 @@
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 
+namespace std {
+
+template<>
+struct hash<glm::ivec2>
+{
+  std::size_t operator()(const glm::ivec2& k) const { return (std::hash<int>()(k.x) ^ (std::hash<int>()(k.y) << 1)); }
+};
+
+} // namespace std
+
 namespace game2d {
 
 void
@@ -58,9 +68,16 @@ update_island_movement_system(entt::registry& r)
       if (is_player) {
         const auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
         const auto n_pos_adj = n_pos + glm::vec2{ tilesize, tilesize };
+        const std::unordered_map<glm::ivec2, std::string> spritemap{
+          { { 0, -1 }, "ARROW_UP" },
+          { { 0, 1 }, "ARROW_DOWN" },
+          { { 1, 0 }, "ARROW_RIGHT" },
+          { { -1, 0 }, "ARROW_LEFT" },
+        };
+
         draw_sprite(r,
                     Sprite{
-                      .sprite = "EMPTY",
+                      .sprite = spritemap.at(dir),
                       .pos = n_pos_adj,
                       .size = { 6, 6 },
                       .col = { 0.0f, 1.0f, 0.0f, 1.0f },

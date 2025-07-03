@@ -17,7 +17,7 @@ struct SINGLE_XpComponent
 #else
   int xp = 0;
 #endif
-  int xp_for_next_level = 10;
+  int xp_for_next_level = 15;
   int level = 1;
 };
 

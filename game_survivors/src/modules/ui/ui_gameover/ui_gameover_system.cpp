@@ -117,7 +117,8 @@ update_ui_gameover_system(entt::registry& r)
   const ImVec2 button_size = { 88.5f * font_scale, 25.0f * font_scale };
 
   SelectableButtonDef def{
-    .label = "To Menu",
+    .display_str = "To Menu",
+    .imgui_hash = "##tomenubutton",
     .size = button_size,
     .input = do_act,
     .cell = ui_c.state.cells[0], // only one button (continue)
