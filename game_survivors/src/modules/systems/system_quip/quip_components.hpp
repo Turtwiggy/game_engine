@@ -7,6 +7,7 @@ namespace game2d {
 struct RequestQuip
 {
   entt::entity thing_to_quip;
+  std::string message;
 };
 
 struct SINGLE_QuipSystem

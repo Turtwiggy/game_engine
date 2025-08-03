@@ -439,7 +439,7 @@ struct CardDataUI
 
 struct CardUIUpgradeComponent
 {
-  const float time_to_confirm_max = 0.4f;
+  const float time_to_confirm_max = 0.2f;
   float time_to_confirm_cur = 0.0f;
 };
 

@@ -31,6 +31,7 @@ land_player_on_island(entt::registry& r,
   r.emplace<PlayerComponent>(island_player_e);
   r.emplace<TeamComponent>(island_player_e, TeamComponent{ AvailableTeams::player });
   r.emplace<HealthComponent>(island_player_e, HealthComponent{ .max_hp = 3, .hp = 3 });
+  // r.emplace<CameraFollow>(island_player_e);
 
   // Add inputs to the island dweller.
   r.emplace<MovementIslandComponent>(island_player_e,

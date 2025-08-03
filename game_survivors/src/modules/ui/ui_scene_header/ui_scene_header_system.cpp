@@ -65,7 +65,7 @@ update_ui_scene_header_system(entt::registry& r)
   auto select_e = get_first<SINGLE_SelectSceneData>(r);
   if (select_e != entt::null) {
     txt_c.text = "Prepare";
-    h_c.icon = "ICON_WHEEL";
+    // h_c.icon = "ICON_WHEEL";
   }
 
   const auto& ri_c = SINGLE_RendererInfo::instance;

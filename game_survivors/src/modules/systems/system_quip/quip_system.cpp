@@ -5,8 +5,6 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/events/components.hpp"
-#include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/combat_core/components.hpp"
@@ -50,7 +48,11 @@ update_quip_system(entt::registry& r, const float dt)
 
     if (friendly_entity.size() > 0) {
       const auto rnd_quip_idx = engine::rand_det_s(rnd_quip.rng, 0, (int)friendly_entity.size());
-      create_empty<RequestQuip>(r, RequestQuip{ .thing_to_quip = friendly_entity[rnd_quip_idx] });
+      create_empty<RequestQuip>(r,
+                                RequestQuip{
+                                  .thing_to_quip = friendly_entity[rnd_quip_idx],
+                                  .message = "lets' go",
+                                });
     }
   }
 
@@ -77,7 +79,7 @@ update_quip_system(entt::registry& r, const float dt)
 
     WorldspaceTextComponent wst_c;
 
-    wst_c.layout = [&](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
+    wst_c.layout = [&, req](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
       auto* draw_list = ImGui::GetWindowDrawList();
       const auto ss_pos_tl = ImGui::GetCursorScreenPos();
 
@@ -95,7 +97,7 @@ update_quip_system(entt::registry& r, const float dt)
         text_col.a / 255.0f,
       };
 
-      std::string label = std::format("let's go!");
+      const std::string label = std::format("{}", req.message);
 
       // add a background
       const float padding = 4;

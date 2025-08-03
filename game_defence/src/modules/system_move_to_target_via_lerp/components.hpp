@@ -15,7 +15,6 @@ struct SetRotationAsDynamicTarget
   float offset = 0.0f;
 };
 
-// discrete will defini
 struct LerpToFixedTarget
 {
   glm::vec2 a{ 0.0f, 0.0f };

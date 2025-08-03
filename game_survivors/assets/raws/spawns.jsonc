@@ -20,18 +20,18 @@
     {
       "name": "wave", "time": { "start": 0, "stop": 1 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data": { "hp": 10, "max": 20, "num_per_spawn": 6} }, // puffer
-        { "key": "actor_enemy_melee_1",  "data": { "hp": 10, "max": 50, "num_per_spawn": 6} }, // horseshoe
-        { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} } // anglerfish (light source)
+        { "key": "actor_enemy_exploder", "data": { "hp": 10, "max": 10, "num_per_spawn": 5} }, // puffer
+        { "key": "actor_enemy_melee_1",  "data": { "hp": 10, "max": 20, "num_per_spawn": 5} }, // horseshoe
+        { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }  // anglerfish (light source)
       ]
     },
     {
       "name": "wave", "time": { "start": 1, "stop": 2 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data": { "hp": 20, "max": 30, "num_per_spawn": 6}}, // puffer
-        { "key": "actor_enemy_melee_1",  "data": { "hp": 20, "max": 40, "num_per_spawn": 6}}, // horseshoe
+        { "key": "actor_enemy_exploder", "data": { "hp": 20, "max": 20, "num_per_spawn": 5}},  // puffer
+        { "key": "actor_enemy_melee_1",  "data": { "hp": 20, "max": 20, "num_per_spawn": 5}},  // horseshoe
         { "key": "actor_enemy_melee_2",  "data": { "hp": 20, "max": 20, "num_per_spawn": 8}},  // hermit
-        { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} } // anglerfish (light source)
+        { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }  // anglerfish (light source)
 
       ]
     },

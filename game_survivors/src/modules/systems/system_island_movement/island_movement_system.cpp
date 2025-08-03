@@ -14,6 +14,7 @@
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
+#include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 
 namespace std {
 
@@ -79,7 +80,7 @@ update_island_movement_system(entt::registry& r)
                     Sprite{
                       .sprite = spritemap.at(dir),
                       .pos = n_pos_adj,
-                      .size = { 6, 6 },
+                      .size = { 12, 12 },
                       .col = { 0.0f, 1.0f, 0.0f, 1.0f },
                     });
       }
@@ -141,10 +142,14 @@ update_island_movement_system(entt::registry& r)
       // add to updated position.
       island_c.occupied_island_xy.push_back({ n_gp, e });
 
-      // update transform (should improve this)
+      // update transform
       auto new_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
       new_pos += glm::vec2{ tilesize, tilesize };
-      set_position(r, e, new_pos);
+      LerpToFixedTarget lerp_c;
+      lerp_c.a = pos;
+      lerp_c.b = new_pos;
+      lerp_c.speed = 10.0f;
+      r.emplace_or_replace<LerpToFixedTarget>(e, lerp_c);
 
       break; // only move in 1 dir
     }
