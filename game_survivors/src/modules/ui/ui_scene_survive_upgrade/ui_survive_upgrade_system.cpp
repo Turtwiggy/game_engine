@@ -271,7 +271,15 @@ ImGui::End();
     bool do_act = false;
     auto& card_ui_c = r.get_or_emplace<CardUIUpgradeComponent>(player_e);
     {
+      const bool do_act_down = has(input.button_s, ActionStateEnum::DOWN);
       const bool do_act_held = has(input.button_s, ActionStateEnum::HELD);
+      const bool do_act_release = has(input.button_s, ActionStateEnum::RELEASE);
+
+      // dont buy multiple upgrades if you hold a button
+      if (do_act_down)
+        card_ui_c.released_since_action = true;
+      if (do_act_release)
+        card_ui_c.released_since_action = true;
 
       // reset timer
       if (!do_act_held)
@@ -282,8 +290,11 @@ ImGui::End();
         card_ui_c.time_to_confirm_cur += dt;
 
       // if timer > threshold, do the act.
-      if (card_ui_c.time_to_confirm_cur >= card_ui_c.time_to_confirm_max)
+      if (card_ui_c.time_to_confirm_cur >= card_ui_c.time_to_confirm_max && card_ui_c.released_since_action) {
         do_act = true;
+        card_ui_c.released_since_action = false;
+        card_ui_c.time_to_confirm_cur = 0.0f;
+      }
     }
 
     // debug background

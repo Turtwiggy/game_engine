@@ -12,7 +12,7 @@ struct HullChoice
   bool confirmed = false;
 
   float confirm_held_time = 0.0f;
-  float confirm_held_time_max = 1.1f;
+  float confirm_held_time_max = 0.6f;
 
   float back_held_time = 0.0f;
   float back_held_time_max = 1.1f;
@@ -32,11 +32,11 @@ struct SelectUI : public DefaultUI
 struct SINGLE_SelectSceneData : public DefaultUI
 {
 #if defined(_DEBUG)
-  float countdown_max = 0.5f;
-  float countdown = 0.5f;
+  float countdown_max = 0.0f;
+  float countdown = 0.0f;
 #else
-  float countdown_max = 3.0f;
-  float countdown = 3.0f;
+  float countdown_max = 0.0f;
+  float countdown = 0.0f;
 #endif
 
   std::vector<SelectUI> player_ui_state;

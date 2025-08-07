@@ -148,7 +148,7 @@ update_island_movement_system(entt::registry& r)
       LerpToFixedTarget lerp_c;
       lerp_c.a = pos;
       lerp_c.b = new_pos;
-      lerp_c.speed = 10.0f;
+      lerp_c.speed = 15.0f;
       r.emplace_or_replace<LerpToFixedTarget>(e, lerp_c);
 
       break; // only move in 1 dir

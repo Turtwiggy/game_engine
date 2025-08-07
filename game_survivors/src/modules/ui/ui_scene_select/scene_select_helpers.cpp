@@ -73,9 +73,8 @@ update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c, cons
     }
     if (do_act_release || !do_act_held)
       ui_choice_state_c.confirm_held_time = 0.0f;
-    if (ui_choice_state_c.confirm_held_time >= ui_choice_state_c.confirm_held_time_max) {
+    if (ui_choice_state_c.confirm_held_time >= ui_choice_state_c.confirm_held_time_max)
       ui_choice_state_c.confirmed = true;
-    }
 
     if (do_back_held) {
       auto& held_time = ui_choice_state_c.back_held_time;

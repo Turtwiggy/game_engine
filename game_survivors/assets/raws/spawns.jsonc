@@ -39,7 +39,7 @@
       "name": "wave", "time": { "start": 2, "stop": 3 },
       "enemies": [
         { "key": "actor_enemy_exploder", "data": {"hp": 30, "max": 10, "num_per_spawn": 6}},    // puffer
-        { "key": "actor_enemy_melee_1",  "data": {"hp": 30, "max": 300, "num_per_spawn": 50}},  // horseshoe
+        { "key": "actor_enemy_melee_1",  "data": {"hp": 30, "max": 150, "num_per_spawn": 50}},  // horseshoe
         { "key": "actor_enemy_melee_2",  "data": {"hp": 30, "max": 10, "num_per_spawn": 8}},    // hermit
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }   // anglerfish (light source)
       ]

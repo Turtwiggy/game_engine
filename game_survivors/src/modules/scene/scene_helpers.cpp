@@ -66,9 +66,11 @@
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_helpers.hpp"
+#include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_components.hpp"
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
+
 
 namespace game2d {
 
@@ -456,6 +458,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_LevelUpUI>(r);
     create_empty<SINGLE_GameoverUI>(r);
     create_empty<RequestGameTrack>(r);
+    create_empty<SINGLE_InfoUI>(r);
 
     // Reset temporary gold
     auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);

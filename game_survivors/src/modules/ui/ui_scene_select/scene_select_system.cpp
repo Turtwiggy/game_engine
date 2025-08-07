@@ -255,6 +255,117 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
 };
 
 void
+draw_card_inner(entt::registry& r,
+                SINGLE_SelectSceneData& ui_c,
+                const SINGLE_SteamControllerGameState& steam_ui_c,
+                const SINGLE_SteamControllers& steam_c,
+                const InputHandle_t handle,
+                SelectUI& player_ui_c,
+                HullChoice& player_state_c,
+                const int player_idx,
+                const ImVec2 button_size,
+                const bool do_act,
+                const ImVec2 main_quarter_tl,
+                const ImVec2 main_quarter_br,
+                const engine::SRGBColour my_player_col,
+                ImDrawList* draw_list,
+                ImFont* font)
+{
+
+  // Draw categories + values
+  const auto space_between_buttons = 10;
+  auto button_tl = main_quarter_tl;
+  button_tl.y += 10; // y padding on the first button
+  button_tl.x -= 10; // put it outside the frame?
+
+  for (int i = 0; i < player_ui_c.state.cells.size(); i++) {
+    auto& base = player_ui_c.state.cells[i];
+    const bool active = base == player_ui_c.state.active;
+
+    ImGui::SetCursorPos(button_tl);
+
+    SelectableButtonDef def{
+      .display_str = base->name,
+      .imgui_hash = "##" + base->name + std::to_string(player_idx),
+      .size = button_size,
+      .input = do_act,
+      .cell = base,
+      .active_cell = player_ui_c.state.active,
+      .font = font,
+    };
+
+    if (selectable_button(r, def))
+      base->action();
+
+    const float pos_l = main_quarter_tl.x + button_size.x;
+    const float pos_w = main_quarter_br.x - pos_l;
+    const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
+    draw_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
+
+    if (i + 1 < player_ui_c.state.cells.size())
+      button_tl.y += button_size.y + space_between_buttons;
+
+    // begin info section.
+    const auto box_tl = ImVec2{ main_quarter_tl.x, button_tl.y + button_size.y + space_between_buttons };
+    const auto box_br = main_quarter_br;
+    const auto box_wh = ImVec2{ box_br.x - box_tl.x, box_br.y - box_tl.y };
+    draw_stats(r, box_tl, box_wh, player_ui_c);
+
+    // draw confirm timer.
+    auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
+    auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
+    if (back_str == "...")
+      back_str = "ESC";
+    if (confirm_str == "...")
+      confirm_str = "ENTER";
+
+    const auto ready_text = std::format("Hold {} to ready.", confirm_str);
+    const auto back_text = std::format("Hold {} for main menu.", back_str);
+    const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
+
+    // draw a bar that represents ready percentage
+    auto my_player_col_active = my_player_col;
+    auto my_player_col_inactive = my_player_col;
+    my_player_col_inactive.a = 0.25f * 255;
+    const auto im_player_col_active = convert_my_to_im(my_player_col_active);
+    const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
+
+    const auto text_size = ImGui::CalcTextSize("A");
+    const auto draw_bar = [&](ImVec2 pos, const float percent, const float bar_offset) {
+      const float bar_height = text_size.y;
+      const float bar_width = box_wh.x - 2.0f * bar_offset;
+      const float bar_rounding = 10.0f;
+      const ImDrawFlags flags = ImDrawFlags_RoundCornersRight;
+
+      // bar bg
+      const auto full_bar_tl = pos;
+      const auto full_bar_br = ImVec2(full_bar_tl.x + bar_width, full_bar_tl.y + bar_height);
+      draw_list->AddRectFilled(full_bar_tl, full_bar_br, im_player_col_inactive, bar_rounding, flags);
+
+      // bar fg
+      const auto bar_tl = pos;
+      const auto bar_br = ImVec2(bar_tl.x + percent * bar_width, bar_tl.y + bar_height);
+      draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_active, bar_rounding, flags);
+    };
+
+    const float percent_0 = player_state_c.confirm_held_time / player_state_c.confirm_held_time_max;
+    const float percent_1 = player_state_c.back_held_time / player_state_c.back_held_time_max;
+    const float bar_offset = (box_wh.x * 0.1f);
+
+    const auto text_tl_0 = ImVec2{ box_tl.x + bar_offset, box_br.y - 40 - 6 };
+    const auto text_tl_1 = ImVec2{ box_tl.x + bar_offset, box_br.y + text_size.y - 40 };
+
+    draw_bar(text_tl_0, percent_0, bar_offset);
+    ImGui::SetCursorPos(text_tl_0);
+    ImGui::Text("%s", ready_text.c_str());
+
+    draw_bar(text_tl_1, percent_1, bar_offset);
+    ImGui::SetCursorPos(text_tl_1);
+    ImGui::Text("%s", back_text.c_str());
+  }
+}
+
+void
 update_player_select_ui(entt::registry& r,
                         SINGLE_RendererInfo& ri_c,
                         SINGLE_SelectSceneData& ui_c,
@@ -266,7 +377,7 @@ update_player_select_ui(entt::registry& r,
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-  const auto font_enum = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+  const auto font_enum = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
   const auto font_size = (float)font_enum;
   auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
@@ -278,7 +389,7 @@ update_player_select_ui(entt::registry& r,
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
-  static float x_pad = 10;
+  static float x_pad = 20;
   // imgui_draw_float("x_pad", x_pad);
 
   imgui_begin("SelectShipUI", ImGuiWindowFlags_NoInputs);
@@ -290,7 +401,7 @@ update_player_select_ui(entt::registry& r,
   const auto center_x = window_tl.x + 0.5f * window_wh.x;
   const auto center_y = player_wh.y * 0.5f;
   auto first_tl_x = center_x;
-  first_tl_x -= num_active_players * (0.5f * player_wh.x);
+  first_tl_x -= max_num_players * (0.5f * player_wh.x);
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
@@ -299,8 +410,8 @@ update_player_select_ui(entt::registry& r,
     const bool joined = handle_is_joined(steam_ui_c, handle);
 
     // always show one player. player_idx either using keyboard or controller
-    if (player_idx != 0 && !(connected && joined))
-      break;
+    // if (player_idx != 0 && !(connected && joined))
+    //   break;
 
     auto& player_ui_c = ui_c.player_ui_state[player_idx];
     auto& player_state_c = ui_c.player_choice_state[player_idx];
@@ -308,6 +419,7 @@ update_player_select_ui(entt::registry& r,
     auto& active_cell = player_ui_c.state.active;
     auto& h_value = dynamic_cast<OptionsCell*>(active_cell.get())->value;
     const ImVec2 button_size = { 100.0f * ui_scaling, 24.0f * ui_scaling };
+
     const auto& s = player_ui_c.state.actions;
     const bool do_act = std::find(s.begin(), s.end(), UIAction::SELECT) != s.end();
     const bool r_pressed = std::find(s.begin(), s.end(), UIAction::NAV_MOVE_R) != s.end();
@@ -318,7 +430,7 @@ update_player_select_ui(entt::registry& r,
       h_value++;
 
     // const auto width = 300;
-    const auto height = 420 * ui_scaling; // or 1/6th of the screen
+    const auto height = 480 * ui_scaling; // or 1/6th of the screen
 
     // if pivot is 0, the top of the ui would be rendered at the center of the screen
     // if pivot is 1. the bot of the ui would be rendered at the center of the screen
@@ -338,101 +450,33 @@ update_player_select_ui(entt::registry& r,
     draw_list->AddRectFilled(main_quarter_tl, main_quarter_br, im_window_bg_col, 6);
     draw_list->AddRect(main_quarter_tl, main_quarter_br, im_player_col, 6, ImDrawFlags_RoundCornersAll, 2);
 
-    // Draw categories + values
-    const auto space_between_buttons = 10;
-    auto button_tl = main_quarter_tl;
-    button_tl.y += 10; // y padding on the first button
-    button_tl.x -= 10; // put it outside the frame?
-    for (int i = 0; i < player_ui_c.state.cells.size(); i++) {
-      auto& base = player_ui_c.state.cells[i];
-      const bool active = base == player_ui_c.state.active;
+    if ((connected && joined) || player_idx == 0)
 
-      ImGui::SetCursorPos(button_tl);
+      draw_card_inner(r,
+                      ui_c,
+                      steam_ui_c,
+                      steam_c,
+                      handle,
+                      player_ui_c,
+                      player_state_c,
+                      player_idx,
+                      button_size,
+                      do_act,
+                      main_quarter_tl,
+                      main_quarter_br,
+                      my_player_col,
+                      draw_list,
+                      font);
 
-      SelectableButtonDef def{
-        .display_str = base->name,
-        .imgui_hash = "##" + base->name + std::to_string(player_idx),
-        .size = button_size,
-        .input = do_act,
-        .cell = base,
-        .active_cell = player_ui_c.state.active,
-        .font = font,
-      };
-      if (selectable_button(r, def))
-        base->action();
-
-      const float pos_l = main_quarter_tl.x + button_size.x;
-      const float pos_w = main_quarter_br.x - pos_l;
-      const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
-      draw_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
-
-      if (i + 1 < player_ui_c.state.cells.size())
-        button_tl.y += button_size.y + space_between_buttons;
-
-      //
-      // begin info section.
-      //
-
-      const auto box_tl = ImVec2{ main_quarter_tl.x, button_tl.y + button_size.y + space_between_buttons };
-      const auto box_br = main_quarter_br;
-      const auto box_wh = ImVec2{ box_br.x - box_tl.x, box_br.y - box_tl.y };
-      draw_stats(r, box_tl, box_wh, player_ui_c);
-
-      //
-      // draw confirm timer.
-      //
-
-      auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
-      auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
-      if (back_str == "...")
-        back_str = "ESC";
-      if (confirm_str == "...")
-        confirm_str = "ENTER";
-
-      const auto ready_text = std::format("Hold {} to ready.", confirm_str);
-      const auto back_text = std::format("Hold {} for main menu.", back_str);
-      const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
-
-      // draw a bar that represents ready percentage
-      auto my_player_col_active = my_player_col;
-      auto my_player_col_inactive = my_player_col;
-      my_player_col_inactive.a = 0.25f * 255;
-      const auto im_player_col_active = convert_my_to_im(my_player_col_active);
-      const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
-
-      const auto text_size = ImGui::CalcTextSize("A");
-      const auto draw_bar = [&](ImVec2 pos, const float percent, const float bar_offset) {
-        const float bar_height = text_size.y;
-        const float bar_width = box_wh.x - 2.0f * bar_offset;
-        const float bar_rounding = 10.0f;
-        const ImDrawFlags flags = ImDrawFlags_RoundCornersRight;
-
-        // bar bg
-        const auto full_bar_tl = pos;
-        const auto full_bar_br = ImVec2(full_bar_tl.x + bar_width, full_bar_tl.y + bar_height);
-        draw_list->AddRectFilled(full_bar_tl, full_bar_br, im_player_col_inactive, bar_rounding, flags);
-
-        // bar fg
-        const auto bar_tl = pos;
-        const auto bar_br = ImVec2(bar_tl.x + percent * bar_width, bar_tl.y + bar_height);
-        draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_active, bar_rounding, flags);
-      };
-
-      const float percent_0 = player_state_c.confirm_held_time / player_state_c.confirm_held_time_max;
-      const float percent_1 = player_state_c.back_held_time / player_state_c.back_held_time_max;
-      const float bar_offset = (box_wh.x * 0.1f);
-
-      const auto text_tl_0 = ImVec2{ box_tl.x + bar_offset, box_br.y - 40 - 6 };
-      const auto text_tl_1 = ImVec2{ box_tl.x + bar_offset, box_br.y + text_size.y - 40 };
-
-      draw_bar(text_tl_0, percent_0, bar_offset);
-      ImGui::SetCursorPos(text_tl_0);
-      ImGui::Text("%s", ready_text.c_str());
-
-      draw_bar(text_tl_1, percent_1, bar_offset);
-      ImGui::SetCursorPos(text_tl_1);
-      ImGui::Text("%s", back_text.c_str());
-    }
+    else {
+      const auto text = std::string("Connect Controller in Menu to join!");
+      const auto width = main_quarter_br.x - main_quarter_tl.x;
+      const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, width, text.c_str());
+      auto center = ImVec2{ main_quarter_tl.x + 0.5f * main_quarter_wh.x, main_quarter_tl.y + 0.5f * main_quarter_wh.y };
+      center.x -= 0.5f * text_size.x;
+      center.y -= 0.5f * text_size.y;
+      draw_list->AddText(font, font_size, center, im_player_col, text.c_str());
+    };
 
     // move horizontally
     first_tl_x += player_wh.x;
