@@ -14,6 +14,7 @@
 #include "modules/events/event_island_to_boat/island_to_boat_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
+#include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_components.hpp"
 
 namespace game2d {
 
@@ -23,6 +24,11 @@ update_island_return_to_boat_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+  GET_FIRST_OR_RETURN(SINGLE_InfoUI, r, onboarding_e, onboarding_c);
+
+  // note: if the onboarding screen is open, ignore this system.
+  if (!onboarding_c.complete)
+    return;
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 

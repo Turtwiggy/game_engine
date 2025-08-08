@@ -7,6 +7,7 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/core/camera/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
@@ -31,7 +32,7 @@ land_player_on_island(entt::registry& r,
   r.emplace<PlayerComponent>(island_player_e);
   r.emplace<TeamComponent>(island_player_e, TeamComponent{ AvailableTeams::player });
   r.emplace<HealthComponent>(island_player_e, HealthComponent{ .max_hp = 3, .hp = 3 });
-  // r.emplace<CameraFollow>(island_player_e);
+  r.emplace<CameraFollow>(island_player_e);
 
   // Add inputs to the island dweller.
   r.emplace<MovementIslandComponent>(island_player_e,

@@ -7,13 +7,16 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/scene/scene_components.hpp"
@@ -271,6 +274,7 @@ draw_card_inner(entt::registry& r,
                 ImDrawList* draw_list,
                 ImFont* font)
 {
+  const auto& ri_c = SINGLE_RendererInfo::instance;
 
   // Draw categories + values
   const auto space_between_buttons = 10;
@@ -319,9 +323,9 @@ draw_card_inner(entt::registry& r,
     if (confirm_str == "...")
       confirm_str = "ENTER";
 
-    const auto ready_text = std::format("Hold {} to ready.", confirm_str);
-    const auto back_text = std::format("Hold {} for main menu.", back_str);
-    const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
+    const auto ready_text = std::format("Hold {}", confirm_str);
+    const auto back_text = std::format("Hold {}", back_str);
+    // const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
 
     // draw a bar that represents ready percentage
     auto my_player_col_active = my_player_col;
@@ -330,37 +334,67 @@ draw_card_inner(entt::registry& r,
     const auto im_player_col_active = convert_my_to_im(my_player_col_active);
     const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
 
-    const auto text_size = ImGui::CalcTextSize("A");
-    const auto draw_bar = [&](ImVec2 pos, const float percent, const float bar_offset) {
-      const float bar_height = text_size.y;
-      const float bar_width = box_wh.x - 2.0f * bar_offset;
-      const float bar_rounding = 10.0f;
-      const ImDrawFlags flags = ImDrawFlags_RoundCornersRight;
+    const float bar_rounding = 0.0f;
+    const auto my_player_col = default_player_colours[player_idx];
+    const auto im_player_col = convert_my_to_im(my_player_col);
+
+    const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
+      const ImVec2 bar_wh = bar_br - bar_tl;
+
+      // draw a box around the bar
+      draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
 
       // bar bg
-      const auto full_bar_tl = pos;
-      const auto full_bar_br = ImVec2(full_bar_tl.x + bar_width, full_bar_tl.y + bar_height);
-      draw_list->AddRectFilled(full_bar_tl, full_bar_br, im_player_col_inactive, bar_rounding, flags);
+      draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
 
       // bar fg
-      const auto bar_tl = pos;
-      const auto bar_br = ImVec2(bar_tl.x + percent * bar_width, bar_tl.y + bar_height);
-      draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_active, bar_rounding, flags);
+      float x = bar_tl.x + percent * bar_wh.x;
+      const auto partial_bar_br = ImVec2(x, bar_br.y);
+      ImU32 col_l = im_player_col_active;
+      ImU32 col_r = im_player_col_inactive;
+      draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
     };
 
     const float percent_0 = player_state_c.confirm_held_time / player_state_c.confirm_held_time_max;
     const float percent_1 = player_state_c.back_held_time / player_state_c.back_held_time_max;
     const float bar_offset = (box_wh.x * 0.1f);
 
-    const auto text_tl_0 = ImVec2{ box_tl.x + bar_offset, box_br.y - 40 - 6 };
-    const auto text_tl_1 = ImVec2{ box_tl.x + bar_offset, box_br.y + text_size.y - 40 };
+    const auto text_size = ImGui::CalcTextSize("A");
+    const auto bar_wh = ImVec2{ box_wh.x, text_size.y };
+    const auto bar_tl_0 = ImVec2{ box_tl.x + bar_offset, box_br.y - 40 - 6 };
+    const auto bar_tl_1 = ImVec2{ box_tl.x + bar_offset, box_br.y + bar_wh.y - 40 };
+    const auto bar_br_0 = ImVec2{ bar_tl_0.x + bar_wh.x - 2.0f * bar_offset, bar_tl_0.y + bar_wh.y };
+    const auto bar_br_1 = ImVec2{ bar_tl_1.x + bar_wh.x - 2.0f * bar_offset, bar_tl_1.y + bar_wh.y };
 
-    draw_bar(text_tl_0, percent_0, bar_offset);
-    ImGui::SetCursorPos(text_tl_0);
+    draw_bar(bar_tl_0, bar_br_0, percent_0);
+
+    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "kenneynl_gameicons")->id;
+    const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
+    const ImVec2 icon_size{ bar_wh.y, bar_wh.y };
+
+    // tick icon
+    {
+      ImGui::SetCursorPos(bar_tl_0);
+      const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_TICK"s);
+      ImGui::Image(im_id, icon_size, icon_tl, icon_br);
+    }
+    const auto ready_text_size = ImGui::CalcTextSize(ready_text.c_str());
+    auto center_text_x = 0.5f * (bar_tl_0.x + bar_br_0.x);
+    center_text_x -= 0.5f * ready_text_size.x;
+    ImGui::SetCursorPos({ center_text_x, bar_tl_0.y });
     ImGui::Text("%s", ready_text.c_str());
 
-    draw_bar(text_tl_1, percent_1, bar_offset);
-    ImGui::SetCursorPos(text_tl_1);
+    draw_bar(bar_tl_1, bar_br_1, percent_1);
+    // cross icon
+    {
+      ImGui::SetCursorPos(bar_tl_1);
+      const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_CROSS"s);
+      ImGui::Image(im_id, icon_size, icon_tl, icon_br);
+    }
+    const auto back_text_size = ImGui::CalcTextSize(back_text.c_str());
+    auto back_text_x = 0.5f * (bar_tl_1.x + bar_br_1.x);
+    back_text_x -= 0.5f * back_text_size.x;
+    ImGui::SetCursorPos({ back_text_x, bar_tl_1.y });
     ImGui::Text("%s", back_text.c_str());
   }
 }
@@ -378,7 +412,6 @@ update_player_select_ui(entt::registry& r,
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   const auto font_enum = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  const auto font_size = (float)font_enum;
   auto* font = get_inter_font(r, font_enum);
   ImGui::PushFont(font);
 
@@ -389,13 +422,13 @@ update_player_select_ui(entt::registry& r,
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
-  static float x_pad = 20;
+  static float x_pad = 15;
   // imgui_draw_float("x_pad", x_pad);
 
   imgui_begin("SelectShipUI", ImGuiWindowFlags_NoInputs);
   const ImVec2 window_tl = ImGui::GetWindowPos();
   const ImVec2 window_wh = ImGui::GetWindowSize();
-  const ImVec2 player_wh = { window_wh.x / max_num_players, window_wh.y };
+  const ImVec2 player_wh = { window_wh.x / (float)max_num_players, window_wh.y };
 
   // center it.
   const auto center_x = window_tl.x + 0.5f * window_wh.x;
@@ -435,11 +468,8 @@ update_player_select_ui(entt::registry& r,
     // if pivot is 0, the top of the ui would be rendered at the center of the screen
     // if pivot is 1. the bot of the ui would be rendered at the center of the screen
     const auto pivot = 0.35f;
-
     const auto main_quarter_tl = ImVec2{ first_tl_x + x_pad, center_y - (height * pivot) };
-    const auto main_quarter_wh = ImVec2{ player_wh.x - 2.0f * x_pad, height };
-    const auto main_quarter_br =
-      ImVec2{ main_quarter_tl.x + main_quarter_wh.x - x_pad, main_quarter_tl.y + main_quarter_wh.y };
+    const auto main_quarter_br = ImVec2{ main_quarter_tl.x + player_wh.x - 2.0f * x_pad, main_quarter_tl.y + height };
 
     auto* draw_list = ImGui::GetWindowDrawList();
 
@@ -469,13 +499,17 @@ update_player_select_ui(entt::registry& r,
                       font);
 
     else {
-      const auto text = std::string("Connect Controller in Menu to join!");
+      const auto text = std::string("N/A\n(Connect in Menu)");
       const auto width = main_quarter_br.x - main_quarter_tl.x;
-      const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, width, text.c_str());
-      auto center = ImVec2{ main_quarter_tl.x + 0.5f * main_quarter_wh.x, main_quarter_tl.y + 0.5f * main_quarter_wh.y };
+      const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, FLT_MAX, text.c_str());
+
+      auto center = ImVec2{
+        main_quarter_tl.x + 0.5f * (main_quarter_br.x - main_quarter_tl.x),
+        main_quarter_tl.y + 0.5f * (main_quarter_br.y - main_quarter_tl.y),
+      };
       center.x -= 0.5f * text_size.x;
       center.y -= 0.5f * text_size.y;
-      draw_list->AddText(font, font_size, center, im_player_col, text.c_str());
+      draw_list->AddText(font, font->FontSize, center, im_player_col, text.c_str());
     };
 
     // move horizontally
@@ -564,9 +598,10 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
 
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2{ 0.5f, 0.5f });
   update_countdown(ui_c, everyone_confirmed, dt);
-  if (everyone_confirmed)
+  if (everyone_confirmed) {
     update_countdown_ui(r, ui_c);
-  update_countdown_to_next_scene(r, ui_c, hulls_c.hulls);
+    update_countdown_to_next_scene(r, ui_c, hulls_c.hulls);
+  }
 
   ImGui::PopStyleVar();
 }

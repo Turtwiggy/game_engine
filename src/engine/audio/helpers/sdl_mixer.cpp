@@ -29,7 +29,7 @@ stop_all_audio(entt::registry& r)
 {
   const auto& view = r.view<AudioSource>();
   for (const auto& [e, source] : view.each()) {
-    Mix_FadeOutChannel(source.channel, 1000);
+    Mix_FadeOutChannel(source.channel, 200);
   }
 };
 
