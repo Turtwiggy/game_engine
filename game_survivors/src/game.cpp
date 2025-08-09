@@ -88,6 +88,7 @@
 #include "modules/systems/system_upgrade_hp_max/upgrade_hp_max_system.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_system.hpp"
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_system.hpp"
+#include "modules/ui/ui_ability_system/ui_ability_system.hpp"
 #include "modules/ui/ui_audio/system.hpp"
 #include "modules/ui/ui_back_button/ui_back_button_system.hpp"
 #include "modules/ui/ui_blur/ui_blur_system.hpp"
@@ -403,7 +404,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::survive) {
     update_ui_scene_survive_system(r);
     update_ui_survive_objectives_system(r);
-    update_ui_survive_onboarding_system(r, dt);
+    // update_ui_survive_onboarding_system(r, dt);
     update_ui_survive_timer_system(r);
     update_ui_survive_info_system(r);
     update_ui_survive_hp_bars_system(r);
@@ -411,7 +412,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_upgrade_system(r, dt);
     update_ui_gameover_system(r);
     update_ui_land_on_island_popup_system(r);
-    // update_ui_ability_system(r);
+    update_ui_ability_system(r);
   }
 
 #if defined(_DEBUG)

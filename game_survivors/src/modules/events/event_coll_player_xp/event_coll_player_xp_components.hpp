@@ -4,6 +4,7 @@
 
 namespace game2d {
 
+// Attached to a player
 struct XpComponent
 {
   bool levelup = false;

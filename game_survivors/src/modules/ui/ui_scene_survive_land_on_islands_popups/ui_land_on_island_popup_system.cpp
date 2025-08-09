@@ -55,7 +55,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
 
       auto handle = steam_c.handles[player_c.idx];
       auto confirm_button_str = get_confirm_button_str(r, handle);
-      ImGui::Text("%s", std::format("Press {} (to land)", confirm_button_str).c_str());
+      ImGui::Text("%s", std::format("Press {} (land on island)", confirm_button_str).c_str());
 
       ImGui::PopID();
       break;
@@ -74,12 +74,17 @@ update_ui_land_on_island_popup_system(entt::registry& r)
 
       auto boat_pos = get_position(r, boat_e);
       const auto ss_pos = worldspace_to_screenspace(r, boat_pos);
-      ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y });
 
       const auto player_idx = r.get<PlayerComponent>(boat_e).idx;
       const auto handle = steam_c.handles[0];
       const auto confirm_button_str = get_back_button_str(r, handle);
-      ImGui::Text("%s", std::format("Press {} (to boat)", confirm_button_str).c_str());
+      const auto text_size = ImGui::CalcTextSize("A");
+
+      ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y });
+      ImGui::Text("%s", std::format("Use DPAD (move)", confirm_button_str).c_str());
+
+      ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y + text_size.y });
+      ImGui::Text("%s", std::format("Press {} (return to boat)", confirm_button_str).c_str());
     }
   }
 
