@@ -48,9 +48,9 @@ update_island_movement_system(entt::registry& r)
     const bool move_u = has(input_c.dpad_u, ActionStateEnum::DOWN);
     const bool move_d = has(input_c.dpad_d, ActionStateEnum::DOWN);
 
-    const auto tilesize = SINGLE_Islands::instance.tilesize;
     const auto island_e = movement_c.island_e;
     auto& island_c = r.get<DebugContoursComponent>(island_e);
+    const auto tilesize = SINGLE_Islands::instance.tilesize;
 
     const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
     const auto pos_adj = pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };

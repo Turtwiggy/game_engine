@@ -2,6 +2,7 @@
 
 #include "ui_survive_onboarding.hpp"
 #include "ui_survive_onboarding_components.hpp"
+#include "ui_survive_onboarding_helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
@@ -199,13 +200,7 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
     const ImVec2 bar_wh = confirm_br - confirm_tl;
     draw_bar(confirm_tl, confirm_br, percent);
 
-    std::string confirm_str = "...";
-    if (connected && joined)
-      confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
-    if (confirm_str == "...")
-      confirm_str = "ENTER";
-
-    auto ready_text = std::format("Hold {}", confirm_str);
+    auto ready_text = std::format("Hold {}", get_confirm_button_str(r, handle));
     if (player_idx != 0 && !joined)
       ready_text = "Not connected";
 

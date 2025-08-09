@@ -26,6 +26,7 @@
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
+#include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -316,15 +317,8 @@ draw_card_inner(entt::registry& r,
     draw_stats(r, box_tl, box_wh, player_ui_c);
 
     // draw confirm timer.
-    auto back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
-    auto confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
-    if (back_str == "...")
-      back_str = "ESC";
-    if (confirm_str == "...")
-      confirm_str = "ENTER";
-
-    const auto ready_text = std::format("Hold {}", confirm_str);
-    const auto back_text = std::format("Hold {}", back_str);
+    const auto ready_text = std::format("Hold {}", get_confirm_button_str(r, handle));
+    const auto back_text = std::format("Hold {}", get_back_button_str(r, handle));
     // const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
 
     // draw a bar that represents ready percentage

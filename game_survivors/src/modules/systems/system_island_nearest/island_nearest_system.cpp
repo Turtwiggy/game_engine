@@ -1,8 +1,8 @@
 #include "pch.hpp"
 
-#include "island_nearest_system.hpp"
-
+#include "island_nearest_components.hpp"
 #include "island_nearest_helpers.hpp"
+#include "island_nearest_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
@@ -13,6 +13,7 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -62,6 +63,8 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
       const auto pos_adj = pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
       const auto gridpos = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
       const auto n_gpos = engine::grid::get_neighbour_gridpos_with_diagonals(gridpos);
+      auto& nearest_c = r.get_or_emplace<IslandNearestComponent>(e);
+      nearest_c.landable_positions.clear();
 
       for (const auto [grid_dir, n_gp] : n_gpos) {
         const auto id = engine::encode_cantor_pairing_function(n_gp.x, n_gp.y);
@@ -86,14 +89,22 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
         // draw a sprite indicating you can land...
         auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
         n_pos += glm::vec2{ tilesize, tilesize };
+
+        // not sure about using player_c.idx
+        auto col = default_player_colours[player_c.idx];
+
         draw_sprite(r,
                     Sprite{
                       .sprite = "EMPTY",
                       .pos = n_pos,
                       .size = { 5, 5 },
                       .z_idx = ZLayer::FOREGROUND,
-                      .col = { 1.0f, 0.0f, 1.0f, 0.3f },
+                      // .col = { 1.0f, 0.0f, 1.0f, 0.3f },
+                      .col = col,
                     });
+
+        // keep track of landable positions
+        nearest_c.landable_positions.push_back(n_pos);
 
         // no inputs.
         if (!has(player_input_c.button_s, ActionStateEnum::DOWN))
@@ -101,6 +112,7 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
 
         const auto boat_e = e;
         land_player_on_island(r, island_c, n_gp, boat_e, island_e);
+        nearest_c.landable_positions.clear();
 
         break; // give movement to one thing
       }
