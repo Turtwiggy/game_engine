@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "ui_land_on_island_popup_helpers.hpp"
 #include "ui_land_on_island_popup_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -7,7 +8,9 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/camera/helpers.hpp"
+#include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/core/ui/ui_common_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_components.hpp"
@@ -22,6 +25,11 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   ZoneScoped;
 #endif
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+
+  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
+  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+  auto* font = get_inter_font(r, font_enum);
+  ImGui::PushFont(font);
 
   const auto& ri = SINGLE_RendererInfo::instance;
   ImGuiWindowFlags flags = 0;
@@ -49,16 +57,17 @@ update_ui_land_on_island_popup_system(entt::registry& r)
         continue; // not interested.
       ImGui::PushID(static_cast<uint32_t>(e));
 
-      auto wsp = nearest_c.landable_positions[0];
-      const auto ss_pos = worldspace_to_screenspace(r, wsp);
-      ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y });
+      const auto handle = steam_c.handles[player_c.idx];
+      const auto confirm_button_str = get_confirm_button_str(r, handle);
+      const auto label = std::format("Press {} (land on island)", confirm_button_str);
 
-      auto handle = steam_c.handles[player_c.idx];
-      auto confirm_button_str = get_confirm_button_str(r, handle);
-      ImGui::Text("%s", std::format("Press {} (land on island)", confirm_button_str).c_str());
+      const auto wsp = nearest_c.landable_positions[0];
+      const auto wsp_ss = worldspace_to_screenspace(r, wsp);
+      const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
+
+      draw_popup(r, ss_pos_tl, label, font);
 
       ImGui::PopID();
-      break;
     }
   }
 
@@ -71,24 +80,25 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       auto boat_e = movement_c.boat_e;
       if (boat_e == entt::null)
         continue;
+      ImGui::PushID(static_cast<uint32_t>(e));
 
-      auto boat_pos = get_position(r, boat_e);
-      const auto ss_pos = worldspace_to_screenspace(r, boat_pos);
+      const auto boat_pos = get_position(r, boat_e);
+      const auto wsp_ss = worldspace_to_screenspace(r, boat_pos);
+      const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
 
       const auto player_idx = r.get<PlayerComponent>(boat_e).idx;
       const auto handle = steam_c.handles[0];
       const auto confirm_button_str = get_back_button_str(r, handle);
-      const auto text_size = ImGui::CalcTextSize("A");
+      const auto label = std::format("Use DPAD (move)\nPress {} (return to boat)", confirm_button_str);
 
-      ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y });
-      ImGui::Text("%s", std::format("Use DPAD (move)", confirm_button_str).c_str());
+      draw_popup(r, ss_pos_tl, label, font);
 
-      ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y + text_size.y });
-      ImGui::Text("%s", std::format("Press {} (return to boat)", confirm_button_str).c_str());
+      ImGui::PopID();
     }
   }
 
   ImGui::End();
+  ImGui::PopFont();
 }
 
 } // namespace game2d

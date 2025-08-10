@@ -12,6 +12,7 @@
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/systems/system_island_ai/island_ai_components.hpp"
+#include "modules/ui/ui_scene_survive_land_on_islands_popups/ui_land_on_island_popup_helpers.hpp"
 #include "modules/ui/ui_worldspace_text/components.hpp"
 
 namespace game2d {
@@ -90,27 +91,8 @@ update_quip_system(entt::registry& r, const float dt)
       auto* font = get_inter_font(r, font_enum);
       ImGui::PushFont(font);
 
-      const auto im_crit_col = ImVec4{
-        text_col.r / 255.0f,
-        text_col.g / 255.0f,
-        text_col.b / 255.0f,
-        text_col.a / 255.0f,
-      };
-
       const std::string label = std::format("{}", req.message);
-
-      // add a background
-      const float padding = 4;
-      const auto size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, label.c_str());
-      const auto ss_pos_br = ImVec2{ ss_pos_tl.x + size.x, ss_pos_tl.y + size.y };
-      draw_list->AddRectFilled({ ss_pos_tl.x - padding, ss_pos_tl.y - padding },
-                               { ss_pos_br.x + padding, ss_pos_br.y + padding },
-                               IM_COL32(0, 0, 0, 200),
-                               6);
-
-      // add text
-      ImGui::SetCursorScreenPos(ss_pos_tl);
-      ImGui::TextColored(im_crit_col, "%s", label.c_str());
+      draw_popup(r, ss_pos_tl, label, font);
 
       ImGui::PopFont();
     };

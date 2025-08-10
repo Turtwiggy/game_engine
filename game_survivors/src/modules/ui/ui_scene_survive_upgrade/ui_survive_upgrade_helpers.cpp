@@ -49,7 +49,17 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     };
 
     const auto weapons_e = get_weapons(r, player_e);
-    // const auto weapon_e = weapons_e[0]; // hmm: upgrade only the first wep
+
+    // get weapons that arnt max level (i.e. level 12)
+    const int WEAPON_MAX_LEVEL = 12;
+    std::vector<entt::entity> non_max_level_weapons;
+    for (int i = 0; i < weapons_e.size(); i++) {
+      const auto& wep_lvl_c = r.get<WeaponLevelComponent>(weapons_e[i]);
+      const auto lv = wep_lvl_c.level;
+      if (lv >= WEAPON_MAX_LEVEL)
+        continue;
+      non_max_level_weapons.push_back(weapons_e[i]);
+    }
 
     // For the 1st & 2nd upgrade, roll a BULLET_X or WEAPON_X stat
     while (results_c.results.size() != 2) {
@@ -61,18 +71,31 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
       const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
 
-      // level up one random weapon.
-      const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
-      const auto wep_e = weapons_e[rnd_wep_upg_idx];
+      // level up one random weapon that isnt max level
+      int non_max_level_wep_size = non_max_level_weapons.size();
 
-      results_c.results.emplace(UpgradeRollResult{
-        .rarity = rarity,
-        .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
-        // WEAPON_x and BULLET_x do level weapon
-        // .weapons = { weapon_e }, // note: only leveling first.
-        .weapons = { wep_e },
-        .level_weapons = true,
-      });
+      //
+      if (non_max_level_wep_size > 0) {
+        const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, non_max_level_wep_size);
+        const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
+
+        results_c.results.emplace(UpgradeRollResult{
+          .rarity = rarity,
+          .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
+          // WEAPON_x and BULLET_x do level weapon
+          // .weapons = { weapon_e }, // note: only leveling first.
+          .weapons = { wep_e },
+          .level_weapons = true,
+        });
+
+      } else {
+        results_c.results.emplace(UpgradeRollResult{
+          .rarity = rarity,
+          .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
+          .weapons = {},
+          .level_weapons = false,
+        });
+      }
     }
 
     // For the 3rd upgrade, roll an ACTOR_X stat.

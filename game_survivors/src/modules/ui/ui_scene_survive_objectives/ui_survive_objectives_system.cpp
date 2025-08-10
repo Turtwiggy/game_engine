@@ -1,11 +1,11 @@
-#include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
-#include "modules/actors/actor_rock/rock_components.hpp"
 #include "pch.hpp"
 
 #include "ui_survive_objectives_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 
