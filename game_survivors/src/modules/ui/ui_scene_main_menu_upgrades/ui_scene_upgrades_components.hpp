@@ -15,7 +15,7 @@ struct RequestToShowUpgradesMenu
 struct SINGLE_PersistentUpgradesMenuUI : public DefaultUI
 {
   int grid_idx = 0;
-  int grid_x = 8;
+  const int grid_x = 8;
   std::optional<UpgradeableStat> selected_stat = std::nullopt;
 
   void do_init(entt::registry& r) override;

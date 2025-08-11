@@ -14,6 +14,7 @@ const engine::SRGBColour default_player_colours[n_players] = {
   hex_to_srgb("#00A8EB"), // blue
 };
 
+const ImU32 im_white = IM_COL32(255, 255, 255, 255);
 const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 const auto my_inactive_col = hex_to_srgb("#737a7e");
 const auto my_separator_col = hex_to_srgb("#7d8488");
@@ -27,12 +28,15 @@ const auto im_text_disabled_col = ImVec4{ 0.86f, 0.93f, 0.89f, 0.28f };
 const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
 const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
 const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
-const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
+const auto im_window_border_col = convert_my_to_im(my_window_border_col);
 const auto im_gold_col = ImVec4(255 * 1.0f, 238 * 1.0f, 0 * 1.0f, 1.0f);
 const auto im_icon_col =
   ImVec4(my_separator_col.r / 255.0f, my_separator_col.g / 255.0f, my_separator_col.b / 255.0f, (80 / 255.0f));
-const ImVec4 aquired_col = convert_my_to_im_vec(engine::SRGBColour(0, 255, 0, 255));
-const ImVec4 unaquired_col = convert_my_to_im_vec(my_inactive_col);
+
+const ImU32 aquired_col = convert_my_to_im(engine::SRGBColour(0, 255, 0, 255));
+const ImVec4 aquired_col_vec = convert_my_to_im_vec(engine::SRGBColour(0, 255, 0, 255));
+const ImU32 unaquired_col = convert_my_to_im(my_inactive_col);
+const ImVec4 unaquired_col_vec = convert_my_to_im_vec(my_inactive_col);
 
 const auto my_text_col_inactive = engine::SRGBColour(200, 200, 200, 100);
 const auto im_text_col_inactive = convert_my_to_im(my_text_col_inactive);

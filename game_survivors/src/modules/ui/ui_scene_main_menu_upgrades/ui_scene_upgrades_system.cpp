@@ -151,7 +151,7 @@ process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 }
 
 void
-update_ui_scene_upgrades_system(entt::registry& r)
+update_ui_scene_upgrades_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
   ZoneScoped;
@@ -185,7 +185,7 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
   ui_c.selected_stat = stat_enum;
 
-  // back pressed and no selected stat
+  // back pressed
   if (do_back) {
     back_to_main_menu(r, ui_c);
     return;
@@ -198,8 +198,8 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto viewport_tl = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
   const auto viewport_wh = ImVec2((float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y);
   const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
-  const float size_x = 0.4f * 1280.0f * font_scale;
-  const float size_y = 0.6f * 720.0f * font_scale;
+  const float size_x = 0.5f * 1280.0f * font_scale;
+  const float size_y = 0.4f * 720.0f * font_scale;
 
   // if pivot is 0, window is at the top at the center of the screen
   // if pivot is 1, window is at the bot at the center of the screen
@@ -229,56 +229,66 @@ update_ui_scene_upgrades_system(entt::registry& r)
   const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
 
   // background
-  const auto rounding = 12.0f;
   const auto thickness = 2.0f;
   // draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
+  // draw_list->AddRect(ui_tl, ui_br, im_white, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
   // draw a moneybag for your gold
-  const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-  const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
-  const ImVec2 icon_size{ 32 * font_scale, 32 * font_scale };
-  const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
-  ImGui::SetCursorPosX(0.5f * (ui_wh.x - icon_size.x));
-  ImGui::Image(im_id, icon_size, gold_tl, gold_br, im_gold_col, {});
+  const auto icon_size = ImVec2{ 32 * font_scale, 32 * font_scale };
+  const auto center_x = 0.5f * (ui_wh.x);
+  const ImVec2 moneybag_icon_size = { 32 * font_scale, 32 * font_scale };
+  const auto moneybag_icon_x = center_x - 0.5 * moneybag_icon_size.x;
+  const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
+  const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)monochrome_tex_id;
+  {
+    const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
+    ImGui::SetCursorPosX(moneybag_icon_x);
+    ImGui::Image(monochrome_tex_id, moneybag_icon_size, gold_tl, gold_br, im_gold_col, {});
+  }
 
-  ImGui::PushFont(text_font);
-
-  // Draw gold amount under the gold moneybagz.
-  ImGui::SetCursorPos({ 0, icon_size.y });
-  const auto gold_txt = std::format("Gold: {}", gold_c.amount);
+  // Draw gold amount
+  ImGui::PushFont(header_font);
+  const auto gold_txt = std::format("{}", gold_c.amount);
   const auto gold_txt_wh = ImGui::CalcTextSize(gold_txt.c_str());
-  ImGui::SetCursorPosX(0.5f * (ui_wh.x - gold_txt_wh.x));
+  ImGui::SetCursorPosX(moneybag_icon_x + moneybag_icon_size.x);        // right of icon
+  ImGui::SetCursorPosY(0.5f * (moneybag_icon_size.y - gold_txt_wh.y)); // center y
   ImGui::TextColored(im_gold_col, "%s", gold_txt.c_str());
+  ImGui::PopFont();
 
-  // ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
-  // ImGui::Separator();
-  // ImGui::PopStyleColor();
-  ImGui::NewLine();
+  const auto box_tl = ImGui::GetCursorScreenPos();
+  const auto box_wh = ui_br - box_tl;
+
+  const auto box0_tl = box_tl;
+  const auto box0_br = box_tl + ImVec2{ 0.66f * box_wh.x, 1.0f * box_wh.y };
+  const auto box0_wh = box0_br - box0_tl;
+  const auto center_y = box0_tl.y + 0.5f * box0_wh.y;
+
+  const auto box1_tl = ImVec2{ box0_br.x, box0_tl.y };
+  const auto box1_br = ui_br;
+  // draw_list->AddRectFilled(box0_tl, box0_br, im_white, rounding);
+  // draw_list->AddRectFilled(box1_tl, box1_br, im_text_col_inactive, rounding);
+
+  const float rows = 3.0f;
+  const auto box0_subset_tl = ImVec2{ box0_tl.x, center_y - rows * 0.5f * icon_size.y };
+  const auto box0_subset_br = ImVec2{ box0_br.x, center_y + rows * 0.5f * icon_size.y };
+  // draw_list->AddRectFilled(box0_subset_tl, box0_subset_br, convert_my_to_im(default_player_colours[0]), rounding);
+
+  static float inner_y = 70.0f;
+  // ImGui::Begin("DebugUI");
+  // imgui_draw_float("inner_y", inner_y);
+  // ImGui::End();
 
   const int grid_y = get_grid_y(ui_c.state.cells.size(), ui_c.grid_x);
-  const auto grid_tl = ImGui::GetCursorScreenPos();
-  const auto grid_br = ImVec2{ ui_br.x, grid_tl.y + icon_size.y * grid_y };
+  const auto grid_tl = box0_subset_tl;
+  const auto grid_br = box0_subset_br;
   const auto grid_wh = ImVec2{ grid_br.x - grid_tl.x, grid_br.y - grid_tl.y };
 
-  // Draw selected
-  {
-    const auto [gx, gy] = engine::grid::index_to_grid_position(ui_c.grid_idx, ui_c.grid_x);
-    const auto x_hmm = (gx / (float)ui_c.grid_x);
-    const auto y_hmm = (gy / (float)grid_y);
-    auto x_pct = grid_tl.x + grid_wh.x * x_hmm;
-    auto y_pct = grid_tl.y + grid_wh.y * y_hmm;
-
-    // center the cursor
-    auto cell_w = grid_wh.x / (float)ui_c.grid_x;
-    auto cell_h = grid_wh.y / (float)grid_y;
-    x_pct += 0.5f * (cell_w - icon_size.x);
-    // y_pct += 0.5f * (cell_h - icon_size.y);
-
-    ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
-
-    const auto [cursor_tl, cursor_br] = convert_sprite_to_uv(r, "CURSOR_1"s);
-    ImGui::Image(im_id, icon_size, cursor_tl, cursor_br, ImVec4(1.0, 0.0, 0.0, 1.0), {});
-  }
+  static float pad_x = 16.0f;
+  static float pad_y = 16.0f;
+  // ImGui::Begin("DebugUI");
+  // imgui_draw_float("pad_x", pad_x);
+  // imgui_draw_float("pad_y", pad_y);
+  // ImGui::End();
 
   // Draw upgrades in a grid.
   const int valid_amount = (int)ui_c.state.cells.size();
@@ -290,42 +300,119 @@ update_ui_scene_upgrades_system(entt::registry& r)
     const auto [gx, gy] = engine::grid::index_to_grid_position(i, ui_c.grid_x);
     const auto x_hmm = (gx / (float)ui_c.grid_x);
     const auto y_hmm = (gy / (float)grid_y);
-    auto x_pct = grid_tl.x + grid_wh.x * x_hmm;
-    auto y_pct = grid_tl.y + grid_wh.y * y_hmm;
+
+    // note: this equally splits the size
+    // auto x_pct = grid_tl.x + grid_wh.x * x_hmm;
+    // auto y_pct = grid_tl.y + grid_wh.y * y_hmm;
+    auto icon_tl = ImVec2{ grid_tl.x + gx * (icon_size.x + pad_x), grid_tl.y + gy * (icon_size.y + pad_y) };
 
     // center the icon.
     auto cell_w = grid_wh.x / (float)ui_c.grid_x;
     auto cell_h = grid_wh.y / (float)grid_y;
-    x_pct += 0.5f * (cell_w - icon_size.x);
+    icon_tl.x += 0.5f * (cell_w - icon_size.x);
     // y_pct += 0.5f * (cell_h - icon_size.y);
 
-    ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
-    const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "AMMO_BOX"s);
-    ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_icon_col, {});
+    // ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
+    // const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "AMMO_BOX"s);
+    // ImGui::Image(monochrome_im_id, icon_size, icon_tl, icon_br, im_icon_col, {});
+
+    // add background
+    const auto rect_min = icon_tl;
+    const auto rect_max = icon_tl + icon_size;
+    draw_list->AddRectFilled(rect_min, rect_max, im_window_bg_col);
+    draw_list->AddRect(rect_min, rect_max, im_window_border_col);
 
     // update selection with mouse as well
-    const auto is_hovered = ImGui::IsItemHovered();
+    bool is_hovered = ImGui::IsMouseHoveringRect(rect_min, rect_max);
     const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
     const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
     if (is_hovered && mouse_move)
       ui_c.grid_idx = i;
 
-    ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
+    ImGui::SetCursorScreenPos(icon_tl);
     const auto& cell = ui_c.state.cells[i];
     const auto name = cell->name;
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, name);
     ImGui::TextColored(im_text_col, "%i/%i", aquired, total);
   }
 
-  ImGui::SetCursorScreenPos(ImVec2{ grid_tl.x, grid_br.y });
-  // ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
-  // ImGui::Separator();
-  // ImGui::PopStyleColor();
-  ImGui::NewLine();
+  // Draw selected cursor
+  {
+    const auto [gx, gy] = engine::grid::index_to_grid_position(ui_c.grid_idx, ui_c.grid_x);
+    // const auto x_hmm = (gx / (float)ui_c.grid_x);
+    // const auto y_hmm = (gy / (float)grid_y);
+    // auto x_pct = grid_tl.x + grid_wh.x * x_hmm;
+    // auto y_pct = grid_tl.y + grid_wh.y * y_hmm;
+    auto icon_tl = ImVec2{ grid_tl.x + gx * (icon_size.x + pad_x), grid_tl.y + gy * (icon_size.y + pad_y) };
 
+    // center the cursor
+    auto cell_w = grid_wh.x / (float)ui_c.grid_x;
+    auto cell_h = grid_wh.y / (float)grid_y;
+    icon_tl.x += 0.5f * (cell_w - icon_size.x);
+    // y_pct += 0.5f * (cell_h - icon_size.y);
+
+    // ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
+    // const auto [cursor_tl, cursor_br] = convert_sprite_to_uv(r, "CURSOR_1"s);
+    // ImGui::Image(im_id, icon_size, cursor_tl, cursor_br, ImVec4(1.0, 0.0, 0.0, 1.0), {});
+
+    // const auto [cursor_tl, cursor_br] = convert_sprite_to_uv(r, "CURSOR_1"s);
+    const auto im_cursor_col = ImColor{ 1.0f, 0.3f, 0.3f, 1.0f };
+    static auto cursor_size = 10;
+    static auto cursor_offset_base = glm::vec2{ cursor_size, -12 };
+    static auto cursor_offset = glm::vec2{ 0, 0 };
+    static auto cursor_wiggle_time = 0.0f;
+    static auto cursor_wiggle = 0.0f;
+    static auto cursor_wiggle_frequency = 15.0f;
+    static auto cursor_wiggle_amplitude = 2.0f;
+    cursor_wiggle_time += dt;
+    cursor_wiggle = glm::sin(cursor_wiggle_time * cursor_wiggle_frequency) * cursor_wiggle_amplitude;
+
+    // ImGui::Begin("DebugCursorSize");
+    // imgui_draw_int("cursor_size", cursor_size);
+    // imgui_draw_vec2("cursor_offset_base", cursor_offset_base);
+    // imgui_draw_vec2("cursor_offset", cursor_offset);
+    // imgui_draw_float("cursor_wiggle", cursor_wiggle);
+    // imgui_draw_float("cursor_wiggle_frequency", cursor_wiggle_frequency);
+    // imgui_draw_float("cursor_wiggle_amplitude", cursor_wiggle_amplitude);
+    // ImGui::End();
+    cursor_offset = cursor_offset_base;
+    cursor_offset.y += cursor_wiggle;
+
+    float x_pct = icon_tl.x;
+    float y_pct = icon_tl.y;
+
+    // draw cursor as a down arrow
+    draw_list->AddTriangleFilled(ImVec2(cursor_offset.x + x_pct, y_pct + cursor_offset.y),
+                                 ImVec2(cursor_offset.x + x_pct + 0.5f * cursor_size, y_pct + cursor_size + cursor_offset.y),
+                                 ImVec2(cursor_offset.x + x_pct + cursor_size, y_pct + cursor_offset.y),
+                                 im_cursor_col);
+    draw_list->AddTriangle(ImVec2(cursor_offset.x + x_pct, y_pct + cursor_offset.y),
+                           ImVec2(cursor_offset.x + x_pct + 0.5f * cursor_size, y_pct + cursor_size + cursor_offset.y),
+                           ImVec2(cursor_offset.x + x_pct + cursor_size, y_pct + cursor_offset.y),
+                           im_white,
+                           0.5f);
+  }
+
+  // Draw the selected stat info
+  const auto rounding = 2.0f;
+  const auto box1_subset_tl = ImVec2{ box1_tl.x, center_y - inner_y };
+  const auto box1_subset_br = ImVec2{ box1_br.x, center_y + inner_y };
+  draw_list->AddRectFilled(box1_subset_tl, box1_subset_br, im_window_bg_col, rounding);
+  draw_list->AddRect(box1_subset_tl, box1_subset_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
+
+  const auto upgrade_tl = box1_subset_tl;
+  const auto upgrade_br = box1_subset_br;
+  const auto upgrade_wh = upgrade_br - upgrade_tl;
   if (ui_c.selected_stat.has_value()) {
     const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(ui_c.selected_stat.value()));
     const auto display_str = make_stat_name_pretty_name(stat_str);
+    const auto display_str_size = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, display_str.c_str());
+
+    const auto header_text_pos_tl = ImVec2{ upgrade_tl.x, upgrade_tl.y + 4.0f };
+    const auto header_text_pos_adj =
+      ImVec2{ header_text_pos_tl.x + 0.5f * (upgrade_wh.x - display_str_size.x), header_text_pos_tl.y };
+    draw_list->AddText(text_font, text_font->FontSize, header_text_pos_adj, im_text_col_vec, display_str.c_str());
+    // ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
 
     const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
     const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
@@ -334,16 +421,17 @@ update_ui_scene_upgrades_system(entt::registry& r)
       throw std::runtime_error(err.c_str());
     }
     const Upgrade u = (*it);
-
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);
-    // ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
-    ImGui::TextColored(im_text_col, "%s", display_str.c_str());
 
     // loaded on-disk values
     int your_level = 0;
     auto str_opt = savefile_get_key(r, stat_str);
     if (str_opt.has_value())
       str_opt->get_to(your_level);
+
+    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "kenneynl_gameicons")->id;
+    const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
+    const ImVec2 upg_icon_size{ TEXT_SIZE.y, TEXT_SIZE.y };
 
     // display the current upgrade level, and future upgrade levels
     for (int i = 0; i < u.levels.size(); i++) {
@@ -352,18 +440,43 @@ update_ui_scene_upgrades_system(entt::registry& r)
 
       std::string str = "";
       if (l.type == "stat_percent_increase")
-        str = std::format("({}) {}G. +{}%", i + 1, l.cost, l.value, aquired);
+        str = std::format("{}G. +{}%", l.cost, l.value, aquired);
       else if (l.type == "stat_flat_increase")
-        str = std::format("({}) {}G. +{}", i + 1, l.cost, l.value, aquired);
+        str = std::format("{}G. +{}", l.cost, l.value, aquired);
+
+      ImVec2 icon_pos = header_text_pos_tl;
+      icon_pos.y += (i + 1) * TEXT_SIZE.y;
+
+      ImVec2 text_pos = icon_pos;
+      text_pos.x += upg_icon_size.x;
+
+      if (aquired) {
+        // tick icon
+        {
+          const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_TICK"s);
+          draw_list->AddImage(im_id, icon_pos, icon_pos + upg_icon_size, icon_tl, icon_br);
+        }
+      } else {
+        // circle icon
+        {
+          // const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_CROSS"s);
+          // draw_list->AddImage(im_id, icon_pos, icon_pos + upg_icon_size, icon_tl, icon_br);
+          auto center = icon_pos + ImVec2{ 0.5f * upg_icon_size.x, 0.5f * upg_icon_size.y };
+          draw_list->AddCircle(center, 0.33f * upg_icon_size.x, im_text_col_vec, 16, 2.0f);
+        }
+      }
 
       if (aquired)
-        ImGui::TextColored(aquired_col, "%s", str.c_str());
+        draw_list->AddText(text_font, text_font->FontSize, text_pos, aquired_col, str.c_str());
       else
-        ImGui::TextColored(unaquired_col, "%s", str.c_str());
+        draw_list->AddText(text_font, text_font->FontSize, text_pos, unaquired_col, str.c_str());
+
+      //
     }
+
+    // todo: draw a "hold to aquire" button
   }
 
-  ImGui::PopFont();
   ImGui::End();
 }
 

@@ -71,14 +71,11 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
       const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
 
-      // level up one random weapon that isnt max level
+      // Prioritize non-max level weapons
       int non_max_level_wep_size = non_max_level_weapons.size();
-
-      //
       if (non_max_level_wep_size > 0) {
         const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, non_max_level_wep_size);
         const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
-
         results_c.results.emplace(UpgradeRollResult{
           .rarity = rarity,
           .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
@@ -87,13 +84,14 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
           .weapons = { wep_e },
           .level_weapons = true,
         });
-
       } else {
+        const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
+        const auto wep_e = weapons_e[rnd_wep_upg_idx];
         results_c.results.emplace(UpgradeRollResult{
           .rarity = rarity,
           .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
-          .weapons = {},
-          .level_weapons = false,
+          .weapons = { wep_e },
+          .level_weapons = true,
         });
       }
     }
