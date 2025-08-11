@@ -18,6 +18,10 @@ struct SINGLE_PersistentUpgradesMenuUI : public DefaultUI
   const int grid_x = 8;
   std::optional<UpgradeableStat> selected_stat = std::nullopt;
 
+  // hold a button to purchase upgrade
+  float purchase_time = 0.0f;
+  const float purchase_time_max = 1.0f;
+
   void do_init(entt::registry& r) override;
 };
 

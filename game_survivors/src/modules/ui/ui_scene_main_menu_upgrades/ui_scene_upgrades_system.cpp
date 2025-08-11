@@ -177,7 +177,8 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   const auto& g_input_c = r.get<InputComponent>(g_input_e);
   const auto& b_s = g_input_c.button_s;
   const auto& b_e = g_input_c.button_e;
-  const bool do_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
+  const bool hel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
+  const bool rel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
   const bool do_back = std::find(b_e.begin(), b_e.end(), ActionStateEnum::DOWN) != b_e.end();
 
   // update the selected stat
@@ -191,9 +192,16 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     return;
   }
 
-  // select pressed and a stat selected
-  if (do_sel && ui_c.selected_stat.has_value())
+  // hold to purchase upgrade
+  if (hel_sel)
+    ui_c.purchase_time += dt;
+  if (!hel_sel)
+    ui_c.purchase_time -= dt;
+  ui_c.purchase_time = glm::clamp(ui_c.purchase_time, 0.0f, ui_c.purchase_time_max);
+  if (hel_sel && ui_c.selected_stat.has_value() && ui_c.purchase_time >= ui_c.purchase_time_max) {
     purchase_upgrade(r, ui_c.selected_stat.value());
+    ui_c.purchase_time = 0.0f;
+  }
 
   const auto viewport_tl = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
   const auto viewport_wh = ImVec2((float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y);
@@ -485,6 +493,49 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     }
 
     // todo: draw a "hold to aquire" button
+  }
+
+  // draw a purchase bar.
+  {
+    const auto purchasebar_tl = ImVec2{ box1_subset_tl.x + 5.0f, box1_subset_br.y - 25.0f };
+    const auto purchasebar_br = ImVec2{ box1_subset_br.x - 5.0f, box1_subset_br.y - 5.0f };
+    const auto purchasebar_wh = upgrade_br - upgrade_tl;
+
+    const engine::SRGBColour my_player_col = default_player_colours[0];
+    auto my_player_col_active = my_player_col;
+    auto my_player_col_inactive = my_player_col;
+    my_player_col_inactive.a = 0.25f * 255;
+    const auto im_player_col_active = convert_my_to_im(my_player_col_active);
+    const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
+    const auto im_player_col = convert_my_to_im(my_player_col);
+    const float bar_rounding = 0.0f;
+
+    const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
+      const ImVec2 bar_wh = bar_br - bar_tl;
+
+      // draw a box around the bar
+      draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
+
+      // bar bg
+      draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
+
+      // bar fg
+      float x = bar_tl.x + percent * bar_wh.x;
+      const auto partial_bar_br = ImVec2(x, bar_br.y);
+      ImU32 col_l = im_player_col_active;
+      ImU32 col_r = im_player_col_inactive;
+      draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
+    };
+
+    const float percent = ui_c.purchase_time / ui_c.purchase_time_max;
+    draw_bar(purchasebar_tl, purchasebar_br, percent);
+
+    const auto text = "Hold to Purchase"s;
+    const auto text_size = text_font->CalcTextSizeA(text_font->FontSize, FLT_MAX, FLT_MAX, text.c_str());
+    const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x), purchasebar_tl.y };
+    draw_list->AddText(text_font, text_font->FontSize, text_pos, im_text_col_vec, text.c_str());
+
+    //
   }
 
   ImGui::End();
