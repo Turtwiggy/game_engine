@@ -240,6 +240,9 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   const auto moneybag_icon_x = center_x - 0.5 * moneybag_icon_size.x;
   const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)monochrome_tex_id;
+  const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+  const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
+
   {
     const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
     ImGui::SetCursorPosX(moneybag_icon_x);
@@ -293,9 +296,15 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   // Draw upgrades in a grid.
   const int valid_amount = (int)ui_c.state.cells.size();
   for (int i = 0; i < ui_c.grid_x * grid_y; i++) {
+
     const bool active = i < valid_amount;
     if (!active)
       continue; // skip entry
+
+    // the stat
+    const auto stat_key = ui_c.state.cells[i]->name;
+    const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
+    const auto icon_key = "ICON_" + stat_key;
 
     const auto [gx, gy] = engine::grid::index_to_grid_position(i, ui_c.grid_x);
     const auto x_hmm = (gx / (float)ui_c.grid_x);
@@ -312,15 +321,16 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     icon_tl.x += 0.5f * (cell_w - icon_size.x);
     // y_pct += 0.5f * (cell_h - icon_size.y);
 
-    // ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
-    // const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "AMMO_BOX"s);
-    // ImGui::Image(monochrome_im_id, icon_size, icon_tl, icon_br, im_icon_col, {});
-
     // add background
     const auto rect_min = icon_tl;
     const auto rect_max = icon_tl + icon_size;
     draw_list->AddRectFilled(rect_min, rect_max, im_window_bg_col);
     draw_list->AddRect(rect_min, rect_max, im_window_border_col);
+
+    // add icon
+    ImGui::SetCursorScreenPos(icon_tl);
+    const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
+    ImGui::Image(custom_im_id, icon_size, image_icon_tl, image_icon_br);
 
     // update selection with mouse as well
     bool is_hovered = ImGui::IsMouseHoveringRect(rect_min, rect_max);
@@ -329,11 +339,11 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     if (is_hovered && mouse_move)
       ui_c.grid_idx = i;
 
-    ImGui::SetCursorScreenPos(icon_tl);
-    const auto& cell = ui_c.state.cells[i];
-    const auto name = cell->name;
-    const auto [aquired, total] = get_upgrade_level(r, upgrade_c, name);
-    ImGui::TextColored(im_text_col, "%i/%i", aquired, total);
+    // ImGui::SetCursorScreenPos(icon_tl);
+    // const auto& cell = ui_c.state.cells[i];
+    // const auto name = cell->name;
+    // const auto [aquired, total] = get_upgrade_level(r, upgrade_c, name);
+    // ImGui::TextColored(im_text_col, "%i/%i", aquired, total);
   }
 
   // Draw selected cursor

@@ -1,7 +1,6 @@
 {
   "upgrades": [
-    {
-      "key": "ACTOR_DODGE_CHANCE",
+    { "key": "ACTOR_DODGE_CHANCE",
       "levels": [
         { "cost": 2, "type": "stat_flat_increase", "value": 2 },
         { "cost": 2, "type": "stat_flat_increase", "value": 2 },
@@ -10,8 +9,7 @@
         { "cost": 2, "type": "stat_flat_increase", "value": 2 }
       ]
     },
-    {
-      "key": "ACTOR_HEALTH_MAX",
+    { "key": "ACTOR_HEALTH_MAX",
       "levels": [
         { "cost": 2, "type": "stat_flat_increase", "value": 1 },
         { "cost": 2, "type": "stat_flat_increase", "value": 2 },
@@ -20,8 +18,7 @@
         { "cost": 2, "type": "stat_flat_increase", "value": 5 }
       ]
     },
-    {
-      "key": "ACTOR_HEALTH_REGEN",
+    { "key": "ACTOR_HEALTH_REGEN",
       "levels": [
         { "cost": 1, "type": "stat_flat_increase", "value": 0.1 },
         { "cost": 2, "type": "stat_flat_increase", "value": 0.1 },
@@ -30,8 +27,7 @@
         { "cost": 5, "type": "stat_flat_increase", "value": 0.1 }
       ]
     },
-    {
-      "key": "ACTOR_SPEED",
+    { "key": "ACTOR_SPEED",
       "levels": [
         { "cost": 2, "type": "stat_percent_increase", "value": 4 },
         { "cost": 3, "type": "stat_percent_increase", "value": 4 },
