@@ -499,7 +499,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   {
     const auto purchasebar_tl = ImVec2{ box1_subset_tl.x + 5.0f, box1_subset_br.y - 25.0f };
     const auto purchasebar_br = ImVec2{ box1_subset_br.x - 5.0f, box1_subset_br.y - 5.0f };
-    const auto purchasebar_wh = upgrade_br - upgrade_tl;
+    const auto purchasebar_wh = purchasebar_br - purchasebar_tl;
 
     const engine::SRGBColour my_player_col = default_player_colours[0];
     auto my_player_col_active = my_player_col;
@@ -531,8 +531,9 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     draw_bar(purchasebar_tl, purchasebar_br, percent);
 
     const auto text = "Hold to Purchase"s;
-    const auto text_size = text_font->CalcTextSizeA(text_font->FontSize, FLT_MAX, FLT_MAX, text.c_str());
-    const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x), purchasebar_tl.y };
+    const auto text_size = text_font->CalcTextSizeA(text_font->FontSize, FLT_MAX, -1, text.c_str());
+    const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x),
+                                  purchasebar_tl.y + 0.5f * (purchasebar_wh.y - text_size.y) };
     draw_list->AddText(text_font, text_font->FontSize, text_pos, im_text_col_vec, text.c_str());
 
     //

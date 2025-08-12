@@ -231,7 +231,7 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
       draw_list->AddImage(im_id, icon_pos, icon_pos + icon_size, icon_tl, icon_br);
     }
 
-    auto ready_text_size = font_16->CalcTextSizeA(font_16->FontSize, FLT_MAX, FLT_MAX, ready_text.c_str(), NULL, NULL);
+    const auto ready_text_size = font_16->CalcTextSizeA(font_16->FontSize, FLT_MAX, -1, ready_text.c_str());
     auto text_pos = ImVec2{ confirm_tl.x + padding_x, confirm_tl.y + padding_y };
     text_pos.x += 0.5f * (bar_wh.x - ready_text_size.x);
     // draw_list->AddText(font_16, font_16->FontSize, text_pos, im_player_col_active, ready_text.c_str());

@@ -12,6 +12,9 @@ namespace game2d {
 std::vector<Stat>
 get_stats_from_weapon_behaviour(entt::registry& r, const WeaponBehaviour behaviour);
 
+std::vector<WeaponUpgrade_OnDiskData>
+get_upgrades_from_weapon_key(entt::registry& r, const std::string weapon_key);
+
 void
 handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEvent& evt);
 

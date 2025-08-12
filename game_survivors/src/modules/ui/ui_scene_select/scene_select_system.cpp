@@ -19,6 +19,7 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
+#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
@@ -166,9 +167,9 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   if (is_ability) {
   }
 
-  const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.04f * box_wh.y);
-  const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.09f * box_wh.y);
-  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.21f * box_wh.y);
+  const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.035f * box_wh.y);
+  const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.08f * box_wh.y);
+  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.16f * box_wh.y);
 
   // header text.
   {
@@ -273,12 +274,13 @@ draw_card_inner(entt::registry& r,
                 const ImVec2 main_quarter_br,
                 const engine::SRGBColour my_player_col,
                 ImDrawList* draw_list,
-                ImFont* font)
+                ImFont* header_font,
+                ImFont* text_font)
 {
   const auto& ri_c = SINGLE_RendererInfo::instance;
 
   // Draw categories + values
-  const auto space_between_buttons = 10;
+  const auto space_between_buttons = 6;
   auto button_tl = main_quarter_tl;
   button_tl.y += 10; // y padding on the first button
   button_tl.x -= 10; // put it outside the frame?
@@ -296,25 +298,58 @@ draw_card_inner(entt::registry& r,
       .input = do_act,
       .cell = base,
       .active_cell = player_ui_c.state.active,
-      .font = font,
+      .font = header_font,
     };
 
     if (selectable_button(r, def))
       base->action();
 
+    ImGui::PushFont(header_font);
     const float pos_l = main_quarter_tl.x + button_size.x;
     const float pos_w = main_quarter_br.x - pos_l;
     const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
     draw_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
+    ImGui::PopFont();
 
     if (i + 1 < player_ui_c.state.cells.size())
       button_tl.y += button_size.y + space_between_buttons;
+
+    ImGui::PushFont(text_font);
+    const auto text_size_y = ImGui::CalcTextSize("A").y;
 
     // begin info section.
     const auto box_tl = ImVec2{ main_quarter_tl.x, button_tl.y + button_size.y + space_between_buttons };
     const auto box_br = main_quarter_br;
     const auto box_wh = ImVec2{ box_br.x - box_tl.x, box_br.y - box_tl.y };
     draw_stats(r, box_tl, box_wh, player_ui_c);
+
+    //
+    // Display the overclocks
+    //
+    {
+      const auto& active_cell = player_ui_c.state.active;
+      const auto& cs = player_ui_c.state.cells;
+      const auto cell_it = std::find(cs.begin(), cs.end(), active_cell);
+      const auto cell_idx = static_cast<int>(cell_it - cs.begin());
+      auto& cell = *(dynamic_cast<OptionsCell*>(cell_it->get()));
+      const bool is_hull = cell_idx == 0;
+      const bool is_weapon = cell_idx == 1;
+      const bool is_ability = cell_idx == 2;
+
+      if (is_weapon) {
+        const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+        const auto& weapon = weapons_c.weapons[cell.value].key;
+        auto upgrades = get_upgrades_from_weapon_key(r, weapon);
+        const auto base_pos = ImGui::GetCursorPos();
+        const auto overclock_x = box_tl.x + 0.1f * box_wh.x;
+        ImGui::SetCursorPos({ overclock_x, base_pos.y });
+        ImGui::Text("Available Overclocks (Lv 4, 8, 12)");
+        for (int i = 0; i < upgrades.size(); i++) {
+          ImGui::SetCursorPos({ overclock_x, base_pos.y + (i + 1) * text_size_y });
+          ImGui::Text("%s", upgrades[i].wb_key.c_str());
+        }
+      }
+    }
 
     // draw confirm timer.
     const auto ready_text = std::format("Hold {}", get_confirm_button_str(r, handle));
@@ -353,8 +388,7 @@ draw_card_inner(entt::registry& r,
     const float percent_1 = player_state_c.back_held_time / player_state_c.back_held_time_max;
     const float bar_offset = (box_wh.x * 0.1f);
 
-    const auto text_size = ImGui::CalcTextSize("A");
-    const auto bar_wh = ImVec2{ box_wh.x, text_size.y };
+    const auto bar_wh = ImVec2{ box_wh.x, text_size_y };
     const auto bar_tl_0 = ImVec2{ box_tl.x + bar_offset, box_br.y - 40 - 6 };
     const auto bar_tl_1 = ImVec2{ box_tl.x + bar_offset, box_br.y + bar_wh.y - 40 };
     const auto bar_br_0 = ImVec2{ bar_tl_0.x + bar_wh.x - 2.0f * bar_offset, bar_tl_0.y + bar_wh.y };
@@ -390,6 +424,7 @@ draw_card_inner(entt::registry& r,
     back_text_x -= 0.5f * back_text_size.x;
     ImGui::SetCursorPos({ back_text_x, bar_tl_1.y });
     ImGui::Text("%s", back_text.c_str());
+    ImGui::PopFont();
   }
 }
 
@@ -405,9 +440,8 @@ update_player_select_ui(entt::registry& r,
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-  const auto font_enum = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  auto* font = get_inter_font(r, font_enum);
-  ImGui::PushFont(font);
+  auto* header_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED);
+  auto* text_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED);
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
@@ -490,12 +524,13 @@ update_player_select_ui(entt::registry& r,
                       main_quarter_br,
                       my_player_col,
                       draw_list,
-                      font);
+                      header_font,
+                      text_font);
 
     else {
       const auto text = std::string("N/A\n(Connect in Menu)");
       const auto width = main_quarter_br.x - main_quarter_tl.x;
-      const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, FLT_MAX, text.c_str());
+      const auto text_size = header_font->CalcTextSizeA(header_font->FontSize, FLT_MAX, -1, text.c_str());
 
       auto center = ImVec2{
         main_quarter_tl.x + 0.5f * (main_quarter_br.x - main_quarter_tl.x),
@@ -503,7 +538,7 @@ update_player_select_ui(entt::registry& r,
       };
       center.x -= 0.5f * text_size.x;
       center.y -= 0.5f * text_size.y;
-      draw_list->AddText(font, font->FontSize, center, im_player_col, text.c_str());
+      draw_list->AddText(header_font, header_font->FontSize, center, im_player_col, text.c_str());
     };
 
     // move horizontally
@@ -512,7 +547,6 @@ update_player_select_ui(entt::registry& r,
 
   ImGui::End();
   ImGui::PopStyleVar(2);
-  ImGui::PopFont();
 };
 
 void
