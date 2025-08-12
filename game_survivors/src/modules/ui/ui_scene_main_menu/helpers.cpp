@@ -171,7 +171,7 @@ draw_icon(entt::registry& r, std::string icon, float font_scale)
   const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
   const ImVec2 icon_size{ size * font_scale, size * font_scale };
   const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
-  ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_greenish, {});
+  ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_greenish_vec, {});
 };
 
 void
@@ -188,7 +188,7 @@ init_oh_buoy_header_text(entt::registry& r)
     auto* font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 2 : 3];
     ImGui::PushFont(font);
 
-    text_with_dropshadow(data.text, im_greenish);
+    text_with_dropshadow(data.text, im_greenish_vec);
 
     const auto& header_c = r.get<MegaHeaderComponent>(e);
     if (header_c.icon.has_value())

@@ -69,6 +69,15 @@
     { "name": "ICON_WEAPON_RELOAD", "frames": [{ "x": 24, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_RANGE", "frames": [{ "x": 25, "y": 27, "w": 1, "h": 1 }]},
 
+    { "name": "ICON_WEAPON_DECK_CANNON", "frames": [{ "x": 27, "y": 27, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_GRAPESHOT_CANNON", "frames": [{ "x": 28, "y": 27, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_SWIVEL_CANNON", "frames": [{ "x": 29, "y": 27, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_SEA_TURRET", "frames": [{ "x": 30, "y": 27, "w": 1, "h": 1 }]},
+
+    { "name": "ICON_DINGHY", "frames": [{ "x": 27, "y": 28, "w": 1, "h": 1 }]},
+    { "name": "ICON_RHIB", "frames": [{ "x": 28, "y": 28, "w": 1, "h": 1 }]},
+    { "name": "ICON_PBR", "frames": [{ "x": 29, "y": 28, "w": 1, "h": 1 }]},
+
     { "name": "ICON_WHEEL", "frames": [ { "x": 0, "y": 28, "w": 4, "h": 4 } ]},
     { "name": "ICON_SAILBOAT", "frames": [ { "x": 4, "y": 28, "w": 4, "h": 4 } ]},
     { "name": "ICON_CARGOBOAT", "frames": [ { "x": 8, "y": 28, "w": 4, "h": 4 } ]},

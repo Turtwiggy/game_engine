@@ -69,7 +69,6 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   const auto p_tl = ImGui::GetItemRectMin();
   const auto p_br = ImGui::GetItemRectMax();
   const auto p_wh = ImGui::GetItemRectSize();
-  const float rounding = 6.0;
   const float thickness = 2.0;
 
   const ImU32 im_inactive_outline_col = convert_my_to_im(def.inactive_outline_col);
@@ -83,8 +82,8 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   const ImVec4 text_col_vec = ImVec4(1.0f, 1.0f, 1.0f, is_selected ? 1.0f : 1.0f * (150 / 255.0f));
 
   // button
-  draw_list->AddRectFilled(p_tl, p_br, bg_col, rounding);
-  draw_list->AddRect(p_tl, p_br, outline_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
+  draw_list->AddRectFilled(p_tl, p_br, bg_col, def.rounding);
+  draw_list->AddRect(p_tl, p_br, outline_col, def.rounding, ImDrawFlags_RoundCornersAll, thickness);
 
   auto font = def.font;
   if (font == nullptr)

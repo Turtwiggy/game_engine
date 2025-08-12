@@ -64,7 +64,7 @@
     {
       "key": "weapon_deck_cannon",
       "name": "Cannon [Heavy]", // heavy pistol
-      "desc": "Shoot [Heavy] cannonballs at the closest target.",
+      "desc": "Shoot [Heavy] at closest.",
       "audio": ["RIFLE_01", "RIFLE_02"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -92,7 +92,7 @@
     {
       "key": "weapon_grapeshot_cannon",
       "name": "Cannon [Grapeshot]", // shotgun
-      "desc": "Shoot [Grapeshot] cannonballs at the closest target. Short range. Multi-shot.",
+      "desc": "Shoot [Grapeshot] at closest. Short range. Multi-shot.",
       "audio": ["SHOTGUN_01", "SHOTGUN_02", "SHOTGUN_03", "SHOTGUN_04"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -118,8 +118,8 @@
 
     {
       "key": "weapon_swivel_cannon",
-      "name": "Cannon [Gatling]",       // SMG-type
-      "desc": "Shoot [Small] rounds at the closest target. High firereate.",
+      "name": "Cannon [Fast]",       // SMG-type
+      "desc": "Shoot [Fast] at closest. High firereate.",
       "audio": ["SMG_01", "SMG_02", "SMG_03"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",

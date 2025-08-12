@@ -67,14 +67,14 @@ add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc&
 };
 
 void
-draw_selections(entt::registry& r,
-                SINGLE_SelectSceneData& ui_c,
-                const std::shared_ptr<Cell>& base,
-                const int player_idx,
-                const int cell_idx,
-                const ImVec2 pos,
-                const ImVec2 button_size,
-                const bool active)
+update_selections(entt::registry& r,
+                  SINGLE_SelectSceneData& ui_c,
+                  const std::shared_ptr<Cell>& base,
+                  const int player_idx,
+                  const int cell_idx,
+                  const ImVec2 pos,
+                  const ImVec2 button_size,
+                  const bool active)
 {
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
@@ -107,21 +107,23 @@ draw_selections(entt::registry& r,
   if (is_ability)
     name = "None";
 
-  const auto text = active ? std::format("< {} >", name) : name;
-  const auto text_wh = ImGui::CalcTextSize(text.c_str());
-
   // center the text y
-  ImGui::SetCursorPos({ pos.x - 0.5f * text_wh.x, pos.y + 0.5f * (button_size.y - text_wh.y) });
+  // ImGui::SetCursorPos({ pos.x - 0.5f * text_wh.x, pos.y + 0.5f * (button_size.y - text_wh.y) });
 
-  if (active) {
-    ImGui::Text("< ");
-    ImGui::SameLine();
-    ImGui::TextColored(im_text_col, "%s", name.c_str());
-    ImGui::SameLine();
-    ImGui::Text(" >");
-  } else {
-    ImGui::TextColored(im_text_disabled_col, "%s", name.c_str());
-  }
+  // if (active) {
+  //   ImGui::Text("< ");
+  //   ImGui::SameLine();
+  //   ImGui::TextColored(im_text_col, "%s", name.c_str());
+  //   ImGui::SameLine();
+  //   ImGui::Text(" >");
+  // } else {
+  //   ImGui::TextColored(im_text_disabled_col, "%s", name.c_str());
+  // }
+
+  // {
+  //   const auto text = active ? std::format("< {} >", name) : name;
+  //   const auto text_wh = ImGui::CalcTextSize(text.c_str());
+  // }
 };
 
 void
@@ -167,9 +169,9 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   if (is_ability) {
   }
 
-  const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.035f * box_wh.y);
-  const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.08f * box_wh.y);
-  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.16f * box_wh.y);
+  const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.03f * box_wh.y);
+  const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.07f * box_wh.y);
+  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.12f * box_wh.y);
 
   // header text.
   {
@@ -220,7 +222,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
         auto clean_key = key;
         clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
         clean_key = str_remove_all_occurances(clean_key, "BULLET_");
-        display_stats.push_back({ .key = clean_key, .val = std::format("{:.2f}", val) });
+        display_stats.push_back({ .key = clean_key, .val = std::format("{:.1f}", val) });
       }
 
       // hack: if you're a sea turret, you deploy other weapons.
@@ -278,6 +280,8 @@ draw_card_inner(entt::registry& r,
                 ImFont* text_font)
 {
   const auto& ri_c = SINGLE_RendererInfo::instance;
+  const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+  const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
 
   // Draw categories + values
   const auto space_between_buttons = 6;
@@ -299,17 +303,77 @@ draw_card_inner(entt::registry& r,
       .cell = base,
       .active_cell = player_ui_c.state.active,
       .font = header_font,
+      .rounding = 0.0f,
     };
 
     if (selectable_button(r, def))
       base->action();
 
-    ImGui::PushFont(header_font);
     const float pos_l = main_quarter_tl.x + button_size.x;
     const float pos_w = main_quarter_br.x - pos_l;
     const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
-    draw_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
-    ImGui::PopFont();
+    update_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
+
+    const auto grid_tl = button_tl + ImVec2{ button_size.x, 0 };
+    const auto grid_br = ImVec2{ main_quarter_br.x, button_tl.y + button_size.y };
+    // draw_list->AddRect(grid_tl, grid_br, im_white);
+
+    // Draw grid for hull and weapons
+    {
+      auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
+      const bool is_hull = i == 0;
+      const bool is_weapon = i == 1;
+      const bool is_ability = i == 2;
+      const float icon_size = 32;
+      const float padding_x = 10.0f;
+
+      if (is_hull) {
+        const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
+
+        auto first_x = grid_tl.x + padding_x;
+        for (int j = 0; j < (int)hulls_c.hulls.size(); j++) {
+          const auto& hull = hulls_c.hulls[j];
+          const bool weapon_icon_active = j == cell.value;
+          const auto border_col = weapon_icon_active ? im_greenish : im_window_border_col;
+
+          const auto pos_tl = ImVec2{ first_x, grid_tl.y };
+          const auto pos_br = ImVec2{ first_x + icon_size, grid_br.y };
+          draw_list->AddRectFilled(pos_tl, pos_br, im_window_bg_col);
+          draw_list->AddRect(pos_tl, pos_br, border_col);
+
+          // Draw boat icon
+          const auto icon_key = "ICON_"s + to_upper(hull.key);
+          ImGui::SetCursorScreenPos(pos_tl);
+          const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
+          ImGui::Image(custom_im_id, { icon_size, icon_size }, image_icon_tl, image_icon_br);
+
+          first_x += icon_size + padding_x; // move horizontally
+        }
+      }
+      if (is_weapon) {
+        const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+
+        auto first_x = grid_tl.x + padding_x;
+        for (int j = 0; j < (int)weapons_c.weapons.size(); j++) {
+          const auto& weapon = weapons_c.weapons[j];
+          const bool weapon_icon_active = j == cell.value;
+          const auto border_col = weapon_icon_active ? im_greenish : im_window_border_col;
+
+          const auto pos_tl = ImVec2{ first_x, grid_tl.y };
+          const auto pos_br = ImVec2{ first_x + icon_size, grid_br.y };
+          draw_list->AddRectFilled(pos_tl, pos_br, im_window_bg_col);
+          draw_list->AddRect(pos_tl, pos_br, border_col);
+
+          // Draw weapon icon
+          const auto icon_key = "ICON_"s + to_upper(weapon.key);
+          ImGui::SetCursorScreenPos(pos_tl);
+          const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
+          ImGui::Image(custom_im_id, { icon_size, icon_size }, image_icon_tl, image_icon_br);
+
+          first_x += icon_size + padding_x; // move horizontally
+        }
+      }
+    }
 
     if (i + 1 < player_ui_c.state.cells.size())
       button_tl.y += button_size.y + space_between_buttons;
@@ -323,9 +387,7 @@ draw_card_inner(entt::registry& r,
     const auto box_wh = ImVec2{ box_br.x - box_tl.x, box_br.y - box_tl.y };
     draw_stats(r, box_tl, box_wh, player_ui_c);
 
-    //
     // Display the overclocks
-    //
     {
       const auto& active_cell = player_ui_c.state.active;
       const auto& cs = player_ui_c.state.cells;
@@ -352,79 +414,81 @@ draw_card_inner(entt::registry& r,
     }
 
     // draw confirm timer.
-    const auto ready_text = std::format("Hold {}", get_confirm_button_str(r, handle));
-    const auto back_text = std::format("Hold {}", get_back_button_str(r, handle));
-    // const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
-
-    // draw a bar that represents ready percentage
-    auto my_player_col_active = my_player_col;
-    auto my_player_col_inactive = my_player_col;
-    my_player_col_inactive.a = 0.25f * 255;
-    const auto im_player_col_active = convert_my_to_im(my_player_col_active);
-    const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
-
-    const float bar_rounding = 0.0f;
-    const auto my_player_col = default_player_colours[player_idx];
-    const auto im_player_col = convert_my_to_im(my_player_col);
-
-    const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
-      const ImVec2 bar_wh = bar_br - bar_tl;
-
-      // draw a box around the bar
-      draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
-
-      // bar bg
-      draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
-
-      // bar fg
-      float x = bar_tl.x + percent * bar_wh.x;
-      const auto partial_bar_br = ImVec2(x, bar_br.y);
-      ImU32 col_l = im_player_col_active;
-      ImU32 col_r = im_player_col_inactive;
-      draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
-    };
-
-    const float percent_0 = player_state_c.confirm_held_time / player_state_c.confirm_held_time_max;
-    const float percent_1 = player_state_c.back_held_time / player_state_c.back_held_time_max;
-    const float bar_offset = (box_wh.x * 0.1f);
-
-    const auto bar_wh = ImVec2{ box_wh.x, text_size_y };
-    const auto bar_tl_0 = ImVec2{ box_tl.x + bar_offset, box_br.y - 40 - 6 };
-    const auto bar_tl_1 = ImVec2{ box_tl.x + bar_offset, box_br.y + bar_wh.y - 40 };
-    const auto bar_br_0 = ImVec2{ bar_tl_0.x + bar_wh.x - 2.0f * bar_offset, bar_tl_0.y + bar_wh.y };
-    const auto bar_br_1 = ImVec2{ bar_tl_1.x + bar_wh.x - 2.0f * bar_offset, bar_tl_1.y + bar_wh.y };
-
-    draw_bar(bar_tl_0, bar_br_0, percent_0);
-
-    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "kenneynl_gameicons")->id;
-    const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
-    const ImVec2 icon_size{ bar_wh.y, bar_wh.y };
-
-    // tick icon
     {
-      ImGui::SetCursorPos(bar_tl_0);
-      const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_TICK"s);
-      ImGui::Image(im_id, icon_size, icon_tl, icon_br);
-    }
-    const auto ready_text_size = ImGui::CalcTextSize(ready_text.c_str());
-    auto center_text_x = 0.5f * (bar_tl_0.x + bar_br_0.x);
-    center_text_x -= 0.5f * ready_text_size.x;
-    ImGui::SetCursorPos({ center_text_x, bar_tl_0.y });
-    ImGui::Text("%s", ready_text.c_str());
+      const auto ready_text = std::format("Hold {}", get_confirm_button_str(r, handle));
+      const auto back_text = std::format("Hold {}", get_back_button_str(r, handle));
+      // const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.10f * box_wh.y);
 
-    draw_bar(bar_tl_1, bar_br_1, percent_1);
-    // cross icon
-    {
-      ImGui::SetCursorPos(bar_tl_1);
-      const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_CROSS"s);
-      ImGui::Image(im_id, icon_size, icon_tl, icon_br);
+      // draw a bar that represents ready percentage
+      auto my_player_col_active = my_player_col;
+      auto my_player_col_inactive = my_player_col;
+      my_player_col_inactive.a = 0.25f * 255;
+      const auto im_player_col_active = convert_my_to_im(my_player_col_active);
+      const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
+
+      const float bar_rounding = 0.0f;
+      const auto my_player_col = default_player_colours[player_idx];
+      const auto im_player_col = convert_my_to_im(my_player_col);
+
+      const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
+        const ImVec2 bar_wh = bar_br - bar_tl;
+
+        // draw a box around the bar
+        draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
+
+        // bar bg
+        draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
+
+        // bar fg
+        float x = bar_tl.x + percent * bar_wh.x;
+        const auto partial_bar_br = ImVec2(x, bar_br.y);
+        ImU32 col_l = im_player_col_active;
+        ImU32 col_r = im_player_col_inactive;
+        draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
+      };
+
+      const float percent_0 = player_state_c.confirm_held_time / player_state_c.confirm_held_time_max;
+      const float percent_1 = player_state_c.back_held_time / player_state_c.back_held_time_max;
+      const float bar_offset = (box_wh.x * 0.1f);
+
+      const auto bar_wh = ImVec2{ box_wh.x, text_size_y };
+      const auto bar_tl_0 = ImVec2{ box_tl.x + bar_offset, box_br.y - 40 - 6 };
+      const auto bar_tl_1 = ImVec2{ box_tl.x + bar_offset, box_br.y + bar_wh.y - 40 };
+      const auto bar_br_0 = ImVec2{ bar_tl_0.x + bar_wh.x - 2.0f * bar_offset, bar_tl_0.y + bar_wh.y };
+      const auto bar_br_1 = ImVec2{ bar_tl_1.x + bar_wh.x - 2.0f * bar_offset, bar_tl_1.y + bar_wh.y };
+
+      draw_bar(bar_tl_0, bar_br_0, percent_0);
+
+      const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "kenneynl_gameicons")->id;
+      const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
+      const ImVec2 icon_size{ bar_wh.y, bar_wh.y };
+
+      // tick icon
+      {
+        ImGui::SetCursorPos(bar_tl_0);
+        const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_TICK"s);
+        ImGui::Image(im_id, icon_size, icon_tl, icon_br);
+      }
+      const auto ready_text_size = ImGui::CalcTextSize(ready_text.c_str());
+      auto center_text_x = 0.5f * (bar_tl_0.x + bar_br_0.x);
+      center_text_x -= 0.5f * ready_text_size.x;
+      ImGui::SetCursorPos({ center_text_x, bar_tl_0.y });
+      ImGui::Text("%s", ready_text.c_str());
+
+      draw_bar(bar_tl_1, bar_br_1, percent_1);
+      // cross icon
+      {
+        ImGui::SetCursorPos(bar_tl_1);
+        const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_CROSS"s);
+        ImGui::Image(im_id, icon_size, icon_tl, icon_br);
+      }
+      const auto back_text_size = ImGui::CalcTextSize(back_text.c_str());
+      auto back_text_x = 0.5f * (bar_tl_1.x + bar_br_1.x);
+      back_text_x -= 0.5f * back_text_size.x;
+      ImGui::SetCursorPos({ back_text_x, bar_tl_1.y });
+      ImGui::Text("%s", back_text.c_str());
+      ImGui::PopFont();
     }
-    const auto back_text_size = ImGui::CalcTextSize(back_text.c_str());
-    auto back_text_x = 0.5f * (bar_tl_1.x + bar_br_1.x);
-    back_text_x -= 0.5f * back_text_size.x;
-    ImGui::SetCursorPos({ back_text_x, bar_tl_1.y });
-    ImGui::Text("%s", back_text.c_str());
-    ImGui::PopFont();
   }
 }
 
@@ -479,7 +543,7 @@ update_player_select_ui(entt::registry& r,
 
     auto& active_cell = player_ui_c.state.active;
     auto& h_value = dynamic_cast<OptionsCell*>(active_cell.get())->value;
-    const ImVec2 button_size = { 100.0f * ui_scaling, 24.0f * ui_scaling };
+    const ImVec2 button_size = { 80.0f * ui_scaling, 32.0f * ui_scaling };
 
     const auto& s = player_ui_c.state.actions;
     const bool do_act = std::find(s.begin(), s.end(), UIAction::SELECT) != s.end();

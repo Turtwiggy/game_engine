@@ -50,6 +50,7 @@ struct SelectableButtonDef
   glm::vec2 text_pivot{ 0.5f, 0.5f }; // 0.5, 0.5 = center
   ImVec2 text_offset{ 0, 0 };
   ImFont* font = nullptr;
+  float rounding = 6.0f;
 
   engine::SRGBColour active_outline_col = hex_to_srgb("#FFFFFF", 255);
   engine::SRGBColour inactive_outline_col = hex_to_srgb("#FFFFFF", (int)(0.6f * 255));

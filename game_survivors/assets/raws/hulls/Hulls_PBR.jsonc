@@ -1,8 +1,8 @@
 {
     // 0,0 top left
     "s_key": "pbr",
-    "s_name" : "PBR",
-    "s_description" : "Apocalypse is upon us. May this M*A*S*H Sheen serve you well.",
+    "s_name" : "Patrol Boat, River (PBR)",
+    "s_description" : "Apocalypse is upon us. May M*A*S*H serve you well.",
     "n_height_px" : 30,
     "n_width_px" : 82,
     "o_center_of_mass": {

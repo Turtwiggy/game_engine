@@ -1,8 +1,8 @@
 {
     // 0,0 top left
     "s_key": "rhib",
-    "s_name" : "RHIB",
-    "s_description" : "A RHIB for your pleasure, seamen; rigid and fully inflated.",
+    "s_name" : "Rigid Hulled Inflatable Boat (RHIB)",
+    "s_description" : "RHIB for your pleasure; rigid and fully inflated.",
     "n_height_px" : 30,
     "n_width_px" : 55,
     "o_center_of_mass": {
