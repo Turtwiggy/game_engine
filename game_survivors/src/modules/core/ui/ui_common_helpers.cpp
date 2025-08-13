@@ -22,11 +22,10 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
 
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0)); // button hovered
   ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));  // button clicked
-
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
 
   // const auto& colors = ImGui::GetStyle().Colors;
   // const auto b_col = colors[ImGuiCol_Button];
@@ -42,8 +41,12 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
 
   // https://github.com/ocornut/imgui/issues/4719
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  draw_list->ChannelsSplit(2);
-  draw_list->ChannelsSetCurrent(1);
+  const auto p_tl = ImGui::GetCursorScreenPos();
+  const auto p_br = p_tl + size;
+  const auto p_wh = size;
+
+  // draw_list->ChannelsSplit(2);
+  // draw_list->ChannelsSetCurrent(1);
 
   const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
   const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
@@ -65,11 +68,10 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   if (def.update_selected_only_with_mouse)
     is_selected = is_hovered;
 
-  draw_list->ChannelsSetCurrent(0);
-  const auto p_tl = ImGui::GetItemRectMin();
-  const auto p_br = ImGui::GetItemRectMax();
-  const auto p_wh = ImGui::GetItemRectSize();
-  const float thickness = 2.0;
+  // draw_list->ChannelsSetCurrent(0);
+  // const auto p_tl = ImGui::GetItemRectMin();
+  // const auto p_br = ImGui::GetItemRectMax();
+  // const auto p_wh = ImGui::GetItemRectSize();
 
   const ImU32 im_inactive_outline_col = convert_my_to_im(def.inactive_outline_col);
   const ImU32 im_active_outline_col = convert_my_to_im(def.active_outline_col);
@@ -83,7 +85,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
 
   // button
   draw_list->AddRectFilled(p_tl, p_br, bg_col, def.rounding);
-  draw_list->AddRect(p_tl, p_br, outline_col, def.rounding, ImDrawFlags_RoundCornersAll, thickness);
+  draw_list->AddRect(p_tl, p_br, outline_col, def.rounding, ImDrawFlags_RoundCornersAll, def.thickness);
 
   auto font = def.font;
   if (font == nullptr)
@@ -115,7 +117,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   }
 
   // "commit changes"
-  draw_list->ChannelsMerge();
+  // draw_list->ChannelsMerge();
 
   // play_sound_if_hovered(r, ui.hovered_buttons, label);
 
@@ -130,7 +132,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     do_act = true;
 
   ImGui::PopStyleColor(2);
-  // ImGui::PopStyleVar(4);
+  ImGui::PopStyleVar(4);
 
   return do_act;
 };

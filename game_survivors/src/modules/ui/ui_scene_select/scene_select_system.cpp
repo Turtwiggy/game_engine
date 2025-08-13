@@ -304,6 +304,7 @@ draw_card_inner(entt::registry& r,
       .active_cell = player_ui_c.state.active,
       .font = header_font,
       .rounding = 0.0f,
+      .thickness = 1.0f,
     };
 
     if (selectable_button(r, def))

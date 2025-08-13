@@ -57,12 +57,17 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   const ImVec2 space_between_buttons = { 0, 4 * font_scale };
 
   const int n_buttons_y = 6;
-  const auto size = ImVec2{ font_scale * 400, n_buttons_y * button_size.y };
+  const auto size = ImVec2{ font_scale * 400, n_buttons_y * (button_size.y + space_between_buttons.y) };
   ImGui::SetNextWindowSize(size);
 
   imgui_begin("MainMenu");
-  const ImVec2 ui_tl = ImGui::GetWindowPos();
-  const ImVec2 ui_wh = ImGui::GetWindowSize();
+  const auto ui_tl = ImGui::GetCursorScreenPos();
+  const auto ui_wh = ImGui::GetContentRegionAvail();
+
+#if defined(_DEBUG)
+  // auto* draw_list = ImGui::GetWindowDrawList();
+  // draw_list->AddRect(ui_tl, ui_tl + ui_wh, IM_COL32(255, 0, 0, 255));
+#endif
 
   process_input_for_ui_all_handles(r, ui_c.state);
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
@@ -95,7 +100,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         cell->action();
     };
 
-    const auto pos_x = (ui_wh.x * 0.5f) - (button_size.x * 0.5f);
+    const auto pos_x = 0.5f * (ui_wh.x - button_size.x);
     ImGui::SetCursorPosX(pos_x);
 
     draw_button(base, 0);

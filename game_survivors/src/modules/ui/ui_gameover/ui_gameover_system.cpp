@@ -87,8 +87,8 @@ update_ui_gameover_system(entt::registry& r)
   // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, fr);
 
   imgui_begin("Gameover");
-  const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();
+  const auto ui_wh = ImGui::GetContentRegionAvail();
 
   auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 2 : 3];
   const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
