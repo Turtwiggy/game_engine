@@ -13,4 +13,7 @@ move_to_scene_start(entt::registry& r, const Scene& s);
 void
 move_to_scene_additive(entt::registry&, const Scene& s);
 
+entt::entity
+spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, std::string weapon_key, const glm::vec2 pos);
+
 } // namespace game2d

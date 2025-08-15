@@ -5,28 +5,48 @@
 #include "ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/physics_helpers.hpp"
+#include "engine/sprites/helpers.hpp"
+#include "engine/std/string/helpers.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/actor_player_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
+#include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/scene/scene_components.hpp"
+#include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
+#include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
+#include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
+#include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
+#include "modules/ui/ui_scene_select/scene_select_components.hpp"
+#include "modules/ui/ui_scene_select/scene_select_helpers.hpp"
+#include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
 #include "resources/data.hpp"
+#include <format>
 
 namespace game2d {
 
@@ -40,34 +60,461 @@ sum_array_values()
   return sum;
 };
 
+std::vector<DisplayStat>
+get_display_stats(entt::registry& r)
+{
+  const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+
+  std::vector<DisplayStat> display_stats;
+
+  for (int i = 0; i < magic_enum::enum_count<UpgradeableStat>(); i++) {
+    if (i == (int)UpgradeableStat::count)
+      continue;
+    auto key = std::string(magic_enum::enum_name(UpgradeableStat(i)));
+    auto clean_key = key;
+    clean_key = str_remove_all_occurances(clean_key, "ACTOR_");
+    clean_key = str_remove_all_occurances(clean_key, "BULLET_");
+    clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
+
+    display_stats.push_back({ .key = clean_key, .val = "0" });
+  }
+
+  return display_stats;
+};
+
+void
+draw_upgrade_selections_in_grid(entt::registry& r,
+                                ImVec2 selection_tl,
+                                ImVec2 selection_br,
+                                UIState& state_c,
+                                SINGLE_LevelUpUI& ui_c,
+                                const UpgradeResultsComponent* upgrades_c,
+                                const bool do_act,
+                                ImFont* font)
+{
+  const auto& upg_name_c = get_first_component<SINGLE_UpgradeToName>(r);
+  auto* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 selection_wh = selection_br - selection_tl;
+  int grid_cols = 3;
+  float icon_size = 32.0f;
+  float padding_x = 4.0f;
+  float first_x = selection_tl.x + 0.5f * (selection_wh.x - (grid_cols * icon_size));
+  float center_y = selection_tl.y + 0.5f * (selection_wh.y - icon_size);
+  float top_y = center_y - 0.5f * icon_size;
+  const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
+
+  for (int i = 0; i < upgrades_vec.size(); i++) {
+
+    const auto cell_it = std::find(state_c.cells.begin(), state_c.cells.end(), state_c.active);
+    const auto cell_idx = static_cast<int>(cell_it - state_c.cells.begin());
+    const auto selected = cell_idx == i;
+
+    const UpgradeRollResult result = upgrades_vec[i];
+    const auto rarity = result.rarity;
+    const auto rarity_str = std::string(magic_enum::enum_name(rarity));
+    const auto im_rcol_vec = rarity_to_col(rarity);
+    const auto im_rcol = IM_COL32(im_rcol_vec.x * 255, im_rcol_vec.y * 255, im_rcol_vec.z * 255, im_rcol_vec.w * 255);
+
+    // draw a bg for the rarity header.
+    if (selected) {
+      // card header background.
+      // draw_list->AddRectFilled({ selection_tl.x, selection_tl.y }, { selection_br.x, top_y }, im_rcol, 0);
+      // const auto header_bg_tl = ImVec2(card_ui_tl.x + header_pad, card_ui_tl.y + header_pad);
+      // const auto header_bg_br = ImVec2(card_ui_tl.x + card_ui_wh.x - header_pad, card_ui_tl.y + header_pad +
+      // header_y_size); const auto header_bg_wh = calc_wh(header_bg_tl, header_bg_br);
+      // draw_list->AddRectFilled(header_bg_tl, header_bg_br, im_rcol, 0);
+
+      // draw the card rarity.
+      // const auto rarity_tl = ImVec2(header_bg_tl.x, header_bg_br.y);
+      // const auto rarity_br = ImVec2(header_bg_br.x, header_bg_br.y + f->FontSize);
+      // const auto rarity_wh = calc_wh(rarity_tl, rarity_br);
+      // const auto rarity_txt_center = center_text(f, data.rarity_txt, calc_center(rarity_tl, rarity_wh));
+      // draw_list->AddText(f, f->FontSize, rarity_txt_center, im_rcol, data.rarity_txt.c_str());
+    }
+
+    const auto box_tl = ImVec2{ first_x, center_y };
+    const auto box_br = ImVec2{ box_tl.x + icon_size, box_tl.y + icon_size };
+    const auto box_wh = box_br - box_tl;
+    // draw_list->AddRect(box_tl, box_br, IM_COL32(255, 0, 0, 255));
+
+    std::string header_text = "Upgrade!";
+    std::string desc_text = "";
+
+    // if only one stat, set the header
+    if (result.stats.size() == 1) {
+      const auto& s = result.stats[0];
+      const std::string stat = s.stat;
+      const std::string type = s.type;
+      const float value = s.value;
+      const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
+
+      // flavour text for the header
+      const auto [amount, type_str] = stat_from_stat_table(rarity, stat_enum);
+      const UpgradeRollResult roll_res{ .rarity = rarity, .stats = { Stat{ .stat = stat } } };
+      header_text = upg_name_c.stat_to_name_map.at(roll_res);
+    }
+
+    // draw selected stat header
+    if (selected) {
+      const auto py = 4.0f;
+      const auto text_wh = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, header_text.c_str());
+      const auto text_tl = ImVec2{ selection_tl.x + 0.5f * (selection_wh.x - text_wh.x), selection_tl.y + py };
+      const auto text_next_wh = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, rarity_str.c_str());
+      const auto text_next_tl =
+        ImVec2{ selection_tl.x + 0.5f * (selection_wh.x - text_next_wh.x), text_tl.y + text_wh.y + py };
+
+      ImGui::PushFont(font);
+      draw_list->AddText(text_tl, im_text_col, header_text.c_str());
+      draw_list->AddText(text_next_tl, im_rcol, rarity_str.c_str());
+      ImGui::PopFont();
+    }
+
+    SelectableButtonDef def{
+      .display_str = state_c.cells[i]->name,
+      .imgui_hash = "##aquire_" + header_text + "_" + rarity_str,
+
+      .size = box_wh,
+      .input = do_act,
+      .cell = state_c.cells[i],
+      .active_cell = state_c.active,
+
+      // hide the buttons (display handled elsewhere)
+      .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+    };
+
+    ImGui::SetCursorPos(box_tl);
+    if (selectable_button(r, def)) {
+      // Process action (aquire the upgrade)
+      state_c.active->action();
+
+      // refresh ui
+      populate_ui_based_on_upgrades(r, ui_c);
+
+      return;
+    }
+
+    // draw the background
+    draw_list->AddRectFilled(box_tl, box_br, im_window_bg_col);
+
+    // todo: draw a pointer to the active selection
+    if (selected)
+      draw_list->AddRect(box_tl, box_br, im_greenish);
+    else
+      draw_list->AddRect(box_tl, box_br, im_white);
+
+    first_x += icon_size + padding_x;
+  }
+};
+
+void
+draw_stats(entt::registry& r,
+           ImVec2 stats_tl,
+           ImVec2 stats_br,
+           entt::entity player_e,
+           const UIState& state_c,
+           const UpgradeResultsComponent* upgrades_c,
+           ImFont* font)
+{
+  auto* draw_list = ImGui::GetWindowDrawList();
+  const auto& ri_c = SINGLE_RendererInfo::instance;
+  const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+  const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
+
+  const auto stats = get_display_stats(r);
+  const auto max_width = calculate_width(stats);
+  const auto icon_size = ImVec2{ 16, 16 };
+
+  if (upgrades_c->results.size() == 0)
+    return;
+
+  // this contains the upgrade data.
+  const auto cell_it = std::find(state_c.cells.begin(), state_c.cells.end(), state_c.active);
+  const auto cell_idx = static_cast<int>(cell_it - state_c.cells.begin());
+  const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
+  const auto result = upgrades_vec[cell_idx];
+  const auto& upg_stats = result.stats;
+  const auto& upg_traits = result.traits;
+  const auto& upg_weapons = result.weapons;
+  const auto weapons_e = get_weapons(r, player_e);
+
+  auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, "A");
+
+  float start_y = stats_tl.y + 5.0f; // add Xpx worth of padding
+  const auto key_x = stats_tl.x + icon_size.x + 5.0f;
+
+  for (int i = 0; i < (int)stats.size(); i++) {
+    const auto stat_enum = magic_enum::enum_value<UpgradeableStat>(i);
+    const auto stat_str = std::string(magic_enum::enum_name(stat_enum));
+
+    // stats to skip...
+    if (stat_enum == UpgradeableStat::ACTOR_STAMINA)
+      continue;
+    // if (!result.level_weapons && i >= (int)UpgradeableStat::BULLET_BOUNCE)
+    //   continue;
+
+    // some stats need spacers
+    // TODO: remove string comparison
+    if (stats[i].key == "BOUNCE")
+      start_y += text_size.y;
+    if (stats[i].key == "PROJECTILES")
+      start_y += text_size.y;
+
+    // Display weapon info
+    {
+      if (stat_enum == UpgradeableStat::BULLET_BOUNCE) {
+
+        // display weapon (key)
+        draw_list->AddText({ key_x, start_y }, im_text_col, "WEAPON");
+
+        // display weapon name (val)
+        if (upg_weapons.size() > 0) {
+
+          // get the index of the weapon
+          const auto wep_e = upg_weapons[0];
+          const auto it = std::find(weapons_e.begin(), weapons_e.end(), wep_e);
+          const auto idx = static_cast<int>(it - weapons_e.begin());
+
+          const auto& weapon_data_c = r.get<const Weapon_OnDiskData>(wep_e);
+          const auto weapon_name = std::format("[{}] {}", idx, weapon_data_c.name);
+          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, weapon_name.c_str());
+        }
+
+        // display current weapon level (key)
+        start_y += text_size.y;
+        draw_list->AddText({ key_x, start_y }, im_text_col, "LEVEL");
+
+        // display current weapon level (val)
+        if (upg_weapons.size() > 0) {
+          const auto& wep_e = upg_weapons[0];
+          const auto& wep_c = r.get<WeaponLevelComponent>(wep_e);
+          const auto wep_lv_str = std::format("{}", wep_c.level);
+          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, wep_lv_str.c_str());
+
+          // assuming we're here, show a +1 to level because this would upgrade the weapon.
+          draw_list->AddText({ key_x + max_width + 50.0f, start_y }, im_greenish, "+1"s.c_str());
+        }
+
+        start_y += text_size.y;
+        start_y += text_size.y;
+      }
+    }
+
+    // icon
+    auto icon_tl = ImVec2{ stats_tl.x, start_y };
+    auto icon_br = ImVec2{ stats_tl.x + icon_size.y, icon_tl.y + icon_size.y };
+    const auto icon_key = "ICON_" + stat_str + "_CENTERED";
+    ImGui::SetCursorScreenPos(icon_tl);
+    auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
+    ImGui::Image(custom_im_id, icon_size, image_icon_tl, image_icon_br);
+
+    // key
+    draw_list->AddText({ key_x, start_y }, im_text_col, stats[i].key.c_str());
+
+    // value
+    std::string val_str = "N/A";
+    std::string upg_val_str = "+0";
+
+    const auto& upgrades_c = r.get<StatModifierComponent>(player_e);
+    const auto player_fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
+    // const auto xp_zone_fixture_e = get_fixture_by_tag(r, player_e, "fixture_xp_zone");
+
+    // DISPLAY ACTOR_ stats
+    {
+      if (stat_enum == UpgradeableStat::ACTOR_DODGE_CHANCE) {
+        const auto v = r.get<const ActorDodgeComponent>(player_e).dodge_percent;
+        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        val_str = std::format("{:0.1f}", v_out) + "%"s;
+      }
+      if (stat_enum == UpgradeableStat::ACTOR_HEALTH_MAX) {
+        const auto v = r.get<const HealthComponent>(player_fixture_e).max_hp;
+        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        val_str = std::format("{:0.0f}", v_out);
+      }
+      if (stat_enum == UpgradeableStat::ACTOR_HEALTH_REGEN) {
+        const auto v = r.get<const ActorHealthRegenComponent>(player_e).hp_per_second;
+        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        val_str = std::format("{:0.2f}", v_out);
+      }
+      if (stat_enum == UpgradeableStat::ACTOR_SPEED) {
+        const auto v = r.get<const ActorSpeedComponent>(player_e).base_speed;
+        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        val_str = std::format("{:0.2f}", v_out);
+      }
+      if (stat_enum == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
+        const auto v = r.get<const ActorXpZoneSizeComponent>(player_e).radius_meters;
+        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        val_str = std::format("{:0.2f}", v_out);
+      }
+    }
+
+    // DISPLAY WEAPON_ and BULLET_ stats
+    {
+      if (upg_weapons.size() > 0) {
+        const auto wep_e = upg_weapons[0];
+        const auto wep_def = get_weapon_def(r, player_e, wep_e);
+        const auto bul_def = get_bullet_def(r, player_e, wep_e);
+
+        if (stat_enum == UpgradeableStat::BULLET_BOUNCE)
+          val_str = std::format("{:0.0f}", (float)bul_def.bounces);
+        else if (stat_enum == UpgradeableStat::BULLET_CRIT_CHANCE)
+          val_str = std::format("{}%", (int)bul_def.crit_chance);
+        else if (stat_enum == UpgradeableStat::BULLET_CRIT_DAMAGE)
+          val_str = std::format("{}%", (int)bul_def.crit_damage);
+        else if (stat_enum == UpgradeableStat::BULLET_DAMAGE)
+          val_str = std::format("{:0.1f}", (float)bul_def.damage);
+        else if (stat_enum == UpgradeableStat::BULLET_KNOCKBACK)
+          val_str = std::format("{:0.1f}", (float)bul_def.knockback_force);
+        else if (stat_enum == UpgradeableStat::BULLET_LIFESTEAL)
+          val_str = std::format("{:0.1f}", (float)bul_def.lifesteal);
+        else if (stat_enum == UpgradeableStat::BULLET_LIFETIME)
+          val_str = std::format("{:0.1f}", (float)bul_def.lifecycle * 0.001f); // ms => s);
+        else if (stat_enum == UpgradeableStat::BULLET_PIERCE)
+          val_str = std::format("{}", bul_def.pierce);
+        else if (stat_enum == UpgradeableStat::BULLET_SIZE)
+          val_str = std::format("{:0.1f}", (float)bul_def.size.x);
+        else if (stat_enum == UpgradeableStat::BULLET_SPEED)
+          val_str = std::format("{:0.1f}", (float)bul_def.speed);
+
+        // note: display the weapon that the upgrade is upgrading.
+        if (stat_enum == UpgradeableStat::WEAPON_PROJECTILES)
+          val_str = std::format("{}", wep_def.projectiles);
+        else if (stat_enum == UpgradeableStat::WEAPON_SPREAD)
+          val_str = std::format("{:0.1f}", (float)wep_def.spread_deg);
+        else if (stat_enum == UpgradeableStat::WEAPON_FIRERATE)
+          val_str = std::format("{:0.1f}", (float)wep_def.fire_rate);
+        else if (stat_enum == UpgradeableStat::WEAPON_CLIP_SIZE)
+          val_str = std::format("{}", (int)wep_def.bullets_max);
+        else if (stat_enum == UpgradeableStat::WEAPON_RELOAD)
+          val_str = std::format("{:0.1f}", (float)wep_def.reload_rate);
+        else if (stat_enum == UpgradeableStat::WEAPON_RANGE)
+          val_str = std::format("{:0.1f}", (float)wep_def.range);
+      }
+    }
+
+    // display your current stat value
+    draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, val_str.c_str());
+
+    // display the new stat value (i.e. how much the upgrade will change it by)
+    {
+      const auto is_stat = [&](const Stat& other) { return other.stat == stat_str; };
+      const auto find_stat = std::find_if(result.stats.begin(), result.stats.end(), is_stat);
+      if (find_stat != result.stats.end()) {
+        const auto& stat = *find_stat;
+        auto stat_amount = std::format("+{:0.1f}", stat.value);
+        if (stat.type == "stat_percent_increase")
+          stat_amount += "%";
+        draw_list->AddText({ key_x + max_width + 50.0f, start_y }, im_greenish, stat_amount.c_str());
+      }
+    }
+
+    // move vertically
+    start_y += text_size.y;
+  }
+
+  // add a separator
+  start_y += text_size.y;
+  draw_list->AddText({ key_x, start_y }, im_text_col, "BEHAVIOURS");
+
+  // TODO: highlight (new) weapon behaviours.
+  // for (const auto& upg_traits : result.traits) {
+  //   start_y += text_size.y;
+  //   const auto upg_str = std::string(magic_enum::enum_name(upg_traits));
+  //   draw_list->AddText({ key_x, start_y }, im_text_col, upg_str.c_str());
+  // }
+
+  // if (result.traits.size() == 0) {
+  //   start_y += text_size.y;
+  //   draw_list->AddText({ key_x, start_y }, im_text_col, "NONE. Get @ Lv 4, 8, 12");
+  // }
+};
+
+void
+draw_confirm_bar(entt::registry& r,
+                 ImVec2 tl,
+                 ImVec2 br,
+                 const int player_idx,
+                 const CardUIUpgradeComponent& card_ui_c,
+                 ImFont* font)
+{
+  auto* draw_list = ImGui::GetWindowDrawList();
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
+
+  const auto purchasebar_tl = ImVec2{ tl.x + 5.0f, br.y - 25.0f };
+  const auto purchasebar_br = ImVec2{ br.x - 5.0f, br.y - 5.0f };
+  const auto purchasebar_wh = purchasebar_br - purchasebar_tl;
+  // draw_list->AddRect(purchasebar_tl, purchasebar_br, im_player_col);
+
+  auto my_player_col = default_player_colours[player_idx];
+  auto my_player_col_active = my_player_col;
+  auto my_player_col_inactive = my_player_col;
+  my_player_col_inactive.a = 0.25f * 255;
+  const auto im_player_col_active = convert_my_to_im(my_player_col_active);
+  const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
+
+  const float bar_rounding = 0.0f;
+
+  const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
+    const ImVec2 bar_wh = bar_br - bar_tl;
+
+    // draw a box around the bar
+    draw_list->AddRect(bar_tl, bar_br, im_player_col_active, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
+
+    // bar bg
+    draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
+
+    // bar fg
+    float x = bar_tl.x + percent * bar_wh.x;
+    const auto partial_bar_br = ImVec2(x, bar_br.y);
+    ImU32 col_l = im_player_col_active;
+    ImU32 col_r = im_player_col_inactive;
+    draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
+  };
+  draw_bar(purchasebar_tl, purchasebar_br, card_ui_c.time_to_confirm_cur / card_ui_c.time_to_confirm_max);
+
+  // draw some text on the inside of the bar
+  const auto center_pos = ImVec2{ purchasebar_tl.x + purchasebar_wh.x * 0.5f, purchasebar_tl.y + purchasebar_wh.y * 0.5f };
+  const auto handle = steam_ui_c.handles[player_idx];
+  const auto ready_text = std::format("Hold {} to select", get_confirm_button_str(r, handle));
+  const auto ready_text_pos = center_text(font, ready_text, center_pos);
+  ImGui::SetCursorPos(ready_text_pos);
+  ImGui::Text("%s", ready_text.c_str());
+}
+
 void
 update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+
+#if defined(_DEBUG)
+  const auto& scene_c = SINGLE_CurrentScene::instance;
+  if (scene_c.s == Scene::menu) {
+    gesert_component<SINGLE_XpComponent>(r);
+    gesert_component<SINGLE_LevelUpUI>(r);
+    gesert_component<SINGLE_PersistentUpgrades>(r);
+    static bool init = false;
+    if (!init) {
+      for (int i = 0; i < 4; i++) {
+        // create a fake player
+        spawn_player(r, "actor_player", i, "dinghy", "weapon_deck_cannon", { 0, 0 });
+      }
+      init = true;
+    }
+  }
+#endif
+
   const auto& ri_c = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_XpComponent, r, sxp_e, sxp_c);
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, up_e, up_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
-  GET_FIRST_OR_RETURN(SINGLE_UpgradeToName, r, upg_name_e, upg_name_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
   auto& evts_c = SINGLE_Events::instance;
 
 #if defined(_DEBUG)
-
-  // const auto& scene_c = SINGLE_CurrentScene::instance;
-  // if (scene_c.s == Scene::menu) {
-  //   gesert_component<SINGLE_XpComponent>(r);
-  //   gesert_component<SINGLE_LevelUpUI>(r);
-  //   gesert_component<SINGLE_PersistentUpgrades>(r);
-  //   static bool init = false;
-  //   if (!init) {
-  //     for (int i = 0; i < 4; i++)
-  //       create_empty<PlayerComponent>(r, PlayerComponent{ i });
-  //     init = true;
-  //   }
-  // }
 
   // Cheats..!! CHEATSS!!! CHEEEATTTSSSSSSS!!!!!!!
   {
@@ -101,67 +548,6 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     }
   }
 
-  /*
-ImGui::Begin("DebugPlayerInputs");
-{
-  const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
-  // for (const auto handle : controller_ui.handles)
-  //   ImGui::Text("Handle: %zu", (uint64)handle);
-
-  for (int i = 0; const auto& [e, player_c, input_c] : r.view<const PlayerComponent, const InputComponent>().each()) {
-    ImGui::PushID((uint32_t)e);
-
-    ImGui::Text("p%i lx %f ly %f", player_c.idx, input_c.lx, input_c.ly);
-
-    if (r.all_of<PlayerBoatComponent>(e)) {
-      ImGui::SameLine();
-      ImGui::Text("(boat)");
-
-      if (!r.all_of<MovementDirectComponent>(e))
-        r.emplace<MovementDirectComponent>(e);
-    }
-
-    if (r.all_of<MovementIslandComponent>(e)) {
-      ImGui::SameLine();
-      ImGui::Text("(islander)");
-    }
-    if (r.all_of<KeyboardComponent>(e)) {
-      ImGui::SameLine();
-      ImGui::Text("(keyboard)");
-    }
-    if (r.all_of<SteamControllerComponent>(e)) {
-      ImGui::SameLine();
-      auto& steam_c = r.get<SteamControllerComponent>(e);
-      ImGui::Text("(controller) handles: %i", (int)steam_c.handles.size());
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Control")) {
-      const auto view0 = r.view<SteamControllerComponent>(entt::exclude<Persistent>);
-      for (auto entity : view0)
-        r.remove<SteamControllerComponent>(entity);
-      const auto view1 = r.view<KeyboardComponent>();
-      for (auto entity : view1)
-        r.remove<KeyboardComponent>(entity);
-
-      // note:assign all handles to the player.
-      // (i.e. all controllers)
-      // only use for debug
-      SteamControllerComponent steam_c;
-      steam_c.handles = non_zero_handles(controller_ui.handles);
-      if (steam_c.handles.size() > 0)
-        r.emplace<SteamControllerComponent>(e, steam_c);
-      r.emplace<KeyboardComponent>(e);
-    }
-
-    ImGui::Separator();
-    ImGui::PopID();
-    i++;
-  }
-}
-ImGui::End();
-*/
-
 #endif
 
   // check the probabilities are mathing to 100%
@@ -172,7 +558,7 @@ ImGui::End();
   const int num_active_players = 4;
 #else
   const int max_num_players = 4;
-  const int num_active_players = non_zero_handles(steam_state_c.handles).size();
+  const int num_active_players = non_zero_handles(steam_ui_c.handles).size();
 #endif
 
   const auto text_col = ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
@@ -186,6 +572,7 @@ ImGui::End();
     sxp_c.level++;
     sxp_c.xp_for_next_level += 5; // 5 harder every time
 
+    SDL_Log("Levelup");
     generate_upgrades_for_players(r, ui_c);
     populate_ui_based_on_upgrades(r, ui_c);
   }
@@ -197,19 +584,21 @@ ImGui::End();
   ui_c.open = true;
 
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const float upg_header_height = 50.0f * ui_scale;
-  const int cards = 3;
-  const auto card_size = ImVec2{ 225 * ui_scale, 150 * ui_scale };
+  const float upg_header_height = 75.0f * ui_scale;
+  const int cards = 4;
+  const auto card_size = ImVec2{ 225 * ui_scale, 120 * ui_scale };
   const float card_padding_y = 8 * ui_scale; // pad between cards
-  const auto header_pad = 4 * ui_scale;
-  const auto header_y_size = 30 * ui_scale;
+  // const auto header_pad = 4 * ui_scale;
+  // const auto header_y_size = 30 * ui_scale;
   const auto line_size = 40.0f * ui_scale;
-  const float desired_y = (card_size.y * cards) + ((cards - 1) * card_padding_y) + upg_header_height;
+
+  const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+  const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
 
   // idx: 4 should be fingerpaint, idx: 5 should be fingerpaint scaled.
   auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 4 : 5];
 
-  const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
+  const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
   auto* font = get_inter_font(r, text_font_enum);
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
@@ -297,210 +686,61 @@ ImGui::End();
       }
     }
 
-    // debug background
-    // const auto pad_tl = ImVec2{ player_ui_tl.x, player_ui_tl.y };
-    // const auto pad_br = ImVec2{ player_ui_tl.x + player_ui_wh.x, player_ui_tl.y + player_ui_wh.y };
-    // draw_list->AddRectFilled(pad_tl, pad_br, IM_COL32((player_idx / 4.0f) * 255, 255, 255, 150), 0);
-
-    const auto clamped_tl =
-      ImVec2(player_ui_tl.x + 0.5f * (player_ui_wh.x - card_size.x), player_ui_tl.y + 0.5f * (player_ui_wh.y - desired_y));
-    const auto clamped_wh = card_size;
-
     auto* head_f = fingerpaint_font;
     auto* f = font; // body font
+    const auto im_player_col = default_player_colours_im[player_idx];
+
+    const auto clamped_tl = player_ui_tl;
+    const auto clamped_br = player_ui_br;
+    const auto clamped_wh = clamped_br - clamped_tl;
+    // draw_list->AddRect(clamped_tl, clamped_br, IM_COL32(255, 0, 0, 255));
+
+    // work out the selection box tl & br
+    auto stats_y = upg_header_height + 0.5f * (card_size.y + card_padding_y);
+    auto padding_x = 40.0f;
+    const auto selection_tl = ImVec2{ clamped_tl.x + padding_x, clamped_tl.y + head_f->FontSize + 50.0f };
+    const auto selection_br = ImVec2{ clamped_tl.x + clamped_wh.x - padding_x, clamped_tl.y + stats_y + 50.0f };
+
+    // work out the stats box tl & br
+    const auto stats_tl = ImVec2{ clamped_tl.x + padding_x, selection_br.y };
+    const auto stats_br = ImVec2{ clamped_tl.x + clamped_wh.x - padding_x, clamped_br.y - 50.0f };
+
+    // draw a background for the upgrade box.
+    draw_list->AddRectFilled(selection_tl, stats_br, im_window_bg_col);
+    draw_list->AddRect(selection_tl, stats_br, im_player_col, 0.0f, 0, 1.0f);
 
     // add upgrade header for column
-    const auto im_player_col = convert_my_to_im(default_player_colours[player_idx]);
-    const auto upg_text = "Hold to Upgrade";
-    const auto upg_pos = ImVec2{ clamped_tl.x + 0.5f * clamped_wh.x, clamped_tl.y }; // top center
+    const auto upg_text = "Choose your Upgrade";
+    const auto upg_pos = ImVec2{ clamped_tl.x + 0.5f * clamped_wh.x, selection_tl.y - head_f->FontSize }; // top center
     const auto upg_center = center_text(head_f, upg_text, upg_pos, { 0.5f, 0.0f });
     draw_list->AddText(head_f, head_f->FontSize, upg_center, im_player_col, upg_text);
 
     // some separator lines
-    const auto s_y = clamped_tl.y + head_f->FontSize * 0.5f;
-    const auto l0_p1 = ImVec2{ clamped_tl.x, s_y };
-    const auto l0_p2 = ImVec2{ clamped_tl.x + line_size, s_y };
+    const auto s_y = upg_pos.y + 0.5f * head_f->FontSize;
+    const auto l0_p1 = ImVec2{ selection_tl.x, s_y };
+    const auto l0_p2 = ImVec2{ selection_tl.x + line_size, s_y };
     draw_list->AddLine(l0_p1, l0_p2, im_player_col);
-    const auto l1_p1 = ImVec2{ clamped_tl.x + clamped_wh.x - line_size, s_y };
-    const auto l1_p2 = ImVec2{ clamped_tl.x + clamped_wh.x, s_y };
+    const auto l1_p1 = ImVec2{ selection_br.x - line_size, s_y };
+    const auto l1_p2 = ImVec2{ selection_br.x, s_y };
     draw_list->AddLine(l1_p1, l1_p2, im_player_col);
 
-    auto card_ui_tl = ImVec2{ clamped_tl.x, clamped_tl.y + upg_header_height };
-    auto card_ui_br = ImVec2{ clamped_tl.x + card_size.x, clamped_tl.y + upg_header_height + card_size.y };
-    auto card_ui_wh = calc_wh(card_ui_tl, card_ui_br);
+    // Draw the upgrades in a grid
+    // draw_list->AddRect(selection_tl, selection_br, im_player_col);
+    draw_upgrade_selections_in_grid(r, selection_tl, selection_br, state_c, ui_c, upgrades_c, do_act, font);
 
-    const int cards = glm::min((int)upgrades_c->results.size(), (int)state_c.cells.size());
-    for (int card_idx = 0; card_idx < cards; card_idx++) {
-
-      // card data.
-      const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
-      const UpgradeRollResult result = upgrades_vec[card_idx];
-
-      const auto rarity = result.rarity;
-      const auto rarity_str = std::string(magic_enum::enum_name(rarity));
-
-      std::string header_text = "Upgrade!";
-      std::string desc_txt = "";
-
-      // Display weapon behaviours
-      for (const auto& trait : result.traits) {
-        const auto upg_str = std::string(magic_enum::enum_name(trait));
-        desc_txt += upg_str + "\n";
-      }
-
-      // if only one stat, set the header
-      if (result.stats.size() == 1) {
-        const auto& s = result.stats[0];
-        const std::string stat = s.stat;
-        const std::string type = s.type;
-        const float value = s.value;
-        const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
-
-        // flavour text for the header
-        const auto [amount, type_str] = stat_from_stat_table(rarity, stat_enum);
-        const UpgradeRollResult roll_res{ .rarity = rarity, .stats = { Stat{ .stat = stat } } };
-        header_text = upg_name_c.stat_to_name_map.at(roll_res);
-      }
-
-      // Display stats.
-      for (const auto& s : result.stats) {
-        const std::string stat = s.stat;
-        const std::string type = s.type;
-        const std::string stat_pretty = make_stat_name_pretty_name(s.stat);
-
-        const float value = s.value;
-        const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
-
-        // append stat to description
-        if (type == "stat_flat_increase")
-          desc_txt += std::format("{} +{:0.1f}\n", stat_pretty, value);
-        else if (type == "stat_percent_increase")
-          desc_txt += std::format("{} +{:0.1f}%\n", stat_pretty, value);
-        else
-          throw std::runtime_error("unknown stat type");
-      }
-
-      // associate upgrade with one of your weapons
-      if (result.level_weapons) {
-        const auto weapons_e = get_weapons(r, player_e);
-
-        for (const auto wep_e : result.weapons) {
-          std::optional<int> wep_e_idx_opt = index_of(weapons_e, wep_e);
-          if (!wep_e_idx_opt.has_value())
-            continue;
-          const int idx = wep_e_idx_opt.value();
-          const auto& wep_ondiskdata = r.get<Weapon_OnDiskData>(wep_e);
-          // const auto key = r.get<ItemKey>(wep_e).key;
-          desc_txt += std::format("\n[{}] {} +1 Lv", idx, wep_ondiskdata.name);
-        }
-      }
-
-      // which is the active cell index
-      const auto cell_it = std::find(state_c.cells.begin(), state_c.cells.end(), state_c.active);
-      const auto cell_idx = static_cast<int>(cell_it - state_c.cells.begin());
-
-      const CardDataUI data{
-        .rarity = rarity,
-        .rarity_txt = rarity_str,
-        .header_txt = header_text, // get name e.g. Bronze Hulls
-        .desc_txt = desc_txt,
-        .selected = cell_idx == card_idx,
-      };
-
-      const auto txt_col = IM_COL32(5, 5, 5, 255);
-      const auto rounding = 4;
-      const auto im_rcol_vec = rarity_to_col(data.rarity);
-      const auto im_rcol = IM_COL32(im_rcol_vec.x * 255, im_rcol_vec.y * 255, im_rcol_vec.z * 255, im_rcol_vec.w * 255);
-
-      // card background
-      const auto my_card_bg_col = hex_to_srgb("#21242B", 0.75f * 255);
-      const auto im_card_bg_col = convert_my_to_im(my_card_bg_col);
-      draw_list->AddRectFilled(card_ui_tl, card_ui_br, im_card_bg_col, rounding);
-      draw_list->AddRect(card_ui_tl, card_ui_br, im_rcol, rounding, 0, 2.0f);
-
-      // card header background.
-      const auto header_bg_tl = ImVec2(card_ui_tl.x + header_pad, card_ui_tl.y + header_pad);
-      const auto header_bg_br = ImVec2(card_ui_tl.x + card_ui_wh.x - header_pad, card_ui_tl.y + header_pad + header_y_size);
-      const auto header_bg_wh = calc_wh(header_bg_tl, header_bg_br);
-      draw_list->AddRectFilled(header_bg_tl, header_bg_br, im_rcol, 0);
-
-      // card header text.
-      const auto header_txt_center = center_text(head_f, data.header_txt, calc_center(header_bg_tl, header_bg_wh));
-      draw_list->AddText(head_f, head_f->FontSize, header_txt_center, txt_col, data.header_txt.c_str());
-
-      // draw the card rarity.
-      const auto rarity_tl = ImVec2(header_bg_tl.x, header_bg_br.y);
-      const auto rarity_br = ImVec2(header_bg_br.x, header_bg_br.y + f->FontSize);
-      const auto rarity_wh = calc_wh(rarity_tl, rarity_br);
-      const auto rarity_txt_center = center_text(f, data.rarity_txt, calc_center(rarity_tl, rarity_wh));
-      draw_list->AddText(f, f->FontSize, rarity_txt_center, im_rcol, data.rarity_txt.c_str());
-
-      // draw the card info text.
-      const auto desc_tl = ImVec2(card_ui_tl.x, header_bg_br.y);
-      const auto desc_br = ImVec2(card_ui_br.x, card_ui_br.y);
-      const auto desc_wh = calc_wh(desc_tl, desc_br);
-      const auto desc_pos = center_text(f, data.desc_txt, calc_center(desc_tl, desc_wh));
-      draw_list->AddText(f, f->FontSize, desc_pos, im_rcol, data.desc_txt.c_str());
-
-      // draw the selected icon bg
-      const auto icon_tl = ImVec2(card_ui_br.x - 25, card_ui_br.y - 25);
-      const auto icon_br = ImVec2(card_ui_br.x - 5, card_ui_br.y - 5);
-      const auto icon_wh = calc_wh(icon_tl, icon_br);
-      const auto my_icon_bg_col = hex_to_srgb("#D9D9D9", 0.15f * 255);
-      const auto im_icon_bg_col = convert_my_to_im(my_icon_bg_col);
-      draw_list->AddRectFilled(icon_tl, icon_br, im_icon_bg_col, rounding);
-
-      // if selected, draw a circle in the box.
-      if (data.selected) {
-        const auto circle_center = calc_center(icon_tl, icon_wh);
-
-        if (card_ui_c.time_to_confirm_cur == 0.0f) {
-          // draw_list->AddCircle(circle_center, 6.0f, im_player_col);
-          draw_list->AddCircleFilled(circle_center, 5.0f, im_player_col);
-        }
-
-        // add a circle with your hold percentage.
-        // et the percent that the player is holding
-        const float angle =
-          engine::scale(card_ui_c.time_to_confirm_cur, 0.0f, card_ui_c.time_to_confirm_max, 0.0f, 2.0f * engine::PI);
-        const float max_angle = 2.0f * engine::PI;
-        const float start_angle = -engine::PI / 2; // Starting at the top (12 o'clock position)
-        const float end_angle = start_angle + (angle / max_angle) * 2.0f * engine::PI;
-        draw_list->PathArcTo(circle_center, 5.0f, start_angle, end_angle);
-        draw_list->PathStroke(im_player_col, 0, 1.0f);
-      }
-
-      SelectableButtonDef def{
-        .display_str = state_c.cells[card_idx]->name,
-        .imgui_hash = "##aquire_" + header_text + "_" + rarity_str,
-
-        .size = card_ui_wh,
-        .input = do_act,
-        .cell = state_c.cells[card_idx],
-        .active_cell = state_c.active,
-
-        // hide the buttons (display handled elsewhere)
-        .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-        .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-        .active_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-        .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-      };
-
-      ImGui::SetCursorPos(card_ui_tl);
-      if (selectable_button(r, def)) {
-        // Process action (aquire the upgrade)
-        state_c.active->action();
-
-        // refresh ui
-        populate_ui_based_on_upgrades(r, ui_c);
-
-        break;
-      }
-
-      // move vertically
-      card_ui_tl.y += card_size.y + card_padding_y;
-      card_ui_br.y += card_size.y + card_padding_y;
+    if (do_act) {
+      ImGui::PopID();
+      continue;
     }
+
+    // draw the confirm bar#
+    ImGui::PushFont(font);
+    draw_confirm_bar(r, selection_tl, selection_br, player_idx, card_ui_c, font);
+    ImGui::PopFont();
+
+    // Draw the stats
+    // draw_list->AddRect(stats_tl, stats_br, im_player_col);
+    draw_stats(r, stats_tl, stats_br, player_e, state_c, upgrades_c, font);
 
     // move horizontally
     player_ui_tl.x += player_ui_wh.x;
@@ -513,3 +753,64 @@ ImGui::End();
 }
 
 } // namespace game2d
+
+/*
+ImGui::Begin("DebugPlayerInputs");
+{
+const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
+// for (const auto handle : controller_ui.handles)
+//   ImGui::Text("Handle: %zu", (uint64)handle);
+
+for (int i = 0; const auto& [e, player_c, input_c] : r.view<const PlayerComponent, const InputComponent>().each()) {
+  ImGui::PushID((uint32_t)e);
+
+  ImGui::Text("p%i lx %f ly %f", player_c.idx, input_c.lx, input_c.ly);
+
+  if (r.all_of<PlayerBoatComponent>(e)) {
+    ImGui::SameLine();
+    ImGui::Text("(boat)");
+
+    if (!r.all_of<MovementDirectComponent>(e))
+      r.emplace<MovementDirectComponent>(e);
+  }
+
+  if (r.all_of<MovementIslandComponent>(e)) {
+    ImGui::SameLine();
+    ImGui::Text("(islander)");
+  }
+  if (r.all_of<KeyboardComponent>(e)) {
+    ImGui::SameLine();
+    ImGui::Text("(keyboard)");
+  }
+  if (r.all_of<SteamControllerComponent>(e)) {
+    ImGui::SameLine();
+    auto& steam_c = r.get<SteamControllerComponent>(e);
+    ImGui::Text("(controller) handles: %i", (int)steam_c.handles.size());
+  }
+
+  ImGui::SameLine();
+  if (ImGui::Button("Control")) {
+    const auto view0 = r.view<SteamControllerComponent>(entt::exclude<Persistent>);
+    for (auto entity : view0)
+      r.remove<SteamControllerComponent>(entity);
+    const auto view1 = r.view<KeyboardComponent>();
+    for (auto entity : view1)
+      r.remove<KeyboardComponent>(entity);
+
+    // note:assign all handles to the player.
+    // (i.e. all controllers)
+    // only use for debug
+    SteamControllerComponent steam_c;
+    steam_c.handles = non_zero_handles(controller_ui.handles);
+    if (steam_c.handles.size() > 0)
+      r.emplace<SteamControllerComponent>(e, steam_c);
+    r.emplace<KeyboardComponent>(e);
+  }
+
+  ImGui::Separator();
+  ImGui::PopID();
+  i++;
+}
+}
+ImGui::End();
+*/

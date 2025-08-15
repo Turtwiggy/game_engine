@@ -71,29 +71,27 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
       const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
 
+      std::vector<entt::entity> weapons;
+
       // Prioritize non-max level weapons
-      int non_max_level_wep_size = non_max_level_weapons.size();
-      if (non_max_level_wep_size > 0) {
-        const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, non_max_level_wep_size);
+      if ((int)non_max_level_weapons.size() > 0) {
+        const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)non_max_level_weapons.size());
         const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
-        results_c.results.emplace(UpgradeRollResult{
-          .rarity = rarity,
-          .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
-          // WEAPON_x and BULLET_x do level weapon
-          // .weapons = { weapon_e }, // note: only leveling first.
-          .weapons = { wep_e },
-          .level_weapons = true,
-        });
-      } else {
+        weapons.push_back(wep_e);
+      } else if ((int)weapons_e.size() > 0) {
         const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
         const auto wep_e = weapons_e[rnd_wep_upg_idx];
-        results_c.results.emplace(UpgradeRollResult{
-          .rarity = rarity,
-          .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
-          .weapons = { wep_e },
-          .level_weapons = true,
-        });
+        weapons.push_back(wep_e);
       }
+
+      results_c.results.emplace(UpgradeRollResult{
+        .rarity = rarity,
+        .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
+        // WEAPON_x and BULLET_x do level weapon
+        // .weapons = { weapon_e }, // note: only leveling first.
+        .weapons = weapons,
+        .level_weapons = true,
+      });
     }
 
     // For the 3rd upgrade, roll an ACTOR_X stat.
@@ -158,7 +156,9 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       state_c.cells.push_back(std::make_shared<Cell>(c));
     }
 
-    create_as_vertical_layout(state_c.cells);
+    // create navlinks
+    create_as_horizontal_layout(state_c.cells);
+
     state_c.active = state_c.cells[0];
   }
 };

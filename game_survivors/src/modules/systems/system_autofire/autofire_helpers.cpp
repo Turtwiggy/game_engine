@@ -49,12 +49,12 @@ get_weapon_def(entt::registry& r, const entt::entity player_e, const entt::entit
   const auto key_weapon_reload = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RELOAD));
   const auto key_weapon_range = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_RANGE));
 
-  const auto val_weapon_firerate = r.get<WeaponFireRate>(wep_e).base_firerate;
-  const auto val_weapon_projectiles = r.get<WeaponProjectiles>(wep_e).projectiles;
-  const auto val_weapon_spread = r.get<WeaponSpread>(wep_e).angle_between_bullets_deg;
-  const auto val_weapon_clip_size = r.get<WeaponClipSize>(wep_e).bullets_max;
-  const auto val_weapon_reload = r.get<WeaponReloadRate>(wep_e).seconds_base_max;
-  const auto val_weapon_range = r.get<WeaponRange>(wep_e).meters;
+  const auto val_weapon_firerate = r.get<const WeaponFireRate>(wep_e).base_firerate;
+  const auto val_weapon_projectiles = r.get<const WeaponProjectiles>(wep_e).projectiles;
+  const auto val_weapon_spread = r.get<const WeaponSpread>(wep_e).angle_between_bullets_deg;
+  const auto val_weapon_clip_size = r.get<const WeaponClipSize>(wep_e).bullets_max;
+  const auto val_weapon_reload = r.get<const WeaponReloadRate>(wep_e).seconds_base_max;
+  const auto val_weapon_range = r.get<const WeaponRange>(wep_e).meters;
 
   const auto mod_wep_firerate = upgrades_c.apply_modifiers(val_weapon_firerate, key_weapon_firerate);
   const auto mod_wep_projectiles = (int)upgrades_c.apply_modifiers(val_weapon_projectiles, key_weapon_projectiles);

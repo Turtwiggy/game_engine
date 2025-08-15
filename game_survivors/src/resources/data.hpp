@@ -13,6 +13,12 @@ const engine::SRGBColour default_player_colours[n_players] = {
   hex_to_srgb("#D075CE"), // pink
   hex_to_srgb("#00A8EB"), // blue
 };
+const ImU32 default_player_colours_im[n_players] = {
+  convert_my_to_im(default_player_colours[0]),
+  convert_my_to_im(default_player_colours[1]),
+  convert_my_to_im(default_player_colours[2]),
+  convert_my_to_im(default_player_colours[3]),
+};
 
 const ImU32 im_white = IM_COL32(255, 255, 255, 255);
 const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -21,8 +27,9 @@ const auto my_separator_col = hex_to_srgb("#7d8488");
 const auto my_window_bg_col = engine::SRGBColour(0.13f, 0.14f, 0.17f, 1.00f);
 const auto my_window_border_col = hex_to_srgb("#3B5676");
 
-const auto im_text_col = ImVec4{ 0.86f, 0.93f, 0.89f, 0.78f };
-const auto im_text_col_vec = IM_COL32(im_text_col.x * 255, im_text_col.y * 255, im_text_col.z * 255, im_text_col.z * 255);
+const auto im_text_col_vec = ImVec4{ 0.86f, 0.93f, 0.89f, 0.78f };
+const auto im_text_col =
+  IM_COL32(im_text_col_vec.x * 255, im_text_col_vec.y * 255, im_text_col_vec.z * 255, im_text_col_vec.z * 255);
 const auto im_text_disabled_col = ImVec4{ 0.86f, 0.93f, 0.89f, 0.28f };
 
 const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);

@@ -199,4 +199,18 @@ create_as_vertical_layout(std::vector<std::shared_ptr<Cell>>& cells)
   }
 }
 
+void
+create_as_horizontal_layout(std::vector<std::shared_ptr<Cell>>& cells)
+{
+  for (int i = 0; i < cells.size(); i++) {
+    const auto last = engine::wrap(i - 1, (int)cells.size() - 1);
+    const auto next = engine::wrap(i + 1, (int)cells.size() - 1);
+    const auto& prv = cells[last];
+    const auto& nxt = cells[next];
+    auto& c = cells[i];
+    c->l = prv;
+    c->r = nxt;
+  }
+}
+
 } // namespace game2d

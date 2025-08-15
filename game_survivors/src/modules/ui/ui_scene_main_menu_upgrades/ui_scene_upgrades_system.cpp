@@ -429,7 +429,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     const auto header_text_pos_tl = ImVec2{ upgrade_tl.x, upgrade_tl.y + 4.0f };
     const auto header_text_pos_adj =
       ImVec2{ header_text_pos_tl.x + 0.5f * (upgrade_wh.x - display_str_size.x), header_text_pos_tl.y };
-    draw_list->AddText(text_font, text_font->FontSize, header_text_pos_adj, im_text_col_vec, display_str.c_str());
+    draw_list->AddText(text_font, text_font->FontSize, header_text_pos_adj, im_text_col, display_str.c_str());
     // ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
 
     const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
@@ -480,7 +480,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
           // const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_CROSS"s);
           // draw_list->AddImage(im_id, icon_pos, icon_pos + upg_icon_size, icon_tl, icon_br);
           auto center = icon_pos + ImVec2{ 0.5f * upg_icon_size.x, 0.5f * upg_icon_size.y };
-          draw_list->AddCircle(center, 0.33f * upg_icon_size.x, im_text_col_vec, 16, 2.0f);
+          draw_list->AddCircle(center, 0.33f * upg_icon_size.x, im_text_col, 16, 2.0f);
         }
       }
 
@@ -534,7 +534,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     const auto text_size = text_font->CalcTextSizeA(text_font->FontSize, FLT_MAX, -1, text.c_str());
     const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x),
                                   purchasebar_tl.y + 0.5f * (purchasebar_wh.y - text_size.y) };
-    draw_list->AddText(text_font, text_font->FontSize, text_pos, im_text_col_vec, text.c_str());
+    draw_list->AddText(text_font, text_font->FontSize, text_pos, im_text_col, text.c_str());
 
     //
   }

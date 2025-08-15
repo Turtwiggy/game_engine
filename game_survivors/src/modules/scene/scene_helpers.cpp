@@ -71,7 +71,6 @@
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
 
-
 namespace game2d {
 
 void
@@ -166,7 +165,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 
   // Add an xp zone with the config-defined size
   {
-    auto fixture_def = get_fixture_def_by_tag(r, e, "fixture_xp_zone");
+    // auto fixture_def = get_fixture_def_by_tag(r, e, "fixture_xp_zone");
 
     ActorXpZoneSizeComponent xp_zone_c;
     // xp_zone_c.radius_meters = pixels_to_meters(fixture_def.size[0].x);

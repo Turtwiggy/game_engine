@@ -51,6 +51,12 @@
     { "name": "ICON_ACTOR_SPEED", "frames": [ { "x": 6, "y": 27, "w": 1, "h": 1 } ]},
     { "name": "ICON_ACTOR_XP_ZONE_SIZE", "frames": [ { "x": 7, "y": 27, "w": 1, "h": 1 } ]},
     
+    { "name": "ICON_ACTOR_DODGE_CHANCE_CENTERED", "frames": [ { "x": 3, "y": 26, "w": 1, "h": 1 } ]},
+    { "name": "ICON_ACTOR_HEALTH_MAX_CENTERED", "frames": [ { "x": 4, "y": 26, "w": 1, "h": 1 } ]},
+    { "name": "ICON_ACTOR_HEALTH_REGEN_CENTERED", "frames": [ { "x": 5, "y": 26, "w": 1, "h": 1 } ]},
+    { "name": "ICON_ACTOR_SPEED_CENTERED", "frames": [ { "x": 6, "y": 26, "w": 1, "h": 1 } ]},
+    { "name": "ICON_ACTOR_XP_ZONE_SIZE_CENTERED", "frames": [ { "x": 7, "y": 26, "w": 1, "h": 1 } ]},
+
     { "name": "ICON_BULLET_BOUNCE", "frames": [{ "x": 9, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_BULLET_CRIT_CHANCE", "frames": [{ "x": 10, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_BULLET_CRIT_DAMAGE", "frames": [{ "x": 11, "y": 27, "w": 1, "h": 1 }]},
@@ -62,12 +68,30 @@
     { "name": "ICON_BULLET_SIZE", "frames": [{ "x": 17, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_BULLET_SPEED", "frames": [{ "x": 18, "y": 27, "w": 1, "h": 1 }]},
 
+    { "name": "ICON_BULLET_BOUNCE_CENTERED", "frames": [{ "x": 9, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_CRIT_CHANCE_CENTERED", "frames": [{ "x": 10, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_CRIT_DAMAGE_CENTERED", "frames": [{ "x": 11, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_DAMAGE_CENTERED", "frames": [{ "x": 12, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_KNOCKBACK_CENTERED", "frames": [{ "x": 13, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_LIFESTEAL_CENTERED", "frames": [{ "x": 14, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_LIFETIME_CENTERED", "frames": [{ "x": 15, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_PIERCE_CENTERED", "frames": [{ "x": 16, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_SIZE_CENTERED", "frames": [{ "x": 17, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_BULLET_SPEED_CENTERED", "frames": [{ "x": 18, "y": 26, "w": 1, "h": 1 }]},
+
     { "name": "ICON_WEAPON_PROJECTILES", "frames": [{ "x": 20, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_SPREAD", "frames": [{ "x": 21, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_FIRERATE", "frames": [{ "x": 22, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_CLIP_SIZE", "frames": [{ "x": 23, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_RELOAD", "frames": [{ "x": 24, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_RANGE", "frames": [{ "x": 25, "y": 27, "w": 1, "h": 1 }]},
+
+    { "name": "ICON_WEAPON_PROJECTILES_CENTERED", "frames": [{ "x": 20, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_SPREAD_CENTERED", "frames": [{ "x": 21, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_FIRERATE_CENTERED", "frames": [{ "x": 22, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_CLIP_SIZE_CENTERED", "frames": [{ "x": 23, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_RELOAD_CENTERED", "frames": [{ "x": 24, "y": 26, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_RANGE_CENTERED", "frames": [{ "x": 25, "y": 26, "w": 1, "h": 1 }]},
 
     { "name": "ICON_WEAPON_DECK_CANNON", "frames": [{ "x": 27, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_GRAPESHOT_CANNON", "frames": [{ "x": 28, "y": 27, "w": 1, "h": 1 }]},

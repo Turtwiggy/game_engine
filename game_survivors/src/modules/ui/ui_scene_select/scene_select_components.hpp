@@ -48,4 +48,10 @@ struct SelectSceneToSurviveScene
   std::vector<HullChoice> chosen_boats;
 };
 
+struct DisplayStat
+{
+  std::string key;
+  std::string val;
+};
+
 } // namespace game2d

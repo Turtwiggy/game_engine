@@ -157,4 +157,17 @@ update_countdown_to_next_scene(entt::registry& r,
   move_to_scene_start(r, Scene::survive);
 };
 
+float
+calculate_width(const std::vector<DisplayStat>& stats)
+{
+  float max_width = 0.0f;
+  for (int idx = 0; idx < (int)stats.size(); idx++) {
+    const auto key = stats[idx].key;
+    const auto key_wh = ImGui::CalcTextSize(key.c_str());
+    max_width = std::max(max_width, key_wh.x);
+  }
+
+  return max_width;
+};
+
 } // namespace game2d

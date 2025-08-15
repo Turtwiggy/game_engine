@@ -17,7 +17,7 @@ SINGLE_PersistentUpgradesMenuUI::do_init(entt::registry& r)
     const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
 
     // stats to skip...
-    if (stat_str.find("ACTOR_STAMINA") != std::string::npos)
+    if (stat_enum == UpgradeableStat::ACTOR_STAMINA)
       continue;
 
     Cell c;

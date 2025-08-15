@@ -93,6 +93,8 @@ update_ui_survive_info_system(entt::registry& r)
     {
       auto& upgrades_c = r.get<StatModifierComponent>(e);
 
+      const auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
+
       const auto key_dodge = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_DODGE_CHANCE));
       const auto key_hp_max = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_HEALTH_MAX));
       const auto key_hp_regen = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_HEALTH_REGEN));
@@ -100,12 +102,13 @@ update_ui_survive_info_system(entt::registry& r)
       const auto key_stamina = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_STAMINA));
       const auto key_xp_zone_size = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
 
-      const float val_dodge = r.get<ActorDodgeComponent>(e).dodge_percent;
-      const float val_hp_max = 10; // todo: fix this, and fix this in the upgrade system
-      const float val_hp_regen = r.get<ActorHealthRegenComponent>(e).hp_per_second;
-      const float val_speed = r.get<ActorSpeedComponent>(e).current_speed;
-      const float val_stamina = r.get<ActorStaminaComponent>(e).max_stamina;
-      const float val_xp_zone_size = r.get<ActorXpZoneSizeComponent>(e).radius_meters;
+      const float val_dodge = r.get<const ActorDodgeComponent>(e).dodge_percent;
+      // const float val_hp_max = r.get<const HealthComponent>(fixture_e).max_hp;
+      const float val_hp_max = 10; // todo: fix this
+      const float val_hp_regen = r.get<const ActorHealthRegenComponent>(e).hp_per_second;
+      const float val_speed = r.get<const ActorSpeedComponent>(e).base_speed;
+      const float val_stamina = r.get<const ActorStaminaComponent>(e).max_stamina;
+      const float val_xp_zone_size = r.get<const ActorXpZoneSizeComponent>(e).radius_meters;
 
       const float mod_dodge = upgrades_c.apply_modifiers(val_dodge, key_dodge);
       const float mod_hp_max = upgrades_c.apply_modifiers(val_hp_max, key_hp_max);

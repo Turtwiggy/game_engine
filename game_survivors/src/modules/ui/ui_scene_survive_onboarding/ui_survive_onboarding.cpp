@@ -218,7 +218,7 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
       const ImVec2 icon_size{ bar_wh.y, bar_wh.y };
       auto icon_pos = confirm_tl + ImVec2{ 0.5f * icon_size.x, 0.5f * icon_size.y };
       icon_pos.x += 2.0f;
-      draw_list->AddCircle(icon_pos, 0.33f * icon_size.x, im_text_col_vec, 16, 3.0f);
+      draw_list->AddCircle(icon_pos, 0.33f * icon_size.x, im_text_col, 16, 3.0f);
     }
     // draw a tick icon
     else {
@@ -235,7 +235,7 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
     auto text_pos = ImVec2{ confirm_tl.x + padding_x, confirm_tl.y + padding_y };
     text_pos.x += 0.5f * (bar_wh.x - ready_text_size.x);
     // draw_list->AddText(font_16, font_16->FontSize, text_pos, im_player_col_active, ready_text.c_str());
-    draw_list->AddText(font_16, font_16->FontSize, text_pos, im_text_col_vec, ready_text.c_str());
+    draw_list->AddText(font_16, font_16->FontSize, text_pos, im_text_col, ready_text.c_str());
 
     // move horizontally
     first_tl_x += player_wh.x;

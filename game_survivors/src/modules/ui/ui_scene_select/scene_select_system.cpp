@@ -42,12 +42,6 @@ struct TextDesc
   FontSize font_size_scaled = FontSize::TEXT_SIZE_16_SCALED;
 };
 
-struct DisplayStat
-{
-  std::string key;
-  std::string val;
-};
-
 void
 add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc& desc, ImVec2* out_pos = nullptr)
 {
@@ -202,7 +196,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     const auto text_size = font->CalcTextSizeA(font_size, width_limit, width_limit, desc.c_str());
 
     const auto desc_text_pos_centered = ImVec2(desc_pos.x - 0.5f * text_size.x, desc_pos.y);
-    draw_list->AddText(font, font_size, desc_text_pos_centered, im_text_col_vec, desc.c_str(), NULL, width_limit);
+    draw_list->AddText(font, font_size, desc_text_pos_centered, im_text_col, desc.c_str(), NULL, width_limit);
   }
 
   // stats.
@@ -235,11 +229,13 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
           auto clean_key = key;
           clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
           clean_key = str_remove_all_occurances(clean_key, "BULLET_");
-          display_stats.push_back({ .key = clean_key, .val = std::format("{:.2f}", val) });
+          display_stats.push_back({ .key = clean_key, .val = std::format("{:.1f}", val) });
         }
       }
     }
 
+    // calculate the max width of all keys
+    const float max_width = calculate_width(display_stats);
     const auto text_wh = ImGui::CalcTextSize("A");
 
     for (int idx = 0; idx < (int)display_stats.size(); idx++) {
@@ -248,7 +244,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       auto l_stat_pos = stat_pos;
       auto r_stat_pos = stat_pos;
       l_stat_pos.x = box_tl.x + 0.1f * box_wh.x;
-      r_stat_pos.x = box_tl.x + 0.60f * box_wh.x;
+      r_stat_pos.x = l_stat_pos.x + max_width + 10;
       l_stat_pos.y += text_wh.y * idx;
       r_stat_pos.y += text_wh.y * idx;
 

@@ -3,6 +3,7 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
+#include "scene_select_components.hpp"
 #include <entt/fwd.hpp>
 
 namespace game2d {
@@ -20,5 +21,8 @@ void
 update_countdown_to_next_scene(entt::registry& r,
                                const SINGLE_SelectSceneData& data_c,
                                const std::vector<ShipHullData>& sorted_hulls);
+
+float
+calculate_width(const std::vector<DisplayStat>& stats);
 
 } // namespace game2d
