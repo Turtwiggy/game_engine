@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font);
+draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, ImU32 border_col);
 
 } // namespace game2d

@@ -13,6 +13,7 @@
 #include "modules/systems/system_particles/components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 
 namespace game2d {
 
@@ -28,7 +29,10 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   // note: upg_e is either on the player, or on the weapon
   const auto par_e = evt.par_e;
   const auto upg_e = evt.upg_e;
-  r.remove<UpgradeResultsComponent>(upg_e); // done
+
+  // done
+  remove_if_exists<UpgradeResultsComponent>(r, par_e);
+  remove_if_exists<UpgradeResultsComponent>(r, upg_e);
 
   const auto rarity = evt.roll_result.rarity;
   const auto& stats = evt.roll_result.stats;
@@ -48,8 +52,8 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
     create_empty<RequestToSpawnParticles>(r, request);
   }
 
-  // Upgrade stats.
-  auto& stats_c = r.get<StatModifierComponent>(par_e);
+  // Upgrade stats
+  auto& stats_c = r.get<StatModifierComponent>(upg_e);
   for (const auto& s : stats) {
     const auto& stat = s.stat;
     const auto& type = s.type;
@@ -92,8 +96,8 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   // Update WeaponDef and BulletDef
   if (r.all_of<WeaponComponent>(upg_e)) {
     SDL_Log("Updating WeaponDef & BulletDef");
-    r.emplace_or_replace<WeaponDef>(upg_e, get_weapon_def(r, par_e, upg_e));
-    r.emplace_or_replace<BulletDef>(upg_e, get_bullet_def(r, par_e, upg_e));
+    r.emplace_or_replace<WeaponDef>(upg_e, get_weapon_def(r, upg_e));
+    r.emplace_or_replace<BulletDef>(upg_e, get_bullet_def(r, upg_e));
   } else
     SDL_Log("The thing that was upgraded wasnt a weapon (maybe an actor e.g. boat)");
 

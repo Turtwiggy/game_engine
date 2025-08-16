@@ -103,7 +103,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
   std::vector<entt::entity> weapons;
 
   const auto e = spawn(r, key);
-  r.emplace<StatModifierComponent>(e); //  upgrades
+  r.emplace<StatModifierComponent>(e); //  upgrades ACTOR_
   r.emplace<PlayerBoatComponent>(e);
 
   // Spawn autofire weappons
@@ -113,8 +113,9 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
     // hardpoint_data.arc_mid = 0;
     auto wep_e = spawn_weapon(r, e, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
-    r.emplace<WeaponDef>(wep_e, get_weapon_def(r, e, wep_e));
-    r.emplace<BulletDef>(wep_e, get_bullet_def(r, e, wep_e));
+    r.emplace<StatModifierComponent>(wep_e); // BULLET_ and WEAPON_ stats (per weapon)
+    r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
+    r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE)
       r.emplace<AutofireComponent>(wep_e);

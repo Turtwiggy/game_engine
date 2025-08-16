@@ -38,9 +38,9 @@ generate_angles(const float dir, const int bullets, const float spread_rad)
 };
 
 WeaponDef
-get_weapon_def(entt::registry& r, const entt::entity player_e, const entt::entity wep_e)
+get_weapon_def(entt::registry& r, const entt::entity wep_e)
 {
-  auto& upgrades_c = r.get<const StatModifierComponent>(player_e);
+  auto& upgrades_c = r.get<const StatModifierComponent>(wep_e);
 
   const auto key_weapon_firerate = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_FIRERATE));
   const auto key_weapon_projectiles = std::string(magic_enum::enum_name(UpgradeableStat::WEAPON_PROJECTILES));
@@ -74,9 +74,14 @@ get_weapon_def(entt::registry& r, const entt::entity player_e, const entt::entit
 };
 
 BulletDef
-get_bullet_def(entt::registry& r, const entt::entity player_e, const entt::entity wep_e)
+get_bullet_def(entt::registry& r, const entt::entity wep_e)
 {
-  const auto& upgrades_c = r.get<const StatModifierComponent>(player_e);
+  if (wep_e == entt::null) {
+    SDL_Log("Error creating BulletDef");
+    exit(1); // crash
+  }
+
+  const auto& upgrades_c = r.get<const StatModifierComponent>(wep_e);
 
   const auto key_bullet_bounce = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_BOUNCE));
   const auto key_bullet_size = std::string(magic_enum::enum_name(UpgradeableStat::BULLET_SIZE));
@@ -111,11 +116,6 @@ get_bullet_def(entt::registry& r, const entt::entity player_e, const entt::entit
   const auto mod_bul_crit_damage = upgrades_c.apply_modifiers(val_bullet_crit_damage, key_bullet_crit_damage);
   const auto mod_bul_lifesteal = upgrades_c.apply_modifiers(val_bullet_lifesteal, key_bullet_lifesteal);
   const auto mod_bul_lifetime_ms = upgrades_c.apply_modifiers(val_bullet_lifetime_ms, key_bullet_liftime);
-
-  if (wep_e == entt::null || player_e == entt::null) {
-    SDL_Log("Error creating BulletDef; invalid parents");
-    exit(1); // crash
-  }
 
   BulletDef bullet_def;
   bullet_def.key = "bullet_default";

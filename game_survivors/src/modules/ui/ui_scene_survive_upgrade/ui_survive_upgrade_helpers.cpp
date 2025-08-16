@@ -135,7 +135,7 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     if (player_e == entt::null)
       continue;
 
-    const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
+    // const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
     const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
     if (upgrades.size() == 0)
       continue;
@@ -148,7 +148,13 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
         auto& evts_c = SINGLE_Events::instance;
         UpgradeEvent evt;
         evt.par_e = player_e;
-        evt.upg_e = upg_e; // upg_e is wep_e or par_e
+
+        // upg_e is wep_e or par_e
+        if (res.weapons.size() > 0)
+          evt.upg_e = res.weapons[0];
+        else
+          evt.upg_e = player_e;
+
         evt.roll_result = res;
         evts_c.dispatcher->trigger(evt);
         evts_c.dispatcher->update();

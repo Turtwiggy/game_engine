@@ -48,7 +48,7 @@
       "name": "wave", "time": { "start": 3, "stop": 4 },
       "enemies": [
         { "key": "actor_enemy_exploder",  "data": { "hp": 40, "max": 4,  "num_per_spawn": 2}},    // puffer
-        { "key": "actor_enemy_melee_1",   "data": { "hp": 40, "max": 300, "num_per_spawn": 50}},  // horseshoe
+        { "key": "actor_enemy_melee_1",   "data": { "hp": 40, "max": 200, "num_per_spawn": 100}},  // horseshoe
         { "key": "actor_enemy_swarmlord", "data": { "hp": 100, "max": 10, "num_per_wave": 10, "num_per_spawn": 3}}, // jellyfish lords
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }     // anglerfish (light source)
       ]
@@ -57,18 +57,18 @@
       "name": "wave", "time": { "start": 4, "stop": 5 },
       "enemies": [
         // { "key": "actor_enemy_exploder", "data" : { "hp": 35, "max": 5,  "num_per_spawn": 2}}, // puffer
-        { "key": "actor_enemy_melee_2",  "data" : { "hp": 50, "max": 120, "num_per_spawn": 15}},  // hermit
-        { "key": "actor_enemy_melee_3",  "data" : { "hp": 50, "max": 120, "num_per_spawn": 15}},  // redclaw
+        { "key": "actor_enemy_melee_2",  "data" : { "hp": 50, "max": 80, "num_per_spawn": 15}},  // hermit
+        { "key": "actor_enemy_melee_3",  "data" : { "hp": 50, "max": 80, "num_per_spawn": 15}},  // redclaw
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }     // anglerfish (light source)
       ]
     },
     //
-    // snake spawns here, which pauses timer.
+    // snake spawns here
     //
     {
       "name": "wave", "time": { "start": 5, "stop": 6 },
       "enemies": [
-        { "key": "actor_enemy_projectile", "data": {"hp": 60, "max": 50, "num_per_spawn": 10}}, // archerfish
+        { "key": "actor_enemy_projectile", "data": {"hp": 25, "max": 30, "num_per_spawn": 10}}, // archerfish
         { "key": "actor_enemy_melee_1",    "data": {"hp": 60, "max": 50, "num_per_spawn": 3}},  // horseshoe
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }   // anglerfish (light source)
       ]
@@ -93,9 +93,9 @@
       "name": "wave", "time": { "start": 8, "stop": 9 },
       "enemies": [
         { "key": "actor_enemy_exploder", "data": { "hp": 90, "max": 5, "num_per_spawn": 3} }, // puffer
-        { "key": "actor_enemy_melee_1",  "data": { "hp": 90, "max": 100, "num_per_spawn": 3}}, // horseshoe
+        { "key": "actor_enemy_melee_1",  "data": { "hp": 90, "max": 100, "num_per_spawn": 20}}, // horseshoe
         { "key": "actor_enemy_melee_3",  "data": { "hp": 90, "max": 30, "num_per_spawn": 4}},  // redclaw
-        { "key": "actor_enemy_projectile", "data": {"hp": 90, "max": 20, "num_per_spawn": 1}}, // archerfish
+        { "key": "actor_enemy_projectile", "data": {"hp": 40, "max": 20, "num_per_spawn": 1}}, // archerfish
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} } // anglerfish (light source)
       ]
     },

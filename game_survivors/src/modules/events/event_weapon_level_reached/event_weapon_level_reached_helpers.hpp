@@ -15,6 +15,14 @@ get_stats_from_weapon_behaviour(entt::registry& r, const WeaponBehaviour behavio
 std::vector<WeaponUpgrade_OnDiskData>
 get_upgrades_from_weapon_key(entt::registry& r, const std::string weapon_key);
 
+std::vector<std::string>
+get_aquired_upgrades(entt::registry& r,
+                     const std::vector<WeaponUpgrade_OnDiskData>& weapon_upgrades_data,
+                     entt::entity wep_e);
+
+std::string
+get_wb_key_from_upgrade_key(entt::registry& r, const std::string& u_key);
+
 void
 handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEvent& evt);
 

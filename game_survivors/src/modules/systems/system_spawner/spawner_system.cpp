@@ -232,7 +232,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
     ActorHealthRegenComponent regen_c;
 
-    // TODO: probably move this to all enemies at some point
+    // TODO: probably move StatModifierComponent to all enemies at some point
 
     // regen 0.1f hp/s
     StatModifierComponent stat_c;

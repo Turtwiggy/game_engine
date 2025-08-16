@@ -196,7 +196,7 @@ update_hardpoint_arcs_system(entt::registry& r, const float dt)
     // DrawArc(screenspace, zone_radius_p, 0, 360, 2, im_col, true);
 
     // draw the gun arc.
-    const auto& stats_c = r.get<StatModifierComponent>(p);
+    const auto& stats_c = r.get<const StatModifierComponent>(weapon_e);
     FadeRangeArc(r, p, hardpoint_c, dt);
     DrawRangeArc(r, p, weapon_e, hardpoint_c, stats_c, arc, pos, dir, zoom);
 

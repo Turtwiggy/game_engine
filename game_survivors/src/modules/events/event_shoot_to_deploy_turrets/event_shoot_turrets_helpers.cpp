@@ -51,8 +51,8 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   set_position(r, turret_e, get_position(r, wep_e) + glm::vec2{ offset.x, offset.y });
   set_colour(r, turret_e, r.get<DefaultColour>(player_e).colour);
 
-  auto wep_def = get_weapon_def(r, player_e, turret_e);
-  auto bul_def = get_bullet_def(r, player_e, turret_e);
+  auto wep_def = get_weapon_def(r, turret_e);
+  auto bul_def = get_bullet_def(r, turret_e);
 
   // note: if the parent turret-deployer has "CHANGE_DAMAGE_TO_ICE"
   // change the damage type spawned by the child spawned turret.
@@ -114,7 +114,7 @@ handle_shoot_event__deploy_turrets(entt::registry& r, const ShootEvent& evt)
   if (!r.all_of<WeaponSeaTurret>(wep_e))
     return;
 
-  const auto wep_def = get_weapon_def(r, par_e, wep_e);
+  const auto wep_def = get_weapon_def(r, wep_e);
   for (int i = 0; i < wep_def.projectiles; i++)
     spawn_sea_turret(r, wep_e, par_e);
 }

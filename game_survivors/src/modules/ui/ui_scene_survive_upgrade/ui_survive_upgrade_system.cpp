@@ -20,11 +20,13 @@
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
+#include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
@@ -46,7 +48,6 @@
 #include "modules/ui/ui_scene_select/scene_select_helpers.hpp"
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
 #include "resources/data.hpp"
-#include <format>
 
 namespace game2d {
 
@@ -95,13 +96,12 @@ draw_upgrade_selections_in_grid(entt::registry& r,
   const auto& upg_name_c = get_first_component<SINGLE_UpgradeToName>(r);
   auto* draw_list = ImGui::GetWindowDrawList();
   ImVec2 selection_wh = selection_br - selection_tl;
-  int grid_cols = 3;
+  const auto upgrades_vec = std::vector<UpgradeRollResult>{ upgrades_c->results.begin(), upgrades_c->results.end() };
   float icon_size = 32.0f;
   float padding_x = 4.0f;
-  float first_x = selection_tl.x + 0.5f * (selection_wh.x - (grid_cols * icon_size));
+  float first_x = selection_tl.x + 0.5f * (selection_wh.x - ((int)upgrades_vec.size() * icon_size));
   float center_y = selection_tl.y + 0.5f * (selection_wh.y - icon_size);
   float top_y = center_y - 0.5f * icon_size;
-  const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
 
   for (int i = 0; i < upgrades_vec.size(); i++) {
 
@@ -317,7 +317,7 @@ draw_stats(entt::registry& r,
     std::string val_str = "N/A";
     std::string upg_val_str = "+0";
 
-    const auto& upgrades_c = r.get<StatModifierComponent>(player_e);
+    const auto& actor_upgrades_c = r.get<StatModifierComponent>(player_e);
     const auto player_fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
     // const auto xp_zone_fixture_e = get_fixture_by_tag(r, player_e, "fixture_xp_zone");
 
@@ -325,27 +325,27 @@ draw_stats(entt::registry& r,
     {
       if (stat_enum == UpgradeableStat::ACTOR_DODGE_CHANCE) {
         const auto v = r.get<const ActorDodgeComponent>(player_e).dodge_percent;
-        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
         val_str = std::format("{:0.1f}", v_out) + "%"s;
       }
       if (stat_enum == UpgradeableStat::ACTOR_HEALTH_MAX) {
         const auto v = r.get<const HealthComponent>(player_fixture_e).max_hp;
-        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
         val_str = std::format("{:0.0f}", v_out);
       }
       if (stat_enum == UpgradeableStat::ACTOR_HEALTH_REGEN) {
         const auto v = r.get<const ActorHealthRegenComponent>(player_e).hp_per_second;
-        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
         val_str = std::format("{:0.2f}", v_out);
       }
       if (stat_enum == UpgradeableStat::ACTOR_SPEED) {
         const auto v = r.get<const ActorSpeedComponent>(player_e).base_speed;
-        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
-        val_str = std::format("{:0.2f}", v_out);
+        const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
+        val_str = std::format("{:0.2f}", 100.0f * v_out); // mul x100 to make it more appealing
       }
       if (stat_enum == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
         const auto v = r.get<const ActorXpZoneSizeComponent>(player_e).radius_meters;
-        const auto v_out = upgrades_c.apply_modifiers(v, stat_str);
+        const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
         val_str = std::format("{:0.2f}", v_out);
       }
     }
@@ -354,8 +354,8 @@ draw_stats(entt::registry& r,
     {
       if (upg_weapons.size() > 0) {
         const auto wep_e = upg_weapons[0];
-        const auto wep_def = get_weapon_def(r, player_e, wep_e);
-        const auto bul_def = get_bullet_def(r, player_e, wep_e);
+        const auto wep_def = get_weapon_def(r, wep_e);
+        const auto bul_def = get_bullet_def(r, wep_e);
 
         if (stat_enum == UpgradeableStat::BULLET_BOUNCE)
           val_str = std::format("{:0.0f}", (float)bul_def.bounces);
@@ -364,33 +364,33 @@ draw_stats(entt::registry& r,
         else if (stat_enum == UpgradeableStat::BULLET_CRIT_DAMAGE)
           val_str = std::format("{}%", (int)bul_def.crit_damage);
         else if (stat_enum == UpgradeableStat::BULLET_DAMAGE)
-          val_str = std::format("{:0.1f}", (float)bul_def.damage);
+          val_str = std::format("{:0.2f}", (float)bul_def.damage);
         else if (stat_enum == UpgradeableStat::BULLET_KNOCKBACK)
-          val_str = std::format("{:0.1f}", (float)bul_def.knockback_force);
+          val_str = std::format("{:0.2f}", 100.0f * bul_def.knockback_force); // mul x100 to make it more appealing
         else if (stat_enum == UpgradeableStat::BULLET_LIFESTEAL)
-          val_str = std::format("{:0.1f}", (float)bul_def.lifesteal);
+          val_str = std::format("{:0.2f}", (float)bul_def.lifesteal);
         else if (stat_enum == UpgradeableStat::BULLET_LIFETIME)
-          val_str = std::format("{:0.1f}", (float)bul_def.lifecycle * 0.001f); // ms => s);
+          val_str = std::format("{:0.2f}", (float)bul_def.lifecycle * 0.001f); // ms => s);
         else if (stat_enum == UpgradeableStat::BULLET_PIERCE)
           val_str = std::format("{}", bul_def.pierce);
         else if (stat_enum == UpgradeableStat::BULLET_SIZE)
-          val_str = std::format("{:0.1f}", (float)bul_def.size.x);
+          val_str = std::format("{:0.2f}", (float)bul_def.size.x);
         else if (stat_enum == UpgradeableStat::BULLET_SPEED)
-          val_str = std::format("{:0.1f}", (float)bul_def.speed);
+          val_str = std::format("{:0.2f}", (float)bul_def.speed);
 
         // note: display the weapon that the upgrade is upgrading.
         if (stat_enum == UpgradeableStat::WEAPON_PROJECTILES)
           val_str = std::format("{}", wep_def.projectiles);
         else if (stat_enum == UpgradeableStat::WEAPON_SPREAD)
-          val_str = std::format("{:0.1f}", (float)wep_def.spread_deg);
+          val_str = std::format("{:0.2f}", (float)wep_def.spread_deg);
         else if (stat_enum == UpgradeableStat::WEAPON_FIRERATE)
-          val_str = std::format("{:0.1f}", (float)wep_def.fire_rate);
+          val_str = std::format("{:0.2f}", (float)wep_def.fire_rate);
         else if (stat_enum == UpgradeableStat::WEAPON_CLIP_SIZE)
           val_str = std::format("{}", (int)wep_def.bullets_max);
         else if (stat_enum == UpgradeableStat::WEAPON_RELOAD)
-          val_str = std::format("{:0.1f}", (float)wep_def.reload_rate);
+          val_str = std::format("{:0.2f}", (float)wep_def.reload_rate);
         else if (stat_enum == UpgradeableStat::WEAPON_RANGE)
-          val_str = std::format("{:0.1f}", (float)wep_def.range);
+          val_str = std::format("{:0.2f}", (float)wep_def.range);
       }
     }
 
@@ -416,14 +416,28 @@ draw_stats(entt::registry& r,
 
   // add a separator
   start_y += text_size.y;
-  draw_list->AddText({ key_x, start_y }, im_text_col, "BEHAVIOURS");
+  draw_list->AddText({ key_x, start_y }, im_text_col, "OVERCLOCKS (Lv 4, 8, 12)");
 
-  // TODO: highlight (new) weapon behaviours.
-  // for (const auto& upg_traits : result.traits) {
-  //   start_y += text_size.y;
-  //   const auto upg_str = std::string(magic_enum::enum_name(upg_traits));
-  //   draw_list->AddText({ key_x, start_y }, im_text_col, upg_str.c_str());
-  // }
+  // list the (existing) weapon behaviours.
+  if (upg_weapons.size() > 0) {
+    const auto wep_e = upg_weapons[0];
+    const auto& weapon_key = r.get<ItemKey>(wep_e);
+    const auto weapon_upgrades_data = get_upgrades_from_weapon_key(r, weapon_key.key);
+    const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, wep_e);
+    for (const auto& u_key : aquired_upg) {
+      start_y += text_size.y;
+      const auto wb_key = get_wb_key_from_upgrade_key(r, u_key);
+      const auto upg_str = wb_key;
+      draw_list->AddText({ key_x, start_y }, im_text_col, upg_str.c_str());
+    }
+  }
+
+  // highlight (new) weapon behaviours.
+  for (const auto& upg_traits : result.traits) {
+    start_y += text_size.y;
+    const auto upg_str = "(+) " + std::string(magic_enum::enum_name(upg_traits));
+    draw_list->AddText({ key_x, start_y }, im_greenish, upg_str.c_str());
+  }
 
   // if (result.traits.size() == 0) {
   //   start_y += text_size.y;
@@ -585,9 +599,6 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const float upg_header_height = 75.0f * ui_scale;
-  const int cards = 4;
-  const auto card_size = ImVec2{ 225 * ui_scale, 120 * ui_scale };
-  const float card_padding_y = 8 * ui_scale; // pad between cards
   // const auto header_pad = 4 * ui_scale;
   // const auto header_y_size = 30 * ui_scale;
   const auto line_size = 40.0f * ui_scale;
@@ -597,9 +608,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
   // idx: 4 should be fingerpaint, idx: 5 should be fingerpaint scaled.
   auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 4 : 5];
-
-  const auto text_font_enum = ui_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
-  auto* font = get_inter_font(r, text_font_enum);
+  auto* font = get_inter_font(r, ui_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED);
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const float window_x_size = ri_c.viewport_size_render_at.x;
@@ -696,8 +705,8 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     // draw_list->AddRect(clamped_tl, clamped_br, IM_COL32(255, 0, 0, 255));
 
     // work out the selection box tl & br
-    auto stats_y = upg_header_height + 0.5f * (card_size.y + card_padding_y);
-    auto padding_x = 40.0f;
+    const auto stats_y = upg_header_height + 60.0f;
+    const auto padding_x = 40.0f;
     const auto selection_tl = ImVec2{ clamped_tl.x + padding_x, clamped_tl.y + head_f->FontSize + 50.0f };
     const auto selection_br = ImVec2{ clamped_tl.x + clamped_wh.x - padding_x, clamped_tl.y + stats_y + 50.0f };
 

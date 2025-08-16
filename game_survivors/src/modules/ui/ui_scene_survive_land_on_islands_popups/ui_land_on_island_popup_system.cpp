@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "resources/data.hpp"
 #include "ui_land_on_island_popup_helpers.hpp"
 #include "ui_land_on_island_popup_system.hpp"
 
@@ -65,7 +66,8 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       const auto wsp_ss = worldspace_to_screenspace(r, wsp);
       const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
 
-      draw_popup(r, ss_pos_tl, label, font);
+      const auto border_col = default_player_colours_im[player_c.idx];
+      draw_popup(r, ss_pos_tl, label, font, border_col);
 
       ImGui::PopID();
     }
@@ -90,8 +92,11 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       const auto handle = steam_c.handles[0];
       const auto confirm_button_str = get_back_button_str(r, handle);
       const auto label = std::format("Use DPAD (move)\nPress {} (return to boat)", confirm_button_str);
+      const auto label_wh = ImGui::CalcTextSize(label.c_str());
+      const auto ss_pos = ss_pos_tl + ImVec2{ -0.5f * label_wh.x, 0.5f * label_wh.y };
 
-      draw_popup(r, ss_pos_tl, label, font);
+      const auto border_col = default_player_colours_im[player_idx];
+      draw_popup(r, ss_pos, label, font, border_col);
 
       ImGui::PopID();
     }

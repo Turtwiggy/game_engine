@@ -8,6 +8,7 @@
 #include "modules/core/io/io_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 
 namespace game2d {
 
@@ -126,14 +127,21 @@ load_persistent_upgrades_and_apply_to_player(entt::registry& r)
   }
 
   for (const auto& [e, player_c, stat_c] : r.view<const PlayerComponent, StatModifierComponent>().each()) {
-    // add to stats
+    // add ACTOR_ stats to player
 
     for (const auto& stat_info : stats) {
 
-      const bool add_flat = stat_info.type == "stat_flat_increase";
-      const bool add_percent = stat_info.type == "stat_percent_increase";
       const auto mod_key = stat_info.key;
       const auto mod_val = stat_info.val;
+
+      const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(mod_key).value();
+      const auto it = std::find(actor_x_stats.begin(), actor_x_stats.end(), stat_enum);
+      if (it == actor_x_stats.end())
+        continue; // not an ACTOR_ stat
+      SDL_Log(std::format("(adding (actor) persistent stat) {} {}", mod_key, mod_val).c_str());
+
+      const bool add_flat = stat_info.type == "stat_flat_increase";
+      const bool add_percent = stat_info.type == "stat_percent_increase";
 
       if (add_flat)
         stat_c.add(std::make_shared<StatFlatIncrease>(mod_val, mod_key));
@@ -141,6 +149,28 @@ load_persistent_upgrades_and_apply_to_player(entt::registry& r)
         stat_c.add(std::make_shared<StatPercentIncrease>(mod_val, mod_key));
 
       //
+    }
+  }
+
+  // add WEAPON_ and BULLET_ stats to player weapons.
+  for (const auto& [e, weapon_c, stat_c] : r.view<const WeaponBehaviourComponent, StatModifierComponent>().each()) {
+    for (const auto& stat_info : stats) {
+      const auto mod_key = stat_info.key;
+      const auto mod_val = stat_info.val;
+
+      const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(mod_key).value();
+      const auto it = std::find(weapon_and_bullet_stats.begin(), weapon_and_bullet_stats.end(), stat_enum);
+      if (it == weapon_and_bullet_stats.end())
+        continue; // not an WEAPON_ or BULLET_ stat
+      SDL_Log(std::format("(adding (weapon) persistent stat) {} {}", mod_key, mod_val).c_str());
+
+      const bool add_flat = stat_info.type == "stat_flat_increase";
+      const bool add_percent = stat_info.type == "stat_percent_increase";
+
+      if (add_flat)
+        stat_c.add(std::make_shared<StatFlatIncrease>(mod_val, mod_key));
+      else if (add_percent)
+        stat_c.add(std::make_shared<StatPercentIncrease>(mod_val, mod_key));
     }
   }
 }

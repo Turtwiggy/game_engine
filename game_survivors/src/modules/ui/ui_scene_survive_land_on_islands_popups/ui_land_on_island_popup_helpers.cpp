@@ -1,11 +1,12 @@
 #include "pch.hpp"
+#include "resources/data.hpp"
 
 #include "ui_land_on_island_popup_helpers.hpp"
 
 namespace game2d {
 
 void
-draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font)
+draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, ImU32 border_col)
 {
   auto* draw_list = ImGui::GetWindowDrawList();
 
@@ -13,8 +14,11 @@ draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font)
   const float padding = 4;
   const auto size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
   const auto ss_pos_br = tl + size;
-  draw_list->AddRectFilled(
-    { tl.x - padding, tl.y - padding }, { ss_pos_br.x + padding, ss_pos_br.y + padding }, IM_COL32(0, 0, 0, 200), 6);
+
+  const auto popup_tl = ImVec2{ tl.x - padding, tl.y - padding };
+  const auto popup_br = ImVec2{ ss_pos_br.x + padding, ss_pos_br.y + padding };
+  draw_list->AddRectFilled(popup_tl, popup_br, im_window_bg_col, 2);
+  draw_list->AddRect(popup_tl, popup_br, border_col, 2);
 
   // add text
   ImGui::SetCursorScreenPos({ tl.x, tl.y });

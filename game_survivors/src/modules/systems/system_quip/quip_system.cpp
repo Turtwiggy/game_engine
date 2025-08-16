@@ -14,6 +14,7 @@
 #include "modules/systems/system_island_ai/island_ai_components.hpp"
 #include "modules/ui/ui_scene_survive_land_on_islands_popups/ui_land_on_island_popup_helpers.hpp"
 #include "modules/ui/ui_worldspace_text/components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -92,7 +93,7 @@ update_quip_system(entt::registry& r, const float dt)
       ImGui::PushFont(font);
 
       const std::string label = std::format("{}", req.message);
-      draw_popup(r, ss_pos_tl, label, font);
+      draw_popup(r, ss_pos_tl, label, font, im_window_border_col);
 
       ImGui::PopFont();
     };

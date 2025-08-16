@@ -10,9 +10,9 @@ std::vector<float>
 generate_angles(const float dir, const int bullets, const float spread_rad);
 
 WeaponDef
-get_weapon_def(entt::registry& r, const entt::entity player_e, const entt::entity wep_e);
+get_weapon_def(entt::registry& r, const entt::entity wep_e);
 
 BulletDef
-get_bullet_def(entt::registry& r, const entt::entity player_e, const entt::entity wep_e);
+get_bullet_def(entt::registry& r, const entt::entity wep_e);
 
 } // namespace game2d

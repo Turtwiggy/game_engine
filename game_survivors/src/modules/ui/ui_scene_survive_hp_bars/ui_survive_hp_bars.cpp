@@ -172,7 +172,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
       const auto bar_rounding = 6;
 
       // state.
-      const auto wep_def = get_weapon_def(r, player_e, wep_e);
+      const auto wep_def = get_weapon_def(r, wep_e);
       const auto& weapon_clip_c = r.get<WeaponClipSize>(wep_e);
       const auto& weapon_reload_c = r.get<WeaponReloadRate>(wep_e);
       const float bullets_in_clip = weapon_clip_c.bullets_cur / (float)wep_def.bullets_max;
