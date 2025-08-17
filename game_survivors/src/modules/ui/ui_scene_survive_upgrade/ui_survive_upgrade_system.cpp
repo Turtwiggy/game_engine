@@ -620,40 +620,38 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+
   imgui_begin("UpgradeUI");
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();
   auto* draw_list = ImGui::GetWindowDrawList();
 
-  // float padding_x = 4;
-  // float padding_y = 4;
-  const auto player_ui_wh = ImVec2{ ui_wh.x / max_num_players, ui_wh.y };
-  auto player_ui_tl = ImVec2{ ui_tl.x, ui_tl.y };
-  auto player_ui_br = ImVec2{ ui_tl.x + player_ui_wh.x, ui_tl.y + player_ui_wh.y };
+  const auto pivot = 0.5f;
+  const auto card_pad_x = 5.0f;
+  const auto card_width = 400.0f;
+  const auto card_height = 400.0f * (16.0f / 9.0f);
+  const auto center_x = ui_tl.x + 0.5f * ui_wh.x;
+  const auto center_y = ui_tl.y + ui_wh.y * 0.5f;
+
+  auto first_tl_x = center_x;
+  first_tl_x -= max_num_players * (0.5f * card_width);
+  const auto ui_move_horizontally = [&]() { first_tl_x += card_width; };
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
     const auto player_e = get_player_e_from_idx(r, player_idx);
     if (player_e == entt::null) {
-
-      // move horizontally
-      player_ui_tl.x += player_ui_wh.x;
-      player_ui_br.x += player_ui_wh.x;
-
+      ui_move_horizontally();
       continue;
     }
-    ImGui::PushID((uint32_t)player_e);
 
     const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
     if (upgrades.size() == 0) {
-
-      // move horizontally
-      player_ui_tl.x += player_ui_wh.x;
-      player_ui_br.x += player_ui_wh.x;
-      ImGui::PopID();
-
+      ui_move_horizontally();
       continue; // this player isnt upgrading
     }
+
+    ImGui::PushID((uint32_t)player_e);
 
     // process the first upgrade results
     const std::pair<entt::entity, UpgradeResultsComponent*>& upgs_pair = upgrades[0];
@@ -699,8 +697,14 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     auto* f = font; // body font
     const auto im_player_col = default_player_colours_im[player_idx];
 
-    const auto clamped_tl = player_ui_tl;
-    const auto clamped_br = player_ui_br;
+    const auto card_center_x = first_tl_x + 0.5f * card_width;
+    const auto card_tl = ImVec2{ card_center_x - 0.5f * card_width + card_pad_x, center_y - (card_height * pivot) };
+    const auto card_br = ImVec2{ card_center_x + 0.5f * card_width - card_pad_x, card_tl.y + card_height };
+
+    // const auto clamped_tl = player_ui_tl;
+    // const auto clamped_br = player_ui_br;
+    const auto clamped_tl = card_tl;
+    const auto clamped_br = card_br;
     const auto clamped_wh = clamped_br - clamped_tl;
     // draw_list->AddRect(clamped_tl, clamped_br, IM_COL32(255, 0, 0, 255));
 
@@ -751,9 +755,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     // draw_list->AddRect(stats_tl, stats_br, im_player_col);
     draw_stats(r, stats_tl, stats_br, player_e, state_c, upgrades_c, font);
 
-    // move horizontally
-    player_ui_tl.x += player_ui_wh.x;
-    player_ui_br.x += player_ui_wh.x;
+    ui_move_horizontally();
     ImGui::PopID();
   }
 

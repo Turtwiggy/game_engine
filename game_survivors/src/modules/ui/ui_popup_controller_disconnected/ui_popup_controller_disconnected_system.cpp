@@ -144,7 +144,7 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
 
     text_y += 4.0f; // add some padding
 
-    const auto header = std::string("Controller Disconnected. >:(");
+    const auto header = std::string("Controller Disconnected");
     const auto header_size = header_font->CalcTextSizeA(header_font_size, FLT_MAX, -1, header.c_str());
     const auto header_pos = ImVec2{ ui_tl.x + ui_wh.x * 0.5f - header_size.x * 0.5f, ui_tl.y + 4.0f };
     draw_list->AddText(header_font, header_font_size, header_pos, IM_COL32(255, 255, 255, 255), header.c_str());

@@ -511,19 +511,18 @@ update_player_select_ui(entt::registry& r,
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
-  static float x_pad = 15;
-  // imgui_draw_float("x_pad", x_pad);
-
   imgui_begin("SelectShipUI", ImGuiWindowFlags_NoInputs);
   const ImVec2 window_tl = ImGui::GetWindowPos();
   const ImVec2 window_wh = ImGui::GetWindowSize();
   const ImVec2 player_wh = { window_wh.x / (float)max_num_players, window_wh.y };
 
   // center it.
+  const auto card_width = 300.0f;
   const auto center_x = window_tl.x + 0.5f * window_wh.x;
-  const auto center_y = player_wh.y * 0.5f;
+  const auto center_y = window_tl.y + 0.5f * player_wh.y;
+
   auto first_tl_x = center_x;
-  first_tl_x -= max_num_players * (0.5f * player_wh.x);
+  first_tl_x -= max_num_players * (0.5f * card_width);
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
@@ -551,26 +550,27 @@ update_player_select_ui(entt::registry& r,
     if (r_pressed)
       h_value++;
 
+    auto* draw_list = ImGui::GetWindowDrawList();
+    const auto my_player_col = default_player_colours[player_idx];
+    const auto im_player_col = convert_my_to_im(my_player_col);
+
     // const auto width = 300;
     const auto height = 480 * ui_scaling; // or 1/6th of the screen
 
     // if pivot is 0, the top of the ui would be rendered at the center of the screen
     // if pivot is 1. the bot of the ui would be rendered at the center of the screen
     const auto pivot = 0.35f;
-    const auto main_quarter_tl = ImVec2{ first_tl_x + x_pad, center_y - (height * pivot) };
-    const auto main_quarter_br = ImVec2{ main_quarter_tl.x + player_wh.x - 2.0f * x_pad, main_quarter_tl.y + height };
-
-    auto* draw_list = ImGui::GetWindowDrawList();
-
-    const auto my_player_col = default_player_colours[player_idx];
-    const auto im_player_col = convert_my_to_im(my_player_col);
+    const auto card_pad_x = 5.0f;
+    const auto card_center_x = first_tl_x + (0.5f * card_width);
+    const auto card_tl = ImVec2{ card_center_x - 0.5f * card_width + card_pad_x, center_y - (height * pivot) };
+    const auto card_br = ImVec2{ card_center_x + 0.5f * card_width - card_pad_x, card_tl.y + height };
+    // draw_list->AddRect(card_tl, card_br, im_player_col, 2.0f, ImDrawFlags_RoundCornersAll, 1.0f);
 
     // draw a background
-    draw_list->AddRectFilled(main_quarter_tl, main_quarter_br, im_window_bg_col, 6);
-    draw_list->AddRect(main_quarter_tl, main_quarter_br, im_player_col, 6, ImDrawFlags_RoundCornersAll, 2);
+    draw_list->AddRectFilled(card_tl, card_br, im_window_bg_col, 6);
+    draw_list->AddRect(card_tl, card_br, im_player_col, 2.0f, ImDrawFlags_RoundCornersAll, 1.0f);
 
-    if ((connected && joined) || player_idx == 0)
-
+    if ((connected && joined) || player_idx == 0) {
       draw_card_inner(r,
                       ui_c,
                       steam_ui_c,
@@ -581,21 +581,20 @@ update_player_select_ui(entt::registry& r,
                       player_idx,
                       button_size,
                       do_act,
-                      main_quarter_tl,
-                      main_quarter_br,
+                      card_tl,
+                      card_br,
                       my_player_col,
                       draw_list,
                       header_font,
                       text_font);
-
-    else {
+    } else {
       const auto text = std::string("N/A\n(Connect in Menu)");
-      const auto width = main_quarter_br.x - main_quarter_tl.x;
+      const auto width = card_br.x - card_tl.x;
       const auto text_size = header_font->CalcTextSizeA(header_font->FontSize, FLT_MAX, -1, text.c_str());
 
       auto center = ImVec2{
-        main_quarter_tl.x + 0.5f * (main_quarter_br.x - main_quarter_tl.x),
-        main_quarter_tl.y + 0.5f * (main_quarter_br.y - main_quarter_tl.y),
+        card_tl.x + 0.5f * (card_br.x - card_tl.x),
+        card_tl.y + 0.5f * (card_br.y - card_tl.y),
       };
       center.x -= 0.5f * text_size.x;
       center.y -= 0.5f * text_size.y;
@@ -603,7 +602,7 @@ update_player_select_ui(entt::registry& r,
     };
 
     // move horizontally
-    first_tl_x += player_wh.x;
+    first_tl_x += card_width;
   }
 
   ImGui::End();

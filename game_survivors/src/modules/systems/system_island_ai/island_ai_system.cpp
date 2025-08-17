@@ -24,7 +24,10 @@ update_island_ai_system(entt::registry& r, const float dt)
     islander_ai_c.time_between_ai_checks_cur -= dt;
     if (islander_ai_c.time_between_ai_checks_cur > 0.0f)
       continue;
-    islander_ai_c.time_between_ai_checks_cur = islander_ai_c.time_between_ai_checks_max;
+
+    const auto rnd_cd =
+      engine::rand_det_s(rnd_ai.rng, islander_ai_c.time_between_ai_checks_min, islander_ai_c.time_between_ai_checks_max);
+    islander_ai_c.time_between_ai_checks_cur = rnd_cd;
 
     // choose a random direction to move
     const auto rnd_dir = (int)engine::rand_det_s(rnd_ai.rng, 0, 4);

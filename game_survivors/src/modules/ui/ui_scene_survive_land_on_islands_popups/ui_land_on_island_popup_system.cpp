@@ -60,7 +60,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
 
       const auto handle = steam_c.handles[player_c.idx];
       const auto confirm_button_str = get_confirm_button_str(r, handle);
-      const auto label = std::format("Press {} (land on island)", confirm_button_str);
+      const auto label = std::format("Press {} to land", confirm_button_str);
 
       const auto wsp = nearest_c.landable_positions[0];
       const auto wsp_ss = worldspace_to_screenspace(r, wsp);
@@ -91,7 +91,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       const auto player_idx = r.get<PlayerComponent>(boat_e).idx;
       const auto handle = steam_c.handles[0];
       const auto confirm_button_str = get_back_button_str(r, handle);
-      const auto label = std::format("Use DPAD (move)\nPress {} (return to boat)", confirm_button_str);
+      const auto label = std::format("Use DPAD (move/attack)\nPress {} - return to boat", confirm_button_str);
       const auto label_wh = ImGui::CalcTextSize(label.c_str());
       const auto ss_pos = ss_pos_tl + ImVec2{ -0.5f * label_wh.x, 0.5f * label_wh.y };
 
