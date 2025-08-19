@@ -94,6 +94,7 @@
 #include "modules/ui/ui_blur/ui_blur_system.hpp"
 #include "modules/ui/ui_collisions/system.hpp"
 #include "modules/ui/ui_colours/ui_colours_system.hpp"
+#include "modules/ui/ui_combo_unlock/ui_combo_unlock_system.hpp"
 #include "modules/ui/ui_debug_effects/ui_debug_effects_system.hpp"
 #include "modules/ui/ui_debug_elemental/ui_debug_elemental_system.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
@@ -132,6 +133,7 @@
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -418,6 +420,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_gameover_system(r);
     update_ui_land_on_island_popup_system(r);
     update_ui_ability_system(r);
+    update_ui_combo_unlock_system(r);
   }
 
 #if defined(_DEBUG)

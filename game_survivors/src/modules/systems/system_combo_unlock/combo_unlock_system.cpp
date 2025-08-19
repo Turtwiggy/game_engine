@@ -4,35 +4,12 @@
 #include "combo_unlock_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/colour/colour.hpp"
-#include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
-#include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_enemy_treasure/enemy_treasure_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
-#include "modules/core/sprites/sprite_helpers.hpp"
-#include "modules/events/event_death/components.hpp"
-#include "modules/events/events_core/events_components.hpp"
 
 namespace game2d {
-
-std::string
-get_sprite_for_combodir(COMBO_DIR dir)
-{
-  if (dir == COMBO_DIR::U)
-    return "ARROW_UP";
-
-  else if (dir == COMBO_DIR::D)
-    return "ARROW_DOWN";
-
-  else if (dir == COMBO_DIR::L)
-    return "ARROW_LEFT";
-
-  else
-    return "ARROW_RIGHT";
-};
 
 //
 // draw 4 sprites for the unlock code.
@@ -85,64 +62,10 @@ update_combo_unlock_system(entt::registry& r)
     }
 
     // dont display if not near
+    combo_c.display = false;
     if (players_map.size() == 0)
       return;
-
-    // display players inputs.
-    for (int i = 0; i < combo_c.current.size(); i++) {
-      auto val = combo_c.current[i];
-
-      Sprite debug_s;
-      debug_s.pos = pos_pixels;
-      debug_s.pos.x += 32 * i;
-      debug_s.pos.y += offset_2nd_row;
-      debug_s.size = { 32, 32 };
-      debug_s.z_rotation = 0.0f;
-      debug_s.sprite = get_sprite_for_combodir(val);
-      debug_s.col = engine::SRGBColour{ 0, 255, 0, 255 };
-      draw_sprite(r, debug_s);
-    }
-
-    // display the code.
-    for (int i = 0; i < combo_c.unlock.size(); i++) {
-      auto val = combo_c.unlock[i];
-
-      Sprite debug_s;
-      debug_s.pos = pos_pixels;
-      debug_s.pos.x += 32 * i;
-      debug_s.pos.y += offset_1st_row;
-      debug_s.size = { 32, 32 };
-      debug_s.z_rotation = 0.0f;
-      debug_s.sprite = get_sprite_for_combodir(val);
-      debug_s.col = engine::SRGBColour{ 255, 255, 255, 255 };
-      draw_sprite(r, debug_s);
-    }
-
-    // validate inputs; reset if an invalid input is entered.
-    const auto& u = combo_c.unlock;
-    const auto& i = combo_c.current;
-    bool is_valid = true;
-    is_valid &= i.size() <= u.size();
-    is_valid &= std::equal(i.begin(), i.end(), u.begin()); // order must match
-    if (!is_valid)
-      combo_c.current.clear();
-
-    // unlock the chest!
-    if (combo_c.current == combo_c.unlock) {
-      auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
-      dead_c.dead.push_back(e);
-
-      // Send death event.
-      DeathEvent d_evt;
-      d_evt.killed_by = entt::null;
-      d_evt.dead = e; // parent not fixture
-      auto& evts_c = SINGLE_Events::instance;
-      evts_c.dispatcher->trigger(d_evt);
-      evts_c.dispatcher->update();
-
-      // prevent re-sending event due to unlock code matching
-      r.remove<ComboUnlockComponent>(e);
-    }
+    combo_c.display = true;
   }
 }
 

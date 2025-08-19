@@ -21,6 +21,8 @@ struct ComboUnlockComponent
     COMBO_DIR::R,
   };
   std::vector<COMBO_DIR> current;
+
+  bool display = false;
 };
 
 } // namespace game2d
