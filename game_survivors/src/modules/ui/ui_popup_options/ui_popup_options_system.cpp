@@ -259,6 +259,9 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     if (auto* o = dynamic_cast<Option_VideoVsync*>(option.get()))
       display_button(o, "##vsync");
 
+    if (auto* o = dynamic_cast<Option_VideoWhichMonitor*>(option.get()))
+      display_options(o, o->get_hindex(r), "##window-l", "##window-r");
+
     if (i == ui_c.state.cells.size() - 1) {
       ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);
       ImGui::Separator();

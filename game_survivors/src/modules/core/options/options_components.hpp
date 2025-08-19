@@ -15,6 +15,7 @@ enum class GAME_OPTIONS
   VIDEO_SCREEN_MODE,
   VIDEO_RESOLUTION,
   VIDEO_VSYNC,
+  VIDEO_WHICH_MONITOR,
 
   count
 };
@@ -127,8 +128,23 @@ struct Option_VideoVsync : public IOption
   std::string display_val() override;
 };
 
+struct Option_VideoWhichMonitor : public IOption
+{
+  Video_WhichMonitorOnDisk data;
+
+  Option_VideoWhichMonitor()
+    : IOption(GAME_OPTIONS::VIDEO_WHICH_MONITOR, "Monitor", UIValueType::SELECTION) {};
+
+  void load(engine::SINGLE_Application& app, entt::registry& r) override;
+  void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;
+  int get_hindex(entt::registry& r) override;
+  std::string display_val() override;
+};
+
 struct SINGLE_GameOptions
 {
+  bool loaded = false;
+
   std::vector<std::shared_ptr<IOption>> options{
     // audio settings
     std::make_shared<Option_AudioMasterVolume>(),
@@ -138,6 +154,7 @@ struct SINGLE_GameOptions
     std::make_shared<Option_VideoScreenMode>(),
     std::make_shared<Option_VideoResolution>(),
     std::make_shared<Option_VideoVsync>(),
+    std::make_shared<Option_VideoWhichMonitor>(),
   };
 };
 

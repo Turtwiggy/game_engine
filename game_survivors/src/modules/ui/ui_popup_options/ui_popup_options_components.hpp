@@ -57,4 +57,11 @@ struct Video_VsyncOnDisk
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Video_VsyncOnDisk, enabled);
 };
 
+struct Video_WhichMonitorOnDisk
+{
+  int monitor_idx = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Video_WhichMonitorOnDisk, monitor_idx);
+};
+
 } // namespace game2d

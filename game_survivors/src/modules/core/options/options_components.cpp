@@ -12,12 +12,12 @@
 namespace game2d {
 
 void
-center_window(engine::SINGLE_Application& app)
+center_window(engine::SINGLE_Application& app, int monitor_idx = 0)
 {
   const auto size = app.window.get_size();
   const auto half_size = glm::ivec2{ size.x * 0.5f, size.y * 0.5f };
 
-  const int monitor_idx = SDL_GetWindowDisplayIndex(app.window.get_handle());
+  // const int monitor_idx = SDL_GetWindowDisplayIndex(app.window.get_handle());
   if (monitor_idx < 0) {
     SDL_Log("error: %s", SDL_GetError());
     return; // unable to get...
@@ -27,10 +27,12 @@ center_window(engine::SINGLE_Application& app)
   if (SDL_GetDisplayBounds(monitor_idx, &monitor_bounds) != 0)
     return; // unable to get...
 
-  const int monitor_w = monitor_bounds.w;
-  const int monitor_h = monitor_bounds.h;
-  const auto center = glm::ivec2{ (monitor_w * 0.5) - half_size.x, (monitor_h * 0.5) - half_size.y };
-  app.window.set_position(center.x, center.y);
+  const auto window_w = size.x;
+  const auto window_h = size.y;
+  const auto center_x = monitor_bounds.x + 0.5f * (monitor_bounds.w - window_w);
+  const auto center_y = monitor_bounds.y + 0.5f * (monitor_bounds.h - window_h);
+
+  app.window.set_position(center_x, center_y);
 };
 
 void
@@ -348,7 +350,9 @@ Option_VideoResolution::update(engine::SINGLE_Application& app, entt::registry& 
   app.window.set_size({ data.w, data.h });
 
   // set window pos
-  center_window(app);
+  auto* handle = app.window.get_handle();
+  auto current_display_idx = SDL_GetWindowDisplayIndex(handle);
+  center_window(app, current_display_idx);
 };
 
 int
@@ -429,6 +433,41 @@ std::string
 Option_VideoVsync::display_val()
 {
   return std::format("{}", data.enabled);
+};
+
+void
+Option_VideoWhichMonitor::load(engine::SINGLE_Application& app, entt::registry& r)
+{
+  //
+  SDL_Log("(Option_VideoWhichMonitor) loaded");
+};
+
+void
+Option_VideoWhichMonitor::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
+{
+  const int connected_monitors = SDL_GetNumVideoDisplays();
+  SDL_Log("(info) you have %i connected monitors", connected_monitors);
+
+  hindex = glm::clamp(hindex, 0, connected_monitors - 1);
+  data.monitor_idx = hindex;
+
+  // note: this monitor_idx isnt saved to the disk.
+  // this means that you would need to set it every time the game is launched
+  // if the game is being played on your non-main monitor, this could be annoying.
+
+  center_window(app, data.monitor_idx);
+};
+
+int
+Option_VideoWhichMonitor::get_hindex(entt::registry& r)
+{
+  return data.monitor_idx;
+};
+
+std::string
+Option_VideoWhichMonitor::display_val()
+{
+  return std::format("{}", data.monitor_idx + 1);
 };
 
 /*
