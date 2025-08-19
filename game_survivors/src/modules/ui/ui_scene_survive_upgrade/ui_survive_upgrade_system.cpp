@@ -202,16 +202,26 @@ draw_upgrade_selections_in_grid(entt::registry& r,
     // draw the background
     draw_list->AddRectFilled(box_tl, box_br, im_window_bg_col);
 
+    if (selected)
+      draw_list->AddRect(box_tl, box_br, im_greenish);
+    else
+      draw_list->AddRect(box_tl, box_br, im_white);
+
+    // add text "A", "B", "C"
+    const auto TEXT_SIZE = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, "A");
+    const auto text_pos = box_tl + ImVec2{ 0.5f, 0.5f } * (box_wh - TEXT_SIZE);
+    if (i == 0)
+      draw_list->AddText(font, font->FontSize, text_pos, im_text_col, "A");
+    else if (i == 1)
+      draw_list->AddText(font, font->FontSize, text_pos, im_text_col, "B");
+    else if (i == 2)
+      draw_list->AddText(font, font->FontSize, text_pos, im_text_col, "C");
+
     // draw a pointer to the active selection
     if (selected) {
       auto& cursor_c = ui_c.ui_cursors[player_idx];
       draw_cursor(r, cursor_c, box_tl, dt);
     }
-
-    if (selected)
-      draw_list->AddRect(box_tl, box_br, im_greenish);
-    else
-      draw_list->AddRect(box_tl, box_br, im_white);
 
     first_x += icon_size + padding_x;
   }
