@@ -57,6 +57,7 @@
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
 #include "modules/systems/system_upgrade_xp_zone_size/upgrade_xp_zone_size_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
+#include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
 #include "modules/ui/ui_gameover/ui_gameover_components.hpp"
 #include "modules/ui/ui_scene_main_menu/helpers.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
@@ -113,7 +114,6 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
     // hardpoint_data.arc_mid = 0;
     auto wep_e = spawn_weapon(r, e, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
-    r.emplace<StatModifierComponent>(wep_e); // BULLET_ and WEAPON_ stats (per weapon)
     r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
     r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
 
@@ -421,6 +421,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
     init_oh_buoy_header_text(r);
+    create_empty<UiCursorComponent>(r);
 
     // load player's saved units
     // const auto units = load_units(r);
@@ -462,7 +463,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // Reset temporary gold
     auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
-    gold_c.temp_amount = 0;
+    gold_c.temp_amount_pickup = 0;
+    gold_c.temp_amount_enemies = 0;
 
     // The survive timer that various spawners read from
     const auto survive_timer_e = create_empty<SurviveTimerComponent>(r);

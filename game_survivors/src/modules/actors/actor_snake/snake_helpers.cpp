@@ -53,8 +53,8 @@ auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   }
 };
 
-auto segment_died = [](entt::registry& r, entt::entity segment_e) {
-  auto snake_c = get_first_component<SnakeData>(r);
+const auto segment_died = [](entt::registry& r, entt::entity segment_e) {
+  // auto snake_c = get_first_component<SnakeData>(r);
 
   // child dead; inform parent. oh no.
   if (auto* parent_c = r.try_get<HasParentComponent>(segment_e))

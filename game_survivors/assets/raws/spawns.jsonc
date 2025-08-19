@@ -31,8 +31,8 @@
         { "key": "actor_enemy_exploder", "data": { "hp": 20, "max": 20, "num_per_spawn": 5}},  // puffer
         { "key": "actor_enemy_melee_1",  "data": { "hp": 20, "max": 20, "num_per_spawn": 5}},  // horseshoe
         { "key": "actor_enemy_melee_2",  "data": { "hp": 20, "max": 20, "num_per_spawn": 8}},  // hermit
-        { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }  // anglerfish (light source)
-
+        { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }, // anglerfish (light source)
+        { "key": "actor_enemy_projectile", "data": {"hp": 15, "max": 2, "num_per_spawn": 1}}   // archerfish
       ]
     },
     {

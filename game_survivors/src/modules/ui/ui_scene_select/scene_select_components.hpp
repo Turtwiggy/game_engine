@@ -1,6 +1,8 @@
 #pragma once
 
 #include "modules/core/ui/ui_common_components.hpp"
+#include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
+
 #include <string>
 #include <vector>
 
@@ -41,6 +43,7 @@ struct SINGLE_SelectSceneData : public DefaultUI
 
   std::vector<SelectUI> player_ui_state;
   std::vector<HullChoice> player_choice_state;
+  std::vector<UiCursorComponent> player_cursor_state;
 };
 
 struct SelectSceneToSurviveScene

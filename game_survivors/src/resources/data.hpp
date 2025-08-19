@@ -19,6 +19,12 @@ const ImU32 default_player_colours_im[n_players] = {
   convert_my_to_im(default_player_colours[2]),
   convert_my_to_im(default_player_colours[3]),
 };
+const ImU32 default_player_colours_im_transparent[n_players] = {
+  convert_my_to_im({ default_player_colours[0].r, default_player_colours[0].g, default_player_colours[0].b, 100 }),
+  convert_my_to_im({ default_player_colours[1].r, default_player_colours[1].g, default_player_colours[1].b, 100 }),
+  convert_my_to_im({ default_player_colours[2].r, default_player_colours[2].g, default_player_colours[2].b, 100 }),
+  convert_my_to_im({ default_player_colours[3].r, default_player_colours[3].g, default_player_colours[3].b, 100 }),
+};
 
 const ImU32 im_white = IM_COL32(255, 255, 255, 255);
 const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);

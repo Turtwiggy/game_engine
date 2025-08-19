@@ -53,11 +53,12 @@ update_gameover_system(entt::registry& r)
       create_empty<GameOverComponent>(r, gameover_c);
 
       // update stats
-      stats_c.gold_earned = gold_c.temp_amount;
+      stats_c.gold_earned = gold_c.temp_amount_pickup + gold_c.temp_amount_enemies;
 
       // Save collected gold to disk.
-      gold_c.amount += gold_c.temp_amount;
-      gold_c.temp_amount = 0;
+      gold_c.amount += stats_c.gold_earned;
+      gold_c.temp_amount_pickup = 0;
+      gold_c.temp_amount_enemies = 0;
       savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);
       savefile_save_disk(r);
       SDL_Log("Saved new gold to disk... %i", gold_c.amount);
@@ -74,12 +75,13 @@ update_gameover_system(entt::registry& r)
     create_empty<GameOverComponent>(r, gameover_c);
 
     // update stats
-    stats_c.gold_earned = gold_c.temp_amount;
+    stats_c.gold_earned = gold_c.temp_amount_pickup + gold_c.temp_amount_enemies;
 
     // Save collected gold to disk.
     // Even if you lose. too harsh otherwise?
-    gold_c.amount += gold_c.temp_amount;
-    gold_c.temp_amount = 0;
+    gold_c.amount += stats_c.gold_earned;
+    gold_c.temp_amount_pickup = 0;
+    gold_c.temp_amount_enemies = 0;
     savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);
     savefile_save_disk(r);
     SDL_Log("Saved new gold to disk... %i", gold_c.amount);

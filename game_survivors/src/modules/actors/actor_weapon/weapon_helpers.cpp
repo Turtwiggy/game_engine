@@ -36,6 +36,7 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
   r.emplace<WeaponDamageTypeComponent>(wep_e, w_data.damage_as_enum);
   r.emplace<WeaponBehaviourComponent>(wep_e);
   r.emplace<Weapon_OnDiskData>(wep_e, w_data);
+  r.emplace<StatModifierComponent>(wep_e); // BULLET_ and WEAPON_ stats (per weapon)
 
   const auto get_or_default = [&](std::string key, float def) -> float {
     if (w_data.data.contains(key))

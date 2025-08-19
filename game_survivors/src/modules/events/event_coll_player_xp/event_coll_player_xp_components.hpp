@@ -14,7 +14,7 @@ struct XpComponent
 struct SINGLE_XpComponent
 {
 #if defined(_DEBUG)
-  int xp = 0;
+  int xp = 15;
 #else
   int xp = 0;
 #endif

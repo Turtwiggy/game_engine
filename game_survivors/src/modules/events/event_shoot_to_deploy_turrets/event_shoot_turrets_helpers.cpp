@@ -10,19 +10,16 @@
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_exploder/actor_exploder_helpers.hpp"
-#include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/core/colour/components.hpp"
-#include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
-#include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_aoe_slow/aoe_slow_components.hpp"
 #include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
-#include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
+#include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 
 namespace game2d {
@@ -50,6 +47,10 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   const auto offset = 10.0f * engine::rand_unit_vector(rnd);
   set_position(r, turret_e, get_position(r, wep_e) + glm::vec2{ offset.x, offset.y });
   set_colour(r, turret_e, r.get<DefaultColour>(player_e).colour);
+
+  // add the modifiers to the deployed turret
+  const auto& deployer_stats_c = r.get<StatModifierComponent>(wep_e);
+  r.emplace_or_replace<StatModifierComponent>(turret_e, deployer_stats_c);
 
   auto wep_def = get_weapon_def(r, turret_e);
   auto bul_def = get_bullet_def(r, turret_e);

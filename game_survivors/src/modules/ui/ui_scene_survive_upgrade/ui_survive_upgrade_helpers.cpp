@@ -4,6 +4,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/renderer/transform.hpp"
 #include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
@@ -172,7 +173,12 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 bool
 is_choosing_upgrade(entt::registry& r)
 {
-  return r.view<UpgradeResultsComponent>().size() > 0;
+  const auto view = r.view<UpgradeResultsComponent>();
+  // for (const auto& [e, upg_c] : view.each()) {
+  //   auto& tag_c = r.get<TagComponent>(e);
+  //   SDL_Log("tag: %s", tag_c.tag.c_str());
+  // }
+  return view.size() > 0;
 };
 
 entt::entity

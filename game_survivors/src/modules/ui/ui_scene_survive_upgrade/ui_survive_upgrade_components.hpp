@@ -4,6 +4,7 @@
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
+#include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -15,6 +16,7 @@ struct SINGLE_LevelUpUI
   bool open = false;
 
   std::vector<UIState> ui_states;
+  std::vector<UiCursorComponent> ui_cursors;
 };
 
 enum class Rarity

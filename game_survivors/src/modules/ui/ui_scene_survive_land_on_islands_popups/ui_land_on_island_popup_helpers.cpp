@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "resources/data.hpp"
 #include "ui_land_on_island_popup_helpers.hpp"
 
@@ -17,7 +18,12 @@ draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, I
 
   const auto popup_tl = ImVec2{ tl.x - padding, tl.y - padding };
   const auto popup_br = ImVec2{ ss_pos_br.x + padding, ss_pos_br.y + padding };
-  draw_list->AddRectFilled(popup_tl, popup_br, im_window_bg_col, 0.0f);
+
+  auto bg_col_transparent = my_window_border_col;
+  bg_col_transparent.a = 100;
+  const auto im_bg_col_transparent = convert_my_to_im(bg_col_transparent);
+
+  draw_list->AddRectFilled(popup_tl, popup_br, im_bg_col_transparent, 0.0f);
   draw_list->AddRect(popup_tl, popup_br, border_col, 0.0f, ImDrawFlags_RoundCornersNone, 1.0f);
 
   // add text

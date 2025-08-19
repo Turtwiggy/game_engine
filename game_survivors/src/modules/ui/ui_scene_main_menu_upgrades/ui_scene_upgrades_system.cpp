@@ -15,6 +15,8 @@
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
+#include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 #include "resources/data.hpp"
@@ -357,58 +359,16 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   // Draw selected cursor
   {
     const auto [gx, gy] = engine::grid::index_to_grid_position(ui_c.grid_idx, ui_c.grid_x);
-    // const auto x_hmm = (gx / (float)ui_c.grid_x);
-    // const auto y_hmm = (gy / (float)grid_y);
-    // auto x_pct = grid_tl.x + grid_wh.x * x_hmm;
-    // auto y_pct = grid_tl.y + grid_wh.y * y_hmm;
     auto icon_tl = ImVec2{ grid_tl.x + gx * (icon_size.x + pad_x), grid_tl.y + gy * (icon_size.y + pad_y) };
 
     // center the cursor
     auto cell_w = grid_wh.x / (float)ui_c.grid_x;
     auto cell_h = grid_wh.y / (float)grid_y;
     icon_tl.x += 0.5f * (cell_w - icon_size.x);
-    // y_pct += 0.5f * (cell_h - icon_size.y);
 
-    // ImGui::SetCursorScreenPos(ImVec2{ x_pct, y_pct });
-    // const auto [cursor_tl, cursor_br] = convert_sprite_to_uv(r, "CURSOR_1"s);
-    // ImGui::Image(im_id, icon_size, cursor_tl, cursor_br, ImVec4(1.0, 0.0, 0.0, 1.0), {});
-
-    // const auto [cursor_tl, cursor_br] = convert_sprite_to_uv(r, "CURSOR_1"s);
-    const auto im_cursor_col = ImColor{ 1.0f, 0.3f, 0.3f, 1.0f };
-    static auto cursor_size = 10;
-    static auto cursor_offset_base = glm::vec2{ cursor_size, -12 };
-    static auto cursor_offset = glm::vec2{ 0, 0 };
-    static auto cursor_wiggle_time = 0.0f;
-    static auto cursor_wiggle = 0.0f;
-    static auto cursor_wiggle_frequency = 15.0f;
-    static auto cursor_wiggle_amplitude = 2.0f;
-    cursor_wiggle_time += dt;
-    cursor_wiggle = glm::sin(cursor_wiggle_time * cursor_wiggle_frequency) * cursor_wiggle_amplitude;
-
-    // ImGui::Begin("DebugCursorSize");
-    // imgui_draw_int("cursor_size", cursor_size);
-    // imgui_draw_vec2("cursor_offset_base", cursor_offset_base);
-    // imgui_draw_vec2("cursor_offset", cursor_offset);
-    // imgui_draw_float("cursor_wiggle", cursor_wiggle);
-    // imgui_draw_float("cursor_wiggle_frequency", cursor_wiggle_frequency);
-    // imgui_draw_float("cursor_wiggle_amplitude", cursor_wiggle_amplitude);
-    // ImGui::End();
-    cursor_offset = cursor_offset_base;
-    cursor_offset.y += cursor_wiggle;
-
-    float x_pct = icon_tl.x;
-    float y_pct = icon_tl.y;
-
-    // draw cursor as a down arrow
-    draw_list->AddTriangleFilled(ImVec2(cursor_offset.x + x_pct, y_pct + cursor_offset.y),
-                                 ImVec2(cursor_offset.x + x_pct + 0.5f * cursor_size, y_pct + cursor_size + cursor_offset.y),
-                                 ImVec2(cursor_offset.x + x_pct + cursor_size, y_pct + cursor_offset.y),
-                                 im_cursor_col);
-    draw_list->AddTriangle(ImVec2(cursor_offset.x + x_pct, y_pct + cursor_offset.y),
-                           ImVec2(cursor_offset.x + x_pct + 0.5f * cursor_size, y_pct + cursor_size + cursor_offset.y),
-                           ImVec2(cursor_offset.x + x_pct + cursor_size, y_pct + cursor_offset.y),
-                           im_white,
-                           0.5f);
+    // only one cursor in the upgrades menu.
+    auto& cursor_c = get_first_component<UiCursorComponent>(r);
+    draw_cursor(r, cursor_c, icon_tl, dt);
   }
 
   // Draw the selected stat info

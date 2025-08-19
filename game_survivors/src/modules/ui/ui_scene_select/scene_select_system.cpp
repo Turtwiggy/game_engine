@@ -24,6 +24,7 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
@@ -68,7 +69,8 @@ update_selections(entt::registry& r,
                   const int cell_idx,
                   const ImVec2 pos,
                   const ImVec2 button_size,
-                  const bool active)
+                  const bool active,
+                  const float dt)
 {
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
@@ -273,7 +275,8 @@ draw_card_inner(entt::registry& r,
                 const engine::SRGBColour my_player_col,
                 ImDrawList* draw_list,
                 ImFont* header_font,
-                ImFont* text_font)
+                ImFont* text_font,
+                const float dt)
 {
   const auto& ri_c = SINGLE_RendererInfo::instance;
   const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
@@ -306,10 +309,12 @@ draw_card_inner(entt::registry& r,
     if (selectable_button(r, def))
       base->action();
 
+    auto active_cell = def.active_cell == def.cell;
+
     const float pos_l = main_quarter_tl.x + button_size.x;
     const float pos_w = main_quarter_br.x - pos_l;
     const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
-    update_selections(r, ui_c, base, player_idx, i, pos, button_size, active);
+    update_selections(r, ui_c, base, player_idx, i, pos, button_size, active, dt);
 
     const auto grid_tl = button_tl + ImVec2{ button_size.x, 0 };
     const auto grid_br = ImVec2{ main_quarter_br.x, button_tl.y + button_size.y };
@@ -330,13 +335,16 @@ draw_card_inner(entt::registry& r,
         auto first_x = grid_tl.x + padding_x;
         for (int j = 0; j < (int)hulls_c.hulls.size(); j++) {
           const auto& hull = hulls_c.hulls[j];
-          const bool weapon_icon_active = j == cell.value;
-          const auto border_col = weapon_icon_active ? im_greenish : im_window_border_col;
+          const bool icon_active = j == cell.value;
+          const auto border_col = icon_active ? im_greenish : im_window_border_col;
 
           const auto pos_tl = ImVec2{ first_x, grid_tl.y };
           const auto pos_br = ImVec2{ first_x + icon_size, grid_br.y };
           draw_list->AddRectFilled(pos_tl, pos_br, im_window_bg_col);
           draw_list->AddRect(pos_tl, pos_br, border_col);
+
+          if (active_cell && icon_active)
+            draw_cursor(r, ui_c.player_cursor_state[player_idx], pos_tl, dt);
 
           // Draw boat icon
           const auto icon_key = "ICON_"s + to_upper(hull.key);
@@ -353,13 +361,16 @@ draw_card_inner(entt::registry& r,
         auto first_x = grid_tl.x + padding_x;
         for (int j = 0; j < (int)weapons_c.weapons.size(); j++) {
           const auto& weapon = weapons_c.weapons[j];
-          const bool weapon_icon_active = j == cell.value;
-          const auto border_col = weapon_icon_active ? im_greenish : im_window_border_col;
+          const bool icon_active = j == cell.value;
+          const auto border_col = icon_active ? im_greenish : im_window_border_col;
 
           const auto pos_tl = ImVec2{ first_x, grid_tl.y };
           const auto pos_br = ImVec2{ first_x + icon_size, grid_br.y };
           draw_list->AddRectFilled(pos_tl, pos_br, im_window_bg_col);
           draw_list->AddRect(pos_tl, pos_br, border_col);
+
+          if (active_cell && icon_active)
+            draw_cursor(r, ui_c.player_cursor_state[player_idx], pos_tl, dt);
 
           // Draw weapon icon
           const auto icon_key = "ICON_"s + to_upper(weapon.key);
@@ -494,7 +505,8 @@ update_player_select_ui(entt::registry& r,
                         SINGLE_RendererInfo& ri_c,
                         SINGLE_SelectSceneData& ui_c,
                         const int num_active_players,
-                        const int max_num_players)
+                        const int max_num_players,
+                        const float dt)
 {
 
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
@@ -586,7 +598,8 @@ update_player_select_ui(entt::registry& r,
                       my_player_col,
                       draw_list,
                       header_font,
-                      text_font);
+                      text_font,
+                      dt);
     } else {
       const auto text = std::string("N/A\n(Connect in Menu)");
       const auto width = card_br.x - card_tl.x;
@@ -627,6 +640,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   const int max_num_players = 4;
   const auto num_active_players = glm::max(1, (int)steam_c.n_active);
 
+  ui_c.player_cursor_state.resize(num_active_players);
   if (!ui_c.init) {
     ui_c.player_ui_state.resize(max_num_players);
     ui_c.player_choice_state.resize(max_num_players);
@@ -667,7 +681,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   if (scene_c.s != Scene::select_ships)
     return;
 
-  update_player_select_ui(r, ri_c, ui_c, num_active_players, max_num_players);
+  update_player_select_ui(r, ri_c, ui_c, num_active_players, max_num_players, dt);
 
   //
   // Show a countdown timer when all joined players are ready

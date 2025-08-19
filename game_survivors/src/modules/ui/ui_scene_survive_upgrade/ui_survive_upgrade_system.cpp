@@ -42,6 +42,7 @@
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
+#include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
@@ -90,7 +91,9 @@ draw_upgrade_selections_in_grid(entt::registry& r,
                                 UIState& state_c,
                                 SINGLE_LevelUpUI& ui_c,
                                 const UpgradeResultsComponent* upgrades_c,
+                                const int player_idx,
                                 const bool do_act,
+                                const float dt,
                                 ImFont* font)
 {
   const auto& upg_name_c = get_first_component<SINGLE_UpgradeToName>(r);
@@ -199,7 +202,12 @@ draw_upgrade_selections_in_grid(entt::registry& r,
     // draw the background
     draw_list->AddRectFilled(box_tl, box_br, im_window_bg_col);
 
-    // todo: draw a pointer to the active selection
+    // draw a pointer to the active selection
+    if (selected) {
+      auto& cursor_c = ui_c.ui_cursors[player_idx];
+      draw_cursor(r, cursor_c, box_tl, dt);
+    }
+
     if (selected)
       draw_list->AddRect(box_tl, box_br, im_greenish);
     else
@@ -271,15 +279,24 @@ draw_stats(entt::registry& r,
 
         // display weapon name (val)
         if (upg_weapons.size() > 0) {
+          const auto wep_e = upg_weapons[0];
+          const auto& weapon_data_c = r.get<const Weapon_OnDiskData>(wep_e);
+          const auto weapon_name = std::format("{}", weapon_data_c.name);
+          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, weapon_name.c_str());
+        }
 
+        // display hardpoint idx (key)
+        start_y += text_size.y;
+        draw_list->AddText({ key_x, start_y }, im_text_col, "HARDPOINT");
+
+        // display hardpoint idx (val)
+        if (upg_weapons.size() > 0) {
           // get the index of the weapon
           const auto wep_e = upg_weapons[0];
           const auto it = std::find(weapons_e.begin(), weapons_e.end(), wep_e);
           const auto idx = static_cast<int>(it - weapons_e.begin());
-
-          const auto& weapon_data_c = r.get<const Weapon_OnDiskData>(wep_e);
-          const auto weapon_name = std::format("[{}] {}", idx, weapon_data_c.name);
-          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, weapon_name.c_str());
+          const auto idx_str = std::format("{}", idx);
+          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, idx_str.c_str());
         }
 
         // display current weapon level (key)
@@ -579,6 +596,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
   if (ui_c.ui_states.size() == 0)
     ui_c.ui_states.resize(max_num_players);
+  ui_c.ui_cursors.resize(num_active_players);
 
   if (sxp_c.xp >= sxp_c.xp_for_next_level) {
     // consume xp
@@ -622,13 +640,15 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
   imgui_begin("UpgradeUI");
-  const auto ui_wh = ImGui::GetContentRegionAvail();
-  const auto ui_tl = ImGui::GetCursorPos();
+  const ImVec2 ui_tl = ImGui::GetWindowPos();
+  const ImVec2 ui_wh = ImGui::GetWindowSize();
+  const ImVec2 player_wh = { ui_wh.x / (float)max_num_players, ui_wh.y };
+
   auto* draw_list = ImGui::GetWindowDrawList();
 
   const auto pivot = 0.5f;
   const auto card_pad_x = 5.0f;
-  const auto card_width = 400.0f;
+  const auto card_width = 300.0f;
   const auto card_height = 400.0f * (16.0f / 9.0f);
   const auto center_x = ui_tl.x + 0.5f * ui_wh.x;
   const auto center_y = ui_tl.y + ui_wh.y * 0.5f;
@@ -710,7 +730,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
     // work out the selection box tl & br
     const auto stats_y = upg_header_height + 60.0f;
-    const auto padding_x = 40.0f;
+    const auto padding_x = 10.0f;
     const auto selection_tl = ImVec2{ clamped_tl.x + padding_x, clamped_tl.y + head_f->FontSize + 50.0f };
     const auto selection_br = ImVec2{ clamped_tl.x + clamped_wh.x - padding_x, clamped_tl.y + stats_y + 50.0f };
 
@@ -739,7 +759,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
     // Draw the upgrades in a grid
     // draw_list->AddRect(selection_tl, selection_br, im_player_col);
-    draw_upgrade_selections_in_grid(r, selection_tl, selection_br, state_c, ui_c, upgrades_c, do_act, font);
+    draw_upgrade_selections_in_grid(r, selection_tl, selection_br, state_c, ui_c, upgrades_c, player_idx, do_act, dt, font);
 
     if (do_act) {
       ImGui::PopID();
