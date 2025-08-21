@@ -27,10 +27,13 @@ list_devices()
 void
 stop_all_audio(entt::registry& r)
 {
+  // destroy all audio requests
+  const auto audio_req_view = r.view<AudioRequestPlayEvent>();
+  r.destroy(audio_req_view.begin(), audio_req_view.end());
+
   const auto& view = r.view<AudioSource>();
-  for (const auto& [e, source] : view.each()) {
-    Mix_FadeOutChannel(source.channel, 200);
-  }
+  for (const auto& [e, source] : view.each())
+    Mix_HaltChannel(source.channel);
 };
 
 void
