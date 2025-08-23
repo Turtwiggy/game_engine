@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "weapon_components.hpp"
 #include "weapon_helpers.hpp"
 
 #include "engine/audio/audio_components.hpp"
@@ -8,16 +9,18 @@
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
+#include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
+#include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
-#include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_components.hpp"
+#include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
-#include "weapon_components.hpp"
 
 namespace game2d {
 
@@ -26,6 +29,7 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
 {
   glm::vec2 weapon_size = { 6, 3 };
 
+  const auto wep_type_enum = w_data.type_as_enum;
   const auto wep_e = spawn(r, key);
   give_life(r, wep_e, { 0, 0 }, weapon_size);
   r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
@@ -60,28 +64,42 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
   const float BULLET_CRIT_CHANCE = get_or_default("BULLET_CRIT_CHANCE", 0.0f);   // 0-100
   const float BULLET_CRIT_DAMAGE = get_or_default("BULLET_CRIT_DAMAGE", 150.0f); // 100%+
   const float BULLET_LIFESTEAL = get_or_default("BULLET_LIFESTEAL", 0.0f);       // 0-100% of your bullet damage
-  const float BULLET_LIFETIME = get_or_default("BULLET_LIFETIME", 3.0f);         // 0-100% of your bullet damage
+  const float BULLET_LIFETIME = get_or_default("BULLET_LIFETIME", 3.0f);
+
+  const float AREA_COUNT = get_or_default("AREA_COUNT", 0);
+  const float AREA_DAMAGE = get_or_default("AREA_DAMAGE", 0);
+  const float AREA_STACKS_PER_TICK = get_or_default("BEAM_STACKS_PER_TICK", 0);
 
   // load weapons from config
+  const auto fr_c = WeaponFireRate{ .base_firerate = WEAPON_FIRERATE, .seconds_between_shots_max = 1.0f / WEAPON_FIRERATE };
   r.emplace<WeaponSpread>(wep_e, WeaponSpread{ WEAPON_SPREAD });
   r.emplace<WeaponProjectiles>(wep_e, WeaponProjectiles{ .projectiles = (int)WEAPON_PROJECTILES });
   r.emplace<WeaponClipSize>(wep_e, WeaponClipSize{ .bullets_max = (int)WEAPON_CLIP_SIZE });
-  const auto firerate_c =
-    WeaponFireRate{ .base_firerate = WEAPON_FIRERATE, .seconds_between_shots_max = 1.0f / WEAPON_FIRERATE };
-  r.emplace<WeaponFireRate>(wep_e, firerate_c);
+  r.emplace<WeaponFireRate>(wep_e, fr_c);
   r.emplace<WeaponReloadRate>(wep_e, WeaponReloadRate{ .seconds_base_max = WEAPON_RELOAD });
   r.emplace<WeaponRange>(wep_e, WeaponRange{ .meters = WEAPON_RANGE });
 
   // bullets that the weapon fires
-  r.emplace<BulletBounce>(wep_e, BulletBounce{ (int)BULLET_BOUNCE }); // 0 bounce by default
-  r.emplace<BulletDamage>(wep_e, BulletDamage{ (int)BULLET_DAMAGE });
-  r.emplace<BulletPierce>(wep_e, BulletPierce{ (int)BULLET_PIERCE });
-  r.emplace<BulletSize>(wep_e, BulletSize{ { BULLET_SIZE, BULLET_SIZE } });
-  r.emplace<BulletSpeed>(wep_e, BulletSpeed{ BULLET_SPEED });
-  r.emplace<BulletKnockback>(wep_e, BulletKnockback{ BULLET_KNOCKBACK });
-  r.emplace<BulletCrit>(wep_e, BulletCrit{ .crit_chance = BULLET_CRIT_CHANCE, .crit_damage = BULLET_CRIT_DAMAGE });
-  r.emplace<BulletLifesteal>(wep_e, BulletLifesteal{ .percent_0_100 = BULLET_LIFESTEAL });
-  r.emplace<BulletLifetime>(wep_e, BulletLifetime{ .seconds = BULLET_LIFETIME });
+  if (wep_type_enum == WEAPON_TYPE::PROJECTILE || wep_type_enum == WEAPON_TYPE::DEPLOY) {
+    r.emplace<BulletBounce>(wep_e, BulletBounce{ (int)BULLET_BOUNCE }); // 0 bounce by default
+    r.emplace<BulletDamage>(wep_e, BulletDamage{ (int)BULLET_DAMAGE });
+    r.emplace<BulletPierce>(wep_e, BulletPierce{ (int)BULLET_PIERCE });
+    r.emplace<BulletSize>(wep_e, BulletSize{ { BULLET_SIZE, BULLET_SIZE } });
+    r.emplace<BulletSpeed>(wep_e, BulletSpeed{ BULLET_SPEED });
+    r.emplace<BulletKnockback>(wep_e, BulletKnockback{ BULLET_KNOCKBACK });
+    r.emplace<BulletCrit>(wep_e, BulletCrit{ .crit_chance = BULLET_CRIT_CHANCE, .crit_damage = BULLET_CRIT_DAMAGE });
+    r.emplace<BulletLifesteal>(wep_e, BulletLifesteal{ .percent_0_100 = BULLET_LIFESTEAL });
+    r.emplace<BulletLifetime>(wep_e, BulletLifetime{ .seconds = BULLET_LIFETIME });
+  }
+
+  // e.g. sea-turrets
+  // if (wep_type_enum == WEAPON_TYPE::DEPLOY)
+  //   r.emplace<WeaponSeaTurret>(wep_e);
+
+  // e.g. flamethrower
+  if (wep_type_enum == WEAPON_TYPE::AREA) {
+    // todo
+  }
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   return wep_e;

@@ -97,6 +97,7 @@
     { "name": "ICON_WEAPON_GRAPESHOT_CANNON", "frames": [{ "x": 28, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_SWIVEL_CANNON", "frames": [{ "x": 29, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_SEA_TURRET", "frames": [{ "x": 30, "y": 27, "w": 1, "h": 1 }]},
+    { "name": "ICON_WEAPON_FLAMETHROWER", "frames": [{ "x": 31, "y": 27, "w": 1, "h": 1 }]},
 
     { "name": "ICON_DINGHY", "frames": [{ "x": 27, "y": 28, "w": 1, "h": 1 }]},
     { "name": "ICON_RHIB", "frames": [{ "x": 28, "y": 28, "w": 1, "h": 1 }]},

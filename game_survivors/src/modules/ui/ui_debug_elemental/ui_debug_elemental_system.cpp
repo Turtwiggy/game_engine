@@ -33,11 +33,12 @@ update_ui_debug_elemental_system(entt::registry& r)
   ImGui::Begin("overlay", NULL, flags);
 
   for (const auto& [e, parent_c, tick_c] : r.view<const HasParentComponent, const TickDamageComponent>().each()) {
-    const auto eid = static_cast<uint32_t>(e);
-    ImGui::PushID(eid);
 
     if (parent_c.parent == entt::null || !r.valid(parent_c.parent))
       continue;
+
+    const auto eid = static_cast<uint32_t>(e);
+    ImGui::PushID(eid);
 
     const auto pos = get_position(r, parent_c.parent);
     const auto wsp = glm::vec2(pos.x, pos.y);

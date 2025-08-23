@@ -20,10 +20,10 @@
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
+#include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
-#include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
@@ -284,6 +284,7 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto you_vel_m = par_vel_m;
       const auto you_vel_p = meters_to_pixels(you_vel_m);
       const auto aim_dir = calculate_aim_dir(you_pos, you_vel_p, tgt_pos, tgt_vel_p, bullet_speed_p);
+      // const auto aim_dir = tgt_pos - you_pos;
 
       dir_to_enemy = engine::normalize_safe(aim_dir);
       draw_crosshair(r, wep_pos, dir_to_enemy, par_col);

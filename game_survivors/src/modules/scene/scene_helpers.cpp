@@ -115,12 +115,15 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
     auto wep_e = spawn_weapon(r, e, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
     r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
-    r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
 
-    if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE)
+    if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE) {
       r.emplace<AutofireComponent>(wep_e);
-    if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
+      r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
+    }
+    if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY) {
       r.emplace<WeaponSeaTurret>(wep_e);
+      r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
+    }
 
     weapons.push_back(wep_e);
 
@@ -311,7 +314,7 @@ spawn_players(entt::registry& r)
     const auto weapon_str = hull_keys[i].player_gun_key;
     if (weapon_str == "")
       throw std::runtime_error("weapon_str not set");
-    SDL_Log("player wants to spawn with %s %s", boat_str.c_str(), weapon_str.c_str());
+    SDL_Log("player wants to spawn with (boat)%s (weapon)%s", boat_str.c_str(), weapon_str.c_str());
 
     const auto pos = get_player_spawn_point_around_starting_island(r, i);
     const auto p = spawn_player(r, "actor_player", i, boat_str, weapon_str, pos);

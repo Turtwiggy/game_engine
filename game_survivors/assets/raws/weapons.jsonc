@@ -60,7 +60,9 @@
   ],
 
   "weapons": [
-  
+    
+    // warning: index 0 is currently used by the sea-turret as a hard-coded value
+    // for which weapon that the sea-turret drops. 
     {
       "key": "weapon_deck_cannon",
       "name": "Cannon [Heavy]", // heavy pistol
@@ -168,6 +170,39 @@
         "SEATURRET_UPGRADE_C",
         "SEATURRET_UPGRADE_D",
         "SEATURRET_UPGRADE_E"
+      ]
+    },
+
+    {
+      "key": "weapon_flamethrower",
+      "name": "Flamethrower",
+      "desc": "Fire [Fire], Fire!",
+      "audio": [ ],
+
+      "weapon_type": "AREA",
+      "weapon_damage": "FIRE",
+
+      "data": {
+        "WEAPON_CLIP_SIZE": 10   , // shots before reload
+        "WEAPON_PROJECTILES": 1  ,
+        "WEAPON_FIRERATE": 1.25 , // per second
+        "WEAPON_RELOAD": 6      , // seconds
+        "WEAPON_RANGE": 5.0     , // meters 
+        "WEAPON_SPREAD": 0        , // degrees
+        // "BULLET_DAMAGE": 1      , 
+        // "BULLET_KNOCKBACK": 0   , // force
+        
+        "AREA_COUNT": 1,   
+        "AREA_DAMAGE": 1,
+        "AREA_STACKS_PER_TICK":5 // how many fire stacks to apply per tick
+     
+      },
+      "upgrades": [
+        // "FLAME_UPGRADE_A",
+        // "FLAME_UPGRADE_B",
+        // "FLAME_UPGRADE_C",
+        // "FLAME_UPGRADE_D",
+        // "FLAME_UPGRADE_E"
       ]
     }
 

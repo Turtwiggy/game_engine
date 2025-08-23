@@ -4,7 +4,8 @@
 
 #include "engine/maths/maths.hpp"
 #include "engine/std/vector/helpers.hpp"
-#include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
+#include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
+#include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"

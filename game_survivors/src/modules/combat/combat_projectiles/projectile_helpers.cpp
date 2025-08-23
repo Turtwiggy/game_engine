@@ -6,11 +6,10 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
-#include "modules/core/colour/components.hpp"
+#include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
-#include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
@@ -41,25 +40,20 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   r.emplace<BulletComponent>(fixture_e);
 
   r.emplace<TeamComponent>(bullet_e, bullet_def.team);
-  r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);
   r.emplace<SetTransformRotationBasedOnPhysicsVelocity>(bullet_e);
 
+  r.emplace<BulletBounce>(bullet_e, BulletBounce{ bullet_def.bounces });
   r.emplace<BulletDamage>(bullet_e, bullet_def.damage);
   r.emplace<BulletPierce>(bullet_e, bullet_def.pierce);
   r.emplace<BulletSize>(bullet_e, bullet_def.size);
   r.emplace<BulletSpeed>(bullet_e, bullet_def.speed);
   r.emplace<BulletKnockback>(bullet_e, bullet_def.knockback_force);
-  if (bullet_def.bounces > 0)
-    r.emplace<BulletBounce>(bullet_e, BulletBounce{ bullet_def.bounces });
-  if (bullet_def.lifesteal > 0)
-    r.emplace<BulletLifesteal>(bullet_e, bullet_def.lifesteal);
-  if (bullet_def.crit_chance > 0) {
-    const BulletCrit crit_c = {
-      .crit_chance = bullet_def.crit_chance,
-      .crit_damage = bullet_def.crit_damage,
-    };
-    r.emplace<BulletCrit>(bullet_e, crit_c);
-  }
+  r.emplace<BulletLifesteal>(bullet_e, bullet_def.lifesteal);
+  auto cc = bullet_def.crit_chance;
+  auto cd = bullet_def.crit_damage;
+  r.emplace<BulletCrit>(bullet_e, BulletCrit{ .crit_chance = cc, .crit_damage = cd });
+  r.emplace<BulletLifetime>(bullet_e, BulletLifetime{ .seconds = bullet_def.lifecycle / 1000.0f });
+  r.emplace<EntityTimedLifecycle>(bullet_e, bullet_def.lifecycle);
 
   // copy the weapon components to the bullet
   r.emplace<WeaponDamageTypeComponent>(bullet_e, WeaponDamageTypeComponent{ bullet_def.damage_type });

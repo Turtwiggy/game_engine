@@ -54,28 +54,29 @@
     {
       "name": "weapon_deck_cannon",
       "display_name": "Deck Cannon",
-      "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
       "name": "weapon_grapeshot_cannon",
       "display_name": "Grapeshot Cannon",
-      "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
       "name": "weapon_swivel_cannon",
       "display_name": "Swivel Cannon",
-      "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
       "name": "weapon_sea_turret",
       "display_name": "Sea Turret",
-      "display_desc": "More gun is better gun.",
       "renderable": { "sprite": "EMPTY", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+    },
+    {
+      "name": "weapon_flamethrower",
+      "display_name": "Flamethrower",
+      "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
       "name": "weapon_cryo_drone",

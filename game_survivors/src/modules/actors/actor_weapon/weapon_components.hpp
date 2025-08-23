@@ -18,8 +18,8 @@ enum class WEAPON_TYPE
 {
   PROJECTILE,
   DEPLOY, // e.g. drop turrets, grenades
+  AREA,   // e.g. flamethrower
 
-  // AREA, // e.g. flamethrower
   // DRONE,
 };
 

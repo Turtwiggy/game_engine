@@ -25,6 +25,27 @@
 namespace game2d {
 
 void
+give_turret_weapon_def(entt::registry& r, entt::entity wep_e, entt::entity turret_e)
+{
+  const auto& behaviours = r.get<const WeaponBehaviourComponent>(wep_e).behaviours;
+
+  // add the modifiers to the deployed turret
+  const auto& deployer_stats_c = r.get<StatModifierComponent>(wep_e);
+  r.emplace_or_replace<StatModifierComponent>(turret_e, deployer_stats_c);
+
+  auto wep_def = get_weapon_def(r, turret_e);
+  auto bul_def = get_bullet_def(r, turret_e);
+
+  // note: if the parent turret-deployer has "CHANGE_DAMAGE_TO_ICE"
+  // change the damage type spawned by the child spawned turret.
+  if (has(behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_ICE))
+    bul_def.damage_type = WEAPON_DAMAGE::ICE;
+
+  r.emplace<WeaponDef>(turret_e, wep_def);
+  r.emplace<BulletDef>(turret_e, bul_def);
+};
+
+void
 spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
 {
   // deploy a thing!
@@ -48,20 +69,8 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   set_position(r, turret_e, get_position(r, wep_e) + glm::vec2{ offset.x, offset.y });
   set_colour(r, turret_e, r.get<DefaultColour>(player_e).colour);
 
-  // add the modifiers to the deployed turret
-  const auto& deployer_stats_c = r.get<StatModifierComponent>(wep_e);
-  r.emplace_or_replace<StatModifierComponent>(turret_e, deployer_stats_c);
-
-  auto wep_def = get_weapon_def(r, turret_e);
-  auto bul_def = get_bullet_def(r, turret_e);
-
-  // note: if the parent turret-deployer has "CHANGE_DAMAGE_TO_ICE"
-  // change the damage type spawned by the child spawned turret.
-  if (has(behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_ICE))
-    bul_def.damage_type = WEAPON_DAMAGE::ICE;
-
-  r.emplace<WeaponDef>(turret_e, wep_def);
-  r.emplace<BulletDef>(turret_e, bul_def);
+  // add WeaponDef and BulletDef on the turret
+  give_turret_weapon_def(r, wep_e, turret_e);
 
   // turret-specific components
   r.emplace<EntityTimedLifecycle>(turret_e, 6 * 1000);

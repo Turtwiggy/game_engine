@@ -33,7 +33,7 @@ struct Cell
 struct SelectableButtonDef
 {
   std::string display_str;
-  std::string imgui_hash;
+  std::string imgui_hash; // "e.g. ##button_1"
 
   std::optional<std::string> icon = std::nullopt;
   ImVec2 icon_size{ 0, 0 };
@@ -51,7 +51,7 @@ struct SelectableButtonDef
   ImVec2 text_offset{ 0, 0 };
   ImFont* font = nullptr;
   float rounding = 6.0f;
-  float thickness = 2.0f;
+  float thickness = 1.0f;
 
   engine::SRGBColour active_outline_col = hex_to_srgb("#FFFFFF", 255);
   engine::SRGBColour inactive_outline_col = hex_to_srgb("#FFFFFF", (int)(0.6f * 255));

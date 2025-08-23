@@ -8,16 +8,14 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/events/event_coll/event_coll_components.hpp"
-#include "modules/events/event_coll_bullet_other/event_coll_bullet_other_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_debug_effects/effects_helpers.hpp"
-#include "modules/ui/ui_worldspace_text/helpers.hpp"
 
 namespace game2d {
 

@@ -134,7 +134,6 @@
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-
 namespace game2d {
 using namespace std::literals;
 
@@ -349,6 +348,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);
     update_aoe_slow_system(r, dt);
+    // update_combat_weapon_type_area_system(r);
 
     update_actor_lighthouse_system(r, dt);
     update_death_throes_system(r, dt);
@@ -413,7 +413,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_objectives_system(r);
     // update_ui_survive_onboarding_system(r, dt);
     update_ui_survive_timer_system(r);
-    update_ui_survive_info_system(r);
+    // update_ui_survive_info_system(r);
     update_ui_survive_hp_bars_system(r);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_upgrade_system(r, dt);

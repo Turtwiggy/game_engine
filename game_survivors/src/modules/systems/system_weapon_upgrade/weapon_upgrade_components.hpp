@@ -42,6 +42,7 @@ enum class WeaponBehaviour
   TURRET_EXPLODE_ON_DEATH,
   // CHANGE_DAMAGE_TO_ICE,
 
+  // general behaviours
   CHANGE_DAMAGE_TO_FIRE,
   CHANGE_DAMAGE_TO_ICE,
 
