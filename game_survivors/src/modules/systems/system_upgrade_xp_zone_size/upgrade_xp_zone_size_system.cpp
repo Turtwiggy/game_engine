@@ -26,8 +26,8 @@ update_upgrade_xp_zone_size_system(entt::registry& r)
     const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
     const auto val = xp_zone_c.radius_meters;
     const auto val_mod = stats_c.apply_modifiers(val, key);
-    if (val == val_mod)
-      continue;
+    // if (val == val_mod)
+    //   continue;
 
 #if defined(_DEBUG)
     if (val != val_mod)

@@ -21,6 +21,11 @@ using namespace engine;
 #include <tracy/Tracy.hpp>
 #endif
 
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "modules/actors/actor_player/components.hpp"
+
 // fixed tick
 // static constexpr int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
 static constexpr int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
@@ -73,6 +78,17 @@ main_loop(void* arg)
   cur_time = now;
 
   milliseconds_accumulator_since_last_tick += frame_time;
+
+  // float speed = 1.0f;
+  // const auto& input_c = get_first_component<SINGLE_InputComponent>(game);
+  // if (get_key_held(input_c, SDL_SCANCODE_PERIOD))
+  //   speed = 5.0f;
+  // const auto g_input_e = get_first<InputComponent, Persistent>(game);
+  // const auto& g_input_c = game.get<InputComponent>(g_input_e);
+  // const auto& b = g_input_c.ability2;
+  // const bool do_act = std::find(b.begin(), b.end(), ActionStateEnum::HELD) != b.end();
+  // if (do_act)
+  //   speed = 5.0f;
 
   // The physics cycle may happen more than once per frame if
   // the fixed timestep is less than the actual frame update time.
