@@ -10,6 +10,7 @@
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_particles/components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {
 
@@ -21,32 +22,45 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
 #endif
   auto& evts_c = SINGLE_Events::instance;
 
+#if defined(_DEBUG)
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto fire_state = gesert_menubar_state(menu_c, "combat_fire");
+  if (fire_state.enabled)
+    ImGui::Begin("DebugFire");
+#endif
+
   for (const auto& [fixture_e, tick_c, parent_c] : r.view<TickDamageComponent, const HasParentComponent>().each()) {
     const auto par_e = parent_c.parent;
 
     if (par_e == entt::null || !r.valid(par_e))
       continue;
 
-    // take elemental damage every 0.5s
-    tick_c.time_since_last_damage += dt;
-    if (tick_c.time_since_last_damage < tick_c.time_since_last_damage_max)
-      continue;
-    tick_c.time_since_last_damage = 0.0f;
+    const auto decrease_stacks = [dt](std::vector<std::pair<WEAPON_DAMAGE, float>>& vec) {
+      // decrease the time
+      std::for_each(vec.begin(), vec.end(), [dt](auto& p) { p.second -= dt; });
 
-    const auto decrease_stacks = [dt](auto& vec) {
-      // When the time is less than 0, remove the stack.
-      for (int i = 0; auto& [type, time] : vec) {
-        time -= dt;
-        if (time <= 0.0f)
-          vec.erase(vec.begin() + i);
-        else
-          i++;
-      }
+      // remove anything where time <= 0
+      size_t count = std::erase_if(vec, [](const auto& p) { return p.second <= 0.0f; });
+      if (count > 0)
+        SDL_Log("removed %zu stacks", count);
     };
+#if defined(_DEBUG)
+    if (fire_state.enabled) {
+      ImGui::SeparatorText(std::format("eid: {}", static_cast<uint32_t>(fixture_e)).c_str());
+      for (const auto& fire_stack : tick_c.fire)
+        ImGui::Text("(fire) %0.2f", fire_stack.second);
+    }
+#endif
     decrease_stacks(tick_c.fire);
     decrease_stacks(tick_c.ice);
     decrease_stacks(tick_c.poison);
     decrease_stacks(tick_c.shock);
+
+    // take elemental damage every 0.5s
+    tick_c.time_since_last_tick += dt;
+    if (tick_c.time_since_last_tick < tick_c.time_since_last_tick_max)
+      continue;
+    tick_c.time_since_last_tick = 0.0f;
 
     const int fire_stacks = (int)tick_c.fire.size();
     const int ice_stacks = (int)tick_c.ice.size();
@@ -97,6 +111,11 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
   }
 
   evts_c.dispatcher->update();
+
+#if defined(_DEBUG)
+  if (fire_state.enabled)
+    ImGui::End();
+#endif
 }
 
 } // namespace game2d

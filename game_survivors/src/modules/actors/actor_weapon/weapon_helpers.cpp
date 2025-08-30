@@ -68,7 +68,7 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
 
   const float AREA_COUNT = get_or_default("AREA_COUNT", 0);
   const float AREA_DAMAGE = get_or_default("AREA_DAMAGE", 0);
-  const float AREA_STACKS_PER_TICK = get_or_default("BEAM_STACKS_PER_TICK", 0);
+  const float AREA_STACKS_PER_TICK = get_or_default("AREA_STACKS_PER_TICK", 0);
 
   // load weapons from config
   const auto fr_c = WeaponFireRate{ .base_firerate = WEAPON_FIRERATE, .seconds_between_shots_max = 1.0f / WEAPON_FIRERATE };
