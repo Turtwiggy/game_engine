@@ -30,7 +30,7 @@ get_grid_position(entt::registry& r, const entt::entity e)
   const auto& map = get_first_component<MapComponent>(r);
   const auto pos = get_position(r, e);
   return engine::grid::worldspace_to_gridspace(pos, map.tilesize);
-}
+};
 
 void
 set_position(entt::registry& r, const entt::entity e, const glm::vec2 pos_in_pixels)
@@ -45,7 +45,7 @@ set_position(entt::registry& r, const entt::entity e, const glm::vec2 pos_in_pix
 
   auto& t_c = r.get<TransformComponent>(e);
   t_c.position = glm::vec3{ pos_in_pixels.x, pos_in_pixels.y, 0.0f };
-}
+};
 
 void
 set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 gridpos)
@@ -53,19 +53,24 @@ set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 grid
   const auto& map_c = get_first_component<MapComponent>(r);
   const glm::ivec2 pos = engine::grid::gridspace_to_worldspace_center(gridpos, map_c.tilesize);
   set_position(r, e, pos);
-}
+};
 
 void
-set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir)
+set_rotation(entt::registry& r, const entt::entity e, const float angle)
 {
-  const auto angle = engine::dir_to_angle_radians(dir) - engine::PI;
-
   auto& t = r.get<TransformComponent>(e);
   t.rotation_radians.z = angle;
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
     b2Body_SetTransform(pb->bodyId, b2Body_GetPosition(pb->bodyId), b2MakeRot(angle));
-}
+};
+
+void
+set_dir(entt::registry& r, const entt::entity e, const glm::vec2& dir)
+{
+  const auto angle = engine::dir_to_angle_radians(dir) - engine::PI;
+  set_rotation(r, e, angle);
+};
 
 glm::vec2
 get_fixture_size(entt::registry& r, const entt::entity fixture_e)

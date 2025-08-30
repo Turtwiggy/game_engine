@@ -33,6 +33,7 @@ enum class PassName
   outline,
   sprites_with_shield,
   shine,
+  flame,
 
   // lighting_emitters_and_occluders,
   // voronoi_seed,
@@ -91,6 +92,7 @@ struct SINGLE_RendererInfo
   engine::Shader water;
   engine::Shader instanced;
   engine::Shader shine;
+  engine::Shader flame;
   engine::Shader lighting_emitters_and_occluders;
   engine::Shader voronoi_seed; // this shader stores the uv coordinates in the texture
   engine::Shader jump_flood;

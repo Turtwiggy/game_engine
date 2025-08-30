@@ -14,7 +14,7 @@ struct WeaponFireRate
 
 struct WeaponReloadRate
 {
-  float seconds_base_max = 0.5f;
+  const float seconds_base_max = 0.5f;
   float seconds_cur = 0.0f;
 };
 

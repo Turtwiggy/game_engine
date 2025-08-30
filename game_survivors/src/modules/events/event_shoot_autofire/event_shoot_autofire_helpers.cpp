@@ -25,7 +25,7 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
   if (par_e == entt::null || !r.valid(par_e) || wep_e == entt::null || !r.valid(wep_e))
     return;
 
-  if (!r.all_of<AutofireComponent>(wep_e))
+  if (!r.all_of<AutofireComponent, BulletDef>(wep_e))
     return;
 
   const auto& wep_t = r.get<const TransformComponent>(wep_e);

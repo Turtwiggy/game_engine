@@ -5,6 +5,7 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
@@ -363,6 +364,50 @@ setup_shine_update(entt::registry& r)
     // render_fullscreen_quad(r, ri.shine, ri.viewport_size_render_at);
   };
 };
+
+void
+setup_flame_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::flame);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
+    auto& ri = SINGLE_RendererInfo::instance;
+
+    ri.flame.bind();
+
+    ri.renderer.reset_quad_vert_count();
+    ri.renderer.begin_batch();
+    const auto view = r.view<const TransformComponent, const FlamethrowerFlameComponent>();
+    for (const auto& [e, transform, flame_c] : view.each()) {
+
+      if (!flame_c.active)
+        continue; // flame active determined by game logic
+
+      engine::quad_renderer::RenderDescriptor desc;
+      desc.pos_tl = transform.position - (transform.scale * 0.5f);
+      desc.size = transform.scale;
+      desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                      transform.rotation_radians.y,
+                                      transform.rotation_radians.z };
+
+      desc.colour = {};
+      desc.tex_unit = {};
+      desc.sprite_offset = {};
+      desc.sprite_width = {};
+      desc.sprites_max = {};
+
+      ri.renderer.draw_sprite(desc, ri.flame);
+    }
+
+    ri.renderer.end_batch();
+    ri.renderer.flush(ri.flame);
+  };
+}
 
 /*
 void

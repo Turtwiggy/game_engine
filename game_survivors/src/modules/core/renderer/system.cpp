@@ -120,6 +120,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_sprites_with_shield = get_tex_unit(PassName::sprites_with_shield);
   const int tex_unit_shine_shells = get_tex_unit(PassName::shine);
+  const int tex_unit_flame = get_tex_unit(PassName::flame);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   // const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
@@ -176,6 +177,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   }
   // ri.shine.set_int("tex", tex_unit_sprites_with_shield);
 
+  ri.flame.reload(r);
+  ri.flame.bind();
+  ri.flame.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
+  ri.flame.set_bool("do_zoom", true);
+  ri.flame.set_mat4("projection", camera.projection);
+
   ri.outline.reload(r);
   ri.outline.bind();
   ri.outline.set_uniform_block_binding("Data", 0);
@@ -226,6 +233,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
+  ri.mix_lighting_and_scene.set_int("tex_flame", tex_unit_flame);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
   ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_bool("add_vignette", true);
@@ -295,6 +303,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::outline));
   ri.passes.push_back(RenderPass(PassName::sprites_with_shield));
   ri.passes.push_back(RenderPass(PassName::shine));
+  ri.passes.push_back(RenderPass(PassName::flame));
 
   // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // // Use the Jump flood algorithm to generate a voroi diagram,
@@ -344,6 +353,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
+  ri.flame = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_flame.frag");
   ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
     Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
@@ -413,6 +423,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_outline_update(r);
   setup_sprites_with_shield_update(r);
   setup_shine_update(r);
+  setup_flame_update(r);
   // setup_lighting_emitters_and_occluders_update(r);
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
@@ -460,7 +471,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 #if defined(_DEBUG)
   // reload all shaders
   const auto& input = get_first_component<SINGLE_InputComponent>(r);
-  if (ri.viewport_hovered && get_key_down(input, SDL_SCANCODE_0)) {
+  if (get_key_down(input, SDL_SCANCODE_0)) {
     SDL_Log("(DEBUG) Reloading shaders");
     rebind(r, ri);
   }

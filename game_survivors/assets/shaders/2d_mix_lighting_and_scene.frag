@@ -18,6 +18,7 @@ uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
 uniform sampler2D tex_shine_shells;
+uniform sampler2D tex_flame;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
 uniform bool invert_colours;
@@ -429,6 +430,13 @@ void main()
     out_color.rgb, 
     lin_to_srgb(tex_shells), 
     length(tex_shells.r)
+  );
+
+  vec3 tex_flame_col = texture(tex_flame, v_uv).rgb;
+  out_color.rgb = mix(
+    out_color.rgb,
+    lin_to_srgb(tex_flame_col),
+    length(tex_flame_col.r)
   );
 
   // vignette

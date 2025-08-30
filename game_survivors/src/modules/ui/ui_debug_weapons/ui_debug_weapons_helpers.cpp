@@ -13,8 +13,10 @@
 namespace game2d {
 
 void
-equip_weapon(entt::registry& r, entt::entity e, const Weapon_OnDiskData& wep)
-{
+equip_weapon(entt::registry& r, entt::entity e, const Weapon_OnDiskData& wep) {
+
+  /*
+
   //
   // note: this updates all weapons?
   //
@@ -87,6 +89,7 @@ equip_weapon(entt::registry& r, entt::entity e, const Weapon_OnDiskData& wep)
       }
     }
   }
+  */
 };
 
 } // namespace game2d

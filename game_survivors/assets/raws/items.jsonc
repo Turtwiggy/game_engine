@@ -79,6 +79,15 @@
       "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
+      "name": "weapon_flamethrower_flame",
+      "display_name": "Flamethrower Flame",
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ 
+        { "tag": "fixture_flame", "type": "box", "is_sensor": true, "size": [{"x":100, "y": 50}]}
+      ]
+    },
+    {
       "name": "weapon_cryo_drone",
       "display_name": "Cryo Drone",
       "display_desc": "Freeze!",

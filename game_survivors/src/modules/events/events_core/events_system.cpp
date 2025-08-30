@@ -4,6 +4,7 @@
 #include "engine/entt/helpers.hpp"
 #include "events_components.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_helpers.hpp"
+#include "modules/events/event_coll_flame_enemy/event_coll_flame_enemy_helpers.hpp"
 #include "modules/events/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
 #include "modules/events/event_coll_player_gold/event_coll_player_gold_helpers.hpp"
 #include "modules/events/event_coll_player_hp/event_coll_player_hp_helpers.hpp"
@@ -21,6 +22,7 @@
 #include "modules/events/event_shoot_audio/shoot_audio_helpers.hpp"
 #include "modules/events/event_shoot_autofire/event_shoot_autofire_helpers.hpp"
 #include "modules/events/event_shoot_fireball/trait_shoot_fireball.hpp"
+#include "modules/events/event_shoot_flamethrower/event_shoot_flamethrower.hpp"
 #include "modules/events/event_shoot_muzzleflash/event_shoot_muzzleflash.hpp"
 #include "modules/events/event_shoot_to_deploy_turrets/event_shoot_turrets_helpers.hpp"
 #include "modules/events/event_trait_fanfire/trait_fanfire_helpers.hpp"
@@ -49,7 +51,10 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_vacuum_orb>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_xp>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enemy_coll_enter>(r);
+  ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_flame_enemy__coll_enter>(r);
+
   ed.dispatcher->sink<OnCollisionExit>().connect<&handle_player_enemy_coll_exit>(r);
+  ed.dispatcher->sink<OnCollisionExit>().connect<&handle_flame_enemy__coll_exit>(r);
 
   // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
@@ -61,6 +66,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__trait_fanfire>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__shoot_fireball>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__muzzleflash>(r);
+  ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__flamethrower>(r);
 
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__trait_splinter>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__exploder_screenshake>(r);

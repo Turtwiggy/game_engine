@@ -37,5 +37,4 @@ update_upgrade_xp_zone_size_system(entt::registry& r)
     update_circle_fixture_size(r, e, fixture_e, meters_to_pixels(val_mod));
   }
 }
-
 } // namespace game2d

@@ -47,7 +47,7 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   // static glm::vec2 hardpoint_offset{ 22.5f, 0.0f }; // rhib
-  static glm::vec2 hardpoint_offset{ 5.0f, -5.0f }; // dinghy
+  // static glm::vec2 hardpoint_offset{ 5.0f, -5.0f }; // dinghy
   // imgui_draw_vec2("hardpoint_offset", hardpoint_offset);
 
   const auto& view = r.view<WeaponComponent, HasParentComponent, TransformComponent, const HardpointComponent>();

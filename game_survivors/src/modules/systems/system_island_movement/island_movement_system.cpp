@@ -89,7 +89,7 @@ update_island_movement_system(entt::registry& r)
         continue; // no input for this direction
 
       if (occupied(r, island_c, n_gp)) {
-        SDL_Log("tile is occupied...");
+        // SDL_Log("tile is occupied...");
 
         const auto n_e = e_at_xy(r, island_c, n_gp);
         if (const auto* hp_c = r.try_get<const HealthComponent>(n_e)) {
@@ -98,7 +98,7 @@ update_island_movement_system(entt::registry& r)
           const auto& neighbour_team_c = r.get<const TeamComponent>(n_e);
           const bool same_team = neighbour_team_c.team == team_c.team;
           if (same_team) {
-            SDL_Log("A player collided with a friendly entity");
+            // SDL_Log("A player collided with a friendly entity");
             continue;
           }
 
@@ -119,7 +119,7 @@ update_island_movement_system(entt::registry& r)
       }
 
       if (!has(island_c.all_island_xy, n_gp)) {
-        SDL_Log("tile is off the island...");
+        // SDL_Log("tile is off the island...");
         continue; // you'd move off the island!
       }
 

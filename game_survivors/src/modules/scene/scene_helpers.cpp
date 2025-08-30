@@ -24,6 +24,7 @@
 #include "modules/actors/actor_snake/snake_helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/core/camera/components.hpp"
 #include "modules/core/camera/orthographic.hpp"
@@ -123,6 +124,25 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
     if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY) {
       r.emplace<WeaponSeaTurret>(wep_e);
       r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
+    }
+
+    if (weapon_data.type_as_enum == WEAPON_TYPE::AREA) {
+      r.emplace<AutofireComponent>(wep_e);
+      // r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
+
+      // Spawn one square with the flame shader.
+      {
+        const auto flame_e = spawn(r, "weapon_flamethrower_flame");
+        give_life(r, flame_e, { 0, 0 }, { 100, 100 });
+        r.remove<SpriteComponent>(flame_e); // flame no sprite, is a custom shader
+        r.emplace<FlamethrowerFlameComponent>(flame_e);
+        r.emplace<HasParentComponent>(flame_e, HasParentComponent{ wep_e });
+        auto& weapon_children_c = r.get_or_emplace<HasChildrenComponent>(wep_e);
+        weapon_children_c.children.push_back(flame_e);
+
+        auto flame_fixture_e = get_fixture_by_tag(r, flame_e, "fixture_flame");
+        r.emplace<FlamethrowerFlameFixtureComponent>(flame_fixture_e);
+      }
     }
 
     weapons.push_back(wep_e);
@@ -536,7 +556,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // const auto pos1 = get_player_spawn_point_around_starting_island(r, 1);
     // const auto pos2 = get_player_spawn_point_around_starting_island(r, 2);
     // const auto pos3 = get_player_spawn_point_around_starting_island(r, 3);
-    const auto p0 = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon", pos0);
+    const auto p0 = spawn_player(r, "actor_player", 0, "dinghy", "weapon_flamethrower", pos0);
     // const auto p1 = spawn_player(r, "actor_player", 1, "dinghy", "weapon_deck_cannon", pos1);
     // const auto p2 = spawn_player(r, "actor_player", 2, "dinghy", "weapon_deck_cannon", pos2);
     // const auto p3 = spawn_player(r, "actor_player", 3, "dinghy", "weapon_deck_cannon", pos3);

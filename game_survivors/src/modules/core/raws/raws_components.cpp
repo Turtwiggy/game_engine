@@ -265,7 +265,8 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       const AiBehaviour typed_t = magic_enum::enum_cast<AiBehaviour>(tr.key).value();
       trait_c.traits.emplace(typed_t);
     }
-    r.emplace<AiBehavioursComponent>(e, trait_c);
+    if (traits.size() > 0)
+      r.emplace<AiBehavioursComponent>(e, trait_c);
 
     for (const auto& trait_str : traits) {
       const auto trait_enum = magic_enum::enum_cast<AiBehaviour>(trait_str.key).value();

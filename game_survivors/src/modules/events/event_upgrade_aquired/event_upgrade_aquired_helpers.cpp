@@ -97,7 +97,9 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   if (r.all_of<WeaponComponent>(upg_e)) {
     SDL_Log("Updating WeaponDef & BulletDef");
     r.emplace_or_replace<WeaponDef>(upg_e, get_weapon_def(r, upg_e));
-    r.emplace_or_replace<BulletDef>(upg_e, get_bullet_def(r, upg_e));
+
+    if (r.all_of<BulletDef>(upg_e))
+      r.emplace_or_replace<BulletDef>(upg_e, get_bullet_def(r, upg_e));
   } else
     SDL_Log("The thing that was upgraded wasnt a weapon (maybe an actor e.g. boat)");
 

@@ -215,12 +215,12 @@ update_autofire_system(entt::registry& r, const float dt)
   {
     const auto view = r.view<const WeaponComponent,
                              const WeaponDef,
-                             const BulletDef,
+                             //  const BulletDef,
                              const WeaponRange,
                              const HasParentComponent,
                              TransformComponent,
                              AutofireComponent>();
-    for (const auto& [wep_e, weapon_c, wep_def, bul_def, wep_range_c, parent_c, wep_t, autofire_c] : view.each()) {
+    for (const auto& [wep_e, weapon_c, wep_def, wep_range_c, parent_c, wep_t, autofire_c] : view.each()) {
 
       const auto par_e = parent_c.parent;
       if (par_e == entt::null || !r.valid(par_e))
@@ -275,16 +275,20 @@ update_autofire_system(entt::registry& r, const float dt)
         continue;
       }
 
-      const auto bullet_speed_p = meters_to_pixels(bul_def.speed);
       const auto tgt = autofire_c.target;
       const auto tgt_pos = get_position(r, tgt);
-      const auto tgt_vel_m = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(tgt).bodyId);
-      const glm::vec2 tgt_vel_p = meters_to_pixels(tgt_vel_m);
       const auto you_pos = wep_pos;
-      const auto you_vel_m = par_vel_m;
-      const auto you_vel_p = meters_to_pixels(you_vel_m);
-      const auto aim_dir = calculate_aim_dir(you_pos, you_vel_p, tgt_pos, tgt_vel_p, bullet_speed_p);
-      // const auto aim_dir = tgt_pos - you_pos;
+      auto aim_dir = tgt_pos - you_pos;
+
+      // if you're shooting projectiles, aim at the intercept point
+      if (auto* bul_def = r.try_get<BulletDef>(wep_e)) {
+        const auto bullet_speed_p = meters_to_pixels(bul_def->speed);
+        const auto tgt_vel_m = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(tgt).bodyId);
+        const glm::vec2 tgt_vel_p = meters_to_pixels(tgt_vel_m);
+        const auto you_vel_m = par_vel_m;
+        const auto you_vel_p = meters_to_pixels(you_vel_m);
+        aim_dir = calculate_aim_dir(you_pos, you_vel_p, tgt_pos, tgt_vel_p, bullet_speed_p);
+      }
 
       dir_to_enemy = engine::normalize_safe(aim_dir);
       draw_crosshair(r, wep_pos, dir_to_enemy, par_col);

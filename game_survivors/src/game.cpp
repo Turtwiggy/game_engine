@@ -23,6 +23,7 @@
 #include "modules/actors/actor_swarmlord/enemy_swarmlord_system.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_elemental_damage/elemental_damage_system.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_system.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_system.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_system.hpp"
 #include "modules/core/animations/rotate_system.hpp"
@@ -31,6 +32,7 @@
 #include "modules/core/camera/camera_system.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/camera/orthographic.hpp"
+#include "modules/core/debug_physics_fixtures/debug_fixtures_system.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/io/io_components.hpp"
 #include "modules/core/io/io_helpers.hpp"
@@ -339,6 +341,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
     update_quip_system(r, dt);
+    update_flamethrower_system(r);
 
     update_island_ai_system(r, dt);
     update_island_nearest_system(r, mouse_pos);

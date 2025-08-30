@@ -273,6 +273,17 @@ draw_stats(entt::registry& r,
     // if (!result.level_weapons && i >= (int)UpgradeableStat::BULLET_BOUNCE)
     //   continue;
 
+    // skip the BULLET_ stats if you're not a PROJECTILE or DEPLOY weapon.
+    if (upg_weapons.size() > 0) {
+      const auto wep_e = upg_weapons[0];
+      const auto& wep_data = r.get<const Weapon_OnDiskData>(wep_e);
+      const auto wep_type = wep_data.type_as_enum;
+      const bool is_bullet_stat = stat_str.find("BULLET_") != std::string::npos;
+      const auto wt = std::vector<WEAPON_TYPE>{ WEAPON_TYPE::PROJECTILE, WEAPON_TYPE::DEPLOY };
+      if (is_bullet_stat && std::find(wt.begin(), wt.end(), wep_type) == wt.end())
+        continue;
+    }
+
     // some stats need spacers
     // TODO: remove string comparison
     if (stats[i].key == "BOUNCE")
@@ -280,7 +291,7 @@ draw_stats(entt::registry& r,
     if (stats[i].key == "PROJECTILES")
       start_y += text_size.y;
 
-    // Display weapon info
+    // Display weapon info (before the first BULLET_ stat)
     {
       if (stat_enum == UpgradeableStat::BULLET_BOUNCE) {
 
@@ -382,28 +393,32 @@ draw_stats(entt::registry& r,
       if (upg_weapons.size() > 0) {
         const auto wep_e = upg_weapons[0];
         const auto wep_def = get_weapon_def(r, wep_e);
-        const auto bul_def = get_bullet_def(r, wep_e);
+        const auto wep_data = r.get<Weapon_OnDiskData>(wep_e);
+        const auto wep_type = wep_data.type_as_enum;
 
-        if (stat_enum == UpgradeableStat::BULLET_BOUNCE)
-          val_str = std::format("{:0.0f}", (float)bul_def.bounces);
-        else if (stat_enum == UpgradeableStat::BULLET_CRIT_CHANCE)
-          val_str = std::format("{}%", (int)bul_def.crit_chance);
-        else if (stat_enum == UpgradeableStat::BULLET_CRIT_DAMAGE)
-          val_str = std::format("{}%", (int)bul_def.crit_damage);
-        else if (stat_enum == UpgradeableStat::BULLET_DAMAGE)
-          val_str = std::format("{:0.2f}", (float)bul_def.damage);
-        else if (stat_enum == UpgradeableStat::BULLET_KNOCKBACK)
-          val_str = std::format("{:0.2f}", 100.0f * bul_def.knockback_force); // mul x100 to make it more appealing
-        else if (stat_enum == UpgradeableStat::BULLET_LIFESTEAL)
-          val_str = std::format("{:0.2f}", (float)bul_def.lifesteal);
-        else if (stat_enum == UpgradeableStat::BULLET_LIFETIME)
-          val_str = std::format("{:0.2f}", (float)bul_def.lifecycle * 0.001f); // ms => s);
-        else if (stat_enum == UpgradeableStat::BULLET_PIERCE)
-          val_str = std::format("{}", bul_def.pierce);
-        else if (stat_enum == UpgradeableStat::BULLET_SIZE)
-          val_str = std::format("{:0.2f}", (float)bul_def.size.x);
-        else if (stat_enum == UpgradeableStat::BULLET_SPEED)
-          val_str = std::format("{:0.2f}", (float)bul_def.speed);
+        if (wep_type == WEAPON_TYPE::PROJECTILE || wep_type == WEAPON_TYPE::DEPLOY) {
+          const auto bul_def = get_bullet_def(r, wep_e);
+          if (stat_enum == UpgradeableStat::BULLET_BOUNCE)
+            val_str = std::format("{:0.0f}", (float)bul_def.bounces);
+          else if (stat_enum == UpgradeableStat::BULLET_CRIT_CHANCE)
+            val_str = std::format("{}%", (int)bul_def.crit_chance);
+          else if (stat_enum == UpgradeableStat::BULLET_CRIT_DAMAGE)
+            val_str = std::format("{}%", (int)bul_def.crit_damage);
+          else if (stat_enum == UpgradeableStat::BULLET_DAMAGE)
+            val_str = std::format("{:0.2f}", (float)bul_def.damage);
+          else if (stat_enum == UpgradeableStat::BULLET_KNOCKBACK)
+            val_str = std::format("{:0.2f}", 100.0f * bul_def.knockback_force); // mul x100 to make it more appealing
+          else if (stat_enum == UpgradeableStat::BULLET_LIFESTEAL)
+            val_str = std::format("{:0.2f}", (float)bul_def.lifesteal);
+          else if (stat_enum == UpgradeableStat::BULLET_LIFETIME)
+            val_str = std::format("{:0.2f}", (float)bul_def.lifecycle * 0.001f); // ms => s);
+          else if (stat_enum == UpgradeableStat::BULLET_PIERCE)
+            val_str = std::format("{}", bul_def.pierce);
+          else if (stat_enum == UpgradeableStat::BULLET_SIZE)
+            val_str = std::format("{:0.2f}", (float)bul_def.size.x);
+          else if (stat_enum == UpgradeableStat::BULLET_SPEED)
+            val_str = std::format("{:0.2f}", (float)bul_def.speed);
+        }
 
         // note: display the weapon that the upgrade is upgrading.
         if (stat_enum == UpgradeableStat::WEAPON_PROJECTILES)

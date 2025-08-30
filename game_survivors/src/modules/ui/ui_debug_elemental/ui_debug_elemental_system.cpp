@@ -4,6 +4,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/combat_elemental_damage/elemental_damage_components.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "ui_debug_elemental_system.hpp"
@@ -51,6 +52,27 @@ update_ui_debug_elemental_system(entt::registry& r)
     const int shock_stacks = (int)tick_c.shock.size();
     const int poison_stacks = (int)tick_c.poison.size();
     ImGui::Text("f:%i, i:%i, s:%i, p:%i", fire_stacks, ice_stacks, shock_stacks, poison_stacks);
+
+    ImGui::PopID();
+  }
+
+  for (const auto& [e, weapon_c, parent_c] :
+       r.view<const FlamethrowerFlameFixtureComponent, const HasParentComponent>().each()) {
+
+    if (parent_c.parent == entt::null || !r.valid(parent_c.parent))
+      continue;
+
+    const auto eid = static_cast<uint32_t>(e);
+    ImGui::PushID(eid);
+
+    const auto pos = get_position(r, parent_c.parent);
+    const auto wsp = glm::vec2(pos.x, pos.y);
+    const auto wsp_adj = glm::vec2{ wsp.x, wsp.y };
+    const auto ss_pos = worldspace_to_screenspace(r, wsp_adj);
+    ImGui::SetCursorScreenPos({ ss_pos.x, ss_pos.y });
+
+    const int burning_targets = (int)weapon_c.burning_fixture_es.size();
+    ImGui::Text("bt:%i", burning_targets);
 
     ImGui::PopID();
   }

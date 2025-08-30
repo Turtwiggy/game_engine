@@ -5,6 +5,7 @@
 #include "engine/renderer/transform.hpp"
 #include "event_shoot_muzzleflash.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui/ui_debug_effects/effects_helpers.hpp"
@@ -28,6 +29,9 @@ handle_shoot_event__muzzleflash(entt::registry& r, const ShootEvent& evt)
   const auto wep_e = evt.weapon_e;
 
   if (!r.all_of<PlayerBoatComponent>(par_e))
+    return;
+
+  if (!r.all_of<BulletDef>(wep_e))
     return;
 
   // spawn a muzzle vfx
