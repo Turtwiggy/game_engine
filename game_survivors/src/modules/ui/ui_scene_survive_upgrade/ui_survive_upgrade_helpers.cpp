@@ -8,6 +8,7 @@
 #include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
@@ -64,17 +65,9 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 
     // For the 1st & 2nd upgrade, roll a BULLET_X or WEAPON_X stat
     while (results_c.results.size() != 2) {
-      const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)weapon_and_bullet_stats.size());
-      const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
-
-      const auto rarity = get_rarity_from_roll(roll_rarity);
-      const auto upgrade_enum = weapon_and_bullet_stats[roll_value];
-      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
-      const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
-
-      std::vector<entt::entity> weapons;
 
       // Prioritize non-max level weapons
+      std::vector<entt::entity> weapons;
       if ((int)non_max_level_weapons.size() > 0) {
         const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)non_max_level_weapons.size());
         const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
@@ -84,6 +77,27 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
         const auto wep_e = weapons_e[rnd_wep_upg_idx];
         weapons.push_back(wep_e);
       }
+
+      if (weapons.size() == 0) {
+        throw std::runtime_error("player has no weapons!");
+        exit(1); // crash
+      }
+      const auto weapon_type = r.get<Weapon_OnDiskData>(weapons[0]);
+
+      // WEAPON_ stats, and add BULLET_ stats if applicable
+      auto stats = upgradeable_weapon_stats;
+      if (weapon_type.type_as_enum == WEAPON_TYPE::PROJECTILE || weapon_type.type_as_enum == WEAPON_TYPE::DEPLOY)
+        stats.insert(stats.end(), upgradeable_bullet_stats.begin(), upgradeable_bullet_stats.end());
+      if (weapon_type.type_as_enum == WEAPON_TYPE::AREA)
+        stats.insert(stats.end(), upgradeable_area_stats.begin(), upgradeable_area_stats.end());
+
+      const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)stats.size());
+      const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
+
+      const auto rarity = get_rarity_from_roll(roll_rarity);
+      const auto upgrade_enum = stats[roll_value];
+      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
+      const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
 
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,

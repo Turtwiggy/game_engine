@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
+#include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 
 #include <vector>
 
@@ -14,5 +15,8 @@ get_weapon_def(entt::registry& r, const entt::entity wep_e);
 
 BulletDef
 get_bullet_def(entt::registry& r, const entt::entity wep_e);
+
+AreaDef_ModifiersApplied
+get_area_def(entt::registry& r, const entt::entity wep_e);
 
 } // namespace game2d

@@ -97,7 +97,6 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   }
 
   // note: this is basically the "EXPLODE" trait
-
   if (has(behaviours, WeaponBehaviour::TURRET_EXPLODE_ON_DEATH)) {
     r.get<OnDeathCallbacks>(turret_e).callbacks.clear();
 

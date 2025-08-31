@@ -7,8 +7,11 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_elemental_damage/elemental_damage_components.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
+#include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_particles/components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
@@ -75,6 +78,12 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
       evt.to_fixture = fixture_e;
       evt.type = WEAPON_DAMAGE::KINETIC; // send kinetic so more elemental isnt applied
       evt.amount = 1.0f * fire_stacks;   // how much elemental damage?
+
+      if (r.all_of<FlamethrowerFlameFixtureComponent>(fixture_e)) {
+        const auto area_def = get_area_def(r, par_e);
+        evt.amount = 1.0f * fire_stacks * area_def.stack_damage;
+      }
+
       evts_c.dispatcher->trigger(evt);
 
       // Request some fire particles at this pos while on fire

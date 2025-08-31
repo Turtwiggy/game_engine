@@ -159,8 +159,11 @@ load_persistent_upgrades_and_apply_to_player(entt::registry& r)
       const auto mod_val = stat_info.val;
 
       const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(mod_key).value();
-      const auto it = std::find(weapon_and_bullet_stats.begin(), weapon_and_bullet_stats.end(), stat_enum);
-      if (it == weapon_and_bullet_stats.end())
+
+      const bool is_weapon_stat = mod_key.find("WEAPON_") != std::string::npos;
+      const bool is_bullet_stat = mod_key.find("BULLET_") != std::string::npos;
+      const bool is_area_stat = mod_key.find("AREA_") != std::string::npos;
+      if (!is_weapon_stat && !is_bullet_stat && !is_area_stat)
         continue; // not an WEAPON_ or BULLET_ stat
       SDL_Log(std::format("(adding (weapon) persistent stat) {} {}", mod_key, mod_val).c_str());
 

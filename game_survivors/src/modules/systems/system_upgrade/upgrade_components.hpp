@@ -36,6 +36,12 @@ enum class UpgradeableStat
   WEAPON_RELOAD,
   WEAPON_RANGE,
 
+  AREA_BEAMS_PER_WEAPON,        // e.g. 1 beam
+  AREA_SIZE,                    // size of the area
+  AREA_STACK_DAMAGE,            // e.g. damage = 3stack * dmg * modifier
+  AREA_STACK_DURATION,          // seconds to reduce one stack (lifetime)
+  AREA_STACKS_APPLIED_PER_SHOT, // e.g. stacks = 1stack * modifier
+
   count,
 };
 

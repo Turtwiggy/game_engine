@@ -12,13 +12,16 @@
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_elemental_damage/elemental_damage_components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
+#include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 #include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/events/event_death/components.hpp"
 #include "modules/events/events_core/events_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_death_throes/death_throes_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
@@ -167,9 +170,23 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   // apply elemental damage ticks.
   if (evt.type == WEAPON_DAMAGE::FIRE) {
-    const float time = 3.0f;
+    float time = 3.0f;
+    int stacks_to_apply = 1;
+
+    if (r.all_of<WeaponComponent>(evt.from)) {
+
+      const auto area_def = get_area_def(r, evt.from);
+
+      // get the (modified) stacks to apply per shot.
+      stacks_to_apply = area_def.stacks_applied_per_shot;
+
+      // get the (modified) seconds each stack lasts.
+      time = area_def.stack_duration;
+    }
+
     auto& elemental_damage_c = r.get_or_emplace<TickDamageComponent>(fixture_e);
-    elemental_damage_c.fire.push_back({ WEAPON_DAMAGE::FIRE, time });
+    for (int i = 0; i < stacks_to_apply; i++)
+      elemental_damage_c.fire.push_back({ WEAPON_DAMAGE::FIRE, time });
   }
   //
   else if (evt.type == WEAPON_DAMAGE::ICE) {

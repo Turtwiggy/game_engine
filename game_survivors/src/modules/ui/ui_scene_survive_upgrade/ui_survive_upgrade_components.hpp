@@ -110,7 +110,14 @@ struct SINGLE_UpgradeToName
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_UpgradeToName, names);
 };
 
-const std::vector<UpgradeableStat> weapon_and_bullet_stats{
+const std::vector<UpgradeableStat> upgradeable_weapon_stats{
+  UpgradeableStat::WEAPON_CLIP_SIZE,
+  UpgradeableStat::WEAPON_FIRERATE,
+  UpgradeableStat::WEAPON_RELOAD,
+  UpgradeableStat::WEAPON_RANGE,
+};
+
+const std::vector<UpgradeableStat> upgradeable_bullet_stats{
   // clang-format off
 
   UpgradeableStat::BULLET_CRIT_CHANCE,
@@ -122,10 +129,17 @@ const std::vector<UpgradeableStat> weapon_and_bullet_stats{
   // UpgradeableStat::BULLET_SIZE,
   // UpgradeableStat::BULLET_SPEED,
 
-  UpgradeableStat::WEAPON_CLIP_SIZE,
-  UpgradeableStat::WEAPON_FIRERATE,
-  UpgradeableStat::WEAPON_RELOAD,
-  UpgradeableStat::WEAPON_RANGE
+  // clang-format on
+};
+
+const std::vector<UpgradeableStat> upgradeable_area_stats{
+  // clang-format off
+
+  // UpgradeableStat::AREA_BEAMS_PER_WEAPON,
+  // UpgradeableStat::AREA_STACKS_APPLIED_PER_SHOT, // e.g. stacks = 1stack * modifier
+  UpgradeableStat::AREA_STACK_DAMAGE,         // e.g. damage = 3stack * dmg * modifier
+  UpgradeableStat::AREA_STACK_DURATION,       // seconds to reduce one stack (lifetime)
+  // UpgradeableStat::AREA_SIZE,                    // size of the area
 
   // clang-format on
 };

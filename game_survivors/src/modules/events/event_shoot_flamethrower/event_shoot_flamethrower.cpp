@@ -11,7 +11,6 @@
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 
-
 namespace game2d {
 
 void
@@ -76,7 +75,7 @@ handle_shoot_event__flamethrower(entt::registry& r, const ShootEvent& evt)
       evt.to_parent = burning_parent_e;
       evt.to_fixture = burning_fixture_e;
       evt.type = WEAPON_DAMAGE::FIRE;
-      evt.amount = 1;
+      evt.amount = 0; // no damage; gets damaged by fire stacks
       evts_c.dispatcher->trigger(evt);
       evts_c.dispatcher->update();
     }

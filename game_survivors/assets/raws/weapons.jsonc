@@ -185,17 +185,15 @@
       "data": {
         "WEAPON_CLIP_SIZE": 10   , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
-        "WEAPON_FIRERATE": 1.25 , // per second
-        "WEAPON_RELOAD": 6      , // seconds
+        "WEAPON_FIRERATE": 1.0 , // per second
+        "WEAPON_RELOAD": 5      , // seconds
         "WEAPON_RANGE": 5.0     , // meters 
         "WEAPON_SPREAD": 0        , // degrees
         // "BULLET_DAMAGE": 1      , 
         // "BULLET_KNOCKBACK": 0   , // force
-        
-        "AREA_COUNT": 1,   
-        "AREA_DAMAGE": 1,
-        "AREA_STACKS_PER_TICK":5 // how many fire stacks to apply per tick
-     
+        "AREA_STACK_DAMAGE": 1,
+        "AREA_STACK_DURATION": 1.5,
+        "AREA_STACKS_APPLIED_PER_SHOT":2 // how many fire stacks to apply per tick
       },
       "upgrades": [
         // "FLAME_UPGRADE_A",
