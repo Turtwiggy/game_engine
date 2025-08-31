@@ -51,7 +51,18 @@ update_ui_debug_elemental_system(entt::registry& r)
     const int ice_stacks = (int)tick_c.ice.size();
     const int shock_stacks = (int)tick_c.shock.size();
     const int poison_stacks = (int)tick_c.poison.size();
-    ImGui::Text("f:%i, i:%i, s:%i, p:%i", fire_stacks, ice_stacks, shock_stacks, poison_stacks);
+
+    std::string text = "";
+    if (fire_stacks > 0)
+      text += " f:" + std::to_string(fire_stacks);
+    if (ice_stacks > 0)
+      text += " i:" + std::to_string(ice_stacks);
+    if (shock_stacks > 0)
+      text += " s:" + std::to_string(shock_stacks);
+    if (poison_stacks > 0)
+      text += " p:" + std::to_string(poison_stacks);
+
+    ImGui::Text("%s", text.c_str());
 
     ImGui::PopID();
   }

@@ -110,6 +110,30 @@ struct SINGLE_UpgradeToName
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_UpgradeToName, names);
 };
 
+struct UpgradeValue
+{
+  std::string rarity;
+  float value;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(UpgradeValue, rarity, value);
+};
+
+struct UpgradeValueOnDisk
+{
+  std::string stat; // e.g. ACTOR_DODGE_CHANCE
+  std::string type; // stat_flat_increase or stat_percent_increase
+  std::vector<UpgradeValue> values;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(UpgradeValueOnDisk, stat, type, values);
+};
+
+struct SINGLE_UpgradeToValue
+{
+  std::vector<UpgradeValueOnDisk> upgrades;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_UpgradeToValue, upgrades);
+};
+
 const std::vector<UpgradeableStat> upgradeable_weapon_stats{
   UpgradeableStat::WEAPON_CLIP_SIZE,
   UpgradeableStat::WEAPON_FIRERATE,
@@ -165,260 +189,8 @@ constexpr std::array<std::pair<Rarity, int>, 5> rarity_chance_map = { {
   { Rarity::SUPER_LEGENDARY, 3 },
 } };
 
-const auto stat_from_stat_table = [](Rarity rarity, UpgradeableStat upgrade) -> std::pair<float, std::string> {
-  float amount = 0;
-
-  const auto rarity_str = std::string(magic_enum::enum_name(rarity));
-  const auto upgrade_str = std::string(magic_enum::enum_name(upgrade));
-
-  if (upgrade == UpgradeableStat::ACTOR_DODGE_CHANCE) {
-    if (rarity == Rarity::COMMON)
-      amount = 2;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 4;
-    if (rarity == Rarity::RARE)
-      amount = 6;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 8;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 10;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::ACTOR_HEALTH_MAX) {
-    if (rarity == Rarity::COMMON)
-      amount = 2;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 5;
-    if (rarity == Rarity::RARE)
-      amount = 10;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 15;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 20;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::ACTOR_HEALTH_REGEN) {
-    if (rarity == Rarity::COMMON)
-      amount = 0.10f;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 0.15f;
-    if (rarity == Rarity::RARE)
-      amount = 0.20f;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 0.25f;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 0.3f;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::ACTOR_SPEED) {
-    if (rarity == Rarity::COMMON)
-      amount = 5;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 10;
-    if (rarity == Rarity::RARE)
-      amount = 20;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 35;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-
-  /*
-  if (upgrade == UpgradeableStat::ACTOR_STAMINA) {
-    if (rarity == Rarity::COMMON)
-      amount = 1;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 2;
-    if (rarity == Rarity::RARE)
-      amount = 3;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 4;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 5;
-    return { amount, "stat_flat_increase" };
-  }
-  */
-
-  if (upgrade == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
-    if (rarity == Rarity::COMMON)
-      amount = 5;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 15;
-    if (rarity == Rarity::RARE)
-      amount = 25;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 35;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 45;
-    return { amount, "stat_percent_increase" };
-  }
-
-  if (upgrade == UpgradeableStat::BULLET_CRIT_CHANCE) {
-    if (rarity == Rarity::COMMON)
-      amount = 3;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 6;
-    if (rarity == Rarity::RARE)
-      amount = 9;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 12;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 15;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_CRIT_DAMAGE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 50;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 75;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 100;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_DAMAGE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_KNOCKBACK) {
-    if (rarity == Rarity::COMMON)
-      amount = 0.1f;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 0.2f;
-    if (rarity == Rarity::RARE)
-      amount = 0.3f;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 0.4f;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 0.5f;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_LIFESTEAL) {
-    if (rarity == Rarity::COMMON)
-      amount = 0.1f;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 0.2f;
-    if (rarity == Rarity::RARE)
-      amount = 0.3f;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 0.5f;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 1.0f;
-    return { amount, "stat_flat_increase" };
-  }
-  if (upgrade == UpgradeableStat::BULLET_PIERCE) {
-    if (rarity == Rarity::COMMON)
-      amount = 1;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 2;
-    if (rarity == Rarity::RARE)
-      amount = 3;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 4;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 5;
-    return { amount, "stat_flat_increase" };
-  }
-
-  /*
-  if (upgrade == UpgradeableStat::BULLET_SIZE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  */
-
-  if (upgrade == UpgradeableStat::BULLET_SPEED) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-
-  if (upgrade == UpgradeableStat::WEAPON_CLIP_SIZE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::WEAPON_FIRERATE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 15;
-    if (rarity == Rarity::RARE)
-      amount = 25;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 35;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::WEAPON_RANGE) {
-    if (rarity == Rarity::COMMON)
-      amount = 10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = 20;
-    if (rarity == Rarity::RARE)
-      amount = 30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = 40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = 50;
-    return { amount, "stat_percent_increase" };
-  }
-  if (upgrade == UpgradeableStat::WEAPON_RELOAD) {
-    if (rarity == Rarity::COMMON)
-      amount = -10;
-    if (rarity == Rarity::UNCOMMON)
-      amount = -20;
-    if (rarity == Rarity::RARE)
-      amount = -30;
-    if (rarity == Rarity::LEGENDARY)
-      amount = -40;
-    if (rarity == Rarity::SUPER_LEGENDARY)
-      amount = -50;
-    return { amount, "stat_percent_increase" };
-  }
-
-  const auto err_str = std::format("Not impl: {}, {}", rarity_str, upgrade_str);
-  throw std::runtime_error(err_str.c_str());
-};
+std::pair<float, std::string>
+get_stat_from_stat_table(entt::registry& r, Rarity rarity, UpgradeableStat upgrade);
 
 const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
   if (rarity == Rarity::COMMON) {

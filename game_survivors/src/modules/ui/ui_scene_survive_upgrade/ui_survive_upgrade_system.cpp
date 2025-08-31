@@ -152,7 +152,7 @@ draw_upgrade_selections_in_grid(entt::registry& r,
       const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat).value();
 
       // flavour text for the header
-      const auto [amount, type_str] = stat_from_stat_table(rarity, stat_enum);
+      const auto [amount, type_str] = get_stat_from_stat_table(r, rarity, stat_enum);
       const UpgradeRollResult roll_res{ .rarity = rarity, .stats = { Stat{ .stat = stat } } };
       header_text = upg_name_c.stat_to_name_map.at(roll_res);
     }

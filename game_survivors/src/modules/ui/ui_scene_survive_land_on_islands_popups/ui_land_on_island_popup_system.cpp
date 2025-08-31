@@ -81,7 +81,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
     const auto view = r.view<const MovementIslandComponent, const TransformComponent, const InputComponent>();
     for (const auto [e, movement_c, t_c, input_c] : view.each()) {
       auto boat_e = movement_c.boat_e;
-      if (boat_e == entt::null)
+      if (boat_e == entt::null || !r.valid(boat_e))
         continue;
       ImGui::PushID(static_cast<uint32_t>(e));
 

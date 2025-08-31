@@ -56,7 +56,19 @@
       { "stat": "BULLET_LIFETIME",    "type": "stat_percent_increase", "value": -50 }
     ]
     },
-    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_ICE", "desc": "[+damage:ice]" }
+    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_ICE", "desc": "[+damage:ice]" },
+
+    { "u_key": "FLAME_UPGRADE_A", "wb_key": "FLAMETHROWER_UPGRADE_A", "desc": "[+damage]", "stats": [
+      { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 50 }
+    ] },
+    { "u_key": "FLAME_UPGRADE_B", "wb_key": "FLAMETHROWER_UPGRADE_B", "desc": "[+damage][+reloadspeed]", "stats": [
+      { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 15 }, 
+      { "stat": "WEAPON_RELOAD",  "type": "stat_percent_increase", "value": -35 }
+    ] },
+    { "u_key": "FLAME_UPGRADE_C", "wb_key": "FLAMETHROWER_UPGRADE_C", "desc": "[+damage][+reloadspeed]", "stats": [
+      { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 100 }, 
+      { "stat": "AREA_STACK_DURATION",  "type": "stat_percent_increase", "value": -35 } // flames shorter (less damage = bad)
+    ] }
   ],
 
   "weapons": [
@@ -196,9 +208,9 @@
         "AREA_STACKS_APPLIED_PER_SHOT":2 // how many fire stacks to apply per tick
       },
       "upgrades": [
-        // "FLAME_UPGRADE_A",
-        // "FLAME_UPGRADE_B",
-        // "FLAME_UPGRADE_C",
+        "FLAME_UPGRADE_A",
+        "FLAME_UPGRADE_B",
+        "FLAME_UPGRADE_C"
         // "FLAME_UPGRADE_D",
         // "FLAME_UPGRADE_E"
       ]

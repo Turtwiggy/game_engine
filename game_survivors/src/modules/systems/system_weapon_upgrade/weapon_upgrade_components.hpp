@@ -42,6 +42,11 @@ enum class WeaponBehaviour
   TURRET_EXPLODE_ON_DEATH,
   // CHANGE_DAMAGE_TO_ICE,
 
+  // flamethrower
+  FLAMETHROWER_UPGRADE_A, // +damage
+  FLAMETHROWER_UPGRADE_B, // +damage +reload speed
+  FLAMETHROWER_UPGRADE_C, // +damage -lifetime
+
   // general behaviours
   CHANGE_DAMAGE_TO_FIRE,
   CHANGE_DAMAGE_TO_ICE,

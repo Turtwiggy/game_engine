@@ -93,6 +93,18 @@
     { "name": "ICON_WEAPON_RELOAD_CENTERED", "frames": [{ "x": 24, "y": 26, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_RANGE_CENTERED", "frames": [{ "x": 25, "y": 26, "w": 1, "h": 1 }]},
 
+    { "name": "ICON_AREA_BEAMS_PER_WEAPON", "frames": [{ "x": 26, "y": 30, "w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_SIZE", "frames": [{"x": 27, "y": 30,  "w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_STACK_DAMAGE", "frames": [{ "x": 28, "y": 30,  "w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_STACK_DURATION", "frames": [{ "x": 29, "y": 30,  "w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_STACKS_APPLIED_PER_SHOT", "frames": [{ "x": 30, "y": 30,  "w": 1, "h": 1 }]},
+
+    { "name": "ICON_AREA_BEAMS_PER_WEAPON_CENTERED", "frames": [{ "x": 26, "y": 29, "w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_SIZE_CENTERED", "frames": [{ "x": 27, "y": 29,"w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_STACK_DAMAGE_CENTERED", "frames": [{ "x": 28, "y": 29, "w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_STACK_DURATION_CENTERED", "frames": [{  "x": 29, "y": 29, "w": 1, "h": 1 }]},
+    { "name": "ICON_AREA_STACKS_APPLIED_PER_SHOT_CENTERED", "frames": [{  "x": 30, "y": 29, "w": 1, "h": 1 }]},
+
     { "name": "ICON_WEAPON_DECK_CANNON", "frames": [{ "x": 27, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_GRAPESHOT_CANNON", "frames": [{ "x": 28, "y": 27, "w": 1, "h": 1 }]},
     { "name": "ICON_WEAPON_SWIVEL_CANNON", "frames": [{ "x": 29, "y": 27, "w": 1, "h": 1 }]},

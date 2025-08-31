@@ -102,6 +102,18 @@
     { "stat": "WEAPON_RANGE", "rarity":"UNCOMMON",              "name": "Rifled Artillery",           "desc": "Spin-stabilized shots." },
     { "stat": "WEAPON_RANGE", "rarity":"RARE",                  "name": "Rangerfinder",               "desc": "Precision long shots" },
     { "stat": "WEAPON_RANGE", "rarity":"LEGENDARY",             "name": "Rocket-Assisted Shells",     "desc": "Mid-flight propulsion" },
-    { "stat": "WEAPON_RANGE", "rarity":"SUPER_LEGENDARY",       "name": "Sniper-of-the-Seas!",        "desc": "A lofty title." }
+    { "stat": "WEAPON_RANGE", "rarity":"SUPER_LEGENDARY",       "name": "Sniper-of-the-Seas!",        "desc": "A lofty title." },
+
+    { "stat": "AREA_STACK_DAMAGE", "rarity": "COMMON",          "name": "Burn+",                      "desc": "" },
+    { "stat": "AREA_STACK_DAMAGE", "rarity": "UNCOMMON",        "name": "Burn++",                     "desc": "" },
+    { "stat": "AREA_STACK_DAMAGE", "rarity": "RARE",            "name": "Burn+++",                    "desc": "" },
+    { "stat": "AREA_STACK_DAMAGE", "rarity": "LEGENDARY",       "name": "Burn++++",                   "desc": "" },
+    { "stat": "AREA_STACK_DAMAGE", "rarity": "SUPER_LEGENDARY", "name": "+++++Burn+++++",             "desc": "" },
+
+    { "stat": "AREA_STACK_DURATION", "rarity": "COMMON",        "name": "Napalm+",                    "desc": "" },
+    { "stat": "AREA_STACK_DURATION", "rarity": "UNCOMMON",      "name": "Napalm++",                   "desc": "" },
+    { "stat": "AREA_STACK_DURATION", "rarity": "RARE",          "name": "Napalm+++",                  "desc": "" },
+    { "stat": "AREA_STACK_DURATION", "rarity": "LEGENDARY",     "name": "Napalm++++",                 "desc": "" },
+    { "stat": "AREA_STACK_DURATION", "rarity": "SUPER_LEGENDARY","name": "Napalm+++++",               "desc": "" }
   ]
 }

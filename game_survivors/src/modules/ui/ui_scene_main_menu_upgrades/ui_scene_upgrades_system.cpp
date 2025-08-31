@@ -49,7 +49,9 @@ purchase_upgrade(entt::registry& r, const UpgradeableStat stat)
   const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
   if (it == upgrade_c.upgrades.end()) {
     auto err = std::format("Upgrade does not exist: {}", stat_str);
-    throw std::runtime_error(err.c_str());
+    // throw std::runtime_error(err.c_str());
+    SDL_Log(err.c_str());
+    return;
   }
   const Upgrade u = (*it);
   SDL_Log("You want to purchase: %s. It has %zu levels available", u.key.c_str(), u.levels.size());
@@ -395,8 +397,12 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
     const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
     if (it == upgrade_c.upgrades.end()) {
-      const auto err = std::format("Upgrade does not exist: {}", stat_str);
-      throw std::runtime_error(err.c_str());
+      const auto err = std::format("Upgrade does not exist: {} in SINGLE_PersistentUpgrades", stat_str);
+      SDL_Log("error: %s", err.c_str());
+      // throw std::runtime_error(err.c_str());
+      // NO persistent upgrade for this stat
+      ImGui::End();
+      return;
     }
     const Upgrade u = (*it);
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);

@@ -21,6 +21,9 @@ get_player_e_from_idx(entt::registry& r, const int player_idx);
 SINGLE_UpgradeToName
 load_upgrade_names(const std::string& path);
 
+SINGLE_UpgradeToValue
+load_upgrade_values(const std::string& path);
+
 std::string
 make_stat_name_pretty_name(const std::string stat);
 

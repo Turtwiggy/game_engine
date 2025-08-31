@@ -97,7 +97,7 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto rarity = get_rarity_from_roll(roll_rarity);
       const auto upgrade_enum = stats[roll_value];
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
-      const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
+      const auto [value, type] = get_stat_from_stat_table(r, rarity, upgrade_enum);
 
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,
@@ -117,7 +117,7 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto rarity = get_rarity_from_roll(roll_rarity);
       const auto upgrade_enum = actor_x_stats[roll_value];
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
-      const auto [value, type] = stat_from_stat_table(rarity, upgrade_enum);
+      const auto [value, type] = get_stat_from_stat_table(r, rarity, upgrade_enum);
 
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,
@@ -245,6 +245,33 @@ load_upgrade_names(const std::string& path)
     };
     data.stat_to_name_map[result] = upgrade_on_disk.name;
   }
+
+  return data;
+};
+
+SINGLE_UpgradeToValue
+load_upgrade_values(const std::string& path)
+{
+  SDL_Log("loading upgrade values... %s", path.c_str());
+
+  // load from disk
+  std::ifstream t(path);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  const std::string data_with_comments = buffer.str();
+
+  // remove comments from .jsonc file
+  std::istringstream stream(data_with_comments);
+  std::ostringstream output;
+  std::string line;
+  while (std::getline(stream, line)) {
+    std::string cleaned_line = remove_comment(line);
+    output << cleaned_line << "\n";
+  }
+
+  const std::string string_without_comments = output.str();
+  nlohmann::json root = nlohmann::json::parse(string_without_comments);
+  SINGLE_UpgradeToValue data = root.get<SINGLE_UpgradeToValue>();
 
   return data;
 };
