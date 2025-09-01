@@ -19,6 +19,7 @@
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -77,6 +78,7 @@ get_display_stats(entt::registry& r)
     clean_key = str_remove_all_occurances(clean_key, "ACTOR_");
     clean_key = str_remove_all_occurances(clean_key, "BULLET_");
     clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
+    clean_key = str_remove_all_occurances(clean_key, "AREA_");
 
     display_stats.push_back({ .key = clean_key, .val = "0" });
   }
@@ -273,14 +275,21 @@ draw_stats(entt::registry& r,
     // if (!result.level_weapons && i >= (int)UpgradeableStat::BULLET_BOUNCE)
     //   continue;
 
-    // skip the BULLET_ stats if you're not a PROJECTILE or DEPLOY weapon.
+    // skip various stats on weapon types
     if (upg_weapons.size() > 0) {
       const auto wep_e = upg_weapons[0];
       const auto& wep_data = r.get<const Weapon_OnDiskData>(wep_e);
       const auto wep_type = wep_data.type_as_enum;
+
+      // skip the BULLET_ stats if you're not a PROJECTILE or DEPLOY weapon.
       const bool is_bullet_stat = stat_str.find("BULLET_") != std::string::npos;
       const auto wt = std::vector<WEAPON_TYPE>{ WEAPON_TYPE::PROJECTILE, WEAPON_TYPE::DEPLOY };
       if (is_bullet_stat && std::find(wt.begin(), wt.end(), wep_type) == wt.end())
+        continue;
+
+      // skip the AREA_ stats if you're not an AREA weapon.
+      const bool is_area_stat = stat_str.find("AREA_") != std::string::npos;
+      if (is_area_stat && wep_type != WEAPON_TYPE::AREA)
         continue;
     }
 
@@ -290,10 +299,12 @@ draw_stats(entt::registry& r,
       start_y += text_size.y;
     if (stats[i].key == "PROJECTILES")
       start_y += text_size.y;
+    if (stats[i].key == "BEAMS_PER_WEAPON")
+      start_y += text_size.y;
 
-    // Display weapon info (before the first BULLET_ stat)
+    // Display weapon info (after the xp zone stat)
     {
-      if (stat_enum == UpgradeableStat::BULLET_BOUNCE) {
+      if (magic_enum::enum_value<UpgradeableStat>(i - 1) == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
 
         // display weapon (key)
         draw_list->AddText({ key_x, start_y }, im_text_col, "WEAPON");
@@ -436,6 +447,31 @@ draw_stats(entt::registry& r,
       }
     }
 
+    // DISPLAY AREA_ stats
+    {
+      if (upg_weapons.size() > 0) {
+        const auto wep_e = upg_weapons[0];
+        const auto wep_def = get_weapon_def(r, wep_e);
+        const auto wep_data = r.get<Weapon_OnDiskData>(wep_e);
+        const auto wep_type = wep_data.type_as_enum;
+
+        if (wep_type == WEAPON_TYPE::AREA) {
+          const auto area_def = get_area_def(r, wep_e);
+
+          if (stat_enum == UpgradeableStat::AREA_BEAMS_PER_WEAPON)
+            val_str = std::format("{}", (int)area_def.beams);
+          else if (stat_enum == UpgradeableStat::AREA_SIZE)
+            val_str = std::format("{} x {}", area_def.size_x, area_def.size_y);
+          else if (stat_enum == UpgradeableStat::AREA_STACK_DAMAGE)
+            val_str = std::format("{}", area_def.stack_damage);
+          else if (stat_enum == UpgradeableStat::AREA_STACK_DURATION)
+            val_str = std::format("{}", area_def.stack_duration);
+          else if (stat_enum == UpgradeableStat::AREA_STACKS_PER_SHOT)
+            val_str = std::format("{}", area_def.stacks_per_shot);
+        }
+      }
+    }
+
     // display your current stat value
     draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, val_str.c_str());
 
@@ -537,7 +573,7 @@ draw_confirm_bar(entt::registry& r,
   const auto ready_text_pos = center_text(font, ready_text, center_pos);
   ImGui::SetCursorPos(ready_text_pos);
   ImGui::Text("%s", ready_text.c_str());
-}
+};
 
 void
 update_ui_survive_upgrade_system(entt::registry& r, const float dt)
@@ -806,7 +842,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
   ImGui::End();
   ImGui::PopStyleVar(3);
-}
+};
 
 } // namespace game2d
 

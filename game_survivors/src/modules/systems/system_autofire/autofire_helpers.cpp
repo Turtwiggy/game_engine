@@ -164,7 +164,7 @@ get_area_def(entt::registry& r, const entt::entity wep_e)
   const auto key_size = std::string(magic_enum::enum_name(UpgradeableStat::AREA_SIZE));
   const auto key_stack_damage = std::string(magic_enum::enum_name(UpgradeableStat::AREA_STACK_DAMAGE));
   const auto key_stack_duration = std::string(magic_enum::enum_name(UpgradeableStat::AREA_STACK_DURATION));
-  const auto key_stacks_applied = std::string(magic_enum::enum_name(UpgradeableStat::AREA_STACKS_APPLIED_PER_SHOT));
+  const auto key_stacks_applied = std::string(magic_enum::enum_name(UpgradeableStat::AREA_STACKS_PER_SHOT));
 
   const auto val_beams_per_weapon = r.get<const AreaWeapon_Beams>(wep_e).beams;
   const auto val_size_x = r.get<const AreaWeapon_Size>(wep_e).size_x;
@@ -186,7 +186,7 @@ get_area_def(entt::registry& r, const entt::entity wep_e)
     .size_y = mod_size_y,
     .stack_damage = mod_stack_damage,
     .stack_duration = mod_stack_duration,
-    .stacks_applied_per_shot = mod_stacks_applied,
+    .stacks_per_shot = mod_stacks_applied,
   };
 }
 

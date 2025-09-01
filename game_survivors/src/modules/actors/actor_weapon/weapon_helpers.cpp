@@ -72,7 +72,7 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
   const float AREA_SIZE_Y = get_or_default("AREA_SIZE_Y", 1);
   const float AREA_STACK_DAMAGE = get_or_default("AREA_STACK_DAMAGE", 1);
   const float AREA_STACK_DURATION = get_or_default("AREA_STACK_DURATION", 0.5f);
-  const float AREA_STACKS_APPLIED_PER_SHOT = get_or_default("AREA_STACKS_APPLIED_PER_SHOT", 1);
+  const float AREA_STACKS_PER_SHOT = get_or_default("AREA_STACKS_PER_SHOT", 1);
 
   // load weapons from config
   const auto fr_c = WeaponFireRate{ .base_firerate = WEAPON_FIRERATE, .seconds_between_shots_max = 1.0f / WEAPON_FIRERATE };
@@ -106,7 +106,7 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
     r.emplace<AreaWeapon_Size>(wep_e, AreaWeapon_Size{ AREA_SIZE_X, AREA_SIZE_Y });
     r.emplace<AreaWeapon_StackDamage>(wep_e, AreaWeapon_StackDamage{ AREA_STACK_DAMAGE });
     r.emplace<AreaWeapon_StackDuration>(wep_e, AreaWeapon_StackDuration{ AREA_STACK_DURATION });
-    r.emplace<AreaWeapon_StacksAppliedPerShot>(wep_e, AreaWeapon_StacksAppliedPerShot{ (int)AREA_STACKS_APPLIED_PER_SHOT });
+    r.emplace<AreaWeapon_StacksAppliedPerShot>(wep_e, AreaWeapon_StacksAppliedPerShot{ (int)AREA_STACKS_PER_SHOT });
   }
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);

@@ -178,7 +178,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
       const auto area_def = get_area_def(r, evt.from);
 
       // get the (modified) stacks to apply per shot.
-      stacks_to_apply = area_def.stacks_applied_per_shot;
+      stacks_to_apply = area_def.stacks_per_shot;
 
       // get the (modified) seconds each stack lasts.
       time = area_def.stack_duration;

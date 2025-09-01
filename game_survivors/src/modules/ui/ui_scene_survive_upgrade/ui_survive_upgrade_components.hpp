@@ -160,7 +160,7 @@ const std::vector<UpgradeableStat> upgradeable_area_stats{
   // clang-format off
 
   // UpgradeableStat::AREA_BEAMS_PER_WEAPON,
-  // UpgradeableStat::AREA_STACKS_APPLIED_PER_SHOT, // e.g. stacks = 1stack * modifier
+  // UpgradeableStat::AREA_STACKS_PER_SHOT, // e.g. stacks = 1stack * modifier
   UpgradeableStat::AREA_STACK_DAMAGE,         // e.g. damage = 3stack * dmg * modifier
   UpgradeableStat::AREA_STACK_DURATION,       // seconds to reduce one stack (lifetime)
   // UpgradeableStat::AREA_SIZE,                    // size of the area

@@ -42,7 +42,7 @@ struct AreaDef_ModifiersApplied
   float size_y = 1.0f;
   float stack_damage = 1.0f;
   float stack_duration = 1.0f;
-  int stacks_applied_per_shot = 1;
+  int stacks_per_shot = 1;
 };
 
 } // namespace game2d

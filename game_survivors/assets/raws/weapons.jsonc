@@ -205,7 +205,7 @@
         // "BULLET_KNOCKBACK": 0   , // force
         "AREA_STACK_DAMAGE": 1,
         "AREA_STACK_DURATION": 1.5,
-        "AREA_STACKS_APPLIED_PER_SHOT":2 // how many fire stacks to apply per tick
+        "AREA_STACKS_PER_SHOT":2 // how many fire stacks to apply per tick
       },
       "upgrades": [
         "FLAME_UPGRADE_A",
