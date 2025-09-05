@@ -375,8 +375,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   const auto scene_name = std::string(magic_enum::enum_name(s));
   SDL_Log("%s", std::format("going to scene: {}", scene_name).c_str());
 
-  for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
-    const auto& [e] = ent_tuple;
+  for (const auto [e] : r.view<const entt::entity>().each()) {
     if (const auto* p_c = r.try_get<Persistent>(e))
       continue;
     r.destroy(e);

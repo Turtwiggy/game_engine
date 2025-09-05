@@ -72,7 +72,7 @@ generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
 
   // clamp noise using the standard deviation to prevent outliers
   const std::vector<float> noise_vec = { noise_it.begin(), noise_it.end() };
-  if (noise_vec.size() == 0)
+  if (noise_vec.empty())
     return {};
   const auto mean = std::accumulate(noise_vec.begin(), noise_vec.end(), 0.0f) / noise_vec.size();
   const auto sq_sum = std::transform_reduce(
@@ -111,7 +111,7 @@ identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_t
   std::vector<NoiseInfo> unprocessed{ f.begin(), f.end() };
   std::vector<std::vector<NoiseInfo>> islands;
 
-  while (unprocessed.size() > 0) {
+  while (!unprocessed.empty()) {
     // pick any point with noise.
     const auto point = unprocessed[0];
 

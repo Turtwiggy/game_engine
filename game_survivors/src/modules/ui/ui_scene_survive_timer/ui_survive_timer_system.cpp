@@ -25,7 +25,7 @@ update_ui_survive_timer_system(entt::registry& r)
   const glm::vec2 tr = ri_c.viewport_size_render_at;
 
   const auto players_view = r.view<PlayerBoatComponent>();
-  if (players_view.size() == 0)
+  if (players_view.empty())
     return; // no players, dont count down timer
 
   const auto view = r.view<const SurviveTimerComponent>();

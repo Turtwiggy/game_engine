@@ -13,6 +13,7 @@ private:
 
 public:
   [[nodiscard]] inline size_t size() const { return elements.size(); }
+  [[nodiscard]] inline size_t empty() const { return elements.empty(); }
 
   inline void enqueue(const T& item, const int& priority) { elements.push_back({ item, priority }); }
 

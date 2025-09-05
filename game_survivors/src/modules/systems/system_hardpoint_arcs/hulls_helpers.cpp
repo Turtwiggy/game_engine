@@ -54,7 +54,7 @@ load_hulls(std::string directory)
     hulls.hulls.push_back(load_hull(filepath));
   }
 
-  if (hulls.hulls.size() == 0) {
+  if (hulls.hulls.empty()) {
     throw std::runtime_error("No hulls in SINGLE_Hulls()");
     exit(1); // crash
   }

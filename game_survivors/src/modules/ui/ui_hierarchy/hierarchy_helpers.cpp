@@ -77,8 +77,9 @@ draw_hierarchy(entt::registry& r, const std::vector<Category>& categories, entt:
 
   ImGui::Begin("Hierarchy", NULL, flags);
 
-  const auto& storage = r.storage<entt::entity>();
-  ImGui::Text("entt.size(): %zu", storage.size());
+  // const auto& storage = r.storage<entt::entity>();
+  const auto view = r.view<entt::entity>();
+  ImGui::Text("entt.size(): %zu", view.size());
 
   // filter input textbox
   imgui_draw_string("Filter", filter_input);

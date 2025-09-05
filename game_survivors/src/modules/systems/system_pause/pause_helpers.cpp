@@ -28,7 +28,8 @@ require_pause(entt::registry& r)
   pause |= is_choosing_upgrade(r);
   pause |= is_gameover(r);
 
-  const bool disconnected = get_first_component<SINGLE_DisconnectedControllerUI>(r).handle_disconnected.size() > 0;
+  const auto& handles_c = get_first_component<SINGLE_DisconnectedControllerUI>(r).handle_disconnected;
+  const bool disconnected = !(handles_c.empty());
   pause |= disconnected;
 
   // pause when pause menu is open

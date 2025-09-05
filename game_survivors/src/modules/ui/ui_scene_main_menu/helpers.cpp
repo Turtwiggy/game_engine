@@ -34,7 +34,7 @@ play_sound_if_hovered(entt::registry& r, std::vector<std::string>& hovered_butto
   if (item_already_hovered && item_hovered) {
 
     // only one button can be hovered
-    if (hovered_buttons.size() != 0)
+    if (!hovered_buttons.empty())
       hovered_buttons.clear();
 
     hovered_buttons.push_back(label);

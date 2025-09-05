@@ -81,13 +81,13 @@ IKSolver::Iterate(const std::vector<glm::vec2>& in_points, const glm::vec2& goal
   std::vector<glm::vec2> points = in_points;
 
   // Generate some points
-  if (lengths.size() > 0 && in_points.size() == 0) {
+  if (!lengths.empty() && in_points.empty()) {
     points.resize(lengths.size());
     for (size_t i = 0; i < lengths.size(); i++)
       points[i] = { i * lengths[i], i * lengths[i] };
   }
 
-  if (points.size() == 0)
+  if (points.empty())
     return {};
 
   // If > than total distance, just max everything out

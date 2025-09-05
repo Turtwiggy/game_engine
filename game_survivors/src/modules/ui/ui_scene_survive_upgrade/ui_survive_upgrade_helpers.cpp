@@ -68,17 +68,17 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 
       // Prioritize non-max level weapons
       std::vector<entt::entity> weapons;
-      if ((int)non_max_level_weapons.size() > 0) {
+      if ((int)!non_max_level_weapons.empty()) {
         const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)non_max_level_weapons.size());
         const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
         weapons.push_back(wep_e);
-      } else if ((int)weapons_e.size() > 0) {
+      } else if ((int)!weapons_e.empty()) {
         const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
         const auto wep_e = weapons_e[rnd_wep_upg_idx];
         weapons.push_back(wep_e);
       }
 
-      if (weapons.size() == 0) {
+      if (weapons.empty()) {
         throw std::runtime_error("player has no weapons!");
         exit(1); // crash
       }
@@ -152,7 +152,7 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 
     // const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
     const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
-    if (upgrades.size() == 0)
+    if (upgrades.empty())
       continue;
     const auto& [upg_e, upg_c] = upgrades[0];
 
@@ -165,7 +165,7 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
         evt.par_e = player_e;
 
         // upg_e is wep_e or par_e
-        if (res.weapons.size() > 0)
+        if (!res.weapons.empty())
           evt.upg_e = res.weapons[0];
         else
           evt.upg_e = player_e;
@@ -192,7 +192,7 @@ is_choosing_upgrade(entt::registry& r)
   //   auto& tag_c = r.get<TagComponent>(e);
   //   SDL_Log("tag: %s", tag_c.tag.c_str());
   // }
-  return view.size() > 0;
+  return !view.empty();
 };
 
 entt::entity

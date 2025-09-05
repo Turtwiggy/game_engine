@@ -12,7 +12,7 @@ draw_wombo_combo(const WomboComboIn& in)
   const auto& items = in.items;
   const auto& cur_idx = in.current_index;
 
-  if (items.size() == 0) {
+  if (items.empty()) {
     ImGui::Text("Empty WomboCombo: %s", in.label.c_str());
     WomboComboOut out;
     out.selected = 0;

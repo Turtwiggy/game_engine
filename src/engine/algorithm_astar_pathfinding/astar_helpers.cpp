@@ -70,7 +70,7 @@ only_targetable_at_gridpos(entt::registry& r, const glm::ivec2 gp, const MapComp
     if (const auto* p_c = r.try_get<PathfindComponent>(e))
       only_targetable &= p_c->targetable;
 
-  return only_targetable && es.size() > 0;
+  return only_targetable && !es.empty();
 };
 
 std::vector<glm::ivec2>
@@ -88,7 +88,7 @@ generate_direct(entt::registry& r, const vec2i from, const vec2i to)
   came_from[from] = from;
   cost_so_far[from] = 0;
 
-  while (frontier.size() > 0) {
+  while (!frontier.empty()) {
 
     const vec2i current = frontier.dequeue();
     const int current_idx = map_c.xmax * current.y + current.x;
@@ -153,7 +153,7 @@ generate_direct_with_diagonals(entt::registry& r, const vec2i from, const vec2i 
   came_from[from] = from;
   cost_so_far[from] = 0;
 
-  while (frontier.size() > 0) {
+  while (!frontier.empty()) {
 
     if (int(frontier.size()) >= (map_c.xmax * map_c.ymax))
       SDL_Log("a* pathfinding likely gone wrong...");
@@ -211,7 +211,7 @@ generate_accessible_areas(const Map_NonEntt& map_c, const vec2i from_pos, const 
 
   std::set<vec2i> results;
 
-  while (frontier.size() > 0) {
+  while (!frontier.empty()) {
     const auto current = frontier.dequeue();
     results.emplace(vec2i{ current.x, current.y });
 
@@ -262,7 +262,7 @@ generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const ve
 
   std::set<vec2i> results;
 
-  while (frontier.size() > 0) {
+  while (!frontier.empty()) {
     const auto current = frontier.dequeue();
     results.emplace(vec2i{ current.x, current.y });
 
@@ -317,7 +317,7 @@ generate_accessible_areas_with_diagonals(entt::registry& r, const MapComponent& 
 
   std::set<vec2i> results;
 
-  while (frontier.size() > 0) {
+  while (!frontier.empty()) {
     const auto current = frontier.dequeue();
     results.emplace(vec2i{ current.x, current.y });
 
@@ -366,7 +366,7 @@ bool
 has_destination(entt::registry& r, const entt::entity src_e)
 {
   if (auto* existing_path = r.try_get<GeneratedPathComponent>(src_e))
-    return existing_path->path.size() > 0;
+    return !existing_path->path.empty();
   return false;
 };
 
@@ -462,7 +462,7 @@ generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from
   came_from[from] = from;
   cost_so_far[0] = 0;
 
-  while (frontier.size() > 0) {
+  while (!frontier.empty()) {
     const int current = static_cast<int>(frontier.dequeue());
 
     const auto gpos = engine::grid::index_to_grid_position(current, map_c.xmax, map_c.ymax);

@@ -19,7 +19,7 @@ update_gameover_system(entt::registry& r)
   ZoneScoped;
 #endif
   const auto game_over_view = r.view<GameOverComponent>();
-  if (game_over_view.size() > 0)
+  if (!game_over_view.empty())
     return; // game already ended
 
   // note: having system rely on ui state is pretty sus
@@ -68,7 +68,7 @@ update_gameover_system(entt::registry& r)
   //
   // lose condition: all players dead
   //
-  if (r.view<PlayerBoatComponent>().size() == 0) {
+  if (r.view<PlayerBoatComponent>().empty()) {
     GameOverComponent gameover_c;
     gameover_c.win_condition = false;
     gameover_c.reason = "All players dead";

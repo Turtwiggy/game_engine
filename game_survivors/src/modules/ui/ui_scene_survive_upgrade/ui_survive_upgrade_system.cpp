@@ -247,7 +247,7 @@ draw_stats(entt::registry& r,
   const auto max_width = calculate_width(stats);
   const auto icon_size = ImVec2{ 16, 16 };
 
-  if (upgrades_c->results.size() == 0)
+  if (upgrades_c->results.empty())
     return;
 
   // this contains the upgrade data.
@@ -276,7 +276,7 @@ draw_stats(entt::registry& r,
     //   continue;
 
     // skip various stats on weapon types
-    if (upg_weapons.size() > 0) {
+    if (!upg_weapons.empty()) {
       const auto wep_e = upg_weapons[0];
       const auto& wep_data = r.get<const Weapon_OnDiskData>(wep_e);
       const auto wep_type = wep_data.type_as_enum;
@@ -301,55 +301,6 @@ draw_stats(entt::registry& r,
       start_y += text_size.y;
     if (stats[i].key == "BEAMS_PER_WEAPON")
       start_y += text_size.y;
-
-    // Display weapon info (after the xp zone stat)
-    {
-      if (magic_enum::enum_value<UpgradeableStat>(i - 1) == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
-
-        // display weapon (key)
-        draw_list->AddText({ key_x, start_y }, im_text_col, "WEAPON");
-
-        // display weapon name (val)
-        if (upg_weapons.size() > 0) {
-          const auto wep_e = upg_weapons[0];
-          const auto& weapon_data_c = r.get<const Weapon_OnDiskData>(wep_e);
-          const auto weapon_name = std::format("{}", weapon_data_c.name);
-          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, weapon_name.c_str());
-        }
-
-        // display hardpoint idx (key)
-        start_y += text_size.y;
-        draw_list->AddText({ key_x, start_y }, im_text_col, "HARDPOINT");
-
-        // display hardpoint idx (val)
-        if (upg_weapons.size() > 0) {
-          // get the index of the weapon
-          const auto wep_e = upg_weapons[0];
-          const auto it = std::find(weapons_e.begin(), weapons_e.end(), wep_e);
-          const auto idx = static_cast<int>(it - weapons_e.begin());
-          const auto idx_str = std::format("{}", idx);
-          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, idx_str.c_str());
-        }
-
-        // display current weapon level (key)
-        start_y += text_size.y;
-        draw_list->AddText({ key_x, start_y }, im_text_col, "LEVEL");
-
-        // display current weapon level (val)
-        if (upg_weapons.size() > 0) {
-          const auto& wep_e = upg_weapons[0];
-          const auto& wep_c = r.get<WeaponLevelComponent>(wep_e);
-          const auto wep_lv_str = std::format("{}", wep_c.level);
-          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, wep_lv_str.c_str());
-
-          // assuming we're here, show a +1 to level because this would upgrade the weapon.
-          draw_list->AddText({ key_x + max_width + 50.0f, start_y }, im_greenish, "+1"s.c_str());
-        }
-
-        start_y += text_size.y;
-        start_y += text_size.y;
-      }
-    }
 
     // icon
     auto icon_tl = ImVec2{ stats_tl.x, start_y };
@@ -401,7 +352,7 @@ draw_stats(entt::registry& r,
 
     // DISPLAY WEAPON_ and BULLET_ stats
     {
-      if (upg_weapons.size() > 0) {
+      if (!upg_weapons.empty()) {
         const auto wep_e = upg_weapons[0];
         const auto wep_def = get_weapon_def(r, wep_e);
         const auto wep_data = r.get<Weapon_OnDiskData>(wep_e);
@@ -449,7 +400,7 @@ draw_stats(entt::registry& r,
 
     // DISPLAY AREA_ stats
     {
-      if (upg_weapons.size() > 0) {
+      if (!upg_weapons.empty()) {
         const auto wep_e = upg_weapons[0];
         const auto wep_def = get_weapon_def(r, wep_e);
         const auto wep_data = r.get<Weapon_OnDiskData>(wep_e);
@@ -488,6 +439,54 @@ draw_stats(entt::registry& r,
       }
     }
 
+    // Display weapon info (after the xp zone stat)
+    {
+      if (magic_enum::enum_value<UpgradeableStat>(i) == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
+        start_y += text_size.y;
+
+        // display weapon (key)
+        start_y += text_size.y;
+        draw_list->AddText({ key_x, start_y }, im_text_col, "WEAPON");
+
+        // display weapon name (val)
+        if (!upg_weapons.empty()) {
+          const auto wep_e = upg_weapons[0];
+          const auto& weapon_data_c = r.get<const Weapon_OnDiskData>(wep_e);
+          const auto weapon_name = std::format("{}", weapon_data_c.name);
+          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, weapon_name.c_str());
+        }
+
+        // display hardpoint idx (key)
+        start_y += text_size.y;
+        draw_list->AddText({ key_x, start_y }, im_text_col, "HARDPOINT");
+
+        // display hardpoint idx (val)
+        if (!upg_weapons.empty()) {
+          // get the index of the weapon
+          const auto wep_e = upg_weapons[0];
+          const auto it = std::find(weapons_e.begin(), weapons_e.end(), wep_e);
+          const auto idx = static_cast<int>(it - weapons_e.begin());
+          const auto idx_str = std::format("{}", idx);
+          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, idx_str.c_str());
+        }
+
+        // display current weapon level (key)
+        start_y += text_size.y;
+        draw_list->AddText({ key_x, start_y }, im_text_col, "LEVEL");
+
+        // display current weapon level (val)
+        if (!upg_weapons.empty()) {
+          const auto& wep_e = upg_weapons[0];
+          const auto& wep_c = r.get<WeaponLevelComponent>(wep_e);
+          const auto wep_lv_str = std::format("{}", wep_c.level);
+          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, wep_lv_str.c_str());
+
+          // assuming we're here, show a +1 to level because this would upgrade the weapon.
+          draw_list->AddText({ key_x + max_width + 50.0f, start_y }, im_greenish, "+1"s.c_str());
+        }
+      }
+    }
+
     // move vertically
     start_y += text_size.y;
   }
@@ -497,7 +496,7 @@ draw_stats(entt::registry& r,
   draw_list->AddText({ key_x, start_y }, im_text_col, "OVERCLOCKS (Lv 4, 8, 12)");
 
   // list the (existing) weapon behaviours.
-  if (upg_weapons.size() > 0) {
+  if (!upg_weapons.empty()) {
     const auto wep_e = upg_weapons[0];
     const auto& weapon_key = r.get<ItemKey>(wep_e);
     const auto weapon_upgrades_data = get_upgrades_from_weapon_key(r, weapon_key.key);
@@ -517,7 +516,7 @@ draw_stats(entt::registry& r,
     draw_list->AddText({ key_x, start_y }, im_greenish, upg_str.c_str());
   }
 
-  // if (result.traits.size() == 0) {
+  // if (result.traits.empty()) {
   //   start_y += text_size.y;
   //   draw_list->AddText({ key_x, start_y }, im_text_col, "NONE. Get @ Lv 4, 8, 12");
   // }
@@ -655,7 +654,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
   const auto text_col = ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
 
-  if (ui_c.ui_states.size() == 0)
+  if (ui_c.ui_states.empty())
     ui_c.ui_states.resize(max_num_players);
   ui_c.ui_cursors.resize(num_active_players);
 
@@ -727,7 +726,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     }
 
     const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
-    if (upgrades.size() == 0) {
+    if (upgrades.empty()) {
       ui_move_horizontally();
       continue; // this player isnt upgrading
     }
@@ -894,7 +893,7 @@ for (int i = 0; const auto& [e, player_c, input_c] : r.view<const PlayerComponen
     // only use for debug
     SteamControllerComponent steam_c;
     steam_c.handles = non_zero_handles(controller_ui.handles);
-    if (steam_c.handles.size() > 0)
+    if (steam_c.!handles.empty())
       r.emplace<SteamControllerComponent>(e, steam_c);
     r.emplace<KeyboardComponent>(e);
   }

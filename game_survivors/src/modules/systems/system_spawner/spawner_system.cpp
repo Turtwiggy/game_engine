@@ -18,7 +18,10 @@
 #include "modules/actors/actor_enemy_treasure/enemy_treasure_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/colour/components.hpp"
@@ -27,6 +30,8 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
+#include "modules/scene/scene_helpers.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_components.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
@@ -211,6 +216,16 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // archerfish
   if (key == "actor_enemy_projectile") {
     r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust = 6.0f;
+
+    // give the projectile enemy a weapon.
+    const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+
+    // TODO: make it it's own weapon, not weapon_deck_cannon
+    const auto weapon_data = get_weapon_data(r, "weapon_deck_cannon");
+    const auto wep_e = spawn_weapon(r, e, weapon_data, "weapon_deck_cannon");
+    r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
+    r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
+    connect_parent_and_weapon(r, e, wep_e);
   }
 
   // jellyfish

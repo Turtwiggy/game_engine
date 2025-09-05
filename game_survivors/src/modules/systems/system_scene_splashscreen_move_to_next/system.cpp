@@ -86,7 +86,7 @@ update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, e
   // After X seconds, move to menu,
   // or when audio is loaded and a key is mashed
   data.time_on_splashscreen_seconds -= dt;
-  if (data.time_on_splashscreen_seconds <= 0.0f || input.unprocessed_inputs.size() > 0)
+  if (data.time_on_splashscreen_seconds <= 0.0f || !input.unprocessed_inputs.empty())
     move_to_scene_start(r, Scene::menu);
 };
 

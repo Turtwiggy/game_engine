@@ -119,11 +119,11 @@ create_fixture(b2BodyId bodyId, const PhysicsFixtureDef& fix, const b2Vec2 size_
   const auto friction = fix.friction;
 
   b2Vec2 offset{ 0, 0 };
-  if (fix.offset.size() > 0)
+  if (!fix.offset.empty())
     offset = pixels_to_meters({ fix.offset[0].x, fix.offset[0].y });
 
   b2Vec2 size = size_in_meters;
-  if (fix.size_in_pixels.size() > 0)
+  if (!fix.size_in_pixels.empty())
     size = pixels_to_meters({ fix.size_in_pixels[0].x, fix.size_in_pixels[0].y });
 
   b2ShapeDef shape_def = b2DefaultShapeDef();
@@ -226,7 +226,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     if (t.phys_fixtures.has_value()) {
       const auto& fixtures = t.phys_fixtures.value();
 
-      if (fixtures.size() == 0) {
+      if (fixtures.empty()) {
         SDL_Log("(Error) phys_fixtures size 0 when phys_body defined");
         exit(1);
       }
@@ -240,9 +240,8 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         PhysicsFixtureComponent fixture_c;
         fixture_c.bodyId = bodyId;
         fixture_c.shapeId = shapeId;
-
         const auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
-        r.emplace_or_replace<TagComponent>(fixture_e, data.tag);
+        r.emplace_or_replace<TagComponent>(fixture_e, TagComponent{ data.tag });
         r.emplace<ItemKey>(fixture_e, ItemKey{ key });
         r.emplace<HasParentComponent>(fixture_e, e); // link fixture => body
         body_c.fixtures.push_back(fixture_e);        // link body => fixture
@@ -265,7 +264,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       const AiBehaviour typed_t = magic_enum::enum_cast<AiBehaviour>(tr.key).value();
       trait_c.traits.emplace(typed_t);
     }
-    if (traits.size() > 0)
+    if (!traits.empty())
       r.emplace<AiBehavioursComponent>(e, trait_c);
 
     for (const auto& trait_str : traits) {

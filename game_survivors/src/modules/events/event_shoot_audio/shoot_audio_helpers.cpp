@@ -26,7 +26,7 @@ handle_shoot_event__audio(entt::registry& r, const ShootEvent& evt)
   const auto& weapon_audio_tags = weapon_data.audio;
 
   // todo: randomize audio, dont just choose [0]
-  if (weapon_audio_tags.size() == 0) {
+  if (weapon_audio_tags.empty()) {
     const std::string err = std::format("no audio provided for weapon: {}", weapon_data.key);
     // throw std::runtime_error(err);
     SDL_Log(err.c_str());

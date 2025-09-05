@@ -16,7 +16,7 @@ is_gameover(entt::registry& r)
     return false;
 
   auto view = r.view<GameOverComponent>();
-  return view.size() > 0;
+  return !view.empty();
 }
 
 } // namespace game2d

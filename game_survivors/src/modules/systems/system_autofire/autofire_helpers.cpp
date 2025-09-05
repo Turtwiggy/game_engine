@@ -2,8 +2,10 @@
 
 #include "autofire_helpers.hpp"
 
+#include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/std/vector/helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
 #include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 #include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
@@ -38,6 +40,21 @@ generate_angles(const float dir, const int bullets, const float spread_rad)
 
   return angles;
 };
+
+Weapon_OnDiskData
+get_weapon_data(entt::registry& r, const std::string weapon_key)
+{
+  const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+
+  auto get_key = []<typename T>(const std::vector<T>& data, const std::string& key) -> std::optional<T> {
+    const auto it = std::find_if(data.begin(), data.end(), [&key](const T& item) { return item.key == key; });
+    if (it == data.end())
+      return std::nullopt;
+    return (*it);
+  };
+  const Weapon_OnDiskData data = get_key(weps_c.weapons, weapon_key).value();
+  return data;
+}
 
 WeaponDef
 get_weapon_def(entt::registry& r, const entt::entity wep_e)

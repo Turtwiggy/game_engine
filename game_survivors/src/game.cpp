@@ -7,6 +7,8 @@
 #include "engine/events/components.hpp"
 #include "engine/events/system.hpp"
 #include "engine/imgui/ui_imgui_colours.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/lifecycle/lifecycle_helpers.hpp"
 #include "engine/lifecycle/lifecycle_system.hpp"
 #include "engine/physics/physics_system.hpp"
 #include "engine/sprites/components.hpp"
@@ -206,6 +208,9 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   const auto input_e = create_persistent<InputComponent>(r);
   r.emplace<KeyboardComponent>(input_e);
   r.emplace<SteamControllerComponent>(input_e);
+
+  r.on_destroy<HasChildrenComponent>().connect<&on_parent_destroyed>();
+  r.on_destroy<HasParentComponent>().connect<&on_child_destroyed>();
 
   move_to_scene_start(r, Scene::splashscreen);
 };

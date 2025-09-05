@@ -15,7 +15,7 @@ process_requests(entt::registry& r, const std::function<void(const T& req)>& cal
 {
   const auto& view = r.view<T>();
 
-  const bool has_requests = view.size() > 0;
+  const bool has_requests = !view.empty();
   if (has_requests)
     callback(r.get<T>(view.front()));
 

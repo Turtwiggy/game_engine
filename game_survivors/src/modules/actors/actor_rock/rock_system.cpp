@@ -88,8 +88,7 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
 
     // Destroy all the old rocks.
     auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
-    const auto view = r.view<RockComponent>();
-    for (const auto& [e, rock_c] : view.each())
+    for (const auto& [e, rock_c] : r.view<const RockComponent>().each())
       dead_c.dead.push_back(e);
 
     // clear the id <=> eid map

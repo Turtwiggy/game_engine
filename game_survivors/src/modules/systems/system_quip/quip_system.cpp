@@ -48,7 +48,7 @@ update_quip_system(entt::registry& r, const float dt)
       if (team_c.team == AvailableTeams::player)
         friendly_entity.push_back(e);
 
-    if (friendly_entity.size() > 0) {
+    if (!friendly_entity.empty()) {
       const auto rnd_quip_idx = engine::rand_det_s(rnd_quip.rng, 0, (int)friendly_entity.size());
       create_empty<RequestQuip>(r,
                                 RequestQuip{

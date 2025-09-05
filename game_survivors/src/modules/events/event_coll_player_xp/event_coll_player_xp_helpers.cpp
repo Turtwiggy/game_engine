@@ -27,19 +27,21 @@ handle_player_enter_xp(entt::registry& r, const OnCollisionEnter& evt)
     if (zone_e != entt::null && xp_fixture_e != entt::null) {
 
       const std::function<void(entt::registry&)> make_xp_fly_to_player = [xp_fixture_e, zone_e](entt::registry& r) {
-        const auto& fixture_c = r.get<PhysicsFixtureComponent>(xp_fixture_e);
-        const auto player_par_e = r.get<HasParentComponent>(zone_e).parent;
+        const auto& xp_fixture_c = r.get<PhysicsFixtureComponent>(xp_fixture_e);
+        const auto& xp_fixture_par_e = r.get<HasParentComponent>(xp_fixture_e).parent;
+        const auto& zone_fixture_par_e = r.get<HasParentComponent>(zone_e).parent;
+        const auto player_par_e = zone_fixture_par_e;
+        const auto xp_par_e = xp_fixture_par_e;
 
         // change xp from static to dynamic.
-        b2Body_SetType(fixture_c.bodyId, b2BodyType::b2_dynamicBody);
+        b2Body_SetType(xp_fixture_c.bodyId, b2BodyType::b2_dynamicBody);
 
         // Add components to xp parent not fixture.
-        const auto xp_parent = r.get<HasParentComponent>(xp_fixture_e).parent;
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = false;
         tgt_c.reduce_thrusters = false;
-        r.emplace_or_replace<ApplyForceToDynamicTarget>(xp_parent, tgt_c);
-        r.emplace_or_replace<PhysicsDynamicTarget>(xp_parent, player_par_e);
+        r.emplace_or_replace<ApplyForceToDynamicTarget>(xp_par_e, tgt_c);
+        r.emplace_or_replace<PhysicsDynamicTarget>(xp_par_e, player_par_e);
       };
 
       callbacks_c.callbacks.push_back(make_xp_fly_to_player);
