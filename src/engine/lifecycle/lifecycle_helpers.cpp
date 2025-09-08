@@ -33,12 +33,12 @@ on_parent_destroyed(entt::registry& r, const entt::entity e)
 
 #if defined(_DEBUG)
   const auto& tag_c = r.get<TagComponent>(e);
-  SDL_Log("%s died with children. (%i)", tag_c.tag.c_str(), children_c->children.size());
+  SDL_Log("%s died with children. (%i)", tag_c.tag.c_str(), static_cast<int>(children_c->children.size()));
 #endif
 
   auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
   for (const auto child_e : children_c->children) {
-    SDL_Log("Adding child %zu to dead list.", static_cast<uint32_t>(child_e));
+    SDL_Log("Adding child %u to dead list.", static_cast<uint32_t>(child_e));
     dead_c.dead.push_back(child_e);
   }
 }
@@ -81,11 +81,11 @@ on_child_destroyed(entt::registry& r, const entt::entity e)
   if (r.all_of<PhysicsFixtureComponent>(e)) {
     SDL_Log(
       "%s",
-      std::format("Child was a fixture, adding parent({}) to dead list.", static_cast<uint32_t>(parent_c->parent).c_str()));
+      std::format("Child was a fixture, adding parent({}) to dead list.", static_cast<uint32_t>(parent_c->parent)).c_str());
     auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
     dead_c.dead.push_back(parent_c->parent);
   } else if (r.all_of<PhysicsBodyComponent>(parent_c->parent)) {
-    SDL_Log("Child had a PhysicsBodyComponent parent(%zu) to dead list.", static_cast<uint32_t>(parent_c->parent));
+    SDL_Log("Child had a PhysicsBodyComponent parent(%u) to dead list.", static_cast<uint32_t>(parent_c->parent));
     auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
     dead_c.dead.push_back(parent_c->parent);
   }

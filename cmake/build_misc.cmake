@@ -11,7 +11,6 @@ function(create_symlinks project)
     add_custom_command(
       TARGET ${PROJECT_NAME} PRE_BUILD
       COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst_sym}
       COMMENT "symbolic link resources folder from ${src} => ${dst}"
     )
   else()
