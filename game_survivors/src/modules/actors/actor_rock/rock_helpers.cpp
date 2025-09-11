@@ -12,6 +12,7 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/maths/noise.hpp"
+#include "engine/opengl/texture.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
@@ -55,19 +56,14 @@ generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
       const auto raw_noise = perlin_noise_2d(x * frequency, y * frequency, seed);
       const auto noise = (raw_noise + 1.0f) * 0.5f;
       const auto grid_xy = glm::ivec2{ x, y };
-      if (noise < cutoff) {
-        // pad vector to maintain dimentions
-        generated.push_back(NoiseInfo{ .noise = std::nullopt, .xy = grid_xy });
-        continue;
-      }
       generated.push_back(NoiseInfo{ .noise = noise, .xy = grid_xy });
     }
   }
 
   // clang-format off
    auto noise_it = generated 
-    | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); }) 
-    | std::views::transform([](const NoiseInfo& n) { return n.noise.value(); });
+    | std::views::filter([cutoff](const NoiseInfo& n) { return n.noise >= cutoff; }) 
+    | std::views::transform([](const NoiseInfo& n) { return n.noise; });
   // clang-format on
 
   // clamp noise using the standard deviation to prevent outliers
@@ -82,10 +78,8 @@ generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
   const float upper = mean + 2.0f * stddev;
 
   // clamp the noise.
-  for (auto& g : generated) {
-    if (g.noise.has_value())
-      g.noise = glm::clamp(g.noise.value(), lower, upper);
-  }
+  for (auto& g : generated)
+    g.noise = glm::clamp(g.noise, lower, upper);
 
   return generated;
 };
@@ -96,13 +90,14 @@ identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_t
   const auto wh = SINGLE_Islands::instance.wh;
 
   // get the coordinates of any noise that is > threshold
-  auto f = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
+  auto f =
+    generated | std::views::filter([isovalue_threshold](const NoiseInfo& n) { return n.noise >= isovalue_threshold; });
 
   std::vector<MapEntry> map_entries;
   for (int y = 0; y < wh; y++) {
     for (int x = 0; x < wh; x++) {
       const auto idx = engine::grid::grid_position_to_index({ x, y }, wh);
-      const int cost = generated[idx].noise.has_value() ? 1.0f : -1.0f;
+      const int cost = generated[idx].noise >= isovalue_threshold ? 1.0f : -1.0f;
       map_entries.push_back(MapEntry{ .cost = cost });
     }
   }
@@ -239,7 +234,8 @@ generate_contours(entt::registry& r,
 
   const auto get_noise = [&](int x, int y) -> float {
     auto it = std::find_if(island.begin(), island.end(), [&](const NoiseInfo& ni) { return ni.xy.x == x && ni.xy.y == y; });
-    return (it == island.end()) ? 0.0f : it->noise.value();
+    auto noise = (it == island.end()) ? 0.0f : it->noise;
+    return noise >= isovalue_threshold ? noise : 0.0f;
   };
 
   for (int y = 0; y < wh - 1; y++) {
@@ -364,6 +360,26 @@ generate_rock_bounding_box(entt::registry& r, entt::entity e)
 };
 
 void
+upload_heightmap_to_gpu(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const int width = ri.heightmap_texture_wh;
+  const int height = ri.heightmap_texture_wh;
+  std::vector<float> data(width * height, 0.0f);
+
+  // load heightmap data in to vector.
+  const auto& generated = SINGLE_Islands::instance.generated;
+
+  for (const auto& ni : generated) {
+    const auto tex_idx = engine::grid::grid_position_to_index({ ni.xy.x, ni.xy.y }, width);
+    data[tex_idx] = ni.noise;
+  }
+
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_heightmap.id);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RED, GL_FLOAT, data.data());
+};
+
+void
 generate_rocks(entt::registry& r, const float cutoff)
 {
   static int seed = 0;
@@ -399,7 +415,7 @@ generate_rocks(entt::registry& r, const float cutoff)
   const auto& generated = SINGLE_Islands::instance.generated;
 
   // identify the noise into islands.
-  const auto islands = identify_islands(generated, 0.5f);
+  const auto islands = identify_islands(generated, cutoff);
 
   // after converting in to islands, generate the contours (outline)
   for (int i = 0; const std::vector<NoiseInfo>& island : islands) {
@@ -433,6 +449,10 @@ generate_rocks(entt::registry& r, const float cutoff)
   }
 
   SDL_Log("Spawned: %i rocks", r.view<const RockComponent>().size());
+
+  // Upload the heightmap data to the gpu.
+  SDL_Log("Uploading heightmap data to gpu");
+  upload_heightmap_to_gpu(r);
 };
 
 engine::SRGBColour
@@ -459,7 +479,7 @@ get_colour_of_tile(entt::registry& r,
   const auto ni = (*it);
 
   //  remap [min_noise, max_noise] to [0, 1];
-  const auto noise = engine::scale(ni.noise.value(), min_noise, max_noise, 0.0f, 1.0f);
+  const auto noise = engine::scale(ni.noise, min_noise, max_noise, 0.0f, 1.0f);
 
   // https://colorhunt.co/palette/a86523e9a319fad59afcefcb
   // https://colorhunt.co/palette/626f47a4b465f5ecd5f0bb78
@@ -492,11 +512,12 @@ generate_island_interior(entt::registry& r)
   const float half_tilesize = tilesize * 0.5f;
 
   // whats the smallest & largest noise in the distribution
-  auto filtered = generated | std::views::filter([](const NoiseInfo& n) { return n.noise.has_value(); });
-  const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() < b.noise.value(); };
-  const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise.value() > b.noise.value(); };
-  const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
-  const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
+  // auto filtered =
+  //   generated | std::views::filter([isovalue_threshold](const NoiseInfo& n) { return n.noise >= isovalue_threshold; });
+  // const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise < b.noise; };
+  // const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise > b.noise; };
+  // const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
+  // const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
 
   // given each island...
   for (const auto [island_e, island_c, bb_c, contours_c] :
@@ -535,8 +556,8 @@ generate_island_interior(entt::registry& r)
         const auto unoffset_xy = xy - offset + glm::ivec2{ 1, 1 };
 
         // work out colour of tile given noise.
-        const auto rock_col =
-          get_colour_of_tile(r, pos, unoffset_xy, contours_c, min_it->noise.value(), max_it->noise.value());
+        // const auto rock_col = get_colour_of_tile(r, pos, unoffset_xy, contours_c, min_it->noise, max_it->noise);
+        const auto rock_col = engine::SRGBColour{ 255, 60, 60, 255 };
 
         const auto debug_e = spawn(r, "empty");
         r.get<TagComponent>(debug_e).tag = "empty-IslandSquare";

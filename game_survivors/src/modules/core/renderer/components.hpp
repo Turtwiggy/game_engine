@@ -2,6 +2,7 @@
 
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
 #include "modules/core/renderer/fluidsim/components.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 
@@ -81,6 +82,10 @@ struct SINGLE_RendererInfo
 
   // int tex_unit_circles = 0;
   int tex_unit_ubo_data = 0;
+
+  int heightmap_texture_wh = 128;
+  engine::TextureId tex_id_heightmap;
+  engine::TextureUnit tex_unit_heightmap;
 
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;

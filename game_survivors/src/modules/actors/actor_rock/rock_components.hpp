@@ -23,7 +23,7 @@ struct RequestGenerateRocks
 
 struct NoiseInfo
 {
-  std::optional<float> noise = std::nullopt;
+  float noise = 0.0f;
   glm::ivec2 xy = { 0, 0 };
 };
 

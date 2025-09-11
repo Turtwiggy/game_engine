@@ -10,14 +10,12 @@
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/actors/actor_player/components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/core/renderer/renderpass/passes.hpp"
-#include "modules/effect_crt/crt_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
@@ -98,6 +96,10 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
     i++;
   }
+
+  // bind the heightmap texture
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_heightmap.unit);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_heightmap.id);
 
   // Texture quadrenderer...
   // int tex_buffer_unit = i++;
@@ -348,6 +350,24 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
+  }
+
+  // heightmap texture
+  {
+    // new empty texture.
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // allocate some default storage
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, ri.heightmap_texture_wh, ri.heightmap_texture_wh, 0, GL_RED, GL_FLOAT, nullptr);
+
+    ri.tex_id_heightmap = engine::TextureId{ (int)textureID };
+    ri.tex_unit_heightmap = used_tex_units + (int)ri.user_textures.size();
   }
 
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
@@ -604,6 +624,16 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         ImGui::Begin(label.c_str());
         ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         const uint64_t id = tex.tex_id.id;
+        ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        ImGui::End();
+      }
+      // Debug heightmap texture
+      {
+        const std::string label =
+          std::format("TexUnit: {}, Tex: {}, Id: {}", ri.tex_unit_heightmap.unit, "heightmap", ri.tex_id_heightmap.id);
+        ImGui::Begin(label.c_str());
+        ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        const uint64_t id = ri.tex_id_heightmap.id;
         ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
         ImGui::End();
       }
