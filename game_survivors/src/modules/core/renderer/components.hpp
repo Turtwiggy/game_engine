@@ -27,6 +27,7 @@ struct ViewportInfo
 
 enum class PassName
 {
+  water_heightmap,
   water,
   floor_mask,
   linear_main,
@@ -94,6 +95,7 @@ struct SINGLE_RendererInfo
   FluidSimData fluid_sim;
 
   // shaders
+  engine::Shader water_heightmap;
   engine::Shader water;
   engine::Shader instanced;
   engine::Shader shine;

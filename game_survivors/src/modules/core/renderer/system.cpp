@@ -117,6 +117,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   };
 
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
+  const int tex_unit_water_heightmap = get_tex_unit(PassName::water_heightmap);
   const int tex_unit_water = get_tex_unit(PassName::water);
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
@@ -137,6 +138,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
   // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
   // glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+  ri.water_heightmap.reload(r);
+  ri.water_heightmap.bind();
+  ri.water_heightmap.set_uniform_block_binding("Data", 0);
+  ri.water_heightmap.set_mat4("projection", camera.projection);
+  ri.water_heightmap.set_int("tex_map_heightmap", ri.tex_unit_heightmap.unit);
 
   ri.water.reload(r);
   ri.water.bind();
@@ -236,6 +243,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
   ri.mix_lighting_and_scene.set_int("tex_flame", tex_unit_flame);
+  ri.mix_lighting_and_scene.set_int("tex_map_heightmap", tex_unit_water_heightmap);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
   ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_bool("add_vignette", true);
@@ -297,6 +305,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
   RenderCommand::clear();
 
+  ri.passes.push_back(RenderPass(PassName::water_heightmap));
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   // ri.passes.push_back(RenderPass(PassName::fluid_sim));
@@ -370,6 +379,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
     ri.tex_unit_heightmap = used_tex_units + (int)ri.user_textures.size();
   }
 
+  ri.water_heightmap = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_heightmap_texture.frag");
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
@@ -436,8 +446,9 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   rebind(r, ri);
 
   // adds the update() for each renderpass
-  setup_floor_mask_update(r);
+  setup_water_heightmap_update(r);
   setup_water_update(r);
+  setup_floor_mask_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
   setup_outline_update(r);

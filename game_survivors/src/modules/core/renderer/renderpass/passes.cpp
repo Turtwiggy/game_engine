@@ -2,17 +2,17 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/opengl/render_command.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/effects_outline/outline_components.hpp"
-
-#include "engine/opengl/render_command.hpp"
 
 namespace game2d {
 using namespace engine;
@@ -34,6 +34,55 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
   ri.renderer.end_batch();
   ri.renderer.flush(shader);
 };
+
+void
+setup_water_heightmap_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::water_heightmap);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    auto& ri = SINGLE_RendererInfo::instance;
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+
+    SINGLE_Islands island_c = SINGLE_Islands::instance;
+    if (island_c.generated.empty())
+      return;
+
+    ri.water_heightmap.bind();
+
+    {
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
+
+      // Render exactly one quad
+      {
+        engine::quad_renderer::RenderDescriptor desc;
+
+        // todo: replace with proper values
+        desc.pos_tl = { -25 * 50 * 0.5f, -25 * 50 * 0.5f };
+        desc.size = { 25 * 50, 25 * 50 };
+
+        // desc.colour = mask_colour;
+        // desc.tex_unit = sc.tex_unit;
+
+        // desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+        // desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+        // desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+        ri.renderer.draw_sprite(desc, ri.water_heightmap);
+      }
+
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.water_heightmap);
+    }
+  };
+}
 
 void
 setup_water_update(entt::registry& r)
@@ -82,7 +131,7 @@ setup_floor_mask_update(entt::registry& r)
 #endif
 
     auto& ri = SINGLE_RendererInfo::instance;
-    const auto& camera_c = get_first_component<OrthographicCamera>(r);
+    // const auto& camera_c = get_first_component<OrthographicCamera>(r);
 
     // Render floor quads in to floor-mask texture.
     engine::LinearColour mask_colour = engine::LinearColour(1.0f, 1.0f, 1.0f, 1.0f);
