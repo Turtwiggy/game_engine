@@ -78,7 +78,7 @@ struct PhysicsFixtureDef
 struct PhysicsBodyComponent
 {
   b2BodyId bodyId;
-  std::vector<entt::entity> fixtures{};
+  std::vector<entt::entity> fixtures;
 };
 
 struct PhysicsFixtureComponent

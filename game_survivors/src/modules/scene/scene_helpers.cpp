@@ -365,7 +365,7 @@ spawn_islands(entt::registry& r)
     create_empty<RequestGenerateRocks>(r);
     // need islands and rocks to exist before player spawns,
     // to determine player spawn location
-    update_actor_rocks_system(r);
+    update_actor_rocks_system(r, { 0, 0 });
   }
 };
 
@@ -375,8 +375,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   const auto scene_name = std::string(magic_enum::enum_name(s));
   SDL_Log("%s", std::format("going to scene: {}", scene_name).c_str());
 
-  for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
-    const auto& [e] = ent_tuple;
+  for (const auto [e] : r.view<const entt::entity>().each()) {
     if (const auto* p_c = r.try_get<Persistent>(e))
       continue;
     r.destroy(e);
@@ -546,13 +545,17 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<RequestGameTrack>(r);
 
     spawn_islands(r); // before spawn_players
-    generate_island_interior(r);
-    generate_island_life__base_island(r);
-    generate_island_life__other_islands(r);
+
+    /*
+
+    //     // generate_island_interior(r);
+    // generate_island_life__base_island(r);
+    // generate_island_life__other_islands(r);
 
     // spawn_players(r);
     // const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
     const auto pos0 = get_player_spawn_point_around_starting_island(r, 0);
+
     // const auto pos1 = get_player_spawn_point_around_starting_island(r, 1);
     // const auto pos2 = get_player_spawn_point_around_starting_island(r, 2);
     // const auto pos3 = get_player_spawn_point_around_starting_island(r, 3);
@@ -571,6 +574,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     }
 
     set_players_as_landed(r);
+
+    */
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

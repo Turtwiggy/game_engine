@@ -73,7 +73,7 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
   }
 
   const auto unoccupied = get_unoccupied_tiles(island_c);
-  if (enemies_remaining == 0 && unoccupied.size() > 0) {
+  if (enemies_remaining == 0 && !unoccupied.empty()) {
 #if defined(_DEBUG)
     static engine::RandomState lighthouse_rnd(0); // same roll every time
 #else

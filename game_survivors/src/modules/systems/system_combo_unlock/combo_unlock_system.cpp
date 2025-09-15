@@ -63,7 +63,7 @@ update_combo_unlock_system(entt::registry& r)
 
     // dont display if not near
     combo_c.display = false;
-    if (players_map.size() == 0)
+    if (players_map.empty())
       return;
     combo_c.display = true;
   }

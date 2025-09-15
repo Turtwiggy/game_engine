@@ -7,6 +7,8 @@
 #include "engine/events/components.hpp"
 #include "engine/events/system.hpp"
 #include "engine/imgui/ui_imgui_colours.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/lifecycle/lifecycle_helpers.hpp"
 #include "engine/lifecycle/lifecycle_system.hpp"
 #include "engine/physics/physics_system.hpp"
 #include "engine/sprites/components.hpp"
@@ -207,6 +209,9 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   r.emplace<KeyboardComponent>(input_e);
   r.emplace<SteamControllerComponent>(input_e);
 
+  r.on_destroy<HasChildrenComponent>().connect<&on_parent_destroyed>();
+  r.on_destroy<HasParentComponent>().connect<&on_child_destroyed>();
+
   move_to_scene_start(r, Scene::splashscreen);
 };
 
@@ -317,7 +322,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_hardpoint_arcs_system(r, dt);
   update_sprite_spritestack_system(r, dt);
-  update_actor_rocks_system(r); // before update_spawner_system
+  update_actor_rocks_system(r, mouse_pos); // before update_spawner_system
 
 #if defined(_DEBUG)
   // update_debug_muzzleflash_system(r);

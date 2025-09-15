@@ -1,15 +1,43 @@
 #include "pch.hpp"
 
-// header
 #include "lifecycle_system.hpp"
 
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
-#include "engine/renderer/transform.hpp"
-#include "modules/core/raws/raws_components.hpp"
 
 namespace game2d {
+
+template<typename T>
+std::vector<T>
+remove_duplicates(const std::vector<T>& input)
+{
+  std::unordered_set<T> seen;
+  std::vector<T> result;
+
+  for (const auto& item : input) {
+    if (seen.insert(item).second) { // insert returns pair<iterator, bool>
+      result.push_back(item);
+    }
+  }
+
+  return result;
+};
+
+void
+delete_if_unique(entt::registry& r, std::vector<entt::entity>& deleted, const entt::entity& e)
+{
+  if (std::find(deleted.begin(), deleted.end(), e) != deleted.end())
+    return;
+  deleted.push_back(e);
+
+#if defined(_DEBUG)
+  auto tag = r.get<TagComponent>(e).tag.c_str();
+  SDL_Log("destroying: %s (%zu)", tag, (uint32_t)e);
+#endif
+
+  r.destroy(e);
+};
 
 void
 update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
@@ -29,90 +57,62 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     lifecycle_c.milliseconds_alive += static_cast<int>(milliseconds_dt);
   };
 
-  // Death callbacks.
-  // OnDeathCallbacks can cause more dead.dead entities (explosions)
-  std::unordered_set<entt::entity> uniquely_dead;
+  std::vector<entt::entity> deleted;
+
   while (!dead.dead.empty()) {
-    const entt::entity e = *dead.dead.begin();
+
+    // Note: dead objects can create more dead objects in the callbacks.
+    const auto e = dead.dead.front();
     std::erase(dead.dead, e);
 
-    // Skip entities that are already in uniquely_dead
-    if (uniquely_dead.find(e) != uniquely_dead.end())
+    // check that deleted doesnt contain the entity already.
+    if (std::find(deleted.begin(), deleted.end(), e) != deleted.end())
       continue;
-    uniquely_dead.emplace(e);
 
     // do callbacks.
-    if (auto* callback = r.try_get<OnDeathCallbacks>(e)) {
+    if (auto* callback = r.try_get<OnDeathCallbacks>(e))
       for (const auto& cb : callback->callbacks)
         cb(r, e);
-    }
-  }
 
-  for (const auto e : uniquely_dead) {
+    // delete the fixtures.
+    if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
 
-    // A destroyed fixture belonging to a body;
-    // destroy the parent when the fixture dies.
-    if (const auto* fixture_c = r.try_get<PhysicsFixtureComponent>(e))
-      uniquely_dead.emplace(r.get<HasParentComponent>(e).parent);
+      // delete the fixture(s), and the body.
+      for (const auto fixture_e : pb->fixtures)
+        delete_if_unique(r, deleted, fixture_e);
 
-    // A destroyed parent might have fixtures;
-    // destroy the fixtures when the parent dies.
-    if (const auto* body_c = r.try_get<PhysicsBodyComponent>(e))
-      uniquely_dead.insert(body_c->fixtures.begin(), body_c->fixtures.end());
+      // remove all occurances of fixtures from dead.dead as they were just deleted.
+      dead.dead.erase(std::remove_if(dead.dead.begin(),
+                                     dead.dead.end(),
+                                     [&](const entt::entity& entity) {
+                                       return std::find(pb->fixtures.begin(), pb->fixtures.end(), entity) !=
+                                              pb->fixtures.end();
+                                     }),
+                      dead.dead.end());
 
-    // Destroy all the children
-    if (auto* children_c = r.try_get<HasChildrenComponent>(e))
-      uniquely_dead.insert(children_c->children.begin(), children_c->children.end());
-  }
-
-  for (const auto e : uniquely_dead) {
-
-    // Update physics
-    if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
       b2DestroyBody(pb->bodyId);
+    }
 
-    // Update entt
-    if (r.valid(e))
-      r.destroy(e);
+    // if the fixture is in dead.dead,
+    // make sure to request to delete the body.
+    if (auto* pf = r.try_get<PhysicsFixtureComponent>(e))
+      dead.dead.push_back(r.get<HasParentComponent>(e).parent);
+
+    // note: safeguard which objects get deleted, because
+    // fixtures can get added to dead.dead.push_back(fixture_e)
+    delete_if_unique(r, deleted, e);
   }
-
-  // Check invalid entities...
-
-  /*
 
 #if defined(_DEBUG)
-  const auto& storage = r.storage<entt::entity>();
-  for (const std::tuple<entt::entity>& ent_tuple : storage.each()) {
-    const auto& [e] = ent_tuple;
-
-    if (!r.valid(e)) {
-      SDL_Log("Warning: removing invalid entity. How did it occur?");
-      r.destroy((e));
-      throw std::runtime_error("Found invalid entity");
-    }
-
-    if (const auto* has_parent = r.try_get<HasParentComponent>(e)) {
-      const auto parent_e = has_parent->parent;
-      if (parent_e == entt::null) {
-        auto* tag_c = r.try_get<TagComponent>(e);
-        auto* item_key_c = r.try_get<ItemKey>(e);
-        SDL_Log("%s has a null parent, key: %s", tag_c->tag.c_str(), item_key_c->key.c_str());
-        dead.dead.push_back(e);
-      }
-      if (!r.valid(parent_e)) {
-        auto* tag_c = r.try_get<TagComponent>(e);
-        auto* item_key_c = r.try_get<ItemKey>(e);
-        SDL_Log("%s has an invalid parent, key: %s, parent_e: %i",
-                tag_c->tag.c_str(),
-                item_key_c->key.c_str(),
-                static_cast<uint32_t>(parent_e));
-        dead.dead.push_back(e);
-      }
-    }
-  }
+  // auto before_view = r.view<entt::entity>();
+  // auto before_count = before_view.size();
 #endif
 
-*/
+#if defined(_DEBUG)
+  // auto after_view = r.view<entt::entity>();
+  // auto after_count = before_view.size();
+  // assert(after_count == (before_count - uniquely_dead.size()));
+#endif
 
   // process create requests
   const auto requests = r.view<WaitForInitComponent>();

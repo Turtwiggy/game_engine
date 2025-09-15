@@ -4,10 +4,12 @@
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/core/animations/rotate_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
@@ -42,18 +44,20 @@ update_enemy_projectile_system(entt::registry& r)
     const auto bullet_speed = r.get<BulletSpeed>(e).speed;
     const auto bullet_size = r.get<BulletSize>(e).size;
 
-    BulletDef bullet_def;
-    bullet_def.key = "bullet_archerfish";
-    bullet_def.parent_e = e; // note: not a weapon parent, but an enemy
-    bullet_def.size = bullet_size;
-    bullet_def.team = AvailableTeams::enemy;
-    bullet_def.damage = 1; // TODO: make enemy bullet correct damage
-    bullet_def.pierce = 1;
-    bullet_def.speed = bullet_speed;
-    bullet_def.lifecycle = 5 * 1000;
+    const auto wep_e = get_weapons(r, e)[0];
+    auto bul_def = get_bullet_def(r, wep_e);
+
+    // modify data for enemy bullet
+    bul_def.key = "bullet_archerfish";
+    bul_def.size = bullet_size;
+    bul_def.team = AvailableTeams::enemy;
+    bul_def.damage = 1; // TODO: make enemy bullet correct damage
+    bul_def.pierce = 1;
+    bul_def.speed = bullet_speed;
+    bul_def.lifecycle = 5 * 1000;
     // bullet_def.traits = // no traits for enemies?
 
-    const auto bullet_e = spawn_projectile(r, bullet_def, pos);
+    const auto bullet_e = spawn_projectile(r, bul_def, pos);
     // set_colour(r, bullet_e, hex_to_srgb("#00c420"));
     // set_sprite(r, bullet_e, "FIREWORK");
 

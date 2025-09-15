@@ -129,7 +129,7 @@ get_nearest_target(entt::registry& r, const entt::entity wep_e, const TransformC
   };
   const b2Vec2 center_m = pixels_to_meters(wep_pos);
   auto enemies_map = get_all_in_area_filtered(r, center_m, search_radius_meters, is_enemy);
-  if (enemies_map.size() == 0)
+  if (enemies_map.empty())
     return entt::null;
 
   std::vector<std::pair<int, entt::entity>> enemies;
@@ -151,7 +151,7 @@ get_nearest_target(entt::registry& r, const entt::entity wep_e, const TransformC
     filter_enemies_by_shoot_angle(r, enemies, *hardpoint_c, wep_pos);
 
   // Check if enemies after all filter conditions
-  if (enemies.size() == 0)
+  if (enemies.empty())
     return entt::null;
 
   // Get the nearest enemy
@@ -223,9 +223,6 @@ update_autofire_system(entt::registry& r, const float dt)
     for (const auto& [wep_e, weapon_c, wep_def, wep_range_c, parent_c, wep_t, autofire_c] : view.each()) {
 
       const auto par_e = parent_c.parent;
-      if (par_e == entt::null || !r.valid(par_e))
-        continue;
-
       const auto& par_inp = r.get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
@@ -305,8 +302,6 @@ update_autofire_system(entt::registry& r, const float dt)
          view.each()) {
 
       const auto par_e = parent_c.parent;
-      if (par_e == entt::null || !r.valid(par_e))
-        continue;
 
       // parent has dropped anchor, stop firing.
       if (r.all_of<DroppedAnchorComponent>(par_e))

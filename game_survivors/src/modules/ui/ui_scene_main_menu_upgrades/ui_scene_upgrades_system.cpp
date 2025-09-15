@@ -70,7 +70,7 @@ purchase_upgrade(entt::registry& r, const UpgradeableStat stat)
 
   // you haven't aquired any levels.
   if (your_level == std::nullopt) {
-    if (u.levels.size() > 0)
+    if (!u.levels.empty())
       next_ul = u.levels[0]; // the first upgrade
   }
 

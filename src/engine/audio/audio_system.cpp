@@ -115,7 +115,7 @@ update_audio_system(entt::registry& r, const float dt)
   if (!audio_c.loaded)
     return;
 
-  if (audio_c.sounds.size() == 0)
+  if (audio_c.sounds.empty())
     return; // no sounds loaded
 
   // audio levels
@@ -188,7 +188,7 @@ update_audio_system(entt::registry& r, const float dt)
     const auto& entity = entities[0];
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
 
-    if (free_audio_sources.size() == 0) {
+    if (free_audio_sources.empty()) {
       // SDL_Log("%s", std::format("No free audio sources! Missed request for: {}", tag).c_str());
       r.destroy(entities.begin(), entities.end());
       continue;

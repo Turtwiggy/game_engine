@@ -55,7 +55,7 @@ add_entity_to_map(entt::registry& r, const entt::entity src_e, const int idx)
 
   std::vector<entt::entity>& ents = map.map[idx];
 
-  // if (ents.size() > 0)
+  // if (!ents.empty())
   //   SDL_Log("%s", std::format("add_entity_to_map(): moving to tile that contains an entity").c_str());
 
   ents.push_back(src_e);
@@ -85,7 +85,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   //   contains_mob |= has_body;
   // }
 
-  if (dst_es.size() != 0)
+  if (!dst_es.empty())
     SDL_Log("move_entity_on_map: destination not empty");
 
   // easy case: dst is clear.

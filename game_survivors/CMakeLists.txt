@@ -137,11 +137,14 @@ if(${CMAKE_BUILD_TYPE} MATCHES Debug)
 ENDIF()
 
 # copy the box2d.dll next to the game
-if(CMAKE_BUILD_TYPE MATCHES Debug)
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows AND CMAKE_BUILD_TYPE MATCHES Debug)
   set(box2d_dst "${CMAKE_CURRENT_BINARY_DIR}/box2dd.dll")
   copy_file_next_to_exe(game_survivors "${BOX2D_DLL}" "${box2d_dst}")
-else()
+elseif(${CMAKE_SYSTEM_NAME} MATCHES Windows)
   set(box2d_dst "${CMAKE_CURRENT_BINARY_DIR}/box2d.dll")
+  copy_file_next_to_exe(game_survivors "${BOX2D_DLL}" "${box2d_dst}")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
+  set(box2d_dst "${CMAKE_CURRENT_BINARY_DIR}/libbox2d.dylib")
   copy_file_next_to_exe(game_survivors "${BOX2D_DLL}" "${box2d_dst}")
 endif() #
 
@@ -150,6 +153,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
   set(steam_src_dir ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/win64)
   set(steam_src ${steam_src_dir}/steam_api64.dll)
   set(steam_dst ${CMAKE_CURRENT_BINARY_DIR}/steam_api64.dll)
+  copy_file_next_to_exe(game_survivors "${steam_src}" "${steam_dst}")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
+  set(steam_src_dir ${CMAKE_SOURCE_DIR}/thirdparty/sdk/redistributable_bin/osx)
+  set(steam_src ${steam_src_dir}/libsteam_api.dylib)
+  set(steam_dst ${CMAKE_CURRENT_BINARY_DIR}/libsteam_api.dylib)
   copy_file_next_to_exe(game_survivors "${steam_src}" "${steam_dst}")
 endif()
 

@@ -54,10 +54,6 @@ update_gun_follow_player_system(entt::registry& r, const glm::vec2 mouse_pos, co
   for (const auto [shotgun_e, weapon_c, parent_c, weapon_t, hardpoint_c] : view.each()) {
 
     const auto p = parent_c.parent;
-    if (!r.valid(p) || p == entt::null) {
-      r.remove<HasParentComponent>(shotgun_e);
-      continue;
-    }
 
     // gunpoint base
     const auto tl_offset = glm::vec2{ hardpoint_c.data.x_rel_tl, hardpoint_c.data.y_rel_tl };

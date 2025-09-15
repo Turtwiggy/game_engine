@@ -87,7 +87,7 @@ entt::entity
 get_random_player_target(entt::registry& r)
 {
   const auto players_view = r.view<PlayerBoatComponent>();
-  if (players_view.size() == 0)
+  if (players_view.empty())
     return entt::null;
   const int rnd = engine::rand_det_s(target_rnd.rng, 0, (int)players_view.size());
 

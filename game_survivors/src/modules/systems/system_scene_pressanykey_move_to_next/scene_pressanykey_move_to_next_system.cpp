@@ -16,7 +16,7 @@ update_scene_pressanykey_move_to_next_system(entt::registry& r, const float dt)
 
   // handle press anykey.
 
-  if (input.unprocessed_inputs.size() > 0)
+  if (!input.unprocessed_inputs.empty())
     move_to_scene_start(r, Scene::menu);
 };
 

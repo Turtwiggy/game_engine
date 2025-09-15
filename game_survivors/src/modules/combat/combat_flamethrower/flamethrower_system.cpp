@@ -6,6 +6,7 @@
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "flamethrower_components.hpp"
 #include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
@@ -31,15 +32,13 @@ update_flamethrower_system(entt::registry& r)
     const auto view = r.view<const FlamethrowerFlameComponent, const HasParentComponent, TransformComponent>();
     for (const auto& [flame_e, flame_c, parent_c, t_c] : view.each()) {
 
-      const auto p = parent_c.parent;
-      if (!r.valid(p) || p == entt::null)
-        continue;
+      const auto par_e = parent_c.parent;
 
       // temp
       // t_c.scale.x = size_x;
       // t_c.scale.y = size_y;
 
-      const auto& p_c = r.get<TransformComponent>(p);
+      const auto& p_c = r.get<TransformComponent>(par_e);
       const auto& wep_t = p_c;
 
       const auto pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
@@ -61,10 +60,8 @@ update_flamethrower_system(entt::registry& r)
     const auto view = r.view<FlamethrowerFlameComponent, const HasParentComponent>();
     for (const auto& [e, flame_c, parent_c] : view.each()) {
 
-      const auto p = parent_c.parent;
-      if (!r.valid(p) || p == entt::null)
-        continue;
-      auto wep_e = p;
+      const auto par_e = parent_c.parent;
+      const auto wep_e = par_e;
 
       const auto& wep_clip_size_c = r.get<WeaponClipSize>(wep_e);
       const auto& wep_reload_c = r.get<WeaponReloadRate>(wep_e);

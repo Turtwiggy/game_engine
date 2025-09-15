@@ -35,9 +35,6 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
   for (const auto& [fixture_e, tick_c, parent_c] : r.view<TickDamageComponent, const HasParentComponent>().each()) {
     const auto par_e = parent_c.parent;
 
-    if (par_e == entt::null || !r.valid(par_e))
-      continue;
-
     const auto decrease_stacks = [dt](std::vector<std::pair<WEAPON_DAMAGE, float>>& vec) {
       // decrease the time
       std::for_each(vec.begin(), vec.end(), [dt](auto& p) { p.second -= dt; });

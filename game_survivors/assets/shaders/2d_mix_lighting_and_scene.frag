@@ -19,6 +19,7 @@ uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
 uniform sampler2D tex_shine_shells;
 uniform sampler2D tex_flame;
+uniform sampler2D tex_map_heightmap;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
 uniform bool invert_colours;
@@ -241,7 +242,7 @@ vec2 angle_to_dir(float angle){
 void main()
 {
   vec2 v_uv = fs_in.v_uv;
-  vec4 v_colour= fs_in.v_colour;
+  vec4 v_colour  = fs_in.v_colour;
   vec2 v_sprite_pos = fs_in.v_sprite_pos;
   vec2 v_sprite_wh = fs_in.v_sprite_wh;
   vec2 v_sprite_max = fs_in.v_sprite_max;
@@ -404,17 +405,25 @@ void main()
   vec4 scene_lin = texture(tex_scene_0, v_uv);
   vec4 outline_col = texture(tex_outline, v_uv);
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
+  vec3 heightmap_col = texture(tex_map_heightmap, v_uv).rgb;
 
   vec3 col_scene = lin_to_srgb( lighting_col * scene_lin.rgb );
   vec3 col_water = lighting_col * srgb_water;
   float use_scene = sign(length(col_scene.rgb));
   out_color.rgb = mix(
-      col_water,  // Used if length(col_scene) == 0
+      // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
+      col_water - pow(heightmap_col.r, 1.5),  // Used if length(col_scene) == 0
       col_scene,  // Used if length(col_scene) > 0
       use_scene   // Binary selector (0 or 1)
   );
-  // out_color.rgb = lighting_col;
 
+  // out_color.b = mix(
+  //   out_color.rgb,
+  //   heightmap_col,
+  //   length(heightmap_col.r)
+  // );
+
+  // out_color.rgb = lighting_col;
   // if(outline_col.r > 0.0f) out_color.rgb = vec3(1.0, 0.0, 0.0);
   out_color.rgb = mix(
       out_color.rgb,           

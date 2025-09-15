@@ -55,7 +55,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   {
     auto view = r.view<const IslandNearestComponent, const PlayerComponent>();
     for (const auto& [e, nearest_c, player_c] : view.each()) {
-      if (nearest_c.landable_positions.size() == 0)
+      if (nearest_c.landable_positions.empty())
         continue; // not interested.
       ImGui::PushID(static_cast<uint32_t>(e));
 

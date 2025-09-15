@@ -110,10 +110,9 @@ main()
 
 	float a = c * (1.-pow(v_uv.y,3.));
 	// out_colour = vec4(v_uv.x, v_uv.y, 0.0f, 1.0f);
-	out_colour = vec4( mix(vec3(0.),col,a), 1.0);
+	out_colour = vec4( mix(vec3(0.0),col,a), 1.0);
 
-	// out_colour.r = 1.0f;
-
-	if(out_colour.r == 0.0f)
-		out_colour.a = 0.0f;
+	// if(out_colour.r < 0.01f)
+	// 	out_colour.a = 0.0f;
+	out_colour.a *= step(0.01f, out_colour.r);
 }

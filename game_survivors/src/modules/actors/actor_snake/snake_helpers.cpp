@@ -53,16 +53,6 @@ auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   }
 };
 
-const auto segment_died = [](entt::registry& r, entt::entity segment_e) {
-  // auto snake_c = get_first_component<SnakeData>(r);
-
-  // child dead; inform parent. oh no.
-  if (auto* parent_c = r.try_get<HasParentComponent>(segment_e))
-    r.remove<HasChildrenComponent>(parent_c->parent);
-
-  SDL_Log("Segment died...");
-};
-
 entt::entity
 create_segment(entt::registry& r, const SectionType type, entt::entity previous_e, int idx)
 {
@@ -200,9 +190,6 @@ create_snake(entt::registry& r)
       prv_section_e = create_segment(r, SectionType::TAIL, prv_section_e, i);
     else
       prv_section_e = create_segment(r, SectionType::BODY, prv_section_e, i);
-
-    auto& on_death_callbacks_c = r.get_or_emplace<OnDeathCallbacks>(prv_section_e);
-    on_death_callbacks_c.callbacks.push_back(segment_died);
   }
 
   return head_e;

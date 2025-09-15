@@ -4,8 +4,11 @@
 
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/renderer/transform.hpp"
 #include "lifesteal_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 
 namespace game2d {
 
@@ -25,21 +28,30 @@ handle_damage_event_lifesteal(entt::registry& r, const DamageEvent& evt)
   if (!bullet_lifesteal_c)
     return;
 
-  const auto wep_e = r.get<HasParentComponent>(evt.from).parent;
-  if (wep_e == entt::null || !r.valid(wep_e))
-    return; // you're a freestanding bullet now
-
+  const auto bul_e = evt.from;
+  const auto wep_e = r.get<HasParentComponent>(bul_e).parent;
   const auto par_e = r.get<HasParentComponent>(wep_e).parent;
-  if (par_e == entt::null || !r.valid(par_e))
-    return;
+
+#if defined(_DEBUG)
+  // note: BulletComponent is attached to the Fixture
+  // if (r.all_of<BulletComponent>(evt.from else
+  // {
+  const auto valid = r.valid(evt.from);
+  const auto& tag_c = r.get<TagComponent>(bul_e);
+  const auto& tag_c2 = r.get<TagComponent>(wep_e);
+  const auto& tag_c3 = r.get<TagComponent>(par_e);
+  //   const std::string err = std::format("Error: unknown evt.from for {}", tag_c.tag);
+  //   SDL_Log("%s", err.c_str());
+  //   throw std::runtime_error(err);
+  // }
+#endif
 
   const auto par_fixture_e = get_fixture_by_tag(r, par_e, "fixture_player");
-  const auto lifesteal_mul = bullet_lifesteal_c->percent_0_100 / 100.0f;
-
-  auto& hp_c = r.get<HealthComponent>(par_fixture_e);
-  const auto lifesteal_amount = hp_c.max_hp * lifesteal_mul;
 
   // do the lifesteal
+  const auto lifesteal_mul = bullet_lifesteal_c->percent_0_100 / 100.0f;
+  auto& hp_c = r.get<HealthComponent>(par_fixture_e);
+  const auto lifesteal_amount = hp_c.max_hp * lifesteal_mul;
   hp_c.hp += lifesteal_amount;
   hp_c.hp = glm::min(hp_c.hp, hp_c.max_hp);
 }

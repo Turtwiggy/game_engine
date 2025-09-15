@@ -60,7 +60,7 @@ generate_poisson(const PoissonIn& in)
   const auto y = engine::rand_01(rnd.rng) * in.wh.y;
   add_sample({ x, y });
 
-  while (active_samples.size() > 0) {
+  while (!active_samples.empty()) {
     // Pick a random active sample
     const auto sample = active_samples[(int)(engine::rand_01(rnd.rng) * active_samples.size())];
 

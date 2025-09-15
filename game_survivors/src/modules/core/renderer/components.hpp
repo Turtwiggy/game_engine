@@ -2,6 +2,7 @@
 
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
 #include "modules/core/renderer/fluidsim/components.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 
@@ -26,6 +27,7 @@ struct ViewportInfo
 
 enum class PassName
 {
+  water_heightmap,
   water,
   floor_mask,
   linear_main,
@@ -82,6 +84,10 @@ struct SINGLE_RendererInfo
   // int tex_unit_circles = 0;
   int tex_unit_ubo_data = 0;
 
+  int heightmap_texture_wh = 256;
+  engine::TextureId tex_id_heightmap;
+  engine::TextureUnit tex_unit_heightmap;
+
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;
 
@@ -89,6 +95,7 @@ struct SINGLE_RendererInfo
   FluidSimData fluid_sim;
 
   // shaders
+  engine::Shader water_heightmap;
   engine::Shader water;
   engine::Shader instanced;
   engine::Shader shine;

@@ -11,7 +11,9 @@
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/maths/line.hpp"
+#include "engine/renderer/transform.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
@@ -43,22 +45,59 @@ draw_rocks(entt::registry& r)
 };
 
 void
-update_actor_rocks_system(entt::registry& r)
+update_actor_rocks_system(entt::registry& r, glm::vec2 mouse_pos)
 {
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  static float cutoff = 0.69f; // [0, 1]
+
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto rock_ui = gesert_menubar_state(menu_c, "DebugIslands");
+  if (rock_ui.enabled) {
+    ImGui::Begin("DebugIslands");
+    imgui_draw_float("frequency", SINGLE_Islands::instance.frequency);
+    imgui_draw_float("cutoff", SINGLE_Islands::instance.cutoff);
+    // ImGui::Text("valid: %d", SINGLE_Islands::instance.valid);
+
+    const auto wh = SINGLE_Islands::instance.wh;
+    const auto tilesize = SINGLE_Islands::instance.tilesize;
+    const auto offset = (int)(-wh * 0.5f);
+    const auto offset_worldspace = (int)offset * tilesize;
+    const glm::vec2 offset_mouse_pos = mouse_pos - glm::vec2{ offset_worldspace, offset_worldspace };
+
+    const auto& generated = SINGLE_Islands::instance.generated;
+    auto mouse_idx = engine::grid::worldspace_to_index({ offset_mouse_pos.x, offset_mouse_pos.y },
+                                                       SINGLE_Islands::instance.tilesize,
+                                                       SINGLE_Islands::instance.wh,
+                                                       SINGLE_Islands::instance.wh);
+    mouse_idx = glm::clamp(mouse_idx, 0, glm::max((int)generated.size() - 1, 0));
+
+    ImGui::Text("mouse: %f, %f", mouse_pos.x, mouse_pos.y);
+    ImGui::Text("offset mousepos: %f, %f", offset_mouse_pos.x, offset_mouse_pos.y);
+    ImGui::Text("mouse idx: %i", mouse_idx);
+
+    if (generated.size() > 0)
+      ImGui::Text(
+        "noise at (%i %i), idx: %f", generated[mouse_idx].xy.x, generated[mouse_idx].xy.y, generated[mouse_idx].noise);
+
+    ImGui::End();
+  }
 
 #if defined(_DEBUG)
   auto& input_c = get_first_component<SINGLE_InputComponent>(r);
-  if (get_key_down(input_c, SDL_SCANCODE_KP_7))
-    create_empty<RequestGenerateRocks>(r);
+  if (get_key_down(input_c, SDL_SCANCODE_KP_7)) {
 
-  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-  auto rock_ui = gesert_menubar_state(menu_c, "actor_rocks");
-  if (rock_ui.enabled)
-    imgui_draw_float("rock_cutoff", cutoff);
+#if defined(_DEBUG)
+    // Destroy all the old rocks.
+    for (const auto& [e, rock_c] : r.view<const RockComponent>().each())
+      r.destroy(e);
+    const auto view = r.view<TransformComponent>(entt::exclude<Persistent>);
+    for (const auto& [e, t_c] : view.each())
+      r.destroy(e);
+#endif
+
+    create_empty<RequestGenerateRocks>(r);
+  }
 
   /*
 static float im_red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -86,16 +125,10 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
   process_requests<RequestGenerateRocks>(r, [&](const auto& req) {
     SDL_Log("Request to generate rocks...");
 
-    // Destroy all the old rocks.
-    auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
-    const auto view = r.view<RockComponent>();
-    for (const auto& [e, rock_c] : view.each())
-      dead_c.dead.push_back(e);
-
     // clear the id <=> eid map
     SINGLE_Islands::instance.id_to_island_eid.clear();
 
-    generate_rocks(r, cutoff);
+    generate_rocks(r);
     draw_rocks(r);
   });
 

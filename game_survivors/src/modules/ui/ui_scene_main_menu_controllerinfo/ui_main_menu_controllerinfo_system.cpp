@@ -575,7 +575,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
     }
 
     bool all_assigned = next_free_controller >= (int)free_controllers.size();
-    if (free_controllers.size() == 0 || all_assigned) {
+    if (free_controllers.empty() || all_assigned) {
       // ImGui::SameLine();
       // ImGui::Text("No controller.");
       continue; // no more free controllers

@@ -66,7 +66,7 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
 
   figure_out_if_controllers_disconnected(r, ui_c);
 
-  ui_c.open = ui_c.handle_disconnected.size() != 0;
+  ui_c.open = !ui_c.handle_disconnected.empty();
   if (!ui_c.open)
     return;
 
@@ -229,7 +229,7 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     }
 
     // TODO: If all joined are connected, show the next button.
-    const bool button_active = ui_c.handle_disconnected.size() == 0;
+    const bool button_active = ui_c.handle_disconnected.empty();
     const ImVec2 button_size = { 160.0f, (TEXT_SIZE.y * 2.0f) + 2.0f };
 
     auto a_def = SelectableButtonDef{
