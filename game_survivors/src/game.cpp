@@ -322,7 +322,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   update_hardpoint_arcs_system(r, dt);
   update_sprite_spritestack_system(r, dt);
-  update_actor_rocks_system(r); // before update_spawner_system
+  update_actor_rocks_system(r, mouse_pos); // before update_spawner_system
 
 #if defined(_DEBUG)
   // update_debug_muzzleflash_system(r);

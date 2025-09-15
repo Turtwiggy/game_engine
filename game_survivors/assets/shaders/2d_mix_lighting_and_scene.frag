@@ -402,49 +402,6 @@ void main()
     lighting_col = d == 1e10 ? vec3(1.0): lighting_col;
   }
 
-  //
-  // the tex_map_heightmap texture is 128x128 on disk
-  // only 50x50 of them actually contain heightmap data.
-  // ingame, the heightmap area is 50x25 x 50x25 world units
-  //
-
-/*
-  out_color.rgb = vec3(1.0, 0.0, 0.0);
-
-  {
-	  float aspect_x = viewport_wh.x / viewport_wh.y;
-    vec2 tmp_uv = -1 * (2.0 * v_uv - 1.0);
-		tmp_uv.x *= aspect_x;
-		tmp_uv *= zoom;
-
-    vec2 ppos = vec2(-25*50*0.5, -25*50*0.5);
-		vec2 ss = (((ppos - screen_min)/viewport_wh) * 2.0) - 1.0;
-		ss.x *= aspect_x;
-		vec2 p = tmp_uv + ss;
-
-    float d = 0.0;
-    float tilesize = 25;
-		float tiles = 50;
-    // float si = ((tilesize * tiles) / viewport_wh.y) * 2;
-    float si = ((tilesize * tiles) / viewport_wh.y);
-    d = sdRoundSquare(p, si, 0.0);
-
-    // Now, if d > 0, we're interested in the uv coords
-    if(d <= 0.0){
-      out_color.rgb = vec3(1.0, 0.0, 0.0);
-
-      // convert d to heihtmap uv coords.
-      return;
-    }
-
-    vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
-    // col *= 1.0 - exp(-6.0*abs(d));
-    // col *= 0.8 + 0.2*cos(150.0*d);
-    // col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
-    out_color.rgb = col;
-    return;
-    */
-
   vec4 scene_lin = texture(tex_scene_0, v_uv);
   vec4 outline_col = texture(tex_outline, v_uv);
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
@@ -454,16 +411,17 @@ void main()
   vec3 col_water = lighting_col * srgb_water;
   float use_scene = sign(length(col_scene.rgb));
   out_color.rgb = mix(
-      col_water,  // Used if length(col_scene) == 0
+      // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
+      col_water - pow(heightmap_col.r, 1.5),  // Used if length(col_scene) == 0
       col_scene,  // Used if length(col_scene) > 0
       use_scene   // Binary selector (0 or 1)
   );
 
-  out_color.rgb = mix(
-    out_color.rgb,
-    heightmap_col,
-    length(heightmap_col.r)
-  );
+  // out_color.b = mix(
+  //   out_color.rgb,
+  //   heightmap_col,
+  //   length(heightmap_col.r)
+  // );
 
   // out_color.rgb = lighting_col;
   // if(outline_col.r > 0.0f) out_color.rgb = vec3(1.0, 0.0, 0.0);
@@ -489,9 +447,6 @@ void main()
     lin_to_srgb(tex_flame_col),
     length(tex_flame_col.r)
   );
-
-
-
 
   // vignette
   // if(add_vignette){

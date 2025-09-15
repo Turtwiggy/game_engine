@@ -39,9 +39,11 @@ struct DebugContoursComponent
 
 struct SINGLE_Islands
 {
-  const int wh = 50;
-  const float frequency = 0.1f;
+  const int map_size = 3000;
   const int tilesize = 25;
+  const int wh = map_size / tilesize;
+  float cutoff = 0.69f; // [0, 1]
+  float frequency = 0.1f;
 
   // the noise that generated all the islands
   std::vector<NoiseInfo> generated;

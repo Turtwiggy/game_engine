@@ -10,6 +10,7 @@
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
@@ -142,8 +143,10 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water_heightmap.reload(r);
   ri.water_heightmap.bind();
   ri.water_heightmap.set_uniform_block_binding("Data", 0);
+  ri.water_heightmap.set_bool("do_zoom", true);
   ri.water_heightmap.set_mat4("projection", camera.projection);
   ri.water_heightmap.set_int("tex_map_heightmap", ri.tex_unit_heightmap.unit);
+  ri.water_heightmap.set_float("used_tex_w", (float)SINGLE_Islands::instance.wh);
 
   ri.water.reload(r);
   ri.water.bind();

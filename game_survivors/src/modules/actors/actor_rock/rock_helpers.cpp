@@ -28,8 +28,15 @@
 #include "modules/systems/system_island_ai/island_ai_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
+#include <iterator>
 
 namespace game2d {
+
+bool
+is_island(const float noise, const float cutoff)
+{
+  return noise >= cutoff;
+};
 
 engine::SRGBColour
 lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent)
@@ -60,9 +67,20 @@ generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
     }
   }
 
+  // std::string n_str = "";
+  // for (int x = 0; x < wh; x++) {
+  //   for (int y = 0; y < wh; y++) {
+  //     n_str += std::format("{:0.2f} ", generated[x * wh + y].noise).c_str();
+  //   }
+  //   n_str += "\n";
+  // }
+  // SDL_Log("noise generated: \n %s", n_str.c_str());
+
+  /*
+
   // clang-format off
-   auto noise_it = generated 
-    | std::views::filter([cutoff](const NoiseInfo& n) { return n.noise >= cutoff; }) 
+   auto noise_it = generated
+    | std::views::filter([cutoff](const NoiseInfo& n) { return n.noise > cutoff; })
     | std::views::transform([](const NoiseInfo& n) { return n.noise; });
   // clang-format on
 
@@ -81,23 +99,80 @@ generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
   for (auto& g : generated)
     g.noise = glm::clamp(g.noise, lower, upper);
 
+  */
+
   return generated;
+};
+
+// keep generating noise until the "core" gameplay square contains noise
+std::vector<NoiseInfo>
+generate_noise__with_base_island(entt::registry& r)
+{
+  static int seed = 0;
+  const auto frequency = SINGLE_Islands::instance.frequency;
+  const auto cutoff = SINGLE_Islands::instance.cutoff;
+  // SINGLE_Islands::instance.valid = false;
+  SDL_Log("Generate noise: frequency: %f, cutoff: %f", frequency, cutoff);
+
+#if defined(_DEBUG)
+  seed++;
+#else
+  seed = engine::get_system_time_for_seed();
+#endif
+
+  std::vector<NoiseInfo> generated_final;
+
+  {
+    seed++;
+    auto generated = generate_noise(r, cutoff, frequency, seed);
+
+    // get the coordinates of any noise that is > threshold
+    auto f = generated | std::views::filter([cutoff](const NoiseInfo& n) { return is_island(n.noise, cutoff); });
+    SDL_Log("noise above cutoff %i", (int)std::distance(f.begin(), f.end()));
+
+    //
+    // check the noise so that the center is always an island.
+    //
+    const auto island_center = (int)(0.5 * SINGLE_Islands::instance.wh);
+    const auto min_x = island_center - 2;
+    const auto max_x = island_center + 2;
+
+    // SDL_Log("Island %i", i);
+
+    for (int y = min_x; y < max_x; y++) {
+      for (int x = min_x; x < max_x; x++) {
+        const auto idx = engine::grid::grid_position_to_index({ x, y }, SINGLE_Islands::instance.wh);
+
+        // overwrite noise
+        generated[idx].noise = cutoff;
+
+        // SDL_Log("(iteration)%i (seed)%i noise value: %f,", i, seed, generated[idx].noise);
+      }
+    }
+
+    generated_final = std::move(generated);
+  }
+
+  return generated_final;
 };
 
 std::vector<std::vector<NoiseInfo>>
 identify_islands(const std::vector<NoiseInfo>& generated, const float isovalue_threshold)
 {
   const auto wh = SINGLE_Islands::instance.wh;
+  const auto tilesize = (float)SINGLE_Islands::instance.tilesize;
 
   // get the coordinates of any noise that is > threshold
-  auto f =
-    generated | std::views::filter([isovalue_threshold](const NoiseInfo& n) { return n.noise >= isovalue_threshold; });
+  auto f = generated |
+           std::views::filter([isovalue_threshold](const NoiseInfo& n) { return is_island(n.noise, isovalue_threshold); });
+  SDL_Log("noise above cutoff %i", (int)std::distance(f.begin(), f.end()));
 
   std::vector<MapEntry> map_entries;
   for (int y = 0; y < wh; y++) {
     for (int x = 0; x < wh; x++) {
       const auto idx = engine::grid::grid_position_to_index({ x, y }, wh);
-      const int cost = generated[idx].noise >= isovalue_threshold ? 1.0f : -1.0f;
+      const auto land = is_island(generated[idx].noise, isovalue_threshold);
+      const int cost = land ? 1 : -1;
       map_entries.push_back(MapEntry{ .cost = cost });
     }
   }
@@ -195,7 +270,7 @@ sort_contours(const std::vector<Edge>& island_contours)
 
 ContoursOut
 generate_contours(entt::registry& r,
-                  const std::vector<NoiseInfo>& island,
+                  const std::vector<NoiseInfo>& island_noise,
                   const float tilesize,
                   const float isovalue_threshold)
 {
@@ -232,10 +307,15 @@ generate_contours(entt::registry& r,
 
   std::vector<Edge> island_contours;
 
+  // note: we search the island's noise entries, not all generated noise.
   const auto get_noise = [&](int x, int y) -> float {
-    auto it = std::find_if(island.begin(), island.end(), [&](const NoiseInfo& ni) { return ni.xy.x == x && ni.xy.y == y; });
-    auto noise = (it == island.end()) ? 0.0f : it->noise;
-    return noise >= isovalue_threshold ? noise : 0.0f;
+    auto it = std::find_if(
+      island_noise.begin(), island_noise.end(), [&](const NoiseInfo& ni) { return ni.xy.x == x && ni.xy.y == y; });
+
+    if (it == island_noise.end())
+      return 0.0f;
+
+    return is_island(it->noise, isovalue_threshold) ? 1.0f : 0.0f;
   };
 
   for (int y = 0; y < wh - 1; y++) {
@@ -380,34 +460,32 @@ upload_heightmap_to_gpu(entt::registry& r)
 };
 
 void
-generate_rocks(entt::registry& r, const float cutoff)
+generate_rocks(entt::registry& r)
 {
-  static int seed = 0;
-#if defined(_DEBUG)
-  seed++;
-#else
-  seed = engine::get_system_time_for_seed();
-#endif
-
   // note: press kp 7 to regenerate
-  SDL_Log("Generating rocks, cutoff: %f", cutoff);
   const auto frequency = SINGLE_Islands::instance.frequency;
+  const auto cutoff = SINGLE_Islands::instance.cutoff;
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   const auto wh = SINGLE_Islands::instance.wh;
+  SDL_Log("Generating rocks, cutoff: %f", cutoff);
 
   {
-    auto generated = generate_noise(r, cutoff, frequency, seed);
+    const auto generated = generate_noise__with_base_island(r);
 
-    // Modify the noise, so that the center is always an island.
-    for (int x = 22; x < 29; x++) {
-      for (int y = 22; y < 29; y++) {
-        const auto at_grid_xy = [&](NoiseInfo& info) { return info.xy == glm::ivec2{ x, y }; };
-        auto it = std::find_if(generated.begin(), generated.end(), at_grid_xy);
-        if (it == generated.end())
-          continue;
-        it->noise = 0.8; // make it solid
-      }
-    }
+    /*
+    // whats the smallest & largest noise in the distribution
+    // auto filtered = generated | std::views::filter([cutoff](const NoiseInfo& n) { return n.noise > cutoff; });
+    auto filtered = generated;
+    const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise < b.noise; };
+    const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
+    const auto max_it = std::max_element(filtered.begin(), filtered.end(), min_compare);
+
+    //  remap [min_noise, max_noise] to [0, 1];
+    // note: after remap, some of the noise would be shifted below cutoff.
+    // for (auto noise : generated)
+    //   noise.noise = engine::scale(noise.noise, min_it->noise, max_it->noise, 0.0f, 1.0f);
+    SDL_Log("Min noise: %f, Max noise: %f", min_it->noise, max_it->noise);
+    */
 
     SINGLE_Islands::instance.generated = std::move(generated);
   }
@@ -448,7 +526,7 @@ generate_rocks(entt::registry& r, const float cutoff)
     i++;
   }
 
-  SDL_Log("Spawned: %i rocks", r.view<const RockComponent>().size());
+  SDL_Log("Spawned: %i rocks", (int)r.view<const RockComponent>().size());
 
   // Upload the heightmap data to the gpu.
   SDL_Log("Uploading heightmap data to gpu");
@@ -510,14 +588,6 @@ generate_island_interior(entt::registry& r)
   const auto& generated = islands_c.generated;
   const auto tilesize = islands_c.tilesize;
   const float half_tilesize = tilesize * 0.5f;
-
-  // whats the smallest & largest noise in the distribution
-  // auto filtered =
-  //   generated | std::views::filter([isovalue_threshold](const NoiseInfo& n) { return n.noise >= isovalue_threshold; });
-  // const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise < b.noise; };
-  // const auto max_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise > b.noise; };
-  // const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
-  // const auto max_it = std::min_element(filtered.begin(), filtered.end(), max_compare);
 
   // given each island...
   for (const auto [island_e, island_c, bb_c, contours_c] :
@@ -588,7 +658,7 @@ get_center_island_eid(entt::registry& r)
 
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   const auto wh = SINGLE_Islands::instance.wh;
-  const auto center_worldspace = glm::vec2{ 0, 0 }; // base island hould always have a tile at 0, 0
+  const auto center_worldspace = glm::vec2{ 0, 0 }; // base island should always have a tile at 0, 0
   const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace, tilesize);
   const auto center_id = engine::encode_cantor_pairing_function(center_gridspace.x, center_gridspace.y);
   const auto center_eid = SINGLE_Islands::instance.id_to_island_eid.at(center_id);

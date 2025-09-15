@@ -7,6 +7,8 @@
 #include "engine/renderer/transform.hpp"
 #include "lifesteal_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
+#include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 
 namespace game2d {
 
@@ -26,8 +28,24 @@ handle_damage_event_lifesteal(entt::registry& r, const DamageEvent& evt)
   if (!bullet_lifesteal_c)
     return;
 
-  const auto wep_e = r.get<HasParentComponent>(evt.from).parent;
+  const auto bul_e = evt.from;
+  const auto wep_e = r.get<HasParentComponent>(bul_e).parent;
   const auto par_e = r.get<HasParentComponent>(wep_e).parent;
+
+#if defined(_DEBUG)
+  // note: BulletComponent is attached to the Fixture
+  // if (r.all_of<BulletComponent>(evt.from else
+  // {
+  const auto valid = r.valid(evt.from);
+  const auto& tag_c = r.get<TagComponent>(bul_e);
+  const auto& tag_c2 = r.get<TagComponent>(wep_e);
+  const auto& tag_c3 = r.get<TagComponent>(par_e);
+  //   const std::string err = std::format("Error: unknown evt.from for {}", tag_c.tag);
+  //   SDL_Log("%s", err.c_str());
+  //   throw std::runtime_error(err);
+  // }
+#endif
+
   const auto par_fixture_e = get_fixture_by_tag(r, par_e, "fixture_player");
 
   // do the lifesteal

@@ -2,6 +2,7 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
@@ -64,16 +65,17 @@ setup_water_heightmap_update(entt::registry& r)
       {
         engine::quad_renderer::RenderDescriptor desc;
 
-        // todo: replace with proper values
-        desc.pos_tl = { -25 * 50 * 0.5f, -25 * 50 * 0.5f };
-        desc.size = { 25 * 50, 25 * 50 };
+        const auto size = island_c.tilesize;
+        const auto wh = island_c.wh;
 
-        // desc.colour = mask_colour;
-        // desc.tex_unit = sc.tex_unit;
+        static auto pos_tl = glm::vec2{ -size * wh * 0.5f, -size * wh * 0.5f };
+        static auto pos_wh = glm::vec2{ size * wh, size * wh };
 
-        // desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
-        // desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
-        // desc.sprites_max = { sc.total_sx, sc.total_sy };
+        // imgui_draw_vec2("pos_tl", pos_tl);
+        // imgui_draw_vec2("pos_wh", pos_wh);
+
+        desc.pos_tl = pos_tl;
+        desc.size = pos_wh;
 
         ri.renderer.draw_sprite(desc, ri.water_heightmap);
       }

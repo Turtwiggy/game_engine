@@ -84,7 +84,7 @@ struct SINGLE_RendererInfo
   // int tex_unit_circles = 0;
   int tex_unit_ubo_data = 0;
 
-  int heightmap_texture_wh = 128;
+  int heightmap_texture_wh = 256;
   engine::TextureId tex_id_heightmap;
   engine::TextureUnit tex_unit_heightmap;
 

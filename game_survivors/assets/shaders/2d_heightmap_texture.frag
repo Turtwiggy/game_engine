@@ -15,6 +15,7 @@ in VS_OUT
 } fs_in;
 
 uniform sampler2D tex_map_heightmap;
+uniform float used_tex_w;
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
@@ -26,6 +27,12 @@ layout(std140) uniform Data {
   float tilesize;
 };
 
+float scale(float value, float inMin, float inMax, float outMin, float outMax) {
+  float clampedValue = clamp(value, inMin, inMax);
+  float normalized = (clampedValue - inMin) / (inMax - inMin);
+  return outMin + normalized * (outMax - outMin);
+}
+
 void main()
 {
   vec2 v_uv = fs_in.v_uv;
@@ -36,19 +43,37 @@ void main()
   vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
-  // note: only 50/128 of the texture is used for heightmap
-  // the rest is for water normal map
-  // so we need to scale the uv coords
-  v_uv *= (50.0/128.0);
-  // v_uv *= vec2(50.0/128.0, 1.0f);
+  vec2 uv = v_uv;
 
-  float height = texture(tex_map_heightmap, v_uv).r;
+  // note: only some of the heightmap texture is used
+  uv *= (used_tex_w/vec2(textureSize(tex_map_heightmap, 0)).x);
+  
+  float height = texture(tex_map_heightmap, uv).r;
+  
   //  if(height > 0.7)
   //   out_color.rgb = vec3(0.0f, 0.0f, 0.0f);
   // else if(height > 0.68)
   //   out_color.rgb = vec3(1.0f, 0.0f, 1.0f);
   // else
-    out_color.rgb = vec3(pow(height, 3) - 0.1, 0.0f, 0.0f);
+
+  // if(height >= 0.64) {
+  //   // out_color.r = 1.0 - 0.64;
+  //   // out_color.r = pow(height, 2) - 0.1;
+  //   // out_color.r = 1.0;
+  //   // out_color.a = 0.5f;
+  //   // out_color.a = 1.0f;
+  //   // return;
+  // }
+  // else{
+  //   // out_color.r = 1.0f;
+  //   // scale [0, X] to [1, 0];
+  //   // out_color.r =  scale(height, 0.0, 0.60, 0.0, 1.0);
+  //   // out_color.gb = vec2(0.0f);
+  //   // out_color.r = 1.0 - height;
+  // }
+
+  // out_color.r = 0.6 - height;
+  out_color.r = height - 0.4;
 
   // out_color.rgb = vec3(1.0f, 1.0f, 0.0f);
   out_color.a = 1.0f;
