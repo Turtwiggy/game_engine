@@ -4,8 +4,6 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 
-#include <gtest/gtest.h>
-
 TEST(TestSuite, AABB_Contains)
 {
   // arrange

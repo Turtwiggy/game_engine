@@ -15,6 +15,8 @@ struct HasChildrenComponent
 struct HasParentComponent
 {
   entt::entity parent = entt::null;
+
+  bool destroy_parent_on_cleanup = true;
 };
 
 struct EntityTimedLifecycle

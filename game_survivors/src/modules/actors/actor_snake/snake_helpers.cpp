@@ -85,8 +85,11 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
 
     // create targets
     snake_c.target_e_0 = spawn(r, "empty");
+    r.get<TagComponent>(snake_c.target_e_0).tag = "snake_target_e_0";
     give_life(r, snake_c.target_e_0, { 100, 100 }, { 0, 0 });
+
     snake_c.target_e_1 = spawn(r, "empty");
+    r.get<TagComponent>(snake_c.target_e_1).tag = "snake_target_e_1";
     give_life(r, snake_c.target_e_1, { -100, -100 }, { 0, 0 });
 
     r.emplace<SnakeData>(segment_e, snake_c);
@@ -100,7 +103,7 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
   set_position(r, segment_e, pos);
   set_colour(r, segment_e, { 255, 255, 255, 255 });
   if (previous_e != entt::null) {
-    r.emplace<HasParentComponent>(segment_e, previous_e);
+    r.emplace<HasParentComponent>(segment_e, HasParentComponent{ .parent = previous_e, .destroy_parent_on_cleanup = false });
     r.emplace<HasChildrenComponent>(previous_e, HasChildrenComponent{ { segment_e } });
   }
 

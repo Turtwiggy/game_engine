@@ -1,7 +1,6 @@
 #include "pch.hpp"
 
 #include "modules/core/options/options_components.hpp"
-#include <gtest/gtest.h>
 
 namespace game2d {
 

@@ -2,8 +2,6 @@
 
 #include "engine/maths/grid.hpp"
 
-#include <gtest/gtest.h>
-
 // Logical	    ASSERT_TRUE(condition)
 //              ASSERT_FALSE(condition)
 // General comparison	ASSERT_EQ(expected, actual) / ASSERT_NE(val1, val2)

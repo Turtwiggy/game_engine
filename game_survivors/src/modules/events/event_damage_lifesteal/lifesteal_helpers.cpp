@@ -30,6 +30,8 @@ handle_damage_event_lifesteal(entt::registry& r, const DamageEvent& evt)
 
   const auto bul_e = evt.from;
   const auto wep_e = r.get<HasParentComponent>(bul_e).parent;
+  if (!r.valid(wep_e))
+    return; // weapon was destroyed
   const auto par_e = r.get<HasParentComponent>(wep_e).parent;
 
 #if defined(_DEBUG)
@@ -39,12 +41,16 @@ handle_damage_event_lifesteal(entt::registry& r, const DamageEvent& evt)
   const auto valid = r.valid(evt.from);
   const auto& tag_c = r.get<TagComponent>(bul_e);
   const auto& tag_c2 = r.get<TagComponent>(wep_e);
-  const auto& tag_c3 = r.get<TagComponent>(par_e);
-  //   const std::string err = std::format("Error: unknown evt.from for {}", tag_c.tag);
-  //   SDL_Log("%s", err.c_str());
-  //   throw std::runtime_error(err);
-  // }
+//   const std::string err = std::format("Error: unknown evt.from for {}", tag_c.tag);
+//   SDL_Log("%s", err.c_str());
+//   throw std::runtime_error(err);
+// }
 #endif
+  const auto& tag_c3 = r.get<TagComponent>(par_e);
+
+  // assume for the moment that only the player has lifesteal bullets
+  if (tag_c3.tag != "actor_player")
+    return;
 
   const auto par_fixture_e = get_fixture_by_tag(r, par_e, "fixture_player");
 

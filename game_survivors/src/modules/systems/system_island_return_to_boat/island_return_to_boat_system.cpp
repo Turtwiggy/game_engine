@@ -58,6 +58,11 @@ update_island_return_to_boat_system(entt::registry& r)
 
     // add back control to your boat.
     auto boat_e = movement_c.boat_e;
+
+    // the boat has been destroyed
+    if (!r.valid(boat_e))
+      return;
+
     r.remove<DroppedAnchorComponent>(boat_e);
     r.emplace<MovementDirectComponent>(boat_e);
 

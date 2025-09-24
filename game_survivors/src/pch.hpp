@@ -65,6 +65,7 @@
 #include <steam/steam_api_flat.h>
 
 #if defined(_DEBUG)
+#include <gtest/gtest.h>
 #include <tracy/Tracy.hpp>
 #endif
 

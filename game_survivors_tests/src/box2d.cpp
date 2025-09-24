@@ -8,8 +8,6 @@
 #include "modules/core/renderer/system.hpp"
 #include "resources/resources.hpp"
 
-#include <gtest/gtest.h>
-
 namespace game2d {
 
 namespace tests {

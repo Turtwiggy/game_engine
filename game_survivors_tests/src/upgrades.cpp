@@ -3,8 +3,6 @@
 #include "engine/maths/grid.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 
-#include <gtest/gtest.h>
-
 namespace game2d {
 
 namespace tests {

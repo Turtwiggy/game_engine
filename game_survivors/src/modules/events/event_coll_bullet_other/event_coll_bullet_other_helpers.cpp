@@ -34,12 +34,17 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   entt::entity bullet_e_parent = bullet_fixture_e;
   if (auto* has_parent_c = r.try_get<HasParentComponent>(bullet_fixture_e))
     bullet_e_parent = has_parent_c->parent;
-  const auto& parent_tag = r.get<TagComponent>(other_e_parent).tag;
+
+#if defined(_DEBUG)
+// const auto& parent_tag = r.get<TagComponent>(other_e_parent).tag;
+#endif
   const auto& fixture_tag = r.get<TagComponent>(other_fixture_e).tag;
 
   const auto& bullet_team_c = r.get<TeamComponent>(bullet_e_parent);
-  const auto& other_team_c = r.get<TeamComponent>(other_e_parent);
-  if (bullet_team_c.team == other_team_c.team)
+  const auto* other_team_c = r.try_get<TeamComponent>(other_e_parent);
+  if (!other_team_c)
+    return; // e.g. the flamethrower flame has a fixture but no team
+  if (bullet_team_c.team == other_team_c->team)
     return; // dont damage same team
 
   // Make sure fixture is valid
@@ -133,7 +138,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   // knockback applies to "core" and "shield"
   if (fixture_tag == "fixture_core" || fixture_tag == "shield") {
     // Knockback the enemy
-    if (other_team_c.team == AvailableTeams::enemy) {
+    if (other_team_c->team == AvailableTeams::enemy) {
       const auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);
       const auto raw_dir = get_position(r, other_e_parent) - get_position(r, bullet_e_parent);
       const auto nrm_dir = engine::normalize_safe(raw_dir);
