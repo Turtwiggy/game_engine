@@ -34,7 +34,7 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   };
   callbacks_c.callbacks.push_back(spawn_particles_callback);
 
-  r.emplace<HasParentComponent>(bullet_e, HasParentComponent{ parent_e });
+  r.emplace<HasParentComponent>(bullet_e, HasParentComponent{ .parent = parent_e, .destroy_parent_on_cleanup = false });
 
   auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
   r.emplace<BulletComponent>(fixture_e);

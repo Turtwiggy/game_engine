@@ -70,8 +70,8 @@ float brightness = 1.2; // When adding scanline gaps and grille the image can ge
 bool discolor = false; // Add a discolor effect simulating a VHS
 float warp_amount = 1.0; // Warp the texture edges simulating the curved glass of a CRT monitor or old TV.
 bool clip_warp = true;
-float vignette_intensity = 0.3; // Size of the vignette, how far towards the middle it should go.
-float vignette_opacity = 0.5;
+// float vignette_intensity = 0.3; // Size of the vignette, how far towards the middle it should go.
+// float vignette_opacity = 0.5;
 
 // Used by the noise functin to generate a pseudo random value between 0.0 and 1.0
 vec2 random(vec2 uv){
@@ -115,11 +115,11 @@ float border (vec2 uv){
 }
 
 // Adds a vignette shadow to the edges of the image
-float vignette(vec2 uv){
-	uv *= 1.0 - uv.xy;
-	float vignette = uv.x * uv.y * 15.0;
-	return pow(vignette, vignette_intensity * vignette_opacity);
-}
+// float vignette(vec2 uv){
+// 	uv *= 1.0 - uv.xy;
+// 	float vignette = uv.x * uv.y * 15.0;
+// 	return pow(vignette, vignette_intensity * vignette_opacity);
+// }
 
 void
 main()
@@ -247,8 +247,9 @@ main()
 
 	// Apply a black border to hide imperfections caused by the warping.
 	// Also apply the vignette
-	text.rgb *= border(uv);
-	text.rgb *= vignette(uv);
+	// text.rgb *= border(uv);
+	// text.rgb *= vignette(uv);
+
 	// Hides the black border and make that area transparent. Good if you want to add the the texture on top an image of a TV or monitor.
 	if (clip_warp)
 	{

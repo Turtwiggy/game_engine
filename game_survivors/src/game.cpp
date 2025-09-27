@@ -135,6 +135,7 @@
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_system.hpp"
 #include "modules/ui/ui_scene_survive_xp_bar/ui_survive_xp_bar_system.hpp"
+#include "modules/ui/ui_triangle_editor/ui_triangle_editor_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
@@ -438,6 +439,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
+    // update_ui_triangle_editor_system(r);
     update_ui_debug_elemental_system(r);
     update_ui_debug_menubar_system(r);
     update_ui_debug_upgrades_system(r);

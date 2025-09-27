@@ -13,6 +13,9 @@ setup_water_heightmap_update(entt::registry& r);
 void
 setup_water_update(entt::registry& r);
 
+void
+setup_triangle_update(entt::registry& r);
+
 // FBO: Render sprites in to this fbo with linear colour
 void
 setup_linear_main_update(entt::registry& r);

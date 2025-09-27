@@ -56,6 +56,16 @@ struct SINGLE_Animations
   static SINGLE_Animations instance;
 };
 
+struct SpriteTriangleComponent
+{
+  glm::vec2 a{ 0, 0 };
+  glm::vec2 b{ 0, 0 };
+  glm::vec2 c{ 0, 0 };
+  engine::LinearColour a_colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
+  engine::LinearColour b_colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f));
+  engine::LinearColour c_colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f));
+};
+
 // Used by renderer
 struct SpriteComponent
 {

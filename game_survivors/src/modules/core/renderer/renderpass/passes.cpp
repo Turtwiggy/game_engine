@@ -13,6 +13,7 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
+#include "modules/core/renderer/helpers/batch_triangle.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 
 namespace game2d {
@@ -168,6 +169,47 @@ setup_floor_mask_update(entt::registry& r)
 };
 
 void
+setup_triangle_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::triangles);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    auto& ri = SINGLE_RendererInfo::instance;
+    // const auto camera_e = get_first<OrthographicCamera>(r);
+    // const auto& camera_t = r.get<const TransformComponent>(camera_e);
+    // const auto& camera_c = r.get<const OrthographicCamera>(camera_e);
+
+    // render triangles
+    {
+      ri.tri_renderer.reset_vert_count();
+      ri.tri_renderer.begin_batch();
+
+      auto view = r.view<const TransformComponent, const SpriteTriangleComponent>();
+      for (const auto& [e, t_c, sc_c] : view.each()) {
+
+        engine::tri_renderer::TriangleDescriptor desc;
+        desc.point_0 = sc_c.a;
+        desc.point_1 = sc_c.b;
+        desc.point_2 = sc_c.c;
+        desc.point_0_colour = sc_c.a_colour;
+        desc.point_1_colour = sc_c.b_colour;
+        desc.point_2_colour = sc_c.c_colour;
+
+        ri.tri_renderer.draw_sprite(desc, ri.instanced_tri);
+      }
+
+      ri.tri_renderer.end_batch();
+      ri.tri_renderer.flush(ri.instanced_tri);
+    }
+  };
+};
+
+void
 setup_linear_main_update(entt::registry& r)
 {
   auto& ri = SINGLE_RendererInfo::instance;
@@ -180,9 +222,9 @@ setup_linear_main_update(entt::registry& r)
 #endif
 
     auto& ri = SINGLE_RendererInfo::instance;
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<const TransformComponent>(camera_e);
-    const auto& camera_c = r.get<const OrthographicCamera>(camera_e);
+    // const auto camera_e = get_first<OrthographicCamera>(r);
+    // const auto& camera_t = r.get<const TransformComponent>(camera_e);
+    // const auto& camera_c = r.get<const OrthographicCamera>(camera_e);
 
     // glEnable(GL_BLEND);
     // glEnable(GL_DEPTH_TEST);

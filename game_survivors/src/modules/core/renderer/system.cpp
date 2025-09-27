@@ -126,6 +126,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_shine_shells = get_tex_unit(PassName::shine);
   const int tex_unit_flame = get_tex_unit(PassName::flame);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
+  const int tex_unit_triangles = get_tex_unit(PassName::triangles);
   // const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
@@ -172,10 +173,15 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     const auto& tex = ri.user_textures[i];
     ri.instanced.set_int("u_textures[" + std::to_string(i) + "]", tex.tex_unit.unit);
   }
-
   // ri.instanced.set_int("tex_fluid", tex_unit_fluid);
   // ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
   // ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
+
+  ri.instanced_tri.reload(r);
+  ri.instanced_tri.bind();
+  ri.instanced_tri.set_uniform_block_binding("Data", 0);
+  ri.instanced_tri.set_bool("do_zoom", true);
+  ri.instanced_tri.set_mat4("projection", camera.projection);
 
   ri.shine.reload(r);
   ri.shine.bind();
@@ -241,6 +247,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_bool("is_fullscreen", true);
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
+  ri.mix_lighting_and_scene.set_int("tex_triangles", tex_unit_triangles);
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
@@ -311,6 +318,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::water_heightmap));
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
+  ri.passes.push_back(RenderPass(PassName::triangles));
   // ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
@@ -318,7 +326,6 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::sprites_with_shield));
   ri.passes.push_back(RenderPass(PassName::shine));
   ri.passes.push_back(RenderPass(PassName::flame));
-
   // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // // Use the Jump flood algorithm to generate a voroi diagram,
   // // then convert that in to a distance field
@@ -385,6 +392,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.water_heightmap = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_heightmap_texture.frag");
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.instanced_tri = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_instanced_tri.frag");
   ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
   ri.flame = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_flame.frag");
   ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
@@ -411,6 +419,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
 
   // init(): create a dynamic VBO
   ri.renderer.init();
+  ri.tri_renderer.init();
 
   // generate ubo
   {
@@ -452,6 +461,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_water_heightmap_update(r);
   setup_water_update(r);
   setup_floor_mask_update(r);
+  setup_triangle_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
   setup_outline_update(r);
@@ -462,9 +472,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
   // setup_voronoi_distance_field_update(r);
-
   setup_fluidsim_update(r);
-
   setup_mix_lighting_and_scene_update(r);
   setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
@@ -599,7 +607,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::clear();
 
     // Which pass to render finally?
-    const PassName p = PassName::mix_lighting_and_scene;
+    const PassName p = PassName::crt_effect;
 
     // Note: ImGui::Image takes in TexID not TexUnit
     const auto& pass = ri.passes[(int)p];
@@ -682,6 +690,7 @@ end_frame_render_system(entt::registry& r)
 {
   auto& ri = SINGLE_RendererInfo::instance;
   ri.renderer.end_frame();
+  ri.tri_renderer.end_frame();
 };
 
 } // namespace game2d

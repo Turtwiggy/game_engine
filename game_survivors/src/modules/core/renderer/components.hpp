@@ -5,6 +5,7 @@
 #include "engine/opengl/texture.hpp"
 #include "modules/core/renderer/fluidsim/components.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
+#include "modules/core/renderer/helpers/batch_triangle.hpp"
 
 #include "imgui.h"
 #include <entt/fwd.hpp>
@@ -30,6 +31,7 @@ enum class PassName
   water_heightmap,
   water,
   floor_mask,
+  triangles,
   linear_main,
   sprites_to_outline,
   outline,
@@ -90,6 +92,7 @@ struct SINGLE_RendererInfo
 
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;
+  engine::tri_renderer::TriangleRenderer tri_renderer;
 
   // fluidsim
   FluidSimData fluid_sim;
@@ -98,6 +101,7 @@ struct SINGLE_RendererInfo
   engine::Shader water_heightmap;
   engine::Shader water;
   engine::Shader instanced;
+  engine::Shader instanced_tri;
   engine::Shader shine;
   engine::Shader flame;
   engine::Shader lighting_emitters_and_occluders;

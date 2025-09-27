@@ -49,7 +49,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 
   // Make sure fixture is valid
   {
-    const auto valid_fixture_tags = std::vector<std::string>{ "fixture_core", "fixture_player" };
+    const auto valid_fixture_tags = std::vector<std::string>{ "fixture_core", "fixture_player", "fixture_shield" };
     const auto it = std::find(valid_fixture_tags.begin(), valid_fixture_tags.end(), fixture_tag);
     if (it == valid_fixture_tags.end())
       return;
@@ -110,15 +110,14 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
 
   // Reverse yo velocity
   // Note: this should work as bullets only collide once with enemies.
-  if (auto* bullet_bounce_c = r.try_get<BulletBounce>(bullet_e_parent)) {
-    if (bullet_bounce_c->bounces_left > 0) {
-      reverse_velocity();
-      bullet_bounce_c->bounces_left--;
-    }
+  auto* bullet_bounce_c = r.try_get<BulletBounce>(bullet_e_parent);
+  if (bullet_bounce_c && bullet_bounce_c->bounces_left > 0) {
+    reverse_velocity();
+    bullet_bounce_c->bounces_left--;
   } else if (is_scenery) {
     reverse_velocity();
 
-  } else if (fixture_tag == "shield") {
+  } else if (fixture_tag == "fixture_shield") {
     reverse_velocity();
 
     if (!hp_c) {
@@ -136,7 +135,7 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   }
 
   // knockback applies to "core" and "shield"
-  if (fixture_tag == "fixture_core" || fixture_tag == "shield") {
+  if (fixture_tag == "fixture_core" || fixture_tag == "fixture_shield") {
     // Knockback the enemy
     if (other_team_c->team == AvailableTeams::enemy) {
       const auto& enemy_body_c = r.get<PhysicsBodyComponent>(other_e_parent);

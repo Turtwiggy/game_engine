@@ -544,6 +544,17 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_GameoverUI>(r);
     create_empty<RequestGameTrack>(r);
 
+    // create a triangle.
+    auto e = spawn(r, "empty");
+    give_life(r, e, { 0, 0 });
+    r.remove<SpriteComponent>(e);
+    SpriteTriangleComponent spr = {
+      .a = { 0, 0 },
+      .b = { 100, 0 },
+      .c = { 50, 100 },
+    };
+    r.emplace<SpriteTriangleComponent>(e, spr);
+
     spawn_islands(r); // before spawn_players
 
     /*

@@ -79,7 +79,7 @@ public:
   int draw_calls() const;
 
 private:
-  constexpr static int max_quad = 20'000;
+  constexpr static int max_quad = 5'000;
   constexpr static int max_quad_vert_count = max_quad * 4;
   constexpr static int max_quad_index_count = max_quad * 6;
 };

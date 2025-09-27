@@ -75,7 +75,7 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   // turret-specific components
   r.emplace<EntityTimedLifecycle>(turret_e, 6 * 1000);
   r.emplace<AutofireComponent>(turret_e);
-  r.emplace<HasParentComponent>(turret_e, player_e);
+  r.emplace<HasParentComponent>(turret_e, HasParentComponent{ .parent = player_e, .destroy_parent_on_cleanup = false });
 
   // note: this is basically the "KEEP_DISTANCE" trait
   if (has(behaviours, WeaponBehaviour::TURRET_FOLLOW_PLAYER)) {

@@ -209,7 +209,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
         { "tag": "fixture_core", "type": "box", "is_sensor": false, "offset":[{"x":0, "y":8}], "size": [{"x":32, "y": 16}]},
-        { "tag": "shield", "type": "box", "is_sensor": false, "offset":[{"x":0, "y":-8}], "size": [{"x":32, "y": 16}]}
+        { "tag": "fixture_shield", "type": "box", "is_sensor": false, "offset":[{"x":0, "y":-8}], "size": [{"x":32, "y": 16}]}
       ]
     },
     // red claw crab
@@ -221,7 +221,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
         { "tag": "fixture_core", "type": "box", "is_sensor": false, "offset":[{"x":-8, "y":0}], "size": [{"x":16, "y": 32}]},
-        { "tag": "shield", "type": "box", "is_sensor": false, "offset":[{"x":8, "y":0}], "size": [{"x":16, "y": 32}]}
+        { "tag": "fixture_shield", "type": "box", "is_sensor": false, "offset":[{"x":8, "y":0}], "size": [{"x":16, "y": 32}]}
       ]
     },
     // anglerfish
@@ -246,6 +246,7 @@
         { "tag": "fixture_core", "type": "box", "is_sensor": false, "size": [{"x":96, "y": 64}] }
       ]
     },
+    // exploder
     {
       "name": "actor_enemy_exploder",
       "speed": 2.0,
@@ -254,6 +255,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
+    // projectile
     {
       "name": "actor_enemy_projectile",
       "speed": 1.0,
@@ -262,6 +264,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
+    // swarmlord
     {
       "name": "actor_enemy_swarmlord",
       "speed": 1.0,
@@ -270,6 +273,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
+    // swarmlord minion
     {
       "name": "actor_enemy_swarmlord_minion",
       "speed": 2.0,
@@ -278,6 +282,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
+    // grower
     {
       "name": "actor_enemy_grower",
       "speed": 0.0,
@@ -286,6 +291,7 @@
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
+    // charger
     {
       "name": "actor_enemy_charger",
       "speed": 1.0,
@@ -294,6 +300,7 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
+    // destructable
     {
       "name": "actor_destructable",
       "renderable": { "sprite": "OYSTER", "colour": "white" },

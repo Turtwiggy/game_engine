@@ -14,6 +14,7 @@ in VS_OUT
   vec2 v_vertex;
 } fs_in;
 
+uniform sampler2D tex_triangles;
 uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
@@ -410,6 +411,7 @@ void main()
   vec3 col_scene = lin_to_srgb( lighting_col * scene_lin.rgb );
   vec3 col_water = lighting_col * srgb_water;
   float use_scene = sign(length(col_scene.rgb));
+  
   out_color.rgb = mix(
       // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
       col_water - pow(heightmap_col.r, 1.5),  // Used if length(col_scene) == 0
@@ -425,14 +427,21 @@ void main()
 
   // out_color.rgb = lighting_col;
   // if(outline_col.r > 0.0f) out_color.rgb = vec3(1.0, 0.0, 0.0);
-  out_color.rgb = mix(
-      out_color.rgb,           
-      vec3(1.0, 0.0, 0.0),     // Red (used if condition is true)
-      sign(outline_col.r) // 1.0 if outline_col.r > 0.0, else 0.0
-  );
+  // out_color.rgb = mix(
+  //     out_color.rgb,           
+  //     vec3(1.0, 0.0, 0.0),     // Red (used if condition is true)
+  //     sign(outline_col.r) // 1.0 if outline_col.r > 0.0, else 0.0
+  // );
 
-  out_color.rgb += grid_col;
+  // islands.
+  vec3 triangle_lin = texture(tex_triangles, v_uv).rgb;
+  vec3 col_triangle = lin_to_srgb(triangle_lin);
+  out_color.rgb += col_triangle;
 
+  // grid
+  // out_color.rgb += grid_col;
+
+  // shiney shells
   vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
   // if(tex_shells.r > 0.0) out_color.rgb = lin_to_srgb(tex_shells);
   out_color.rgb = mix(
@@ -440,7 +449,8 @@ void main()
     lin_to_srgb(tex_shells), 
     length(tex_shells.r)
   );
-
+  
+  // flames
   vec3 tex_flame_col = texture(tex_flame, v_uv).rgb;
   out_color.rgb = mix(
     out_color.rgb,
@@ -453,7 +463,7 @@ void main()
   vec2 vig_uv = fragCoord.xy / iResolution.xy;
   vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
   float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
-  vig = pow(vig, 0.1); // change pow for modifying the extend of the  vignettea
+  vig = pow(vig, 0.4); // change pow for modifying the extend of the  vignettea
   out_color.rgb *= vig;
   // }
 
