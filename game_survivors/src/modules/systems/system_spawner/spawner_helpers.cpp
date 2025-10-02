@@ -125,7 +125,7 @@ rnd_position_in_map_but_not_inside_players_or_islands(entt::registry& r)
 {
   const int attempts = 5;
   const float map_x = 800;
-  const float map_tilesize = 50;
+  const float map_tilesize = 32;
 
   const auto get_players_gridpos = [&]() -> std::vector<glm::ivec2> {
     std::vector<glm::ivec2> gridpos;

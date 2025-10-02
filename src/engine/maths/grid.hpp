@@ -53,8 +53,8 @@ gridspace_to_worldspace_center(const glm::ivec2 pos, const int grid_size)
 [[nodiscard]] inline glm::ivec2
 worldspace_to_gridspace(const glm::vec2& pos, const int grid_size)
 {
-  const int grid_x = static_cast<int>(glm::abs(pos.x) / static_cast<float>(grid_size));
-  const int grid_y = static_cast<int>(glm::abs(pos.y) / static_cast<float>(grid_size));
+  const int grid_x = (int)((int)glm::abs(pos.x) / ((float)grid_size));
+  const int grid_y = (int)((int)glm::abs(pos.y) / ((float)grid_size));
   if (pos.x >= 0 && pos.y >= 0)
     return { grid_x, grid_y };
 

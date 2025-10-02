@@ -144,8 +144,8 @@ void main()
 		ss.x *= aspect_x;
 		vec2 p = tmp_uv + ss;
 
-		float tilesize = 50;
-		float tiles = 18;
+		float tilesize = 32;
+		float tiles = 20;
 		float radius = ((tilesize * tiles) / viewport_wh.y) * 2;
 		d = sdfCircle(p, radius);
 	}
@@ -166,8 +166,9 @@ void main()
 	d = clamp(d, -1, 1); 
 
 	// Multiply intensity values by a colour curve based off the uv
-	t *= exp(-length2(abs(0.7*tex_uv - 1.0))); // add gradient
-	
+	// t *= exp(-length2(abs(0.7*tex_uv - 1.0))); // add gradient
+	t *= exp(-length2(abs(0.7*vec2(0.60) - 1.0)));	
+
 	vec3 col = vec3(0.0);
 
 	vec3 water_col = vec3(

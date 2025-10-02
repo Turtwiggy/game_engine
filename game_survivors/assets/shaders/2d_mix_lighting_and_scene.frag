@@ -14,7 +14,8 @@ in VS_OUT
   vec2 v_vertex;
 } fs_in;
 
-uniform sampler2D tex_triangles;
+uniform sampler2D tex_island_triangles;
+uniform sampler2D tex_island_shore;
 uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
@@ -265,7 +266,7 @@ void main()
   // if(add_grid) 
   {
     float aspect_y = viewport_wh.y / viewport_wh.x;
-    float grid_size = 50.0;
+    float grid_size = 32.0;
 
     // shift uv to [-0.5, 0.5] to add uvs surrouding the camera position
     vec2 uv = v_uv - 0.5;
@@ -285,7 +286,7 @@ void main()
     if(abs(sdGrid(grid_p, margin)) >= grid_width)
       grid_col = vec3(0.0);  // background
     else
-      grid_col = vec3(0.04); // line
+      grid_col = vec3(0.03); // line
   }
 
   //
@@ -328,7 +329,7 @@ void main()
       {
         // problem: when radius is 1.0, the circle fills up the whole of the viewport.
         // but I want the radius to always be consistent amount of pixels independant of screensize
-        float desired_pixel_radius = 50.0 * 12;
+        float desired_pixel_radius = 32.0 * 15;
         float radius = (desired_pixel_radius / viewport_wh.y); // normalized to NDC
 
         d0 = sdCircle(p, radius);
@@ -403,21 +404,51 @@ void main()
     lighting_col = d == 1e10 ? vec3(1.0): lighting_col;
   }
 
-  vec4 scene_lin = texture(tex_scene_0, v_uv);
-  vec4 outline_col = texture(tex_outline, v_uv);
+  // islands.
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
+  vec3 island_lin = texture(tex_island_triangles, v_uv).rgb;
+  vec3 scene_lin = texture(tex_scene_0, v_uv).rgb;
+  vec4 outline_col = texture(tex_outline, v_uv);
   vec3 heightmap_col = texture(tex_map_heightmap, v_uv).rgb;
 
-  vec3 col_scene = lin_to_srgb( lighting_col * scene_lin.rgb );
   vec3 col_water = lighting_col * srgb_water;
-  float use_scene = sign(length(col_scene.rgb));
-  
+  vec3 col_triangle = lighting_col * lin_to_srgb( island_lin );
+  vec3 col_scene = lighting_col * lin_to_srgb( scene_lin );
+  vec3 col_island_shore = lighting_col * texture(tex_island_shore, v_uv).rgb;
+
+  // noise is roughly [0, 0.8]
+  float heightmap = heightmap_col.r;
+  heightmap = clamp(heightmap, 0, 1);
+
+  // if(heightmap > 0.69)
+  //   out_color.rgb = vec3(1)*(heightmap);
+  // else if(heightmap > 0.68)
+  //   out_color.rgb = vec3(1.0);
+  // else
+  //   // out_color.rgb = vec3(42/255.0f, 196/255.0f, 182/255.0f)*(1.0 - heightmap);
+  //   out_color.rgb = vec3(10/255.0f, 0/255.0f, 0/255.0f)*(1.0 - heightmap);
+  // out_color.r = heightmap;
+
+  // add the water
   out_color.rgb = mix(
-      // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
-      col_water - pow(heightmap_col.r, 1.5),  // Used if length(col_scene) == 0
-      col_scene,  // Used if length(col_scene) > 0
-      use_scene   // Binary selector (0 or 1)
+    out_color.rgb,
+    // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
+    // col_water * (1.0 + (pow(heightmap, 4.0))),  // Used if length(col_scene) == 0
+    // col_water * (exp(heightmap - 1.0)),
+
+    // col_water * (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.35)))),
+    col_water,
+    sign(length(col_water.rgb))
   );
+
+  // add the island shore
+  out_color.rgb = mix( out_color.rgb, col_island_shore, sign(length( col_island_shore.rgb )));
+
+  // put the islands on top of the scene
+  out_color.rgb = mix( out_color.rgb, col_triangle, sign(length( col_triangle.rgb )));
+
+  // put the scene on top of triangle (islands).
+  out_color.rgb = mix( out_color.rgb, col_scene, sign(length( col_scene.rgb )));
 
   // out_color.b = mix(
   //   out_color.rgb,
@@ -433,13 +464,11 @@ void main()
   //     sign(outline_col.r) // 1.0 if outline_col.r > 0.0, else 0.0
   // );
 
-  // islands.
-  vec3 triangle_lin = texture(tex_triangles, v_uv).rgb;
-  vec3 col_triangle = lin_to_srgb(triangle_lin);
-  out_color.rgb += col_triangle;
-
   // grid
-  // out_color.rgb += grid_col;
+  out_color.rgb += grid_col;
+
+  return;
+
 
   // shiney shells
   vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
@@ -460,11 +489,11 @@ void main()
 
   // vignette
   // if(add_vignette){
-  vec2 vig_uv = fragCoord.xy / iResolution.xy;
-  vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
-  float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
-  vig = pow(vig, 0.4); // change pow for modifying the extend of the  vignettea
-  out_color.rgb *= vig;
+  // vec2 vig_uv = fragCoord.xy / iResolution.xy;
+  // vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
+  // float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
+  // vig = pow(vig, 0.25); // change pow for modifying the extend of the  vignettea
+  // out_color.rgb *= vig;
   // }
 
   // ACES tonemap

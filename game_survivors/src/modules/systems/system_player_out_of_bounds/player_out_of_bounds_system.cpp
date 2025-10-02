@@ -4,9 +4,9 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
-#include "engine/entt/helpers.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
@@ -26,8 +26,10 @@ update_player_out_of_bounds_system(entt::registry& r, const float dt)
 #endif
   auto& evts_c = SINGLE_Events::instance;
 
-  constexpr int map_radius = 900;
-  constexpr int map_radius_sqr = map_radius * map_radius;
+  const int tilesize = SINGLE_Islands::instance.tilesize;
+  const int tiles = 20;
+  const int map_radius = tilesize * tiles;
+  const int map_radius_sqr = map_radius * map_radius;
 
   for (const auto& [e, player_c, damage_c] : r.view<PlayerComponent, OutOfBoundsTimer>().each()) {
 

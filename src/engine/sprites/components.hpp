@@ -64,6 +64,9 @@ struct SpriteTriangleComponent
   engine::LinearColour a_colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
   engine::LinearColour b_colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f));
   engine::LinearColour c_colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f));
+  glm::vec2 uv_0 = { 0, 0 };
+  glm::vec2 uv_1 = { 1, 1 };
+  glm::vec2 uv_2 = { 1, 1 };
 };
 
 // Used by renderer

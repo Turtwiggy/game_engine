@@ -115,6 +115,11 @@ lerp_a_to_b_clamped_between_0_and_1(const glm::vec2 a, const glm::vec2 b, float 
 int
 wrap(int val, int max);
 
+// wraps value between [0, max]
+[[nodiscard]]
+int
+loop(int val, int max);
+
 [[nodiscard]] glm::vec2
 quadratic_curve(const glm::vec2 a, const glm::vec2 b, const glm::vec2 c, float t);
 

@@ -85,7 +85,7 @@ update_selections(entt::registry& r,
 
   // convert index to hull choice
   if (is_hull) {
-    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size() - 1);
+    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size());
     const auto& hull = hulls_c.hulls[cell.value];
     name = hull.name;
     player_state.player_boat_key = hull.key;
@@ -93,7 +93,7 @@ update_selections(entt::registry& r,
 
   // convert index to weapon choice
   if (is_weapon) {
-    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size() - 1);
+    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size());
     const auto& weapon = weapons_c.weapons[cell.value];
     name = weapon.name.c_str();
     player_state.player_gun_key = weapon.key;
@@ -151,13 +151,13 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   std::string info_desc = "";
 
   if (is_hull) {
-    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size() - 1);
+    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size());
     const auto& hull = hulls_c.hulls[cell.value];
     info_key = hull.name;
     info_desc = hull.desc;
   }
   if (is_weapon) {
-    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size() - 1);
+    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size());
     const auto& weapon = weapons_c.weapons[cell.value];
     info_key = weapon.name;
     info_desc = weapon.desc;

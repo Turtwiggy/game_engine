@@ -41,10 +41,10 @@ SINGLE_PersistentUpgradesMenuUI::do_init(entt::registry& r)
           break; // no more cells
         const auto cell = state.cells[idx];
 
-        const auto l_idx = grid_position_to_index({ engine::wrap(x - 1, grid_x - 1), y }, grid_x);
-        const auto r_idx = grid_position_to_index({ engine::wrap(x + 1, grid_x - 1), y }, grid_x);
-        const auto u_idx = grid_position_to_index({ x, engine::wrap(y - 1, grid_y) }, grid_x);
-        const auto d_idx = grid_position_to_index({ x, engine::wrap(y + 1, grid_y) }, grid_x);
+        const auto l_idx = grid_position_to_index({ engine::wrap(x - 1, grid_x - 1), y }, grid_x + 1);
+        const auto r_idx = grid_position_to_index({ engine::wrap(x + 1, grid_x - 1), y }, grid_x + 1);
+        const auto u_idx = grid_position_to_index({ x, engine::wrap(y - 1, grid_y) }, grid_x + 1);
+        const auto d_idx = grid_position_to_index({ x, engine::wrap(y + 1, grid_y) }, grid_x + 1);
 
         // connect in all directions
         // clang-format off

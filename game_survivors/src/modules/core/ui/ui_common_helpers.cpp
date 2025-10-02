@@ -189,8 +189,8 @@ create_as_vertical_layout(std::vector<std::shared_ptr<Cell>>& cells)
   // this is basically a vertical layout group
   //
   for (int i = 0; i < cells.size(); i++) {
-    const auto last = engine::wrap(i - 1, (int)cells.size() - 1);
-    const auto next = engine::wrap(i + 1, (int)cells.size() - 1);
+    const auto last = engine::wrap(i - 1, (int)cells.size());
+    const auto next = engine::wrap(i + 1, (int)cells.size());
     const auto& prv = cells[last];
     const auto& nxt = cells[next];
     auto& c = cells[i];
@@ -203,8 +203,8 @@ void
 create_as_horizontal_layout(std::vector<std::shared_ptr<Cell>>& cells)
 {
   for (int i = 0; i < cells.size(); i++) {
-    const auto last = engine::wrap(i - 1, (int)cells.size() - 1);
-    const auto next = engine::wrap(i + 1, (int)cells.size() - 1);
+    const auto last = engine::wrap(i - 1, (int)cells.size());
+    const auto next = engine::wrap(i + 1, (int)cells.size());
     const auto& prv = cells[last];
     const auto& nxt = cells[next];
     auto& c = cells[i];

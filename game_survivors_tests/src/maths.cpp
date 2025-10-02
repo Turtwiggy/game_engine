@@ -67,11 +67,76 @@ TEST(TestSuite, AngleFlipYAxis)
   ASSERT_NEAR(angle360, 0, epsilon);
 };
 
-TEST(TestSuite, Wrap)
+TEST(TestSuite, WrapMin)
 {
   // arrange & act
-  const int test = engine::wrap(-1, 3);
+  const int test4 = engine::wrap(-4, 3); // 2
+  const int test3 = engine::wrap(-3, 3); // 0
+  const int test2 = engine::wrap(-2, 3); // 1
+  const int test1 = engine::wrap(-1, 3); // 2
+  const int test0 = engine::wrap(0, 3);  // 0
 
   // assert
-  ASSERT_EQ(test, 3);
+  ASSERT_EQ(test0, 0);
+  ASSERT_EQ(test1, 2);
+  ASSERT_EQ(test2, 1);
 };
+
+TEST(TestSuite, WrapMax)
+{
+  // arrange & act
+  const int test = engine::wrap(4, 3);
+
+  ASSERT_EQ(test, 1);
+};
+
+/*
+TEST(TestSuit, Grid)
+{
+  // arrange
+  const auto in_a = glm::vec2{ 0, 31.999 };
+  const auto in_b = glm::vec2{ 0, -31.999 };
+  const auto in_c = glm::vec2{ 0, 63.999 };
+  const auto in_d = glm::vec2{ 0, -63.999 };
+
+  const auto in_e = glm::vec2{ 0, 32 };
+  const auto in_f = glm::vec2{ 0, -32 };
+  const auto in_g = glm::vec2{ 0, 64 };
+  const auto in_h = glm::vec2{ 0, -64 };
+
+  const auto in_i = glm::vec2{ 0, 32.001 };
+  const auto in_j = glm::vec2{ 0, -32.001 };
+  const auto in_k = glm::vec2{ 0, 64.001 };
+  const auto in_l = glm::vec2{ 0, -64.001 };
+
+  // act
+  const glm::ivec2 out_a = engine::grid::worldspace_to_gridspace(in_a, 32);
+  const glm::ivec2 out_b = engine::grid::worldspace_to_gridspace(in_b, 32);
+  const glm::ivec2 out_c = engine::grid::worldspace_to_gridspace(in_c, 32);
+  const glm::ivec2 out_d = engine::grid::worldspace_to_gridspace(in_d, 32);
+
+  const glm::ivec2 out_e = engine::grid::worldspace_to_gridspace(in_e, 32);
+  const glm::ivec2 out_f = engine::grid::worldspace_to_gridspace(in_f, 32);
+  const glm::ivec2 out_g = engine::grid::worldspace_to_gridspace(in_g, 32);
+  const glm::ivec2 out_h = engine::grid::worldspace_to_gridspace(in_h, 32);
+
+  // assert
+  const bool eq_a = out_a == glm::ivec2{ 0, 0 };
+  ASSERT_TRUE(eq_a);
+  const bool eq_b = out_b == glm::ivec2{ 0, -1 };
+  ASSERT_TRUE(eq_b);
+  const bool eq_c = out_c == glm::ivec2{ 0, 1 };
+  ASSERT_TRUE(eq_c);
+  const bool eq_d = out_d == glm::ivec2{ 0, -2 };
+  ASSERT_TRUE(eq_d);
+
+  const bool eq_e = out_e == glm::ivec2{ 0, 1 };
+  ASSERT_TRUE(eq_e);
+  const bool eq_f = out_f == glm::ivec2{ 0, -1 };
+  ASSERT_TRUE(eq_f);
+  const bool eq_g = out_g == glm::ivec2{ 0, 2 };
+  ASSERT_TRUE(eq_g);
+  const bool eq_h = out_h == glm::ivec2{ 0, -2 };
+  ASSERT_TRUE(eq_h);
+};
+*/

@@ -73,7 +73,7 @@ void main()
   // }
 
   // out_color.r = 0.6 - height;
-  out_color.r = height - 0.4;
+  out_color.r = height;
 
   // out_color.rgb = vec3(1.0f, 1.0f, 0.0f);
   out_color.a = 1.0f;

@@ -27,17 +27,17 @@ TriangleRenderer::draw_sprite(const TriangleDescriptor& r, const Shader& s)
   const glm::vec4 b_colour = { r.point_1_colour.r, r.point_1_colour.g, r.point_1_colour.b, r.point_1_colour.a };
   const glm::vec4 c_colour = { r.point_2_colour.r, r.point_2_colour.g, r.point_2_colour.b, r.point_2_colour.a };
 
-  data.buffer_ptr->pos_and_uv = { r.point_0.x, r.point_0.y, 0.0f, 0.0f };
+  data.buffer_ptr->pos_and_uv = { r.point_0.x, r.point_0.y, r.uv_0.x, r.uv_0.y };
   data.buffer_ptr->colour = a_colour;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
-  data.buffer_ptr->pos_and_uv = { r.point_1.x, r.point_1.y, 0.0f, 0.0f };
+  data.buffer_ptr->pos_and_uv = { r.point_1.x, r.point_1.y, r.uv_1.x, r.uv_1.y };
   data.buffer_ptr->colour = b_colour;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
-  data.buffer_ptr->pos_and_uv = { r.point_2.x, r.point_2.y, 0.0f, 0.0f };
+  data.buffer_ptr->pos_and_uv = { r.point_2.x, r.point_2.y, r.uv_2.x, r.uv_2.y };
   data.buffer_ptr->colour = c_colour;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;

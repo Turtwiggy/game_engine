@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/map/components.hpp"
+
 #include <entt/fwd.hpp>
 
 namespace game2d {
@@ -12,6 +13,11 @@ struct BoundingBoxComponent
 };
 
 struct RockComponent
+{
+  bool placeholder = true;
+};
+
+struct IslandShoreTriangle
 {
   bool placeholder = true;
 };
@@ -39,8 +45,8 @@ struct DebugContoursComponent
 
 struct SINGLE_Islands
 {
-  const int map_size = 3000;
-  const int tilesize = 25;
+  const int map_size = 4096 - 1024;
+  const int tilesize = 32;
   const int wh = map_size / tilesize;
   float cutoff = 0.69f; // [0, 1]
   float frequency = 0.1f;

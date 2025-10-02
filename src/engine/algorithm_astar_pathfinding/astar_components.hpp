@@ -59,7 +59,7 @@ struct Map_NonEntt
 {
   int xmax = 10;
   int ymax = 10;
-  int tilesize = 50;
+  int tilesize = 32;
   std::vector<MapEntry> map;
 };
 

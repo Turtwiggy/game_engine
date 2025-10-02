@@ -45,7 +45,7 @@ struct MapComponent
 {
   int xmax = 10;
   int ymax = 10;
-  int tilesize = 50;
+  int tilesize = 32;
 
   std::vector<std::vector<entt::entity>> map;
   // std::unordered_map<glm::ivec2, std::vector<entt::entity>> grid;

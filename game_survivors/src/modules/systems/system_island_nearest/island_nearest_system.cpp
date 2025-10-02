@@ -4,6 +4,7 @@
 #include "island_nearest_helpers.hpp"
 #include "island_nearest_system.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/maths/grid.hpp"
@@ -27,31 +28,33 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
   const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
   const int tilesize = SINGLE_Islands::instance.tilesize;
 
-  // for (const auto& [id, eid] : islands_c.id_to_island_eid)
-  //   set_colour(r, eid, { 1.0f, 1.0f, 1.0f, 1.0f });
+// for (const auto& [id, eid] : islands_c.id_to_island_eid)
+//   set_colour(r, eid, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-  // mouse select an island tile
-  /*
+// mouse select an island tile
+#if defined(_DEBUG)
   {
-    const auto worldpos = mouse_pos;
-    const auto worldpos_adj = worldpos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
-    const auto gridpos = engine::grid::worldspace_to_gridspace(worldpos_adj, tilesize);
-    draw_sprite(r,
-                Sprite{
-                  .sprite = "EMPTY",
-                  .pos = worldpos,
-                  .size = { 5, 5 },
-                  .z_idx = ZLayer::FOREGROUND,
-                  .col = { 0.0f, 0.0f, 1.0f, 1.0f },
-                });
-
-    const auto id = engine::encode_cantor_pairing_function(gridpos.x, gridpos.y);
-    if (islands_c.id_to_island_eid.contains(id)) {
-      const auto island_eid = islands_c.id_to_island_eid.at(id);
-      set_colour(r, island_eid, { 0.0f, 1.0f, 0.0f, 1.0f });
-    }
+    // const auto worldpos = mouse_pos;
+    // const auto worldpos_adj = worldpos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
+    // const auto gridpos = engine::grid::worldspace_to_gridspace(worldpos_adj, tilesize);
+    // draw_sprite(r,
+    //             Sprite{
+    //               .sprite = "EMPTY",
+    //               .pos = worldpos,
+    //               .size = { 5, 5 },
+    //               .z_idx = ZLayer::FOREGROUND,
+    //               .col = { 0.0f, 0.0f, 1.0f, 1.0f },
+    //             });
+    // const auto id = engine::encode_cantor_pairing_function(gridpos.x, gridpos.y);
+    // ImGui::Text("gp: %i, %i, id: %zu", gridpos.x, gridpos.y, id);
+    // bool island = islands_c.id_to_island_eid.contains(id);
+    // ImGui::Text("island: %s", island ? "true" : "false");
+    // if (islands_c.id_to_island_eid.contains(id)) {
+    //   const auto island_eid = islands_c.id_to_island_eid.at(id);
+    //   set_colour(r, island_eid, { 0.0f, 1.0f, 0.0f, 1.0f });
+    // }
   }
-  */
+#endif
 
   // Player's neighbour gridpos selct tiles.
   {

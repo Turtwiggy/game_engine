@@ -205,9 +205,12 @@ lerp_a_to_b_clamped_between_0_and_1(const glm::vec2 a, const glm::vec2 b, float 
 int
 wrap(int val, int max)
 {
-  const int min = 0;
-  const int range = max - min + 1;
-  return ((val - min) % range + range) % range + min;
+  return ((val % max) + max) % max;
+};
+int
+loop(int val, int max)
+{
+  return wrap(val, max);
 };
 
 glm::vec2

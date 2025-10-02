@@ -354,7 +354,7 @@ spawn_players(entt::registry& r)
   const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
   for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
     hp_c.hp = hp_c.max_hp;
-}
+};
 
 void
 spawn_islands(entt::registry& r)
@@ -365,7 +365,7 @@ spawn_islands(entt::registry& r)
     create_empty<RequestGenerateRocks>(r);
     // need islands and rocks to exist before player spawns,
     // to determine player spawn location
-    update_actor_rocks_system(r, { 0, 0 });
+    update_actor_rocks_system(r, { 0, 0 }, 0.0f);
   }
 };
 
@@ -510,6 +510,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
     // for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
     //   hp_c.hp = hp_c.max_hp;
+
     spawn_players(r);
 
     set_players_as_landed(r);
@@ -543,17 +544,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_LevelUpUI>(r);
     create_empty<SINGLE_GameoverUI>(r);
     create_empty<RequestGameTrack>(r);
-
-    // create a triangle.
-    auto e = spawn(r, "empty");
-    give_life(r, e, { 0, 0 });
-    r.remove<SpriteComponent>(e);
-    SpriteTriangleComponent spr = {
-      .a = { 0, 0 },
-      .b = { 100, 0 },
-      .c = { 50, 100 },
-    };
-    r.emplace<SpriteTriangleComponent>(e, spr);
+    create_empty<CameraFreeMove>(r);
 
     spawn_islands(r); // before spawn_players
 

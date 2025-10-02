@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_actor_rocks_system(entt::registry& r, glm::vec2 mouse_pos);
+update_actor_rocks_system(entt::registry& r, glm::vec2 mouse_pos, const float dt);
 
 } // namespace game2d

@@ -32,8 +32,8 @@ delete_if_unique(entt::registry& r, std::vector<entt::entity>& deleted, const en
   deleted.push_back(e);
 
 #if defined(_DEBUG)
-  auto tag = r.get<TagComponent>(e).tag.c_str();
-  SDL_Log("destroying: %s (%zu)", tag, (uint32_t)e);
+  // auto tag = r.get<TagComponent>(e).tag.c_str();
+  // SDL_Log("destroying: %s (%zu)", tag, (uint32_t)e);
 #endif
 
   r.destroy(e);

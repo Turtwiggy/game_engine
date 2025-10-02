@@ -28,7 +28,6 @@
 #include "modules/systems/system_island_ai/island_ai_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
-#include <iterator>
 
 namespace game2d {
 
@@ -137,16 +136,10 @@ generate_noise__with_base_island(entt::registry& r)
     const auto min_x = island_center - 2;
     const auto max_x = island_center + 2;
 
-    // SDL_Log("Island %i", i);
-
     for (int y = min_x; y < max_x; y++) {
       for (int x = min_x; x < max_x; x++) {
         const auto idx = engine::grid::grid_position_to_index({ x, y }, SINGLE_Islands::instance.wh);
-
-        // overwrite noise
         generated[idx].noise = cutoff;
-
-        // SDL_Log("(iteration)%i (seed)%i noise value: %f,", i, seed, generated[idx].noise);
       }
     }
 
@@ -455,6 +448,15 @@ upload_heightmap_to_gpu(entt::registry& r)
     data[tex_idx] = ni.noise;
   }
 
+// Find out some stats about the heightmap.
+#if defined(_DEBUG)
+  const auto& f = generated;
+  const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise < b.noise; };
+  const auto min_it = std::min_element(f.begin(), f.end(), min_compare);
+  const auto max_it = std::max_element(f.begin(), f.end(), min_compare);
+  SDL_Log("(uploading) Min noise: %f, Max noise: %f", min_it->noise, max_it->noise);
+#endif
+
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_heightmap.id);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RED, GL_FLOAT, data.data());
 };
@@ -471,22 +473,6 @@ generate_rocks(entt::registry& r)
 
   {
     const auto generated = generate_noise__with_base_island(r);
-
-    /*
-    // whats the smallest & largest noise in the distribution
-    // auto filtered = generated | std::views::filter([cutoff](const NoiseInfo& n) { return n.noise > cutoff; });
-    auto filtered = generated;
-    const auto min_compare = [](const NoiseInfo& a, const NoiseInfo& b) { return a.noise < b.noise; };
-    const auto min_it = std::min_element(filtered.begin(), filtered.end(), min_compare);
-    const auto max_it = std::max_element(filtered.begin(), filtered.end(), min_compare);
-
-    //  remap [min_noise, max_noise] to [0, 1];
-    // note: after remap, some of the noise would be shifted below cutoff.
-    // for (auto noise : generated)
-    //   noise.noise = engine::scale(noise.noise, min_it->noise, max_it->noise, 0.0f, 1.0f);
-    SDL_Log("Min noise: %f, Max noise: %f", min_it->noise, max_it->noise);
-    */
-
     SINGLE_Islands::instance.generated = std::move(generated);
   }
 
@@ -533,54 +519,6 @@ generate_rocks(entt::registry& r)
   upload_heightmap_to_gpu(r);
 };
 
-engine::SRGBColour
-get_colour_of_tile(entt::registry& r,
-                   const glm::vec2 xy,
-                   const glm::ivec2 unoffset_xy,
-                   const DebugContoursComponent& contours_c,
-                   const float min_noise,
-                   const float max_noise)
-{
-  auto rock_col = engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f };
-  const auto& info = contours_c.island_noise;
-  const auto at_xy = [&unoffset_xy](const NoiseInfo& noise) { return noise.xy == unoffset_xy; };
-  const auto it = std::find_if(info.begin(), info.end(), at_xy); // the noise info should always exist
-  if (it == info.end()) {
-    //
-    // noise info for island missing; something aint right
-    //
-    const auto debug_e = spawn(r, "empty");
-    give_life(r, debug_e, { xy.x, xy.y }, { 5, 5 });
-    set_colour(r, debug_e, rock_col);
-    return rock_col;
-  }
-  const auto ni = (*it);
-
-  //  remap [min_noise, max_noise] to [0, 1];
-  const auto noise = engine::scale(ni.noise, min_noise, max_noise, 0.0f, 1.0f);
-
-  // https://colorhunt.co/palette/a86523e9a319fad59afcefcb
-  // https://colorhunt.co/palette/626f47a4b465f5ecd5f0bb78
-  const auto sand_l = engine::SRGBColour{ 252, 238, 203, 255 };
-  const auto sand_d = engine::SRGBColour{ 250, 213, 154, 255 };
-  const auto grass_l = engine::SRGBColour{ 164, 180, 101, 255 };
-  const auto grass_d = engine::SRGBColour{ 98, 111, 71, 255 };
-
-  // boundary (noise) between [0, 1] where we change the colours
-  const float boundary_a = 0.1f;
-  const float boundary_b = 0.2f;
-  const float boundary_c = 1.0f;
-
-  if (noise < boundary_a) // light sand <=> dark sand
-    rock_col = lerp_colour(sand_l, sand_d, (noise - 0.0f) / (boundary_a - 0.0f));
-  else if (noise < boundary_b)
-    rock_col = lerp_colour(sand_d, grass_d, (noise - boundary_a) / (boundary_b - boundary_a));
-  else
-    rock_col = lerp_colour(grass_d, grass_l, (noise - boundary_b) / (boundary_c - boundary_b));
-
-  return rock_col;
-}
-
 void
 generate_island_interior(entt::registry& r)
 {
@@ -594,55 +532,73 @@ generate_island_interior(entt::registry& r)
        r.view<const RockComponent, const BoundingBoxComponent, DebugContoursComponent>().each()) {
     const auto center = 0.5f * (bb_c.br + bb_c.tl);
 
+#if defined(_DEBUG)
+    int before_count = islands_c.id_to_island_eid.size();
+#endif
+
     const auto tl = bb_c.tl;
     const auto wh = bb_c.br - bb_c.tl;
     const auto tl_gridpos = engine::grid::worldspace_to_gridspace(bb_c.tl, tilesize);
+    const auto offset = glm::vec2{ half_tilesize, half_tilesize };
 
-    const float min_x = bb_c.tl.x + half_tilesize;
-    const float min_y = bb_c.tl.y + half_tilesize;
-    const float max_x = bb_c.tl.x + wh.x - half_tilesize;
-    const float max_y = bb_c.tl.y + wh.y - half_tilesize;
+    const float min_x = bb_c.tl.x;
+    const float min_y = bb_c.tl.y;
+    const float max_x = bb_c.tl.x + wh.x - tilesize;
+    const float max_y = bb_c.tl.y + wh.y - tilesize;
     for (float x = min_x; x <= max_x; x += tilesize) {
       for (float y = min_y; y <= max_y; y += tilesize) {
 
-        const float tol = 2.5;
+        const auto pos = glm::vec2{ x, y };
+        const auto xy = engine::grid::worldspace_to_gridspace(pos, tilesize);
+        const auto pos2 = engine::grid::gridspace_to_worldspace_center(xy, tilesize) + offset;
 
-        if (!crossing_number_algorithm__point_is_inside({ x, y }, contours_c.sorted_edges)) {
+        const auto& c = contours_c.all_island_xy;
+        auto it = std::find(c.begin(), c.end(), xy);
+        if (it != c.end())
+          continue; // xy already existed
+
+        const auto xy_adj = glm::vec2{ x, y } + offset;
+        if (!crossing_number_algorithm__point_is_inside(xy_adj, contours_c.sorted_edges)) {
+#if defined(_DEBUG)
           // const auto debug_e = spawn(r, "empty");
-          // give_life(r, debug_e, { x, y }, { 5, 5 });
+          // give_life(r, debug_e, pos2, { 4, 4 });
           // set_colour(r, debug_e, { 1.0f, 0.0f, 0.0f, 1.0f });
+          // set_z_index(r, debug_e, ZLayer::FOREGROUND);
+#endif
           continue;
         }
 
-        const auto pos = glm::vec2{ x, y };
-        const auto xy = engine::grid::worldspace_to_gridspace(pos, tilesize);
         contours_c.all_island_xy.push_back(xy);
 
-        // note: we offset the islands by (-0.5 * wh)
-        // this is not reflected in the island_noise (which contains xy grid coords)
-        // when searching, undo this offset
-        const int map_wh = islands_c.wh;
-        const auto offset = (int)(-map_wh * 0.5f);
-        const auto unoffset_xy = xy - offset + glm::ivec2{ 1, 1 };
-
-        // work out colour of tile given noise.
-        // const auto rock_col = get_colour_of_tile(r, pos, unoffset_xy, contours_c, min_it->noise, max_it->noise);
-        const auto rock_col = engine::SRGBColour{ 255, 60, 60, 255 };
-
+        // note: convert gp back to position
+        const auto rock_col = engine::SRGBColour{ 70, 200, 96 * 2, 255 };
         const auto debug_e = spawn(r, "empty");
         r.get<TagComponent>(debug_e).tag = "empty-IslandSquare";
-        give_life(r, debug_e, pos, { 3, 3 });
-        // give_life(r, debug_e, pos, { tilesize, tilesize });
-        set_colour(r, debug_e, rock_col); // make the colour represent the noise value.
+        give_life(r, debug_e, pos2, { 3, 3 });
+        set_colour(r, debug_e, rock_col);
         set_z_index(r, debug_e, ZLayer::FLOOR);
 
+        // todo: assign sprite from spritesheet?
+
         const auto id = engine::encode_cantor_pairing_function(xy.x, xy.y);
+
+        if (islands_c.id_to_island_eid.contains(id)) {
+          // oops! one id shouldnt contain multiple islands.
+          throw std::runtime_error("One id cant contain multiple islands");
+        }
+
         islands_c.id_to_island_eid.emplace(id, island_e);
 
         // the island_gridspace is relative to the tl of the island
         // const auto island_gridspace = tl_gridpos - gridpos;
       }
     }
+
+#if defined(_DEBUG)
+    // check check that all the island tiles are added to the island_to_id_eid
+    int after_count = islands_c.id_to_island_eid.size();
+    assert(before_count + contours_c.all_island_xy.size() == after_count);
+#endif
   }
 }
 

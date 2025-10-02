@@ -18,5 +18,8 @@ main()
 
   // note: v_colour is in linear. and this outputs linear.
   out_colour = v_colour;
-  // out_colour = vec4(1.0, 0.0, 0.0, 1.0);
+  // out_colour = vec4(v_uv, 0.0, 1.0);
+
+  // out_colour = vec4(v_uv.x, v_uv.y, 1.0, 1.0);
+  // out_colour = vec4(0.1f, 0.4f, 0.1f, 1.0f);
 }

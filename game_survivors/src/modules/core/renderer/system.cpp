@@ -47,7 +47,7 @@ struct UboData
   glm::vec4 light_positions[32];
   float time = 0;
   float zoom = 0;
-  float tilesize = 50;
+  float tilesize = 32;
 };
 static UboData data;
 
@@ -126,7 +126,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_shine_shells = get_tex_unit(PassName::shine);
   const int tex_unit_flame = get_tex_unit(PassName::flame);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
-  const int tex_unit_triangles = get_tex_unit(PassName::triangles);
+  const int tex_unit_island_triangles = get_tex_unit(PassName::island_triangles);
+  const int tex_unit_island_shore = get_tex_unit(PassName::island_shore);
   // const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
@@ -182,6 +183,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced_tri.set_uniform_block_binding("Data", 0);
   ri.instanced_tri.set_bool("do_zoom", true);
   ri.instanced_tri.set_mat4("projection", camera.projection);
+
+  ri.island_shore.reload(r);
+  ri.island_shore.bind();
+  ri.island_shore.set_uniform_block_binding("Data", 0);
+  ri.island_shore.set_bool("do_zoom", true);
+  ri.island_shore.set_mat4("projection", camera.projection);
 
   ri.shine.reload(r);
   ri.shine.bind();
@@ -247,7 +254,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_bool("is_fullscreen", true);
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
-  ri.mix_lighting_and_scene.set_int("tex_triangles", tex_unit_triangles);
+  ri.mix_lighting_and_scene.set_int("tex_island_triangles", tex_unit_island_triangles);
+  ri.mix_lighting_and_scene.set_int("tex_island_shore", tex_unit_island_shore);
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
@@ -318,7 +326,8 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::water_heightmap));
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
-  ri.passes.push_back(RenderPass(PassName::triangles));
+  ri.passes.push_back(RenderPass(PassName::island_triangles));
+  ri.passes.push_back(RenderPass(PassName::island_shore));
   // ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
@@ -381,9 +390,10 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     // allocate some default storage
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, ri.heightmap_texture_wh, ri.heightmap_texture_wh, 0, GL_RED, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, ri.heightmap_texture_wh, ri.heightmap_texture_wh, 0, GL_RED, GL_FLOAT, nullptr);
 
     ri.tex_id_heightmap = engine::TextureId{ (int)textureID };
     ri.tex_unit_heightmap = used_tex_units + (int)ri.user_textures.size();
@@ -393,6 +403,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.instanced_tri = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_instanced_tri.frag");
+  ri.island_shore = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_island_shore.frag");
   ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
   ri.flame = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_flame.frag");
   ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
@@ -461,7 +472,8 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_water_heightmap_update(r);
   setup_water_update(r);
   setup_floor_mask_update(r);
-  setup_triangle_update(r);
+  setup_island_triangles_update(r);
+  setup_island_shore_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
   setup_outline_update(r);

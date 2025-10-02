@@ -69,7 +69,7 @@ setup_water_heightmap_update(entt::registry& r)
         const auto size = island_c.tilesize;
         const auto wh = island_c.wh;
 
-        static auto pos_tl = glm::vec2{ -size * wh * 0.5f, -size * wh * 0.5f };
+        static auto pos_tl = glm::vec2{ -size * wh * 0.5f, -size * wh * 0.5f } - glm::vec2{ 0.5 * size, 0.5 * size };
         static auto pos_wh = glm::vec2{ size * wh, size * wh };
 
         // imgui_draw_vec2("pos_tl", pos_tl);
@@ -169,10 +169,10 @@ setup_floor_mask_update(entt::registry& r)
 };
 
 void
-setup_triangle_update(entt::registry& r)
+setup_island_triangles_update(entt::registry& r)
 {
   auto& ri = SINGLE_RendererInfo::instance;
-  const auto pass_idx = get_pass_idx(ri, PassName::triangles);
+  const auto pass_idx = get_pass_idx(ri, PassName::island_triangles);
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
@@ -199,12 +199,55 @@ setup_triangle_update(entt::registry& r)
         desc.point_0_colour = sc_c.a_colour;
         desc.point_1_colour = sc_c.b_colour;
         desc.point_2_colour = sc_c.c_colour;
+        desc.uv_0 = sc_c.uv_0;
+        desc.uv_1 = sc_c.uv_1;
+        desc.uv_2 = sc_c.uv_2;
 
         ri.tri_renderer.draw_sprite(desc, ri.instanced_tri);
       }
 
       ri.tri_renderer.end_batch();
       ri.tri_renderer.flush(ri.instanced_tri);
+    }
+  };
+};
+void
+setup_island_shore_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::island_shore);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    auto& ri = SINGLE_RendererInfo::instance;
+
+    // render triangles
+    {
+      ri.tri_renderer.reset_vert_count();
+      ri.tri_renderer.begin_batch();
+
+      auto view = r.view<const SpriteTriangleComponent, const IslandShoreTriangle>();
+      for (const auto& [e, sc_c, shore_c] : view.each()) {
+
+        engine::tri_renderer::TriangleDescriptor desc;
+        desc.point_0 = sc_c.a;
+        desc.point_1 = sc_c.b;
+        desc.point_2 = sc_c.c;
+        desc.point_0_colour = sc_c.a_colour;
+        desc.point_1_colour = sc_c.b_colour;
+        desc.point_2_colour = sc_c.c_colour;
+        desc.uv_0 = sc_c.uv_0;
+        desc.uv_1 = sc_c.uv_1;
+        desc.uv_2 = sc_c.uv_2;
+
+        ri.tri_renderer.draw_sprite(desc, ri.island_shore);
+      }
+
+      ri.tri_renderer.end_batch();
+      ri.tri_renderer.flush(ri.island_shore);
     }
   };
 };
