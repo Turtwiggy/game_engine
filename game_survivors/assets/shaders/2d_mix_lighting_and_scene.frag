@@ -15,6 +15,7 @@ in VS_OUT
 } fs_in;
 
 uniform sampler2D tex_island_triangles;
+uniform sampler2D tex_island_triangles_gradient;
 uniform sampler2D tex_island_shore;
 uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
@@ -406,13 +407,15 @@ void main()
 
   // islands.
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
-  vec3 island_lin = texture(tex_island_triangles, v_uv).rgb;
+  vec3 island_col = texture(tex_island_triangles, v_uv).rgb;
+  vec3 itg_col = texture(tex_island_triangles_gradient, v_uv).rgb;
   vec3 scene_lin = texture(tex_scene_0, v_uv).rgb;
   vec4 outline_col = texture(tex_outline, v_uv);
   vec3 heightmap_col = texture(tex_map_heightmap, v_uv).rgb;
 
   vec3 col_water = lighting_col * srgb_water;
-  vec3 col_triangle = lighting_col * lin_to_srgb( island_lin );
+  vec3 col_triangle = lighting_col * island_col ;
+  vec3 col_itg = lighting_col * itg_col; // island triangle gradient
   vec3 col_scene = lighting_col * lin_to_srgb( scene_lin );
   vec3 col_island_shore = lighting_col * texture(tex_island_shore, v_uv).rgb;
 
@@ -430,31 +433,21 @@ void main()
   // out_color.r = heightmap;
 
   // add the water
-  out_color.rgb = mix(
-    out_color.rgb,
-    // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
-    // col_water * (1.0 + (pow(heightmap, 4.0))),  // Used if length(col_scene) == 0
-    // col_water * (exp(heightmap - 1.0)),
-
-    // col_water * (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.35)))),
-    col_water,
-    sign(length(col_water.rgb))
-  );
+  // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
+  // col_water * (1.0 + (pow(heightmap, 4.0))),  // Used if length(col_scene) == 0
+  // col_water * (exp(heightmap - 1.0)),
+  float heightmap_mul = (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.25))));
+  vec3 blend_water_col = heightmap > 0.0 ? col_water * heightmap_mul : col_water;
+  out_color.rgb = mix( out_color.rgb, blend_water_col, sign(length(col_water.rgb)) );
 
   // add the island shore
   out_color.rgb = mix( out_color.rgb, col_island_shore, sign(length( col_island_shore.rgb )));
 
-  // put the islands on top of the scene
-  out_color.rgb = mix( out_color.rgb, col_triangle, sign(length( col_triangle.rgb )));
+  // put the island triangle gradient shader on top
+  out_color.rgb = mix( out_color.rgb, col_itg, sign(length( col_itg.rgb )));
 
   // put the scene on top of triangle (islands).
   out_color.rgb = mix( out_color.rgb, col_scene, sign(length( col_scene.rgb )));
-
-  // out_color.b = mix(
-  //   out_color.rgb,
-  //   heightmap_col,
-  //   length(heightmap_col.r)
-  // );
 
   // out_color.rgb = lighting_col;
   // if(outline_col.r > 0.0f) out_color.rgb = vec3(1.0, 0.0, 0.0);

@@ -32,6 +32,7 @@ enum class PassName
   water,
   floor_mask,
   island_triangles,
+  island_triangles_gradient,
   island_shore,
   linear_main,
   sprites_to_outline,
@@ -103,6 +104,7 @@ struct SINGLE_RendererInfo
   engine::Shader water;
   engine::Shader instanced;
   engine::Shader instanced_tri;
+  engine::Shader island_tri_gradient;
   engine::Shader island_shore;
   engine::Shader shine;
   engine::Shader flame;

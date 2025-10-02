@@ -118,6 +118,9 @@ void main()
   vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
+	// out_colour = vec4(0.3, 0.3, 0.6, 1.0);
+	// return;
+
   vec2 fragCoord = v_uv * viewport_wh; // e.g. x 0>640, y 0>360
   vec2 iResolution = viewport_wh; 		 // e.g. 640, 360
 	vec2 half_wh = viewport_wh * 0.5;

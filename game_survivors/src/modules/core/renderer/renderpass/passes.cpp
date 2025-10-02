@@ -211,6 +211,25 @@ setup_island_triangles_update(entt::registry& r)
     }
   };
 };
+
+void
+setup_island_triangles_gradient_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::island_triangles_gradient);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    auto& ri = SINGLE_RendererInfo::instance;
+
+    ri.island_tri_gradient.bind();
+    render_fullscreen_quad(r, ri.island_tri_gradient, ri.viewport_size_render_at);
+  };
+};
+
 void
 setup_island_shore_update(entt::registry& r)
 {

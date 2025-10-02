@@ -16,6 +16,8 @@ setup_water_update(entt::registry& r);
 void
 setup_island_triangles_update(entt::registry& r);
 void
+setup_island_triangles_gradient_update(entt::registry& r);
+void
 setup_island_shore_update(entt::registry& r);
 
 // FBO: Render sprites in to this fbo with linear colour

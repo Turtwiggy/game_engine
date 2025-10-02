@@ -127,6 +127,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_flame = get_tex_unit(PassName::flame);
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_island_triangles = get_tex_unit(PassName::island_triangles);
+  const int tex_unit_island_triangles_gradient = get_tex_unit(PassName::island_triangles_gradient);
   const int tex_unit_island_shore = get_tex_unit(PassName::island_shore);
   // const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
@@ -183,6 +184,23 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced_tri.set_uniform_block_binding("Data", 0);
   ri.instanced_tri.set_bool("do_zoom", true);
   ri.instanced_tri.set_mat4("projection", camera.projection);
+
+  ri.island_tri_gradient.reload(r);
+  ri.island_tri_gradient.bind();
+  ri.island_tri_gradient.set_uniform_block_binding("Data", 0);
+  ri.island_tri_gradient.set_mat4("projection", camera.projection);
+  ri.island_tri_gradient.set_bool("is_fullscreen", true);
+  ri.island_tri_gradient.set_bool("do_zoom", false);
+  ri.island_tri_gradient.set_int("tex_island_triangles", tex_unit_island_triangles);
+  ri.island_tri_gradient.set_vec2("screen_wh", wh);
+
+  ri.outline.reload(r);
+  ri.outline.bind();
+  ri.outline.set_uniform_block_binding("Data", 0);
+  ri.outline.set_mat4("projection", camera.projection);
+  ri.outline.set_bool("is_fullscreen", true);
+  ri.outline.set_bool("do_zoom", false);
+  ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
 
   ri.island_shore.reload(r);
   ri.island_shore.bind();
@@ -255,6 +273,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_island_triangles", tex_unit_island_triangles);
+  ri.mix_lighting_and_scene.set_int("tex_island_triangles_gradient", tex_unit_island_triangles_gradient);
   ri.mix_lighting_and_scene.set_int("tex_island_shore", tex_unit_island_shore);
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
@@ -327,6 +346,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::island_triangles));
+  ri.passes.push_back(RenderPass(PassName::island_triangles_gradient));
   ri.passes.push_back(RenderPass(PassName::island_shore));
   // ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::linear_main));
@@ -403,6 +423,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.instanced_tri = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_instanced_tri.frag");
+  ri.island_tri_gradient = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_island_tri_gradient.frag");
   ri.island_shore = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_island_shore.frag");
   ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
   ri.flame = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_flame.frag");
@@ -473,6 +494,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_water_update(r);
   setup_floor_mask_update(r);
   setup_island_triangles_update(r);
+  setup_island_triangles_gradient_update(r);
   setup_island_shore_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
