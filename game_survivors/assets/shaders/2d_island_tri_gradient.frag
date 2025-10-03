@@ -80,16 +80,17 @@ main()
 	// cam_uv /= screen_wh;
 
   vec2 p = vec2(1.0);
-  // p = p*p*(3.0-2.0*p);
-	// p = p*p*(3.0-2.0*p);
-	// p = p*p*(3.0-2.0*p);
-
-  float n = voronoise(20 * cam_uv, p.x, p.y);
-
+  // float n = voronoise(20 * cam_uv, p.x, p.y);
   int levels = 11;
+  // vec3 col = tex_col * vec3(n, n, n) * vec3(0.4, 1.0, 0.8);
+
+  float n = 0.5f;
   vec3 col = tex_col * vec3(n, n, n) * vec3(0.4, 1.0, 0.8);
   vec3 q_col = truncRound( col , levels );
   out_colour.rgb = q_col;
+
+  // out_colour.rgb = tex_col * vec3(length(abs(cam_uv.x)), length(abs(cam_uv.y)), 0.0);
+
 
   out_colour.a = 1.0f;
 }

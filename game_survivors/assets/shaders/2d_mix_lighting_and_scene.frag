@@ -330,7 +330,7 @@ void main()
       {
         // problem: when radius is 1.0, the circle fills up the whole of the viewport.
         // but I want the radius to always be consistent amount of pixels independant of screensize
-        float desired_pixel_radius = 32.0 * 15;
+        float desired_pixel_radius = 32.0 * 20;
         float radius = (desired_pixel_radius / viewport_wh.y); // normalized to NDC
 
         d0 = sdCircle(p, radius);
@@ -436,9 +436,11 @@ void main()
   // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
   // col_water * (1.0 + (pow(heightmap, 4.0))),  // Used if length(col_scene) == 0
   // col_water * (exp(heightmap - 1.0)),
-  float heightmap_mul = (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.25))));
+  float heightmap_mul = (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.15))));
   vec3 blend_water_col = heightmap > 0.0 ? col_water * heightmap_mul : col_water;
+
   out_color.rgb = mix( out_color.rgb, blend_water_col, sign(length(col_water.rgb)) );
+  // out_color.rgb = mix( out_color.rgb, col_water, sign(length(col_water.rgb)) );
 
   // add the island shore
   out_color.rgb = mix( out_color.rgb, col_island_shore, sign(length( col_island_shore.rgb )));
@@ -458,10 +460,7 @@ void main()
   // );
 
   // grid
-  out_color.rgb += grid_col;
-
-  return;
-
+  // out_color.rgb += grid_col;
 
   // shiney shells
   vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;

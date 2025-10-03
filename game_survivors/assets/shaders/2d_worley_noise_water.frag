@@ -107,6 +107,32 @@ float sdfCircle( in vec2 p, in float r )
 {
     return length(p)-r;
 }
+
+// Compact, self-contained version of IQ's 2D value noise function.
+float n2D(vec2 p){
+   
+    // Setup.
+    // Any random integers will work, but this particular
+    // combination works well.
+    const vec2 s = vec2(1, 113);
+    // Unique cell ID and local coordinates.
+    vec2 ip = floor(p); p -= ip;
+    // Vertex IDs.
+    vec4 h = vec4(0., s.x, s.y, s.x + s.y) + dot(ip, s);
+   
+    // Smoothing.
+    p = p*p*(3. - 2.*p);
+    //p *= p*p*(p*(p*6. - 15.) + 10.); // Smoother.
+   
+    // Random values for the square vertices.
+    h = fract(sin(mod(h, 6.2831589))*43758.5453);
+   
+    // Interpolation.
+    h.xy = mix(h.xy, h.zw, p.y);
+    return mix(h.x, h.y, p.x); // Output: Range: [0, 1].
+}
+// FBM -- 4 accumulated noise layers of modulated amplitudes and frequencies.
+float fbm(vec2 p){ return n2D(p)*.533 + n2D(p*2.)*.267 + n2D(p*4.)*.133 + n2D(p*8.)*.067; }
       
 void main()
 {
@@ -118,12 +144,20 @@ void main()
   vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
-	// out_colour = vec4(0.3, 0.3, 0.6, 1.0);
-	// return;
-
   vec2 fragCoord = v_uv * viewport_wh; // e.g. x 0>640, y 0>360
   vec2 iResolution = viewport_wh; 		 // e.g. 640, 360
 	vec2 half_wh = viewport_wh * 0.5;
+
+	// wobble the uvs.
+	float iTime = time;
+	vec2 offs = vec2(fbm(v_uv*16.), fbm(v_uv*16. + .35));
+	vec2 offs2 = vec2(fbm(v_uv*1. + iTime/4.), fbm(v_uv*1. + .5 + iTime/4.));
+	// const float oFct = 0.5;
+	// const float oFct2 = .0015;
+	const float oFct = .025;
+	const float oFct2 = .02;
+	v_uv -= (offs - .5)*oFct;
+	v_uv -= (offs2 - .5)*oFct2;
 
 	// vec2 center = iResolution.xy * 0.5;
 	// vec2 p = ((fragCoord - center) * zoom + center + vec2(0.5));
@@ -185,6 +219,23 @@ void main()
 		 min(1.1*t, 1.0),
 		 0.05
 	);
+
+	// vec3[5] ocean = vec3[5](
+  //   vec3(0/255.0, 26/255.0, 51/255.0),
+  //   vec3(0/255.0, 51/255.0, 102/255.0),
+  //   vec3(0/255.0, 64/255.0, 128/255.0),
+  //   vec3(0/255.0, 89/255.0, 179/255.0),
+  //   vec3(0/255.0, 102/255.0, 204/255.0)
+  // );
+	// if(!in_main_menu)
+	{
+		vec3 w_col = vec3(0/255.0, 64/255.0, 128/255.0);
+		vec3 c = mix(danger_col, w_col, float(d < 0));
+		c *= 1.0 - exp(-6.0*abs(d)); // dark edges
+		out_colour.rgb = c;
+		out_colour.a = 1.0f;
+		return;
+	}
 
 	col = sqrt(sqrt(t)) * mix(danger_col, water_col, float(d < 0));	
 	col *= 1.0 - exp(-6.0*abs(d)); // dark edges
