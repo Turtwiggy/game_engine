@@ -482,14 +482,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SINGLE_GameoverUI>(r);
     create_empty<RequestGameTrack>(r);
     create_empty<SINGLE_InfoUI>(r);
+    create_empty<SurviveTimerComponent>(r); // The survive timer that various spawners read from
 
     // Reset temporary gold
     auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
     gold_c.temp_amount_pickup = 0;
     gold_c.temp_amount_enemies = 0;
-
-    // The survive timer that various spawners read from
-    const auto survive_timer_e = create_empty<SurviveTimerComponent>(r);
 
     spawn_islands(r); // before spawn_players
     generate_island_interior(r);
@@ -512,7 +510,30 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     //   hp_c.hp = hp_c.max_hp;
 
     spawn_players(r);
+    set_players_as_landed(r);
 
+    // populate spawners from configs
+    create_empty<SpawnerLiveData>(r);
+    init_spawners(r);
+  }
+
+  if (s == Scene::develop_waves) {
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    create_empty<SINGLE_SurviveStatsComponent>(r);
+    create_empty<Effect_GridComponent>(r);
+    create_empty<SINGLE_XpComponent>(r);
+    create_empty<SINGLE_LevelUpUI>(r);
+    create_empty<SINGLE_GameoverUI>(r);
+    create_empty<RequestGameTrack>(r);
+    create_empty<SINGLE_InfoUI>(r);
+    create_empty<SurviveTimerComponent>(r);
+
+    spawn_islands(r); // before spawn_players
+    generate_island_interior(r);
+    generate_island_life__base_island(r);
+    generate_island_life__other_islands(r);
+
+    spawn_players(r);
     set_players_as_landed(r);
 
     // populate spawners from configs

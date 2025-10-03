@@ -152,10 +152,13 @@ void main()
 	float iTime = time;
 	vec2 offs = vec2(fbm(v_uv*16.), fbm(v_uv*16. + .35));
 	vec2 offs2 = vec2(fbm(v_uv*1. + iTime/4.), fbm(v_uv*1. + .5 + iTime/4.));
+
 	// const float oFct = 0.5;
-	// const float oFct2 = .0015;
+	// const float oFct2 = .1;
+
 	const float oFct = .025;
 	const float oFct2 = .02;
+
 	v_uv -= (offs - .5)*oFct;
 	v_uv -= (offs2 - .5)*oFct2;
 

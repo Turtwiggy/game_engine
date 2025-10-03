@@ -22,7 +22,7 @@ update_zoom(OrthographicCamera& camera, float dt)
   auto& zoom = camera.zoom_linear;
   auto& zoom_nonlinear = camera.zoom_nonlinear;
 
-  bool zoom_enabled = true;
+  bool zoom_enabled = false;
   if (zoom_enabled) {
     if (ImGui::GetIO().MouseWheel > 0.0f)
       zoom -= 0.1f;

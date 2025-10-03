@@ -45,8 +45,8 @@ struct DebugContoursComponent
 
 struct SINGLE_Islands
 {
-  const int map_size = 4096;
-  const int tilesize = 32;
+  const int map_size = 1024;
+  const int tilesize = 16;
   const int wh = map_size / tilesize;
   float cutoff = 0.69f; // [0, 1]
   float frequency = 0.1f;

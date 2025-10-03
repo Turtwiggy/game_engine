@@ -47,7 +47,6 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   };
 
   // #define DEBUG_SNAKE 1
-
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   const auto debug_snake_action = [&]() {
     open = false;
@@ -60,6 +59,12 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
 #if defined(_DEBUG) && defined(DEBUG_ISLANDS)
   const auto debug_islands_action = [&]() { move_to_scene_start(r, Scene::develop_islands); };
   const auto debug_islands = make_cell("Debug Islands", debug_islands_action);
+#endif
+
+#define DEBUG_WAVES 0
+#if defined(_DEBUG) && defined(DEBUG_WAVES)
+  const auto debug_waves_action = [&]() { move_to_scene_start(r, Scene::develop_waves); };
+  const auto debug_waves = make_cell("Debug Waves", debug_waves_action);
 #endif
 
   auto a = make_cell("Play", play_action);

@@ -438,9 +438,8 @@ void main()
   // col_water * (exp(heightmap - 1.0)),
   float heightmap_mul = (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.15))));
   vec3 blend_water_col = heightmap > 0.0 ? col_water * heightmap_mul : col_water;
-
-  out_color.rgb = mix( out_color.rgb, blend_water_col, sign(length(col_water.rgb)) );
-  // out_color.rgb = mix( out_color.rgb, col_water, sign(length(col_water.rgb)) );
+  // out_color.rgb = mix( out_color.rgb, blend_water_col, sign(length(col_water.rgb)) );
+  out_color.rgb = mix( out_color.rgb, col_water, sign(length(col_water.rgb)) );
 
   // add the island shore
   out_color.rgb = mix( out_color.rgb, col_island_shore, sign(length( col_island_shore.rgb )));

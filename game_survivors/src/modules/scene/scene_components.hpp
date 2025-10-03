@@ -11,6 +11,7 @@ enum class Scene
   select_ships,
   survive,
 
+  develop_waves,
   develop_snake,
   develop_islands,
 
