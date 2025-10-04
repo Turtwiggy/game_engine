@@ -65,57 +65,7 @@ vec4 rgb(float r, float g, float b) {
 	return vec4(r / 255.0, g / 255.0, b / 255.0, 1.0);
 }
 
-// visual parameters ------------------
-const bool reverse = true; // reverse vertically 
-const int waveNumber = 6;
-const float speed = .1;
-const float foamDensity = 0.;
-const float waveCurve = 4.;
-vec3 sandColor = vec3(1.,.95,.8);
-const vec3 seaColor = vec3(.0,.7,.85);
-const vec3 deepSeaColor = vec3(0.,.2,.3);
-//-------------------------------------
-
 #define PI 3.14159265359
-const float pi = 3.14159265359;
-
-vec2 hash(vec2 P)
-{
- 	return fract(cos(P*mat2(-64.2,71.3,81.4,-29.8))*8321.3); 
-}
-float hash1( float p ) {
-    float h = dot(vec2(p),vec2(127.1,311.7));	
-    return fract(sin(h)*43758.5453123);
-}
-float hash2( vec2 p ) {
-    float h = dot(p,vec2(127.1,311.7));	
-    return fract(sin(h)*43758.5453123);
-}
-
-float noise(vec2 p){
-	return fract(sin(fract(sin(p.x) * (43.13311)) + p.y) * 31.0011);
-}
-// basic 1 dimensionnal noise
-float noise1d( float p ) {
-    float i = floor( p );
-    float f = fract( p );
-    float u = f*f*f*(f*(f*6.0-15.0)+10.0);
-    float v = mix( hash1(i), hash1(i + 1.), u);              
-    return v;
-}
-
-
-// get global curve of each wave
-float getWaveNoise(float ti, float wA, vec2 uv){
-    float wN = hash1(ti)/3. + noise1d( (uv.x+ti)*waveCurve) * (max(0.,wA*1.5-.3));
-    return wN;
-}
-
-// get height of each wave
-float getWaveOffset(float wN, float t, vec2 uv){
-	 float offset = (uv.y + sin( t *(2.*pi)) /2.2 - 0.3 ) + wN;
-    	return offset;
-}
 
 void
 main()
@@ -132,7 +82,7 @@ main()
 
   float sltm = iTime * 0.2;
 
-	float uvy = uv.y - (sin(iTime ) * 0.5 + 0.5) * 0.1 - 0.79;
+	float uvy = uv.y - (sin(iTime) * 0.5 + 0.5) * 0.1 - 0.79;
 	float wuvy = uv.y - (sin(.75) * 0.5 + 0.5) * 0.1 - 0.78;
 
 	float shore = sin(uv.x * PI * 4. + sltm);

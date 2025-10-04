@@ -1,7 +1,7 @@
 // version prepended to file when loaded by engine.
 //
 
-out vec4 out_color;
+out vec4 out_colour;
 
 in VS_OUT
 {
@@ -51,30 +51,30 @@ void main()
   float height = texture(tex_map_heightmap, uv).r;
   
   //  if(height > 0.7)
-  //   out_color.rgb = vec3(0.0f, 0.0f, 0.0f);
+  //   out_colour.rgb = vec3(0.0f, 0.0f, 0.0f);
   // else if(height > 0.68)
-  //   out_color.rgb = vec3(1.0f, 0.0f, 1.0f);
+  //   out_colour.rgb = vec3(1.0f, 0.0f, 1.0f);
   // else
 
   // if(height >= 0.64) {
-  //   // out_color.r = 1.0 - 0.64;
-  //   // out_color.r = pow(height, 2) - 0.1;
-  //   // out_color.r = 1.0;
-  //   // out_color.a = 0.5f;
-  //   // out_color.a = 1.0f;
+  //   // out_colour.r = 1.0 - 0.64;
+  //   // out_colour.r = pow(height, 2) - 0.1;
+  //   // out_colour.r = 1.0;
+  //   // out_colour.a = 0.5f;
+  //   // out_colour.a = 1.0f;
   //   // return;
   // }
   // else{
-  //   // out_color.r = 1.0f;
+  //   // out_colour.r = 1.0f;
   //   // scale [0, X] to [1, 0];
-  //   // out_color.r =  scale(height, 0.0, 0.60, 0.0, 1.0);
-  //   // out_color.gb = vec2(0.0f);
-  //   // out_color.r = 1.0 - height;
+  //   // out_colour.r =  scale(height, 0.0, 0.60, 0.0, 1.0);
+  //   // out_colour.gb = vec2(0.0f);
+  //   // out_colour.r = 1.0 - height;
   // }
 
-  // out_color.r = 0.6 - height;
-  out_color.r = height;
+  // out_colour.r = 0.6 - height;
+  out_colour.r = height;
 
-  // out_color.rgb = vec3(1.0f, 1.0f, 0.0f);
-  out_color.a = 1.0f;
+  // out_colour.rgb = vec3(1.0f, 1.0f, 0.0f);
+  out_colour.a = 1.0f;
 }

@@ -43,11 +43,14 @@
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_helpers.hpp"
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "spawner_components.hpp"
 #include "spawner_helpers.hpp"
+
 
 namespace game2d {
 
@@ -315,6 +318,13 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   return e;
 };
 
+//
+// The update_wave_spawner spawns a variety of enemies between a set time.
+// e.g. actor_enemy_exploder, actor_enemy_melee_1, actor_enemy_4 (0, 1)
+// The update_enemy_spawner spawns a specific enemy at times.
+// e.g. actor_enemy_grower (0, 5), actor_enemy_grower (5, 10)
+//
+
 void
 update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int>& enemy_to_amount)
 {
@@ -491,15 +501,40 @@ update_spawner_system(entt::registry& r, const float dt)
   if (!survive_c.game_started)
     return;
 
-  // Update survive timer
-  survive_c.time_left_cur -= dt;
-  survive_c.time_left_cur = glm::max(survive_c.time_left_cur, 0.0f);
-
   // How many of each enemies do we currently have?
   const auto& enemies_view = r.view<const EnemyComponent, const ItemKey>();
   std::unordered_map<std::string, int> enemy_to_amount;
   for (const auto& [e, enemy_c, item_c] : enemies_view.each())
     enemy_to_amount[item_c.key] += 1;
+
+#if defined(_DEBUG)
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  auto ui_state = gesert_menubar_state(menu_c, "Spawners_GoToWaves");
+  if (ui_state.enabled) {
+    int minutes = (int)(survive_c.time_left_cur / 60.0f);
+    // if (survive_c.minute != minutes) {
+    //   SDL_Log("Minute changed from %i to %i", survive_c.minute, minutes);
+    //   survive_c.minute = minutes;
+    //   survive_c.new_minute_hit = true;
+    // }
+    ImGui::Text("Minute: %i", survive_c.minute);
+    ImGui::Text("MinuteHit: %i", survive_c.new_minute_hit);
+    if (ImGui::Button("NextWave"))
+      survive_c.new_minute_hit = false;
+    for (int i = 10; i > 0; i--) {
+      if (ImGui::Button(std::format("GoToWave{}", i).c_str()))
+        survive_c.time_left_cur = i * 60.0f;
+    }
+    for (const auto& [enemy_str, amount] : enemy_to_amount)
+      ImGui::Text("%s: %i", enemy_str.c_str(), amount);
+    if (survive_c.new_minute_hit)
+      return; // pause all the spawners!
+  }
+#endif
+
+  // Update survive timer
+  survive_c.time_left_cur -= dt;
+  survive_c.time_left_cur = glm::max(survive_c.time_left_cur, 0.0f);
 
   //
   // NOTE: if enemy spawner and wave spawner use the same key,

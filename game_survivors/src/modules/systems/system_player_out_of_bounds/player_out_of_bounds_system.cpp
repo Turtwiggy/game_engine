@@ -26,7 +26,7 @@ update_player_out_of_bounds_system(entt::registry& r, const float dt)
 #endif
   auto& evts_c = SINGLE_Events::instance;
 
-  const int map_radius = 900;
+  const int map_radius = 800;
   const int map_radius_sqr = map_radius * map_radius;
 
   for (const auto& [e, player_c, damage_c] : r.view<PlayerComponent, OutOfBoundsTimer>().each()) {

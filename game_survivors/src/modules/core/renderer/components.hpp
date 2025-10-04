@@ -28,6 +28,7 @@ struct ViewportInfo
 
 enum class PassName
 {
+  menu_fractal_shader,
   water_heightmap,
   water,
   floor_mask,
@@ -100,6 +101,7 @@ struct SINGLE_RendererInfo
   FluidSimData fluid_sim;
 
   // shaders
+  engine::Shader menu_fractal;
   engine::Shader water_heightmap;
   engine::Shader water;
   engine::Shader instanced;

@@ -1,7 +1,7 @@
 // version prepended to file when loaded by engine.
 //
 
-out vec4 out_color;
+out vec4 out_colour;
 
 in vec2 v_uv;
 
@@ -35,5 +35,5 @@ main()
     }
   }
 
-  out_color = vec4(result, 1.0);
+  out_colour = vec4(result, 1.0);
 }

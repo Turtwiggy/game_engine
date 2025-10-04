@@ -5,6 +5,9 @@
 namespace game2d {
 
 void
+setup_menu_fractal_update(entt::registry& r);
+
+void
 setup_floor_mask_update(entt::registry& r);
 
 void

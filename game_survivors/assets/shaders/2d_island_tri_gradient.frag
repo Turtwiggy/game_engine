@@ -75,7 +75,6 @@ main()
   // out_colour.rg = cam_uv;
   // out_colour.a = 1.0;
 
-	// uv *= zoom;
 	// vec2 cam_uv = camera_pos + (uv * screen_wh);
 	// cam_uv /= screen_wh;
 

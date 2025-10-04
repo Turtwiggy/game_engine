@@ -103,7 +103,7 @@ update_ui_debug_spawner_system(entt::registry& r)
   ZoneScoped;
 #endif
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-  auto ui_state = gesert_menubar_state(menu_c, "Spawners");
+  auto ui_state = gesert_menubar_state(menu_c, "Spawners_Data");
   if (!ui_state.enabled)
     return;
 

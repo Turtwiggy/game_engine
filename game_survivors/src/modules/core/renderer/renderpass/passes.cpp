@@ -38,6 +38,24 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
 };
 
 void
+setup_menu_fractal_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::menu_fractal_shader);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    auto& ri = SINGLE_RendererInfo::instance;
+
+    ri.menu_fractal.bind();
+    render_fullscreen_quad(r, ri.menu_fractal, ri.viewport_size_render_at);
+  };
+}
+
+void
 setup_water_heightmap_update(entt::registry& r)
 {
   auto& ri = SINGLE_RendererInfo::instance;

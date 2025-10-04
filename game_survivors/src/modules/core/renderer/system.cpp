@@ -117,6 +117,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     return pass.texs[0].tex_unit.unit;
   };
 
+  const int tex_unit_menu_fractal = get_tex_unit(PassName::menu_fractal_shader);
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
   const int tex_unit_water_heightmap = get_tex_unit(PassName::water_heightmap);
   const int tex_unit_water = get_tex_unit(PassName::water);
@@ -143,6 +144,14 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
   // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+  ri.menu_fractal.reload(r);
+  ri.menu_fractal.bind();
+  ri.menu_fractal.set_uniform_block_binding("Data", 0);
+  ri.menu_fractal.set_mat4("projection", camera.projection);
+  ri.menu_fractal.set_bool("is_fullscreen", true);
+  ri.menu_fractal.set_bool("do_zoom", false);
+  ri.menu_fractal.set_vec2("viewport_wh", wh);
+
   ri.water_heightmap.reload(r);
   ri.water_heightmap.bind();
   ri.water_heightmap.set_uniform_block_binding("Data", 0);
@@ -156,6 +165,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", wh);
+  ri.water.set_int("tex_menu_fractal", tex_unit_menu_fractal);
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -177,7 +187,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   }
   // ri.instanced.set_int("tex_fluid", tex_unit_fluid);
   // ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
-  // ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluid_sim.config_dye_resolution);
+  // ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluis_sim.config_dye_resolution);
 
   ri.instanced_tri.reload(r);
   ri.instanced_tri.bind();
@@ -342,6 +352,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
   RenderCommand::clear();
 
+  ri.passes.push_back(RenderPass(PassName::menu_fractal_shader));
   ri.passes.push_back(RenderPass(PassName::water_heightmap));
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
@@ -419,6 +430,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
     ri.tex_unit_heightmap = used_tex_units + (int)ri.user_textures.size();
   }
 
+  ri.menu_fractal = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_menu_fractal.frag");
   ri.water_heightmap = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_heightmap_texture.frag");
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
@@ -490,6 +502,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   rebind(r, ri);
 
   // adds the update() for each renderpass
+  setup_menu_fractal_update(r);
   setup_water_heightmap_update(r);
   setup_water_update(r);
   setup_floor_mask_update(r);
@@ -641,7 +654,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::clear();
 
     // Which pass to render finally?
-    const PassName p = PassName::crt_effect;
+    PassName p = PassName::crt_effect;
+    if (SINGLE_CurrentScene::instance.s == Scene::menu)
+      p = PassName::menu_fractal_shader;
 
     // Note: ImGui::Image takes in TexID not TexUnit
     const auto& pass = ri.passes[(int)p];

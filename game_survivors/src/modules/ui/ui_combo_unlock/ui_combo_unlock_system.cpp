@@ -49,7 +49,7 @@ update_ui_combo_unlock_system(entt::registry& r)
   const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)monochrome_tex_id;
 
-  imgui_begin("UpgradeUI");
+  imgui_begin("ComboUnlockUI", ImGuiWindowFlags_NoInputs);
   const ImVec2 ui_tl = ImGui::GetWindowPos();
   const ImVec2 ui_wh = ImGui::GetWindowSize();
   auto* draw_list = ImGui::GetWindowDrawList();

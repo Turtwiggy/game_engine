@@ -1,7 +1,7 @@
 // version prepended to file when loaded by engine.
 //
 
-out vec4 out_color;
+out vec4 out_colour;
 
 in VS_OUT
 {
@@ -252,7 +252,7 @@ void main()
   vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
-  out_color.a = 1.0f;
+  out_colour.a = 1.0f;
 
   // fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
   // iResolution : is a vec2 with an X value of 640 and a Y value of 360
@@ -424,13 +424,13 @@ void main()
   heightmap = clamp(heightmap, 0, 1);
 
   // if(heightmap > 0.69)
-  //   out_color.rgb = vec3(1)*(heightmap);
+  //   out_colour.rgb = vec3(1)*(heightmap);
   // else if(heightmap > 0.68)
-  //   out_color.rgb = vec3(1.0);
+  //   out_colour.rgb = vec3(1.0);
   // else
-  //   // out_color.rgb = vec3(42/255.0f, 196/255.0f, 182/255.0f)*(1.0 - heightmap);
-  //   out_color.rgb = vec3(10/255.0f, 0/255.0f, 0/255.0f)*(1.0 - heightmap);
-  // out_color.r = heightmap;
+  //   // out_colour.rgb = vec3(42/255.0f, 196/255.0f, 182/255.0f)*(1.0 - heightmap);
+  //   out_colour.rgb = vec3(10/255.0f, 0/255.0f, 0/255.0f)*(1.0 - heightmap);
+  // out_colour.r = heightmap;
 
   // add the water
   // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
@@ -438,42 +438,42 @@ void main()
   // col_water * (exp(heightmap - 1.0)),
   float heightmap_mul = (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.15))));
   vec3 blend_water_col = heightmap > 0.0 ? col_water * heightmap_mul : col_water;
-  // out_color.rgb = mix( out_color.rgb, blend_water_col, sign(length(col_water.rgb)) );
-  out_color.rgb = mix( out_color.rgb, col_water, sign(length(col_water.rgb)) );
+  // out_colour.rgb = mix( out_colour.rgb, blend_water_col, sign(length(col_water.rgb)) );
+  out_colour.rgb = mix( out_colour.rgb, col_water, sign(length(col_water.rgb)) );
 
   // add the island shore
-  out_color.rgb = mix( out_color.rgb, col_island_shore, sign(length( col_island_shore.rgb )));
+  out_colour.rgb = mix( out_colour.rgb, col_island_shore, sign(length( col_island_shore.rgb )));
 
   // put the island triangle gradient shader on top
-  out_color.rgb = mix( out_color.rgb, col_itg, sign(length( col_itg.rgb )));
+  out_colour.rgb = mix( out_colour.rgb, col_itg, sign(length( col_itg.rgb )));
 
   // put the scene on top of triangle (islands).
-  out_color.rgb = mix( out_color.rgb, col_scene, sign(length( col_scene.rgb )));
+  out_colour.rgb = mix( out_colour.rgb, col_scene, sign(length( col_scene.rgb )));
 
-  // out_color.rgb = lighting_col;
-  // if(outline_col.r > 0.0f) out_color.rgb = vec3(1.0, 0.0, 0.0);
-  // out_color.rgb = mix(
-  //     out_color.rgb,           
+  // out_colour.rgb = lighting_col;
+  // if(outline_col.r > 0.0f) out_colour.rgb = vec3(1.0, 0.0, 0.0);
+  // out_colour.rgb = mix(
+  //     out_colour.rgb,           
   //     vec3(1.0, 0.0, 0.0),     // Red (used if condition is true)
   //     sign(outline_col.r) // 1.0 if outline_col.r > 0.0, else 0.0
   // );
 
   // grid
-  // out_color.rgb += grid_col;
+  // out_colour.rgb += grid_col;
 
   // shiney shells
   vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
-  // if(tex_shells.r > 0.0) out_color.rgb = lin_to_srgb(tex_shells);
-  out_color.rgb = mix(
-    out_color.rgb, 
+  // if(tex_shells.r > 0.0) out_colour.rgb = lin_to_srgb(tex_shells);
+  out_colour.rgb = mix(
+    out_colour.rgb, 
     lin_to_srgb(tex_shells), 
     length(tex_shells.r)
   );
   
   // flames
   vec3 tex_flame_col = texture(tex_flame, v_uv).rgb;
-  out_color.rgb = mix(
-    out_color.rgb,
+  out_colour.rgb = mix(
+    out_colour.rgb,
     lin_to_srgb(tex_flame_col),
     length(tex_flame_col.r)
   );
@@ -484,11 +484,11 @@ void main()
   // vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
   // float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
   // vig = pow(vig, 0.25); // change pow for modifying the extend of the  vignettea
-  // out_color.rgb *= vig;
+  // out_colour.rgb *= vig;
   // }
 
   // ACES tonemap
-  // out_color.rgb = Tonemap_ACES(out_color.rgb);
+  // out_colour.rgb = Tonemap_ACES(out_colour.rgb);
 
-  out_color.a = 1.0f;
+  out_colour.a = 1.0f;
 }

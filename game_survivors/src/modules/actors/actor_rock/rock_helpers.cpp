@@ -574,7 +574,7 @@ generate_island_interior(entt::registry& r)
         const auto rock_col = engine::SRGBColour{ 70, 200, 96 * 2, 255 };
         const auto debug_e = spawn(r, "empty");
         r.get<TagComponent>(debug_e).tag = "empty-IslandSquare";
-        give_life(r, debug_e, pos2, { 3, 3 });
+        give_life(r, debug_e, pos2, { 2, 2 });
         set_colour(r, debug_e, rock_col);
         set_z_index(r, debug_e, ZLayer::FLOOR);
 

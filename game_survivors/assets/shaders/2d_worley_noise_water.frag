@@ -31,7 +31,8 @@ layout(std140) uniform Data {
 uniform vec2 viewport_wh;
 
 // use the fluid sim as a mask for the worley noise shader.
-uniform int tex_fluid_sim;
+uniform sampler2D tex_fluid_sim;
+uniform sampler2D tex_menu_fractal;
 
 //Calculate the squared length of a vector
 float length2(vec2 p){
@@ -149,18 +150,19 @@ void main()
 	vec2 half_wh = viewport_wh * 0.5;
 
 	// wobble the uvs.
+
 	float iTime = time;
+	// if(!menu)
+	{
 	vec2 offs = vec2(fbm(v_uv*16.), fbm(v_uv*16. + .35));
 	vec2 offs2 = vec2(fbm(v_uv*1. + iTime/4.), fbm(v_uv*1. + .5 + iTime/4.));
-
 	// const float oFct = 0.5;
 	// const float oFct2 = .1;
-
-	const float oFct = .025;
-	const float oFct2 = .02;
-
+	const float oFct = .0025;
+	const float oFct2 = .0001;
 	v_uv -= (offs - .5)*oFct;
 	v_uv -= (offs2 - .5)*oFct2;
+	}
 
 	// vec2 center = iResolution.xy * 0.5;
 	// vec2 p = ((fragCoord - center) * zoom + center + vec2(0.5));
@@ -184,9 +186,8 @@ void main()
 		ss.x *= aspect_x;
 		vec2 p = tmp_uv + ss;
 
-		float tilesize = 32;
-		float tiles = 20;
-		float radius = ((tilesize * tiles) / viewport_wh.y) * 2;
+		float radius_pix = 800;
+		float radius = ((radius_pix) / viewport_wh.y) * 2;
 		d = sdfCircle(p, radius);
 	}
 
@@ -232,6 +233,8 @@ void main()
   // );
 	// if(!in_main_menu)
 	{
+		// vec3 w_col = texture(tex_menu_fractal, v_uv).rgb;
+		// vec3 w_col = water_col;
 		vec3 w_col = vec3(0/255.0, 64/255.0, 128/255.0);
 		vec3 c = mix(danger_col, w_col, float(d < 0));
 		c *= 1.0 - exp(-6.0*abs(d)); // dark edges
