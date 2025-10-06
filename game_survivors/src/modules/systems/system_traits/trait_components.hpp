@@ -13,6 +13,7 @@ enum class AiBehaviour
   KEEP_DISTANCE, // ai type
   PROJECTILE,    // ai type
   CHARGE,        // ai type
+  FLOW,          // ai type
 
   count,
 };

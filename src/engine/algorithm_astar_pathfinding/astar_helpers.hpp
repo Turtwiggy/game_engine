@@ -52,13 +52,6 @@ generate_accessible_areas_with_diagonals(entt::registry& r,
                                          const MapComponent& map_c,
                                          const vec2i from_pos,
                                          const int range);
-
-// [[nodiscard]] std::vector<astar_cell>
-// generate_flow_field(entt::registry& r, const MapComponent& grid, const int from_idx);
-
-void
-display_flow_field_with_visuals(entt::registry& r, MapComponent& grid);
-
 bool
 has_destination(entt::registry& r, const entt::entity src_e);
 

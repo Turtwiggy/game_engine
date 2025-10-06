@@ -46,6 +46,7 @@
 #include "modules/effect_crt/crt_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/events/events_core/events_system.hpp"
+#include "modules/pathfinding_flowfield/pathfinding_flowfield_system.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam/steam_helpers.hpp"
@@ -330,6 +331,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_debug_fixtures_system(r);
 #endif
 
+  update_generate_flow_field_system(r, mouse_pos);
+  update_display_flow_field_system(r);
+
   const auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
     update_animator_system(r, dt);
@@ -418,6 +422,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::select_ships)
     update_ui_scene_select_system(r, dt);
 
+  const auto non_game_scenes =
+    std::vector<Scene>{ Scene::splashscreen, Scene::pressanykey, Scene::menu, Scene::select_modifiers, Scene::select_ships };
+
   if (scene.s == Scene::survive) {
     update_ui_scene_survive_system(r);
     update_ui_survive_objectives_system(r);
@@ -439,6 +446,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   static bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
     update_ui_triangle_editor_system(r);
     update_ui_debug_elemental_system(r);
     update_ui_debug_menubar_system(r);
@@ -502,6 +512,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     // draw_list->AddImage(im_id, cursor_tl, cursor_br, tl, br);
   }
 
+  draw_all_sprites(r); // draw "imgui" immediate-mode style sprites
   update_render_system(r, dt, mouse_pos);
 
 #if defined(_DEBUG)

@@ -15,7 +15,7 @@ void
 EntityPool::update(entt::registry& r, const int desired)
 {
   const int new_size = desired;
-  const int old_size = (int)instances.size();
+  const int old_size = (int)r.view<EntityPoolComponent>().size();
   if (new_size == old_size)
     return;
 
@@ -26,21 +26,18 @@ EntityPool::update(entt::registry& r, const int desired)
     r.emplace<TagComponent>(e, "entity-pool-entity");
     r.emplace<TransformComponent>(e);
     r.emplace<SpriteComponent>(e);
+    r.emplace<EntityPoolComponent>(e);
     set_sprite(r, e, "EMPTY");
     set_size(r, e, { 0, 0 });
-    // set_z_index(r, e, ZLayer::DEFAULT);
-    instances.push_back(e);
   }
 
   // destroy
-  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-  for (int i = old_size; i > new_size; i--) {
-    const auto idx = i - 1;
-    const auto entity = instances[idx];
-    dead.dead.push_back(entity);
-
-    std::erase(instances, entity);
-  }
+  // auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+  // for (int i = old_size; i > new_size; i--) {
+  //   const auto idx = i - 1;
+  //   const auto entity = instances[idx];
+  //   dead.dead.push_back(entity);
+  // }
 
   // now iterate instances...
 };

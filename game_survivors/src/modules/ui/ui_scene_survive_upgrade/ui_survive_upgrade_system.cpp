@@ -510,9 +510,9 @@ draw_stats(entt::registry& r,
   }
 
   // highlight (new) weapon behaviours.
-  for (const auto& upg_traits : result.traits) {
+  for (const auto& utrait : result.traits) {
     start_y += text_size.y;
-    const auto upg_str = "(+) " + std::string(magic_enum::enum_name(upg_traits));
+    const auto upg_str = "(+) " + std::string(magic_enum::enum_name(utrait));
     draw_list->AddText({ key_x, start_y }, im_greenish, upg_str.c_str());
   }
 

@@ -20,9 +20,10 @@ struct Sprite
 
 struct SINGLE_ImSprite
 {
+  std::vector<Sprite> sprites;
+
   EntityPool pool;
   int cached = 50;
-  int used = 0;
 };
 
 void
@@ -30,5 +31,8 @@ begin_frame_sprite(entt::registry& r);
 
 void
 draw_sprite(entt::registry& r, const Sprite& desc);
+
+void
+draw_all_sprites(entt::registry& r);
 
 } // namespace game2d

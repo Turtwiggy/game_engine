@@ -32,14 +32,17 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, ui_e, ui_c);
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-  const std::vector<Scene> scene_to_show_pause_menu{
-    Scene::survive,
-    Scene::develop_snake,
-    Scene::develop_islands,
-  };
+  // const std::vector<Scene> scene_to_show_pause_menu{
+  //   Scene::survive,
+  //   Scene::develop_snake,
+  //   Scene::develop_islands,
+  // };
 
+  const std::vector<Scene> scene_not_to_show_pause_menu{
+    Scene::splashscreen, Scene::pressanykey, Scene::menu, Scene::select_modifiers, Scene::select_ships,
+  };
   const auto& scene_c = SINGLE_CurrentScene::instance;
-  if (!has(scene_to_show_pause_menu, scene_c.s))
+  if (has(scene_not_to_show_pause_menu, scene_c.s))
     return;
 
   // TEMPORARY: input to generate open/close events

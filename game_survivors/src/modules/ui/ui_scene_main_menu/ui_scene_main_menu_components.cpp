@@ -61,10 +61,16 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   const auto debug_islands = make_cell("Debug Islands", debug_islands_action);
 #endif
 
-#define DEBUG_WAVES 0
+// #define DEBUG_WAVES 0
 #if defined(_DEBUG) && defined(DEBUG_WAVES)
-  const auto debug_waves_action = [&]() { move_to_scene_start(r, Scene::develop_waves); };
+  const auto debug_waves_action = [&]() { move_to_scene_start(r, Scene::develop_enemy_waves); };
   const auto debug_waves = make_cell("Debug Waves", debug_waves_action);
+#endif
+
+// #define DEBUG_FLOWFIELD 0
+#if defined(DEBUG_FLOWFIELD)
+  const auto debug_flowfield_action = [&]() { move_to_scene_start(r, Scene::develop_flowfield); };
+  const auto debug_flowfield = make_cell("Debug FlowField", debug_flowfield_action);
 #endif
 
   auto a = make_cell("Play", play_action);
@@ -77,12 +83,20 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   // nav
   //
   std::vector<std::shared_ptr<Cell>> vertical_cells = { a, b, c, d };
+
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   vertical_cells.push_back(debug_snake);
 #endif
 #if defined(_DEBUG) && defined(DEBUG_ISLANDS)
   vertical_cells.push_back(debug_islands);
 #endif
+#if defined(_DEBUG) && defined(DEBUG_WAVES)
+  vertical_cells.push_back(debug_waves);
+#endif
+#if defined(DEBUG_FLOWFIELD)
+  vertical_cells.push_back(debug_flowfield);
+#endif
+
   create_as_vertical_layout(vertical_cells);
 
   // put the modifiers button on the right of the play button

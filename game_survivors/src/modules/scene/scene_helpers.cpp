@@ -34,6 +34,7 @@
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/pathfinding_flowfield/pathfinding_flowfield_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_ability/ability_components.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_components.hpp"
@@ -297,10 +298,10 @@ void
 spawn_players(entt::registry& r)
 {
   std::vector<HullChoice> hull_keys = {
-    HullChoice{ .player_idx = 0, .player_boat_key = "dinghy" },
-    HullChoice{ .player_idx = 1, .player_boat_key = "dinghy" },
-    HullChoice{ .player_idx = 2, .player_boat_key = "dinghy" },
-    HullChoice{ .player_idx = 3, .player_boat_key = "dinghy" },
+    HullChoice{ .player_idx = 0, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
+    HullChoice{ .player_idx = 1, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
+    HullChoice{ .player_idx = 2, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
+    HullChoice{ .player_idx = 3, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
   };
 
   const auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
@@ -517,7 +518,22 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     init_spawners(r);
   }
 
-  if (s == Scene::develop_waves) {
+  if (s == Scene::develop_flowfield) {
+    create_empty<CameraFreeMove>(r);
+
+    // todo: set MapComponent from SINGLE_Islands
+    MapComponent map_c;
+    map_c.tilesize = 32.0f;
+    map_c.xmax = 20;
+    map_c.ymax = map_c.xmax;
+    map_c.map.resize(map_c.xmax * map_c.ymax);
+    create_empty<MapComponent>(r, map_c);
+    create_empty<SINGLE_Flowfield>(r);
+
+    //
+  }
+
+  if (s == Scene::develop_enemy_waves) {
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
     create_empty<SINGLE_SurviveStatsComponent>(r);
     create_empty<Effect_GridComponent>(r);

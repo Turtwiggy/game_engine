@@ -15,6 +15,7 @@
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_enemy_charger/enemy_charger_components.hpp"
+#include "modules/actors/actor_enemy_flow/enemy_flow_components.hpp"
 #include "modules/actors/actor_exploder/actor_exploder_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
@@ -336,6 +337,10 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
       if (trait_enum == AiBehaviour::CHARGE) {
         r.emplace<ChargerEnemyComponent>(e);
         r.emplace<CooldownComponent>(e);
+      }
+
+      if (trait_enum == AiBehaviour::FLOW) {
+        r.emplace<FlowEnemyComponent>(e);
       }
     }
 

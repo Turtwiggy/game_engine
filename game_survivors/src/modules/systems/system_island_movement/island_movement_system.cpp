@@ -5,6 +5,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/std/unordered_set/glm_hash.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "island_movement_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
@@ -15,16 +16,6 @@
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
-
-namespace std {
-
-template<>
-struct hash<glm::ivec2>
-{
-  std::size_t operator()(const glm::ivec2& k) const { return (std::hash<int>()(k.x) ^ (std::hash<int>()(k.y) << 1)); }
-};
-
-} // namespace std
 
 namespace game2d {
 

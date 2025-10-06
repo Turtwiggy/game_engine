@@ -4,15 +4,9 @@
 
 namespace game2d {
 
-struct EntityPoolComponent
+struct FlowEnemyComponent
 {
   bool placeholder = true;
-};
-
-class EntityPool
-{
-public:
-  void update(entt::registry& r, const int desired);
 };
 
 } // namespace game2d

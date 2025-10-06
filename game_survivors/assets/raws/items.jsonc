@@ -224,6 +224,15 @@
         { "tag": "fixture_shield", "type": "box", "is_sensor": false, "offset":[{"x":8, "y":0}], "size": [{"x":16, "y": 32}]}
       ]
     },
+    // text the flow-field mechanics.
+    {
+      "name": "actor_enemy_flow",
+      "speed": 0.015,
+      "renderable": { "sprite": "EMPTY", "colour": "dark_orange" },
+      "traits": [ {"key": "FLOW"} ],
+      "phys_body": { "is_bullet": false, "is_static": false, "linear_damping": 0.5 },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
     // anglerfish
     {
       "name": "actor_enemy_4",

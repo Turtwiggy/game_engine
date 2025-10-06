@@ -4,13 +4,20 @@
 
 #include "components.hpp"
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/map/components.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_enemy_flow/enemy_flow_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
+#include "modules/core/ui/ui_draw_text_helpers.hpp"
+#include "modules/pathfinding_flowfield/pathfinding_flowfield_components.hpp"
 
 namespace game2d {
 
@@ -115,10 +122,20 @@ static std::vector<DebugApproachDir> debug_instances;
 
 struct DebugVelocityError
 {
-  glm::vec2 tgt_vel;
+  glm::vec2 pos;
   glm::vec2 cur_vel;
+  glm::vec2 tgt_vel;
 };
 static std::vector<DebugVelocityError> debug_vel_instances;
+
+struct DebugFlowfield
+{
+  glm::vec2 pos;
+  glm::vec2 cur_vel;
+  glm::vec2 dir;
+  glm::vec2 next_pos;
+};
+static std::vector<DebugFlowfield> debug_flowfields;
 
 #endif
 
@@ -155,10 +172,13 @@ update_physics_apply_force_system(entt::registry& r)
       // Compute the desired velocity of your spaceship.
       const auto desired_vel = calculate_desired_velocity(r, body_c.bodyId, b_ent, speed_c, req_c);
 
-      // debug_vel_instances.push_back(DebugVelocityError{
-      //   .tgt_vel = { desired_vel.x, desired_vel.y },
-      //   .cur_vel = { cur_vel.x, cur_vel.y },
-      // });
+#if defined(_DEBUG)
+      debug_vel_instances.push_back(DebugVelocityError{
+        .pos = meters_to_pixels(b2Body_GetPosition(body_c.bodyId)),
+        .cur_vel = { cur_vel.x, cur_vel.y },
+        .tgt_vel = { desired_vel.x, desired_vel.y },
+      });
+#endif
 
       // Calculate the velocity error
       const float mass = b2Body_GetMass(body_c.bodyId);
@@ -266,19 +286,73 @@ update_physics_apply_force_system(entt::registry& r)
       b2Body_ApplyLinearImpulseToCenter(body_c.bodyId, impulse, true);
 
 #if defined(_DEBUG)
-      // debug_instances.push_back({
-      //   .pos = meters_to_pixels(you_body->GetPosition()),
-      //   .normal = cur_dir_normal,
-      //   .nrm_dir = nrm_dir,
-      //   .per_approach_dir = approach_dir,
-      //   .angle_error_non_abs = angle_error_non_abs,
-      //   .angle_error_adj = angle_error_adj,
-      //   .distance = d,
-      //   .midpoint = meters_to_pixels({ midpoint.x, midpoint.y }),
-      //   .flankpoint = meters_to_pixels({ flankpoint.x, flankpoint.y }),
-      // });
+      debug_instances.push_back({
+        .pos = meters_to_pixels(b2Body_GetPosition(you_body)),
+        .normal = cur_dir_normal,
+        .nrm_dir = nrm_dir,
+        .per_approach_dir = approach_dir,
+        .angle_error_non_abs = angle_error_non_abs,
+        .angle_error_adj = angle_error_adj,
+        .distance = d,
+        .midpoint = meters_to_pixels({ midpoint.x, midpoint.y }),
+        .flankpoint = meters_to_pixels({ flankpoint.x, flankpoint.y }),
+      });
 #endif
     }
+  }
+
+#if defined(_DEBUG)
+  debug_flowfields.clear();
+#endif
+
+  // Force via Flowfield.
+  {
+    const auto flowfield_e = get_first<SINGLE_Flowfield>(r);
+    if (flowfield_e != entt::null) {
+      const auto& flowfield_c = r.get<SINGLE_Flowfield>(flowfield_e);
+      const auto& map_c = get_first_component<MapComponent>(r);
+      const auto offset = glm::vec2{ map_c.tilesize * 0.5f, map_c.tilesize * 0.5f };
+
+      const auto view = r.view<const FlowEnemyComponent, const PhysicsBodyComponent, const ActorSpeedComponent>();
+      for (const auto& [e, flow_c, body_c, speed_c] : view.each()) {
+
+        const auto you_body = body_c.bodyId;
+        const auto you_pos_b2 = b2Body_GetPosition(you_body);
+        const auto you_pos = meters_to_pixels(you_pos_b2);
+        const auto you_gp_unclamped = engine::grid::worldspace_to_gridspace(you_pos + offset, map_c.tilesize);
+        const auto you_gp_clamped =
+          engine::grid::worldspace_to_clamped_gridspace(you_pos + offset, map_c.tilesize, map_c.xmax, map_c.ymax);
+        const auto you_idx = engine::grid::grid_position_to_index(you_gp_clamped, map_c.xmax);
+
+        if (!flowfield_c.came_from.contains(you_idx))
+          continue;
+        const auto next_idx = flowfield_c.came_from.at(you_idx);
+        const auto next_gp = engine::grid::index_to_grid_position(next_idx, map_c.xmax);
+        const auto next_pos = engine::grid::gridspace_to_worldspace({ next_gp.first, next_gp.second }, map_c.tilesize);
+
+        const auto dir = glm::vec2{ next_gp.first - you_gp_unclamped.x, next_gp.second - you_gp_unclamped.y };
+
+        // get the direction at your current position in the flowfield.
+        const auto tgt_vel = 1.0f * speed_c.current_speed * dir;
+        const auto cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
+
+        const float speed = speed_c.current_speed; // m/s
+        const float mass = b2Body_GetMass(body_c.bodyId);
+        const b2Vec2 vel = speed * b2Vec2{ dir.x, dir.y };
+        const b2Vec2 impulse = mass * vel;
+        b2Body_ApplyLinearImpulseToCenter(body_c.bodyId, impulse, true);
+
+#if defined(_DEBUG)
+        debug_flowfields.push_back(DebugFlowfield{
+          .pos = you_pos,
+          .cur_vel = { cur_vel.x, cur_vel.y },
+          .dir = dir,
+          .next_pos = next_pos,
+        });
+#endif
+      }
+    }
+    //
   }
 }
 
@@ -289,9 +363,22 @@ update_physics_apply_force_debug_ui(entt::registry& r)
   ZoneScoped;
 #endif
 #if defined(_DEBUG)
+  // const auto& ds = debug_instances;
   const auto& ds = debug_instances;
 
   // ImGui::Begin("UpdatePhysicsDebug");
+
+  const auto draw_line = [&r](auto a, auto b, engine::SRGBColour col) {
+    const LineInfo line_info = generate_line(a, b, 2);
+
+    Sprite debug_s;
+    debug_s.pos = line_info.position;
+    debug_s.size = line_info.scale;
+    debug_s.z_rotation = line_info.rotation;
+    debug_s.sprite = "EMPTY";
+    debug_s.col = col;
+    draw_sprite(r, debug_s);
+  };
 
   for (const auto& d : ds) {
     // ImGui::Separator();
@@ -301,6 +388,7 @@ update_physics_apply_force_debug_ui(entt::registry& r)
     // ImGui::Text("Angle error Adj: %f", d.angle_error_adj);
     // ImGui::Text("Distance: %f", d.distance);
 
+    /*
     {
       Sprite debug_s;
       debug_s.pos = d.midpoint;
@@ -317,27 +405,32 @@ update_physics_apply_force_debug_ui(entt::registry& r)
       debug_s.col = { 1.0f, 1.0f, 0.0f, 1.0f };
       draw_sprite(r, debug_s);
     }
+    */
 
-    const auto b = d.pos + (50.0f * d.normal);
-    const LineInfo line_info = generate_line(d.pos, b, 2);
-    {
-      Sprite debug_s;
-      debug_s.pos = line_info.position;
-      debug_s.size = line_info.scale;
-      debug_s.z_rotation = line_info.rotation;
-      debug_s.sprite = "EMPTY";
-      debug_s.col = { 1.0f, 1.0f, 1.0f, 1.0f };
-      draw_sprite(r, debug_s);
-    }
+    draw_line(d.pos, d.pos + (50.0f * d.normal), { 1.0f, 1.0f, 1.0f, 1.0f });
   }
   // ImGui::End();
 
-  // ImGui::Begin("DebugVel");
-  // for (const auto& d : debug_vel_instances) {
-  //   ImGui::Text("CurVel %f %f", d.cur_vel.x, d.cur_vel.y);
-  //   ImGui::Text("TgtVel %f %f", d.tgt_vel.x, d.tgt_vel.y);
-  // }
-  // ImGui::End();
+  for (const auto& d : debug_vel_instances) {
+    draw_line(d.pos, d.pos + 50.0f * engine::normalize_safe(d.cur_vel), { 1.0f, 1.0f, 1.0f, 1.0f });
+    draw_line(d.pos, d.pos + 50.0f * engine::normalize_safe(d.tgt_vel), { 1.0f, 0.0f, 1.0f, 1.0f });
+  }
+
+  for (const auto& d : debug_flowfields) {
+    const Sprite debug_s{
+      .sprite = "EMPTY",
+      .pos = d.pos,
+      .size = { 10, 10 },
+      .col = { 0.0f, 1.0f, 0.0f, 1.0f },
+    };
+    draw_sprite(r, debug_s);
+
+    draw_line(d.pos, d.pos + (50.0f * d.cur_vel), { 0.0f, 1.0f, 1.0f, 1.0f });
+    draw_line(d.pos, d.pos + (50.0f * d.dir), { 0.0f, 1.0f, 0.0f, 1.0f });
+    draw_line(d.pos, d.next_pos, { 1.0f, 0.0f, 0.0f, 1.0f });
+
+    // draw_text(r, WorldspaceText{ .worldspace_position = d.pos, .text = "1,2" });
+  }
 
 #endif
 }
