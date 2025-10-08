@@ -1,0 +1,79 @@
+{
+  
+  //
+  // 10 waves with various combinations of the following:
+  //   pufferfish (actor_enemy_exploder)
+  //   horseshoe crab (actor_enemy_melee_1)
+  //   hermit crab (actor_enemy_melee_2)
+  //   redclaw crab (actor_enemy_melee_3)
+  //   anglerfish (actor_enemy_4)
+  //   hogfish (actor_enemy_5)
+  //   archerfish (actor_enemy_projectile)
+  //   jellyfish (actor_enemy_swarmlord)
+  //   sea horse (actor_enemy_charger)
+  //   sea urchin (actor_enemy_grower) <1 <5 minutes, 1+ 5+ minutes
+  //   oyster (actor_destructable) ( spawns 1 every minute )
+  //   boss: (actor_snake) (spawns 1 at 5 minutes)
+  //
+
+  "wave_spawner": [
+    {
+      "name": "wave", "time": { "start": 0, "stop": 1 },
+      "enemies": [
+        { "key": "actor_enemy_flow", "data": { "hp": 10, "max": 10, "num_per_spawn": 50} }
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 1, "stop": 2 },
+      "enemies": [
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 2, "stop": 3 },
+      "enemies": [
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 3, "stop": 4 },
+      "enemies": [
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 4, "stop": 5 },
+      "enemies": [
+      ]
+    },
+    //
+    // snake spawns here
+    //
+    {
+      "name": "wave", "time": { "start": 5, "stop": 6 },
+      "enemies": [
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 6, "stop": 7 },
+      "enemies": [
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 7, "stop": 8 },
+      "enemies": [
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 8, "stop": 9 },
+      "enemies": [
+      ]
+    },
+    {
+      "name": "wave", "time": { "start": 9, "stop": 10 },
+      "enemies": [
+      ]
+    }
+  ],
+
+  "enemy_spawner": [
+
+  ]
+}

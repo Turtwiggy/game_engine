@@ -1,5 +1,6 @@
 #pragma once
 
+#include "box2d/id.h"
 #include <box2d/box2d.h>
 #include <entt/fwd.hpp>
 #include <glm/fwd.hpp>
@@ -84,7 +85,8 @@ struct PhysicsBodyComponent
 struct PhysicsFixtureComponent
 {
   b2BodyId bodyId; // parent body
-  b2ShapeId shapeId;
+  b2ShapeId shapeId = b2_nullShapeId;
+  b2ChainId chainId = b2_nullChainId;
 };
 
 struct SINGLE_Physics

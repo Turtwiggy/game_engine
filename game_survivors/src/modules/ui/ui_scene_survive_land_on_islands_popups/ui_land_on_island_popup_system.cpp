@@ -52,7 +52,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   //
   // Display "press x to land" popup
   //
-  {
+  if (false) {
     auto view = r.view<const IslandNearestComponent, const PlayerComponent>();
     for (const auto& [e, nearest_c, player_c] : view.each()) {
       if (nearest_c.landable_positions.empty())
@@ -77,7 +77,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   //
   // Display "press x to return to boat" (on your boat) popup
   //
-  {
+  if (false) {
     const auto view = r.view<const MovementIslandComponent, const TransformComponent, const InputComponent>();
     for (const auto [e, movement_c, t_c, input_c] : view.each()) {
       auto boat_e = movement_c.boat_e;

@@ -20,7 +20,7 @@ draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, I
   const auto popup_br = ImVec2{ ss_pos_br.x + padding, ss_pos_br.y + padding };
 
   auto bg_col_transparent = my_window_border_col;
-  bg_col_transparent.a = 100;
+  // bg_col_transparent.a = 100;
   const auto im_bg_col_transparent = convert_my_to_im(bg_col_transparent);
 
   draw_list->AddRectFilled(popup_tl, popup_br, im_bg_col_transparent, 0.0f);

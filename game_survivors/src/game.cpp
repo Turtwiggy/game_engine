@@ -72,6 +72,7 @@
 #include "modules/systems/system_island_movement/island_movement_system.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_system.hpp"
 #include "modules/systems/system_island_return_to_boat/island_return_to_boat_system.hpp"
+#include "modules/systems/system_island_return_to_boat_land_immunity/island_return_to_boat_land_immunity_system.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_item_gold/gold_helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
@@ -139,6 +140,7 @@
 #include "modules/ui/ui_triangle_editor/ui_triangle_editor_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -329,10 +331,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #if defined(_DEBUG)
   // update_debug_muzzleflash_system(r);
   // update_debug_fixtures_system(r);
+  // update_generate_flow_field_system(r, mouse_pos);
+  // update_display_flow_field_system(r);
 #endif
-
-  update_generate_flow_field_system(r, mouse_pos);
-  update_display_flow_field_system(r);
 
   const auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state != GameState::PAUSED && !pause) {
@@ -358,6 +359,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_island_nearest_system(r, mouse_pos);
     update_island_movement_system(r);
     update_island_return_to_boat_system(r);
+    update_island_return_to_boat_land_immunity_system(r, dt);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);
@@ -436,7 +438,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_upgrade_system(r, dt);
     update_ui_gameover_system(r);
     update_ui_land_on_island_popup_system(r);
-    update_ui_ability_system(r);
+    // update_ui_ability_system(r);
     update_ui_combo_unlock_system(r);
   }
 

@@ -191,6 +191,7 @@ void main()
 		d = sdfCircle(p, radius);
 	}
 
+
 	vec2 uv = v_uv - 0.5;
 	uv *= zoom;
 	vec2 cam_uv = camera_pos + (uv * viewport_wh);
@@ -198,13 +199,13 @@ void main()
 	vec2 grid_uv = cam_uv;
 	vec2 grid_p = ( viewport_wh / 1700 ) * grid_uv;
 
-  float t = fworley(grid_p);	
-
 	vec2 tex_uv = v_uv; // raw texture uv
 	tex_uv.y = 1 - tex_uv.y;
 
 	// inside distances only
 	d = clamp(d, -1, 1); 
+
+  float t = fworley(grid_p);	
 
 	// Multiply intensity values by a colour curve based off the uv
 	// t *= exp(-length2(abs(0.7*tex_uv - 1.0))); // add gradient
@@ -223,6 +224,12 @@ void main()
 		 min(1.1*t, 1.0),
 		 0.05
 	);
+
+	// vec3 danger_col = vec3(
+	// 	150/255.0f, 
+	// 	103/255.0f, 
+	// 	0/255.0f
+	// );
 
 	// vec3[5] ocean = vec3[5](
   //   vec3(0/255.0, 26/255.0, 51/255.0),
@@ -243,10 +250,9 @@ void main()
 		return;
 	}
 
-	col = sqrt(sqrt(t)) * mix(danger_col, water_col, float(d < 0));	
-	col *= 1.0 - exp(-6.0*abs(d)); // dark edges
-
-	out_colour.rgb = col;
+	// col = sqrt(sqrt(t)) * mix(danger_col, water_col, float(d < 0));	
+	// col *= 1.0 - exp(-6.0*abs(d)); // dark edges
+	// out_colour.rgb = col;
 
 	// vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
 	// out_colour.rgb = col;

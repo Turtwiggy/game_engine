@@ -110,7 +110,12 @@ update_island_movement_system(entt::registry& r)
       }
 
       if (!has(island_c.all_island_xy, n_gp)) {
-        // SDL_Log("tile is off the island...");
+        SDL_Log("tile is off the island...");
+
+        // return to your boat.
+        if (is_player)
+          r.emplace_or_replace<WantToReturnToBoat>(e);
+
         continue; // you'd move off the island!
       }
 

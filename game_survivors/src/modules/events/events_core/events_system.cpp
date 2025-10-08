@@ -8,6 +8,7 @@
 #include "modules/events/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
 #include "modules/events/event_coll_player_gold/event_coll_player_gold_helpers.hpp"
 #include "modules/events/event_coll_player_hp/event_coll_player_hp_helpers.hpp"
+#include "modules/events/event_coll_player_island/event_coll_player_island.hpp"
 #include "modules/events/event_coll_player_sea_mine/event_coll_player_sea_mine_helpers.hpp"
 #include "modules/events/event_coll_player_vacuum_orb/event_coll_player_vacuum_orb_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
@@ -47,6 +48,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_bullet_other_coll>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_gold>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_hp>(r);
+  ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_island>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_sea_mine>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_vacuum_orb>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_xp>(r);

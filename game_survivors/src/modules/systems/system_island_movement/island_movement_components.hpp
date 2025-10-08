@@ -8,4 +8,9 @@ struct MovementIslandComponent
   entt::entity boat_e = entt::null;
 };
 
+struct WantToReturnToBoat
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

@@ -16,7 +16,6 @@
 #include "modules/actors/actor_enemy_flow/enemy_flow_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
-#include "modules/core/ui/ui_draw_text_helpers.hpp"
 #include "modules/pathfinding_flowfield/pathfinding_flowfield_components.hpp"
 
 namespace game2d {
@@ -173,11 +172,11 @@ update_physics_apply_force_system(entt::registry& r)
       const auto desired_vel = calculate_desired_velocity(r, body_c.bodyId, b_ent, speed_c, req_c);
 
 #if defined(_DEBUG)
-      debug_vel_instances.push_back(DebugVelocityError{
-        .pos = meters_to_pixels(b2Body_GetPosition(body_c.bodyId)),
-        .cur_vel = { cur_vel.x, cur_vel.y },
-        .tgt_vel = { desired_vel.x, desired_vel.y },
-      });
+      // debug_vel_instances.push_back(DebugVelocityError{
+      //   .pos = meters_to_pixels(b2Body_GetPosition(body_c.bodyId)),
+      //   .cur_vel = { cur_vel.x, cur_vel.y },
+      //   .tgt_vel = { desired_vel.x, desired_vel.y },
+      // });
 #endif
 
       // Calculate the velocity error
@@ -286,17 +285,17 @@ update_physics_apply_force_system(entt::registry& r)
       b2Body_ApplyLinearImpulseToCenter(body_c.bodyId, impulse, true);
 
 #if defined(_DEBUG)
-      debug_instances.push_back({
-        .pos = meters_to_pixels(b2Body_GetPosition(you_body)),
-        .normal = cur_dir_normal,
-        .nrm_dir = nrm_dir,
-        .per_approach_dir = approach_dir,
-        .angle_error_non_abs = angle_error_non_abs,
-        .angle_error_adj = angle_error_adj,
-        .distance = d,
-        .midpoint = meters_to_pixels({ midpoint.x, midpoint.y }),
-        .flankpoint = meters_to_pixels({ flankpoint.x, flankpoint.y }),
-      });
+      // debug_instances.push_back({
+      //   .pos = meters_to_pixels(b2Body_GetPosition(you_body)),
+      //   .normal = cur_dir_normal,
+      //   .nrm_dir = nrm_dir,
+      //   .per_approach_dir = approach_dir,
+      //   .angle_error_non_abs = angle_error_non_abs,
+      //   .angle_error_adj = angle_error_adj,
+      //   .distance = d,
+      //   .midpoint = meters_to_pixels({ midpoint.x, midpoint.y }),
+      //   .flankpoint = meters_to_pixels({ flankpoint.x, flankpoint.y }),
+      // });
 #endif
     }
   }
@@ -343,12 +342,12 @@ update_physics_apply_force_system(entt::registry& r)
         b2Body_ApplyLinearImpulseToCenter(body_c.bodyId, impulse, true);
 
 #if defined(_DEBUG)
-        debug_flowfields.push_back(DebugFlowfield{
-          .pos = you_pos,
-          .cur_vel = { cur_vel.x, cur_vel.y },
-          .dir = dir,
-          .next_pos = next_pos,
-        });
+        // debug_flowfields.push_back(DebugFlowfield{
+        //   .pos = you_pos,
+        //   .cur_vel = { cur_vel.x, cur_vel.y },
+        //   .dir = dir,
+        //   .next_pos = next_pos,
+        // });
 #endif
       }
     }
@@ -428,7 +427,6 @@ update_physics_apply_force_debug_ui(entt::registry& r)
     draw_line(d.pos, d.pos + (50.0f * d.cur_vel), { 0.0f, 1.0f, 1.0f, 1.0f });
     draw_line(d.pos, d.pos + (50.0f * d.dir), { 0.0f, 1.0f, 0.0f, 1.0f });
     draw_line(d.pos, d.next_pos, { 1.0f, 0.0f, 0.0f, 1.0f });
-
     // draw_text(r, WorldspaceText{ .worldspace_position = d.pos, .text = "1,2" });
   }
 

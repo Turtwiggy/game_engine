@@ -372,7 +372,7 @@ generate_contours(entt::registry& r,
   return out;
 };
 
-void
+entt::entity
 create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<Edge>& contours)
 {
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
@@ -403,16 +403,28 @@ create_box2d_shape(entt::registry& r, entt::entity island_e, const std::vector<E
   chain_def.points = contor_meters.data();
   chain_def.count = (int)contor_meters.size();
   chain_def.isLoop = true;
+  chain_def.enableSensorEvents = true;
+  // chain_def.userData =
   b2ChainId chain_id = b2CreateChain(body_c.bodyId, &chain_def);
 
-  // PhysicsFixtureComponent fixture_c;
-  // fixture_c.bodyId = bodyId;
-  // fixture_c.shapeId = shape_id;
-  // auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
-  // r.emplace<HasParentComponent>(fixture_e, island_e);
-  // b2Body_SetUserData(fixture_c.bodyId, (void*)fixture_e); // box2d: give link to entt
-  // auto& child_c = r.get_or_emplace<HasChildrenComponent>(island_e);
-  // child_c.children.push_back(fixture_e);
+  PhysicsFixtureComponent fixture_c;
+  fixture_c.bodyId = bodyId;
+  fixture_c.chainId = chain_id;
+  auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
+  r.emplace_or_replace<TagComponent>(fixture_e, TagComponent{ "fixture_rock" });
+  r.emplace<HasParentComponent>(fixture_e, island_e);
+
+  // set userData on each segment
+  int segments = b2Chain_GetSegmentCount(chain_id);
+  std::vector<b2ShapeId> segs(segments);
+  b2Chain_GetSegments(chain_id, segs.data(), segments);
+  for (const b2ShapeId seg : segs)
+    b2Shape_SetUserData(seg, (void*)fixture_e); // box2d: give link to entt
+
+  auto& child_c = r.get_or_emplace<HasChildrenComponent>(island_e);
+  child_c.children.push_back(fixture_e);
+
+  return fixture_e;
 };
 
 void
@@ -506,8 +518,10 @@ generate_rocks(entt::registry& r)
     r.emplace<TeamComponent>(island_e, TeamComponent{ AvailableTeams::neutral });
 
     // island contours in to box2d to create collisions
-    create_box2d_shape(r, island_e, offset_contours);
+    auto fixture_e = create_box2d_shape(r, island_e, offset_contours);
     generate_rock_bounding_box(r, island_e);
+
+    r.emplace<IslandFixtureComponent>(fixture_e);
 
     i++;
   }
@@ -574,7 +588,7 @@ generate_island_interior(entt::registry& r)
         const auto rock_col = engine::SRGBColour{ 70, 200, 96 * 2, 255 };
         const auto debug_e = spawn(r, "empty");
         r.get<TagComponent>(debug_e).tag = "empty-IslandSquare";
-        give_life(r, debug_e, pos2, { 2, 2 });
+        give_life(r, debug_e, pos2, { 1, 1 });
         set_colour(r, debug_e, rock_col);
         set_z_index(r, debug_e, ZLayer::FLOOR);
 

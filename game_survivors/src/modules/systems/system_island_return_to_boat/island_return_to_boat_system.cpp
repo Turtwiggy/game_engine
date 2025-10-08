@@ -2,10 +2,12 @@
 
 #include "island_return_to_boat_system.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
@@ -14,6 +16,7 @@
 #include "modules/events/event_island_to_boat/island_to_boat_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
+#include "modules/systems/system_island_return_to_boat_land_immunity/island_return_to_boat_land_immunity_components.hpp"
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_components.hpp"
 
 namespace game2d {
@@ -32,12 +35,12 @@ update_island_return_to_boat_system(entt::registry& r)
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
-  const auto view = r.view<const MovementIslandComponent, const TransformComponent, const InputComponent>();
-  for (const auto& [e, movement_c, t_c, input_c] : view.each()) {
+  const auto view =
+    r.view<const MovementIslandComponent, const TransformComponent, const InputComponent, const WantToReturnToBoat>();
+  for (const auto& [e, movement_c, t_c, input_c, req_c] : view.each()) {
 
-    const bool return_to_boat = has(input_c.button_e, ActionStateEnum::DOWN);
-    if (!return_to_boat)
-      continue;
+    // process event.
+    r.remove<WantToReturnToBoat>(e);
 
     // remove the player.
     dead.dead.push_back(e);
@@ -65,6 +68,18 @@ update_island_return_to_boat_system(entt::registry& r)
 
     r.remove<DroppedAnchorComponent>(boat_e);
     r.emplace<MovementDirectComponent>(boat_e);
+    r.emplace<IslandReturnToBoatLandImmunity>(boat_e);
+
+    // give the boat a small push in the dir away from the island.
+    const float impulse_amount = 1.0f;
+    const auto boat_pos = get_position(r, boat_e);
+    const auto islander_pos = pos;
+    const auto raw_dir = boat_pos - islander_pos;
+    const auto nrm_dir = engine::normalize_safe(raw_dir);
+    const auto boat_body_id = r.get<PhysicsBodyComponent>(boat_e).bodyId;
+    const auto boat_mass = b2Body_GetMass(boat_body_id);
+    const auto impuse = boat_mass * impulse_amount;
+    b2Body_ApplyLinearImpulseToCenter(boat_body_id, impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
 
     // send an event
     IslandToBoatEvent evt;

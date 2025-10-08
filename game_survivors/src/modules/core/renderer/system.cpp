@@ -627,19 +627,28 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   // const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
   // const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
 
-  for (const auto& pass : ri.passes) {
-    // const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
-    // const auto& pass_enum = pass.pass;
-
-    // fluidsim uses a square texture, not viewport sized texture
-    // if (pass.pass != PassName::fluid_sim) {
-
+  const auto cur_scene = scene.s;
+  if (cur_scene == Scene::menu) {
+    auto& pass = ri.passes[get_pass_idx(ri, PassName::menu_fractal_shader)];
     Framebuffer::bind_fbo(pass.fbos[0]);
     RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
     pass.update(r, dt, mouse_pos);
+  }
+
+  if (cur_scene != Scene::menu) {
+    for (const auto& pass : ri.passes) {
+      if (pass.pass == PassName::menu_fractal_shader)
+        continue; // skip the fractal shader if you're not in the main menu.
+      Framebuffer::bind_fbo(pass.fbos[0]);
+      RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
+      RenderCommand::set_clear_colour_srgb(black);
+      RenderCommand::clear();
+
+      pass.update(r, dt, mouse_pos);
+    }
   }
 
   // Default: render_texture_to_imgui

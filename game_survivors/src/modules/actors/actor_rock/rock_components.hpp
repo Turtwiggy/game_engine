@@ -22,6 +22,16 @@ struct IslandShoreTriangle
   bool placeholder = true;
 };
 
+struct IslandFixtureComponent
+{
+  bool placeholder = true;
+};
+
+struct PlayerCollidedWithIsland
+{
+  bool placeholder = true;
+};
+
 struct RequestGenerateRocks
 {
   bool placeholder = true;
