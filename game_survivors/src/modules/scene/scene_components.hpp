@@ -22,7 +22,7 @@ enum class Scene
 
 struct SINGLE_CurrentScene
 {
-  Scene s = Scene::menu;
+  Scene s = Scene::pressanykey;
 
   static SINGLE_CurrentScene instance;
 };

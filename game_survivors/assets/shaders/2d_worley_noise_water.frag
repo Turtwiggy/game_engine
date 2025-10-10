@@ -29,6 +29,7 @@ layout(std140) uniform Data {
 };
 
 uniform vec2 viewport_wh;
+uniform float water_safe_radius;
 
 // use the fluid sim as a mask for the worley noise shader.
 uniform sampler2D tex_fluid_sim;
@@ -186,7 +187,7 @@ void main()
 		ss.x *= aspect_x;
 		vec2 p = tmp_uv + ss;
 
-		float radius_pix = 800;
+		float radius_pix = water_safe_radius;
 		float radius = ((radius_pix) / viewport_wh.y) * 2;
 		d = sdfCircle(p, radius);
 	}
@@ -208,8 +209,8 @@ void main()
   float t = fworley(grid_p);	
 
 	// Multiply intensity values by a colour curve based off the uv
-	// t *= exp(-length2(abs(0.7*tex_uv - 1.0))); // add gradient
-	t *= exp(-length2(abs(0.7*vec2(0.60) - 1.0)));	
+	t *= exp(-length2(abs(0.7*tex_uv - 1.0))); // add gradient
+	// t *= exp(-length2(abs(0.7*vec2(0.60) - 1.0)));	
 
 	vec3 col = vec3(0.0);
 
@@ -241,8 +242,8 @@ void main()
 	// if(!in_main_menu)
 	{
 		// vec3 w_col = texture(tex_menu_fractal, v_uv).rgb;
-		// vec3 w_col = water_col;
-		vec3 w_col = vec3(0/255.0, 64/255.0, 128/255.0);
+		vec3 w_col = water_col;
+		// vec3 w_col = vec3(0/255.0, 64/255.0, 128/255.0);
 		vec3 c = mix(danger_col, w_col, float(d < 0));
 		c *= 1.0 - exp(-6.0*abs(d)); // dark edges
 		out_colour.rgb = c;

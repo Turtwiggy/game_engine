@@ -88,6 +88,7 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
       const float y_max = (std::ceil(br.y / tilesize) * tilesize) + 1;
 
 #if defined(_DEBUG)
+/*
       {
         Sprite spr;
         spr.sprite = "EMPTY";
@@ -123,6 +124,7 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
         spr.col = { 0.0f, 1.0, 1.0, 1.0 };
         draw_sprite(r, spr);
       }
+    */
 #endif
 
       const auto half_tilesize = 0.5f * tilesize;

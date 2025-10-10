@@ -62,4 +62,8 @@ const auto my_l_col = hex_to_srgb("#DF9755");
 const auto im_w_col = convert_my_to_im_vec(my_w_col);
 const auto im_l_col = convert_my_to_im_vec(my_l_col);
 
+const auto my_hp_col = hex_to_srgb("#E8AE58", 200);
+const auto im_hp_col = convert_my_to_im(my_hp_col);
+const auto im_hp_col_vec = convert_my_to_im_vec(my_hp_col);
+
 } // namespace game2d

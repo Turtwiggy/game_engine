@@ -28,6 +28,7 @@
 #include "modules/systems/system_island_ai/island_ai_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
+#include "modules/ui/ui_island_interact_system/ui_island_interact_components.hpp"
 
 namespace game2d {
 
@@ -655,6 +656,9 @@ spawn_lighthouse(entt::registry& r, DebugContoursComponent& island_c, const glm:
   // r.remove<EntityTimedLifecycle>(popup_e);
   // r.get<WiggleUpAndDown>(popup_e).amplitude = 1.0f;
 
+  // tmp
+  // r.emplace<InteractableComponent>(thing_e);
+
   island_c.occupied_island_xy.push_back({ gridpos, thing_e });
 };
 
@@ -677,7 +681,7 @@ spawn_islander(entt::registry& r,
   pos += glm::vec2{ tilesize, tilesize }; // off grid
   give_life(r, thing_e, pos, { tilesize, tilesize });
   r.emplace<IslandDwellerComponent>(thing_e);
-  r.emplace<HealthComponent>(thing_e, HealthComponent{ 3, 3 });
+  r.emplace<HealthComponent>(thing_e, HealthComponent{ 2, 2 });
   r.emplace<TeamComponent>(thing_e, TeamComponent{ .team = team });
 
   // let the thing move

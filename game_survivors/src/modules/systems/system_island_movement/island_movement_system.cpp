@@ -11,6 +11,7 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
@@ -83,6 +84,10 @@ update_island_movement_system(entt::registry& r)
         // SDL_Log("tile is occupied...");
 
         const auto n_e = e_at_xy(r, island_c, n_gp);
+
+        // make the neighbour flash.
+        r.emplace_or_replace<RequestHitScaleComponent>(n_e);
+
         if (const auto* hp_c = r.try_get<const HealthComponent>(n_e)) {
 
           // dont damage friendly-team things

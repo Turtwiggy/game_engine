@@ -112,6 +112,8 @@
 #include "modules/ui/ui_fps_counter/system.hpp"
 #include "modules/ui/ui_gameover/ui_gameover_system.hpp"
 #include "modules/ui/ui_hierarchy/system.hpp"
+#include "modules/ui/ui_island_display_hp/ui_island_display_hp_system.hpp"
+#include "modules/ui/ui_island_interact_system/ui_island_interact_system.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_components.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_system.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_system.hpp"
@@ -140,7 +142,6 @@
 #include "modules/ui/ui_triangle_editor/ui_triangle_editor_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
-
 
 namespace game2d {
 using namespace std::literals;
@@ -428,6 +429,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     std::vector<Scene>{ Scene::splashscreen, Scene::pressanykey, Scene::menu, Scene::select_modifiers, Scene::select_ships };
 
   if (scene.s == Scene::survive) {
+    update_ui_island_interact_system(r, dt);
+    update_ui_island_display_hp_system(r);
     update_ui_scene_survive_system(r);
     update_ui_survive_objectives_system(r);
     // update_ui_survive_onboarding_system(r, dt);

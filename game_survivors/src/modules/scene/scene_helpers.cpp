@@ -34,6 +34,8 @@
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/events/event_scene_changed_update_water_shader/scene_changed_event_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
 #include "modules/pathfinding_flowfield/pathfinding_flowfield_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_ability/ability_components.hpp"
@@ -618,6 +620,18 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   auto& scene = SINGLE_CurrentScene::instance;
+
+  // send scene changed event.
+  {
+    const SceneChangedEvent evt{
+      .old_scene = scene.s,
+      .new_scene = s,
+    };
+    auto& evts_c = SINGLE_Events::instance;
+    evts_c.dispatcher->trigger(evt);
+    evts_c.dispatcher->update();
+  }
+
   scene.s = s; // done
 };
 

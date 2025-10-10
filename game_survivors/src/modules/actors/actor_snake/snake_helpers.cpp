@@ -255,6 +255,8 @@ update_actor_snake(entt::registry& r, glm::vec2 mouse_pos, float dt)
   // set snake rotations
   entt::entity e = snake_e;
   while (auto* children_c = r.try_get<HasChildrenComponent>(e)) {
+    if (children_c->children.size() == 0)
+      continue;
     auto next_e = children_c->children[0]; // note: assuming only 1 child
     if (!r.valid(next_e) || next_e == entt::null)
       continue;

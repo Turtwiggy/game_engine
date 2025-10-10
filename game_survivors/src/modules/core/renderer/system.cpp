@@ -166,6 +166,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", wh);
   ri.water.set_int("tex_menu_fractal", tex_unit_menu_fractal);
+  ri.water.set_float("water_safe_radius", 10'000); // basically no danger zone
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -627,9 +628,20 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   // const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
   // const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
 
-  const auto cur_scene = scene.s;
-  if (cur_scene == Scene::menu) {
-    auto& pass = ri.passes[get_pass_idx(ri, PassName::menu_fractal_shader)];
+  // const auto cur_scene = scene.s;
+  // if (cur_scene == Scene::menu) {
+  //   auto& pass = ri.passes[get_pass_idx(ri, PassName::menu_fractal_shader)];
+  //   Framebuffer::bind_fbo(pass.fbos[0]);
+  //   RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
+  //   RenderCommand::set_clear_colour_srgb(black);
+  //   RenderCommand::clear();
+  //   pass.update(r, dt, mouse_pos);
+  // }
+
+  // if (cur_scene != Scene::menu) {
+  for (const auto& pass : ri.passes) {
+    if (pass.pass == PassName::menu_fractal_shader)
+      continue; // skip the fractal shader if you're not in the main menu.
     Framebuffer::bind_fbo(pass.fbos[0]);
     RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
     RenderCommand::set_clear_colour_srgb(black);
@@ -637,19 +649,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     pass.update(r, dt, mouse_pos);
   }
-
-  if (cur_scene != Scene::menu) {
-    for (const auto& pass : ri.passes) {
-      if (pass.pass == PassName::menu_fractal_shader)
-        continue; // skip the fractal shader if you're not in the main menu.
-      Framebuffer::bind_fbo(pass.fbos[0]);
-      RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
-      RenderCommand::set_clear_colour_srgb(black);
-      RenderCommand::clear();
-
-      pass.update(r, dt, mouse_pos);
-    }
-  }
+  // }
 
   // Default: render_texture_to_imgui
   // Render the last renderpass texture to the final output
@@ -663,9 +663,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::clear();
 
     // Which pass to render finally?
-    PassName p = PassName::crt_effect;
-    if (SINGLE_CurrentScene::instance.s == Scene::menu)
-      p = PassName::menu_fractal_shader;
+    PassName p = PassName::mix_lighting_and_scene;
+    // p = PassName::crt_effect;
+    // if (SINGLE_CurrentScene::instance.s == Scene::menu)
+    //   p = PassName::menu_fractal_shader;
 
     // Note: ImGui::Image takes in TexID not TexUnit
     const auto& pass = ri.passes[(int)p];
