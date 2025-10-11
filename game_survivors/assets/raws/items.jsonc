@@ -175,6 +175,13 @@
       "renderable": { "sprite": "DOG", "colour":  "green" }
     },
     //
+    // island items
+    //
+      {
+      "name": "actor_island_item_drum",
+      "renderable": { "sprite": "TEXT_D", "colour":  "cyan" }
+    },
+    //
     // island enemies
     //
     {

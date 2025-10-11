@@ -17,6 +17,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
+#include "modules/actors/actor_drum/drum_component.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
@@ -526,16 +527,6 @@ generate_position_id_to_island_eid_map(entt::registry& r)
 
         contours_c.all_island_xy.push_back(xy);
 
-        // note: convert gp back to position
-        const auto rock_col = engine::SRGBColour{ 70, 200, 96 * 2, 255 };
-        const auto debug_e = spawn(r, "empty");
-        r.get<TagComponent>(debug_e).tag = "empty-IslandSquare";
-        give_life(r, debug_e, pos2, { 1, 1 });
-        set_colour(r, debug_e, rock_col);
-        set_z_index(r, debug_e, ZLayer::FLOOR);
-
-        // todo: assign sprite from spritesheet?
-
         const auto id = engine::encode_cantor_pairing_function(xy.x, xy.y);
 
         if (islands_c.id_to_island_eid.contains(id)) {
@@ -674,7 +665,6 @@ spawn_islander(entt::registry& r,
                const AvailableTeams team,
                const bool has_brain = false)
 {
-
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   auto& island_c = r.get<DebugContoursComponent>(island_e);
 
@@ -691,7 +681,8 @@ spawn_islander(entt::registry& r,
   // let the thing move
   // add brains to enemies
   r.emplace<MovementIslandComponent>(thing_e, MovementIslandComponent{ .island_e = island_e });
-  r.emplace<IslanderAiComponent>(thing_e);
+  if (has_brain)
+    r.emplace<IslanderAiComponent>(thing_e);
 
   island_c.occupied_island_xy.push_back({ xy, thing_e });
   return thing_e;
@@ -734,6 +725,11 @@ generate_island_life__base_island(entt::registry& r)
   const auto idx_1 = engine::rand_det_s(spawn_rnd.rng, (int)0, (int)animal_keys.size());
   spawn_islander(r, spawn_rnd, center_island_eid, animal_keys[idx_0], AvailableTeams::player, true);
   spawn_islander(r, spawn_rnd, center_island_eid, animal_keys[idx_1], AvailableTeams::player, true);
+
+  auto drum_e = spawn_islander(r, spawn_rnd, center_island_eid, "actor_island_item_drum", AvailableTeams::player);
+  r.emplace<DrumComponent>(drum_e);
+  r.emplace<InteractableComponent>(drum_e);
+  r.remove<HealthComponent>(drum_e);
 }
 
 void
@@ -746,6 +742,12 @@ generate_island_life__other_islands(entt::registry& r)
 
     if (e == center_island_eid)
       continue; // dont spawn mobs on the base island
+
+    const auto enemy_keys = std::vector<std::string>{
+      "actor_islanddweller_pirate",   //
+      "actor_islanddweller_spider",   //
+      "actor_islanddweller_scorpion", //
+    };
 
     // TODO: generate a spawn rate table for enemies.
     spawn_islander(r, spawn_rnd, e, "actor_islanddweller_pirate", AvailableTeams::enemy, true);

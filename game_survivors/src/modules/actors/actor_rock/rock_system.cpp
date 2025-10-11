@@ -19,6 +19,8 @@
 #include "engine/sprites/helpers.hpp"
 #include "engine/std/unordered_set/glm_hash.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/systems/system_above_fog/above_fog_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
@@ -290,7 +292,46 @@ hide_non_base_islands(entt::registry& r)
     // add the hidden component to the triangles.
     r.emplace<IslandHiddenComponent>(e);
   }
-}
+};
+
+void
+create_island_floor_sprites(entt::registry& r) {
+  /*
+  const auto& islands_c = SINGLE_Islands::instance;
+  const auto tilesize = islands_c.tilesize;
+  const auto half_tilesize = tilesize * 0.5f;
+
+  // floor sprites
+  for (const auto [island_e, island_c, bb_c, contours_c] :
+       r.view<const RockComponent, const BoundingBoxComponent, DebugContoursComponent>().each()) {
+
+    const auto tl = bb_c.tl;
+    const auto wh = bb_c.br - bb_c.tl;
+    const auto tl_gridpos = engine::grid::worldspace_to_gridspace(bb_c.tl, tilesize);
+    const auto offset = glm::vec2{ half_tilesize, half_tilesize };
+    const float min_x = bb_c.tl.x;
+    const float min_y = bb_c.tl.y;
+    const float max_x = bb_c.tl.x + wh.x - tilesize;
+    const float max_y = bb_c.tl.y + wh.y - tilesize;
+    for (float x = min_x; x <= max_x; x += tilesize) {
+      for (float y = min_y; y <= max_y; y += tilesize) {
+        const auto pos = glm::vec2{ x, y };
+        const auto xy = engine::grid::worldspace_to_gridspace(pos, tilesize);
+        const auto pos2 = engine::grid::gridspace_to_worldspace_center(xy, tilesize) + offset;
+
+        // note: convert gp back to position
+        // const auto spr_col = engine::SRGBColour{ 255, 255, 255, 100 };
+        // const auto debug_e = spawn(r, "empty");
+        // r.get<TagComponent>(debug_e).tag = "empty-IslandSquare";
+        // give_life(r, debug_e, pos2, { 6, 6 });
+        // set_sprite(r, debug_e, "CIRCLE");
+        // set_colour(r, debug_e, spr_col);
+        // set_z_index(r, debug_e, ZLayer::FLOOR);
+      }
+    }
+  }
+  */
+};
 
 void
 create_above_island_sprites(entt::registry& r)
@@ -399,7 +440,8 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
 
     generate_rocks(r);
 
-    // draw rocks
+    // draw_rocks()
+    create_island_floor_sprites(r);
     create_island_triangles(r);
     hide_non_base_islands(r);
     create_above_island_sprites(r);

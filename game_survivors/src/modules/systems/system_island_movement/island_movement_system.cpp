@@ -2,7 +2,6 @@
 
 #include "island_movement_system.hpp"
 
-#include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/std/unordered_set/glm_hash.hpp"
@@ -10,10 +9,9 @@
 #include "island_movement_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
-#include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
-#include "modules/events/event_damage/event_damage_components.hpp"
+#include "modules/events/event_bump/bump_event_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
@@ -27,11 +25,10 @@ update_island_movement_system(entt::registry& r)
   ZoneScoped;
 #endif
 
-  const auto view =
-    r.view<const MovementIslandComponent, const TransformComponent, const InputComponent, const TeamComponent>();
+  const auto view = r.view<const MovementIslandComponent, const TransformComponent, const InputComponent>();
   // ImGui::Text("There are %i things with MovementIslandComponent", (int)view.size_hint());
 
-  for (const auto& [e, movement_c, t_c, input_c, team_c] : view.each()) {
+  for (const auto& [e, movement_c, t_c, input_c] : view.each()) {
     // set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
 
     const auto is_player = r.all_of<const PlayerComponent>(e);
@@ -88,23 +85,13 @@ update_island_movement_system(entt::registry& r)
         // make the neighbour flash.
         r.emplace_or_replace<RequestHitScaleComponent>(n_e);
 
-        if (const auto* hp_c = r.try_get<const HealthComponent>(n_e)) {
-
-          // dont damage friendly-team things
-          const auto& neighbour_team_c = r.get<const TeamComponent>(n_e);
-          const bool same_team = neighbour_team_c.team == team_c.team;
-          if (same_team) {
-            // SDL_Log("A player collided with a friendly entity");
-            continue;
-          }
-
-          // note: this is a grid-based damage system with no fixtures.
-          const DamageEvent evt{
-            .from = entt::null,
-            .to_parent = n_e,
-            .to_fixture = n_e, // same as parent, as no fixture
-            .amount = 1,
-            .type = WEAPON_DAMAGE::KINETIC,
+        // send an event that you would bump in to something.
+        {
+          const BumpEvent evt{
+            .from = e,
+            .to = n_e,
+            .from_gp = gp,
+            .to_gp = n_gp,
           };
           const auto& evts_c = SINGLE_Events::instance;
           evts_c.dispatcher->trigger(evt);

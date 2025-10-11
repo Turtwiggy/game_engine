@@ -167,7 +167,7 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
 
         draw_sprite(r,
                     Sprite{
-                      .sprite = "PICKAXE",
+                      .sprite = "CIRCLE",
                       .pos = n_pos,
                       .size = { 5, 5 },
                       .z_idx = ZLayer::FOREGROUND,

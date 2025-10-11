@@ -96,6 +96,11 @@ get_default_audio()
   audio.sounds.push_back({ "SMG_03", sfx_path + "smg_03.mp3", SoundType::SFX });
   audio.sounds.push_back({ "TURRET_01", sfx_path + "drop_turret_no_shot.mp3", SoundType::SFX });
   audio.sounds.push_back({ "TURRET_02", sfx_path + "drop_turret_with_shot.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "DRUM_01", sfx_path + "drum-01.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "DRUM_02", sfx_path + "drum-02.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "DRUM_03", sfx_path + "drum-03.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "DRUM_04", sfx_path + "drum-04.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "DRUM_05", sfx_path + "drum-05.mp3", SoundType::SFX });
 
   // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
   // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });
