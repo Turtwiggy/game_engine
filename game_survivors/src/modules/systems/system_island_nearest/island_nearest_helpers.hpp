@@ -22,4 +22,7 @@ occupied(entt::registry& r, const DebugContoursComponent& island_c, glm::ivec2 g
 entt::entity
 e_at_xy(entt::registry& r, const DebugContoursComponent& island_c, glm::ivec2 gp);
 
+void
+remove_hidden_state_from_island(entt::registry& r, entt::entity island_e);
+
 } // namespace game2d

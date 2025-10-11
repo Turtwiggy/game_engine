@@ -40,7 +40,9 @@ find_key_or_crash(const std::vector<T>& stuff, const std::string& key)
 {
   const auto it = std::find_if(stuff.begin(), stuff.end(), [&key](const T& item) { return item.name == key; });
   if (it == stuff.end()) {
-    throw std::runtime_error(std::format("unable to find key in std::vector<T>: {}", key).c_str());
+    auto err = std::format("unable to find key in std::vector<T>: {}", key);
+    SDL_Log("%s", err.c_str());
+    throw std::runtime_error(err.c_str());
     exit(1); // crash
   };
   return it;

@@ -90,6 +90,5 @@ main()
 
   // out_colour.rgb = tex_col * vec3(length(abs(cam_uv.x)), length(abs(cam_uv.y)), 0.0);
 
-
   out_colour.a = 1.0f;
 }

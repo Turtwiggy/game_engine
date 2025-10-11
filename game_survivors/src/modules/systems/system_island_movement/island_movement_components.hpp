@@ -13,4 +13,9 @@ struct WantToReturnToBoat
   bool placeholder = true;
 };
 
+struct IslandHiddenComponent
+{
+  entt::entity island_popup_e = entt::null;
+};
+
 } // namespace game2d

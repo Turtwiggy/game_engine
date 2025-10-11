@@ -20,6 +20,7 @@
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
+#include "modules/actors/actor_rock/rock_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -475,67 +476,7 @@ upload_heightmap_to_gpu(entt::registry& r)
 };
 
 void
-generate_rocks(entt::registry& r)
-{
-  // note: press kp 7 to regenerate
-  const auto frequency = SINGLE_Islands::instance.frequency;
-  const auto cutoff = SINGLE_Islands::instance.cutoff;
-  const auto tilesize = SINGLE_Islands::instance.tilesize;
-  const auto wh = SINGLE_Islands::instance.wh;
-  SDL_Log("Generating rocks, cutoff: %f", cutoff);
-
-  {
-    const auto generated = generate_noise__with_base_island(r);
-    SINGLE_Islands::instance.generated = std::move(generated);
-  }
-
-  const auto& generated = SINGLE_Islands::instance.generated;
-
-  // identify the noise into islands.
-  const auto islands = identify_islands(generated, cutoff);
-
-  // after converting in to islands, generate the contours (outline)
-  for (int i = 0; const std::vector<NoiseInfo>& island : islands) {
-    const auto contours = generate_contours(r, island, tilesize, cutoff);
-
-    // offset so the grid doesnt start at (0, 0)
-    const auto offset = (int)(-wh * 0.5f);
-    const auto offset_worldspace = (int)offset * tilesize;
-    std::vector<Edge> offset_contours = contours.sorted_contours;
-    for (auto& [p0, p1] : offset_contours) {
-      p0.x += offset_worldspace;
-      p0.y += offset_worldspace;
-      p1.x += offset_worldspace;
-      p1.y += offset_worldspace;
-    }
-
-    auto island_e = create_empty<RockComponent>(r);
-
-    DebugContoursComponent debug_c;
-    debug_c.edges = contours.contours;
-    debug_c.sorted_edges = offset_contours;
-    debug_c.island_noise = island;
-    r.emplace<DebugContoursComponent>(island_e, debug_c);
-    r.emplace<TeamComponent>(island_e, TeamComponent{ AvailableTeams::neutral });
-
-    // island contours in to box2d to create collisions
-    auto fixture_e = create_box2d_shape(r, island_e, offset_contours);
-    generate_rock_bounding_box(r, island_e);
-
-    r.emplace<IslandFixtureComponent>(fixture_e);
-
-    i++;
-  }
-
-  SDL_Log("Spawned: %i rocks", (int)r.view<const RockComponent>().size());
-
-  // Upload the heightmap data to the gpu.
-  SDL_Log("Uploading heightmap data to gpu");
-  upload_heightmap_to_gpu(r);
-};
-
-void
-generate_island_interior(entt::registry& r)
+generate_position_id_to_island_eid_map(entt::registry& r)
 {
   auto& islands_c = SINGLE_Islands::instance;
   const auto& generated = islands_c.generated;
@@ -615,7 +556,70 @@ generate_island_interior(entt::registry& r)
     assert(before_count + contours_c.all_island_xy.size() == after_count);
 #endif
   }
-}
+};
+
+void
+generate_rocks(entt::registry& r)
+{
+  // note: press kp 7 to regenerate
+  const auto frequency = SINGLE_Islands::instance.frequency;
+  const auto cutoff = SINGLE_Islands::instance.cutoff;
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto wh = SINGLE_Islands::instance.wh;
+  SDL_Log("Generating rocks, cutoff: %f", cutoff);
+
+  {
+    const auto generated = generate_noise__with_base_island(r);
+    SINGLE_Islands::instance.generated = std::move(generated);
+  }
+
+  const auto& generated = SINGLE_Islands::instance.generated;
+
+  // identify the noise into islands.
+  const auto islands = identify_islands(generated, cutoff);
+
+  // after converting in to islands, generate the contours (outline)
+  for (int i = 0; const std::vector<NoiseInfo>& island : islands) {
+    const auto contours = generate_contours(r, island, tilesize, cutoff);
+
+    // offset so the grid doesnt start at (0, 0)
+    const auto offset = (int)(-wh * 0.5f);
+    const auto offset_worldspace = (int)offset * tilesize;
+    std::vector<Edge> offset_contours = contours.sorted_contours;
+    for (auto& [p0, p1] : offset_contours) {
+      p0.x += offset_worldspace;
+      p0.y += offset_worldspace;
+      p1.x += offset_worldspace;
+      p1.y += offset_worldspace;
+    }
+
+    auto island_e = create_empty<RockComponent>(r);
+
+    DebugContoursComponent debug_c;
+    debug_c.edges = contours.contours;
+    debug_c.sorted_edges = offset_contours;
+    debug_c.island_noise = island;
+    r.emplace<DebugContoursComponent>(island_e, debug_c);
+    r.emplace<TeamComponent>(island_e, TeamComponent{ AvailableTeams::neutral });
+
+    // island contours in to box2d to create collisions
+    auto fixture_e = create_box2d_shape(r, island_e, offset_contours);
+    generate_rock_bounding_box(r, island_e);
+
+    r.emplace<IslandFixtureComponent>(fixture_e);
+
+    i++;
+  }
+
+  SDL_Log("Spawned: %i rocks", (int)r.view<const RockComponent>().size());
+
+  // Upload the heightmap data to the gpu.
+  SDL_Log("Uploading heightmap data to gpu");
+  upload_heightmap_to_gpu(r);
+
+  // populate id_to_island_eid
+  generate_position_id_to_island_eid_map(r);
+};
 
 entt::entity
 get_center_island_eid(entt::registry& r)
@@ -736,8 +740,6 @@ void
 generate_island_life__other_islands(entt::registry& r)
 {
   const auto center_island_eid = get_center_island_eid(r);
-
-  // spawn things on the islands
 
   const auto tilesize = SINGLE_Islands::instance.tilesize;
   for (const auto& [e, island_c, bb_c] : r.view<DebugContoursComponent, const BoundingBoxComponent>().each()) {

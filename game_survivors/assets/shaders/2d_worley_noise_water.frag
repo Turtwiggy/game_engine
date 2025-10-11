@@ -33,7 +33,7 @@ uniform float water_safe_radius;
 
 // use the fluid sim as a mask for the worley noise shader.
 uniform sampler2D tex_fluid_sim;
-uniform sampler2D tex_menu_fractal;
+// uniform sampler2D tex_menu_fractal;
 
 //Calculate the squared length of a vector
 float length2(vec2 p){

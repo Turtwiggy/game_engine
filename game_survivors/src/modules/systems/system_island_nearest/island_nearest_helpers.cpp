@@ -2,6 +2,7 @@
 
 #include "island_nearest_helpers.hpp"
 
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
@@ -89,5 +90,27 @@ e_at_xy(entt::registry& r, const DebugContoursComponent& island_c, glm::ivec2 gp
     return entt::null;
   return (*it).second;
 };
+
+void
+remove_hidden_state_from_island(entt::registry& r, entt::entity island_e)
+{
+  const auto is_hidden = r.all_of<IslandHiddenComponent>(island_e);
+  if (!is_hidden)
+    return;
+  auto& hidden_c = r.get<IslandHiddenComponent>(island_e);
+
+  // remove the questionmark sprite.
+  if (hidden_c.island_popup_e != entt::null) {
+    auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
+    dead_c.dead.push_back(hidden_c.island_popup_e);
+  }
+
+  // set the island (and all its triangles) to not be hidden
+  r.remove<IslandHiddenComponent>(island_e);
+
+  const auto& children_c = r.get<HasChildrenComponent>(island_e);
+  for (const auto child_e : children_c.children)
+    r.remove<IslandHiddenComponent>(child_e);
+}
 
 } // namespace game2d

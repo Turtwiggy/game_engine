@@ -10,14 +10,18 @@
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/line.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "engine/std/unordered_set/glm_hash.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
+#include "modules/systems/system_above_fog/above_fog_components.hpp"
+#include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {
@@ -96,6 +100,7 @@ create_island_triangles(entt::registry& r)
     cdt.insertEdges(edges);
     cdt.eraseOuterTrianglesAndHoles();
 
+    auto& children_c = r.get_or_emplace<HasChildrenComponent>(contours_e);
     for (auto tri : cdt.triangles) {
       const auto v0 = cdt.vertices[tri.vertices[0]];
       const auto v1 = cdt.vertices[tri.vertices[1]];
@@ -116,6 +121,11 @@ create_island_triangles(entt::registry& r)
         .c_colour = engine::SRGBToLinear({ 100, 100, 100, 255 }),
       };
       r.emplace<SpriteTriangleComponent>(spawned_e, spr);
+      r.emplace<HasParentComponent>(spawned_e, contours_e);
+      children_c.children.push_back(spawned_e);
+
+      auto& tag_c = r.get<TagComponent>(spawned_e);
+      tag_c.tag = "tri_island";
     }
   }
 }
@@ -217,6 +227,9 @@ create_shore_triangles(entt::registry& r)
         r.remove<TransformComponent>(e1);
         r.emplace<SpriteTriangleComponent>(e1, tri1);
         r.emplace<IslandShoreTriangle>(e1);
+
+        auto& tag_c = r.get<TagComponent>(e1);
+        tag_c.tag = "tri_shore";
       }
       // triangle 2: edge.a, pos_b, pos_a
       {
@@ -237,16 +250,67 @@ create_shore_triangles(entt::registry& r)
         r.remove<TransformComponent>(e2);
         r.emplace<SpriteTriangleComponent>(e2, tri2);
         r.emplace<IslandShoreTriangle>(e2);
+
+        auto& tag_c = r.get<TagComponent>(e2);
+        tag_c.tag = "tri_shore";
       }
     }
   }
 }
 
 void
-draw_rocks(entt::registry& r)
+hide_non_base_islands(entt::registry& r)
 {
-  create_island_triangles(r);
-  create_shore_triangles(r);
+  const auto center_island_eid = get_center_island_eid(r);
+
+  for (const auto& [e, island_c, bb_c] : r.view<DebugContoursComponent, const BoundingBoxComponent>().each()) {
+    if (e == center_island_eid)
+      continue; // dont hide base island
+
+    // make all the non-base islands hidden.
+    auto* hidden_c = r.try_get<IslandHiddenComponent>(e);
+    if (!hidden_c)
+      r.emplace<IslandHiddenComponent>(e);
+  }
+
+  {
+    const auto view = r.view<IslandHiddenComponent>();
+    SDL_Log("There are %d hidden islands.", view.size());
+  }
+
+  const auto view = r.view<const SpriteTriangleComponent, const HasParentComponent>();
+  for (const auto& [e, triangle_c, parent_c] : view.each()) {
+
+    const auto parent_e = parent_c.parent;
+
+    // skip the center island
+    if (parent_e == center_island_eid)
+      continue;
+
+    // add the hidden component to the triangles.
+    r.emplace<IslandHiddenComponent>(e);
+  }
+}
+
+void
+create_above_island_sprites(entt::registry& r)
+{
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+
+  const auto view = r.view<IslandHiddenComponent, const BoundingBoxComponent>();
+  for (const auto& [e, hidden_c, aabb_c] : view.each()) {
+    const auto center = 0.5f * (aabb_c.tl + aabb_c.br);
+
+    // spawn a sprite above the island
+    auto popup_e = spawn(r, "empty");
+    give_life(r, popup_e, center, { tilesize, tilesize });
+    set_sprite(r, popup_e, "TEXT_?");
+    r.emplace<AboveHiddenComponent>(popup_e);
+
+    hidden_c.island_popup_e = popup_e;
+  }
+
+  //
 };
 
 void
@@ -334,7 +398,12 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
     SINGLE_Islands::instance.id_to_island_eid.clear();
 
     generate_rocks(r);
-    draw_rocks(r);
+
+    // draw rocks
+    create_island_triangles(r);
+    hide_non_base_islands(r);
+    create_above_island_sprites(r);
+    create_shore_triangles(r);
   });
 
   // int j = 0;

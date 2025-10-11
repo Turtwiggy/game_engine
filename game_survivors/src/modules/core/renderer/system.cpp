@@ -117,7 +117,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     return pass.texs[0].tex_unit.unit;
   };
 
-  const int tex_unit_menu_fractal = get_tex_unit(PassName::menu_fractal_shader);
+  // const int tex_unit_menu_fractal = get_tex_unit(PassName::menu_fractal_shader);
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
   const int tex_unit_water_heightmap = get_tex_unit(PassName::water_heightmap);
   const int tex_unit_water = get_tex_unit(PassName::water);
@@ -129,6 +129,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_island_triangles = get_tex_unit(PassName::island_triangles);
   const int tex_unit_island_triangles_gradient = get_tex_unit(PassName::island_triangles_gradient);
+  const int tex_unit_island_hidden = get_tex_unit(PassName::island_hidden);
+  const int tex_unit_island_above_hidden = get_tex_unit(PassName::island_above_hidden);
   const int tex_unit_island_shore = get_tex_unit(PassName::island_shore);
   // const int tex_unit_fluid = get_tex_unit(PassName::fluid_sim);
   // const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
@@ -165,7 +167,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", wh);
-  ri.water.set_int("tex_menu_fractal", tex_unit_menu_fractal);
   ri.water.set_float("water_safe_radius", 10'000); // basically no danger zone
 
   // set user textures in shaders
@@ -204,6 +205,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.island_tri_gradient.set_bool("do_zoom", false);
   ri.island_tri_gradient.set_int("tex_island_triangles", tex_unit_island_triangles);
   ri.island_tri_gradient.set_vec2("screen_wh", wh);
+
+  ri.island_tri_hidden.reload(r);
+  ri.island_tri_hidden.bind();
+  ri.island_tri_hidden.set_uniform_block_binding("Data", 0);
+  ri.island_tri_hidden.set_bool("do_zoom", true);
+  ri.island_tri_hidden.set_mat4("projection", camera.projection);
 
   ri.outline.reload(r);
   ri.outline.bind();
@@ -285,6 +292,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_island_triangles", tex_unit_island_triangles);
   ri.mix_lighting_and_scene.set_int("tex_island_triangles_gradient", tex_unit_island_triangles_gradient);
+  ri.mix_lighting_and_scene.set_int("tex_island_hidden", tex_unit_island_hidden);
+  ri.mix_lighting_and_scene.set_int("tex_island_above_hidden", tex_unit_island_above_hidden);
   ri.mix_lighting_and_scene.set_int("tex_island_shore", tex_unit_island_shore);
   ri.mix_lighting_and_scene.set_int("tex_scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("tex_unit_water", tex_unit_water);
@@ -353,12 +362,14 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
   RenderCommand::clear();
 
-  ri.passes.push_back(RenderPass(PassName::menu_fractal_shader));
+  // ri.passes.push_back(RenderPass(PassName::menu_fractal_shader));
   ri.passes.push_back(RenderPass(PassName::water_heightmap));
   ri.passes.push_back(RenderPass(PassName::water));
   ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::island_triangles));
   ri.passes.push_back(RenderPass(PassName::island_triangles_gradient));
+  ri.passes.push_back(RenderPass(PassName::island_hidden));
+  ri.passes.push_back(RenderPass(PassName::island_above_hidden));
   ri.passes.push_back(RenderPass(PassName::island_shore));
   // ri.passes.push_back(RenderPass(PassName::fluid_sim));
   ri.passes.push_back(RenderPass(PassName::linear_main));
@@ -437,6 +448,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.instanced_tri = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_instanced_tri.frag");
   ri.island_tri_gradient = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_island_tri_gradient.frag");
+  ri.island_tri_hidden = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_island_tri_hidden.frag");
   ri.island_shore = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_island_shore.frag");
   ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
   ri.flame = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_flame.frag");
@@ -503,12 +515,14 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   rebind(r, ri);
 
   // adds the update() for each renderpass
-  setup_menu_fractal_update(r);
+  // setup_menu_fractal_update(r);
   setup_water_heightmap_update(r);
   setup_water_update(r);
   setup_floor_mask_update(r);
   setup_island_triangles_update(r);
   setup_island_triangles_gradient_update(r);
+  setup_island_hidden_update(r);
+  setup_island_above_hidden_update(r);
   setup_island_shore_update(r);
   setup_linear_main_update(r);
   setup_sprites_to_outline_update(r);
@@ -640,8 +654,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   // if (cur_scene != Scene::menu) {
   for (const auto& pass : ri.passes) {
-    if (pass.pass == PassName::menu_fractal_shader)
-      continue; // skip the fractal shader if you're not in the main menu.
+    // if (pass.pass == PassName::menu_fractal_shader)
+    //   continue; // skip the fractal shader if you're not in the main menu.
     Framebuffer::bind_fbo(pass.fbos[0]);
     RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
     RenderCommand::set_clear_colour_srgb(black);

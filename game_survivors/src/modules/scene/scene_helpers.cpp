@@ -493,7 +493,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     gold_c.temp_amount_enemies = 0;
 
     spawn_islands(r); // before spawn_players
-    generate_island_interior(r);
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
 
@@ -547,7 +546,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SurviveTimerComponent>(r);
 
     spawn_islands(r); // before spawn_players
-    generate_island_interior(r);
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
 

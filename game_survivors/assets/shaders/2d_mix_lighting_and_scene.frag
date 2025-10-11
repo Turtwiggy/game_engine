@@ -16,6 +16,8 @@ in VS_OUT
 
 uniform sampler2D tex_island_triangles;
 uniform sampler2D tex_island_triangles_gradient;
+uniform sampler2D tex_island_hidden;
+uniform sampler2D tex_island_above_hidden;
 uniform sampler2D tex_island_shore;
 uniform sampler2D tex_scene_0;         // linear main
 uniform sampler2D tex_unit_water;
@@ -409,6 +411,8 @@ void main()
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
   vec3 island_col = texture(tex_island_triangles, v_uv).rgb;
   vec3 itg_col = texture(tex_island_triangles_gradient, v_uv).rgb;
+  vec3 island_hidden_col = texture(tex_island_hidden, v_uv).rgb;
+  vec3 island_above_hidden_col = texture(tex_island_above_hidden, v_uv).rgb;
   vec3 scene_lin = texture(tex_scene_0, v_uv).rgb;
   vec4 outline_col = texture(tex_outline, v_uv);
   vec3 heightmap_col = texture(tex_map_heightmap, v_uv).rgb;
@@ -416,6 +420,8 @@ void main()
   vec3 col_water = lighting_col * srgb_water;
   vec3 col_triangle = lighting_col * island_col ;
   vec3 col_itg = lighting_col * itg_col; // island triangle gradient
+  vec3 col_hidden = lighting_col * island_hidden_col;
+  vec3 col_above_hidden = lighting_col * island_above_hidden_col;
   vec3 col_scene = lighting_col * lin_to_srgb( scene_lin );
   vec3 col_island_shore = lighting_col * texture(tex_island_shore, v_uv).rgb;
 
@@ -449,6 +455,12 @@ void main()
 
   // put the scene on top of triangle (islands).
   out_colour.rgb = mix( out_colour.rgb, col_scene, sign(length( col_scene.rgb )));
+
+  // hide parts of the scene
+  out_colour.rgb = mix( out_colour.rgb, col_hidden, sign(length( col_hidden.rgb )));
+
+  // draw things above the hide
+  out_colour.rgb = mix( out_colour.rgb, col_above_hidden, sign(length( col_above_hidden.rgb )));
 
   // out_colour.rgb = lighting_col;
   // if(outline_col.r > 0.0f) out_colour.rgb = vec3(1.0, 0.0, 0.0);

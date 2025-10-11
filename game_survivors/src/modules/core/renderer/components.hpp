@@ -28,12 +28,14 @@ struct ViewportInfo
 
 enum class PassName
 {
-  menu_fractal_shader,
+  // menu_fractal_shader,
   water_heightmap,
   water,
   floor_mask,
   island_triangles,
   island_triangles_gradient,
+  island_hidden,
+  island_above_hidden,
   island_shore,
   linear_main,
   sprites_to_outline,
@@ -107,6 +109,7 @@ struct SINGLE_RendererInfo
   engine::Shader instanced;
   engine::Shader instanced_tri;
   engine::Shader island_tri_gradient;
+  engine::Shader island_tri_hidden;
   engine::Shader island_shore;
   engine::Shader shine;
   engine::Shader flame;

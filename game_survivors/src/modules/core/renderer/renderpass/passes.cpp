@@ -3,6 +3,7 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
@@ -15,6 +16,8 @@
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/core/renderer/helpers/batch_triangle.hpp"
 #include "modules/effects_outline/outline_components.hpp"
+#include "modules/systems/system_above_fog/above_fog_components.hpp"
+#include "modules/systems/system_island_movement/island_movement_components.hpp"
 
 namespace game2d {
 using namespace engine;
@@ -40,6 +43,7 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
 void
 setup_menu_fractal_update(entt::registry& r)
 {
+  /*
   auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::menu_fractal_shader);
   auto& pass = ri.passes[pass_idx];
@@ -53,6 +57,7 @@ setup_menu_fractal_update(entt::registry& r)
     ri.menu_fractal.bind();
     render_fullscreen_quad(r, ri.menu_fractal, ri.viewport_size_render_at);
   };
+  */
 }
 
 void
@@ -207,8 +212,10 @@ setup_island_triangles_update(entt::registry& r)
       ri.tri_renderer.reset_vert_count();
       ri.tri_renderer.begin_batch();
 
-      auto view = r.view<const TransformComponent, const SpriteTriangleComponent>();
-      for (const auto& [e, t_c, sc_c] : view.each()) {
+      auto view = r.view<const SpriteTriangleComponent, const HasParentComponent>(entt::exclude<IslandHiddenComponent>);
+      for (const auto& [e, sc_c, par_c] : view.each()) {
+
+        // todo: verify that parent is an island
 
         engine::tri_renderer::TriangleDescriptor desc;
         desc.point_0 = sc_c.a;
@@ -245,6 +252,91 @@ setup_island_triangles_gradient_update(entt::registry& r)
 
     ri.island_tri_gradient.bind();
     render_fullscreen_quad(r, ri.island_tri_gradient, ri.viewport_size_render_at);
+  };
+};
+
+void
+setup_island_hidden_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::island_hidden);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    auto& ri = SINGLE_RendererInfo::instance;
+
+    // render triangles
+    {
+      ri.tri_renderer.reset_vert_count();
+      ri.tri_renderer.begin_batch();
+
+      auto view = r.view<const SpriteTriangleComponent, const IslandHiddenComponent>();
+      for (const auto& [e, sc_c, hidden_c] : view.each()) {
+
+        engine::tri_renderer::TriangleDescriptor desc;
+        desc.point_0 = sc_c.a;
+        desc.point_1 = sc_c.b;
+        desc.point_2 = sc_c.c;
+        desc.point_0_colour = sc_c.a_colour;
+        desc.point_1_colour = sc_c.b_colour;
+        desc.point_2_colour = sc_c.c_colour;
+        desc.uv_0 = sc_c.uv_0;
+        desc.uv_1 = sc_c.uv_1;
+        desc.uv_2 = sc_c.uv_2;
+
+        ri.tri_renderer.draw_sprite(desc, ri.island_tri_hidden);
+      }
+
+      ri.tri_renderer.end_batch();
+      ri.tri_renderer.flush(ri.island_tri_hidden);
+    }
+  };
+};
+
+void
+setup_island_above_hidden_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::island_above_hidden);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    auto& ri = SINGLE_RendererInfo::instance;
+
+    // Render some quads
+    {
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
+
+      auto view = r.view<const TransformComponent, const SpriteComponent, const AboveHiddenComponent>();
+
+      // Render in sorted order
+      for (const auto& [e, transform, sc, above_c] : view.each()) {
+
+        engine::quad_renderer::RenderDescriptor desc;
+        desc.pos_tl = transform.position - (transform.scale * 0.5f);
+        desc.size = transform.scale;
+        desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                        transform.rotation_radians.y,
+                                        sc.angle_radians + transform.rotation_radians.z };
+        desc.colour = sc.colour;
+        desc.tex_unit = sc.tex_unit;
+        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+        desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+        ri.renderer.draw_sprite(desc, ri.instanced);
+      }
+
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.instanced);
+    }
   };
 };
 
@@ -360,7 +452,7 @@ setup_linear_main_update(entt::registry& r)
 
       // Collect entities and their z-index into a vector
       std::vector<std::tuple<int, entt::entity, const TransformComponent*, const SpriteComponent*>> sorted_entities;
-      auto view = r.view<const TransformComponent, const SpriteComponent>();
+      auto view = r.view<const TransformComponent, const SpriteComponent>(entt::exclude<AboveHiddenComponent>);
       sorted_entities.reserve(view.size_hint());
 
       for (const auto e : view) {

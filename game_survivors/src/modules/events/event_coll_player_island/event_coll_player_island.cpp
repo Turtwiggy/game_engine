@@ -28,6 +28,8 @@ handle_player_enter_island(entt::registry& r, const OnCollisionEnter& evt)
 
   // add a component to the player
   r.emplace_or_replace<PlayerCollidedWithIsland>(par_e);
+
+  // search for "remove_hidden_state_from_island"
 }
 
 } // namespace game2d

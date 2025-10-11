@@ -17,9 +17,6 @@ entt::entity
 get_center_island_eid(entt::registry& r);
 
 void
-generate_island_interior(entt::registry& r);
-
-void
 generate_island_life__base_island(entt::registry& r);
 
 void

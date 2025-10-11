@@ -184,8 +184,11 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
           continue;
 
         const auto boat_e = e;
+        r.remove<PlayerCollidedWithIsland>(boat_e);
+
         land_player_on_island(r, island_c, n_gp, boat_e, island_e);
         nearest_c.landable_positions.clear();
+        remove_hidden_state_from_island(r, island_e);
 
         break; // give movement to one thing
       }

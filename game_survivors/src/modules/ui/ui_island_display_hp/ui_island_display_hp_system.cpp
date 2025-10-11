@@ -38,6 +38,10 @@ update_ui_island_display_hp_system(entt::registry& r)
   const auto view = r.view<MovementIslandComponent, HealthComponent, TransformComponent>();
   for (const auto& [e, movement_c, hp_c, t_c] : view.each()) {
 
+    const auto island_e = movement_c.island_e;
+    if (const auto* hidden_c = r.try_get<IslandHiddenComponent>(island_e))
+      continue; // dont show hp if island is hidden.
+
     auto ws_pos = glm::vec2{ t_c.position.x, t_c.position.y };
 
     // offset y so you can see the thing you're interacting with
