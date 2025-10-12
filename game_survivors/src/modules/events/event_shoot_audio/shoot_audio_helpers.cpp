@@ -16,20 +16,13 @@ handle_shoot_event__audio(entt::registry& r, const ShootEvent& evt)
   ZoneScoped;
 #endif
 
-  const auto par_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
-
-  if (par_e == entt::null || wep_e == entt::null)
+  if (wep_e == entt::null)
     return;
 
   // request to play audio
   const auto& weapon_data = r.get<const Weapon_OnDiskData>(wep_e);
   const auto& weapon_audio_tags = weapon_data.audio;
-
-#if defined(_DEBUG)
-  const auto& tag_c = r.get<TagComponent>(par_e);
-  SDL_Log("%s", std::format("tag: {} firing audio", tag_c.tag).c_str());
-#endif
 
   // todo: randomize audio, dont just choose [0]
   if (weapon_audio_tags.empty()) {

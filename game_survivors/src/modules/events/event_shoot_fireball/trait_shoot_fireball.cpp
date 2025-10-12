@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/std/vector/helpers.hpp"
@@ -17,7 +18,6 @@ namespace game2d {
 void
 handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
 {
-  const auto from_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
 
   const auto* trait_c = r.try_get<WeaponBehaviourComponent>(wep_e);
@@ -55,8 +55,14 @@ handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
   // shoot a fireball!
   const auto pos = get_position(r, wep_e);
 
-  const auto b2_vel = b2Body_GetLinearVelocity(r.get<PhysicsBodyComponent>(from_e).bodyId);
-  glm::vec2 dir = glm::vec2{ b2_vel.x, b2_vel.y };
+  // Get the velocity of your parent
+  auto b2_vel = b2Vec2_zero;
+  if (auto* has_parent_c = r.try_get<HasParentComponent>(wep_e)) {
+    const auto parent_e = has_parent_c->parent;
+    if (r.valid(parent_e))
+      b2_vel = b2Body_GetLinearVelocity(r.get<PhysicsBodyComponent>(parent_e).bodyId);
+  }
+  auto dir = glm::vec2{ b2_vel.x, b2_vel.y };
 
   // if you have a target, shoot that
   if (auto* autofire_c = r.try_get<AutofireComponent>(wep_e)) {

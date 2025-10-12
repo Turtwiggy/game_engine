@@ -16,17 +16,25 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
-#include "modules/actors/actor_drum/drum_component.hpp"
+#include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
+#include "modules/actors/actor_island_drum/drum_component.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/lights/components.hpp"
+#include "modules/scene/scene_helpers.hpp"
+#include "modules/systems/system_autofire/autofire_components.hpp"
+#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_island_ai/island_ai_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
@@ -726,10 +734,25 @@ generate_island_life__base_island(entt::registry& r)
   spawn_islander(r, spawn_rnd, center_island_eid, animal_keys[idx_0], AvailableTeams::player, true);
   spawn_islander(r, spawn_rnd, center_island_eid, animal_keys[idx_1], AvailableTeams::player, true);
 
+  // spawn a drum on a random pos
   auto drum_e = spawn_islander(r, spawn_rnd, center_island_eid, "actor_island_item_drum", AvailableTeams::player);
   r.emplace<DrumComponent>(drum_e);
-  r.emplace<InteractableComponent>(drum_e);
   r.remove<HealthComponent>(drum_e);
+
+  // spawn a broken cannon on a random pos.
+  {
+    auto cannon_e = spawn_islander(r, spawn_rnd, center_island_eid, "actor_island_cannon", AvailableTeams::player);
+    r.emplace<IslandCannonComponent>(cannon_e);
+    r.remove<HealthComponent>(cannon_e);
+    set_sprite(r, cannon_e, "CROSSBOW_37_5");
+    set_size(r, cannon_e, { 16, 16 });
+
+    const auto weapon_data = get_weapon_data(r, "weapon_deck_cannon");
+    become_weapon(r, cannon_e, weapon_data);
+    r.emplace<WeaponDef>(cannon_e, get_weapon_def(r, cannon_e));
+    r.emplace<BulletDef>(cannon_e, get_bullet_def(r, cannon_e));
+    r.emplace<AutofireComponent>(cannon_e);
+  }
 }
 
 void

@@ -114,6 +114,7 @@
 #include "modules/ui/ui_hierarchy/system.hpp"
 #include "modules/ui/ui_island_display_hp/ui_island_display_hp_system.hpp"
 #include "modules/ui/ui_island_interact_system/ui_island_interact_system.hpp"
+#include "modules/ui/ui_label/ui_label_system.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_components.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_system.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_system.hpp"
@@ -404,6 +405,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_worldspace_text_system(r);
   update_ui_back_button_system(r);
   update_ui_scene_header_system(r);
+  update_ui_label_system(r);
 
   // if (scene.s == Scene::pressanykey)
   //   update_ui_scene_press_any_key(r);

@@ -6,6 +6,9 @@
 
 namespace game2d {
 
+void
+become_weapon(entt::registry& r, const entt::entity wep_e, const Weapon_OnDiskData& w_data);
+
 entt::entity
 spawn_weapon(entt::registry& r,
              const entt::entity player_e,

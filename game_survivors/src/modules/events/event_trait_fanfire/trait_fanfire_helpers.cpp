@@ -1,6 +1,7 @@
 #include "trait_fanfire_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/std/vector/helpers.hpp"
@@ -9,6 +10,7 @@
 #include "modules/core/colour/components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -23,10 +25,8 @@ struct FanfireTraitComponent
 void
 handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
 {
-  const auto from_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
-
-  if (from_e == entt::null || wep_e == entt::null)
+  if (wep_e == entt::null)
     return;
 
   const auto* trait_c = r.try_get<WeaponBehaviourComponent>(wep_e);
@@ -54,9 +54,15 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
   bul_def.size = { 4, 4 }; // fanfire bullets slightly smaller
   bul_def.damage_type = WEAPON_DAMAGE::KINETIC;
 
-  const auto& player_col = r.get<DefaultColour>(from_e).colour;
+  auto col = my_white;
+  if (auto* parent_c = r.try_get<HasParentComponent>(wep_e)) {
+    const auto par_e = parent_c->parent;
+    const auto& player_col = r.get<DefaultColour>(par_e).colour;
+    col = player_col;
+  }
+
   const auto angles_rad = generate_angles(0, fanfire_c.projectiles_to_fanfire, engine::TWO_PI);
-  auto pos = get_position(r, from_e);
+  auto pos = get_position(r, wep_e);
   for (const auto& a : angles_rad) {
 
     const auto bullet_e = spawn_projectile(r, bul_def, pos);
@@ -66,7 +72,7 @@ handle_shoot_event__trait_fanfire(entt::registry& r, const ShootEvent& evt)
     b2Body_SetLinearVelocity(body_c.bodyId, bullet_vel);
 
     // fanfire bullets to player col
-    set_colour(r, bullet_e, player_col);
+    set_colour(r, bullet_e, col);
   }
 }
 

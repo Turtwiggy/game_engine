@@ -20,10 +20,9 @@ handle_shoot_event__flamethrower(entt::registry& r, const ShootEvent& evt)
   ZoneScoped;
 #endif
 
-  const auto par_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
 
-  if (par_e == entt::null || wep_e == entt::null)
+  if (wep_e == entt::null)
     return;
 
   auto& evts_c = SINGLE_Events::instance;

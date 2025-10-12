@@ -4,9 +4,7 @@
 
 namespace game2d {
 
-struct ShootEvent
-{
-  entt::entity weapon_e = entt::null;
-};
+void
+update_ui_label_system(entt::registry& r);
 
 } // namespace game2d

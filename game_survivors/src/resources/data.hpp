@@ -26,6 +26,7 @@ const ImU32 default_player_colours_im_transparent[n_players] = {
   convert_my_to_im({ default_player_colours[3].r, default_player_colours[3].g, default_player_colours[3].b, 100 }),
 };
 
+const auto my_white = hex_to_srgb("#FFFFFF");
 const ImU32 im_white = IM_COL32(255, 255, 255, 255);
 const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 const auto my_inactive_col = hex_to_srgb("#737a7e");

@@ -177,9 +177,13 @@
     //
     // island items
     //
-      {
+    {
       "name": "actor_island_item_drum",
-      "renderable": { "sprite": "TEXT_D", "colour":  "cyan" }
+      "renderable": { "sprite": "TEXT_D", "colour":  "gold_yellow" }
+    },
+    {
+      "name": "actor_island_cannon",
+      "renderable": { "sprite": "CROSSBOW_37_5", "colour":  "gold_yellow" }
     },
     //
     // island enemies

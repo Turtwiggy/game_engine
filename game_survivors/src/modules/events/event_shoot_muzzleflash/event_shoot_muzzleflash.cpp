@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "event_shoot_muzzleflash.hpp"
@@ -25,8 +26,12 @@ update_debug_muzzleflash_system(entt::registry& r)
 void
 handle_shoot_event__muzzleflash(entt::registry& r, const ShootEvent& evt)
 {
-  const auto par_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
+
+  const auto* par_c = r.try_get<HasParentComponent>(wep_e);
+  if (!par_c)
+    return;
+  const auto par_e = par_c->parent;
 
   if (!r.all_of<PlayerBoatComponent>(par_e))
     return;

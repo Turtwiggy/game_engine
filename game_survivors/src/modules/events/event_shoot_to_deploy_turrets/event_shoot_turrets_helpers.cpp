@@ -114,14 +114,18 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
 void
 handle_shoot_event__deploy_turrets(entt::registry& r, const ShootEvent& evt)
 {
-  const auto par_e = evt.parent_e;
   const auto wep_e = evt.weapon_e;
 
-  if (par_e == entt::null || wep_e == entt::null)
+  if (wep_e == entt::null)
     return;
 
   if (!r.all_of<WeaponSeaTurret>(wep_e))
     return;
+
+  const auto* par_c = r.try_get<HasParentComponent>(wep_e);
+  if (!par_c)
+    return;
+  const auto par_e = par_c->parent;
 
   const auto wep_def = get_weapon_def(r, wep_e);
   for (int i = 0; i < wep_def.projectiles; i++)

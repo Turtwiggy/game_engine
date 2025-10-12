@@ -32,7 +32,10 @@ handle_damage_event_lifesteal(entt::registry& r, const DamageEvent& evt)
   const auto wep_e = r.get<HasParentComponent>(bul_e).parent;
   if (!r.valid(wep_e))
     return; // weapon was destroyed
-  const auto par_e = r.get<HasParentComponent>(wep_e).parent;
+  const auto* par_c = r.try_get<HasParentComponent>(wep_e);
+  if (!par_c || !r.valid(par_c->parent))
+    return; // no parent
+  const auto par_e = par_c->parent;
 
 #if defined(_DEBUG)
   // note: BulletComponent is attached to the Fixture

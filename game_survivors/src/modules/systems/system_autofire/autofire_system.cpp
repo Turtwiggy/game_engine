@@ -4,32 +4,26 @@
 #include "autofire_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
-#include "engine/audio/audio_components.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
-#include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
-#include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
-#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
-#include "modules/systems/system_weapon_upgrade/weapon_upgrade_helpers.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -202,6 +196,29 @@ aim_in_movement_direction(entt::registry& r, const b2Vec2 par_vel, const entt::e
   wep_t.rotation_radians.z = engine::dir_to_angle_radians({ par_vel.x, par_vel.y });
 };
 
+bool
+update_aquire_target(entt::registry& r,
+                     AutofireComponent& autofire_c,
+                     const entt::entity wep_e,
+                     const TransformComponent& wep_t,
+                     const WeaponDef& wep_def,
+                     const float dt)
+{
+  // stop spamming costly get_nearest_target by checking for targets every ~1s
+  if (autofire_c.target_aquisition_cooldown_cur > 0.0f) {
+    autofire_c.target_aquisition_cooldown_cur -= dt;
+    return false;
+  }
+  autofire_c.target_aquisition_cooldown_cur = autofire_c.target_aquisition_cooldown_max;
+
+  auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
+  if (nearest_e == entt::null)
+    return false;
+
+  autofire_c.target = nearest_e;
+  return true;
+}
+
 void
 update_autofire_system(entt::registry& r, const float dt)
 {
@@ -212,29 +229,32 @@ update_autofire_system(entt::registry& r, const float dt)
   auto& evts_c = SINGLE_Events::instance;
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
+  // weapons with a parent component.
   {
     const auto view = r.view<const WeaponComponent,
                              const WeaponDef,
-                             //  const BulletDef,
                              const WeaponRange,
                              const HasParentComponent,
                              TransformComponent,
                              AutofireComponent>();
-    for (const auto& [wep_e, weapon_c, wep_def, wep_range_c, parent_c, wep_t, autofire_c] : view.each()) {
+    for (const auto& [wep_e, weapon_c, wep_def, wep_range_c, par_c, wep_t, autofire_c] : view.each()) {
 
-      const auto par_e = parent_c.parent;
-      if (!r.valid(par_e))
+      if (!r.valid(par_c.parent))
         continue;
+
+      const auto par_e = par_c.parent;
       const auto& par_inp = r.get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
-      const auto par_vel_m = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(par_e).bodyId);
+      const auto* par_pb = r.try_get<PhysicsBodyComponent>(par_e);
+      const auto par_vel_m = b2Body_GetLinearVelocity(par_pb->bodyId);
+
       const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
+      auto dir_to_enemy = glm::vec2();
 
       // If the player is holding the right analogue, overwrite the shoot_angle.
       const float deadzone = 0.05f;
       auto override_autofire = false;
-      auto dir_to_enemy = glm::vec2();
       if (glm::abs(par_inp.rx) > deadzone || glm::abs(par_inp.ry) > deadzone) {
         override_autofire = true;
         autofire_c.target = entt::null;
@@ -246,20 +266,11 @@ update_autofire_system(entt::registry& r, const float dt)
         continue;
       }
 
+      // get a target
       if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
         aim_in_movement_direction(r, par_vel_m, wep_e);
-
-        // stop spamming costly get_nearest_target by checking for targets ever ~1s
-        if (autofire_c.target_aquisition_cooldown_cur > 0.0f) {
-          autofire_c.target_aquisition_cooldown_cur -= dt;
-          continue;
-        }
-        autofire_c.target_aquisition_cooldown_cur = autofire_c.target_aquisition_cooldown_max;
-
-        auto nearest_e = get_nearest_target(r, wep_e, wep_t, wep_def);
-        if (nearest_e == entt::null)
-          continue;
-        autofire_c.target = nearest_e;
+        if (!update_aquire_target(r, autofire_c, wep_e, wep_t, wep_def, dt))
+          continue; // target aquire cd
       }
 
       // check your target is still within distance
@@ -297,17 +308,66 @@ update_autofire_system(entt::registry& r, const float dt)
     }
   }
 
+  // weapons without a parent component.
+  {
+    const auto view =
+      r.view<const WeaponComponent, const WeaponDef, const WeaponRange, TransformComponent, AutofireComponent>(
+        entt::exclude<HasParentComponent>);
+    for (const auto& [wep_e, weapon_c, wep_def, wep_range_c, wep_t, autofire_c] : view.each()) {
+
+      const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
+      auto dir_to_enemy = glm::vec2();
+
+      // get a target
+      if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
+        if (!update_aquire_target(r, autofire_c, wep_e, wep_t, wep_def, dt))
+          continue; // target aquire cd
+      }
+
+      // check your target is still within distance
+      // (optional) theres a line of sight between you and it
+      const auto d = wep_pos - get_position(r, autofire_c.target);
+      const auto d2 = d.x * d.x + d.y * d.y;
+      const auto d2_threshold = pow(meters_to_pixels(wep_range_c.meters), 2);
+      if (d2 > d2_threshold)
+        autofire_c.target = entt::null;
+      if (autofire_c.target == entt::null)
+        continue;
+
+      const auto tgt = autofire_c.target;
+      const auto tgt_pos = get_position(r, tgt);
+      const auto you_pos = wep_pos;
+      auto aim_dir = tgt_pos - you_pos;
+
+      // if you're shooting projectiles, aim at the intercept point
+      if (auto* bul_def = r.try_get<BulletDef>(wep_e)) {
+        const auto bullet_speed_p = meters_to_pixels(bul_def->speed);
+        const auto tgt_vel_m = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(tgt).bodyId);
+        const glm::vec2 tgt_vel_p = meters_to_pixels(tgt_vel_m);
+        const auto you_vel_m = b2Vec2_zero;
+        const auto you_vel_p = meters_to_pixels(you_vel_m);
+        aim_dir = calculate_aim_dir(you_pos, you_vel_p, tgt_pos, tgt_vel_p, bullet_speed_p);
+      }
+
+      dir_to_enemy = engine::normalize_safe(aim_dir);
+      draw_crosshair(r, wep_pos, dir_to_enemy, my_greenish);
+
+      // rotate the gun to the target
+      wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);
+    }
+  }
+
   // handle sending ShootEvent
   {
-    const auto view = r.view<const WeaponDef, const HasParentComponent, WeaponFireRate, WeaponReloadRate, WeaponClipSize>();
-    for (const auto& [wep_e, wep_def, parent_c, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c] :
-         view.each()) {
-
-      const auto par_e = parent_c.parent;
+    const auto view = r.view<const WeaponDef, WeaponFireRate, WeaponReloadRate, WeaponClipSize>();
+    for (const auto& [wep_e, wep_def, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c] : view.each()) {
 
       // parent has dropped anchor, stop firing.
-      if (r.all_of<DroppedAnchorComponent>(par_e))
-        continue;
+      if (const auto* par_c = r.try_get<HasParentComponent>(wep_e)) {
+        const auto par_e = par_c->parent;
+        if (r.all_of<DroppedAnchorComponent>(par_e))
+          continue;
+      }
 
       // you gotta reload
       if (weapon_reload_rate_c.seconds_cur > 0.0) {
@@ -340,9 +400,7 @@ update_autofire_system(entt::registry& r, const float dt)
       weapon_fire_rate_c.seconds_between_shots_left = weapon_fire_rate_c.seconds_between_shots_max;
 
       // do the shoot event
-      const auto p = parent_c.parent;
       ShootEvent shoot_evt;
-      shoot_evt.parent_e = p;
       shoot_evt.weapon_e = wep_e;
       evts_c.dispatcher->trigger(shoot_evt);
       evts_c.dispatcher->update();

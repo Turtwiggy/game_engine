@@ -6,6 +6,7 @@
 #include "modules/events/event_bump/bump_event_components.hpp"
 #include "modules/events/event_bump_damage/bump_damage_event_helpers.hpp"
 #include "modules/events/event_bump_drum/bump_drum_event_helpers.hpp"
+#include "modules/events/event_bump_repair/bump_repair_event_helpers.hpp"
 #include "modules/events/event_coll_bullet_other/event_coll_bullet_other_helpers.hpp"
 #include "modules/events/event_coll_flame_enemy/event_coll_flame_enemy_helpers.hpp"
 #include "modules/events/event_coll_player_enemy/event_coll_player_enemy_helpers.hpp"
@@ -38,7 +39,6 @@
 #include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_stats/stats_helpers.hpp"
 
-
 namespace game2d {
 
 static entt::dispatcher dispatcher;
@@ -69,6 +69,7 @@ init_events_system(entt::registry& r)
 
   ed.dispatcher->sink<BumpEvent>().connect<&handle_bump_event__damage>(r);
   ed.dispatcher->sink<BumpEvent>().connect<&handle_bump_event__drum>(r);
+  ed.dispatcher->sink<BumpEvent>().connect<&handle_bump_event__repair>(r);
 
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__audio>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__autofire>(r);

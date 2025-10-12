@@ -51,7 +51,6 @@
 #include "spawner_components.hpp"
 #include "spawner_helpers.hpp"
 
-
 namespace game2d {
 
 entt::entity
@@ -221,8 +220,6 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust = 6.0f;
 
     // give the projectile enemy a weapon.
-    const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
-
     // TODO: make it it's own weapon, not weapon_deck_cannon
     const auto weapon_data = get_weapon_data(r, "weapon_deck_cannon");
     const auto wep_e = spawn_weapon(r, e, weapon_data, "weapon_deck_cannon");

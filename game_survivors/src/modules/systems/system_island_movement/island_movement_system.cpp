@@ -65,13 +65,13 @@ update_island_movement_system(entt::registry& r)
           { { -1, 0 }, "ARROW_LEFT" },
         };
 
-        draw_sprite(r,
-                    Sprite{
-                      .sprite = spritemap.at(dir),
-                      .pos = n_pos_adj,
-                      .size = { 12, 12 },
-                      .col = { 0.0f, 1.0f, 0.0f, 1.0f },
-                    });
+        // draw_sprite(r,
+        //             Sprite{
+        //               .sprite = spritemap.at(dir),
+        //               .pos = n_pos_adj,
+        //               .size = { 12, 12 },
+        //               .col = { 0.0f, 1.0f, 0.0f, 1.0f },
+        //             });
       }
 
       if (!move)
@@ -81,9 +81,6 @@ update_island_movement_system(entt::registry& r)
         // SDL_Log("tile is occupied...");
 
         const auto n_e = e_at_xy(r, island_c, n_gp);
-
-        // make the neighbour flash.
-        r.emplace_or_replace<RequestHitScaleComponent>(n_e);
 
         // send an event that you would bump in to something.
         {

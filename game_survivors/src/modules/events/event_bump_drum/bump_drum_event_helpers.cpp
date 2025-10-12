@@ -4,7 +4,7 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
-#include "modules/actors/actor_drum/drum_component.hpp"
+#include "modules/actors/actor_island_drum/drum_component.hpp"
 
 namespace game2d {
 

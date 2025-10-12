@@ -25,15 +25,10 @@
 
 namespace game2d {
 
-entt::entity
-spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDiskData& w_data, std::string key)
+void
+become_weapon(entt::registry& r, const entt::entity wep_e, const Weapon_OnDiskData& w_data)
 {
-  glm::vec2 weapon_size = { 6, 3 };
-
   const auto wep_type_enum = w_data.type_as_enum;
-  const auto wep_e = spawn(r, key);
-  give_life(r, wep_e, { 0, 0 }, weapon_size);
-  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
 
   // weapon stats
   r.emplace<WeaponComponent>(wep_e);
@@ -110,6 +105,19 @@ spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDisk
   }
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
+};
+
+entt::entity
+spawn_weapon(entt::registry& r, const entt::entity player_e, const Weapon_OnDiskData& w_data, std::string key)
+{
+  glm::vec2 weapon_size = { 6, 3 };
+
+  const auto wep_e = spawn(r, key);
+  give_life(r, wep_e, { 0, 0 }, weapon_size);
+  r.emplace<TeamComponent>(wep_e, TeamComponent{ AvailableTeams::player });
+
+  become_weapon(r, wep_e, w_data);
+
   return wep_e;
 };
 
