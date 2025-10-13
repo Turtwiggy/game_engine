@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
+#include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
 
 namespace game2d {
 
@@ -18,6 +19,18 @@ handle_bump_event__repair(entt::registry& r, const BumpEvent& evt)
   // repair the thing.
   cannon_c->hits_to_repair_left--;
   cannon_c->hits_to_repair_left = std::max(cannon_c->hits_to_repair_left, 0);
+
+  // is it repaired?
+  bool repaired = cannon_c->hits_to_repair_left == 0;
+  if (repaired && cannon_c->state == IslandCannonState::BROKEN) {
+    cannon_c->state = IslandCannonState::WORKING;
+    // cannon_c->hits_to_repair_left = cannon_c->hits_to_repair;
+  }
+
+  // refill the ammo.
+  auto& mag_c = r.get<WeaponClipSize>(evt.to);
+  if (repaired && mag_c.bullets_cur == 0)
+    mag_c.bullets_cur = mag_c.bullets_max;
 
   // play some audio
   static engine::RandomState rnd(0);

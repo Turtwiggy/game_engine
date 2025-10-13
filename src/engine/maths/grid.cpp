@@ -85,7 +85,7 @@ get_neighbour_indicies_with_diagonals(const int x, const int y, const int x_max,
 };
 
 std::vector<std::pair<GridDirection, glm::ivec2>>
-get_neighbour_gridpos(const glm::ivec2& xy, const int x_max, const int y_max)
+get_neighbour_gridpos(const glm::ivec2& xy)
 {
   std::vector<std::pair<GridDirection, glm::ivec2>> results;
   results.push_back({ GridDirection::north, { xy.x, xy.y + 1 } });

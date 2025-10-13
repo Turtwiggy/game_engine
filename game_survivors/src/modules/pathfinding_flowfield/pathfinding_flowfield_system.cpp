@@ -48,7 +48,7 @@ generate_flowfield(entt::registry& r, const GenerateFlowfieldParams in)
     // if (gpos.first == 1 & gpos.second == 0)
     //   int k = 1;
 
-    const auto n_idxs = engine::grid::get_neighbour_gridpos({ gpos.first, gpos.second }, xmax, ymax);
+    const auto n_idxs = engine::grid::get_neighbour_gridpos({ gpos.first, gpos.second });
     for (const auto& [n_dir, n_gp] : n_idxs) {
       const auto n_idx = engine::grid::grid_position_to_index(n_gp, xmax);
 

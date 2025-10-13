@@ -214,6 +214,29 @@
         // "FLAME_UPGRADE_D",
         // "FLAME_UPGRADE_E"
       ]
+    },
+
+    {
+      "key": "weapon_island_cannon",
+      "name": "Cannon [Island]", // heavy pistol
+      "desc": "Shoots at closest target.",
+      "audio": ["ISLAND_CANNON_01"],
+      "weapon_type": "PROJECTILE",
+      "weapon_damage": "KINETIC",
+      "data": {
+        "WEAPON_CLIP_SIZE": 50  , // shots before repair
+        "WEAPON_PROJECTILES": 1 ,
+        "WEAPON_FIRERATE": 1.25 , // per second
+        "WEAPON_RELOAD": 3      , // seconds
+        "WEAPON_RANGE": 4.0     , // meters
+        "BULLET_DAMAGE": 12     ,
+        "BULLET_KNOCKBACK": 0   , // force
+        "BULLET_PIERCE": 12     ,
+        "BULLET_SIZE": 6        ,
+        "WEAPON_SPREAD": 5       // degrees
+      },
+      "upgrades": [
+      ]
     }
 
     // {

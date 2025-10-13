@@ -16,6 +16,9 @@ land_player_on_island(entt::registry& r,
 std::vector<glm::ivec2>
 get_unoccupied_tiles(const DebugContoursComponent& island_c);
 
+std::vector<glm::ivec2>
+get_unoccupied_edge_tiles(const DebugContoursComponent& island_c);
+
 bool
 occupied(entt::registry& r, const DebugContoursComponent& island_c, glm::ivec2 gp);
 

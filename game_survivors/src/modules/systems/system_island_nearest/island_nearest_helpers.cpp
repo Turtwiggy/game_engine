@@ -72,6 +72,43 @@ get_unoccupied_tiles(const DebugContoursComponent& island_c)
   return unoccupied;
 };
 
+std::vector<glm::ivec2>
+get_unoccupied_edge_tiles(const DebugContoursComponent& island_c)
+{
+  const auto& all = island_c.all_island_xy;
+  const auto& occupied = island_c.occupied_island_xy;
+
+  std::vector<glm::ivec2> edges;
+
+  for (const auto& xy : all) {
+
+    std::vector<glm::ivec2> valid_neighbours;
+    const auto neighbours = engine::grid::get_neighbour_gridpos(xy);
+    for (const auto& [n_dir, n_xy] : neighbours) {
+      const auto it = std::find(all.begin(), all.end(), n_xy);
+      if (it != all.end())
+        valid_neighbours.push_back(n_xy);
+    }
+
+    // you're definitely not an edge.
+    if (valid_neighbours.size() == 4)
+      continue;
+
+    edges.push_back(xy);
+  }
+
+  // get only unoccupied tiles
+  std::vector<glm::ivec2> unoccupied_edge;
+  for (const auto xy : edges) {
+    auto it = std::find_if(occupied.begin(), occupied.end(), [&xy](const auto& p) { return p.first == xy; });
+    if (it != occupied.end())
+      continue;
+    unoccupied_edge.push_back(xy);
+  }
+
+  return unoccupied_edge;
+};
+
 bool
 occupied(entt::registry& r, const DebugContoursComponent& island_c, glm::ivec2 gp)
 {

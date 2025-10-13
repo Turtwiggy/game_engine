@@ -12,6 +12,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
+#include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
@@ -229,7 +230,12 @@ update_autofire_system(entt::registry& r, const float dt)
   auto& evts_c = SINGLE_Events::instance;
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
+  //
   // weapons with a parent component.
+  // the difference between this and the code that fires weapons without a parent component
+  // this fires the weapon in the direction of the parent, if the parent is moving.
+  // the weapon without a parent will just fire at your target.
+  //
   {
     const auto view = r.view<const WeaponComponent,
                              const WeaponDef,
@@ -366,6 +372,13 @@ update_autofire_system(entt::registry& r, const float dt)
       if (const auto* par_c = r.try_get<HasParentComponent>(wep_e)) {
         const auto par_e = par_c->parent;
         if (r.all_of<DroppedAnchorComponent>(par_e))
+          continue;
+      }
+
+      // gun is broken.
+      if (r.all_of<IslandCannonComponent>(wep_e)) {
+        const auto& island_cannon_c = r.get<IslandCannonComponent>(wep_e);
+        if (island_cannon_c.state == IslandCannonState::BROKEN)
           continue;
       }
 

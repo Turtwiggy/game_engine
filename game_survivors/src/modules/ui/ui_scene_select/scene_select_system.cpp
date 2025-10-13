@@ -361,6 +361,11 @@ draw_card_inner(entt::registry& r,
         auto first_x = grid_tl.x + padding_x;
         for (int j = 0; j < (int)weapons_c.weapons.size(); j++) {
           const auto& weapon = weapons_c.weapons[j];
+
+          // todo: fix this with a proper solution
+          if (weapon.key == "weapon_island_cannon")
+            continue; // not a player weapon
+
           const bool icon_active = j == cell.value;
           const auto border_col = icon_active ? im_greenish : im_window_border_col;
 

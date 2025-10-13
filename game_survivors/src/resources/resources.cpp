@@ -102,6 +102,7 @@ get_default_audio()
   audio.sounds.push_back({ "DRUM_04", sfx_path + "drum_04.mp3", SoundType::SFX });
   audio.sounds.push_back({ "DRUM_05", sfx_path + "drum_05.mp3", SoundType::SFX });
   audio.sounds.push_back({ "CLANK_01", sfx_path + "clank_01.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "ISLAND_CANNON_01", sfx_path + "island_cannon_01.mp3", SoundType::SFX });
 
   // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
   // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });

@@ -3,17 +3,21 @@
 #include "ui_label_system.hpp"
 
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_draw_text_helpers.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -59,6 +63,19 @@ update_ui_label_system(entt::registry& r)
   ZoneScoped;
 #endif
 
+  // dont show labels if players are upgrading.
+  {
+    const auto view = r.view<UpgradeResultsComponent>();
+    if (view.size() > 0)
+      return;
+  }
+
+  // wait for islands to be initialised.
+  {
+    if (SINGLE_Islands::instance.id_to_island_eid.empty())
+      return;
+  }
+
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   const auto& ri = SINGLE_RendererInfo::instance;
@@ -71,22 +88,65 @@ update_ui_label_system(entt::registry& r)
   auto* draw_list = ImGui::GetWindowDrawList();
   auto* font = get_inter_font(r, FontSize::TEXT_SIZE_16);
 
-  for (const auto& [e, t_c, cannon_c] : r.view<const TransformComponent, const IslandCannonComponent>().each()) {
-    auto ws_pos = glm::vec2{ t_c.position.x, t_c.position.y };
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+
+  for (const auto& [e, t_c, cannon_c, clip_c] :
+       r.view<const TransformComponent, const IslandCannonComponent, const WeaponClipSize>().each()) {
+    const auto ws_pos = glm::vec2{ t_c.position.x, t_c.position.y };
     const auto ss_pos = worldspace_to_screenspace(r, ws_pos);
     const auto im_ss_pos = ImVec2(ss_pos.x, ss_pos.y);
 
     const auto hits = cannon_c.hits_to_repair - cannon_c.hits_to_repair_left;
-
     const bool repaired = cannon_c.hits_to_repair_left == 0;
-    auto text = std::format("Needs repair: {}/{}", hits, cannon_c.hits_to_repair);
+    auto text = std::format("Needs repair. {}/{}", hits, cannon_c.hits_to_repair);
     if (repaired)
-      text = "Repaired. Bullets: X/X.";
+      text = std::format("Repaired. Bullets: {}/{}", clip_c.bullets_cur, clip_c.bullets_max);
 
-    // todo: point p1 off the island
+    // assuming this cannon is on an edge of the island,
+    // work out which way is the edge to the ocean.
+    const auto pos_adj = ws_pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
+    const auto gp = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
+    const auto id = engine::encode_cantor_pairing_function(gp.x, gp.y);
+    const auto island_e = SINGLE_Islands::instance.id_to_island_eid.at(id);
+    const auto& island_c = r.get<DebugContoursComponent>(island_e);
+
+    // work out which way the edge points.
+    std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> valid_neighbours;
+    std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> invalid_neighbours;
+    {
+      const auto neighbours = engine::grid::get_neighbour_gridpos(gp);
+      const auto& all = island_c.all_island_xy;
+      for (const auto& [n_dir, n_xy] : neighbours) {
+        const auto it = std::find(all.begin(), all.end(), n_xy);
+        if (it != all.end())
+          valid_neighbours.push_back({ n_dir, n_xy });
+        else
+          invalid_neighbours.push_back({ n_dir, n_xy });
+      }
+      // the cannon should've been spawned on the edge of an island (i.e. 3 neighbours, 1 nothing.)
+      if (invalid_neighbours.size() == 0)
+        throw std::runtime_error("all neighbours are land?");
+    }
+
+    // if its north, bump right one.
+    // if its south, bump right one.
+    // if you're east, bump up one.
+    // if you're west, bump up one.
+    auto [empty_dir, empty_gp] = invalid_neighbours[0];
+    auto offset = ImVec2{ 0, 0 };
+    if (empty_dir == engine::grid::GridDirection::north)
+      offset = ImVec2(1, 1);
+    else if (empty_dir == engine::grid::GridDirection::south)
+      offset = ImVec2(1, -1);
+    else if (empty_dir == engine::grid::GridDirection::east)
+      offset = ImVec2(1, 1);
+    else if (empty_dir == engine::grid::GridDirection::west)
+      offset = ImVec2(-1, 1);
+
+    // point p1 off the island
     const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
-    const auto p0 = im_ss_pos + ImVec2(0, 0);
-    const auto p1 = im_ss_pos + ImVec2(16, -16);
+    const auto p0 = im_ss_pos;
+    const auto p1 = im_ss_pos + offset * ImVec2(16, 16);
     const auto p2 = p1 + ImVec2(text_size.x, 0);
 
     draw_dashed_line(draw_list, p0, p1, 1, { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -96,7 +156,7 @@ update_ui_label_system(entt::registry& r)
     if (repaired)
       col = im_greenish;
 
-    const auto text_pos = p1 + ImVec2(0, -text_size.y * 0.5f);
+    const auto text_pos = p1 + ImVec2(0, +text_size.y * 0.5f);
     draw_list->AddText(font, font->FontSize, p1, col, text.c_str());
   }
 

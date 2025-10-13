@@ -492,11 +492,11 @@ void main()
 
   // vignette
   // if(add_vignette){
-  // vec2 vig_uv = fragCoord.xy / iResolution.xy;
-  // vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
-  // float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
-  // vig = pow(vig, 0.25); // change pow for modifying the extend of the  vignettea
-  // out_colour.rgb *= vig;
+  vec2 vig_uv = fragCoord.xy / iResolution.xy;
+  vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
+  float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
+  vig = pow(vig, 0.25); // change pow for modifying the extend of the  vignette
+  out_colour.rgb *= vig;
   // }
 
   // ACES tonemap
