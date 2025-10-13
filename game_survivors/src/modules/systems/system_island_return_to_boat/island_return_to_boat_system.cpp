@@ -68,7 +68,7 @@ update_island_return_to_boat_system(entt::registry& r)
 
     r.remove<DroppedAnchorComponent>(boat_e);
     r.emplace<MovementDirectComponent>(boat_e);
-    r.emplace<IslandReturnToBoatLandImmunity>(boat_e);
+    r.emplace_or_replace<IslandCollisionImmunity>(boat_e, IslandCollisionImmunity{ .island_e = island_e });
 
     // give the boat a small push in the dir away from the island.
     const float impulse_amount = 1.0f;

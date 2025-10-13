@@ -13,13 +13,13 @@ update_island_return_to_boat_land_immunity_system(entt::registry& r, const float
   ZoneScoped;
 #endif
 
-  auto view = r.view<IslandReturnToBoatLandImmunity>();
+  auto view = r.view<IslandCollisionImmunity>();
 
   for (const auto& [e, immunity_c] : view.each()) {
     immunity_c.immunity_time_Left -= dt;
 
     if (immunity_c.immunity_time_Left <= 0.0f)
-      r.remove<IslandReturnToBoatLandImmunity>(e);
+      r.remove<IslandCollisionImmunity>(e);
   }
 }
 

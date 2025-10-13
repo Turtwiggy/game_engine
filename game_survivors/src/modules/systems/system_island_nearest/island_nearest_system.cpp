@@ -179,8 +179,8 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
 
         // if you collide with the island, land the player.
         const auto* collided_with_island = r.try_get<PlayerCollidedWithIsland>(e);
-        const auto* immunity = r.try_get<IslandReturnToBoatLandImmunity>(e);
-        if (immunity || !collided_with_island)
+        const auto* immunity = r.try_get<IslandCollisionImmunity>(e);
+        if ((immunity && immunity->island_e == island_e) || !collided_with_island)
           continue;
 
         const auto boat_e = e;
