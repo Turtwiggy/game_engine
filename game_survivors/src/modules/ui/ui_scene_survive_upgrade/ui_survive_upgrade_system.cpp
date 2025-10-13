@@ -196,7 +196,8 @@ draw_upgrade_selections_in_grid(entt::registry& r,
       state_c.active->action();
 
       // refresh ui
-      populate_ui_based_on_upgrades(r, ui_c);
+      // populate_ui_based_on_upgrades(r, ui_c);
+      // clear_ui_for_player(r, ui_c, player_idx);
 
       return;
     }
@@ -822,6 +823,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     draw_upgrade_selections_in_grid(r, selection_tl, selection_br, state_c, ui_c, upgrades_c, player_idx, do_act, dt, font);
 
     if (do_act) {
+      ui_move_horizontally();
       ImGui::PopID();
       continue;
     }
