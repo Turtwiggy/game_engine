@@ -25,38 +25,11 @@ update_quip_system(entt::registry& r, const float dt)
   ZoneScoped;
 #endif
 
-#if defined(_DEBUG)
-  static engine::RandomState rnd_quip(0); // same roll every time
-#else
-  static engine::RandomState rnd_quip(engine::get_system_time_for_seed());
-#endif
-
-  // spawn a lets go message immediately, and then one every ~30 seconds
-  auto& quip_system_c = gesert_component<SINGLE_QuipSystem>(r);
-  quip_system_c.time_to_quip_sec_cur -= dt;
-  if (quip_system_c.time_to_quip_sec_cur <= 0.0f) {
-    // const auto min = 0;
-    // const auto max = 5;
-    const auto min = quip_system_c.time_to_quip_sec_min;
-    const auto max = quip_system_c.time_to_quip_sec_max;
-    const auto rnd_quip_secs = engine::rand_det_s(rnd_quip.rng, min, max);
-    quip_system_c.time_to_quip_sec_cur = rnd_quip_secs;
-
-    std::vector<entt::entity> friendly_entity;
-    const auto view = r.view<const IslanderAiComponent, TeamComponent>();
-    for (const auto& [e, islander_c, team_c] : view.each())
-      if (team_c.team == AvailableTeams::player)
-        friendly_entity.push_back(e);
-
-    if (!friendly_entity.empty()) {
-      const auto rnd_quip_idx = engine::rand_det_s(rnd_quip.rng, 0, (int)friendly_entity.size());
-      create_empty<RequestQuip>(r,
-                                RequestQuip{
-                                  .thing_to_quip = friendly_entity[rnd_quip_idx],
-                                  .message = "lets' go",
-                                });
-    }
-  }
+  // #if defined(_DEBUG)
+  //   static engine::RandomState rnd_quip(0); // same roll every time
+  // #else
+  //   static engine::RandomState rnd_quip(engine::get_system_time_for_seed());
+  // #endif
 
 #if defined(_DEBUG)
   // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);

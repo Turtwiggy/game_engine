@@ -5,6 +5,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_helpers.hpp"
@@ -113,15 +114,6 @@ update_hardpoint_arcs_system(entt::registry& r, const float dt)
   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
   const auto zoom = camera_c.zoom_nonlinear;
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoInputs;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-
   std::unordered_map<entt::entity, int> entity_to_guncount;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -131,19 +123,18 @@ update_hardpoint_arcs_system(entt::registry& r, const float dt)
   ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
   ImGui::SetNextWindowSize(screen_size, ImGuiCond_Always);
 
-  ImGui::Begin("cursors_ui", NULL, flags);
+  imgui_begin("cursors_ui", ImGuiWindowFlags_NoInputs);
 
   const auto& view =
     r.view<const HasParentComponent, HardpointComponent, const TransformComponent, const AutofireComponent>();
   for (const auto& [weapon_e, parent_c, hardpoint_c, weapon_t, autofire_c] : view.each()) {
 
-    const auto p = parent_c.parent;
-
     auto eid = static_cast<uint32_t>(weapon_e);
     ImGui::PushID(eid);
 
+    const auto p = parent_c.parent;
     const auto& t_c = r.get<TransformComponent>(p);
-    const auto pos = get_position(r, p);
+    const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
 
     // note: in data format, 90degrees is up, 270 is down.
     // when load in, convert to engine, where 90 is down, 270 is up
@@ -155,12 +146,14 @@ update_hardpoint_arcs_system(entt::registry& r, const float dt)
     const auto tl_offset = glm::vec2{ hardpoint_c.data.x_rel_tl, hardpoint_c.data.y_rel_tl };
 
     // gunpoint base
-    const float fwd = t_c.rotation_radians.z; // parents dir, could be gun dir?
-    const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
-    const auto tl = pos - (0.5f * size);
-    const auto rel_tl = (tl - pos) + tl_offset;
-    const auto rotated_point = engine::rotate_point(rel_tl, fwd);
-    const auto hardpoint_pos = pos + rotated_point;
+    // ImGui::Text("wep fwd: %f", fwd);
+    const float fwd = engine::clamp_axis(t_c.rotation_radians.z); // parents dir, could be gun dir?
+
+    // const auto size = glm::vec2{ t_c.scale.x, t_c.scale.y };
+    // const auto tl = pos - (0.5f * size);
+    // const auto rel_tl = (tl - pos) + tl_offset;
+    // const auto rotated_point = engine::rotate_point(rel_tl, fwd);
+    // const auto hardpoint_pos = pos + rotated_point;
 
     // direction gunpoint is facing
     const float angle = engine::clamp_axis(fwd + adj_arc_mid_rad);
@@ -181,7 +174,7 @@ update_hardpoint_arcs_system(entt::registry& r, const float dt)
     }
 
     // the more guns, onionskin the debug
-    entity_to_guncount[p] += 1;
+    // entity_to_guncount[p] += 1;
 
     // draw the xp-zone arc. this shouldnt be here.
     // const auto val = r.get<ActorXpZoneSizeComponent>(p).radius_meters;

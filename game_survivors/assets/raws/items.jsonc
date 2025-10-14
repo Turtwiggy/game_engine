@@ -88,6 +88,13 @@
       ]
     },
     {
+      "name": "weapon_island_cannon",
+      "display_name": "Island Cannon",
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+    },
+    {
       "name": "weapon_cryo_drone",
       "display_name": "Cryo Drone",
       "display_desc": "Freeze!",

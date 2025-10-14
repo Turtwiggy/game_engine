@@ -13,6 +13,9 @@ generate_rocks(entt::registry& r);
 engine::SRGBColour
 lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent);
 
+// entt::entity
+// get_island_eid(entt::registry& r, glm::vec2 pos);
+
 entt::entity
 get_center_island_eid(entt::registry& r);
 

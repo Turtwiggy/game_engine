@@ -19,16 +19,17 @@ draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, I
   const auto popup_tl = ImVec2{ tl.x - padding, tl.y - padding };
   const auto popup_br = ImVec2{ ss_pos_br.x + padding, ss_pos_br.y + padding };
 
-  auto bg_col_transparent = my_window_border_col;
-  // bg_col_transparent.a = 100;
+  auto bg_col_transparent = my_white;
+  bg_col_transparent.a = 150;
   const auto im_bg_col_transparent = convert_my_to_im(bg_col_transparent);
-
-  draw_list->AddRectFilled(popup_tl, popup_br, im_bg_col_transparent, 0.0f);
-  draw_list->AddRect(popup_tl, popup_br, border_col, 0.0f, ImDrawFlags_RoundCornersNone, 1.0f);
+  // draw_list->AddRectFilled(popup_tl, popup_br, im_bg_col_transparent, 0.0f);
+  // draw_list->AddRect(popup_tl, popup_br, border_col, 0.0f, ImDrawFlags_RoundCornersNone, 1.0f);
 
   // add text
   ImGui::SetCursorScreenPos({ tl.x, tl.y });
-  ImGui::Text("%s", text.c_str());
+  ImGui::PushFont(font);
+  ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), "%s", text.c_str());
+  ImGui::PopFont();
 }
 
 } // namespace game2d

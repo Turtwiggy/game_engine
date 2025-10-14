@@ -12,8 +12,8 @@ struct HardpointData
   int mount_size = 1;
   float arc_mid = 55;
   float arc = 225;
-  float x_rel_tl = 22.5;
-  float y_rel_tl = 4.5;
+  float x_rel_tl = 8; // 0; // 22.5;
+  float y_rel_tl = 8; // 0; // 4.5;
 
   friend void to_json(nlohmann ::json& j, const HardpointData& val)
   {

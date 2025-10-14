@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actors/actor_island_drum/drum_component.hpp"
+#include "modules/systems/system_quip/quip_helpers.hpp"
 
 namespace game2d {
 
@@ -22,6 +23,9 @@ handle_bump_event__drum(entt::registry& r, const BumpEvent& evt)
   AudioRequestPlayEvent audio_evt;
   audio_evt.tag = drum_track_key;
   create_empty<AudioRequestPlayEvent>(r, audio_evt);
+
+  // request a quip from the thing that banged the drum.
+  request_quip(r, evt.from);
 }
 
 } // namespace game2d

@@ -2,7 +2,9 @@
 
 #include "ui_label_system.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
@@ -16,6 +18,7 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_draw_text_helpers.hpp"
+#include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
@@ -56,6 +59,70 @@ draw_dashed_line(ImDrawList* draw_list, const ImVec2 p0, const ImVec2 p1, int n_
   }
 }
 
+struct EdgeInfoOut
+{
+  std::vector<glm::ivec2> water_edges;
+  std::vector<glm::ivec2> land_edges;
+};
+void
+calculate_edges(entt::registry& r, entt::entity cannon_e, IslandCannonComponent& cannon_c)
+{
+  if (cannon_c.initialized_edges)
+    return;
+  cannon_c.initialized_edges = true;
+
+  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto& transform_c = r.get<TransformComponent>(cannon_e);
+  const auto pos = glm::vec2{ transform_c.position.x, transform_c.position.y };
+  const auto pos_adj = pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
+  const auto gp = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
+  const auto id = engine::encode_cantor_pairing_function(gp.x, gp.y);
+  const auto island_e = SINGLE_Islands::instance.id_to_island_eid.at(id);
+  const auto& island_c = r.get<DebugContoursComponent>(island_e);
+
+  // work out which way the edge points.
+  std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> water_neighbours;
+  std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> island_neighbours;
+  {
+    const auto neighbours = engine::grid::get_neighbour_gridpos(gp);
+    const auto& all = island_c.all_island_xy;
+    for (const auto& [n_dir, n_xy] : neighbours) {
+      const auto it = std::find(all.begin(), all.end(), n_xy);
+      if (it != all.end())
+        island_neighbours.push_back({ n_dir, n_xy });
+      else
+        water_neighbours.push_back({ n_dir, n_xy });
+    }
+    // the cannon should've been spawned on the edge of an island (i.e. 3 neighbours, 1 nothing.)
+    if (water_neighbours.size() == 0)
+      throw std::runtime_error("all neighbours are land?");
+  }
+
+  cannon_c.water_edges = water_neighbours;
+  cannon_c.land_edges = island_neighbours;
+
+  SDL_Log("Assigning island cannon a hardpoint direction.");
+  HardpointComponent hardpoint_c;
+  hardpoint_c.data.key = "cannon";
+  // note: in data format, 90degrees is up, 270 is down.
+  // when load in, convert to engine, where 90 is down, 270 is up
+  // here, we consider it in "data" format, as the arcs_system flips it.
+  hardpoint_c.data.arc_mid = 0;
+  hardpoint_c.data.arc = 360;
+  hardpoint_c.data.x_rel_tl = 8;
+  hardpoint_c.data.y_rel_tl = 8;
+  r.emplace<HardpointComponent>(cannon_e, hardpoint_c);
+
+  // aim the cannon at one of the water tiles
+  const auto water_gp = cannon_c.water_edges[0].second;
+  const auto you_gp = gp;
+  const auto dir_gp = water_gp - you_gp;
+  const auto angle = engine::dir_to_angle_radians(dir_gp);
+  const auto cannon_par_e = r.get<HasParentComponent>(cannon_e).parent;
+  set_rotation(r, cannon_par_e, angle);
+  SDL_Log("cannon_par_e: %u", static_cast<uint32_t>(cannon_par_e));
+};
+
 void
 update_ui_label_system(entt::registry& r)
 {
@@ -91,7 +158,7 @@ update_ui_label_system(entt::registry& r)
   const auto tilesize = SINGLE_Islands::instance.tilesize;
 
   for (const auto& [e, t_c, cannon_c, clip_c] :
-       r.view<const TransformComponent, const IslandCannonComponent, const WeaponClipSize>().each()) {
+       r.view<const TransformComponent, IslandCannonComponent, const WeaponClipSize>().each()) {
     const auto ws_pos = glm::vec2{ t_c.position.x, t_c.position.y };
     const auto ss_pos = worldspace_to_screenspace(r, ws_pos);
     const auto im_ss_pos = ImVec2(ss_pos.x, ss_pos.y);
@@ -104,29 +171,8 @@ update_ui_label_system(entt::registry& r)
 
     // assuming this cannon is on an edge of the island,
     // work out which way is the edge to the ocean.
-    const auto pos_adj = ws_pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
-    const auto gp = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
-    const auto id = engine::encode_cantor_pairing_function(gp.x, gp.y);
-    const auto island_e = SINGLE_Islands::instance.id_to_island_eid.at(id);
-    const auto& island_c = r.get<DebugContoursComponent>(island_e);
-
-    // work out which way the edge points.
-    std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> valid_neighbours;
-    std::vector<std::pair<engine::grid::GridDirection, glm::ivec2>> invalid_neighbours;
-    {
-      const auto neighbours = engine::grid::get_neighbour_gridpos(gp);
-      const auto& all = island_c.all_island_xy;
-      for (const auto& [n_dir, n_xy] : neighbours) {
-        const auto it = std::find(all.begin(), all.end(), n_xy);
-        if (it != all.end())
-          valid_neighbours.push_back({ n_dir, n_xy });
-        else
-          invalid_neighbours.push_back({ n_dir, n_xy });
-      }
-      // the cannon should've been spawned on the edge of an island (i.e. 3 neighbours, 1 nothing.)
-      if (invalid_neighbours.size() == 0)
-        throw std::runtime_error("all neighbours are land?");
-    }
+    calculate_edges(r, e, cannon_c);
+    const auto invalid_neighbours = cannon_c.water_edges;
 
     // if its north, bump right one.
     // if its south, bump right one.

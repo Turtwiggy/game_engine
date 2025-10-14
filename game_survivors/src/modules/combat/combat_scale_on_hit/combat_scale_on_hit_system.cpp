@@ -5,6 +5,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
 #include "modules/combat/combat_scale_on_hit/helpers.hpp"
 #include "modules/core/colour/components.hpp"
 
@@ -31,12 +32,12 @@ update_combat_scale_on_hit_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& view = r.view<RequestHitScaleComponent>(entt::exclude<WaitForInitComponent>);
+  const auto& view =
+    r.view<RequestHitScaleComponent, TransformComponent, SpriteComponent>(entt::exclude<WaitForInitComponent>);
 
   // note: req_e is attached to the e.g. fixture or body.
-  for (const auto& [e, req_c] : view.each()) {
+  for (const auto& [e, req_c, t_c, spr_c] : view.each()) {
 
-    auto& t_c = r.get<TransformComponent>(e);
     const auto default_size = r.get<DefaultSizeComponent>(e).size;
 
     //

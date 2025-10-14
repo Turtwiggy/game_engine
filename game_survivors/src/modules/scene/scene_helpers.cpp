@@ -128,7 +128,6 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
       r.emplace<WeaponSeaTurret>(wep_e);
       r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     }
-
     if (weapon_data.type_as_enum == WEAPON_TYPE::AREA) {
       r.emplace<AutofireComponent>(wep_e);
       // r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));

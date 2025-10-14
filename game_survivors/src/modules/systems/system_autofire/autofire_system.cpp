@@ -231,10 +231,7 @@ update_autofire_system(entt::registry& r, const float dt)
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   //
-  // weapons with a parent component.
-  // the difference between this and the code that fires weapons without a parent component
-  // this fires the weapon in the direction of the parent, if the parent is moving.
-  // the weapon without a parent will just fire at your target.
+  // weapons have to have a parent component.
   //
   {
     const auto view = r.view<const WeaponComponent,
@@ -252,8 +249,12 @@ update_autofire_system(entt::registry& r, const float dt)
       const auto& par_inp = r.get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
+
+      // [optional] PhysicsBodyComponent on HasParentComponent's parent
+      auto par_vel_m = b2Vec2_zero;
       const auto* par_pb = r.try_get<PhysicsBodyComponent>(par_e);
-      const auto par_vel_m = b2Body_GetLinearVelocity(par_pb->bodyId);
+      if (par_pb)
+        par_vel_m = b2Body_GetLinearVelocity(par_pb->bodyId);
 
       const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
       auto dir_to_enemy = glm::vec2();
@@ -274,7 +275,14 @@ update_autofire_system(entt::registry& r, const float dt)
 
       // get a target
       if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
-        aim_in_movement_direction(r, par_vel_m, wep_e);
+
+        // no target: aim at your hardpoint dir.
+        if (auto* hardpoint_c = r.try_get<HardpointComponent>(wep_e))
+          wep_t.rotation_radians.z = engine::dir_to_angle_radians(hardpoint_c->dir_arc_center);
+
+        if (par_vel_m != b2Vec2_zero)
+          aim_in_movement_direction(r, par_vel_m, wep_e);
+
         if (!update_aquire_target(r, autofire_c, wep_e, wep_t, wep_def, dt))
           continue; // target aquire cd
       }
@@ -287,7 +295,8 @@ update_autofire_system(entt::registry& r, const float dt)
       if (d2 > d2_threshold)
         autofire_c.target = entt::null;
       if (autofire_c.target == entt::null) {
-        aim_in_movement_direction(r, par_vel_m, wep_e);
+        if (par_vel_m != b2Vec2_zero)
+          aim_in_movement_direction(r, par_vel_m, wep_e);
         continue;
       }
 
@@ -308,55 +317,6 @@ update_autofire_system(entt::registry& r, const float dt)
 
       dir_to_enemy = engine::normalize_safe(aim_dir);
       draw_crosshair(r, wep_pos, dir_to_enemy, par_col);
-
-      // rotate the gun to the target
-      wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);
-    }
-  }
-
-  // weapons without a parent component.
-  {
-    const auto view =
-      r.view<const WeaponComponent, const WeaponDef, const WeaponRange, TransformComponent, AutofireComponent>(
-        entt::exclude<HasParentComponent>);
-    for (const auto& [wep_e, weapon_c, wep_def, wep_range_c, wep_t, autofire_c] : view.each()) {
-
-      const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
-      auto dir_to_enemy = glm::vec2();
-
-      // get a target
-      if (autofire_c.target == entt::null || !r.valid(autofire_c.target)) {
-        if (!update_aquire_target(r, autofire_c, wep_e, wep_t, wep_def, dt))
-          continue; // target aquire cd
-      }
-
-      // check your target is still within distance
-      // (optional) theres a line of sight between you and it
-      const auto d = wep_pos - get_position(r, autofire_c.target);
-      const auto d2 = d.x * d.x + d.y * d.y;
-      const auto d2_threshold = pow(meters_to_pixels(wep_range_c.meters), 2);
-      if (d2 > d2_threshold)
-        autofire_c.target = entt::null;
-      if (autofire_c.target == entt::null)
-        continue;
-
-      const auto tgt = autofire_c.target;
-      const auto tgt_pos = get_position(r, tgt);
-      const auto you_pos = wep_pos;
-      auto aim_dir = tgt_pos - you_pos;
-
-      // if you're shooting projectiles, aim at the intercept point
-      if (auto* bul_def = r.try_get<BulletDef>(wep_e)) {
-        const auto bullet_speed_p = meters_to_pixels(bul_def->speed);
-        const auto tgt_vel_m = b2Body_GetLinearVelocity(r.get<const PhysicsBodyComponent>(tgt).bodyId);
-        const glm::vec2 tgt_vel_p = meters_to_pixels(tgt_vel_m);
-        const auto you_vel_m = b2Vec2_zero;
-        const auto you_vel_p = meters_to_pixels(you_vel_m);
-        aim_dir = calculate_aim_dir(you_pos, you_vel_p, tgt_pos, tgt_vel_p, bullet_speed_p);
-      }
-
-      dir_to_enemy = engine::normalize_safe(aim_dir);
-      draw_crosshair(r, wep_pos, dir_to_enemy, my_greenish);
 
       // rotate the gun to the target
       wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);

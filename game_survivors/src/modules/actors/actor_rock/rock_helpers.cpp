@@ -620,6 +620,12 @@ generate_rocks(entt::registry& r)
   generate_position_id_to_island_eid_map(r);
 };
 
+// entt::entity
+// get_island_eid(entt::registry& r, glm::vec2 pos)
+// {
+//   //
+// }
+
 entt::entity
 get_center_island_eid(entt::registry& r)
 {
@@ -775,16 +781,17 @@ generate_island_life__base_island(entt::registry& r)
   {
     auto cannon_e =
       spawn_islander_unoccupied_edge(r, spawn_rnd, center_island_eid, "actor_island_cannon", AvailableTeams::player);
-    r.emplace<IslandCannonComponent>(cannon_e);
     r.remove<HealthComponent>(cannon_e);
-    set_sprite(r, cannon_e, "CROSSBOW_37_5");
-    set_size(r, cannon_e, { 16, 16 });
+    r.remove<SpriteComponent>(cannon_e);
 
     const auto weapon_data = get_weapon_data(r, "weapon_island_cannon");
-    become_weapon(r, cannon_e, weapon_data);
-    r.emplace<WeaponDef>(cannon_e, get_weapon_def(r, cannon_e));
-    r.emplace<BulletDef>(cannon_e, get_bullet_def(r, cannon_e));
-    r.emplace<AutofireComponent>(cannon_e);
+    const auto weapon_e = spawn_weapon(r, cannon_e, weapon_data, "weapon_island_cannon", { 16, 16 });
+    r.emplace<WeaponDef>(weapon_e, get_weapon_def(r, weapon_e));
+    r.emplace<BulletDef>(weapon_e, get_bullet_def(r, weapon_e));
+    r.emplace<AutofireComponent>(weapon_e);
+    r.emplace<IslandCannonComponent>(weapon_e);
+    connect_parent_and_weapon(r, cannon_e, weapon_e);
+    set_sprite(r, weapon_e, "CROSSBOW_37_5");
   }
 }
 
