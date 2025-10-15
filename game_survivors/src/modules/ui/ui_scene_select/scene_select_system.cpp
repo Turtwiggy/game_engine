@@ -93,8 +93,16 @@ update_selections(entt::registry& r,
 
   // convert index to weapon choice
   if (is_weapon) {
-    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size());
-    const auto& weapon = weapons_c.weapons[cell.value];
+
+    // collect only weapons usable by boats.
+    std::vector<int> wep_idxs;
+    for (int i = 0; i < (int)weapons_c.weapons.size(); ++i) {
+      if (weapons_c.weapons[i].useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
+        wep_idxs.push_back(i);
+    }
+
+    cell.value = engine::wrap(cell.value, (int)wep_idxs.size());
+    const auto& weapon = weapons_c.weapons[wep_idxs[cell.value]];
     name = weapon.name.c_str();
     player_state.player_gun_key = weapon.key;
   }
@@ -157,8 +165,14 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     info_desc = hull.desc;
   }
   if (is_weapon) {
-    cell.value = engine::wrap(cell.value, (int)weapons_c.weapons.size());
-    const auto& weapon = weapons_c.weapons[cell.value];
+    // collect only weapons usable by boats.
+    std::vector<int> wep_idxs;
+    for (int i = 0; i < (int)weapons_c.weapons.size(); ++i) {
+      if (weapons_c.weapons[i].useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
+        wep_idxs.push_back(i);
+    }
+    cell.value = engine::wrap(cell.value, (int)wep_idxs.size());
+    const auto& weapon = weapons_c.weapons[wep_idxs[cell.value]];
     info_key = weapon.name;
     info_desc = weapon.desc;
   }
@@ -362,9 +376,8 @@ draw_card_inner(entt::registry& r,
         for (int j = 0; j < (int)weapons_c.weapons.size(); j++) {
           const auto& weapon = weapons_c.weapons[j];
 
-          // todo: fix this with a proper solution
-          if (weapon.key == "weapon_island_cannon")
-            continue; // not a player weapon
+          if (weapon.useable_by_as_enum != WEAPON_USEABLE_BY::BOATS)
+            continue; // not a boat weapon
 
           const bool icon_active = j == cell.value;
           const auto border_col = icon_active ? im_greenish : im_window_border_col;

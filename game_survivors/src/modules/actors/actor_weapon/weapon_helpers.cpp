@@ -151,6 +151,7 @@ load_weapons(entt::registry& r, std::string filepath)
   for (auto& weapon : weapons_c.weapons) {
     weapon.type_as_enum = magic_enum::enum_cast<WEAPON_TYPE>(weapon.weapon_type).value();
     weapon.damage_as_enum = magic_enum::enum_cast<WEAPON_DAMAGE>(weapon.weapon_damage).value();
+    weapon.useable_by_as_enum = magic_enum::enum_cast<WEAPON_USEABLE_BY>(weapon.useable_by[0]).value();
 
     // validate audio file exists.
     const auto& audio_c = get_first_component<SINGLE_AudioComponent>(r);

@@ -23,6 +23,12 @@ enum class WEAPON_TYPE
   // DRONE,
 };
 
+enum class WEAPON_USEABLE_BY
+{
+  BOATS,
+  ISLAND
+};
+
 struct Weapon_OnDiskData
 {
   std::string key;
@@ -31,15 +37,26 @@ struct Weapon_OnDiskData
   std::vector<std::string> audio;
   std::string weapon_type;
   std::string weapon_damage;
+  std::vector<std::string> useable_by;
 
   // validate on load
   WEAPON_TYPE type_as_enum = WEAPON_TYPE::PROJECTILE;
   WEAPON_DAMAGE damage_as_enum = WEAPON_DAMAGE::KINETIC;
+  WEAPON_USEABLE_BY useable_by_as_enum = WEAPON_USEABLE_BY::BOATS; // note: this should be std::vector. change when needed.
 
   std::unordered_map<std::string, float> data;
   std::vector<std::string> upgrades; // assigned upgrades (keys; data stored in WeponUpgrade_OnDiskData)
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Weapon_OnDiskData, key, name, desc, audio, weapon_type, weapon_damage, data, upgrades);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Weapon_OnDiskData,
+                                 key,
+                                 name,
+                                 desc,
+                                 audio,
+                                 weapon_type,
+                                 weapon_damage,
+                                 useable_by,
+                                 data,
+                                 upgrades);
 };
 
 struct WeaponLevelComponent

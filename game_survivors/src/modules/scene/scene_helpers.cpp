@@ -299,10 +299,10 @@ void
 spawn_players(entt::registry& r)
 {
   std::vector<HullChoice> hull_keys = {
-    HullChoice{ .player_idx = 0, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
-    HullChoice{ .player_idx = 1, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
-    HullChoice{ .player_idx = 2, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
-    HullChoice{ .player_idx = 3, .player_boat_key = "dinghy", .player_gun_key = "weapon_deck_cannon" },
+    HullChoice{ .player_idx = 0, .player_boat_key = "dinghy", .player_gun_key = "" },
+    HullChoice{ .player_idx = 1, .player_boat_key = "dinghy", .player_gun_key = "" },
+    HullChoice{ .player_idx = 2, .player_boat_key = "dinghy", .player_gun_key = "" },
+    HullChoice{ .player_idx = 3, .player_boat_key = "dinghy", .player_gun_key = "" },
   };
 
   const auto transfer_scene_e = get_first<SelectSceneToSurviveScene>(r);
