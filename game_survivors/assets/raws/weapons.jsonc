@@ -162,7 +162,7 @@
 
     {
       "key": "weapon_sea_turret",
-      "name": "SEABOB Turret",
+      "name": "Turret Deployer",
       "desc": "Deploy [Turrets] as you move that fire [Heavy]",
       "audio": ["TURRET_01", "TURRET_02"],
       "weapon_type": "DEPLOY",

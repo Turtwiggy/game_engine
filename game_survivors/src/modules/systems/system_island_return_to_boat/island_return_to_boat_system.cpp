@@ -35,6 +35,17 @@ update_island_return_to_boat_system(entt::registry& r)
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
+  // allow players to press button to return to boat
+  {
+    const auto view = r.view<const MovementIslandComponent, const InputComponent>();
+    for (const auto& [e, movement_c, input_c] : view.each()) {
+      const bool return_to_boat_button = has(input_c.button_e, ActionStateEnum::DOWN);
+      if (!return_to_boat_button)
+        continue;
+      r.emplace_or_replace<WantToReturnToBoat>(e);
+    }
+  }
+
   const auto view =
     r.view<const MovementIslandComponent, const TransformComponent, const InputComponent, const WantToReturnToBoat>();
   for (const auto& [e, movement_c, t_c, input_c, req_c] : view.each()) {
