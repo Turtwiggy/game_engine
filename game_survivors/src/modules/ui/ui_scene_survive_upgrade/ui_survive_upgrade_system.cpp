@@ -650,7 +650,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   const int num_active_players = 4;
 #else
   const int max_num_players = 4;
-  const int num_active_players = non_zero_handles(steam_ui_c.handles).size();
+  const auto num_active_players = glm::max(1, (int)non_zero_handles(steam_ui_c.handles).size());
 #endif
 
   const auto text_col = ImVec4(0.64f, 0.64f, 0.64f, 1.0f);

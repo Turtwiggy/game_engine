@@ -55,19 +55,19 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   auto debug_snake = make_cell("Debug Snake", debug_snake_action);
 #endif
 
-#define DEBUG_ISLANDS 0
-#if defined(_DEBUG) && defined(DEBUG_ISLANDS)
+// #define DEBUG_ISLANDS 1
+#if defined(DEBUG_ISLANDS)
   const auto debug_islands_action = [&]() { move_to_scene_start(r, Scene::develop_islands); };
   const auto debug_islands = make_cell("Debug Islands", debug_islands_action);
 #endif
 
-// #define DEBUG_WAVES 0
+// #define DEBUG_WAVES 1
 #if defined(_DEBUG) && defined(DEBUG_WAVES)
   const auto debug_waves_action = [&]() { move_to_scene_start(r, Scene::develop_enemy_waves); };
   const auto debug_waves = make_cell("Debug Waves", debug_waves_action);
 #endif
 
-// #define DEBUG_FLOWFIELD 0
+// #define DEBUG_FLOWFIELD 1
 #if defined(DEBUG_FLOWFIELD)
   const auto debug_flowfield_action = [&]() { move_to_scene_start(r, Scene::develop_flowfield); };
   const auto debug_flowfield = make_cell("Debug FlowField", debug_flowfield_action);
@@ -87,7 +87,7 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   vertical_cells.push_back(debug_snake);
 #endif
-#if defined(_DEBUG) && defined(DEBUG_ISLANDS)
+#if defined(DEBUG_ISLANDS)
   vertical_cells.push_back(debug_islands);
 #endif
 #if defined(_DEBUG) && defined(DEBUG_WAVES)
