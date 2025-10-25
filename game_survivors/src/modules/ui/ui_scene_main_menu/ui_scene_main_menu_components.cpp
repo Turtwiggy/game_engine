@@ -46,7 +46,7 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
     return state.cells.back();
   };
 
-  // #define DEBUG_SNAKE 1
+// #define DEBUG_SNAKE 1
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   const auto debug_snake_action = [&]() {
     open = false;

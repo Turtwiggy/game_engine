@@ -29,11 +29,11 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
 
   const auto& wep_t = r.get<const TransformComponent>(wep_e);
   const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };
-  const auto& wep_def = r.get<const WeaponDef>(wep_e);
   const auto& wep_autofire = r.get<const AutofireComponent>(wep_e);
   const auto& wep_behaviours_c = r.get<const WeaponBehaviourComponent>(wep_e);
 
-  const auto bul_def = r.get<const BulletDef>(wep_e);
+  const auto wep_def = get_weapon_def(r, wep_e);
+  const auto bul_def = get_bullet_def(r, wep_e);
   WeaponDef altered_w_def = wep_def;
   BulletDef altered_b_def = bul_def;
 

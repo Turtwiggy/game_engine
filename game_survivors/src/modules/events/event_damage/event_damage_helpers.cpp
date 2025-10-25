@@ -163,7 +163,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   if (const auto* your_stats_c = r.try_get<StatModifierComponent>(parent_e)) {
     // did you dodge?
     if (check_if_dodge(r, parent_e, dodge_rnd, *your_stats_c)) {
-      create_popup(r, get_position(r, parent_e), "0");
+      create_popup(r, get_position(r, parent_e), "Dodge");
       return;
     }
   }

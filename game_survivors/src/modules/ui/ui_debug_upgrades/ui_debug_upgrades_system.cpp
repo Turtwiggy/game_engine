@@ -65,8 +65,8 @@ draw_debug_modifier_ui(entt::registry& r)
   ImGui::SameLine();
   const bool add_percent = ImGui::Button("Add Percentage");
 
-  const auto& view = r.view<TagComponent, StatModifierComponent, WeaponBehaviourComponent>();
-  for (const auto [e, tag_c, stat_c, wb_c] : view.each()) {
+  const auto& view = r.view<TagComponent, StatModifierComponent>();
+  for (const auto [e, tag_c, stat_c] : view.each()) {
     ImGui::SeparatorText(std::format("{}", tag_c.tag).c_str());
 
     for (const auto& mod : stat_c.modifiers) {
@@ -80,8 +80,10 @@ draw_debug_modifier_ui(entt::registry& r)
       }
     }
 
-    for (const auto& wb : wb_c.behaviours)
-      ImGui::Text("WepMod: %s", std::string(magic_enum::enum_name(wb)).c_str());
+    if (auto* wb_c = r.try_get<WeaponBehaviourComponent>(e)) {
+      for (const auto& wb : wb_c->behaviours)
+        ImGui::Text("WepMod: %s", std::string(magic_enum::enum_name(wb)).c_str());
+    }
 
     if (add_flat)
       stat_c.add(std::make_shared<StatFlatIncrease>(mod_val, modifier));
@@ -103,7 +105,7 @@ update_ui_debug_upgrades_system(entt::registry& r)
   auto& evts_c = SINGLE_Events::instance;
 
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-  auto state = gesert_menubar_state(menu_c, "Upgrades");
+  auto state = gesert_menubar_state(menu_c, "DebugUpgrades");
   if (!state.enabled)
     return;
   ImGui::Begin(state.name.c_str());

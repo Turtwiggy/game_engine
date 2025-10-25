@@ -557,7 +557,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::develop_snake) {
-    create_empty<CameraFreeMove>(r);
+    // create_empty<CameraFreeMove>(r);
 
     const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
     const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon", pos);
@@ -568,6 +568,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
       break;
     }
+    r.emplace<KeyboardComponent>(p);
 
     create_snake(r); // create a snake yo
   }

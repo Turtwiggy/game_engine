@@ -121,7 +121,7 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   ImGui::PushFont(font_16);
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use left analogue stick to move (in water)");
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use DPAD to move character (on land).");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use button(south) to land.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Collide with an island to land.");
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use button(east) to leave island.");
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use LB to use ability: Dash");
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use RB to use ability: Knockback");
