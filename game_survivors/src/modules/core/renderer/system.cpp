@@ -19,8 +19,7 @@
 #include "modules/core/renderer/renderpass/passes.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-
-#include "fluidsim/helpers.hpp"
+#include "resources/data.hpp"
 
 // engine headers
 #include "engine/opengl/framebuffer.hpp"
@@ -47,7 +46,7 @@ struct UboData
   glm::vec4 light_positions[32];
   float time = 0;
   float zoom = 0;
-  float tilesize = 32;
+  float tilesize = default_map_tilesize;
 };
 static UboData data;
 
@@ -71,8 +70,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const glm::vec2 double_wh = { 2.0f * wh.x, 2.0f * wh.y };
 
   for (RenderPass& rp : ri.passes) {
-    if (rp.pass == PassName::fluid_sim)
-      continue;
+    // if (rp.pass == PassName::fluid_sim)
+    //   continue;
     for (const auto& tex : rp.texs) {
       engine::bind_tex(tex.tex_id.id);
       engine::update_bound_texture_size(double_wh);
@@ -90,7 +89,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   }
 
   // rebind the fluidsim textures.
-  rebind_fluidsim(r, ri.fluid_sim);
+  // rebind_fluidsim(r, ri.fluid_sim);
 
   for (const auto& tex : ri.user_textures) {
     glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
@@ -110,7 +109,8 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.tex_unit_circles).c_str());
 
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
-  const int texs_used = get_renderer_tex_unit_count(ri) + get_texs_used_by_fluidsim();
+  const int texs_used = get_renderer_tex_unit_count(ri);
+  //  + get_texs_used_by_fluidsim();
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
     const auto idx = get_pass_idx(ri, p);
     const auto& pass = ri.passes[idx];
@@ -394,14 +394,14 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   auto double_fbo_size = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
 
   for (auto& rp : ri.passes) {
-    if (rp.pass == PassName::fluid_sim) {
-      const auto dye_res = glm::vec2{
-        ri.fluid_sim.config_dye_resolution,
-        ri.fluid_sim.config_dye_resolution,
-      };
-      rp.setup(dye_res);
-      continue;
-    }
+    // if (rp.pass == PassName::fluid_sim) {
+    //   const auto dye_res = glm::vec2{
+    //     ri.fluid_sim.config_dye_resolution,
+    //     ri.fluid_sim.config_dye_resolution,
+    //   };
+    //   rp.setup(dye_res);
+    //   continue;
+    // }
 
     // if (rp.pass == PassName::jump_flood)
     //   rp.setup(fbo_size, 2);
@@ -411,7 +411,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
 
   // Load fluidsim shaders/textures
   int used_tex_units = get_renderer_tex_unit_count(ri);
-  load_fluidsim(r, ri.fluid_sim, used_tex_units);
+  // load_fluidsim(r, ri.fluid_sim, used_tex_units);
 
   // Load user textures
   for (int i = 0; i < (int)ri.user_textures.size(); i++) {
@@ -534,7 +534,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
   // setup_voronoi_distance_field_update(r);
-  setup_fluidsim_update(r);
+  // setup_fluidsim_update(r);
   setup_mix_lighting_and_scene_update(r);
   setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);

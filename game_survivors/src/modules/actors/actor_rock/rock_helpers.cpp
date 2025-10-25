@@ -39,6 +39,7 @@
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 #include "modules/ui/ui_island_interact_system/ui_island_interact_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -679,15 +680,17 @@ spawn_islander_unoccupied(entt::registry& r,
                           const AvailableTeams team,
                           const bool has_brain = false)
 {
-  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto tilesize_unit = default_map_unit_tilesize;
+  const auto tilesize_map = SINGLE_Islands::instance.tilesize;
+
   auto& island_c = r.get<DebugContoursComponent>(island_e);
 
   const auto unoccupied = get_unoccupied_tiles(island_c);
   const auto xy = unoccupied[(int)engine::rand_det_s(rnd.rng, 0, (int)unoccupied.size())];
   const auto thing_e = spawn(r, tag);
-  auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
-  pos += glm::vec2{ tilesize, tilesize }; // off grid
-  give_life(r, thing_e, pos, { tilesize, tilesize });
+  auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize_map);
+  pos += glm::vec2{ tilesize_map, tilesize_map }; // off grid
+  give_life(r, thing_e, pos, { tilesize_unit, tilesize_unit });
   r.emplace<IslandDwellerComponent>(thing_e);
   r.emplace<HealthComponent>(thing_e, HealthComponent{ 2, 2 });
   r.emplace<TeamComponent>(thing_e, TeamComponent{ .team = team });
@@ -710,15 +713,16 @@ spawn_islander_unoccupied_edge(entt::registry& r,
                                const AvailableTeams team,
                                const bool has_brain = false)
 {
-  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto tilesize_unit = default_map_unit_tilesize;
+  const auto tilesize_map = SINGLE_Islands::instance.tilesize;
   auto& island_c = r.get<DebugContoursComponent>(island_e);
 
   const auto unoccupied = get_unoccupied_edge_tiles(island_c);
   const auto xy = unoccupied[(int)engine::rand_det_s(rnd.rng, 0, (int)unoccupied.size())];
   const auto thing_e = spawn(r, tag);
-  auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize);
-  pos += glm::vec2{ tilesize, tilesize }; // off grid
-  give_life(r, thing_e, pos, { tilesize, tilesize });
+  auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize_map);
+  pos += glm::vec2{ tilesize_map, tilesize_map }; // off grid
+  give_life(r, thing_e, pos, { tilesize_unit, tilesize_unit });
   r.emplace<IslandDwellerComponent>(thing_e);
   r.emplace<HealthComponent>(thing_e, HealthComponent{ 2, 2 });
   r.emplace<TeamComponent>(thing_e, TeamComponent{ .team = team });
@@ -742,8 +746,6 @@ static engine::RandomState spawn_rnd(engine::get_system_time_for_seed());
 void
 generate_island_life__base_island(entt::registry& r)
 {
-  const auto tilesize = SINGLE_Islands::instance.tilesize;
-
   // on the base island
   const auto center_island_eid = get_center_island_eid(r);
   auto& island_c = r.get<DebugContoursComponent>(center_island_eid);
@@ -822,6 +824,9 @@ generate_island_life__other_islands(entt::registry& r)
 void
 set_players_as_landed(entt::registry& r)
 {
+  const auto tilesize_map = SINGLE_Islands::instance.tilesize;
+  const auto tilesize_units = default_map_unit_tilesize;
+
   // forcefully land all boats to start.
   for (int i = 0; const auto& [e, player_c] : r.view<const PlayerBoatComponent>().each()) {
 
@@ -829,13 +834,12 @@ set_players_as_landed(entt::registry& r)
     auto& base_island_c = r.get<DebugContoursComponent>(base_island_e);
     const auto& bb_c = r.get<BoundingBoxComponent>(base_island_e);
     const auto unoccupied_tiles = get_unoccupied_tiles(base_island_c);
-    const auto tilesize = SINGLE_Islands::instance.tilesize;
     const std::vector<glm::vec2> player_dir{ { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } }; // t, r, b, l
 
-    const auto center_worldspace_tl = glm::vec2{ 0, 0 } - glm::vec2{ tilesize * 0.5, tilesize * 0.5 };
-    const auto offset = glm::vec2{ tilesize * 0.5, tilesize * 0.5 } * player_dir[i];
+    const auto center_worldspace_tl = glm::vec2{ 0, 0 } - glm::vec2{ tilesize_map * 0.5, tilesize_map * 0.5 };
+    const auto offset = glm::vec2{ tilesize_map * 0.5, tilesize_map * 0.5 } * player_dir[i];
     const auto center_worldspace_adj = center_worldspace_tl + offset;
-    const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize);
+    const auto center_gridspace = engine::grid::worldspace_to_gridspace(center_worldspace_adj, tilesize_map);
     land_player_on_island(r, base_island_c, center_gridspace, e, base_island_e);
 
     i++;
@@ -858,7 +862,7 @@ get_player_spawn_point_around_starting_island(entt::registry& r, int idx)
   glm::vec2 pos{0, 0};
   const float center_x = (base_island_aabb.tl.x + base_island_aabb.br.x) * 0.5f;
   const float center_y = (base_island_aabb.tl.y + base_island_aabb.br.y) * 0.5f;
-  const float offset = 32.0f; // Distance from edge towards outside
+  const float offset = default_map_tilesize; // Distance from edge towards outside
   switch (idx) {
     case 0: pos = { center_x, base_island_aabb.tl.y - offset }; break; // t
     case 1: pos = { base_island_aabb.br.x + offset, center_y }; break; // r

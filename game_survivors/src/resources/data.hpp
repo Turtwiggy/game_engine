@@ -6,6 +6,8 @@
 namespace game2d {
 
 constexpr int n_players = 4;
+constexpr float default_map_tilesize = 20;
+constexpr float default_map_unit_tilesize = 16;
 
 const engine::SRGBColour default_player_colours[n_players] = {
   hex_to_srgb("#E8AE58"), // orangeish

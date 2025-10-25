@@ -25,7 +25,7 @@ handle_bump_event__drum(entt::registry& r, const BumpEvent& evt)
   create_empty<AudioRequestPlayEvent>(r, audio_evt);
 
   // request a quip from the thing that banged the drum.
-  request_quip(r, evt.from);
+  // request_quip(r, evt.from);
 }
 
 } // namespace game2d

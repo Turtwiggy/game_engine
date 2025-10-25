@@ -23,6 +23,9 @@ get_aquired_upgrades(entt::registry& r,
 std::string
 get_wb_key_from_upgrade_key(entt::registry& r, const std::string& u_key);
 
+std::string
+get_display_key_from_upgrade_key(entt::registry& r, const std::string& u_key);
+
 void
 handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEvent& evt);
 

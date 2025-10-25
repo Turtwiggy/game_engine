@@ -51,11 +51,12 @@ enum class PassName
 
   mix_lighting_and_scene,
   crt_effect,
+
   // blur_pingpong_0,
   // blur_pingpong_1,
   // bloom,
+  // fluid_sim,
 
-  fluid_sim,
   count,
 };
 

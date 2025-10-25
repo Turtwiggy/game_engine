@@ -431,10 +431,10 @@ draw_card_inner(entt::registry& r,
         const auto base_pos = ImGui::GetCursorPos();
         const auto overclock_x = box_tl.x + 0.1f * box_wh.x;
         ImGui::SetCursorPos({ overclock_x, base_pos.y });
-        ImGui::Text("Available Overclocks (Lv 4, 8, 12)");
+        ImGui::Text("Overclocks (Lv 4, 8, 12)");
         for (int i = 0; i < upgrades.size(); i++) {
           ImGui::SetCursorPos({ overclock_x, base_pos.y + (i + 1) * text_size_y });
-          ImGui::Text("%s", upgrades[i].wb_key.c_str());
+          ImGui::TextColored(im_inactive_col, "- %s", upgrades[i].display.c_str());
         }
       }
     }

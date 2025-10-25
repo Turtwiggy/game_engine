@@ -85,10 +85,11 @@ struct WeaponUpgrade_OnDiskData
 {
   std::string u_key;  // key unique to the upgrade
   std::string wb_key; // WeaponBehaviour key
+  std::string display;
   std::string desc;
   std::vector<Stat> stats;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WeaponUpgrade_OnDiskData, u_key, wb_key, desc, stats);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WeaponUpgrade_OnDiskData, u_key, wb_key, display, desc, stats);
 };
 
 struct SINGLE_Weapons

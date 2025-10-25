@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/map/components.hpp"
+#include "resources/data.hpp"
 
 #include <entt/fwd.hpp>
 
@@ -56,7 +57,7 @@ struct DebugContoursComponent
 struct SINGLE_Islands
 {
   const int map_size = 1024;
-  const int tilesize = 16;
+  const int tilesize = default_map_tilesize;
   const int wh = map_size / tilesize;
   float cutoff = 0.69f; // [0, 1]
   float frequency = 0.1f;

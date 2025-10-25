@@ -22,14 +22,15 @@ land_player_on_island(entt::registry& r,
                       entt::entity boat_e,
                       entt::entity island_e)
 {
-  const int tilesize = SINGLE_Islands::instance.tilesize;
+  const auto tilesize_map = SINGLE_Islands::instance.tilesize;
+  const auto tilesize_units = default_map_unit_tilesize;
 
-  auto pos = engine::grid::gridspace_to_worldspace(gp, tilesize);
-  pos += glm::vec2{ tilesize, tilesize };
+  auto pos = engine::grid::gridspace_to_worldspace(gp, tilesize_map);
+  pos += glm::vec2{ tilesize_map, tilesize_map };
 
   // Spawn the player at the open space.
   auto island_player_e = spawn(r, "actor_islanddweller_player");
-  give_life(r, island_player_e, pos, { tilesize, tilesize });
+  give_life(r, island_player_e, pos, { tilesize_units, tilesize_units });
   r.emplace<PlayerComponent>(island_player_e);
   r.emplace<TeamComponent>(island_player_e, TeamComponent{ AvailableTeams::player });
   r.emplace<HealthComponent>(island_player_e, HealthComponent{ .max_hp = 2, .hp = 2 });

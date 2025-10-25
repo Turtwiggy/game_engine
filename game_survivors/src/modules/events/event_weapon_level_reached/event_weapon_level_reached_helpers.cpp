@@ -87,7 +87,7 @@ get_aquired_upgrades(entt::registry& r,
   }
 
   return upgrades;
-}
+};
 
 std::string
 get_wb_key_from_upgrade_key(entt::registry& r, const std::string& u_key)
@@ -100,7 +100,20 @@ get_wb_key_from_upgrade_key(entt::registry& r, const std::string& u_key)
   const auto err = std::format("unable to find weapon upgrade key: {}", u_key);
   throw std::runtime_error(err);
   return "";
-}
+};
+
+std::string
+get_display_key_from_upgrade_key(entt::registry& r, const std::string& u_key)
+{
+  const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+  for (const auto& upgr : weapons_c.weapon_upgrades) {
+    if (upgr.u_key == u_key)
+      return upgr.display;
+  }
+  const auto err = std::format("unable to find weapon upgrade key: {}", u_key);
+  throw std::runtime_error(err);
+  return "";
+};
 
 void
 handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEvent& evt)

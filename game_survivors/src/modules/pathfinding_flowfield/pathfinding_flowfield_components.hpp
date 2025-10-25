@@ -14,7 +14,7 @@ struct GenerateFlowfieldParams
 {
   int xmax = 10;
   int ymax = 10;
-  int tilesize = 32;
+  int tilesize = 50;
   int from_idx = 0;
 };
 

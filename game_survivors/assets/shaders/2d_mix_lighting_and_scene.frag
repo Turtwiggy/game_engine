@@ -496,7 +496,7 @@ void main()
   vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
   float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
   float vig_pow = 0.25f;
-  vig_pow = iResolution.y <= 720 ? 0.75 : 1.5;
+  vig_pow = iResolution.y <= 720 ? 0.75 : 1.25;
   vig = pow(vig, vig_pow); // change pow for modifying the extend of the  vignette
   out_colour.rgb *= vig;
   // }

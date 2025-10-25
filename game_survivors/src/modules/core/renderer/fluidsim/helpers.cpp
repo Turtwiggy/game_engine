@@ -137,6 +137,7 @@ get_texs_used_by_fluidsim()
   return 8;
 }
 
+/*
 void
 setup_fluidsim_update(entt::registry& r)
 {
@@ -318,41 +319,39 @@ setup_fluidsim_update(entt::registry& r)
       }
     }
 
-    /*
-    // curl
-    {
-      const auto w_curl = data.curl.info;
-      const auto r_vel = data.velocity.read();
-      const auto wh = glm::ivec2{ r_vel.tex.size.x, r_vel.tex.size.y };
-      const auto texel_size = sim_texel_size;
-      data.curlProgram.bind();
-      data.curlProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
-      data.curlProgram.set_vec2("texel_size", texel_size);
-      engine::Framebuffer::bind_fbo(w_curl.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
-      render_quad(r, data.curlProgram, wh);
-    }
+    // // curl
+    // {
+    //   const auto w_curl = data.curl.info;
+    //   const auto r_vel = data.velocity.read();
+    //   const auto wh = glm::ivec2{ r_vel.tex.size.x, r_vel.tex.size.y };
+    //   const auto texel_size = sim_texel_size;
+    //   data.curlProgram.bind();
+    //   data.curlProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
+    //   data.curlProgram.set_vec2("texel_size", texel_size);
+    //   engine::Framebuffer::bind_fbo(w_curl.fbo_id);
+    //   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+    //   engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+    //   engine::RenderCommand::clear();
+    //   render_quad(r, data.curlProgram, wh);
+    // }
 
-    // vorticity
-    {
-      const auto r_vel = data.velocity.read();
-      const auto r_curl = data.curl.info;
-      const auto w_vel = data.velocity.write();
-      const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
-      data.vorticityProgram.bind();
-      data.vorticityProgram.set_vec2("texel_size", sim_texel_size);
-      data.vorticityProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
-      data.vorticityProgram.set_int("u_curl", r_curl.tex.tex_unit.unit);
-      data.vorticityProgram.set_float("dt", dt_max);
-      data.vorticityProgram.set_float("curl", data.config_curl);
-      engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      render_quad(r, data.vorticityProgram, wh);
-      data.velocity.swap();
-    }
-    */
+    // // vorticity
+    // {
+    //   const auto r_vel = data.velocity.read();
+    //   const auto r_curl = data.curl.info;
+    //   const auto w_vel = data.velocity.write();
+    //   const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
+    //   data.vorticityProgram.bind();
+    //   data.vorticityProgram.set_vec2("texel_size", sim_texel_size);
+    //   data.vorticityProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
+    //   data.vorticityProgram.set_int("u_curl", r_curl.tex.tex_unit.unit);
+    //   data.vorticityProgram.set_float("dt", dt_max);
+    //   data.vorticityProgram.set_float("curl", data.config_curl);
+    //   engine::Framebuffer::bind_fbo(w_vel.fbo_id);
+    //   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
+    //   render_quad(r, data.vorticityProgram, wh);
+    //   data.velocity.swap();
+    // }
 
     // divergence
     {
@@ -462,5 +461,7 @@ setup_fluidsim_update(entt::registry& r)
     ImGui::End();
   };
 };
+
+*/
 
 } // namespace game2d

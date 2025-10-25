@@ -56,6 +56,9 @@ update_island_return_to_boat_system(entt::registry& r)
     // remove the player.
     dead.dead.push_back(e);
 
+    if (!r.valid(e))
+      continue;
+
     // set the tile as "unoccupied"
     const int tilesize = SINGLE_Islands::instance.tilesize;
     const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };

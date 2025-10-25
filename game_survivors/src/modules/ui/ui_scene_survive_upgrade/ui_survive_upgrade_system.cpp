@@ -494,7 +494,7 @@ draw_stats(entt::registry& r,
 
   // add a separator
   start_y += text_size.y;
-  draw_list->AddText({ key_x, start_y }, im_text_col, "OVERCLOCKS (Lv 4, 8, 12)");
+  draw_list->AddText({ key_x, start_y }, im_text_col, "Overclocks (Lv 4, 8, 12)");
 
   // list the (existing) weapon behaviours.
   if (!upg_weapons.empty()) {
@@ -504,9 +504,8 @@ draw_stats(entt::registry& r,
     const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, wep_e);
     for (const auto& u_key : aquired_upg) {
       start_y += text_size.y;
-      const auto wb_key = get_wb_key_from_upgrade_key(r, u_key);
-      const auto upg_str = wb_key;
-      draw_list->AddText({ key_x, start_y }, im_text_col, upg_str.c_str());
+      const auto dis_str = get_display_key_from_upgrade_key(r, u_key);
+      draw_list->AddText({ key_x, start_y }, im_text_col, dis_str.c_str());
     }
   }
 

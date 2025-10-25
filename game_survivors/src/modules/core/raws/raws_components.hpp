@@ -4,6 +4,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "modules/systems/system_particles/components.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
+#include "resources/data.hpp"
 
 #include <box2d/box2d.h>
 #include <entt/fwd.hpp>
@@ -198,7 +199,7 @@ struct Raws
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, colours, items);
 };
 
-const int default_size = 32;
+const int default_size = default_map_tilesize;
 
 Raws
 load_raws(std::string path);

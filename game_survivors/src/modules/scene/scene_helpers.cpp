@@ -523,7 +523,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     // todo: set MapComponent from SINGLE_Islands
     MapComponent map_c;
-    map_c.tilesize = 32.0f;
+    map_c.tilesize = default_map_tilesize;
     map_c.xmax = 20;
     map_c.ymax = map_c.xmax;
     map_c.map.resize(map_c.xmax * map_c.ymax);
