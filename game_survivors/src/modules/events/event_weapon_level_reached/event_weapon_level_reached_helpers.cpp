@@ -37,7 +37,7 @@ get_stats_from_weapon_behaviour(entt::registry& r, const WeaponBehaviour behavio
   };
 
   return stats;
-}
+};
 
 std::vector<std::string>
 get_weapon_upgrade_keys(entt::registry& r, const std::string weapon_key)
@@ -49,7 +49,7 @@ get_weapon_upgrade_keys(entt::registry& r, const std::string weapon_key)
       return weapon.upgrades;
 
   return {};
-}
+};
 
 std::vector<WeaponUpgrade_OnDiskData>
 get_upgrades_from_weapon_key(entt::registry& r, const std::string weapon_key)
@@ -67,7 +67,7 @@ get_upgrades_from_weapon_key(entt::registry& r, const std::string weapon_key)
   }
 
   return results;
-}
+};
 
 std::vector<std::string>
 get_aquired_upgrades(entt::registry& r,
@@ -179,8 +179,11 @@ handle_weapon_level_reached_event(entt::registry& r, const WeaponLevelReachedEve
   // Add to weapon, not player
   r.emplace<UpgradeResultsComponent>(weapon_e, results_c);
 
+  // update the ui.
   auto& ui_c = get_first_component<SINGLE_LevelUpUI>(r);
-  populate_ui_based_on_upgrades(r, ui_c);
+  auto player_idx = r.get<PlayerComponent>(player_e).idx;
+  auto& state_c = ui_c.ui_states[player_idx];
+  update_player_upgrade_ui(r, player_e, state_c);
 }
 
 } // namespace game2d

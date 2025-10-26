@@ -11,6 +11,7 @@
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
+#include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
@@ -134,6 +135,47 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 };
 
 void
+update_player_upgrade_ui(entt::registry& r, entt::entity player_e, UIState& state_c)
+{
+  state_c.cells.clear();
+  state_c.actions.clear();
+  state_c.active = nullptr;
+
+  // const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
+  const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
+  if (upgrades.empty())
+    return;
+  const auto& [upg_e, upg_c] = upgrades[0];
+
+  for (const UpgradeRollResult& res : upg_c->results) {
+    Cell c;
+    c.name = ""; // replaced with the upgrade name when upgrade is populated
+    c.action = [res, player_e]() {
+      auto& evts_c = SINGLE_Events::instance;
+      UpgradeEvent evt;
+      evt.par_e = player_e;
+
+      // upg_e is wep_e or par_e
+      if (!res.weapons.empty())
+        evt.upg_e = res.weapons[0];
+      else
+        evt.upg_e = player_e;
+
+      evt.roll_result = res;
+      evts_c.dispatcher->trigger(evt);
+      evts_c.dispatcher->update();
+    };
+    state_c.cells.push_back(std::make_shared<Cell>(c));
+  }
+
+  // create navlinks
+  create_as_horizontal_layout(state_c.cells);
+
+  // reset the selection
+  state_c.active = state_c.cells[0];
+}
+
+void
 populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 {
   SDL_Log("Populating upgrade ui...");
@@ -141,46 +183,12 @@ populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 
   // reset ui
   for (int i = 0; i < max_num_players; i++) {
-    auto& state_c = ui_c.ui_states[i];
-    state_c.cells.clear();
-    state_c.actions.clear();
-    state_c.active = nullptr;
 
     const auto player_e = get_player_e_from_idx(r, i);
     if (player_e == entt::null)
       continue;
 
-    // const auto& modifier_c = r.get<StatModifierComponent>(player_e); // check it has one
-    const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
-    if (upgrades.empty())
-      continue;
-    const auto& [upg_e, upg_c] = upgrades[0];
-
-    for (const UpgradeRollResult& res : upg_c->results) {
-      Cell c;
-      c.name = ""; // replaced with the upgrade name when upgrade is populated
-      c.action = [upg_e, res, player_e]() {
-        auto& evts_c = SINGLE_Events::instance;
-        UpgradeEvent evt;
-        evt.par_e = player_e;
-
-        // upg_e is wep_e or par_e
-        if (!res.weapons.empty())
-          evt.upg_e = res.weapons[0];
-        else
-          evt.upg_e = player_e;
-
-        evt.roll_result = res;
-        evts_c.dispatcher->trigger(evt);
-        evts_c.dispatcher->update();
-      };
-      state_c.cells.push_back(std::make_shared<Cell>(c));
-    }
-
-    // create navlinks
-    create_as_horizontal_layout(state_c.cells);
-
-    state_c.active = state_c.cells[0];
+    update_player_upgrade_ui(r, player_e, ui_c.ui_states[i]);
   }
 };
 

@@ -10,6 +10,9 @@ void
 generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c);
 
 void
+update_player_upgrade_ui(entt::registry& r, entt::entity player_e, UIState& state_c);
+
+void
 populate_ui_based_on_upgrades(entt::registry& r, SINGLE_LevelUpUI& ui_c);
 
 bool
