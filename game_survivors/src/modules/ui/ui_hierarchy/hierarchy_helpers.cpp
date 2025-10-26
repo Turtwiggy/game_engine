@@ -119,13 +119,15 @@ draw_hierarchy(entt::registry& r, const std::vector<Category>& categories, entt:
 
     if (node_open) {
 
-      for (const auto& child_e : children) {
+      for (const auto child_e : children) {
+        ImGui::PushID(static_cast<uint32_t>(child_e));
         const auto child_tag = r.get<TagComponent>(child_e).tag;
         const auto child_str = std::format("{}##", child_tag, static_cast<uint32_t>(child_e));
 
         ImGui::Selectable(child_str.c_str());
         if (ImGui::IsItemClicked())
           selected_e = child_e;
+        ImGui::PopID();
       }
 
       ImGui::TreePop();

@@ -165,9 +165,9 @@ update_ui_label_system(entt::registry& r)
 
     const auto hits = cannon_c.hits_to_repair - cannon_c.hits_to_repair_left;
     const bool repaired = cannon_c.hits_to_repair_left == 0;
-    auto text = std::format("Repairable. {}/{}", hits, cannon_c.hits_to_repair);
+    auto text = std::format("Repairable ({}/{})", hits, cannon_c.hits_to_repair);
     if (repaired)
-      text = std::format("Firing. {}/{}", clip_c.bullets_cur, clip_c.bullets_max);
+      text = std::format("Shooting ({}/{})", clip_c.bullets_cur, clip_c.bullets_max);
 
     // assuming this cannon is on an edge of the island,
     // work out which way is the edge to the ocean.

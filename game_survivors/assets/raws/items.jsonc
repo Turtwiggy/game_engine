@@ -151,35 +151,35 @@
     },
     {
       "name": "actor_islanddweller_common_person",
-      "renderable": { "sprite": "PERSON_25_0", "colour":  "green" }
+      "renderable": { "sprite": "PERSON_25_0", "colour":  "brown" }
     },
     {
       "name": "actor_islanddweller_animal_duck_0",
-      "renderable": { "sprite": "DUCK_0", "colour":  "green" }
+      "renderable": { "sprite": "DUCK_0", "colour":  "brown" }
     },
     {
       "name": "actor_islanddweller_animal_duck_1",
-      "renderable": { "sprite": "DUCK_1", "colour":  "green" }
+      "renderable": { "sprite": "DUCK_1", "colour":  "brown" }
     },
     {
       "name": "actor_islanddweller_animal_cow",
-      "renderable": { "sprite": "COW", "colour":  "green" }
+      "renderable": { "sprite": "COW", "colour":  "brown" }
     },
     {
       "name": "actor_islanddweller_animal_horse",
-      "renderable": { "sprite": "HORSE", "colour":  "green" }
+      "renderable": { "sprite": "HORSE", "colour":  "brown" }
     },
     {
       "name": "actor_islanddweller_animal_pig",
-      "renderable": { "sprite": "PIG", "colour":  "green" }
+      "renderable": { "sprite": "PIG", "colour":  "brown" }
     },
     {
       "name": "actor_islanddweller_animal_cat",
-      "renderable": { "sprite": "CAT", "colour":  "green" }
+      "renderable": { "sprite": "CAT", "colour":  "brown" }
     },
     {
       "name": "actor_islanddweller_animal_dog",
-      "renderable": { "sprite": "DOG", "colour":  "green" }
+      "renderable": { "sprite": "DOG", "colour":  "brown" }
     },
     //
     // island items

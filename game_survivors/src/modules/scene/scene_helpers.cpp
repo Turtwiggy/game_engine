@@ -31,6 +31,7 @@
 #include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
@@ -87,6 +88,9 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 
   if (auto* col_c = r.try_get<DefaultColour>(e))
     set_colour(r, wep_e, col_c->colour);
+
+  // set_z_index(r, e, ZLayer::DEFAULT);
+  // set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
 
   set_position(r, wep_e, get_position(r, e));
 };
@@ -153,25 +157,8 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
       break; // only spawn 1 deployer
-
     // break; // spawn boats with only 1 gun
   }
-
-  // Spawn a manual weapon
-  // {
-  //   HardpointComponent hardpoint_c;
-  //   HardpointData hardpoint_data;
-  //   hardpoint_data.key = "manual";
-  //   hardpoint_data.arc = 360;
-  //   hardpoint_data.arc_mid = 0;
-  //   hardpoint_data.x_rel_tl = size.x / 2;
-  //   hardpoint_data.y_rel_tl = size.y / 2;
-  //   // hardpoint_data.x_rel_tl = size.x; // put the manual gun front and center
-  //   // hardpoint_data.y_rel_tl = size.y / 2;
-  //   auto weapon_e = spawn_weapon(r, hardpoint_data);
-  //   r.emplace<ManualfireComponent>(weapon_e);
-  //   weapons.push_back(weapon_e);
-  // }
 
   give_life(r, e, pos, hull_size);
   r.emplace<PlayerComponent>(e, num);
@@ -496,6 +483,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     gold_c.temp_amount_enemies = 0;
 
     spawn_islands(r); // before spawn_players
+    spawn_players(r);
+    set_players_as_landed(r);
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
 
@@ -513,9 +502,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // const auto player_view = r.view<PlayerFixtureComponent, HealthComponent>();
     // for (const auto& [e, player_fixture_c, hp_c] : player_view.each())
     //   hp_c.hp = hp_c.max_hp;
-
-    spawn_players(r);
-    set_players_as_landed(r);
 
     // populate spawners from configs
     create_empty<SpawnerLiveData>(r);
@@ -549,11 +535,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     create_empty<SurviveTimerComponent>(r);
 
     spawn_islands(r); // before spawn_players
-    generate_island_life__base_island(r);
-    generate_island_life__other_islands(r);
-
     spawn_players(r);
     set_players_as_landed(r);
+    generate_island_life__base_island(r);
+    generate_island_life__other_islands(r);
 
     // populate spawners from configs
     create_empty<SpawnerLiveData>(r);

@@ -2,16 +2,20 @@
 
 #include "island_nearest_helpers.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/camera/components.hpp"
+#include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -35,6 +39,11 @@ land_player_on_island(entt::registry& r,
   r.emplace<TeamComponent>(island_player_e, TeamComponent{ AvailableTeams::player });
   r.emplace<HealthComponent>(island_player_e, HealthComponent{ .max_hp = 2, .hp = 2 });
   r.emplace<CameraFollow>(island_player_e);
+
+  // make the islander the colour of the player
+  auto col = default_player_colours[r.get<PlayerComponent>(boat_e).idx];
+  r.emplace_or_replace<DefaultColour>(island_player_e, col);
+  set_colour(r, island_player_e, col);
 
   // Add inputs to the island dweller.
   r.emplace<MovementIslandComponent>(island_player_e,

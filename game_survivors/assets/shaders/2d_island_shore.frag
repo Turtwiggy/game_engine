@@ -20,14 +20,10 @@ layout(std140) uniform Data {
   float tilesize;
 };
 
-float rand(vec2 c){
-	return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
-
 vec2 fade(vec2 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
-
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+vec3 fade(vec3 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
 float cnoise(vec2 P){
   vec4 Pi = floor(P.xyxy) + vec4(0.0, 0.0, 1.0, 1.0);
   vec4 Pf = fract(P.xyxy) - vec4(0.0, 0.0, 1.0, 1.0);
@@ -65,6 +61,10 @@ vec4 rgb(float r, float g, float b) {
 	return vec4(r / 255.0, g / 255.0, b / 255.0, 1.0);
 }
 
+float posterize(float v, float k){
+    return ceil(v*k)/k;
+}
+
 #define PI 3.14159265359
 
 void
@@ -76,14 +76,27 @@ main()
   vec2 uv = (vec2(1.0) - v_uv);
   float iTime = time;
 
+  const float Y_SECTIONS = 8.0;
+  float post = posterize(uv.y, Y_SECTIONS);
+  float gradient = 1.0 - v_uv.y;
+  vec2 offset_tex = uv + vec2(-iTime/10.0, iTime/10.0);
+  float noise = cnoise(offset_tex * 10.0) * 1.1;
+  float invK = 1.0/Y_SECTIONS;
+  float bar = step(uv.y, post) - step(uv.y, post-noise/Y_SECTIONS);
+	float c = (1.0-bar) * post + bar * (post+invK);
+  vec3 colour = vec3(c) * rgb(50., 150., 150.).rgb;
+  out_colour.rgb = vec3(colour);
+  out_colour.a = post;
+  return;
+
 	vec4 snd = rgb(231., 213., 198.);
 	vec4 wtr = rgb(0., 0., 0.);
 	vec4 wtr2 = rgb(0., 0., 0.);
 
   float sltm = iTime * 0.2;
 
-	float uvy = uv.y - (sin(iTime) * 0.5 + 0.5) * 0.1 - 0.79;
-	float wuvy = uv.y - (sin(.75) * 0.5 + 0.5) * 0.1 - 0.78;
+	float uvy = uv.y - (sin(iTime) * 0.5 + 0.5) * 0.1 - 0.89;
+	float wuvy = uv.y - (sin(.75) * 0.5 + 0.5) * 0.1 - 0.88;
 
 	float shore = sin(uv.x * PI * 4. + sltm);
 	shore += sin(uv.x * PI * 3.);
@@ -92,9 +105,9 @@ main()
 	float smshore = smoothstep( uvy * 5., uvy * 5. + 2.5, shore);
 	float wshore = smoothstep( wuvy * 5., wuvy * 5., shore);
 
-	shore = smoothstep( uvy * 5., uvy * 5. + 2., shore);
+	shore = smoothstep( uvy * 1., uvy * 5. + 2., shore);
 
-	float shmsk = step(0.01, shore);
+	float shmsk = step(0.15, shore);
 	float shmsko = step(0.012, shore);
     
   float suvx = uv.x + (uv.y * 5.);
