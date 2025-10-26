@@ -136,7 +136,7 @@ void
 create_shore_triangles(entt::registry& r)
 {
   // spawn some more edges, but offset them by the normal.
-  const float thickness = 30;
+  const float thickness = 16;
 
   for (const auto& [contours_e, debug_c, bb_c] : r.view<const DebugContoursComponent, const BoundingBoxComponent>().each()) {
 
@@ -162,15 +162,15 @@ create_shore_triangles(entt::registry& r)
       // give each island a different colour
       // const auto tmp = (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f);
       // const engine::SRGBColour col{ tmp.x, tmp.y, tmp.z, tmp.w };
-      const engine::SRGBColour col{ 1.0f, 1.0f, 1.0f, 1.0f };
-      {
-        const auto line_info = generate_line(ea, eb, 2.0f);
-        const auto spawned_e = spawn(r, "empty");
-        give_life(r, spawned_e, { 0, 0 }, { 0, 0 });
-        set_position_and_size_with_line(r, spawned_e, line_info);
-        set_colour(r, spawned_e, col);
-        r.emplace<IslandEdgeLine>(spawned_e, IslandEdgeLine{ .edge = cur_edge, .timer = timer_offset });
-      }
+      // // const engine::SRGBColour col{ 1.0f, 1.0f, 1.0f, 1.0f };
+      // {
+      //   const auto line_info = generate_line(ea, eb, 2.0f);
+      //   const auto spawned_e = spawn(r, "empty");
+      //   give_life(r, spawned_e, { 0, 0 }, { 0, 0 });
+      //   set_position_and_size_with_line(r, spawned_e, line_info);
+      //   set_colour(r, spawned_e, col);
+      //   r.emplace<IslandEdgeLine>(spawned_e, IslandEdgeLine{ .edge = cur_edge, .timer = timer_offset });
+      // }
 
       const auto a = ea;
       const auto b = eb;

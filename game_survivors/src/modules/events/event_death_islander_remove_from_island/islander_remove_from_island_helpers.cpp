@@ -51,7 +51,7 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
   // What to do if that islander was a player's islander is now dead?
   // fro the moment, jsut return control to the boat
   auto* movement_c = r.try_get<MovementIslandComponent>(dead_e);
-  if (movement_c && movement_c->boat_e != entt::null) {
+  if (movement_c && movement_c->boat_e != entt::null && r.valid(movement_c->boat_e)) {
     auto boat_e = movement_c->boat_e;
     r.remove<DroppedAnchorComponent>(boat_e);
     r.emplace<MovementDirectComponent>(boat_e);
