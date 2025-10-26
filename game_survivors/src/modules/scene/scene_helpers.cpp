@@ -85,7 +85,9 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
   weapons_c.children.push_back(wep_e);
   r.emplace<HasParentComponent>(wep_e, HasParentComponent{ e });
 
-  // set_colour(r, wep_e, r.get<DefaultColour>(e).colour);
+  if (auto* col_c = r.try_get<DefaultColour>(e))
+    set_colour(r, wep_e, col_c->colour);
+
   set_position(r, wep_e, get_position(r, e));
 };
 
@@ -203,7 +205,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 
   // r.emplace<SpriteOutline>(e);
 
-  const auto add_trail = [&r, e](glm::vec2 offset) {
+  const auto add_trail = [&r, e, num](glm::vec2 offset) {
     const auto tl_offset = offset;
     const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-l");
     r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
@@ -212,6 +214,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
     RequestToSpawnParticles req;
     req.key = "default_trail";
     req.parent = emitter_parent_e;
+    req.colour = default_player_colours[num];
     spawn_particle_emitter(r, req);
   };
 
@@ -275,6 +278,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 
   // set the player colour.
   const auto col = default_player_colours[num];
+  r.get<DefaultColour>(e).colour = col;
   set_colour(r, e, r.get<DefaultColour>(e).colour);
 
   auto player_fixture_e = get_fixture_by_tag(r, e, "fixture_player");

@@ -17,8 +17,14 @@ handle_bump_event__damage(entt::registry& r, const BumpEvent& evt)
   const auto n_e = evt.to;
   const auto& team_c = r.get<const TeamComponent>(evt.from);
 
-  // make the neighbour (and children) flash.
+  if (!r.valid(n_e)) {
+    SDL_Log("neighbour entity is invalid?");
+    return;
+  }
+
   r.emplace_or_replace<RequestHitScaleComponent>(n_e);
+
+  // make the neighbour (and children) flash.
   if (auto* children_c = r.try_get<HasChildrenComponent>(n_e)) {
     for (const auto child_e : children_c->children)
       r.emplace_or_replace<RequestHitScaleComponent>(child_e);

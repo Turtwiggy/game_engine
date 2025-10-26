@@ -426,6 +426,8 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   if (key.find("default_trail") != std::string::npos) {
     pdesc.size_curve = { { 2, 2 }, { 0, 0 } };
     pdesc.time_to_live_ms = static_cast<int>(0.5 * 1000);
+    if (req.colour.has_value())
+      pdesc.start_colour = req.colour.value();
   }
   //
   else if (key.find("default_explode") != std::string::npos) {

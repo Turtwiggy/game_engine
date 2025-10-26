@@ -56,9 +56,6 @@ update_island_return_to_boat_system(entt::registry& r)
     // remove the player.
     dead.dead.push_back(e);
 
-    if (!r.valid(e))
-      continue;
-
     // set the tile as "unoccupied"
     const int tilesize = SINGLE_Islands::instance.tilesize;
     const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
@@ -72,6 +69,9 @@ update_island_return_to_boat_system(entt::registry& r)
                                  island_c.occupied_island_xy.end(),
                                  [&](const auto& other) { return other.second == e; });
     island_c.occupied_island_xy.erase(it);
+
+    if (!r.valid(e))
+      continue;
 
     // add back control to your boat.
     auto boat_e = movement_c.boat_e;

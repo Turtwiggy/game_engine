@@ -6,11 +6,14 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/core/camera/orthographic.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {
 
@@ -20,16 +23,6 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  // auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-  // const auto& ui_state = gesert_menubar_state(menu_c, "(Debug) Spritestack");
-  // if (ui_state.enabled) {
-  //   ImGui::Begin("Debug Spritestack");
-  //   imgui_draw_float("scale", scale_up_by);
-  //   imgui_draw_int("sprite_height", sprite_height);
-  //   imgui_draw_int("parallax_offset_amount", parallax_offset_amount);
-  // }
-
-  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   // note: values of 1 seem to distort the spritestack, but add depth
   // because it SHOULD be in top-down perspective
@@ -38,6 +31,20 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
   static float scale_up_by = 0.6f;
   static int sprite_height = 1;
   static int parallax_offset_amount = 0;
+
+#if defined(_DEBUG)
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  const auto& ui_state = gesert_menubar_state(menu_c, "(Debug) Spritestack");
+  if (ui_state.enabled) {
+    ImGui::Begin("Debug Spritestack");
+    imgui_draw_float("scale", scale_up_by);
+    imgui_draw_int("sprite_height", sprite_height);
+    imgui_draw_int("parallax_offset_amount", parallax_offset_amount);
+    ImGui::End();
+  }
+#endif
+
+  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto camera_pos = get_position(r, camera_e);

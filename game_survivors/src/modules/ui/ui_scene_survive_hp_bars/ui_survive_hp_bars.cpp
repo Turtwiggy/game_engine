@@ -64,7 +64,14 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   const float distance_from_bottom_of_screen = 15.0f;
   const float space_between_bars = 45.0f * font_scale;
 
-  const auto players_e_vec = view_to_vector_of_ents<PlayerBoatComponent>(r);
+  // make sure player entities are oredered by index
+  std::map<int, entt::entity> players_e_map;
+  for (const auto& [e, player_c, boat_c] : r.view<const PlayerComponent, const PlayerBoatComponent>().each())
+    players_e_map.emplace(player_c.idx, e);
+  std::vector<entt::entity> players_e_vec;
+  for (const auto& [player_idx, player_e] : players_e_map)
+    players_e_vec.push_back(player_e);
+
   const auto num_active_players = (int)players_e_vec.size();
   int n_weapons = max_weapons_per_players(r, players_e_vec);
 
