@@ -396,8 +396,6 @@ update_actor_rocks_system(entt::registry& r, glm::vec2 mouse_pos, const float dt
 #if defined(_DEBUG)
   auto& input_c = get_first_component<SINGLE_InputComponent>(r);
   if (get_key_down(input_c, SDL_SCANCODE_KP_7)) {
-
-#if defined(_DEBUG)
     // Destroy all the old rocks.
     for (const auto& [e, rock_c] : r.view<const RockComponent>().each())
       r.destroy(e);
@@ -430,7 +428,6 @@ im_lerp[2] = lerped.b / 255.0f;
 im_lerp[3] = lerped.a / 255.0f;
 ImGui::ColorEdit4("mixed_col", im_lerp);
 */
-#endif
 
   process_requests<RequestGenerateRocks>(r, [&](const auto& req) {
     SDL_Log("Request to generate rocks...");

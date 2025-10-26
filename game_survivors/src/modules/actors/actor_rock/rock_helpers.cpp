@@ -138,22 +138,34 @@ generate_noise__with_base_island(entt::registry& r)
     auto generated = generate_noise(r, cutoff, frequency, seed);
 
     // get the coordinates of any noise that is > threshold
-    auto f = generated | std::views::filter([cutoff](const NoiseInfo& n) { return is_island(n.noise, cutoff); });
-    SDL_Log("noise above cutoff %i", (int)std::distance(f.begin(), f.end()));
+    // auto f = generated | std::views::filter([cutoff](const NoiseInfo& n) { return is_island(n.noise, cutoff); });
+    // SDL_Log("noise above cutoff %i", (int)std::distance(f.begin(), f.end()));
 
-    //
     // check the noise so that the center is always an island.
+    // note: we also adjust it, that the borders of the island is clear for a couple tiles.
     //
     const auto island_center = (int)(0.5 * SINGLE_Islands::instance.wh);
     const auto min_x = island_center - 2;
     const auto max_x = island_center + 2;
+    const auto min_x_boundary = min_x - 4;
+    const auto max_x_boundary = max_x + 4;
 
-    for (int y = min_x; y < max_x; y++) {
-      for (int x = min_x; x < max_x; x++) {
+    for (int y = min_x_boundary; y < max_x_boundary; y++) {
+      for (int x = min_x_boundary; x < max_x_boundary; x++) {
         const auto idx = engine::grid::grid_position_to_index({ x, y }, SINGLE_Islands::instance.wh);
-        generated[idx].noise = cutoff;
+        if (y >= min_x && y <= max_x && x >= min_x && x <= max_x)
+          generated[idx].noise = cutoff;
+        else
+          generated[idx].noise = 0.0f;
       }
     }
+
+    // for (int y = min_x; y < max_x; y++) {
+    //   for (int x = min_x; x < max_x; x++) {
+    //     const auto idx = engine::grid::grid_position_to_index({ x, y }, SINGLE_Islands::instance.wh);
+    //     generated[idx].noise = cutoff;
+    //   }
+    // }
 
     generated_final = std::move(generated);
   }
