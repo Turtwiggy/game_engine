@@ -104,7 +104,7 @@ load_texture_linear(const int tex_unit, const std::string& path)
 };
 
 unsigned int
-bind_linear_texture(const LinearTexture& tex)
+setup_linear_texture(const LinearTexture& tex)
 {
   const int tex_unit = tex.texture_unit;
   const int width = tex.width;
@@ -275,7 +275,7 @@ load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load)
 
   for (LinearTexture& l : loaded_textures) {
 
-    unsigned int id = bind_linear_texture(l);
+    unsigned int id = setup_linear_texture(l);
     texture_ids.push_back(id);
   }
 
@@ -313,7 +313,7 @@ load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_
     });
 
     for (LinearTexture& l : loaded_textures) {
-      unsigned int id = bind_linear_texture(l);
+      unsigned int id = setup_linear_texture(l);
       texture_ids.push_back(id);
     }
   }

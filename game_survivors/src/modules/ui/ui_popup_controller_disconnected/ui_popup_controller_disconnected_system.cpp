@@ -134,8 +134,8 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     auto* draw_list = ImGui::GetWindowDrawList();
     const auto my_window_bg_col = hex_to_srgb("#21242B");
     const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
-    const auto my_window_border_col = hex_to_srgb("#FFFFFF");
-    const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
+    // const auto my_window_border_col = hex_to_srgb("#FFFFFF");
+    // const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
     const auto rounding = 4.0f;
     const auto thickness = 2.0f;
     const auto rect_flags = ImDrawFlags_RoundCornersAll;

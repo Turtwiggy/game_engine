@@ -50,10 +50,7 @@ main()
   {
     // v_uv goes from 0 to 1
     // convert from 0 to 1 to the width/height desired
-    vec2 sprite_uv = vec2(
-      (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
-      (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
-    );
+    vec2 sprite_uv = (v_sprite_pos + v_sprite_wh * v_uv) / v_sprite_max;
 
     // the engine generates code here e.g. 
   vec4 col = vec4(1.0f);

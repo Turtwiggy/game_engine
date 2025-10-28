@@ -24,7 +24,6 @@ uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
 uniform sampler2D tex_shine_shells;
 uniform sampler2D tex_flame;
-uniform sampler2D tex_map_heightmap;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
 uniform bool invert_colours;
@@ -409,43 +408,21 @@ void main()
 
   // islands.
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
-  // vec3 island_col = texture(tex_island_triangles, v_uv).rgb;
   vec3 itg_col = texture(tex_island_triangles_gradient, v_uv).rgb;
   vec3 island_hidden_col = texture(tex_island_hidden, v_uv).rgb;
   vec3 island_above_hidden_col = texture(tex_island_above_hidden, v_uv).rgb;
   vec3 scene_lin = texture(tex_scene_0, v_uv).rgb;
   vec4 outline_col = texture(tex_outline, v_uv);
-  vec3 heightmap_col = texture(tex_map_heightmap, v_uv).rgb;
   vec4 shore_col = texture(tex_island_shore, v_uv).rgba;
 
   vec3 col_water = lighting_col * srgb_water;
-  // vec3 col_triangle = lighting_col * island_col ;
   vec3 col_itg = lighting_col * itg_col; // island triangle gradient
   vec3 col_hidden = lighting_col * island_hidden_col;
   vec3 col_above_hidden = lighting_col * island_above_hidden_col;
   vec3 col_scene = lighting_col * lin_to_srgb( scene_lin );
   vec4 col_island_shore = (vec4(lighting_col, 1.0f) * shore_col.rgba);
 
-  // noise is roughly [0, 0.8]
-  float heightmap = heightmap_col.r;
-  heightmap = clamp(heightmap, 0, 1);
-
-  // if(heightmap > 0.69)
-  //   out_colour.rgb = vec3(1)*(heightmap);
-  // else if(heightmap > 0.68)
-  //   out_colour.rgb = vec3(1.0);
-  // else
-  //   // out_colour.rgb = vec3(42/255.0f, 196/255.0f, 182/255.0f)*(1.0 - heightmap);
-  //   out_colour.rgb = vec3(10/255.0f, 0/255.0f, 0/255.0f)*(1.0 - heightmap);
-  // out_colour.r = heightmap;
-
   // add the water
-  // col_water * (1.0 - pow(heightmap_col.r, 1.0)),  // Used if length(col_scene) == 0
-  // col_water * (1.0 + (pow(heightmap, 4.0))),  // Used if length(col_scene) == 0
-  // col_water * (exp(heightmap - 1.0)),
-  float heightmap_mul = (1.0 / (1.0 + exp(-8.0 * (heightmap - 0.15))));
-  vec3 blend_water_col = heightmap > 0.0 ? col_water * heightmap_mul : col_water;
-  // out_colour.rgb = mix( out_colour.rgb, blend_water_col, sign(length(col_water.rgb)) );
   out_colour.rgb = mix( out_colour.rgb, col_water, sign(length(col_water.rgb)) );
 
   // add the island shore

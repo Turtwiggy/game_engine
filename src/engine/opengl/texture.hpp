@@ -95,7 +95,7 @@ unbind_tex();
 load_texture_linear(const int tex_unit, const std::string& path);
 
 [[nodiscard]] unsigned int
-bind_linear_texture(const LinearTexture& texture);
+setup_linear_texture(const LinearTexture& texture);
 
 void
 update_bound_texture_size(const glm::ivec2 size);

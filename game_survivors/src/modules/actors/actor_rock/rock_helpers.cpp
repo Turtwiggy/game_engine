@@ -468,6 +468,7 @@ generate_rock_bounding_box(entt::registry& r, entt::entity e)
   r.emplace<BoundingBoxComponent>(e, bb_c);
 };
 
+/*
 void
 upload_heightmap_to_gpu(entt::registry& r)
 {
@@ -496,6 +497,7 @@ upload_heightmap_to_gpu(entt::registry& r)
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_heightmap.id);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RED, GL_FLOAT, data.data());
 };
+*/
 
 void
 generate_position_id_to_island_eid_map(entt::registry& r)
@@ -627,7 +629,7 @@ generate_rocks(entt::registry& r)
 
   // Upload the heightmap data to the gpu.
   SDL_Log("Uploading heightmap data to gpu");
-  upload_heightmap_to_gpu(r);
+  // upload_heightmap_to_gpu(r);
 
   // populate id_to_island_eid
   generate_position_id_to_island_eid_map(r);

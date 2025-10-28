@@ -35,10 +35,10 @@ struct SINGLE_SelectSceneData : public DefaultUI
 {
 #if defined(_DEBUG)
   float countdown_max = 0.0f;
-  float countdown = 0.0f;
+  float countdown = countdown_max;
 #else
   float countdown_max = 0.0f;
-  float countdown = 0.0f;
+  float countdown = countdown_max;
 #endif
 
   std::vector<SelectUI> player_ui_state;

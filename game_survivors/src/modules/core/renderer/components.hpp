@@ -28,10 +28,7 @@ struct ViewportInfo
 
 enum class PassName
 {
-  // menu_fractal_shader,
-  water_heightmap,
   water,
-  floor_mask,
   island_triangles,
   island_triangles_gradient,
   island_hidden,
@@ -50,7 +47,7 @@ enum class PassName
   // voronoi_distance,
 
   mix_lighting_and_scene,
-  crt_effect,
+  // crt_effect,
 
   // blur_pingpong_0,
   // blur_pingpong_1,
@@ -92,10 +89,6 @@ struct SINGLE_RendererInfo
   // int tex_unit_circles = 0;
   int tex_unit_ubo_data = 0;
 
-  int heightmap_texture_wh = 256;
-  engine::TextureId tex_id_heightmap;
-  engine::TextureUnit tex_unit_heightmap;
-
   // quad renderer
   engine::quad_renderer::QuadRenderer renderer;
   engine::tri_renderer::TriangleRenderer tri_renderer;
@@ -104,8 +97,6 @@ struct SINGLE_RendererInfo
   FluidSimData fluid_sim;
 
   // shaders
-  engine::Shader menu_fractal;
-  engine::Shader water_heightmap;
   engine::Shader water;
   engine::Shader instanced;
   engine::Shader instanced_tri;
@@ -120,8 +111,7 @@ struct SINGLE_RendererInfo
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
   engine::Shader outline;
-  engine::Shader crt;
-
+  // engine::Shader crt;
   // engine::Shader blur;
   // engine::Shader bloom;
 

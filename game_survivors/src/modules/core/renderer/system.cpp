@@ -4,6 +4,7 @@
 
 // components/systems
 #include "components.hpp"
+#include "engine/app/application.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
@@ -30,6 +31,7 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/systems/system_screenshake/components.hpp"
 #include "renderpass/passes.hpp"
+#include <tracy/Tracy.hpp>
 
 using namespace engine;
 
@@ -64,14 +66,11 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 {
   SDL_Log("%s", std::format("rebind...").c_str());
 
-  const auto& wh = ri.viewport_size_render_at;
-
   // Super sampling, innit
-  const glm::vec2 double_wh = { 2.0f * wh.x, 2.0f * wh.y };
+  const auto& wh = ri.viewport_size_render_at;
+  const auto double_wh = glm::vec2{ 2.0f * wh.x, 2.0f * wh.y };
 
   for (RenderPass& rp : ri.passes) {
-    // if (rp.pass == PassName::fluid_sim)
-    //   continue;
     for (const auto& tex : rp.texs) {
       engine::bind_tex(tex.tex_id.id);
       engine::update_bound_texture_size(double_wh);
@@ -97,17 +96,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
     i++;
   }
 
-  // bind the heightmap texture
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_heightmap.unit);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_heightmap.id);
-
-  // Texture quadrenderer...
-  // int tex_buffer_unit = i++;
-  // glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
-  // glBindTexture(GL_TEXTURE_2D, ri.tex_unit_circles);
-  // ri.tex_unit_circles = tex_buffer_unit;
-  // SDL_Log("%s", std::format("tbo (circles) tex_unit... {}", ri.tex_unit_circles).c_str());
-
   SDL_Log("%s", std::format("bound textures: {}", i).c_str());
   const int texs_used = get_renderer_tex_unit_count(ri);
   //  + get_texs_used_by_fluidsim();
@@ -119,14 +107,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 
   // const int tex_unit_menu_fractal = get_tex_unit(PassName::menu_fractal_shader);
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
-  const int tex_unit_water_heightmap = get_tex_unit(PassName::water_heightmap);
   const int tex_unit_water = get_tex_unit(PassName::water);
   const int tex_unit_sprites_to_outline = get_tex_unit(PassName::sprites_to_outline);
   const int tex_unit_outline = get_tex_unit(PassName::outline);
   const int tex_unit_sprites_with_shield = get_tex_unit(PassName::sprites_with_shield);
   const int tex_unit_shine_shells = get_tex_unit(PassName::shine);
   const int tex_unit_flame = get_tex_unit(PassName::flame);
-  const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_island_triangles = get_tex_unit(PassName::island_triangles);
   const int tex_unit_island_triangles_gradient = get_tex_unit(PassName::island_triangles_gradient);
   const int tex_unit_island_hidden = get_tex_unit(PassName::island_hidden);
@@ -145,22 +131,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
   // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
   // glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-  ri.menu_fractal.reload(r);
-  ri.menu_fractal.bind();
-  ri.menu_fractal.set_uniform_block_binding("Data", 0);
-  ri.menu_fractal.set_mat4("projection", camera.projection);
-  ri.menu_fractal.set_bool("is_fullscreen", true);
-  ri.menu_fractal.set_bool("do_zoom", false);
-  ri.menu_fractal.set_vec2("viewport_wh", wh);
-
-  ri.water_heightmap.reload(r);
-  ri.water_heightmap.bind();
-  ri.water_heightmap.set_uniform_block_binding("Data", 0);
-  ri.water_heightmap.set_bool("do_zoom", true);
-  ri.water_heightmap.set_mat4("projection", camera.projection);
-  ri.water_heightmap.set_int("tex_map_heightmap", ri.tex_unit_heightmap.unit);
-  ri.water_heightmap.set_float("used_tex_w", (float)SINGLE_Islands::instance.wh);
 
   ri.water.reload(r);
   ri.water.bind();
@@ -252,14 +222,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.outline.set_bool("do_zoom", false);
   ri.outline.set_int("tex_to_outline", tex_unit_sprites_to_outline);
 
-  ri.crt.reload(r);
-  ri.crt.bind();
-  ri.crt.set_uniform_block_binding("Data", 0);
-  ri.crt.set_bool("is_fullscreen", true);
-  ri.crt.set_mat4("projection", camera.projection);
-  ri.crt.set_int("tex_to_crt", tex_unit_mix_lighting_and_scene);
-  ri.crt.set_vec2("viewport_wh", double_wh);
-
   ri.lighting_emitters_and_occluders.reload(r);
   ri.lighting_emitters_and_occluders.bind();
   ri.lighting_emitters_and_occluders.set_uniform_block_binding("Data", 0);
@@ -300,7 +262,6 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
   ri.mix_lighting_and_scene.set_int("tex_flame", tex_unit_flame);
-  ri.mix_lighting_and_scene.set_int("tex_map_heightmap", tex_unit_water_heightmap);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
   ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_bool("add_vignette", true);
@@ -363,9 +324,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   RenderCommand::clear();
 
   // ri.passes.push_back(RenderPass(PassName::menu_fractal_shader));
-  ri.passes.push_back(RenderPass(PassName::water_heightmap));
   ri.passes.push_back(RenderPass(PassName::water));
-  ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::island_triangles));
   ri.passes.push_back(RenderPass(PassName::island_triangles_gradient));
   ri.passes.push_back(RenderPass(PassName::island_hidden));
@@ -385,29 +344,15 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   // ri.passes.push_back(RenderPass(PassName::jump_flood));
   // ri.passes.push_back(RenderPass(PassName::voronoi_distance));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
-  ri.passes.push_back(RenderPass(PassName::crt_effect));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   // ri.passes.push_back(RenderPass(PassName::bloom));
 
   // Super sampling, innit
-  auto double_fbo_size = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
+  const auto double_wh = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
 
-  for (auto& rp : ri.passes) {
-    // if (rp.pass == PassName::fluid_sim) {
-    //   const auto dye_res = glm::vec2{
-    //     ri.fluid_sim.config_dye_resolution,
-    //     ri.fluid_sim.config_dye_resolution,
-    //   };
-    //   rp.setup(dye_res);
-    //   continue;
-    // }
-
-    // if (rp.pass == PassName::jump_flood)
-    //   rp.setup(fbo_size, 2);
-    // else
-    rp.setup(double_fbo_size);
-  }
+  for (auto& rp : ri.passes)
+    rp.setup(double_wh);
 
   // Load fluidsim shaders/textures
   int used_tex_units = get_renderer_tex_unit_count(ri);
@@ -418,32 +363,11 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
     auto& tex = ri.user_textures[i];
     tex.tex_unit.unit = used_tex_units + i;
     const LinearTexture loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
-    tex.tex_id.id = bind_linear_texture(loaded_tex);
+    tex.tex_id.id = setup_linear_texture(loaded_tex);
     tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
 
-  // heightmap texture
-  {
-    // new empty texture.
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    // allocate some default storage
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, ri.heightmap_texture_wh, ri.heightmap_texture_wh, 0, GL_RED, GL_FLOAT, nullptr);
-
-    ri.tex_id_heightmap = engine::TextureId{ (int)textureID };
-    ri.tex_unit_heightmap = used_tex_units + (int)ri.user_textures.size();
-  }
-
-  ri.menu_fractal = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_menu_fractal.frag");
-  ri.water_heightmap = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_heightmap_texture.frag");
   ri.water = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_worley_noise_water.frag");
   ri.instanced = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.instanced_tri = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_instanced_tri.frag");
@@ -459,7 +383,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.jump_flood = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
-  ri.crt = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
+  // ri.crt = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
   // ri.blur = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/blur.frag");
   // ri.bloom = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
@@ -515,10 +439,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   rebind(r, ri);
 
   // adds the update() for each renderpass
-  // setup_menu_fractal_update(r);
-  setup_water_heightmap_update(r);
   setup_water_update(r);
-  setup_floor_mask_update(r);
   setup_island_triangles_update(r);
   setup_island_triangles_gradient_update(r);
   setup_island_hidden_update(r);
@@ -530,13 +451,13 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_sprites_with_shield_update(r);
   setup_shine_update(r);
   setup_flame_update(r);
+  setup_mix_lighting_and_scene_update(r);
   // setup_lighting_emitters_and_occluders_update(r);
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
   // setup_voronoi_distance_field_update(r);
   // setup_fluidsim_update(r);
-  setup_mix_lighting_and_scene_update(r);
-  setup_crt_effect_update(r);
+  // setup_crt_effect_update(r);
   // setup_gaussian_blur_update(r);
   // setup_bloom_update(r);
 
@@ -581,56 +502,65 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
 #endif
 
-  // const auto viewport_wh = ri.viewport_size_render_at;
   const auto double_wh = glm::vec2{ 2.0f * ri.viewport_size_render_at.x, 2.0f * ri.viewport_size_render_at.y };
-
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_t = r.get<TransformComponent>(camera_e);
   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
   const auto& screenshake_c = SINGLE_ScreenshakeComponent::instance;
 
   // update ubo data
-  data.projection_zoomed = camera_c.projection_zoomed;
-  data.view = camera_c.view;
-  data.camera_pos = { camera_t.position.x, camera_t.position.y };
-  data.time = time;
-  data.zoom = camera_c.zoom_nonlinear;
-  data.screenshake = screenshake_c.strength;
-
-  // .w as 0 indicates light inactive.
-  const int n_lights = 32;
-  for (int i = 0; i < n_lights; i++) {
-    data.light_positions[i].x = 0.0f;
-    data.light_positions[i].y = 0.0f;
-    data.light_positions[i].z = 0.0f;
-    data.light_positions[i].w = 0.0f;
+  {
+#if defined(_DEBUG)
+    ZoneScopedN("UpdateUBO");
+#endif
+    data.projection_zoomed = camera_c.projection_zoomed;
+    data.view = camera_c.view;
+    data.camera_pos = { camera_t.position.x, camera_t.position.y };
+    data.time = time;
+    data.zoom = camera_c.zoom_nonlinear;
+    data.screenshake = screenshake_c.strength;
   }
 
-  // update light emitters (that arnt players)
-  int i = 0;
+  {
+#if defined(_DEBUG)
+    ZoneScopedN("UpdateLights");
+#endif
 
-  const auto view0 = r.view<const LightEmitterComponent, const TransformComponent, const LightTypeWedge>();
-  for (const auto& [e, light_c, t_c, type_c] : view0.each()) {
-    if (i == n_lights)
-      break;
-    const auto dir = angle_radians_to_direction(t_c.rotation_radians.z);
-    const float offset = 0.0f;
-    data.light_positions[i].x = t_c.position.x + dir.x * offset;
-    data.light_positions[i].y = t_c.position.y + dir.y * offset;
-    data.light_positions[i].z = engine::clamp_axis(t_c.rotation_radians.z);
-    data.light_positions[i].w = 1.0f;
-    i++;
-  }
+    // .w as 0 indicates light inactive.
+    const int n_lights = 32;
+    for (int i = 0; i < n_lights; i++) {
+      data.light_positions[i].x = 0.0f;
+      data.light_positions[i].y = 0.0f;
+      data.light_positions[i].z = 0.0f;
+      data.light_positions[i].w = 0.0f;
+    }
 
-  const auto view1 = r.view<const LightEmitterComponent, const TransformComponent, const LightTypeCircle>();
-  for (const auto& [e, light_c, t_c, type_c] : view1.each()) {
-    if (i == n_lights)
-      break;
-    data.light_positions[i].x = t_c.position.x;
-    data.light_positions[i].y = t_c.position.y;
-    data.light_positions[i].z = -10.0f; // -10 is < [-pi, pi], meaning it cant be an angle
-    data.light_positions[i].w = 1.0f;
-    i++;
+    // update light emitters (that arnt players)
+    int i = 0;
+
+    const auto view0 = r.view<const LightEmitterComponent, const TransformComponent, const LightTypeWedge>();
+    for (const auto& [e, light_c, t_c, type_c] : view0.each()) {
+      if (i == n_lights)
+        break;
+      const auto dir = angle_radians_to_direction(t_c.rotation_radians.z);
+      const float offset = 0.0f;
+      data.light_positions[i].x = t_c.position.x + dir.x * offset;
+      data.light_positions[i].y = t_c.position.y + dir.y * offset;
+      data.light_positions[i].z = engine::clamp_axis(t_c.rotation_radians.z);
+      data.light_positions[i].w = 1.0f;
+      i++;
+    }
+
+    const auto view1 = r.view<const LightEmitterComponent, const TransformComponent, const LightTypeCircle>();
+    for (const auto& [e, light_c, t_c, type_c] : view1.each()) {
+      if (i == n_lights)
+        break;
+      data.light_positions[i].x = t_c.position.x;
+      data.light_positions[i].y = t_c.position.y;
+      data.light_positions[i].z = -10.0f; // -10 is < [-pi, pi], meaning it cant be an angle
+      data.light_positions[i].w = 1.0f;
+      i++;
+    }
   }
 
   // Note: this updates the entire array.
@@ -639,23 +569,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-  // const auto s_splash = std::vector<Scene>{ Scene::splashscreen };
-  // const bool in_splash_scene = std::find(s_splash.begin(), s_splash.end(), scene.s) != s_splash.end();
-
-  // const auto cur_scene = scene.s;
-  // if (cur_scene == Scene::menu) {
-  //   auto& pass = ri.passes[get_pass_idx(ri, PassName::menu_fractal_shader)];
-  //   Framebuffer::bind_fbo(pass.fbos[0]);
-  //   RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
-  //   RenderCommand::set_clear_colour_srgb(black);
-  //   RenderCommand::clear();
-  //   pass.update(r, dt, mouse_pos);
-  // }
-
-  // if (cur_scene != Scene::menu) {
   for (const auto& pass : ri.passes) {
-    // if (pass.pass == PassName::menu_fractal_shader)
-    //   continue; // skip the fractal shader if you're not in the main menu.
     Framebuffer::bind_fbo(pass.fbos[0]);
     RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
     RenderCommand::set_clear_colour_srgb(black);
@@ -663,7 +577,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     pass.update(r, dt, mouse_pos);
   }
-  // }
 
   // Default: render_texture_to_imgui
   // Render the last renderpass texture to the final output
@@ -678,9 +591,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     // Which pass to render finally?
     PassName p = PassName::mix_lighting_and_scene;
-    // p = PassName::crt_effect;
-    // if (SINGLE_CurrentScene::instance.s == Scene::menu)
-    //   p = PassName::menu_fractal_shader;
 
     // Note: ImGui::Image takes in TexID not TexUnit
     const auto& pass = ri.passes[(int)p];
@@ -698,6 +608,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
+    ZoneScopedN("DebugShowTextures");
+
     auto& state_c = get_first_component<SINGLE_DebugMenuBar>(r);
     const bool show_debug_textures = gesert_menubar_state(state_c, "DebugTextures").enabled;
     if (show_debug_textures) {
@@ -719,16 +631,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         ImGui::Begin(label.c_str());
         ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         const uint64_t id = tex.tex_id.id;
-        ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-        ImGui::End();
-      }
-      // Debug heightmap texture
-      {
-        const std::string label =
-          std::format("TexUnit: {}, Tex: {}, Id: {}", ri.tex_unit_heightmap.unit, "heightmap", ri.tex_id_heightmap.id);
-        ImGui::Begin(label.c_str());
-        ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-        const uint64_t id = ri.tex_id_heightmap.id;
         ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
         ImGui::End();
       }

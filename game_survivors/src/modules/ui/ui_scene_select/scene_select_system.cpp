@@ -40,14 +40,14 @@ struct TextDesc
   ImU32 col = 0;
   float wrap_width = -1;
   FontSize font_size = FontSize::TEXT_SIZE_16;
-  FontSize font_size_scaled = FontSize::TEXT_SIZE_16_SCALED;
+  // FontSize font_size_scaled = FontSize::TEXT_SIZE_16;
 };
 
 void
 add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc& desc, ImVec2* out_pos = nullptr)
 {
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? desc.font_size : desc.font_size_scaled;
+  const auto font_enum = font_scale == 1.0f ? desc.font_size : desc.font_size;
   const auto font_size = (float)font_enum;
   auto* font = get_inter_font(r, font_enum);
 
@@ -193,7 +193,6 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       .col = IM_COL32(255, 255, 255, 255),
       .wrap_width = -1,
       .font_size = FontSize::TEXT_SIZE_16,
-      .font_size_scaled = FontSize::TEXT_SIZE_16_SCALED,
     };
     ImVec2 header_text_pos_centered{ 0, 0 };
     add_text_centered_here(r, draw_list, header_text_desc, &header_text_pos_centered);
@@ -203,8 +202,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   {
     const std::string desc = info_desc;
 
-    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED;
+    const auto font_enum = FontSize::TEXT_SIZE_13;
     const auto font_size = (float)font_enum;
     auto* font = get_inter_font(r, font_enum);
 
@@ -526,13 +524,14 @@ update_player_select_ui(entt::registry& r,
                         const int max_num_players,
                         const float dt)
 {
-
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
-  const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-  auto* header_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED);
-  auto* text_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED);
+  const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
+  // auto* header_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED);
+  // auto* text_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED);
+  auto* header_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16);
+  auto* text_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13);
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
@@ -569,7 +568,7 @@ update_player_select_ui(entt::registry& r,
 
     auto& active_cell = player_ui_c.state.active;
     auto& h_value = dynamic_cast<OptionsCell*>(active_cell.get())->value;
-    const ImVec2 button_size = { 80.0f * ui_scaling, 32.0f * ui_scaling };
+    const ImVec2 button_size = { 80.0f, 32.0f };
 
     const auto& s = player_ui_c.state.actions;
     const bool do_act = std::find(s.begin(), s.end(), UIAction::SELECT) != s.end();
@@ -585,7 +584,7 @@ update_player_select_ui(entt::registry& r,
     const auto im_player_col = convert_my_to_im(my_player_col);
 
     // const auto width = 300;
-    const auto height = 480 * ui_scaling; // or 1/6th of the screen
+    const auto height = 480; // or 1/6th of the screen
 
     // if pivot is 0, the top of the ui would be rendered at the center of the screen
     // if pivot is 1. the bot of the ui would be rendered at the center of the screen

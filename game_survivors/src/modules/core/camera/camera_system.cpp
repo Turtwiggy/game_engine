@@ -156,9 +156,9 @@ update_camera_system(entt::registry& r, const float dt)
   camera.view = calculate_ortho_view(screen_offset, dt);
 
   // no zooming unless on the viewport
-  if (!ri.viewport_hovered)
-    return;
-  update_zoom(camera, dt);
+  // if (!ri.viewport_hovered)
+  //   return;
+  // update_zoom(camera, dt);
 
   camera.projection_zoomed =
     calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, camera.zoom_nonlinear);

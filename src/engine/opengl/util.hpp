@@ -20,7 +20,7 @@ CHECK_OPENGL_ERROR(int code)
   GLenum err = glGetError();
   const bool opengl_error = GL_NO_ERROR != err;
   if (opengl_error)
-    SDL_Log("%s", std::format("~~ ERROR ~~ {}: {}", err, gl_error_to_string(err)).c_str());
+    SDL_Log("%s", std::format("~~ ERROR ~~ mycode {} glcode {}: {}", code, err, gl_error_to_string(err)).c_str());
   return opengl_error;
 };
 

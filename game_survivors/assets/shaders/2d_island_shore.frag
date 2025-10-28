@@ -65,6 +65,42 @@ float posterize(float v, float k){
     return ceil(v*k)/k;
 }
 
+float
+linear_to_srgb(float f)
+{
+  if (f <= 0.0031308f)
+    return 12.92f * f;
+  return 1.055f * pow(f, 1.0f / 2.4f) - 0.055f;
+}
+
+vec3 lin_to_srgb(vec3 color)
+{
+  vec3 x = color.rgb * 12.92;
+  vec3 y = 1.055 * pow(clamp(color.rgb, 0.0, 1.0), vec3(0.4166667)) - 0.055;
+  vec3 clr = color.rgb;
+  clr.r = (color.r < 0.0031308) ? x.r : y.r;
+  clr.g = (color.g < 0.0031308) ? x.g : y.g;
+  clr.b = (color.b < 0.0031308) ? x.b : y.b;
+  return clr.rgb;
+}
+
+float
+SRGBFloatToLinearFloat(const float f)
+{
+  if (f <= 0.04045f)
+    return f / 12.92f;
+  return pow((f + 0.055f) / 1.055f, 2.4f);
+}
+
+vec3 srgb_to_lin(vec3 color)
+{
+  vec3 result;
+  result.x = SRGBFloatToLinearFloat(color.r / 255.0f);
+  result.y = SRGBFloatToLinearFloat(color.g / 255.0f);
+  result.z = SRGBFloatToLinearFloat(color.b / 255.0f);
+  return result;
+}
+
 #define PI 3.14159265359
 
 void
@@ -76,17 +112,12 @@ main()
   vec2 uv = (vec2(1.0) - v_uv);
   float iTime = time;
 
-  const float Y_SECTIONS = 8.0;
+  const float Y_SECTIONS = 5.0;
   float post = posterize(uv.y, Y_SECTIONS);
   float gradient = 1.0 - v_uv.y;
-  vec2 offset_tex = uv + vec2(-iTime/10.0, iTime/10.0);
-  float noise = cnoise(offset_tex * 10.0) * 1.1;
-  float invK = 1.0/Y_SECTIONS;
-  float bar = step(uv.y, post) - step(uv.y, post-noise/Y_SECTIONS);
-	float c = (1.0-bar) * post + bar * (post+invK);
-  vec3 colour = vec3(c) * rgb(50., 150., 150.).rgb;
+  vec3 colour = lin_to_srgb(vec3(post) * srgb_to_lin(vec3(50.0f, 50.0f, 50.0f)));
   out_colour.rgb = vec3(colour);
-  out_colour.a = post;
+  out_colour.a = gradient;
   return;
 
 	vec4 snd = rgb(231., 213., 198.);

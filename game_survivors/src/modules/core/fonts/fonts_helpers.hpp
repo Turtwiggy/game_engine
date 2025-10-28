@@ -6,7 +6,7 @@
 namespace game2d {
 
 // From 720p => 1080p
-constexpr float scale_size = 1.0f;
+constexpr float scale_size = 1.25f;
 
 enum class FontSize
 {

@@ -41,76 +41,6 @@ const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& 
 };
 
 void
-setup_menu_fractal_update(entt::registry& r)
-{
-  /*
-  auto& ri = SINGLE_RendererInfo::instance;
-  const auto pass_idx = get_pass_idx(ri, PassName::menu_fractal_shader);
-  auto& pass = ri.passes[pass_idx];
-
-  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-#if defined(_DEBUG)
-    ZoneScoped;
-#endif
-    auto& ri = SINGLE_RendererInfo::instance;
-
-    ri.menu_fractal.bind();
-    render_fullscreen_quad(r, ri.menu_fractal, ri.viewport_size_render_at);
-  };
-  */
-}
-
-void
-setup_water_heightmap_update(entt::registry& r)
-{
-  auto& ri = SINGLE_RendererInfo::instance;
-  const auto pass_idx = get_pass_idx(ri, PassName::water_heightmap);
-  auto& pass = ri.passes[pass_idx];
-
-  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-#if defined(_DEBUG)
-    ZoneScoped;
-#endif
-    auto& ri = SINGLE_RendererInfo::instance;
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
-
-    SINGLE_Islands island_c = SINGLE_Islands::instance;
-    if (island_c.generated.empty())
-      return;
-
-    ri.water_heightmap.bind();
-
-    {
-      ri.renderer.reset_quad_vert_count();
-      ri.renderer.begin_batch();
-
-      // Render exactly one quad
-      {
-        engine::quad_renderer::RenderDescriptor desc;
-
-        const auto size = island_c.tilesize;
-        const auto wh = island_c.wh;
-
-        static auto pos_tl = glm::vec2{ -size * wh * 0.5f, -size * wh * 0.5f } - glm::vec2{ 0.5 * size, 0.5 * size };
-        static auto pos_wh = glm::vec2{ size * wh, size * wh };
-
-        // imgui_draw_vec2("pos_tl", pos_tl);
-        // imgui_draw_vec2("pos_wh", pos_wh);
-
-        desc.pos_tl = pos_tl;
-        desc.size = pos_wh;
-
-        ri.renderer.draw_sprite(desc, ri.water_heightmap);
-      }
-
-      ri.renderer.end_batch();
-      ri.renderer.flush(ri.water_heightmap);
-    }
-  };
-}
-
-void
 setup_water_update(entt::registry& r)
 {
   auto& ri = SINGLE_RendererInfo::instance;
@@ -141,52 +71,6 @@ setup_water_update(entt::registry& r)
       }
       ri.renderer.end_batch();
       ri.renderer.flush(ri.water);
-    }
-  };
-};
-
-void
-setup_floor_mask_update(entt::registry& r)
-{
-  auto& ri = SINGLE_RendererInfo::instance;
-  const auto pass_idx = get_pass_idx(ri, PassName::floor_mask);
-  auto& pass = ri.passes[pass_idx];
-  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-#if defined(_DEBUG)
-    ZoneScoped;
-#endif
-
-    auto& ri = SINGLE_RendererInfo::instance;
-    // const auto& camera_c = get_first_component<OrthographicCamera>(r);
-
-    // Render floor quads in to floor-mask texture.
-    engine::LinearColour mask_colour = engine::LinearColour(1.0f, 1.0f, 1.0f, 1.0f);
-
-    {
-      ri.renderer.reset_quad_vert_count();
-      ri.renderer.begin_batch();
-
-      const auto& view = r.view<const TransformComponent, const SpriteComponent, const FloorComponent>();
-
-      for (const auto& [e, transform, sc, floor_c] : view.each()) {
-        engine::quad_renderer::RenderDescriptor desc;
-        desc.pos_tl = transform.position - (transform.scale * 0.5f);
-        desc.size = transform.scale;
-        desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
-                                        transform.rotation_radians.y,
-                                        sc.angle_radians + transform.rotation_radians.z };
-        desc.colour = mask_colour;
-        desc.tex_unit = sc.tex_unit;
-
-        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
-        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
-        desc.sprites_max = { sc.total_sx, sc.total_sy };
-
-        ri.renderer.draw_sprite(desc, ri.instanced);
-      }
-
-      ri.renderer.end_batch();
-      ri.renderer.flush(ri.instanced);
     }
   };
 };
@@ -892,24 +776,6 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
 
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
-  };
-};
-
-void
-setup_crt_effect_update(entt::registry& r)
-{
-  auto& ri = SINGLE_RendererInfo::instance;
-  const auto pass_idx = get_pass_idx(ri, PassName::crt_effect);
-  auto& pass = ri.passes[pass_idx];
-
-  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
-#if defined(_DEBUG)
-    ZoneScoped;
-#endif
-
-    const auto& ri = SINGLE_RendererInfo::instance;
-
-    render_fullscreen_quad(r, ri.crt, ri.viewport_size_render_at);
   };
 };
 

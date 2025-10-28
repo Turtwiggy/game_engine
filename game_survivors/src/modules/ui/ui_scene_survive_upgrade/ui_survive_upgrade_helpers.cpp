@@ -292,22 +292,18 @@ make_stat_name_pretty_name(const std::string stat)
   // remove ACTOR_
   result = str_remove_all_occurances(result, "ACTOR_");
 
+  /**/
   // convert from bold uppercase to regular.
-  // e.g. "WEAPON_RANGE" to "Weapon Range"
-  std::string result_lower = "";
-  bool capitalize_next = true;
+  // e.g. "WEAPON_RANGE" to "WEAPON RANGE"
+  std::string res_str = "";
   for (const auto c : result) {
-    if (c == '_') {
-      result_lower.push_back(' '); // replace underscores
-      capitalize_next = true;
-    } else if (capitalize_next) {
-      result_lower.push_back(std::toupper(c));
-      capitalize_next = false;
-    } else
-      result_lower.push_back(std::tolower(c));
+    if (c == '_')
+      res_str.push_back(' '); // replace underscores
+    else
+      res_str.push_back(std::toupper(c));
   }
 
-  return result_lower;
+  return res_str;
 };
 
 } // namespace game2d

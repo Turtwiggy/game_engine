@@ -38,7 +38,7 @@ land_player_on_island(entt::registry& r,
   r.emplace<PlayerComponent>(island_player_e);
   r.emplace<TeamComponent>(island_player_e, TeamComponent{ AvailableTeams::player });
   r.emplace<HealthComponent>(island_player_e, HealthComponent{ .max_hp = 2, .hp = 2 });
-  r.emplace<CameraFollow>(island_player_e);
+  // r.emplace<CameraFollow>(island_player_e);
 
   // make the islander the colour of the player
   auto col = default_player_colours[r.get<PlayerComponent>(boat_e).idx];

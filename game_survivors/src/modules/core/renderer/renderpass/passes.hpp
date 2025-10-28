@@ -5,15 +5,6 @@
 namespace game2d {
 
 void
-setup_menu_fractal_update(entt::registry& r);
-
-void
-setup_floor_mask_update(entt::registry& r);
-
-void
-setup_water_heightmap_update(entt::registry& r);
-
-void
 setup_water_update(entt::registry& r);
 
 void
@@ -56,9 +47,6 @@ setup_voronoi_distance_field_update(entt::registry& r);
 // mix scene and lighting textures
 void
 setup_mix_lighting_and_scene_update(entt::registry& r);
-
-void
-setup_crt_effect_update(entt::registry& r);
 
 // FBO: gaussian blur.
 // void

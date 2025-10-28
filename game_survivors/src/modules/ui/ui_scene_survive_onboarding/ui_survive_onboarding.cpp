@@ -108,37 +108,53 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   // draw a background
   const auto my_col = default_player_colours[0];
   const auto im_col = convert_my_to_im(my_col);
-  draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, 6);
+  auto my_window_bg_col_transparent = my_window_bg_col;
+  my_window_bg_col_transparent.a = 200;
+  const auto im_window_bg_col_transparent = convert_my_to_im(my_window_bg_col_transparent);
+
+  draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col_transparent, 6);
   draw_list->AddRect(window_tl, window_br, im_col, 6, ImDrawFlags_RoundCornersAll, 1.5f);
 
   ImGui::PushFont(font_20);
   ImGui::SeparatorText("Movement");
   ImGui::PopFont();
 
-  // note: could improve this by using proper icons for the buttons
-
+  // note: could improve this by using proper controller display
   // clang-format off
   ImGui::PushFont(font_16);
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use left analogue stick to move (in water)");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use DPAD to move character (on land).");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Collide with an island to land.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use button(east) to leave island.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use LB to use ability: Dash");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Use RB to use ability: Knockback");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Left analogue; move your boat.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Right analogue; aim your guns (optional; guns auto-aim)");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" DPAD: move on land.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" LB: Dash");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" RB: Knockback");
   ImGui::PopFont();
-  // clang-format on
+
+  ImGui::PushFont(font_20);
+  ImGui::SeparatorText("Islands");
+  ImGui::PopFont();
+
+  ImGui::PushFont(font_16);
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Leave island: use button(east) or leave (via DPAD).");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Enter island: collide with your boat.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Capture islands (by clearing enemies) to place lighthouse.");
+  ImGui::PopFont();
 
   ImGui::NewLine();
   ImGui::PushFont(font_20);
   ImGui::SeparatorText("Gameplay");
   ImGui::PopFont();
 
-  // clang-format off
   ImGui::PushFont(font_16);
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Collect XP to level up and choose upgrades.");
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Every 4th weapon level (up to lv 12), choose a new unlock.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Capture islands to place lighthouses that provide vision.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Survive!");
   ImGui::PopFont();
+
+  ImGui::NewLine();
+  ImGui::PushFont(font_20);
+  ImGui::SeparatorText("Good Luck!");
+  ImGui::PopFont();
+
   // clang-format on
 
   //

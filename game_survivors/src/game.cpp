@@ -435,7 +435,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_island_display_hp_system(r);
     update_ui_scene_survive_system(r);
     update_ui_survive_objectives_system(r);
-    // update_ui_survive_onboarding_system(r, dt);
+    update_ui_survive_onboarding_system(r, dt);
     update_ui_survive_timer_system(r);
     // update_ui_survive_info_system(r);
     update_ui_survive_hp_bars_system(r);
@@ -454,7 +454,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #endif
   if (show_settings_ui) {
 #if defined(_DEBUG)
-    ZoneScoped;
+    ZoneScopedN("UpdateSettings");
 #endif
     update_ui_triangle_editor_system(r);
     update_ui_debug_elemental_system(r);
