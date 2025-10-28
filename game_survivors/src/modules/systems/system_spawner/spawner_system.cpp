@@ -223,7 +223,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     // TODO: make it it's own weapon, not weapon_deck_cannon
     auto weapon_data = get_weapon_data(r, "weapon_deck_cannon");
     weapon_data.audio.clear(); // hack: remove player gun audio from fish
-    const auto wep_e = spawn_weapon(r, e, weapon_data, "weapon_deck_cannon");
+    const auto wep_e = spawn_weapon(r, weapon_data, "weapon_deck_cannon");
     r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
     r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     connect_parent_and_weapon(r, e, wep_e);

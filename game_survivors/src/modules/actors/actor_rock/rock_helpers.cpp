@@ -801,7 +801,7 @@ generate_island_life__base_island(entt::registry& r)
     r.remove<SpriteComponent>(cannon_e);
 
     const auto weapon_data = get_weapon_data(r, "weapon_island_cannon");
-    const auto weapon_e = spawn_weapon(r, cannon_e, weapon_data, "weapon_island_cannon", { 16, 16 });
+    const auto weapon_e = spawn_weapon(r, weapon_data, "weapon_island_cannon", { 16, 16 });
     r.emplace<WeaponDef>(weapon_e, get_weapon_def(r, weapon_e));
     r.emplace<BulletDef>(weapon_e, get_bullet_def(r, weapon_e));
     r.emplace<AutofireComponent>(weapon_e);

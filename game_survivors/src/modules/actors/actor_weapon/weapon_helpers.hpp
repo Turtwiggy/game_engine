@@ -8,7 +8,6 @@ namespace game2d {
 
 entt::entity
 spawn_weapon(entt::registry& r,
-             const entt::entity player_e,
              const Weapon_OnDiskData& w_data,
              std::string key = "weapon_boat_default",
              const glm::vec2 weapon_size = { 6, 3 });

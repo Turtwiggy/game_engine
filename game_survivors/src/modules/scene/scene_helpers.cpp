@@ -89,9 +89,7 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
   if (auto* col_c = r.try_get<DefaultColour>(e))
     set_colour(r, wep_e, col_c->colour);
 
-  // set_z_index(r, e, ZLayer::DEFAULT);
-  // set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-
+  set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
   set_position(r, wep_e, get_position(r, e));
 };
 
@@ -113,16 +111,12 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 
   std::vector<entt::entity> weapons;
 
-  const auto e = spawn(r, key);
-  r.emplace<StatModifierComponent>(e); //  upgrades ACTOR_
-  r.emplace<PlayerBoatComponent>(e);
-
   // Spawn autofire weappons
   for (const auto& hardpoint_data : hull.hardpoints) {
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
     // hardpoint_data.arc = 360;
     // hardpoint_data.arc_mid = 0;
-    auto wep_e = spawn_weapon(r, e, weapon_data, weapon_key);
+    auto wep_e = spawn_weapon(r, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
     r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
 
@@ -159,6 +153,10 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
       break; // only spawn 1 deployer
     // break; // spawn boats with only 1 gun
   }
+
+  const auto e = spawn(r, key);
+  r.emplace<StatModifierComponent>(e); //  upgrades ACTOR_
+  r.emplace<PlayerBoatComponent>(e);
 
   give_life(r, e, pos, hull_size);
   r.emplace<PlayerComponent>(e, num);

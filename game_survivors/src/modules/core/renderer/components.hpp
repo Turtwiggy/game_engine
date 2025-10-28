@@ -144,7 +144,7 @@ struct Effect_GridComponent
 
 enum class ZLayer : int
 {
-  BACKGROUND = -4,
+  BACKGROUND = -5,
   FLOOR,
   ENVIRONMENT,
   BEHIND_PLAYER,

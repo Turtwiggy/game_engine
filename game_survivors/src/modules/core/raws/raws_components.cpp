@@ -185,7 +185,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
     set_colour(r, e, col);
     set_sprite(r, e, t.renderable.sprite);
-    set_z_index(r, e, ZLayer::DEFAULT);
+    // set_z_index(r, e, ZLayer::DEFAULT);
   }
 
   // create_physics()

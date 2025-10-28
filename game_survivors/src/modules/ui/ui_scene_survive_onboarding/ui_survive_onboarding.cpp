@@ -139,20 +139,14 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Capture islands (by clearing enemies) to place lighthouse.");
   ImGui::PopFont();
 
-  ImGui::NewLine();
   ImGui::PushFont(font_20);
   ImGui::SeparatorText("Gameplay");
   ImGui::PopFont();
 
   ImGui::PushFont(font_16);
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Collect XP to level up and choose upgrades.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Every 4th weapon level (up to lv 12), choose a new unlock.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Survive!");
-  ImGui::PopFont();
-
-  ImGui::NewLine();
-  ImGui::PushFont(font_20);
-  ImGui::SeparatorText("Good Luck!");
+  ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Survive for 10 minutes.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Good Luck!");
   ImGui::PopFont();
 
   // clang-format on

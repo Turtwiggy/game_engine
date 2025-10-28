@@ -349,7 +349,7 @@ setup_linear_main_update(entt::registry& r)
       std::sort(sorted_entities.begin(), sorted_entities.end(), [](const auto& a, const auto& b) {
         if (std::get<0>(a) != std::get<0>(b))
           return std::get<0>(a) < std::get<0>(b);
-        return std::get<1>(a) > std::get<1>(b);
+        return std::get<1>(a) < std::get<1>(b);
       });
 
       // Render in sorted order

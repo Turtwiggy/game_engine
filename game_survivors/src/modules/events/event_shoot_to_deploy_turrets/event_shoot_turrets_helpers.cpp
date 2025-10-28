@@ -61,7 +61,8 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
 
   // const auto sea_turret_wep_data = r.get<const Weapon_OnDiskData>(wep_e);
   const auto heavy_pistol_data = weapons.weapons[0]; // todo: dont use idx
-  const auto turret_e = spawn_weapon(r, player_e, heavy_pistol_data, "weapon_sea_turret");
+  const auto turret_e = spawn_weapon(r, heavy_pistol_data, "weapon_sea_turret");
+  // connect_parent_and_weapon(r, player_e, turret_e); // added later
 
   // offset the turret spawning in a random unit vector.
   static engine::RandomState rnd;

@@ -3,6 +3,7 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/systems/system_spritestack/spritestack_components.hpp"
 #include "spritestack_helpers.hpp"
 
@@ -64,6 +65,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     r.emplace<SpriteComponent>(spawned_e);
 
     set_sprite(r, spawned_e, sprite + "_"s + i_as_str);
+    set_z_index(r, spawned_e, ZLayer::DEFAULT);
 
     //
     // i goes from e.g. [-26, 12] on a 38 ydepth.

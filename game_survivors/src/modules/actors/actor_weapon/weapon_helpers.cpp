@@ -108,11 +108,7 @@ become_weapon(entt::registry& r, const entt::entity wep_e, const Weapon_OnDiskDa
 };
 
 entt::entity
-spawn_weapon(entt::registry& r,
-             const entt::entity player_e,
-             const Weapon_OnDiskData& w_data,
-             const std::string key,
-             const glm::vec2 weapon_size)
+spawn_weapon(entt::registry& r, const Weapon_OnDiskData& w_data, const std::string key, const glm::vec2 weapon_size)
 {
   const auto wep_e = spawn(r, key);
   give_life(r, wep_e, { 0, 0 }, weapon_size);
