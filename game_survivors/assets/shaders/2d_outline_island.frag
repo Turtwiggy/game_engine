@@ -99,8 +99,8 @@ main()
   vec2 v_sprite_max = fs_in.v_sprite_max;
   int index = int(fs_in.v_tex_unit);
 
-  vec3 tex_col = texture2D(tex_to_outline, v_uv).rgb;
-  vec3 tex_heightmap_col = texture2D(tex_heightmap, v_uv).rgb;
+  vec3 tex_col = texture(tex_to_outline, v_uv).rgb;
+  vec3 tex_heightmap_col = texture(tex_heightmap, v_uv).rgb;
   // out_colour.rgb = tex_heightmap_col;
   out_colour.rgb = vec3(0.0f);
   out_colour.a = 1.0f;

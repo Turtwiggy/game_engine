@@ -33,7 +33,7 @@ main()
   vec2 v_uv = fs_in.v_uv;
   vec4 v_colour = fs_in.v_colour;
 
-  vec3 tex_col = texture2D(tex_island_triangles, v_uv).rgb;
+  vec3 tex_col = texture(tex_island_triangles, v_uv).rgb;
 
 	vec2 cam_uv = camera_pos + (v_uv * screen_wh);
   cam_uv /= screen_wh;
