@@ -3,6 +3,7 @@
 #include "system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "modules/core/renderer/components.hpp"
 
@@ -21,21 +22,12 @@ update_ui_collisions_system(entt::registry& r)
   if (!b2World_IsValid(physics.worldId))
     return;
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoInputs;
-
   const auto pos = glm::vec2{ 0, ri.viewport_size_render_at.y - (ImGui::GetFontSize() * 2.0f) }; // bl
   const auto offset = ImVec2{ 100, 0 };
 
   ImGui::SetNextWindowPos(ImVec2{ pos.x + offset.x, pos.y }, ImGuiCond_Always, { 0, 0 });
 
-  ImGui::Begin("Collisions", NULL, flags);
+  imgui_begin("Collisions", ImGuiWindowFlags_NoInputs);
 
   ImGui::SameLine();
   ImGui::Text("BodyCount(): %i ", b2World_GetAwakeBodyCount(physics.worldId));

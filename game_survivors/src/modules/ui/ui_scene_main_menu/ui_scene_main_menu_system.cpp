@@ -40,9 +40,9 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   // button idx
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
-  auto* font = get_inter_font(r, font_enum);
-  ImGui::PushFont(font);
+  const auto font_size = (float)FontSizes::SIZE_32 * font_scale;
+  auto* font = get_inter_font(r);
+  ImGui::PushFont(font, font_size);
 
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
@@ -63,11 +63,6 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   imgui_begin("MainMenu");
   const auto ui_tl = ImGui::GetCursorScreenPos();
   const auto ui_wh = ImGui::GetContentRegionAvail();
-
-#if defined(_DEBUG)
-  // auto* draw_list = ImGui::GetWindowDrawList();
-  // draw_list->AddRect(ui_tl, ui_tl + ui_wh, IM_COL32(255, 0, 0, 255));
-#endif
 
   process_input_for_ui_all_handles(r, ui_c.state);
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
@@ -93,6 +88,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         .cell = cell,
         .active_cell = ui_c.state.active,
         .font = font,
+        .font_size = font_size,
 
         .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       };
@@ -125,6 +121,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         .cell = cell,
         .active_cell = ui_c.state.active,
         .font = font,
+        .font_size = font_size,
 
         .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       };

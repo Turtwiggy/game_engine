@@ -19,6 +19,7 @@ update_ui_blur_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+
   std::string window_key = "blur";
 
   auto& ri_c = SINGLE_RendererInfo::instance;

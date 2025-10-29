@@ -21,14 +21,14 @@ update_ui_survive_objectives_system(entt::registry& r)
 #endif
 
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum_16 = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  auto* font_16 = get_inter_font(r, font_enum_16);
+  const auto font_size = (float)FontSizes::SIZE_16 * ui_scaling;
+  auto* font = get_inter_font(r);
+  ImGui::PushFont(font, font_size);
 
   const auto set_window_pos = ImVec2{ 0, 0 }; // top-left
   ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.0f, 0.0f });
 
   imgui_begin("SurviveSceneObjectives", ImGuiWindowFlags_NoInputs);
-  ImGui::PushFont(font_16);
 
   ImGui::SeparatorText("Earnings");
   {

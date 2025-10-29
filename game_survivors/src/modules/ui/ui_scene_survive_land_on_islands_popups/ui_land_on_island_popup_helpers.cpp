@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "resources/data.hpp"
 #include "ui_land_on_island_popup_helpers.hpp"
@@ -10,10 +11,11 @@ void
 draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, ImU32 border_col)
 {
   auto* draw_list = ImGui::GetWindowDrawList();
+  ImGui::PushFont(font, (float)FontSizes::SIZE_13);
 
   // add a background
   const float padding = 4;
-  const auto size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
+  const auto size = ImGui::CalcTextSize(text.c_str());
   const auto ss_pos_br = tl + size;
 
   const auto popup_tl = ImVec2{ tl.x - padding, tl.y - padding };
@@ -27,7 +29,6 @@ draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, I
 
   // add text
   ImGui::SetCursorScreenPos({ tl.x, tl.y });
-  ImGui::PushFont(font);
   ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), "%s", text.c_str());
   ImGui::PopFont();
 }

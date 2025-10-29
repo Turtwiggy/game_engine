@@ -483,13 +483,17 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   auto& ri = SINGLE_RendererInfo::instance;
   static const engine::SRGBColour black(0, 0, 0, 0);
 
-#if defined(_DEBUG)
-  CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
-#endif
+  // #if defined(_DEBUG)
+  //   CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
+  // #endif
 
   static float time = 0.0f;
-  time += dt;
+  {
+    ZoneScopedN("IncrementTime");
+    time += dt;
+  }
 
+  ri.viewport_size_current = { ImGui::GetMainViewport()->WorkSize.x, ImGui::GetMainViewport()->WorkSize.y };
   if (check_if_viewport_resize(ri))
     rebind(r, ri);
 
@@ -511,7 +515,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   // update ubo data
   {
 #if defined(_DEBUG)
-    ZoneScopedN("UpdateUBO");
+    ZoneScopedN("UpdateUBOData");
 #endif
     data.projection_zoomed = camera_c.projection_zoomed;
     data.view = camera_c.view;
@@ -565,9 +569,14 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   // Note: this updates the entire array.
   // We could update only the parts that change
-  glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  {
+#if defined(_DEBUG)
+    ZoneScopedN("UpdateUBO-OpenGLCalls");
+#endif
+    glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  }
 
   for (const auto& pass : ri.passes) {
     Framebuffer::bind_fbo(pass.fbos[0]);
@@ -581,6 +590,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   // Default: render_texture_to_imgui
   // Render the last renderpass texture to the final output
   {
+#if defined(_DEBUG)
+    ZoneScopedN("UpdateLastRenderPass");
+#endif
+
     // last stage, dont double the framebuffer
     const auto viewport_wh = ri.viewport_size_render_at;
 
@@ -608,7 +621,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    ZoneScopedN("DebugShowTextures");
+    ZoneScopedN("UpdateDebugTextures");
 
     auto& state_c = get_first_component<SINGLE_DebugMenuBar>(r);
     const bool show_debug_textures = gesert_menubar_state(state_c, "DebugTextures").enabled;

@@ -52,7 +52,8 @@ update_ui_survive_timer_system(entt::registry& r)
 
   // display a bar.
   const auto header_font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto header_font_enum = header_font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
+  const auto header_font_size = (float)FontSizes::SIZE_20 * header_font_scale;
+
   const auto my_fg_col = hex_to_srgb("#508FC8");
   const auto my_bg_col = hex_to_srgb("#293448", 100);
   const auto my_icon_col = hex_to_srgb("#FF0000", 200);
@@ -66,8 +67,8 @@ update_ui_survive_timer_system(entt::registry& r)
   // display time.
   const auto display = std::format("{:02}:{:02}", minutes, seconds);
   const auto padding = ImGui::GetStyle().WindowPadding;
-  auto* header_font = get_inter_font(r, header_font_enum);
-  ImGui::PushFont(header_font); // Use the larger font (index 1)
+  auto* font = get_inter_font(r);
+  ImGui::PushFont(font, header_font_size); // Use the larger font (index 1)
   const auto len = ImGui::CalcTextSize(display.c_str());
   ImGui::SetCursorPos({ 0.5f * (ui_wh.x - len.x), 0.5f * (ui_wh.y - len.y) });
   ImGui::Text("%s", display.c_str());

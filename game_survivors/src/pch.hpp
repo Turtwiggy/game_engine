@@ -4,6 +4,10 @@
 
 #include <cmath>
 
+#ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS 1
+#endif
+
 #include <algorithm>
 #include <chrono>
 #include <filesystem>

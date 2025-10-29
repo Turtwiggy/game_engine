@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
@@ -95,27 +96,16 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
   }
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_20 : FontSize::TEXT_SIZE_20_SCALED;
-  const auto header_font_size = (float)header_font_enum;
-  auto* header_font = get_inter_font(r, header_font_enum);
-  const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  const auto text_font_size = (float)text_font_enum;
-  auto* text_font = get_inter_font(r, text_font_enum);
-  const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
+  const auto header_text_size = (float)FontSizes::SIZE_20;
+  const auto body_text_size = (float)FontSizes::SIZE_16;
+  auto* font = get_inter_font(r);
+  const auto TEXT_SIZE = font->CalcTextSizeA(body_text_size, FLT_MAX, -1, "A");
 
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0, 0 });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 2.0f));
-
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoBackground;
 
   const auto& ri = SINGLE_RendererInfo::instance;
   const auto window_pos = ImVec2{ ri.viewport_size_render_at.x * 0.5f, ri.viewport_size_render_at.y * 0.5f };
@@ -124,7 +114,7 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
   const auto window_size = glm::vec2{ 300 * font_scale, 175 * font_scale };
   ImGui::SetNextWindowSize({ window_size.x, window_size.y }, ImGuiCond_Always);
 
-  ImGui::Begin("DisconnectedUI", NULL, flags);
+  imgui_begin("DisconnectedUI");
   {
     const auto ui_tl = ImGui::GetWindowPos();
     const auto ui_wh = ImGui::GetWindowSize();
@@ -145,9 +135,9 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     text_y += 4.0f; // add some padding
 
     const auto header = std::string("Controller Disconnected");
-    const auto header_size = header_font->CalcTextSizeA(header_font_size, FLT_MAX, -1, header.c_str());
+    const auto header_size = font->CalcTextSizeA(header_text_size, FLT_MAX, -1, header.c_str());
     const auto header_pos = ImVec2{ ui_tl.x + ui_wh.x * 0.5f - header_size.x * 0.5f, ui_tl.y + 4.0f };
-    draw_list->AddText(header_font, header_font_size, header_pos, IM_COL32(255, 255, 255, 255), header.c_str());
+    draw_list->AddText(font, header_text_size, header_pos, IM_COL32(255, 255, 255, 255), header.c_str());
 
     text_y += header_size.y;
     text_y += 10.0f; // add some padding
@@ -220,10 +210,10 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
         throw std::runtime_error("Unknown UI state");
 
       // player: 1
-      draw_list->AddText(text_font, text_font_size, text_l_pos, key_col, key.c_str());
+      draw_list->AddText(font, body_text_size, text_l_pos, key_col, key.c_str());
 
       // player: 1 controller state
-      draw_list->AddText(text_font, text_font_size, text_r_pos, col, val.c_str());
+      draw_list->AddText(font, body_text_size, text_r_pos, col, val.c_str());
 
       text_y += TEXT_SIZE.y;
     }
@@ -239,7 +229,8 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
       .input = do_act && button_active,
       .cell = ui_c.state.cells[0], // only one button (continue)
       .active_cell = ui_c.state.active,
-      .font = text_font,
+      .font = font,
+      .font_size = body_text_size,
     };
 
     const auto cursor_pos = ImVec2{

@@ -45,10 +45,6 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
       SDL_Log("%s", std::format("Could not initialize SDL JoyStick Subsystem: %s", SDL_GetError()).c_str());
   }
 
-  // Get SDL Window requirements from Renderer
-  const int x = SDL_WINDOWPOS_UNDEFINED;
-  const int y = SDL_WINDOWPOS_UNDEFINED;
-
   // OpenGL--------------------------------------
   // OpenGL 3.0: #version 130
   // OpenGL 3.1: #version 140
@@ -81,27 +77,26 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #endif
 
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 
   // SDL2 Create Window --------------------------------------
 
-  constexpr int tmp_h = 720;
-  constexpr int tmp_w = 1280;
+  // const float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
+  const int tmp_h = (int)(720);
+  const int tmp_w = (int)(1280);
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
   flags |= SDL_WINDOW_RESIZABLE;
   if (displaymode == DisplayMode::windowed_borderless)
     flags |= SDL_WINDOW_BORDERLESS;
-  // else if (displaymode == DisplayMode::fullscreen)
-  //   flags |= SDL_WINDOW_FULLSCREEN;
   else if (displaymode == DisplayMode::fullscreen_borderless)
     flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-  SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, tmp_w, tmp_h, flags);
+  SDL_Window* window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, tmp_w, tmp_h, flags);
   if (window == nullptr)
     SDL_Log("%s", std::format("Failed to create SDL2 window: {}", SDL_GetError()).c_str());
 

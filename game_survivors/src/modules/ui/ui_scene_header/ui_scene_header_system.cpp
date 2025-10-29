@@ -69,10 +69,11 @@ update_ui_scene_header_system(entt::registry& r)
   }
 
   const auto& ri_c = SINGLE_RendererInfo::instance;
-  // idx: 2&3 should be the fingerpaint header font
-  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  auto* font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 2 : 3];
-  const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, txt_c.text.c_str());
+
+  const auto font_size = (float)FontSizes::HEADER;
+  auto* fingerpaint_font = get_inter_font(r);
+
+  const auto text_size = fingerpaint_font->CalcTextSizeA(font_size, FLT_MAX, -1, txt_c.text.c_str());
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
   const auto zoom = camera_c.zoom_nonlinear;

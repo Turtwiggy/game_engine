@@ -34,11 +34,11 @@ update_ui_survive_xp_bar_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
-  auto* font = get_inter_font(r, font_enum);
+  const auto font_size = (float)FontSizes::SIZE_20 * font_scale;
+  auto* font = get_inter_font(r);
 
   const float bar_height = 8.0f * font_scale;
-  const float font_height = (float)font_enum;
+  const float font_height = (float)font_size;
   const float padding_y = 4;      // distance from bottom of screen
   const float bar_padding_x = 15; // each side of the screen
   const float total_height = bar_height + font_height;
@@ -68,7 +68,7 @@ update_ui_survive_xp_bar_system(entt::registry& r)
 
   // Draw some text for the level.
   const auto label = std::format("Lv {}", sxp_c.level);
-  draw_list->AddText(font, (float)font_enum, ui_tl, text_col, label.c_str());
+  draw_list->AddText(font, font_size, ui_tl, text_col, label.c_str());
   // draw_list->AddRectFilled(ui_tl, ui_tl + ui_wh, IM_COL32(255, 255, 255, 255));
 
   // start the xp bar below the text

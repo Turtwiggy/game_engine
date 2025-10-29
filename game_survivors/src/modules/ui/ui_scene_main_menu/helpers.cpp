@@ -168,10 +168,11 @@ draw_icon(entt::registry& r, std::string icon, float font_scale)
   ImGui::SetCursorPos(pos);
 
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "custom")->id;
-  const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
+  const ImTextureID im_id = (ImTextureID)(intptr_t)tex_id;
   const ImVec2 icon_size{ size * font_scale, size * font_scale };
   const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, icon);
-  ImGui::Image(im_id, icon_size, icon_tl, icon_br, im_greenish_vec, {});
+
+  ImGui::Image(im_id, icon_size, icon_tl, icon_br);
 };
 
 void
@@ -184,9 +185,9 @@ init_oh_buoy_header_text(entt::registry& r)
   WorldspaceTextComponent wst_c;
   wst_c.text = text;
   wst_c.layout = [](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
-    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-    auto* font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 2 : 3];
-    ImGui::PushFont(font);
+    const auto font_size = (float)FontSizes::HEADER;
+    auto* font = get_fingerpaint_font(r);
+    ImGui::PushFont(font, font_size);
 
     text_with_dropshadow(data.text, im_greenish_vec);
 

@@ -50,6 +50,7 @@ struct SelectableButtonDef
   glm::vec2 text_pivot{ 0.5f, 0.5f }; // 0.5, 0.5 = center
   ImVec2 text_offset{ 0, 0 };
   ImFont* font = nullptr;
+  const float font_size;
   float rounding = 6.0f;
   float thickness = 1.0f;
 

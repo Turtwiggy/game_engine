@@ -43,8 +43,9 @@ update_ui_combo_unlock_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  auto* font = get_inter_font(r, ui_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED);
-  ImGui::PushFont(font);
+  const auto font_scale = (float)FontSizes::SIZE_16;
+  auto* font = get_inter_font(r);
+  ImGui::PushFont(font, font_scale);
 
   const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)monochrome_tex_id;
@@ -66,14 +67,14 @@ update_ui_combo_unlock_system(entt::registry& r)
 
     // draw_popup(r, ss_pos_tl, "here!"s, font, im_window_border_col);
 
-    auto TEXT_SIZE = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, "A");
+    auto TEXT_SIZE = font->CalcTextSizeA(font_scale, FLT_MAX, -1, "A");
     const float first_y_pos = ss_pos_tl.y + 0.5f * size.y;
     // const float first_y_neg = ss_pos_tl.y - 0.5f * size.y;
     // draw_list->AddRect({ first_x, first_y_neg }, { first_x + size.x, first_y_neg + size.y }, IM_COL32(255, 0, 0, 255));
     // draw_list->AddRect(ss_pos_tl, { ss_pos_tl.x + size.x, ss_pos_tl.y + size.y }, IM_COL32(0, 255, 0, 255));
 
     const auto unlock_text = "Unlock";
-    const auto unlock_text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, unlock_text);
+    const auto unlock_text_size = font->CalcTextSizeA(font_scale, FLT_MAX, -1, unlock_text);
 
     const auto pad = 4.0f;
     const float icon_size = 16.0f;
@@ -98,7 +99,7 @@ update_ui_combo_unlock_system(entt::registry& r)
     // draw the text
     // draw_list->AddRect(text_pos_tl, text_pos_br, IM_COL32(100, 100, 100, 255));
     const auto text_pos_center = ImVec2{ text_pos_tl.x + 0.5f * (display_w - unlock_text_size.x), text_pos_tl.y };
-    draw_list->AddText(font, font->FontSize, text_pos_center, im_text_col, unlock_text);
+    draw_list->AddText(font, font_scale, text_pos_center, im_text_col, unlock_text);
 
     // draw the combo code.
     for (int i = 0; i < combo_c.unlock.size(); i++) {

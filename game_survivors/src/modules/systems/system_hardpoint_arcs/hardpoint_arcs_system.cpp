@@ -107,6 +107,7 @@ update_hardpoint_arcs_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
   const auto& ri = SINGLE_RendererInfo::instance;

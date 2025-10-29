@@ -60,15 +60,9 @@ update_quip_system(entt::registry& r, const float dt)
 
       const auto text_col = hex_to_srgb("#ffffff");
 
-      const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
-      auto* font = get_inter_font(r, font_enum);
-      ImGui::PushFont(font);
-
+      auto* font = get_inter_font(r);
       const std::string label = std::format("{}", req.message);
       draw_popup(r, ss_pos_tl, label, font, im_window_border_col);
-
-      ImGui::PopFont();
     };
 
     auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);

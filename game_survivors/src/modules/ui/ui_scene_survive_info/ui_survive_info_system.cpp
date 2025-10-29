@@ -4,6 +4,7 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "game_state.hpp"
@@ -37,16 +38,6 @@ update_ui_survive_info_system(entt::registry& r)
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const ImTextureID im_id = (ImTextureID)(void*)(intptr_t)tex_id;
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoInputs;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-
   ImVec2 tl{ 0.0f, 0.0f };
   ImVec2 br{ 1.0f, 1.0f };
   const ImVec2 icon_size{ 20, 20 };
@@ -55,7 +46,7 @@ update_ui_survive_info_system(entt::registry& r)
 
   ImGui::SetNextWindowPos({ 0, distance_from_top_of_screen }, ImGuiCond_Always, { 0.0f, 0.0f });
 
-  ImGui::Begin("health", NULL, flags);
+  imgui_begin("health", ImGuiWindowFlags_NoInputs);
 
   const auto& view = r.view<PlayerComponent, PlayerBoatComponent, DefaultColour>();
 

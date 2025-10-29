@@ -28,8 +28,9 @@ update_ui_fps_counter_system(entt::registry& r)
 #endif
 
   const auto& ri = SINGLE_RendererInfo::instance;
-  const auto pos = glm::vec2{ ri.viewport_size_render_at.x, 0 }; // tr
-  ImGui::SetNextWindowPos(ImVec2{ pos.x, pos.y }, ImGuiCond_Always, { 1, 0 });
+  const auto screen_size = ImVec2{ (float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y };
+  ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
+  ImGui::SetNextWindowSize(screen_size, ImGuiCond_Always);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
@@ -44,8 +45,12 @@ update_ui_fps_counter_system(entt::registry& r)
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
 
-  ImGui::Begin("FPS", NULL, flags);
-  ImGui::Text("%d FPS", (int)ImGui::GetIO().Framerate);
+  ImGui::Begin("overlay", NULL, flags);
+
+  const auto pos = glm::vec2{ ri.viewport_size_render_at.x, 0 }; // tr
+  ImGui::SetCursorScreenPos(ImVec2{ pos.x - 100, pos.y });
+  ImGui::Text("%0.2f FPS", ImGui::GetIO().Framerate);
+
   ImGui::End();
 
   ImGui::PopStyleVar();

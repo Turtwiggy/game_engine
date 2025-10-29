@@ -48,10 +48,8 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
   wst_c.layout = [text](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
     const auto text_col = hex_to_srgb("#ffffff");
 
-    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
-    auto* font = get_inter_font(r, font_enum);
-    ImGui::PushFont(font);
+    auto* font = get_inter_font(r);
+    ImGui::PushFont(font, (float)FontSizes::SIZE_12);
 
     const auto im_crit_col = ImVec4{
       text_col.r / 255.0f,
@@ -60,7 +58,7 @@ create_popup(entt::registry& r, glm::vec2 pos, std::string text)
       text_col.a / 255.0f,
     };
 
-    std::string label = std::format("{}", text);
+    const std::string label = std::format("{}", text);
 
     ImGui::TextColored(im_crit_col, "%s", label.c_str());
 

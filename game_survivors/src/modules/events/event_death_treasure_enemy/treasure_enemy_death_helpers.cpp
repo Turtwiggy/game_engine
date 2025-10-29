@@ -12,13 +12,29 @@ namespace game2d {
 
 enum class TreasureOption
 {
-  GOLD = 0,
-  HEALING_PACK,
+  // GOLD = 0,
+  HEALING_PACK = 0,
   SEA_MINE,
   VACUUM_ORB,
 
   count
 };
+
+constexpr std::array<std::pair<TreasureOption, int>, 5> treasure_chance_map = { {
+  { TreasureOption::HEALING_PACK, 25 },
+  { TreasureOption::SEA_MINE, 60 },
+  { TreasureOption::VACUUM_ORB, 15 },
+} };
+constexpr int
+sum_array_values()
+{
+  int sum = 0;
+  for (const auto& pair : treasure_chance_map)
+    sum += pair.second;
+  return sum;
+};
+// check the probabilities are mathing to 100%
+static_assert(sum_array_values() == 100);
 
 void
 handle_death_event__treasure_enemy(entt::registry& r, const DeathEvent& evt)
@@ -39,17 +55,28 @@ handle_death_event__treasure_enemy(entt::registry& r, const DeathEvent& evt)
 #endif
 
   // Spawn some treasure.
-  const auto treasure_idx = engine::rand_det_s(treasure_rnd.rng, 0, (int)TreasureOption::count);
-  const auto treasure_enum = magic_enum::enum_value<TreasureOption>(treasure_idx);
+  int cumulative = 0;
+  TreasureOption treasure = TreasureOption::SEA_MINE;
+  const auto roll = engine::rand_det_s(treasure_rnd.rng, 0, 100);
+  for (const auto& [t, val] : treasure_chance_map) {
+    if (roll < cumulative) {
+      treasure = t;
+      break;
+    }
+    cumulative += val;
+  }
+
+  const auto treasure_enum = treasure;
   const auto treasure_str = std::string(magic_enum::enum_name(treasure_enum));
   SDL_Log("Treasure enemy died! Spawning treasure %s", treasure_str.c_str());
 
   entt::entity item_e = entt::null;
 
-  if (treasure_enum == TreasureOption::GOLD)
-    create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_gold", get_position(r, dead_e) });
+  // Dropping gold feels back to pick up
+  // if (treasure_enum == TreasureOption::GOLD)
+  //   create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_gold", get_position(r, dead_e) });
 
-  else if (treasure_enum == TreasureOption::HEALING_PACK)
+  if (treasure_enum == TreasureOption::HEALING_PACK)
     create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_hp_pack", get_position(r, dead_e) });
 
   else if (treasure_enum == TreasureOption::SEA_MINE)

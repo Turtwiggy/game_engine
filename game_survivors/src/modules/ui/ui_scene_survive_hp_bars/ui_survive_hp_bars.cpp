@@ -55,9 +55,9 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)(monochrome_tex_id);
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
-  const auto font_size = (float)font_enum;
-  auto* font = get_inter_font(r, font_enum);
+  const auto font_size = (float)FontSizes::SIZE_13 * font_scale;
+  auto* font = get_inter_font(r);
+  ImGui::PushFont(font, font_size);
 
   const float hp_bar_height = font_size;
   const float hp_bar_width = 200.0f * font_scale;
@@ -240,6 +240,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 
   ImGui::End();
   ImGui::PopStyleVar(4);
+  ImGui::PopFont();
 }
 
 } // namespace game2d

@@ -53,14 +53,9 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
     return;
   }
 
-  const auto font_enum = FontSize::TEXT_SIZE_16;
-  const auto font_size = (float)font_enum;
-  auto* font = get_inter_font(r, font_enum);
-  ImGui::PushFont(font);
-
-  // idx: 3 should be fingerpaint, idx: 4 should be fingerpaint scaled.
-  const auto header_font_enum = FontSize::TEXT_SIZE_16;
-  auto* header_font = get_inter_font(r, header_font_enum);
+  const auto font_size = (float)FontSizes::SIZE_16;
+  auto* font = get_inter_font(r);
+  ImGui::PushFont(font, font_size);
 
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 6 });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 3, 6 });
@@ -90,7 +85,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
   const float padding_x = 10;
 
   const auto h_txt = "- GENERAL -";
-  const auto h_pos = center_text(font, h_txt, { window_wh.x * 0.5f, 0 });
+  const auto h_pos = center_text(font, font_size, h_txt, { window_wh.x * 0.5f, 0 });
   ImGui::SetCursorPosX(h_pos.x);
   ImGui::TextColored(white_col, h_txt);
 
@@ -109,6 +104,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
       .text_pivot = { 0.0f, 0.0f },
       .text_offset = { padding_x, 0 },
       .font = font,
+      .font_size = font_size,
 
       // hide the buttons
       .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },

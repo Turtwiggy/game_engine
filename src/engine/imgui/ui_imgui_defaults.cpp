@@ -15,6 +15,7 @@ imgui_begin(std::string label, ImGuiWindowFlags extra_flags)
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
   flags |= ImGuiWindowFlags_NoSavedSettings;
   flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
 
   ImGui::Begin(label.c_str(), NULL, flags);
 }

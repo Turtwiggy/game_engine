@@ -124,9 +124,9 @@ update_countdown_ui(entt::registry& r, const SINGLE_SelectSceneData& data_c)
   ImGuiIO& io = ImGui::GetIO();
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::HEADER : FontSize::HEADER_SCALED;
-  auto* font = get_inter_font(r, font_enum);
-  ImGui::PushFont(font);
+  const auto font_size = (float)FontSizes::HEADER * font_scale;
+  auto* font = get_inter_font(r);
+  ImGui::PushFont(font, font_size);
   ImGui::Begin("Countdown", NULL, countdown_flags);
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();

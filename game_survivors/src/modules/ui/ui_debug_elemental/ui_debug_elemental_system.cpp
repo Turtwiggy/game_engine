@@ -24,7 +24,6 @@ update_ui_debug_elemental_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoBackground;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoInputs;
   flags |= ImGuiWindowFlags_NoSavedSettings;
 

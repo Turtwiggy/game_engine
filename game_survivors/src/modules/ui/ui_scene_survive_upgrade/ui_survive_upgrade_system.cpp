@@ -5,20 +5,13 @@
 #include "ui_survive_upgrade_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
-#include "engine/maths/maths.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "engine/std/string/helpers.hpp"
 #include "engine/std/vector/helpers.hpp"
-#include "modules/actors/actor_boat/boat_components.hpp"
-#include "modules/actors/actor_player/actor_player_helpers.hpp"
-#include "modules/actors/actor_player/components.hpp"
-#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
-#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
@@ -31,10 +24,8 @@
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
-#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
-#include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
@@ -45,7 +36,6 @@
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
-#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_helpers.hpp"
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
@@ -96,7 +86,8 @@ draw_upgrade_selections_in_grid(entt::registry& r,
                                 const int player_idx,
                                 const bool do_act,
                                 const float dt,
-                                ImFont* font)
+                                ImFont* font,
+                                const float font_size)
 {
   const auto& upg_name_c = get_first_component<SINGLE_UpgradeToName>(r);
   auto* draw_list = ImGui::GetWindowDrawList();
@@ -162,13 +153,13 @@ draw_upgrade_selections_in_grid(entt::registry& r,
     // draw selected stat header
     if (selected) {
       const auto py = 4.0f;
-      const auto text_wh = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, header_text.c_str());
+      const auto text_wh = font->CalcTextSizeA(font_size, FLT_MAX, -1, header_text.c_str());
       const auto text_tl = ImVec2{ selection_tl.x + 0.5f * (selection_wh.x - text_wh.x), selection_tl.y + py };
-      const auto text_next_wh = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, rarity_str.c_str());
+      const auto text_next_wh = font->CalcTextSizeA(font_size, FLT_MAX, -1, rarity_str.c_str());
       const auto text_next_tl =
         ImVec2{ selection_tl.x + 0.5f * (selection_wh.x - text_next_wh.x), text_tl.y + text_wh.y + py };
 
-      ImGui::PushFont(font);
+      ImGui::PushFont(font, font_size);
       draw_list->AddText(text_tl, im_text_col, header_text.c_str());
       draw_list->AddText(text_next_tl, im_rcol, rarity_str.c_str());
       ImGui::PopFont();
@@ -182,6 +173,9 @@ draw_upgrade_selections_in_grid(entt::registry& r,
       .input = do_act,
       .cell = state_c.cells[i],
       .active_cell = state_c.active,
+
+      .font = font,
+      .font_size = font_size,
 
       // hide the buttons (display handled elsewhere)
       .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
@@ -211,14 +205,14 @@ draw_upgrade_selections_in_grid(entt::registry& r,
       draw_list->AddRect(box_tl, box_br, im_white);
 
     // add text "A", "B", "C"
-    const auto TEXT_SIZE = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, "A");
+    const auto TEXT_SIZE = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
     const auto text_pos = box_tl + ImVec2{ 0.5f, 0.5f } * (box_wh - TEXT_SIZE);
     if (i == 0)
-      draw_list->AddText(font, font->FontSize, text_pos, im_text_col, "A");
+      draw_list->AddText(font, font_size, text_pos, im_text_col, "A");
     else if (i == 1)
-      draw_list->AddText(font, font->FontSize, text_pos, im_text_col, "B");
+      draw_list->AddText(font, font_size, text_pos, im_text_col, "B");
     else if (i == 2)
-      draw_list->AddText(font, font->FontSize, text_pos, im_text_col, "C");
+      draw_list->AddText(font, font_size, text_pos, im_text_col, "C");
 
     // draw a pointer to the active selection
     if (selected) {
@@ -237,7 +231,8 @@ draw_stats(entt::registry& r,
            entt::entity player_e,
            const UIState& state_c,
            const UpgradeResultsComponent* upgrades_c,
-           ImFont* font)
+           ImFont* font,
+           const float font_size)
 {
   auto* draw_list = ImGui::GetWindowDrawList();
   const auto& ri_c = SINGLE_RendererInfo::instance;
@@ -261,7 +256,7 @@ draw_stats(entt::registry& r,
   const auto& upg_weapons = result.weapons;
   const auto weapons_e = get_weapons(r, player_e);
 
-  auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, "A");
+  auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
 
   float start_y = stats_tl.y + 5.0f; // add Xpx worth of padding
   const auto key_x = stats_tl.x + icon_size.x + 5.0f;
@@ -528,7 +523,8 @@ draw_confirm_bar(entt::registry& r,
                  ImVec2 br,
                  const int player_idx,
                  const CardUIUpgradeComponent& card_ui_c,
-                 ImFont* font)
+                 ImFont* font,
+                 const float font_size)
 {
   auto* draw_list = ImGui::GetWindowDrawList();
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
@@ -569,7 +565,7 @@ draw_confirm_bar(entt::registry& r,
   const auto center_pos = ImVec2{ purchasebar_tl.x + purchasebar_wh.x * 0.5f, purchasebar_tl.y + purchasebar_wh.y * 0.5f };
   const auto handle = steam_ui_c.handles[player_idx];
   const auto ready_text = std::format("Hold {} to select", get_confirm_button_str(r, handle));
-  const auto ready_text_pos = center_text(font, ready_text, center_pos);
+  const auto ready_text_pos = center_text(font, font_size, ready_text, center_pos);
   ImGui::SetCursorPos(ready_text_pos);
   ImGui::Text("%s", ready_text.c_str());
 };
@@ -620,7 +616,6 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
       ImGuiWindowFlags flags = 0;
       flags |= ImGuiWindowFlags_NoDecoration;
-      flags |= ImGuiWindowFlags_NoDocking;
       flags |= ImGuiWindowFlags_NoMove;
       flags |= ImGuiWindowFlags_NoSavedSettings;
 
@@ -675,18 +670,15 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     return;
   ui_c.open = true;
 
-  const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const float upg_header_height = 75.0f * ui_scale;
-  // const auto header_pad = 4 * ui_scale;
-  // const auto header_y_size = 30 * ui_scale;
-  const auto line_size = 40.0f * ui_scale;
-
+  const float upg_header_height = 75.0f;
+  const float line_size = 40.0f;
   const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
   const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
 
-  // idx: 4 should be fingerpaint, idx: 5 should be fingerpaint scaled.
-  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[ui_scale == 1.0f ? 4 : 5];
-  auto* font = get_inter_font(r, ui_scale == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED);
+  auto* head_f = get_fingerpaint_font(r);
+  auto* font = get_inter_font(r);
+  auto font_size = (float)FontSizes::SIZE_13;
+  auto head_f_font_size = (float)FontSizes::HEADER;
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const float window_x_size = ri_c.viewport_size_render_at.x;
@@ -773,7 +765,6 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
       }
     }
 
-    auto* head_f = fingerpaint_font;
     auto* f = font; // body font
     const auto im_player_col = default_player_colours_im[player_idx];
 
@@ -791,7 +782,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     // work out the selection box tl & br
     const auto stats_y = upg_header_height + 60.0f;
     const auto padding_x = 10.0f;
-    const auto selection_tl = ImVec2{ clamped_tl.x + padding_x, clamped_tl.y + head_f->FontSize + 50.0f };
+    const auto selection_tl = ImVec2{ clamped_tl.x + padding_x, clamped_tl.y + head_f_font_size + 50.0f };
     const auto selection_br = ImVec2{ clamped_tl.x + clamped_wh.x - padding_x, clamped_tl.y + stats_y + 50.0f };
 
     // work out the stats box tl & br
@@ -804,12 +795,12 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
     // add upgrade header for column
     const auto upg_text = "Choose your Upgrade";
-    const auto upg_pos = ImVec2{ clamped_tl.x + 0.5f * clamped_wh.x, selection_tl.y - head_f->FontSize }; // top center
-    const auto upg_center = center_text(head_f, upg_text, upg_pos, { 0.5f, 0.0f });
-    draw_list->AddText(head_f, head_f->FontSize, upg_center, im_player_col, upg_text);
+    const auto upg_pos = ImVec2{ clamped_tl.x + 0.5f * clamped_wh.x, selection_tl.y - head_f_font_size }; // top center
+    const auto upg_center = center_text(head_f, head_f_font_size, upg_text, upg_pos, { 0.5f, 0.0f });
+    draw_list->AddText(head_f, head_f_font_size, upg_center, im_player_col, upg_text);
 
     // some separator lines
-    const auto s_y = upg_pos.y + 0.5f * head_f->FontSize;
+    const auto s_y = upg_pos.y + 0.5f * head_f_font_size;
     const auto l0_p1 = ImVec2{ selection_tl.x, s_y };
     const auto l0_p2 = ImVec2{ selection_tl.x + line_size, s_y };
     draw_list->AddLine(l0_p1, l0_p2, im_player_col);
@@ -819,7 +810,8 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
     // Draw the upgrades in a grid
     // draw_list->AddRect(selection_tl, selection_br, im_player_col);
-    draw_upgrade_selections_in_grid(r, selection_tl, selection_br, state_c, ui_c, upgrades_c, player_idx, do_act, dt, font);
+    draw_upgrade_selections_in_grid(
+      r, selection_tl, selection_br, state_c, ui_c, upgrades_c, player_idx, do_act, dt, font, font_size);
 
     if (do_act) {
       ui_move_horizontally();
@@ -828,13 +820,13 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     }
 
     // draw the confirm bar#
-    ImGui::PushFont(font);
-    draw_confirm_bar(r, selection_tl, selection_br, player_idx, card_ui_c, font);
+    ImGui::PushFont(font, font_size);
+    draw_confirm_bar(r, selection_tl, selection_br, player_idx, card_ui_c, font, font_size);
     ImGui::PopFont();
 
     // Draw the stats
     // draw_list->AddRect(stats_tl, stats_br, im_player_col);
-    draw_stats(r, stats_tl, stats_br, player_e, state_c, upgrades_c, font);
+    draw_stats(r, stats_tl, stats_br, player_e, state_c, upgrades_c, font, font_size);
 
     ui_move_horizontally();
     ImGui::PopID();

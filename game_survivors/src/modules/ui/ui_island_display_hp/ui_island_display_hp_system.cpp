@@ -52,7 +52,9 @@ update_ui_island_display_hp_system(entt::registry& r)
   const auto tl = ImGui::GetWindowPos();
   const auto wh = ImGui::GetWindowSize();
   auto* draw_list = ImGui::GetWindowDrawList();
-  auto* font = get_inter_font(r, FontSize::TEXT_SIZE_16);
+
+  const auto font_size = (float)FontSizes::SIZE_16;
+  auto* font = get_inter_font(r);
 
   const auto view = r.view<MovementIslandComponent, HealthComponent, TransformComponent>();
   for (const auto& [e, movement_c, hp_c, t_c] : view.each()) {
@@ -73,10 +75,10 @@ update_ui_island_display_hp_system(entt::registry& r)
     const auto ss_pos = worldspace_to_screenspace(r, ws_pos);
     const auto im_ss_pos = ImVec2(ss_pos.x, ss_pos.y);
     const auto text = std::format("{}", hp_c.hp, hp_c.max_hp);
-    const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
+    const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1, text.c_str());
 
-    const auto text_pos = center_text(font, text, im_ss_pos);
-    draw_list->AddText(font, font->FontSize, text_pos, im_hp_col, text.c_str());
+    const auto text_pos = center_text(font, font_size, text, im_ss_pos);
+    draw_list->AddText(font, font_size, text_pos, im_hp_col, text.c_str());
 
     // const auto& ri_c = SINGLE_RendererInfo::instance;
     // const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;

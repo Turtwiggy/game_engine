@@ -93,10 +93,9 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
-  const auto font_enum_16 = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  const auto font_enum_20 = ui_scaling == 1.0f ? FontSize::TEXT_SIZE_20 : FontSize::TEXT_SIZE_20_SCALED;
-  auto* font_16 = get_inter_font(r, font_enum_16);
-  auto* font_20 = get_inter_font(r, font_enum_20);
+  auto* font = get_inter_font(r);
+  const auto font_size_16 = (float)FontSizes::SIZE_16 * ui_scaling;
+  const auto font_size_20 = (float)FontSizes::SIZE_20 * ui_scaling;
 
   imgui_begin("SurviveSceneOnboarding", ImGuiWindowFlags_NoInputs);
   const auto window_tl = ImGui::GetWindowPos();
@@ -115,13 +114,13 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col_transparent, 6);
   draw_list->AddRect(window_tl, window_br, im_col, 6, ImDrawFlags_RoundCornersAll, 1.5f);
 
-  ImGui::PushFont(font_20);
+  ImGui::PushFont(font, font_size_20);
   ImGui::SeparatorText("Movement");
   ImGui::PopFont();
 
   // note: could improve this by using proper controller display
   // clang-format off
-  ImGui::PushFont(font_16);
+  ImGui::PushFont(font, font_size_16);
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Left analogue; move your boat.");
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Right analogue; aim your guns (optional; guns auto-aim)");
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" DPAD: move on land.");
@@ -129,21 +128,21 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" RB: Knockback");
   ImGui::PopFont();
 
-  ImGui::PushFont(font_20);
+  ImGui::PushFont(font, font_size_20);
   ImGui::SeparatorText("Islands");
   ImGui::PopFont();
 
-  ImGui::PushFont(font_16);
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Leave island: use button(east) or leave (via DPAD).");
+  ImGui::PushFont(font, font_size_16);
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Enter island: collide with your boat.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Leave island: use button(east) or via DPAD movement.");
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Capture islands (by clearing enemies) to place lighthouse.");
   ImGui::PopFont();
 
-  ImGui::PushFont(font_20);
+  ImGui::PushFont(font, font_size_20);
   ImGui::SeparatorText("Gameplay");
   ImGui::PopFont();
 
-  ImGui::PushFont(font_16);
+  ImGui::PushFont(font, font_size_16);
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Collect XP to level up and choose upgrades.");
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Survive for 10 minutes.");
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Good Luck!");
@@ -177,7 +176,7 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
 
     const float y_offset = 6.0f;
     const float x_pad = 10.0f;
-    const float bar_height = font_20->FontSize + 4.0f;
+    const float bar_height = font_size_20 + 4.0f;
     const float bar_rounding = 0.0f;
 
     const auto confirm_wh = ImVec2{ player_wh.x, bar_height };
@@ -241,11 +240,11 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
       draw_list->AddImage(im_id, icon_pos, icon_pos + icon_size, icon_tl, icon_br);
     }
 
-    const auto ready_text_size = font_16->CalcTextSizeA(font_16->FontSize, FLT_MAX, -1, ready_text.c_str());
+    const auto ready_text_size = font->CalcTextSizeA(font_size_16, FLT_MAX, -1, ready_text.c_str());
     auto text_pos = ImVec2{ confirm_tl.x + padding_x, confirm_tl.y + padding_y };
     text_pos.x += 0.5f * (bar_wh.x - ready_text_size.x);
-    // draw_list->AddText(font_16, font_16->FontSize, text_pos, im_player_col_active, ready_text.c_str());
-    draw_list->AddText(font_16, font_16->FontSize, text_pos, im_text_col, ready_text.c_str());
+    // draw_list->AddText(font, font_16->FontSize, text_pos, im_player_col_active, ready_text.c_str());
+    draw_list->AddText(font, font_size_16, text_pos, im_text_col, ready_text.c_str());
 
     // move horizontally
     first_tl_x += player_wh.x;

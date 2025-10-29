@@ -286,10 +286,10 @@ draw_player_ui_box(entt::registry& r,
   draw_list->AddRectFilled(tl, p_max, im_bg_col, 2);
 
   const auto add_bottom_left_text = [&](std::string text_str) -> void {
-    const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
-    auto* font = get_inter_font(r, font_enum);
-    ImGui::PushFont(font);
+    // const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
+    const auto font_size = (float)FontSizes::SIZE_12;
+    auto* font = get_inter_font(r);
+    ImGui::PushFont(font, font_size);
 
     const auto text_str_len = ImGui::CalcTextSize(text_str.c_str());
     const auto text_size = ImGui::CalcTextSize(text_str.c_str());
@@ -326,8 +326,9 @@ draw_player_ui_box(entt::registry& r,
     const auto text_col = IM_COL32(0, 0, 0, alpha_int);
 
     const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-    const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_LARGE : FontSize::TEXT_LARGE_SCALED;
-    ImGui::PushFont(get_inter_font(r, font_enum));
+    const auto font_size = (float)FontSizes::SIZE_20 * font_scale;
+    auto* font = get_inter_font(r);
+    ImGui::PushFont(font, font_size);
 
     {
       const std::string text = "G";
@@ -402,8 +403,9 @@ draw_player_ui_box(entt::registry& r,
       const auto pos = ImVec2(mask_br.x, mask_tl.y + bob_val);
 
       const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-      const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-      ImGui::PushFont(get_inter_font(r, font_enum));
+      const auto font_size = (float)FontSizes::SIZE_16 * font_scale;
+      auto* font = get_inter_font(r);
+      ImGui::PushFont(font, font_size);
 
       const auto text_wh = ImGui::CalcTextSize(text.c_str());
       const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };

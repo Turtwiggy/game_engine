@@ -153,7 +153,8 @@ update_ui_label_system(entt::registry& r)
   const auto tl = ImGui::GetWindowPos();
   const auto wh = ImGui::GetWindowSize();
   auto* draw_list = ImGui::GetWindowDrawList();
-  auto* font = get_inter_font(r, FontSize::TEXT_SIZE_16);
+  auto font_size = (float)FontSizes::SIZE_16;
+  auto* font = get_inter_font(r);
 
   const auto tilesize = SINGLE_Islands::instance.tilesize;
 
@@ -190,7 +191,7 @@ update_ui_label_system(entt::registry& r)
       offset = ImVec2(-1, 1);
 
     // point p1 off the island
-    const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
+    const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1, text.c_str());
     const auto p0 = im_ss_pos;
     const auto p1 = im_ss_pos + offset * ImVec2(16, 16);
     const auto p2 = p1 + ImVec2(offset.x * text_size.x, 0);
@@ -204,7 +205,7 @@ update_ui_label_system(entt::registry& r)
 
     // const auto text_pos = ImVec2{ glm::min(p1.x, p2.x), p1.y } + ImVec2(0, +text_size.y * 0.5f);
     const auto text_pos = ImVec2{ glm::min(p1.x, p2.x), p1.y };
-    draw_list->AddText(font, font->FontSize, text_pos, col, text.c_str());
+    draw_list->AddText(font, font_size, text_pos, col, text.c_str());
   }
 
   ImGui::End();

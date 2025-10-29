@@ -62,6 +62,9 @@ ImGui_Manager::initialize(GameWindow& window)
     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
   }
 
+  style.ScaleAllSizes(1.0f);
+  style.FontScaleDpi = 1.0f;
+
   style.PopupBorderSize = 0;
   style.WindowBorderSize = 0;
   style.ChildBorderSize = 0;
@@ -171,20 +174,22 @@ ImGui_Manager::end_frame(const GameWindow& window)
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2(static_cast<float>(window_size.x), static_cast<float>(window_size.y));
 
-  // Rendering
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  {
+    ZoneScopedN("ImGui::EndFrame()");
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-  // Update and Render additional Platform Windows
-  // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this
-  // code elsewhere.
-  //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-    SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-    SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-    ImGui::UpdatePlatformWindows();
-    ImGui::RenderPlatformWindowsDefault();
-    SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+    // Update and Render additional Platform Windows
+    // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this
+    // code elsewhere.
+    //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+      SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+      SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+      ImGui::UpdatePlatformWindows();
+      ImGui::RenderPlatformWindowsDefault();
+      SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+    }
   }
 }
 

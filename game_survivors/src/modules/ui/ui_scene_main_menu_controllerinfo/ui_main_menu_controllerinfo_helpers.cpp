@@ -81,10 +81,10 @@ void
 add_text_centered(entt::registry& r, ImDrawList* draw_list, const std::string text, const ImVec2 pos, const int alpha)
 {
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SMALL : FontSize::TEXT_SMALL_SCALED;
-  auto* font = get_inter_font(r, font_enum);
+  const auto font_size = (float)FontSizes::SIZE_12 * font_scale;
+  auto* font = get_inter_font(r);
 
-  ImGui::PushFont(font);
+  ImGui::PushFont(font, font_size);
   const auto text_wh = ImGui::CalcTextSize(text.c_str());
   const auto text_pos = pos - ImVec2{ 0.5f * text_wh.x, 0.5f * text_wh.y };
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, alpha), text.c_str());

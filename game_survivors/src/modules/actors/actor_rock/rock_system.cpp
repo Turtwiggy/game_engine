@@ -402,10 +402,9 @@ update_actor_rocks_system(entt::registry& r, glm::vec2 mouse_pos, const float dt
     const auto view = r.view<TransformComponent>(entt::exclude<Persistent>);
     for (const auto& [e, t_c] : view.each())
       r.destroy(e);
-#endif
-
     create_empty<RequestGenerateRocks>(r);
   }
+#endif
 
   /*
 static float im_red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -429,7 +428,7 @@ im_lerp[3] = lerped.a / 255.0f;
 ImGui::ColorEdit4("mixed_col", im_lerp);
 */
 
-  process_requests<RequestGenerateRocks>(r, [&](const auto& req) {
+  auto callback = [&r](const auto& req) {
     SDL_Log("Request to generate rocks...");
 
     // clear the id <=> eid map
@@ -443,7 +442,8 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
     hide_non_base_islands(r);
     create_above_island_sprites(r);
     create_shore_triangles(r);
-  });
+  };
+  process_requests<RequestGenerateRocks>(r, callback);
 
   // int j = 0;
   // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);

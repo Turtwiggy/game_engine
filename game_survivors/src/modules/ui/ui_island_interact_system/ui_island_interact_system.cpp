@@ -53,11 +53,11 @@ update_ui_island_interact_system(entt::registry& r, const float dt)
   auto* draw_list = ImGui::GetWindowDrawList();
 
   // For the moment, just have one button in the middle/center of the screen.
-  auto* font = get_inter_font(r, FontSize::TEXT_SIZE_16);
+  auto font_size = (float)FontSizes::SIZE_16;
+  auto* font = get_inter_font(r);
 
   const auto view = r.view<TransformComponent, InteractableComponent>();
   for (const auto& [e, t_c, i_c] : view.each()) {
-
     auto ws_pos = glm::vec2{ t_c.position.x, t_c.position.y };
 
     // static float timer = 0.0f;
@@ -71,9 +71,9 @@ update_ui_island_interact_system(entt::registry& r, const float dt)
     const auto ss_pos = worldspace_to_screenspace(r, ws_pos);
     const auto im_ss_pos = ImVec2(ss_pos.x, ss_pos.y);
     const auto text = std::string{ "HOLD" };
-    const auto text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
+    const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1, text.c_str());
 
-    const auto text_pos = center_text(font, text, im_ss_pos);
+    const auto text_pos = center_text(font, font_size, text, im_ss_pos);
     const auto text_wh = calc_wh(text_pos, text_pos + text_size);
     const auto p_tl = text_pos;
     const auto p_br = text_pos + text_wh;
@@ -97,7 +97,7 @@ update_ui_island_interact_system(entt::registry& r, const float dt)
     draw_list->AddRect(pad_tl, pad_br, IM_COL32(255, 255, 255, 255), rounding, ImDrawFlags_RoundCornersAll, thickness);
 
     // text
-    draw_list->AddText(font, font->FontSize, text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
+    draw_list->AddText(font, font_size, text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
 
     // inner-border
     const auto inner_pad_br_percent = inner_pad_tl + ImVec2{ inner_pad_wh.x * percent, inner_pad_wh.y };

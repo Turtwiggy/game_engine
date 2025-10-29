@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
@@ -65,14 +66,6 @@ update_ui_back_button_system(entt::registry& r)
   if (!something_open)
     return;
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
@@ -80,17 +73,16 @@ update_ui_back_button_system(entt::registry& r)
 
   const auto button_size = ImVec2{ 120, 30 };
 
-  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  const auto text_font_size = (float)text_font_enum;
-  auto* text_font = get_inter_font(r, text_font_enum);
+  const auto font_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
+  const auto font_scale = (float)FontSizes::SIZE_16;
+  auto* font = get_inter_font(r);
 
   ImGui::SetNextWindowPos({ (float)ri_c.viewport_size_render_at.x - 10, (float)ri_c.viewport_size_render_at.y - 10 },
                           ImGuiCond_Always,
                           { 1.0f, 1.0f });
   ImGui::SetNextWindowSize({ button_size.x + 10, button_size.y + 10 }, ImGuiCond_Appearing);
 
-  ImGui::Begin("BACK", 0, flags);
+  imgui_begin("BACK");
 
   auto& cell = ui_c.state.cells[0];
 
@@ -101,7 +93,8 @@ update_ui_back_button_system(entt::registry& r)
     .cell = cell,
     .active_cell = ui_c.state.active,
     .update_selected_only_with_mouse = true,
-    .font = text_font,
+    .font = font,
+    .font_size = font_scale,
 
     // hide the buttons
     .active_outline_col = { 1.0f, 1.0f, 1.0f, 0.4f },

@@ -6,12 +6,18 @@ namespace game2d {
 
 // https://github.com/ocornut/imgui/issues/8465
 
-static std::unordered_map<FontSize, ImFont*> loaded_fonts;
+ImFont*
+get_fingerpaint_font(entt::registry& r)
+{
+  auto* font = ImGui::GetIO().Fonts->Fonts[2];
+  return font;
+};
 
 ImFont*
-get_inter_font(entt::registry& r, const FontSize size)
+get_inter_font(entt::registry& r)
 {
-  return loaded_fonts[size];
+  auto* font = ImGui::GetIO().Fonts->Fonts[3];
+  return font;
 };
 
 void
@@ -25,22 +31,11 @@ init_fonts_system()
   // idx: 1
   io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf", 32.0f);
 
-  // idx: 2 & 3
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f);
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 100.0f * 1.5);
+  // idx: 2
+  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 16.0f);
 
-  // idx: 4 & 5 upgrade menu header
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f);
-  io.Fonts->AddFontFromFileTTF("assets/fonts/FingerPaint-Regular.ttf", 20.0f * scale_size);
-
-  const int count = magic_enum::enum_count<FontSize>();
-  for (int i = 0; i < count; i++) {
-    const FontSize size_enum = magic_enum::enum_value<FontSize>(i);
-    const auto size = (int)size_enum;
-
-    auto* font = io.Fonts->AddFontFromFileTTF("assets/fonts/Inter-VariableFont.ttf", (float)size);
-    loaded_fonts[size_enum] = font;
-  }
+  // idx: 3
+  io.Fonts->AddFontFromFileTTF("assets/fonts/Inter-VariableFont.ttf", 16.0f);
 }
 
 ImVec2
@@ -56,9 +51,9 @@ calc_wh(const ImVec2 tl, const ImVec2 br)
 };
 
 ImVec2
-center_text(ImFont* font, const std::string& text, const ImVec2& pos, const ImVec2 pivot)
+center_text(ImFont* font, float font_size, const std::string& text, const ImVec2& pos, const ImVec2 pivot)
 {
-  const auto size = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1, text.c_str());
+  const auto size = font->CalcTextSizeA(font_size, FLT_MAX, -1, text.c_str());
   return pos - ImVec2{ size.x * pivot.x, size.y * pivot.y };
 };
 

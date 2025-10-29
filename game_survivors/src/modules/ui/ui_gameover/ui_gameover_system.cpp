@@ -90,20 +90,20 @@ update_ui_gameover_system(entt::registry& r)
   const auto ui_tl = ImGui::GetCursorPos();
   const auto ui_wh = ImGui::GetContentRegionAvail();
 
-  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 2 : 3];
-  const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  const auto font_size = (float)font_enum;
-  auto* text_font = get_inter_font(r, font_enum);
+  const auto text_font_size = (float)FontSizes::SIZE_16;
+  const auto fingerpaint_font_size = (float)FontSizes::HEADER;
+  auto* text_font = get_inter_font(r);
+  auto* fingerpaint_font = get_fingerpaint_font(r);
 
   if (ui_c.request->win_condition) {
-    ImGui::PushFont(fingerpaint_font);
+    ImGui::PushFont(fingerpaint_font, fingerpaint_font_size);
     ImGui::TextColored(im_w_col, "%s", std::format("{}", header_win).c_str());
     ImGui::PopFont();
 
     ImGui::Text("With some luck, you did it!");
   }
   if (!ui_c.request->win_condition) {
-    ImGui::PushFont(fingerpaint_font);
+    ImGui::PushFont(fingerpaint_font, fingerpaint_font_size);
     ImGui::TextColored(im_l_col, "%s", std::format("{}", header_loss).c_str());
     ImGui::PopFont();
 
@@ -124,6 +124,7 @@ update_ui_gameover_system(entt::registry& r)
     .cell = ui_c.state.cells[0], // only one button (continue)
     .active_cell = ui_c.state.active,
     .font = text_font,
+    .font_size = text_font_size,
   };
 
   ImGui::NewLine();

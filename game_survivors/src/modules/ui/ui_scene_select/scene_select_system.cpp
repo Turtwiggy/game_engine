@@ -39,17 +39,14 @@ struct TextDesc
   ImVec2 non_centered_pos{ 0, 0 };
   ImU32 col = 0;
   float wrap_width = -1;
-  FontSize font_size = FontSize::TEXT_SIZE_16;
-  // FontSize font_size_scaled = FontSize::TEXT_SIZE_16;
+  float font_size = 16.0f;
 };
 
 void
 add_text_centered_here(entt::registry& r, ImDrawList* draw_list, const TextDesc& desc, ImVec2* out_pos = nullptr)
 {
-  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_enum = font_scale == 1.0f ? desc.font_size : desc.font_size;
-  const auto font_size = (float)font_enum;
-  auto* font = get_inter_font(r, font_enum);
+  auto* font = get_inter_font(r);
+  const auto font_size = desc.font_size;
 
   const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, desc.wrap_width, desc.text.c_str());
   const auto text_pos = desc.non_centered_pos - ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
@@ -192,7 +189,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       .non_centered_pos = head_pos,
       .col = IM_COL32(255, 255, 255, 255),
       .wrap_width = -1,
-      .font_size = FontSize::TEXT_SIZE_16,
+      .font_size = (float)FontSizes::SIZE_16,
     };
     ImVec2 header_text_pos_centered{ 0, 0 };
     add_text_centered_here(r, draw_list, header_text_desc, &header_text_pos_centered);
@@ -202,9 +199,8 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   {
     const std::string desc = info_desc;
 
-    const auto font_enum = FontSize::TEXT_SIZE_13;
-    const auto font_size = (float)font_enum;
-    auto* font = get_inter_font(r, font_enum);
+    const auto font_size = (float)FontSizes::SIZE_13;
+    auto* font = get_inter_font(r);
 
     const float width_limit = box_wh.x - (2.0f * 4);
     const auto text_size = font->CalcTextSizeA(font_size, width_limit, width_limit, desc.c_str());
@@ -288,6 +284,8 @@ draw_card_inner(entt::registry& r,
                 ImDrawList* draw_list,
                 ImFont* header_font,
                 ImFont* text_font,
+                const float header_font_size,
+                const float text_font_size,
                 const float dt)
 {
   const auto& ri_c = SINGLE_RendererInfo::instance;
@@ -314,6 +312,7 @@ draw_card_inner(entt::registry& r,
       .cell = base,
       .active_cell = player_ui_c.state.active,
       .font = header_font,
+      .font_size = header_font_size,
       .rounding = 0.0f,
       .thickness = 1.0f,
     };
@@ -402,7 +401,7 @@ draw_card_inner(entt::registry& r,
     if (i + 1 < player_ui_c.state.cells.size())
       button_tl.y += button_size.y + space_between_buttons;
 
-    ImGui::PushFont(text_font);
+    ImGui::PushFont(text_font, text_font_size);
     const auto text_size_y = ImGui::CalcTextSize("A").y;
 
     // begin info section.
@@ -530,8 +529,12 @@ update_player_select_ui(entt::registry& r,
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
   // auto* header_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED);
   // auto* text_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED);
-  auto* header_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16);
-  auto* text_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13);
+
+  auto* font = get_inter_font(r);
+  auto* header_font = font;
+  auto* text_font = font;
+  const auto header_font_size = (float)FontSizes::SIZE_16 * ui_scaling;
+  const auto text_font_size = (float)FontSizes::SIZE_13 * ui_scaling;
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
@@ -616,11 +619,13 @@ update_player_select_ui(entt::registry& r,
                       draw_list,
                       header_font,
                       text_font,
+                      header_font_size,
+                      text_font_size,
                       dt);
     } else {
       const auto text = std::string("N/A\n(Connect in Menu)");
       const auto width = card_br.x - card_tl.x;
-      const auto text_size = header_font->CalcTextSizeA(header_font->FontSize, FLT_MAX, -1, text.c_str());
+      const auto text_size = header_font->CalcTextSizeA(header_font_size, FLT_MAX, -1, text.c_str());
 
       auto center = ImVec2{
         card_tl.x + 0.5f * (card_br.x - card_tl.x),
@@ -628,7 +633,7 @@ update_player_select_ui(entt::registry& r,
       };
       center.x -= 0.5f * text_size.x;
       center.y -= 0.5f * text_size.y;
-      draw_list->AddText(header_font, header_font->FontSize, center, im_player_col, text.c_str());
+      draw_list->AddText(header_font, header_font_size, center, im_player_col, text.c_str());
     };
 
     // move horizontally

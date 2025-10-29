@@ -427,9 +427,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::select_ships)
     update_ui_scene_select_system(r, dt);
 
-  const auto non_game_scenes =
-    std::vector<Scene>{ Scene::splashscreen, Scene::pressanykey, Scene::menu, Scene::select_modifiers, Scene::select_ships };
-
   if (scene.s == Scene::survive) {
     update_ui_island_interact_system(r, dt);
     update_ui_island_display_hp_system(r);

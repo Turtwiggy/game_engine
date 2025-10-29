@@ -87,19 +87,20 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   draw_list->AddRectFilled(p_tl, p_br, bg_col, def.rounding);
   draw_list->AddRect(p_tl, p_br, outline_col, def.rounding, ImDrawFlags_RoundCornersAll, def.thickness);
 
-  auto font = def.font;
+  auto* font = def.font;
   if (font == nullptr)
     font = ImGui::GetIO().Fonts->Fonts[0];
 
   const auto label = def.display_str;
 
-  const auto text_size = font->CalcTextSizeA(font->FontSize, p_wh.x, -1, label.c_str());
+  ImGui::PushFont(font, def.font_size);
+  const auto text_size = ImGui::CalcTextSize(label.c_str());
   auto text_pos = ImVec2{ p_tl.x, p_tl.y };
   text_pos.x += def.text_pivot.x * (p_wh.x - text_size.x);
   text_pos.y += def.text_pivot.y * (p_wh.y - text_size.y);
-
   text_pos += def.text_offset;
-  draw_list->AddText(font, font->FontSize, text_pos, text_col, label.c_str());
+  draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize(), text_pos, text_col, label.c_str());
+  ImGui::PopFont();
 
   // draw as an icon
   if (def.icon.has_value()) {

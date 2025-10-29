@@ -27,7 +27,7 @@ namespace game2d {
 using namespace std::literals;
 
 void
-draw_moneybag(entt::registry& r, ImVec2 ui_wh, ImVec2 icon_size, ImFont* header_font)
+draw_moneybag(entt::registry& r, ImVec2 ui_wh, ImVec2 icon_size, ImFont* header_font, float header_font_size)
 {
 #if defined(_DEBUG)
   ZoneScoped;
@@ -47,10 +47,13 @@ draw_moneybag(entt::registry& r, ImVec2 ui_wh, ImVec2 icon_size, ImFont* header_
   const auto moneybag_icon_x = center_x - 0.5 * moneybag_icon_size.x;
   const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
   ImGui::SetCursorPosX(moneybag_icon_x);
-  ImGui::Image(monochrome_tex_id, moneybag_icon_size, gold_tl, gold_br, im_gold_col, {});
+
+  ImGui::PushStyleColor(ImGuiCol_Button, im_gold_col);
+  ImGui::Image(monochrome_tex_id, moneybag_icon_size, gold_tl, gold_br);
+  ImGui::PopStyleColor();
 
   // Draw gold amount
-  ImGui::PushFont(header_font);
+  ImGui::PushFont(header_font, header_font_size);
   const auto gold_txt = std::format("{}", gold_c.amount);
   const auto gold_txt_wh = ImGui::CalcTextSize(gold_txt.c_str());
   ImGui::SetCursorPosX(moneybag_icon_x + moneybag_icon_size.x);        // right of icon
@@ -136,14 +139,12 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   const ImVec2 ui_br = { ui_tl.x + ui_wh.x, ui_tl.y + ui_wh.y };
 
   // fonts
-  auto* fingerpaint_font = ImGui::GetIO().Fonts->Fonts[font_scale == 1.0f ? 4 : 5];
-  const auto header_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_20 : FontSize::TEXT_SIZE_20_SCALED;
-  const auto header_font_size = (float)header_font_enum;
-  auto* header_font = get_inter_font(r, header_font_enum);
-  const auto text_font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  const auto text_font_size = (float)text_font_enum;
-  auto* text_font = get_inter_font(r, text_font_enum);
-  const auto TEXT_SIZE = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, "A");
+  auto* fingerpaint_font = get_fingerpaint_font(r);
+  auto* inter_font = get_inter_font(r);
+  auto* text_font = inter_font;
+  const auto font_header_size = (float)FontSizes::SIZE_20 * font_scale;
+  const auto font_text_size = (float)FontSizes::SIZE_16 * font_scale;
+  const auto TEXT_SIZE = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, "A");
 
   // background
   const auto rounding = 6.0f;
@@ -158,7 +159,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   const auto box_wh = ui_br - box_tl;
 
   const auto icon_size = ImVec2{ 32 * font_scale, 32 * font_scale };
-  draw_moneybag(r, ui_wh, icon_size, header_font);
+  draw_moneybag(r, ui_wh, icon_size, fingerpaint_font, font_header_size);
 
   const auto box0_tl = box_tl;
   const auto box0_br = box_tl + ImVec2{ 0.66f * box_wh.x, 1.0f * box_wh.y };
@@ -269,12 +270,12 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     if (ui_c.selected_stat.has_value()) {
       const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(ui_c.selected_stat.value()));
       const auto display_str = make_stat_name_pretty_name(stat_str);
-      const auto display_str_size = text_font->CalcTextSizeA(text_font_size, FLT_MAX, -1, display_str.c_str());
+      const auto display_str_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, display_str.c_str());
 
       const auto header_text_pos_tl = ImVec2{ upgrade_tl.x, upgrade_tl.y + 4.0f };
       const auto header_text_pos_adj =
         ImVec2{ header_text_pos_tl.x + 0.5f * (upgrade_wh.x - display_str_size.x), header_text_pos_tl.y };
-      draw_list->AddText(text_font, text_font->FontSize, header_text_pos_adj, im_text_col, display_str.c_str());
+      draw_list->AddText(text_font, font_text_size, header_text_pos_adj, im_text_col, display_str.c_str());
       // ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
 
       const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
@@ -334,9 +335,9 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
         }
 
         if (aquired)
-          draw_list->AddText(text_font, text_font->FontSize, text_pos, aquired_col, str.c_str());
+          draw_list->AddText(text_font, font_text_size, text_pos, aquired_col, str.c_str());
         else
-          draw_list->AddText(text_font, text_font->FontSize, text_pos, unaquired_col, str.c_str());
+          draw_list->AddText(text_font, font_text_size, text_pos, unaquired_col, str.c_str());
 
         //
       }
@@ -381,10 +382,10 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     draw_bar(purchasebar_tl, purchasebar_br, percent);
 
     const auto text = "Hold to Purchase"s;
-    const auto text_size = text_font->CalcTextSizeA(text_font->FontSize, FLT_MAX, -1, text.c_str());
+    const auto text_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, text.c_str());
     const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x),
                                   purchasebar_tl.y + 0.5f * (purchasebar_wh.y - text_size.y) };
-    draw_list->AddText(text_font, text_font->FontSize, text_pos, im_text_col, text.c_str());
+    draw_list->AddText(text_font, font_text_size, text_pos, im_text_col, text.c_str());
 
     //
   }
