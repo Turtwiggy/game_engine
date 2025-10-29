@@ -170,7 +170,7 @@ ImGui_Manager::end_frame(const GameWindow& window)
   ZoneScoped;
 #endif
 
-  glm::ivec2 window_size = window.get_size();
+  const auto window_size = window.get_size();
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2(static_cast<float>(window_size.x), static_cast<float>(window_size.y));
 

@@ -133,10 +133,6 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
 
-  // const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  // const auto font_enum = font_scale == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED;
-  // auto* font = get_inter_font(r, font_enum);
-
   const auto box_br = box_tl + box_wh;
   auto* draw_list = ImGui::GetWindowDrawList();
 
@@ -526,15 +522,11 @@ update_player_select_ui(entt::registry& r,
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
 
-  const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
-  // auto* header_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_16 : FontSize::TEXT_SIZE_16_SCALED);
-  // auto* text_font = get_inter_font(r, ui_scaling == 1.0f ? FontSize::TEXT_SIZE_13 : FontSize::TEXT_SIZE_13_SCALED);
-
   auto* font = get_inter_font(r);
   auto* header_font = font;
   auto* text_font = font;
-  const auto header_font_size = (float)FontSizes::SIZE_16 * ui_scaling;
-  const auto text_font_size = (float)FontSizes::SIZE_13 * ui_scaling;
+  const auto header_font_size = (float)FontSizes::SIZE_16;
+  const auto text_font_size = (float)FontSizes::SIZE_13;
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
