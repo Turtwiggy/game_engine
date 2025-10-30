@@ -264,32 +264,28 @@ void main()
 	vec2 screen_max = camera_pos + half_wh; // e.g. 960, 540 for 1920x1080
 
   // sdf grid
-  vec3 grid_col = vec3(0.0f);
-  // if(add_grid) 
-  {
-    float aspect_y = viewport_wh.y / viewport_wh.x;
-    float grid_size = 50.0;
-
-    // shift uv to [-0.5, 0.5] to add uvs surrouding the camera position
-    vec2 uv = v_uv - 0.5;
-    uv *= zoom;
-
-    // the camera position moves, acting as uv that increases/decreases
-    vec2 camera_uv_screen = camera_pos + (uv * viewport_wh);
-    camera_uv_screen /= viewport_wh;
-
-    vec2 grid_uv = camera_uv_screen;
-    vec2 grid_p = ( viewport_wh / grid_size ) * grid_uv;
-
-    // if the gridsize gets too small and the gridwidth isnt large enough,
-    // the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
-    float grid_width = 0.02;
-    float margin = 0.5;
-    if(abs(sdGrid(grid_p, margin)) >= grid_width)
-      grid_col = vec3(0.0);  // background
-    else
-      grid_col = vec3(0.03); // line
-  }
+  // vec3 grid_col = vec3(0.0f);
+  // // if(add_grid) 
+  // {
+  //   float aspect_y = viewport_wh.y / viewport_wh.x;
+  //   float grid_size = 32.0;
+  //   // shift uv to [-0.5, 0.5] to add uvs surrouding the camera position
+  //   vec2 uv = v_uv - 0.5;
+  //   uv *= zoom;
+  //   // the camera position moves, acting as uv that increases/decreases
+  //   vec2 camera_uv_screen = (camera_pos) + (uv * viewport_wh);
+  //   camera_uv_screen /= viewport_wh;
+  //   vec2 grid_uv = camera_uv_screen;
+  //   vec2 grid_p = ( (viewport_wh )/ grid_size ) * grid_uv;
+  //   // if the gridsize gets too small and the gridwidth isnt large enough,
+  //   // the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
+  //   float grid_width = 0.03;
+  //   float margin = 0.5;
+  //   if(abs(sdGrid(grid_p, margin)) >= grid_width)
+  //     grid_col = vec3(0.0);  // background
+  //   else
+  //     grid_col = vec3(0.02); // line
+  // }
 
   //
   // SDF for lights?

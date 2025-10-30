@@ -260,7 +260,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
   ri.mix_lighting_and_scene.set_int("tex_flame", tex_unit_flame);
-  ri.mix_lighting_and_scene.set_vec2("viewport_wh", 2 * wh);
+  ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
   ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_bool("add_vignette", true);
   // ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
