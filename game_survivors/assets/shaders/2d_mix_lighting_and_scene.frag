@@ -268,7 +268,7 @@ void main()
   // if(add_grid) 
   {
     float aspect_y = viewport_wh.y / viewport_wh.x;
-    float grid_size = 32.0;
+    float grid_size = 50.0;
 
     // shift uv to [-0.5, 0.5] to add uvs surrouding the camera position
     vec2 uv = v_uv - 0.5;
@@ -338,47 +338,47 @@ void main()
         d0 = clamp(d0, -1.0, 1.0); // inside distances only
       }
 
-      // flashlight lighting with wedge sdf
-      // https://www.shadertoy.com/view/wldXWB
-      else 
-      {
-        vec2 a = vec2(0.0, 0.0); // 0, 0 is the worldspace pos 
-        vec2 b =  ( 50 * 10.0 *-angle_to_dir(angle)) / viewport_wh.y;
-        float ra = (50 * 2.5) / viewport_wh.y;
-        float rb = (50 * 10.0) / viewport_wh.y;
-        d0 = sdUnevenCapsule(p, a, b, ra, rb);
+      // // flashlight lighting with wedge sdf
+      // // https://www.shadertoy.com/view/wldXWB
+      // else 
+      // {
+      //   vec2 a = vec2(0.0, 0.0); // 0, 0 is the worldspace pos 
+      //   vec2 b =  ( 50 * 10.0 *-angle_to_dir(angle)) / viewport_wh.y;
+      //   float ra = (50 * 2.5) / viewport_wh.y;
+      //   float rb = (50 * 10.0) / viewport_wh.y;
+      //   d0 = sdUnevenCapsule(p, a, b, ra, rb);
 
-        // vec2 a = 1.0 * -angle_to_dir(angle + 60 * degrees_to_rad );
-        // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
-        // vec2 c = 1.0 * -angle_to_dir(angle - 60 * degrees_to_rad );
-        // d0 = sdWedge(p, a, b, c);
-        // not interested in super far away distances
-        // if(d0 <= -1.0)
-        //   continue;
+      //   // vec2 a = 1.0 * -angle_to_dir(angle + 60 * degrees_to_rad );
+      //   // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
+      //   // vec2 c = 1.0 * -angle_to_dir(angle - 60 * degrees_to_rad );
+      //   // d0 = sdWedge(p, a, b, c);
+      //   // not interested in super far away distances
+      //   // if(d0 <= -1.0)
+      //   //   continue;
 
 
-        // Calculate the direction vector for the player's angle
-        // vec2 a = angle_to_dir(angle);
-        // float t = 3.14 * time * (0.5 + 0.5 * cos(3.14 * 0));
-        // d0 = sdPie(p,vec2(sin(a.x),cos(a.y)), 1.0);
-        // if(d0 < -1)
-        //   d0 = 1.0 - abs(d0);
-        // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      //   // Calculate the direction vector for the player's angle
+      //   // vec2 a = angle_to_dir(angle);
+      //   // float t = 3.14 * time * (0.5 + 0.5 * cos(3.14 * 0));
+      //   // d0 = sdPie(p,vec2(sin(a.x),cos(a.y)), 1.0);
+      //   // if(d0 < -1)
+      //   //   d0 = 1.0 - abs(d0);
+      //   // d0 = clamp(d0, -1.0, 1.0); // inside distances only
 
-        // float pk = 8.0f; // width
-        // float d0 = sdParabola(p, pk);
-        // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      //   // float pk = 8.0f; // width
+      //   // float d0 = sdParabola(p, pk);
+      //   // d0 = clamp(d0, -1.0, 1.0); // inside distances only
 
-        // vec2 a = 1.0 * -angle_to_dir(angle + 30 * degrees_to_rad );
-        // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
-        // vec2 c = 1.0 * -angle_to_dir(angle - 30 * degrees_to_rad );
-        // vec2 v1 = a;
-        // vec2 v2 = b;
-        // vec2 v3 = b;
-        // vec2 v4 = c;
-        // d0 = sdQuad( p, v1, v2, v3, v4 );
-        // d0 = clamp(d0, -1.0, 1.0); // inside distances only
-      }
+      //   // vec2 a = 1.0 * -angle_to_dir(angle + 30 * degrees_to_rad );
+      //   // vec2 b = vec2(0.0, 0.0); // 0, 0 is the worldspace pos
+      //   // vec2 c = 1.0 * -angle_to_dir(angle - 30 * degrees_to_rad );
+      //   // vec2 v1 = a;
+      //   // vec2 v2 = b;
+      //   // vec2 v3 = b;
+      //   // vec2 v4 = c;
+      //   // d0 = sdQuad( p, v1, v2, v3, v4 );
+      //   // d0 = clamp(d0, -1.0, 1.0); // inside distances only
+      // }
 
       // smooth it in
       float dt = opSmoothUnion(d, d0, 0.1);

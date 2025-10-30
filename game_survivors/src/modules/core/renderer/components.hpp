@@ -61,6 +61,7 @@ struct RenderPass
 {
   PassName pass;
   std::vector<engine::FramebufferID> fbos;
+  bool double_wh = false;
 
   // one framebuffer can have multiple attachments,
   // in the form of multiple tex_ids.
@@ -69,14 +70,11 @@ struct RenderPass
   // the function that gets called during the render
   std::function<void(entt::registry&, float, glm::vec2)> update;
 
-private:
-  int colour_buffers_per_texture = 0;
-
-public:
-  RenderPass(const PassName& pass, const int colour_attachments = 1);
-
-  void setup(const glm::ivec2& fbo_size, const int framebuffers = 1);
+  int colour_buffers_per_texture = 1;
 };
+
+void
+setup_rp(RenderPass& rp, const glm::ivec2& fbo_size, const int framebuffers = 1);
 
 // Attributes only updated by renderer system, read by anything.
 struct SINGLE_RendererInfo
@@ -94,7 +92,7 @@ struct SINGLE_RendererInfo
   engine::tri_renderer::TriangleRenderer tri_renderer;
 
   // fluidsim
-  FluidSimData fluid_sim;
+  // FluidSimData fluid_sim;
 
   // shaders
   engine::Shader water;

@@ -30,8 +30,8 @@ get_default_textures()
   add_tex("custom.png", "spritemap_custom.json");
   add_tex("grime_bar.png", "spritemap_grime_bar.json");
   add_tex("snake.png", "spritemap_snake.json");
-  add_tex("spritestack_rhib.png", "spritestack_rhib.json");
-  add_tex("spritestack_pbr.png", "spritestack_pbr.json");
+  // add_tex("spritestack_rhib.png", "spritestack_rhib.json");
+  // add_tex("spritestack_pbr.png", "spritestack_pbr.json");
   add_tex("spritestack_dinghy.png", "spritestack_dinghy.json");
 
   // const ESteamInputGlyphSize size = k_ESteamInputGlyphSize_Medium;

@@ -23,7 +23,7 @@ struct SINGLE_ImSprite
   std::vector<Sprite> sprites;
 
   EntityPool pool;
-  int cached = 0;
+  int cached = 1;
 };
 
 void

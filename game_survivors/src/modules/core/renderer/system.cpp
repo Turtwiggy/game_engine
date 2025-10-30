@@ -67,13 +67,11 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   SDL_Log("%s", std::format("rebind...").c_str());
 
   // Super sampling, innit
-  const auto& wh = ri.viewport_size_render_at;
-  const auto double_wh = glm::vec2{ 2.0f * wh.x, 2.0f * wh.y };
-
-  for (RenderPass& rp : ri.passes) {
+  const auto wh = ri.viewport_size_render_at;
+  for (const RenderPass& rp : ri.passes) {
     for (const auto& tex : rp.texs) {
       engine::bind_tex(tex.tex_id.id);
-      engine::update_bound_texture_size(double_wh);
+      engine::update_bound_texture_size(rp.double_wh ? 2 * wh : wh);
       engine::unbind_tex();
     }
   }
@@ -136,7 +134,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.bind();
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
-  ri.water.set_vec2("viewport_wh", wh);
+  ri.water.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.water.set_float("water_safe_radius", 10'000); // basically no danger zone
 
   // set user textures in shaders
@@ -174,7 +172,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.island_tri_gradient.set_bool("is_fullscreen", true);
   ri.island_tri_gradient.set_bool("do_zoom", false);
   ri.island_tri_gradient.set_int("tex_island_triangles", tex_unit_island_triangles);
-  ri.island_tri_gradient.set_vec2("screen_wh", wh);
+  ri.island_tri_gradient.set_vec2("screen_wh", ri.viewport_size_render_at);
 
   ri.island_tri_hidden.reload(r);
   ri.island_tri_hidden.bind();
@@ -262,7 +260,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
   ri.mix_lighting_and_scene.set_int("tex_flame", tex_unit_flame);
-  ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
+  ri.mix_lighting_and_scene.set_vec2("viewport_wh", 2 * wh);
   ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_bool("add_vignette", true);
   // ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
@@ -323,36 +321,32 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
   RenderCommand::clear();
 
-  // ri.passes.push_back(RenderPass(PassName::menu_fractal_shader));
-  ri.passes.push_back(RenderPass(PassName::water));
-  ri.passes.push_back(RenderPass(PassName::island_triangles));
-  ri.passes.push_back(RenderPass(PassName::island_triangles_gradient));
-  ri.passes.push_back(RenderPass(PassName::island_hidden));
-  ri.passes.push_back(RenderPass(PassName::island_above_hidden));
-  ri.passes.push_back(RenderPass(PassName::island_shore));
-  // ri.passes.push_back(RenderPass(PassName::fluid_sim));
-  ri.passes.push_back(RenderPass(PassName::linear_main));
-  ri.passes.push_back(RenderPass(PassName::sprites_to_outline));
-  ri.passes.push_back(RenderPass(PassName::outline));
-  ri.passes.push_back(RenderPass(PassName::sprites_with_shield));
-  ri.passes.push_back(RenderPass(PassName::shine));
-  ri.passes.push_back(RenderPass(PassName::flame));
+  ri.passes.push_back({ .pass = PassName::water, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::island_triangles, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::island_triangles_gradient, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::island_hidden, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::island_above_hidden, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::island_shore, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::linear_main, .double_wh = true });
+  ri.passes.push_back({ .pass = PassName::sprites_to_outline, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::outline, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::sprites_with_shield, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::shine, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::flame, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::mix_lighting_and_scene, .double_wh = false });
+
   // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // // Use the Jump flood algorithm to generate a voroi diagram,
   // // then convert that in to a distance field
   // ri.passes.push_back(RenderPass(PassName::voronoi_seed));
   // ri.passes.push_back(RenderPass(PassName::jump_flood));
   // ri.passes.push_back(RenderPass(PassName::voronoi_distance));
-  ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   // ri.passes.push_back(RenderPass(PassName::bloom));
 
-  // Super sampling, innit
-  const auto double_wh = glm::vec2{ 2.0f * fbo_size.x, 2.0f * fbo_size.y };
-
   for (auto& rp : ri.passes)
-    rp.setup(double_wh);
+    setup_rp(rp, rp.double_wh ? 2 * fbo_size : fbo_size);
 
   // Load fluidsim shaders/textures
   int used_tex_units = get_renderer_tex_unit_count(ri);
@@ -506,7 +500,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
 #endif
 
-  const auto double_wh = glm::vec2{ 2.0f * ri.viewport_size_render_at.x, 2.0f * ri.viewport_size_render_at.y };
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_t = r.get<TransformComponent>(camera_e);
   const auto& camera_c = r.get<OrthographicCamera>(camera_e);
@@ -580,7 +573,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   for (const auto& pass : ri.passes) {
     Framebuffer::bind_fbo(pass.fbos[0]);
-    RenderCommand::set_viewport(0, 0, double_wh.x, double_wh.y);
+
+    const auto wh = pass.double_wh ? 2 * ri.viewport_size_render_at : ri.viewport_size_render_at;
+    RenderCommand::set_viewport(0, 0, wh.x, wh.y);
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
@@ -648,27 +643,27 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         ImGui::End();
       }
     }
-    const bool show_debug_fluid_textures = gesert_menubar_state(state_c, "DebugFluidTextures").enabled;
-    if (show_debug_fluid_textures) {
-      const auto debug_texture = [](const std::string title, TextureId id) {
-        ImGuiWindowFlags flags = 0;
-        ImGui::SetNextWindowSizeConstraints({ 100, 100 }, { FLT_MAX, FLT_MAX });
-        ImGui::Begin(title.c_str(), NULL, flags);
-        const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-        ImGui::Image((ImTextureID)id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-        ImGui::End();
-      };
-      // Debug fluidsim textures.
-      const auto& fluidsim_data = ri.fluid_sim;
-      debug_texture({ "dye-r" }, fluidsim_data.dye.read().tex.tex_id);
-      debug_texture({ "dye-w" }, fluidsim_data.dye.write().tex.tex_id);
-      debug_texture({ "vel-r" }, fluidsim_data.velocity.read().tex.tex_id);
-      debug_texture({ "vel-w" }, fluidsim_data.velocity.write().tex.tex_id);
-      debug_texture({ "curl" }, fluidsim_data.curl.info.tex.tex_id);
-      debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id);
-      debug_texture({ "pressure-r" }, fluidsim_data.pressure.read().tex.tex_id);
-      debug_texture({ "pressure-w" }, fluidsim_data.pressure.write().tex.tex_id);
-    }
+    // const bool show_debug_fluid_textures = gesert_menubar_state(state_c, "DebugFluidTextures").enabled;
+    // if (show_debug_fluid_textures) {
+    //   const auto debug_texture = [](const std::string title, TextureId id) {
+    //     ImGuiWindowFlags flags = 0;
+    //     ImGui::SetNextWindowSizeConstraints({ 100, 100 }, { FLT_MAX, FLT_MAX });
+    //     ImGui::Begin(title.c_str(), NULL, flags);
+    //     const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+    //     ImGui::Image((ImTextureID)id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    //     ImGui::End();
+    //   };
+    //   // Debug fluidsim textures.
+    //   const auto& fluidsim_data = ri.fluid_sim;
+    //   debug_texture({ "dye-r" }, fluidsim_data.dye.read().tex.tex_id);
+    //   debug_texture({ "dye-w" }, fluidsim_data.dye.write().tex.tex_id);
+    //   debug_texture({ "vel-r" }, fluidsim_data.velocity.read().tex.tex_id);
+    //   debug_texture({ "vel-w" }, fluidsim_data.velocity.write().tex.tex_id);
+    //   debug_texture({ "curl" }, fluidsim_data.curl.info.tex.tex_id);
+    //   debug_texture({ "divergence" }, fluidsim_data.divergence.info.tex.tex_id);
+    //   debug_texture({ "pressure-r" }, fluidsim_data.pressure.read().tex.tex_id);
+    //   debug_texture({ "pressure-w" }, fluidsim_data.pressure.write().tex.tex_id);
+    // }
   }
 #endif
 };

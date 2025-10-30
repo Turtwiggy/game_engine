@@ -3,6 +3,7 @@
 #include "system.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 
@@ -32,24 +33,14 @@ update_ui_fps_counter_system(entt::registry& r)
   ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0.0f, 0.0f });
   ImGui::SetNextWindowSize(screen_size, ImGuiCond_Always);
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoBackground;
-  flags |= ImGuiWindowFlags_NoDocking;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoInputs;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
 
-  ImGui::Begin("overlay", NULL, flags);
+  imgui_begin("overlay", ImGuiWindowFlags_NoInputs);
 
   const auto pos = glm::vec2{ ri.viewport_size_render_at.x, 0 }; // tr
   ImGui::SetCursorScreenPos(ImVec2{ pos.x - 100, pos.y });
-  ImGui::Text("%0.2f FPS", ImGui::GetIO().Framerate);
+  ImGui::Text("%i FPS", (int)ImGui::GetIO().Framerate);
 
   ImGui::End();
 

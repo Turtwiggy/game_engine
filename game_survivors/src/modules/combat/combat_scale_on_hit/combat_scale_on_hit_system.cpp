@@ -6,6 +6,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
+#include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_scale_on_hit/helpers.hpp"
 #include "modules/core/colour/components.hpp"
 
@@ -32,39 +33,52 @@ update_combat_scale_on_hit_system(entt::registry& r, const float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& view =
-    r.view<RequestHitScaleComponent, TransformComponent, SpriteComponent>(entt::exclude<WaitForInitComponent>);
+  const auto& view = r.view<RequestHitScaleComponent>(entt::exclude<WaitForInitComponent>);
 
-  // note: req_e is attached to the e.g. fixture or body.
-  for (const auto& [e, req_c, t_c, spr_c] : view.each()) {
+  // note: req_e is attached to the parent
+  for (const auto& [e, req_c] : view.each()) {
 
-    const auto default_size = r.get<DefaultSizeComponent>(e).size;
+    std::vector<entt::entity> entities_to_flash;
+    if (r.all_of<SpriteComponent>(e))
+      entities_to_flash.push_back(e);
+    if (r.all_of<HasChildrenComponent>(e)) {
+      const auto& children_c = r.get<HasChildrenComponent>(e);
+      for (const auto child_e : children_c.children) {
+        if (!r.all_of<DefaultSizeComponent>(child_e)) {
+          SDL_Log("Warning: sprite to scale doesnt have defaultsizecomponent");
+          continue;
+        }
+        if (r.all_of<WeaponComponent>(child_e))
+          continue;
+        if (r.all_of<SpriteComponent>(child_e))
+          entities_to_flash.push_back(child_e);
+      }
+    }
 
-    //
     if (req_c.t == 0.0f)
-      enable_flash(r, e);
+      std::ranges::for_each(entities_to_flash, [&r](auto e) { enable_flash(r, e); });
 
     // variables
     const float speed = 5.0f;
-    const float scale_up = 8.0f;
-
+    const float scale_up = 5.0f;
     req_c.t += dt * speed;
 
     const float scale = spike(req_c.t);
-    const float new_size_x = default_size.x + scale_up * scale;
-    const float new_size_y = default_size.y + scale_up * scale;
 
-    // assume: x and y are the same size
-    t_c.scale = { new_size_x, new_size_y, 1.0f };
+    for (const auto e_to_flash : entities_to_flash) {
+      const auto& default_size_c = r.get<DefaultSizeComponent>(e_to_flash);
+      auto new_x = default_size_c.size.x + scale_up * scale;
+      auto new_y = default_size_c.size.y + scale_up * scale;
+      set_size(r, e_to_flash, { new_x, new_y });
+    }
 
     if (req_c.t >= 1.0f) {
+      std::ranges::for_each(entities_to_flash, [&r](auto e) { disable_flash(r, e); });
 
-      disable_flash(r, e);
-
-      // reset the transform
-      // const auto physics_size = get_size(r, e);
-      const auto physics_size = r.get<DefaultSizeComponent>(e).size;
-      t_c.scale = { physics_size.x, physics_size.y, 1.0f };
+      for (const auto e_to_flash : entities_to_flash) {
+        const auto& default_size_c = r.get<DefaultSizeComponent>(e_to_flash);
+        set_size(r, e_to_flash, default_size_c.size);
+      }
 
       r.remove<RequestHitScaleComponent>(e);
     }

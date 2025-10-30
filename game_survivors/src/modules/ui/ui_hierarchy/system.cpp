@@ -152,6 +152,7 @@ update_ui_hierarchy_system(entt::registry& r)
       imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
       imgui_draw_vec3(
         "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);
+      imgui_draw_int("zlayer", transform.z_index);
     }
 
     if (auto* pb = r.try_get<PhysicsBodyComponent>(eid)) {

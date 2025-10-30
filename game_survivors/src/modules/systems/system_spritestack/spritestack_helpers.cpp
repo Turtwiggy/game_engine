@@ -1,7 +1,11 @@
+#include "engine/lifecycle/components.hpp"
+#include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "pch.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/systems/system_spritestack/spritestack_components.hpp"
@@ -37,9 +41,6 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
   const auto [spritesheet, anim] = find_animation(anims, sprite + "_1"s);
   const int sprites_for_total_sprite = spritesheet.ny - 1; // note: -1 because {0, 0} should be empty
 
-  entt::entity root_entity = entt::null;
-  glm::vec2 pos{ 0, 0 };
-
   // iterate from e.g. [-26, 12] for a ydepth of 38, where the center is 26 now
   const int root_spritestack_img_idx = -spritestack_base_layer[idx];
   const int max = sprites_for_total_sprite + root_spritestack_img_idx;
@@ -52,20 +53,22 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     const auto i_as_str = std::to_string(counter++);
     const auto tag_str = sprite + "_"s + i_as_str;
 
-    entt::entity spawned_e = entt::null;
-
-    // this sets the SpriteComponent on the player
-    if (i == 0)
-      spawned_e = e;
-
-    else
-      spawned_e = create_transform(r, tag_str);
-
     // needs to be emplaced in order to maintain spritestack
+    entt::entity spawned_e = create_transform(r, tag_str);
     r.emplace<SpriteComponent>(spawned_e);
-
+    r.emplace<DefaultColour>(spawned_e);
+    r.emplace<DefaultSizeComponent>(spawned_e, get_size(r, e));
     set_sprite(r, spawned_e, sprite + "_"s + i_as_str);
-    set_z_index(r, spawned_e, ZLayer::DEFAULT);
+    auto& child_c = r.get_or_emplace<HasChildrenComponent>(e);
+    child_c.children.push_back(spawned_e);
+    auto& par_e = r.emplace<HasParentComponent>(spawned_e, HasParentComponent{ e });
+
+    // hack: set colour for the "core" layer
+    if (sprite == "dinghy" && i == 0) {
+      const auto& col_c = r.get<DefaultColour>(e);
+      set_colour(r, spawned_e, col_c.colour);
+      r.get<DefaultColour>(spawned_e).colour = col_c.colour;
+    }
 
     //
     // i goes from e.g. [-26, 12] on a 38 ydepth.
@@ -79,8 +82,8 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     // e.g. 12 should be -12
     //
     const int flipped_i = -1 * i;
-    auto& t_c = r.get<TransformComponent>(spawned_e);
-    t_c.z_index = flipped_i;
+    // auto& t_c = r.get<TransformComponent>(spawned_e);
+    // t_c.z_index = flipped_i;
 
     SpritestackComponent spritestack_c(i);
     spritestack_c.spritestack_total = sprites_for_total_sprite;

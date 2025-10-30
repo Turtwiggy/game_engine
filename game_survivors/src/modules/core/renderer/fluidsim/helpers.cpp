@@ -238,9 +238,6 @@ setup_fluidsim_update(entt::registry& r)
 
       const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
       engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
 
       render_quad(r, data.advectProgram, wh);
 
@@ -264,9 +261,6 @@ setup_fluidsim_update(entt::registry& r)
 
       const auto wh = glm::ivec2{ w_dye.tex.size.x, w_dye.tex.size.y };
       engine::Framebuffer::bind_fbo(w_dye.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
 
       render_quad(r, data.advectProgram, wh);
 
@@ -288,9 +282,6 @@ setup_fluidsim_update(entt::registry& r)
         data.splatProgram.set_vec3("colour", { dxdy.x, dxdy.y, 0.0f });
 
         engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-        engine::RenderCommand::clear();
         render_quad(r, data.splatProgram, wh);
 
         data.velocity.swap();
@@ -310,9 +301,6 @@ setup_fluidsim_update(entt::registry& r)
         data.splatProgram.set_vec3("colour", data.config_dye_colour);
 
         engine::Framebuffer::bind_fbo(w_dye.fbo_id);
-        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-        engine::RenderCommand::clear();
         render_quad(r, data.splatProgram, wh);
 
         data.dye.swap();
@@ -329,9 +317,6 @@ setup_fluidsim_update(entt::registry& r)
     //   data.curlProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
     //   data.curlProgram.set_vec2("texel_size", texel_size);
     //   engine::Framebuffer::bind_fbo(w_curl.fbo_id);
-    //   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-    //   engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-    //   engine::RenderCommand::clear();
     //   render_quad(r, data.curlProgram, wh);
     // }
 
@@ -348,7 +333,6 @@ setup_fluidsim_update(entt::registry& r)
     //   data.vorticityProgram.set_float("dt", dt_max);
     //   data.vorticityProgram.set_float("curl", data.config_curl);
     //   engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-    //   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
     //   render_quad(r, data.vorticityProgram, wh);
     //   data.velocity.swap();
     // }
@@ -361,9 +345,6 @@ setup_fluidsim_update(entt::registry& r)
 
       const auto wh = glm::ivec2{ w_div.tex.size.x, w_div.tex.size.y };
       engine::Framebuffer::bind_fbo(w_div.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
 
       data.divergenceProgram.bind();
       data.divergenceProgram.set_int("u_velocity", r_vel.tex.tex_unit.unit);
@@ -383,9 +364,6 @@ setup_fluidsim_update(entt::registry& r)
 
       const auto wh = glm::ivec2{ w_pressure.tex.size.x, w_pressure.tex.size.y };
       engine::Framebuffer::bind_fbo(w_pressure.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
 
       render_quad(r, data.textureProgram, wh);
 
@@ -409,9 +387,6 @@ setup_fluidsim_update(entt::registry& r)
 
         const auto wh = glm::ivec2{ w_pressure.tex.size.x, w_pressure.tex.size.y };
         engine::Framebuffer::bind_fbo(w_pressure.fbo_id);
-        engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-        engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-        engine::RenderCommand::clear();
 
         render_quad(r, data.pressureProgram, wh);
 
@@ -433,9 +408,6 @@ setup_fluidsim_update(entt::registry& r)
 
       const auto wh = glm::ivec2{ w_vel.tex.size.x, w_vel.tex.size.y };
       engine::Framebuffer::bind_fbo(w_vel.fbo_id);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-      engine::RenderCommand::clear();
 
       render_quad(r, data.gradientSubtractProgram, wh);
 
@@ -453,9 +425,6 @@ setup_fluidsim_update(entt::registry& r)
     const auto res = data.config_dye_resolution;
 
     engine::Framebuffer::bind_fbo(pass.fbos[0]);
-    engine::RenderCommand::set_viewport(0, 0, res, res);
-    engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
-    engine::RenderCommand::clear();
     render_quad(r, data.textureProgram, { res, res });
 
     ImGui::End();

@@ -2,6 +2,8 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/opengl/render_command.hpp"
@@ -347,10 +349,23 @@ setup_linear_main_update(entt::registry& r)
 
       // Sort by z-index, then by entity id for stable ordering
       std::sort(sorted_entities.begin(), sorted_entities.end(), [](const auto& a, const auto& b) {
-        if (std::get<0>(a) != std::get<0>(b))
-          return std::get<0>(a) < std::get<0>(b);
-        return std::get<1>(a) < std::get<1>(b);
+        // if zlayer the same, sort by eid
+        if (std::get<0>(a) == std::get<0>(b))
+          return std::get<1>(a) > std::get<1>(b);
+
+        // sort by zlayer
+        return std::get<0>(a) < std::get<0>(b);
       });
+
+#if defined(_DEBUG)
+      const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+      if (get_key_down(input_c, SDL_SCANCODE_1)) {
+        for (const auto& [z, e, transform, sc] : sorted_entities) {
+          SDL_Log("%s", std::format("entity: {}, zlayer: {}, tag{}", uint32_t(e), z, r.get<TagComponent>(e).tag).c_str());
+        }
+        int k = 1;
+      }
+#endif
 
       // Render in sorted order
       for (const auto& [z, e, transform, sc] : sorted_entities) {
@@ -584,9 +599,6 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     ri.lighting_emitters_and_occluders.set_mat4("projection", camera_c.projection_zoomed);
 
     {
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0 });
-      engine::RenderCommand::clear();
-
       ri.renderer.reset_quad_vert_count();
       ri.renderer.begin_batch();
 
@@ -700,9 +712,6 @@ setup_jump_flood_pass(entt::registry& r)
       // #endif
 
       engine::Framebuffer::bind_fbo(pass.fbos[this_tex_idx]);
-      engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0 });
-      engine::RenderCommand::clear();
 
       // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest
       // power 2. #i.e.for 768x512 we round up to 1024x1024 and the offset for the first pass is 512x512, then 256x256,
@@ -773,8 +782,6 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 #endif
     const auto& ri = SINGLE_RendererInfo::instance;
 
-    engine::RenderCommand::set_clear_colour_linear({ 0, 0, 0, 0 });
-
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };
 };
@@ -837,10 +844,6 @@ setup_gaussian_blur_update(entt::registry& r)
         create_empty<Effect_BlurInfo>(r);
       Effect_BlurInfo& blur_data_c = get_first_component<Effect_BlurInfo>(r);
       blur_data_c.last_blur_texunit = last_blur_texunit;
-
-      engine::RenderCommand::set_viewport(0, 0, ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
-      engine::RenderCommand::clear();
 
       render_fullscreen_quad(r, ri.blur, ri.viewport_size_render_at);
     }

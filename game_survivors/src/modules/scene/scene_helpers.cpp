@@ -119,6 +119,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
     auto wep_e = spawn_weapon(r, weapon_data, weapon_key);
     r.emplace<HardpointComponent>(wep_e, HardpointComponent{ hardpoint_data });
     r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
+    set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE) {
       r.emplace<AutofireComponent>(wep_e);
@@ -235,6 +236,10 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
   std::transform(
     hull_key.begin(), hull_key.end(), std::back_inserter(hull_lower), [](const auto& c) { return std::tolower(c); });
 
+  // set the player colour.
+  const auto col = default_player_colours[num];
+  r.get_or_emplace<DefaultColour>(e).colour = col;
+
   // TODO: come up with something better to set sprites
   // If a spritestack is implemented, use that.
   r.remove<SpriteComponent>(e);
@@ -260,11 +265,6 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
   // take hp as a percent of the boat size?
   hp = (hull_size.x * hull_size.y) / 100.0f;
   SDL_Log("Boat HP: %f", hp);
-
-  // set the player colour.
-  const auto col = default_player_colours[num];
-  r.get<DefaultColour>(e).colour = col;
-  set_colour(r, e, r.get<DefaultColour>(e).colour);
 
   auto player_fixture_e = get_fixture_by_tag(r, e, "fixture_player");
   r.emplace<PlayerFixtureComponent>(player_fixture_e);

@@ -65,7 +65,8 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
     const int sprite_scale_y = spritesheet.py;
 
     // Set position for each child sprite
-    if (ssc.spritestack_index != 0) {
+    // if (ssc.spritestack_index != 0)
+    {
       const auto sprite_parent = ssc.root;
       const auto& sprite_parent_transform = r.get<TransformComponent>(sprite_parent);
 

@@ -435,10 +435,12 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   ZoneScoped;
 #endif
   static float timer = 0.0f;
+  static float timer_inc = 0.0f;
 
   const auto& scene_c = SINGLE_CurrentScene::instance;
   if (scene_c.s != Scene::menu) {
     timer = 0.0f;
+    timer_inc = 0.0f;
     return;
   }
 
@@ -494,14 +496,22 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   // information will be available immediately. Until then try to init as long as the handles are invalid.
   const auto& digital_action_handles = steam_c.digital_action_handles;
   if (digital_action_handles[(int)DA::Game_Up] == 0) {
-    init_steam_input_actions(r);
+
+    // poll: do this every X
+    const float poll_interval = 1.0f;
+    if (timer_inc > poll_interval) {
+      init_steam_input_actions(r);
+      timer_inc -= poll_interval;
+    }
 
     timer += dt;
+    timer_inc += dt;
 
-    imgui_begin("WaitingForControllerUI");
+    imgui_begin("WaitingForControllerUI", ImGuiWindowFlags_NoInputs);
     auto txt = std::format("Loading steam input...\nWaiting for a controller... ({:0.1f})", timer);
     ImGui::Text("%s", txt.c_str());
     ImGui::End();
+
     return;
   }
 
@@ -595,7 +605,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-  imgui_begin("controllerUI");
+  imgui_begin("controllerUI", ImGuiWindowFlags_NoInputs);
 
   const ImVec2 window_pos = ImGui::GetWindowPos();
   const ImVec2 window_size = ImGui::GetWindowSize();

@@ -147,12 +147,8 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   if (!hp)
     return;
 
-  // .. pop & flash the fixture
-  if (const auto* t_c = r.try_get<TransformComponent>(fixture_e))
-    r.emplace_or_replace<RequestHitScaleComponent>(fixture_e);
-  // .. pop & flash the parent transform
-  else
-    r.emplace_or_replace<RequestHitScaleComponent>(parent_e);
+  // .. pop & flash the parent
+  r.emplace_or_replace<RequestHitScaleComponent>(parent_e);
 
   static engine::RandomState dodge_rnd(0);
   static engine::RandomState crit_rnd(0);

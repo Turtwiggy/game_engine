@@ -678,7 +678,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   auto* head_f = get_fingerpaint_font(r);
   auto* font = get_inter_font(r);
   auto font_size = (float)FontSizes::SIZE_13;
-  auto head_f_font_size = (float)FontSizes::HEADER;
+  auto head_f_font_size = (float)FontSizes::SIZE_20;
 
   const auto set_window_pos = ImVec2{ ri_c.viewport_size_render_at.x * 0.5f, ri_c.viewport_size_render_at.y * 0.5f };
   const float window_x_size = ri_c.viewport_size_render_at.x;
