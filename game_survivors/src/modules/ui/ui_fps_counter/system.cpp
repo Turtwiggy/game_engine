@@ -38,9 +38,13 @@ update_ui_fps_counter_system(entt::registry& r)
 
   imgui_begin("overlay", ImGuiWindowFlags_NoInputs);
 
-  const auto pos = glm::vec2{ ri.viewport_size_render_at.x, 0 }; // tr
-  ImGui::SetCursorScreenPos(ImVec2{ pos.x - 100, pos.y });
-  ImGui::Text("%i FPS", (int)ImGui::GetIO().Framerate);
+  const auto text = std::format("{:0.0f} FPS", ImGui::GetIO().Framerate);
+
+  auto pos = ImVec2{ (float)ri.viewport_size_render_at.x, 0 }; // tr
+  pos.x -= ImGui::CalcTextSize(text.c_str()).x;
+
+  ImGui::SetCursorScreenPos(pos);
+  ImGui::Text("%s", text.c_str());
 
   ImGui::End();
 

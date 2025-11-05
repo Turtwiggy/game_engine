@@ -4,20 +4,21 @@
 layout(location = 0) in vec4 vertex; // xy and uv
 // layout(location = 1) in vec4 pos_and_size;
 layout(location = 1) in vec4 colour;
-layout(location = 2) in vec4 sprite_pos;
+layout(location = 2) in vec4 sprite_size_and_offset;
 layout(location = 3) in vec4 sprite_width_and_max;
-layout(location = 4) in float tex_unit;
-layout(location = 5) in vec4 parallax; // xy: translational offset. wz: rotation
+layout(location = 4) in vec2 sprite_global_pos;
+layout(location = 5) in float tex_unit;
 layout(location = 6) in mat4 model;
 
 out VS_OUT {
   vec2 v_uv;
   vec4 v_colour;
   vec2 v_sprite_pos;
+  vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;
   vec2 v_sprite_max;
+  vec2 v_sprite_global_pos;
   float v_tex_unit;
-  vec2 v_vertex;
 } vs_out;
 
 // out vec2 v_pos;
@@ -26,8 +27,9 @@ out VS_OUT {
 layout(std140) uniform Data {
   mat4 projection_zoomed;
 	mat4 view;
-  vec2 camera_pos;
 	vec4[32] light_positions;
+  vec2 camera_pos;
+  vec2 screenshake;
   float time;
   float zoom;
   float tilesize;
@@ -54,11 +56,13 @@ mat4 parallax_offset_matrix(vec2 offset) {
 void main() {
   vs_out.v_uv = vertex.zw;
   vs_out.v_colour = colour;
-  vs_out.v_sprite_pos = sprite_pos.xy;
+  vs_out.v_sprite_size = sprite_size_and_offset.xy;
+  vs_out.v_sprite_pos = sprite_size_and_offset.zw;
   vs_out.v_sprite_wh = sprite_width_and_max.xy;
   vs_out.v_sprite_max = sprite_width_and_max.zw;
+  vs_out.v_sprite_global_pos = sprite_global_pos;
   vs_out.v_tex_unit = tex_unit;
-  vs_out.v_vertex = vec4(model * vec4(vertex.xy, 1.0, 1.0)).xy;
+  // vs_out.v_vertex = vec4(model * vec4(vertex.xy, 1.0, 1.0)).xy;
 
   mat4 final_view = is_fullscreen ? mat4(1.0) : view;
   mat4 final_proj = do_zoom ? projection_zoomed : projection;

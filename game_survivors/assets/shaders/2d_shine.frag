@@ -8,17 +8,19 @@ in VS_OUT
   vec2 v_uv;
   vec4 v_colour;
   vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
+  vec2 v_sprite_global_pos;
   float v_tex_unit;
-  vec2 v_vertex;
 } fs_in;
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
 	mat4 view;
-  vec2 camera_pos;
 	vec4[32] light_positions;
+  vec2 camera_pos;
+  vec2 screenshake;
   float time;
   float zoom;
   float tilesize;
@@ -49,7 +51,9 @@ main()
       (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
       (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
     );
+    
     vec4 col = vec4(1.0f);
+    vec2 tex_uv = sprite_uv;
 {{ generate_sampler_if_statements }}
     out_colour = v_colour * col;
   }

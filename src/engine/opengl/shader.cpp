@@ -171,7 +171,7 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
       // const std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
       // const std::string l1 = "col *= texture(" + key + ", sprite_uv);\n";
 
-      const std::string l0 = "col *= texture(u_textures[index - RENDERER_TEX_UNIT_COUNT], sprite_uv);";
+      const std::string l0 = "col *= texture(u_textures[index - RENDERER_TEX_UNIT_COUNT], tex_uv);";
 
       generated += l0;
       // SDL_Log("generated: %s", generated.c_str());

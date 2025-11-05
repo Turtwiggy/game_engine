@@ -46,6 +46,15 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
     return state.cells.back();
   };
 
+// #define DEBUG_SPRITES 1
+#if defined(_DEBUG) && defined(DEBUG_SPRITES)
+  const auto action = [&]() {
+    open = false;
+    move_to_scene_start(r, Scene::develop_sprite_sampling);
+  };
+  auto debug_sprites = make_cell("Debug Sprites", action);
+#endif
+
 // #define DEBUG_SNAKE 1
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   const auto debug_snake_action = [&]() {
@@ -84,6 +93,9 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
   //
   std::vector<std::shared_ptr<Cell>> vertical_cells = { a, b, c, d };
 
+#if defined(_DEBUG) && defined(DEBUG_SPRITES)
+  vertical_cells.push_back(debug_sprites);
+#endif
 #if defined(_DEBUG) && defined(DEBUG_SNAKE)
   vertical_cells.push_back(debug_snake);
 #endif

@@ -17,9 +17,9 @@ struct TriangleDescriptor
   glm::vec2 point_0 = { 0, 0 };
   glm::vec2 point_1 = { 0, 0 };
   glm::vec2 point_2 = { 0, 0 };
-  LinearColour point_0_colour;
-  LinearColour point_1_colour;
-  LinearColour point_2_colour;
+  SRGBColour point_0_colour;
+  SRGBColour point_1_colour;
+  SRGBColour point_2_colour;
   glm::vec2 uv_0 = { 0, 0 };
   glm::vec2 uv_1 = { 1, 1 };
   glm::vec2 uv_2 = { 1, 1 };

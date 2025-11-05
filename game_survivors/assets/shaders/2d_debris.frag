@@ -11,7 +11,6 @@ in VS_OUT
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
   float v_tex_unit;
-  vec2 v_vertex;
 } fs_in;
 
 uniform sampler2D tex;
@@ -20,8 +19,9 @@ uniform vec2 viewport_wh;
 layout(std140) uniform Data {
   mat4 projection_zoomed;
 	mat4 view;
-  vec2 camera_pos;
 	vec4[32] light_positions;
+  vec2 camera_pos;
+  vec2 screenshake;
   float time;
   float zoom;
   float tilesize;

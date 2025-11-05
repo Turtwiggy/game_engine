@@ -26,95 +26,9 @@ unbind_tex()
   glBindTexture(GL_TEXTURE_2D, 0);
 };
 
-SRGBTexture
-load_texture_srgb(const int tex_unit, const std::string& path)
+void
+get_format(const int nr_components, GLenum& a, GLenum& b)
 {
-  int width = 0;
-  int height = 0;
-  int nr_components = 0;
-  unsigned char* data = stbi_load(path.c_str(), &width, &height, &nr_components, 0);
-  // data contains [0, 255]
-
-  // Check Stb texture loaded correctly
-  if (!data) {
-    SDL_Log("%s", std::format("(error) failed to load texture: {}\n reason: {}", path, stbi_failure_reason()).c_str());
-    stbi_image_free(data);
-    exit(1); // if a texture fails to load, explode!
-  }
-
-  engine::SRGBTexture srgb; // stbi assumes srgb
-  srgb.width = width;
-  srgb.height = height;
-  srgb.nr_components = nr_components;
-  srgb.data = data;
-  srgb.texture_unit = tex_unit;
-  srgb.path = path;
-  return srgb;
-};
-
-LinearTexture
-load_texture_linear(const int tex_unit, const std::string& path)
-{
-  // if (path.find("boat") != std::string::npos)
-  //   int k = 1;
-
-  SRGBTexture srgb = load_texture_srgb(tex_unit, path);
-  const int width = srgb.width;
-  const int height = srgb.height;
-  const int nr_components = srgb.nr_components;
-
-  LinearTexture linear;
-  linear.width = width;
-  linear.height = height;
-  linear.nr_components = nr_components;
-  linear.texture_unit = tex_unit;
-  linear.path = path;
-  linear.data.resize(width * height * nr_components);
-
-  for (int i = 0; i < srgb.width; i++) {
-    for (int j = 0; j < srgb.height; j++) {
-      int offset = (i + srgb.width * j) * srgb.nr_components;
-      unsigned char* pixel_offset = srgb.data + offset;
-
-      int r = static_cast<int>(pixel_offset[0]);
-      int g = static_cast<int>(pixel_offset[1]);
-      int b = static_cast<int>(pixel_offset[2]);
-      int a = 0;
-
-      if (srgb.nr_components > 3)
-        a = static_cast<int>(pixel_offset[3]);
-
-      const SRGBColour srgbcol = SRGBColour(r, g, b, a);
-      const LinearColour lincol = SRGBToLinear(srgbcol);
-      const float lin_r = lincol.r;
-      const float lin_g = lincol.g;
-      const float lin_b = lincol.b;
-
-      linear.data[offset + 0] = lin_r;
-      linear.data[offset + 1] = lin_g;
-      linear.data[offset + 2] = lin_b;
-
-      if (srgb.nr_components == 4)
-        linear.data[offset + 3] = lincol.a;
-    }
-  }
-
-  stbi_image_free(srgb.data); // free the srgb data
-  return linear;
-};
-
-unsigned int
-setup_linear_texture(const LinearTexture& tex)
-{
-  const int tex_unit = tex.texture_unit;
-  const int width = tex.width;
-  const int height = tex.height;
-  const int nr_components = tex.nr_components;
-  const auto& data = tex.data;
-
-  unsigned int texture_id;
-  glGenTextures(1, &texture_id);
-
   GLenum format_a = GL_RGB;
   GLenum format_b = GL_RGB;
 
@@ -146,26 +60,59 @@ setup_linear_texture(const LinearTexture& tex)
     format_b = GL_RGBA;
   }
 #endif
-  // SDL_Log("%s", std::format("Texture: comps:{} format: {}, {}", nr_components, format_a, format_b).c_str());
-
-  const auto texture_wrap_s = GL_CLAMP_TO_BORDER;
-  const auto texture_wrap_t = GL_CLAMP_TO_BORDER;
-  const auto texture_min_filter = GL_LINEAR_MIPMAP_LINEAR;
-  const auto texture_mag_filter = GL_NEAREST;
-
-  glActiveTexture(GL_TEXTURE0 + tex_unit);
-  glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexImage2D(GL_TEXTURE_2D, 0, format_a, width, height, 0, format_b, GL_FLOAT, data.data());
-  glGenerateMipmap(GL_TEXTURE_2D);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texture_wrap_s);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture_wrap_t);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_min_filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_mag_filter);
-  unbind_tex();
-
-  CHECK_OPENGL_ERROR(6);
-  return texture_id;
 };
+
+engine::SRGBTexture
+load_texture(std::string path, const uint32_t tex_unit)
+{
+  int width = 0;
+  int height = 0;
+  int nr_components = 0;
+  unsigned char* data = stbi_load(path.c_str(), &width, &height, &nr_components, 0);
+  if (!data) {
+    SDL_Log("%s", std::format("(error) failed to load texture: {}\n reason: {}", path, stbi_failure_reason()).c_str());
+    stbi_image_free(data);
+    exit(1); // if a texture fails to load, explode!
+  }
+
+  if (nr_components != 4) {
+    SDL_Log("%s", std::format("(error) texture must be 4 components: {}", path).c_str());
+    stbi_image_free(data);
+    exit(1);
+  }
+
+  GLenum format_a = GL_RGB;
+  GLenum format_b = GL_RGB;
+  get_format(nr_components, format_a, format_b);
+
+  // Create a OpenGL texture identifier
+  uint32_t image_texture;
+  glGenTextures(1, &image_texture);
+  glActiveTexture(GL_TEXTURE0 + tex_unit);
+  glBindTexture(GL_TEXTURE_2D, image_texture);
+
+  // Setup filtering parameters for display
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  // Upload pixels into texture
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+  stbi_image_free(data);
+
+#if defined(_DEBUG)
+  CHECK_OPENGL_ERROR(6);
+#endif
+
+  return engine::SRGBTexture{
+    .width = width,
+    .height = height,
+    .nr_components = nr_components,
+    .texture_id = image_texture,
+    .texture_unit = tex_unit,
+    .path = path,
+  };
+}
 
 } // namespace engine;
 
@@ -178,9 +125,9 @@ engine::update_bound_texture_size(const glm::ivec2 size)
   }
 
 #if defined(__EMSCRIPTEN__)
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 #else
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 #endif
 };
 
@@ -188,24 +135,16 @@ std::vector<unsigned int>
 add_textures_to_fbo(const glm::ivec2& size, const TextureFiltering& f, const int num_colour_buffers)
 {
   // generate textures
-  auto* tex_ids = new unsigned int[num_colour_buffers];
-  glGenTextures(num_colour_buffers, tex_ids);
+  std::vector<unsigned int> tex_ids(num_colour_buffers);
+  glGenTextures(num_colour_buffers, tex_ids.data());
 
   for (int i = 0; i < num_colour_buffers; i++) {
     const auto tex_id = tex_ids[i];
     glBindTexture(GL_TEXTURE_2D, tex_id);
-
-    // set parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f.texture_min_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f.texture_mag_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, f.texture_wrap_s);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, f.texture_wrap_t);
-
-#if defined(__EMSCRIPTEN__)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-#else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
-#endif
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     // attach it to the currently bound framebuffer object
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex_id, 0);
@@ -216,7 +155,6 @@ add_textures_to_fbo(const glm::ivec2& size, const TextureFiltering& f, const int
   for (int i = 0; i < num_colour_buffers; i++)
     result.push_back(tex_ids[i]);
 
-  delete[] tex_ids;
   return result;
 };
 
@@ -255,69 +193,3 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const Tex
   result.out_tex_ids = tex_ids;
   return result;
 };
-
-std::vector<unsigned int>
-load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load)
-{
-  const auto start = std::chrono::high_resolution_clock::now();
-  log_time_since("loading textures... ", start);
-  std::vector<unsigned int> texture_ids;
-
-  std::vector<LinearTexture> loaded_textures(textures_to_load.size());
-  for (int i = 0; const auto& texture : textures_to_load) {
-    loaded_textures[i] = load_texture_linear(texture.first, texture.second);
-    i++;
-  }
-
-  // sort by texture unit
-  auto sort_by_texunit = [](const auto& a, const auto& b) { return a.texture_unit < b.texture_unit; };
-  std::sort(loaded_textures.begin(), loaded_textures.end(), sort_by_texunit);
-
-  for (LinearTexture& l : loaded_textures) {
-
-    unsigned int id = setup_linear_texture(l);
-    texture_ids.push_back(id);
-  }
-
-  log_time_since("textures loaded took:", start);
-  return texture_ids;
-}
-
-std::vector<unsigned int>
-load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load)
-{
-  const auto start = std::chrono::high_resolution_clock::now();
-  log_time_since("(Threaded) loading textures... ", start);
-
-  std::vector<unsigned int> texture_ids;
-
-  {
-    // Try and work out threads on emscrtipten
-    std::vector<std::thread> threads;
-    std::vector<LinearTexture> loaded_textures(textures_to_load.size());
-
-    for (int i = 0; const auto& texture : textures_to_load) {
-      threads.emplace_back([&texture, i, &loaded_textures]() {
-        //
-        loaded_textures[i] = load_texture_linear(texture.first, texture.second);
-      });
-      i++;
-    }
-
-    for (auto& thread : threads)
-      thread.join();
-
-    // sort by texture unit
-    std::sort(loaded_textures.begin(), loaded_textures.end(), [](LinearTexture a, LinearTexture b) {
-      return a.texture_unit < b.texture_unit;
-    });
-
-    for (LinearTexture& l : loaded_textures) {
-      unsigned int id = setup_linear_texture(l);
-      texture_ids.push_back(id);
-    }
-  }
-
-  log_time_since("(End Threaded) textures loaded took:", start);
-  return texture_ids;
-}

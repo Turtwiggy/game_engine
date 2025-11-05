@@ -7,14 +7,14 @@ in VS_OUT
 {
   vec2 v_uv;
   vec4 v_colour;
-  vec2 v_vertex;
 } fs_in;
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
 	mat4 view;
-  vec2 camera_pos;
 	vec4[32] light_positions;
+  vec2 camera_pos;
+  vec2 screenshake;
   float time;
   float zoom;
   float tilesize;

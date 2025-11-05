@@ -82,8 +82,8 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     // e.g. 12 should be -12
     //
     const int flipped_i = -1 * i;
-    // auto& t_c = r.get<TransformComponent>(spawned_e);
-    // t_c.z_index = flipped_i;
+    auto& t_c = r.get<TransformComponent>(spawned_e);
+    t_c.z_index = flipped_i - 100; // put it under everything?
 
     SpritestackComponent spritestack_c(i);
     spritestack_c.spritestack_total = sprites_for_total_sprite;

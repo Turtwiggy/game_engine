@@ -411,8 +411,8 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
 
   // note: * 3.0f as it should be 2.0f (as width = 2.0 * radius),
   // but the explosions sprite doesnt fill up the entire width, so scale it up.
-  if (key.find("death_exploder") != std::string::npos)
-    return spawn_fx(r, "EXPLODE_FX_6", req.position, { req.radius_pixels_upper * 3.0f, req.radius_pixels_upper * 3.0f });
+  // if (key.find("death_exploder") != std::string::npos)
+  // return spawn_fx(r, "EXPLODE_FX_6", req.position, { req.radius_pixels_upper * 3.0f, req.radius_pixels_upper * 3.0f });
   // if (key.find("death_sea_mine") != std::string::npos)
   // return spawn_fx(r, "S6_EXPLODE_FX_7", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
 
@@ -431,7 +431,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   }
   //
   else if (key.find("default_explode") != std::string::npos) {
-    pdesc.size_curve = { { 16, 16 }, { 0, 0 } };
+    pdesc.size_curve = { { 8, 8 }, { 0, 0 } };
     pdesc.time_to_live_ms = static_cast<int>(1.0 * 1000);
     pdesc.random_velocity_bound = 5;
   }
@@ -449,7 +449,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   }
   //
   else if (key.find("enemy_death") != std::string::npos) {
-    pdesc.size_curve = { { 32, 32 }, { 0, 0 } };
+    pdesc.size_curve = { { 8, 8 }, { 0, 0 } };
     pdesc.time_to_live_ms = static_cast<int>(0.8 * 1000);
     // pdesc.start_colour = hex_to_srgb("#a64a2e"); // dark red
     pdesc.start_colour = hex_to_srgb("#0096ff"); // death col

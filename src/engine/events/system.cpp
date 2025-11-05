@@ -66,10 +66,10 @@ update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
       }
 
       // Pass UI the event
-      if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
-        app.imgui.process_event(&e);
-        // continue; // Imgui stole the event
-      }
+      app.imgui.process_event(&e);
+      // if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+      // continue; // Imgui stole the event
+      // }
 
       // keyboard specific
       if (e.type == SDL_KEYDOWN)

@@ -286,6 +286,9 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   update_create_item_system(r);
   fixed_update_player_controller_system(r, milliseconds_dt, mouse_pos);
 
+  const float dt = milliseconds_dt / 1000.0f;
+  update_camera_system(r, dt);
+
   // fixed_input.fixed_tick += 1;
 };
 
@@ -308,7 +311,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_steam_input(r);
 #endif
 
-  update_camera_system(r, dt);
+  // update_camera_system(r, dt); // jittery camera
   update_audio_system(r, dt);
   update_audio_mix_system(r);
   update_player_controller_system(r, mouse_pos);
@@ -485,7 +488,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_collisions_system(r);
   }
 
-  update_ui_blur_system(r, dt);
+  // update_ui_blur_system(r, dt);
 
 #if defined(_DEBUG)
   // hack: reload RAWS

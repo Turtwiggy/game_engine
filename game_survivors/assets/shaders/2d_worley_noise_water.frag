@@ -12,17 +12,19 @@ in VS_OUT
   vec2 v_uv;
   vec4 v_colour;
   vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
+  vec2 v_sprite_global_pos;
   float v_tex_unit;
-  vec2 v_vertex;
 } fs_in;
 
 layout(std140) uniform Data {
   mat4 projection_zoomed;
 	mat4 view;
-  vec2 camera_pos;
 	vec4[32] light_positions;
+  vec2 camera_pos;
+  vec2 screenshake;
   float time;
   float zoom;
   float tilesize;
@@ -143,7 +145,6 @@ void main()
   vec2 v_sprite_pos = fs_in.v_sprite_pos;
   vec2 v_sprite_wh = fs_in.v_sprite_wh;
   vec2 v_sprite_max = fs_in.v_sprite_max;
-  vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
   vec2 fragCoord = v_uv * viewport_wh; // e.g. x 0>640, y 0>360

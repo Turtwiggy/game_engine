@@ -61,9 +61,9 @@ struct SpriteTriangleComponent
   glm::vec2 a{ 0, 0 };
   glm::vec2 b{ 0, 0 };
   glm::vec2 c{ 0, 0 };
-  engine::LinearColour a_colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-  engine::LinearColour b_colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f));
-  engine::LinearColour c_colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f));
+  engine::SRGBColour a_colour = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
+  engine::SRGBColour b_colour = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
+  engine::SRGBColour c_colour = engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f);
   glm::vec2 uv_0 = { 0, 0 };
   glm::vec2 uv_1 = { 1, 1 };
   glm::vec2 uv_2 = { 1, 1 };
@@ -72,7 +72,7 @@ struct SpriteTriangleComponent
 // Used by renderer
 struct SpriteComponent
 {
-  engine::LinearColour colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f));
+  engine::SRGBColour colour = engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f);
   float angle_radians = 0.0f;
 
   SpritePosition tex_pos;

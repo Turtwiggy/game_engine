@@ -2,6 +2,7 @@
 
 // other lib headers
 #include "engine/deps/opengl.hpp"
+#include <cstdint>
 #if !defined(STB_IMAGE_IMPLEMENTATION)
 #define STB_IMAGE_IMPLEMENTATION
 #endif
@@ -14,14 +15,24 @@
 
 namespace engine {
 
+enum class Filtering
+{
+  clamp_to_border = GL_CLAMP_TO_BORDER,
+  clamp_to_edge = GL_CLAMP_TO_EDGE,
+  repeat = GL_REPEAT,
+
+  nearest = GL_NEAREST,
+  linear = GL_LINEAR,
+};
+
 struct TextureFiltering
 {
   // min: filtering mode if texture pixels < screen pixels
   // mag: filtering mode if texture pixels > screen pixels
-  int texture_wrap_s = 0;
-  int texture_wrap_t = 0;
-  int texture_min_filter = 0;
-  int texture_mag_filter = 0;
+  Filtering texture_wrap_s = Filtering::clamp_to_border;
+  Filtering texture_wrap_t = Filtering::clamp_to_border;
+  Filtering texture_min_filter = Filtering::linear;
+  Filtering texture_mag_filter = Filtering::linear;
 };
 
 struct SRGBTexture
@@ -29,22 +40,9 @@ struct SRGBTexture
   int width = 0;
   int height = 0;
   int nr_components = 0;
-  int texture_unit = 0;
+  uint32_t texture_id = 0;
+  uint32_t texture_unit = 0;
   std::string path;
-  unsigned char* data; // 0-255
-};
-
-// no pow 2.2 this is bad
-// no approximations this is also bad
-struct LinearTexture
-{
-  int width;
-  int height;
-  int nr_components;
-  int texture_unit;
-  std::string path;
-  std::vector<float> data; // linear colour 0-1
-  TextureFiltering filtering;
 };
 
 // known before bind
@@ -85,17 +83,8 @@ bind_tex(const int id);
 void
 unbind_tex();
 
-// [[nodiscard]] std::vector<unsigned int>
-// load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load);
-
-// [[nodiscard]] std::vector<unsigned int>
-// load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load);
-
-[[nodiscard]] LinearTexture
-load_texture_linear(const int tex_unit, const std::string& path);
-
-[[nodiscard]] unsigned int
-setup_linear_texture(const LinearTexture& texture);
+SRGBTexture
+load_texture(std::string path, const uint32_t tex_unit);
 
 void
 update_bound_texture_size(const glm::ivec2 size);

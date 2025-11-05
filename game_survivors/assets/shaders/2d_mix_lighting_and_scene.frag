@@ -8,10 +8,11 @@ in VS_OUT
   vec2 v_uv;
   vec4 v_colour;
   vec2 v_sprite_pos;  // x, y location of sprite
+  vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
+  vec2 v_sprite_global_pos;
   float v_tex_unit;
-  vec2 v_vertex;
 } fs_in;
 
 uniform sampler2D tex_island_triangles;
@@ -34,13 +35,13 @@ uniform bool add_vignette;
 layout(std140) uniform Data {
   mat4 projection_zoomed;
 	mat4 view;
-  vec2 camera_pos;
 	vec4[32] light_positions;
+  vec2 camera_pos;
+  vec2 screenshake;
   float time;
   float zoom;
   float tilesize;
 };
-
 
 struct Light
 {
@@ -250,7 +251,6 @@ void main()
   vec2 v_sprite_pos = fs_in.v_sprite_pos;
   vec2 v_sprite_wh = fs_in.v_sprite_wh;
   vec2 v_sprite_max = fs_in.v_sprite_max;
-  vec2 v_vertex = fs_in.v_vertex;
   int index = int(fs_in.v_tex_unit);
 
   out_colour.a = 1.0f;
@@ -290,7 +290,7 @@ void main()
   //
   // SDF for lights?
   //
-  vec3 lighting_col = vec3(1.0);
+  vec3 lighting_col = vec3(0.0);
   {
 		float aspect_x = viewport_wh.x / viewport_wh.y;
 
@@ -407,62 +407,46 @@ void main()
   vec3 itg_col = texture(tex_island_triangles_gradient, v_uv).rgb;
   vec3 island_hidden_col = texture(tex_island_hidden, v_uv).rgb;
   vec3 island_above_hidden_col = texture(tex_island_above_hidden, v_uv).rgb;
-  vec3 scene_lin = texture(tex_scene_0, v_uv).rgb;
-  vec4 outline_col = texture(tex_outline, v_uv);
+  vec4 scene_col = texture(tex_scene_0, v_uv);
+  vec3 outline_col = texture(tex_outline, v_uv).rgb;
   vec4 shore_col = texture(tex_island_shore, v_uv).rgba;
+  vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
+  vec3 tex_flame_col = texture(tex_flame, v_uv).rgb;
 
+  vec4 lc_vec4 = vec4(lighting_col, 1.0f);
   vec3 col_water = lighting_col * srgb_water;
   vec3 col_itg = lighting_col * itg_col; // island triangle gradient
   vec3 col_hidden = lighting_col * island_hidden_col;
   vec3 col_above_hidden = lighting_col * island_above_hidden_col;
-  vec3 col_scene = lighting_col * lin_to_srgb( scene_lin );
-  vec4 col_island_shore = (vec4(lighting_col, 1.0f) * shore_col.rgba);
+  vec4 col_scene = lc_vec4 *  scene_col.rgba;
+  vec4 col_island_shore = lc_vec4 * shore_col;
 
   // add the water
-  out_colour.rgb = mix( out_colour.rgb, col_water, sign(length(col_water.rgb)) );
+  out_colour.rgb = col_water.rgb;
 
   // add the island shore
   out_colour.rgb = mix( out_colour.rgb, col_island_shore.rgb, col_island_shore.a );
 
   // put the island triangle gradient shader on top
-  out_colour.rgb = mix( out_colour.rgb, col_itg, sign(length( col_itg.rgb )));
+  out_colour.rgb = mix( out_colour.rgb, col_itg.rgb, sign(length( col_itg.rgb )));
 
-  // put the scene on top of triangle (islands).
-  out_colour.rgb = mix( out_colour.rgb, col_scene, sign(length( col_scene.rgb )));
+  // scene
+  out_colour.rgb = mix( out_colour.rgb, col_scene.rgb,  sign(length( col_scene.rgb )) );
 
   // hide parts of the scene
-  out_colour.rgb = mix( out_colour.rgb, col_hidden, sign(length( col_hidden.rgb )));
+  out_colour.rgb = mix( out_colour.rgb, col_hidden.rgb, sign(length( col_hidden.rgb )));
 
   // draw things above the hide
-  out_colour.rgb = mix( out_colour.rgb, col_above_hidden, sign(length( col_above_hidden.rgb )));
-
-  // out_colour.rgb = lighting_col;
-  // if(outline_col.r > 0.0f) out_colour.rgb = vec3(1.0, 0.0, 0.0);
-  // out_colour.rgb = mix(
-  //     out_colour.rgb,           
-  //     vec3(1.0, 0.0, 0.0),     // Red (used if condition is true)
-  //     sign(outline_col.r) // 1.0 if outline_col.r > 0.0, else 0.0
-  // );
+  out_colour.rgb = mix( out_colour.rgb, col_above_hidden.rgb, sign(length( col_above_hidden.rgb )));
 
   // grid
   // out_colour.rgb += grid_col;
 
   // shiney shells
-  vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
-  // if(tex_shells.r > 0.0) out_colour.rgb = lin_to_srgb(tex_shells);
-  out_colour.rgb = mix(
-    out_colour.rgb, 
-    lin_to_srgb(tex_shells), 
-    length(tex_shells.r)
-  );
+  out_colour.rgb = mix( out_colour.rgb, lin_to_srgb(tex_shells), length(tex_shells.r) );
   
   // flames
-  vec3 tex_flame_col = texture(tex_flame, v_uv).rgb;
-  out_colour.rgb = mix(
-    out_colour.rgb,
-    lin_to_srgb(tex_flame_col),
-    length(tex_flame_col.r)
-  );
+  out_colour.rgb = mix( out_colour.rgb, lin_to_srgb(tex_flame_col), length(tex_flame_col.r) );
 
   // vignette
   // if(add_vignette){

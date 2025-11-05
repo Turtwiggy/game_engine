@@ -56,13 +56,13 @@ set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 grid
 };
 
 void
-set_rotation(entt::registry& r, const entt::entity e, const float angle)
+set_rotation(entt::registry& r, const entt::entity e, const float angle_radians)
 {
   auto& t = r.get<TransformComponent>(e);
-  t.rotation_radians.z = angle;
+  t.rotation_radians.z = angle_radians;
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
-    b2Body_SetTransform(pb->bodyId, b2Body_GetPosition(pb->bodyId), b2MakeRot(angle));
+    b2Body_SetTransform(pb->bodyId, b2Body_GetPosition(pb->bodyId), b2MakeRot(angle_radians));
 };
 
 void
@@ -142,7 +142,7 @@ void
 set_colour(entt::registry& r, const entt::entity e, const engine::SRGBColour& col)
 {
   auto& sc = r.get<SpriteComponent>(e);
-  sc.colour = engine::SRGBToLinear(col);
+  sc.colour = col;
 };
 
 } // namespace game2d

@@ -84,11 +84,6 @@ update_ui_hierarchy_system(entt::registry& r)
           continue;
         }
 
-        if (tag.find("empty") != std::string::npos) {
-          categories.push_back({ tag, false });
-          continue;
-        }
-
         categories.push_back({ tag });
       }
 

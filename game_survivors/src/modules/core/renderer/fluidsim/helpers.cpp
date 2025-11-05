@@ -93,7 +93,7 @@ load_fluidsim(entt::registry& r, FluidSimData& data, int& used_texture_units)
   const auto sim_wh = glm::ivec2{ data.config_sim_resolution, data.config_sim_resolution };
   const auto dye_wh = glm::ivec2{ data.config_dye_resolution, data.config_dye_resolution };
 
-  const auto create_tex = [&used_texture_units](FboAndTexInfo& out, glm::ivec2 wh, int filtering) {
+  const auto create_tex = [&used_texture_units](FboAndTexInfo& out, glm::ivec2 wh, auto filtering) {
     DoubleBufferInfo info;
 
     // assign a texture unit
@@ -102,8 +102,8 @@ load_fluidsim(entt::registry& r, FluidSimData& data, int& used_texture_units)
     tex.size = wh;
 
     engine::TextureFiltering f;
-    f.texture_wrap_s = GL_CLAMP_TO_EDGE;
-    f.texture_wrap_t = GL_CLAMP_TO_EDGE;
+    f.texture_wrap_s = engine::Filtering::clamp_to_edge;
+    f.texture_wrap_t = engine::Filtering::clamp_to_edge;
     f.texture_min_filter = filtering;
     f.texture_mag_filter = filtering;
 
@@ -116,14 +116,14 @@ load_fluidsim(entt::registry& r, FluidSimData& data, int& used_texture_units)
     used_texture_units++; // increment after
   };
 
-  create_tex(data.dye.info[0], dye_wh, GL_LINEAR);
-  create_tex(data.dye.info[1], dye_wh, GL_LINEAR);
-  create_tex(data.velocity.info[0], sim_wh, GL_LINEAR);
-  create_tex(data.velocity.info[1], sim_wh, GL_LINEAR);
-  create_tex(data.divergence.info, sim_wh, GL_NEAREST);
-  create_tex(data.curl.info, sim_wh, GL_NEAREST);
-  create_tex(data.pressure.info[0], sim_wh, GL_NEAREST);
-  create_tex(data.pressure.info[1], sim_wh, GL_NEAREST);
+  create_tex(data.dye.info[0], dye_wh, engine::Filtering::linear);
+  create_tex(data.dye.info[1], dye_wh, engine::Filtering::linear);
+  create_tex(data.velocity.info[0], sim_wh, engine::Filtering::linear);
+  create_tex(data.velocity.info[1], sim_wh, engine::Filtering::linear);
+  create_tex(data.divergence.info, sim_wh, engine::Filtering::nearest);
+  create_tex(data.curl.info, sim_wh, engine::Filtering::nearest);
+  create_tex(data.pressure.info[0], sim_wh, engine::Filtering::nearest);
+  create_tex(data.pressure.info[1], sim_wh, engine::Filtering::nearest);
 
   CHECK_OPENGL_ERROR(321123);
 };

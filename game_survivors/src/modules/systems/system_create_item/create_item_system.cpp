@@ -9,6 +9,7 @@
 #include "modules/events/event_coll_player_hp/event_coll_player_hp_components.hpp"
 #include "modules/events/event_coll_player_sea_mine/event_coll_player_sea_mine_components.hpp"
 #include "modules/events/event_coll_player_vacuum_orb/event_coll_player_vacuum_orb_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -23,7 +24,7 @@ update_create_item_system(entt::registry& r)
   for (const auto& [e, req_c] : view.each()) {
 
     auto item_e = spawn(r, req_c.item);
-    give_life(r, item_e, req_c.position, { default_size, default_size });
+    give_life(r, item_e, req_c.position, { default_map_unit_tilesize, default_map_unit_tilesize });
     r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
     r.remove<OnDeathCallbacks>(item_e);
 

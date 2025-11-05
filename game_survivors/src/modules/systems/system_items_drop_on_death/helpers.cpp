@@ -11,6 +11,7 @@
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -19,10 +20,10 @@ const auto pink = hex_to_srgb("#D075CE"); // pink
 void
 drop_levelup_xp_on_death_callback(entt::registry& r, const entt::entity e)
 {
-  const auto size = glm::vec2{ 16, 16 };
+  float size = default_map_unit_tilesize;
 
   const auto item_e = spawn(r, "item_xp");
-  give_life(r, item_e, get_position(r, e), size);
+  give_life(r, item_e, get_position(r, e), { size, size });
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
   r.emplace<AnimationRotate>(item_e);
   set_colour(r, item_e, pink);
@@ -37,10 +38,10 @@ drop_levelup_xp_on_death_callback(entt::registry& r, const entt::entity e)
 void
 drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
 {
-  const auto size = glm::vec2{ 8, 8 };
+  float size = default_map_unit_tilesize;
 
   const auto item_e = spawn(r, "item_xp");
-  give_life(r, item_e, get_position(r, e), size);
+  give_life(r, item_e, get_position(r, e), { default_map_unit_tilesize, default_map_unit_tilesize });
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
 
   auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_item");

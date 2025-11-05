@@ -2,36 +2,32 @@
 
 #include "system.hpp"
 
-// components/systems
 #include "components.hpp"
-#include "engine/app/application.hpp"
 #include "engine/colour/colour.hpp"
+#include "engine/deps/opengl.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/maths/maths.hpp"
+#include "engine/opengl/framebuffer.hpp"
+#include "engine/opengl/render_command.hpp"
+#include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
+#include "engine/opengl/util.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/core/renderer/renderpass/passes.hpp"
-#include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
-#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-#include "resources/data.hpp"
-
-// engine headers
-#include "engine/opengl/framebuffer.hpp"
-#include "engine/opengl/render_command.hpp"
-#include "engine/opengl/shader.hpp"
-#include "engine/opengl/texture.hpp"
-#include "engine/opengl/util.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/systems/system_screenshake/components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "renderpass/passes.hpp"
-#include <tracy/Tracy.hpp>
+#include "resources/data.hpp"
 
 using namespace engine;
 
@@ -43,9 +39,9 @@ struct UboData
   // glm::mat4 projection = glm::mat4(1.0f);
   glm::mat4 projection_zoomed = glm::mat4(1.0f);
   glm::mat4 view = glm::mat4(1.0f);
+  glm::vec4 light_positions[32];
   glm::vec2 camera_pos{ 0, 0 };
   glm::vec2 screenshake{ 0, 0 };
-  glm::vec4 light_positions[32];
   float time = 0;
   float zoom = 0;
   float tilesize = default_map_tilesize;
@@ -71,7 +67,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   for (const RenderPass& rp : ri.passes) {
     for (const auto& tex : rp.texs) {
       engine::bind_tex(tex.tex_id.id);
-      engine::update_bound_texture_size(rp.double_wh ? 2 * wh : wh);
+      engine::update_bound_texture_size(wh);
       engine::unbind_tex();
     }
   }
@@ -149,12 +145,14 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.bind();
   ri.instanced.set_uniform_block_binding("Data", 0);
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
-  ri.instanced.set_bool("do_zoom", true);
+  // ri.instanced.set_bool("do_zoom", false);
   ri.instanced.set_mat4("projection", camera.projection);
   for (int i = 0; i < (int)ri.user_textures.size(); i++) {
     const auto& tex = ri.user_textures[i];
     ri.instanced.set_int("u_textures[" + std::to_string(i) + "]", tex.tex_unit.unit);
   }
+  ri.instanced.set_vec2("screen_wh", wh);
+
   // ri.instanced.set_int("tex_fluid", tex_unit_fluid);
   // ri.instanced.set_int("tex_fluid_tex_unit", tex_unit_fluid);
   // ri.instanced.set_float("tex_fluid_texel_size", 1.0f / ri.fluis_sim.config_dye_resolution);
@@ -172,7 +170,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.island_tri_gradient.set_bool("is_fullscreen", true);
   ri.island_tri_gradient.set_bool("do_zoom", false);
   ri.island_tri_gradient.set_int("tex_island_triangles", tex_unit_island_triangles);
-  ri.island_tri_gradient.set_vec2("screen_wh", ri.viewport_size_render_at);
+  ri.island_tri_gradient.set_vec2("screen_wh", wh);
 
   ri.island_tri_hidden.reload(r);
   ri.island_tri_hidden.bind();
@@ -235,14 +233,14 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.jump_flood.bind();
   ri.jump_flood.set_bool("is_fullscreen", true);
   ri.jump_flood.set_mat4("projection", camera.projection);
-  ri.jump_flood.set_vec2("screen_wh", ri.viewport_size_render_at);
+  ri.jump_flood.set_vec2("screen_wh", wh);
 
   ri.voronoi_distance.reload(r);
   ri.voronoi_distance.bind();
   ri.voronoi_distance.set_bool("is_fullscreen", true);
   ri.voronoi_distance.set_mat4("projection", camera.projection);
   // ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit_emitters_and_occluders);
-  ri.voronoi_distance.set_vec2("screen_wh", ri.viewport_size_render_at);
+  ri.voronoi_distance.set_vec2("screen_wh", wh);
 
   ri.mix_lighting_and_scene.reload(r);
   ri.mix_lighting_and_scene.bind();
@@ -264,33 +262,18 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_bool("add_vignette", true);
   // ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
+  ri.mix_lighting_and_scene.set_float("zoom", get_first_component<OrthographicCamera>(r).zoom_nonlinear);
 
-  const auto& camera_c = get_first_component<OrthographicCamera>(r);
-  ri.mix_lighting_and_scene.set_float("zoom", camera_c.zoom_nonlinear);
-
-  //
-  // bind fluidsim data
-  //
-
-  /*
-    ri.fluid_sim.splatProgram.reload(r);
-    ri.fluid_sim.splatProgram.bind();
-    ri.fluid_sim.advectProgram.reload(r);
-    ri.fluid_sim.advectProgram.bind();
-    ri.fluid_sim.curlProgram.reload(r);
-    ri.fluid_sim.curlProgram.bind();
-    ri.fluid_sim.vorticityProgram.reload(r);
-    ri.fluid_sim.vorticityProgram.bind();
-    ri.fluid_sim.divergenceProgram.reload(r);
-    ri.fluid_sim.divergenceProgram.bind();
-    ri.fluid_sim.pressureProgram.reload(r);
-    ri.fluid_sim.pressureProgram.bind();
-    ri.fluid_sim.gradientSubtractProgram.reload(r);
-    ri.fluid_sim.gradientSubtractProgram.bind();
-    ri.fluid_sim.textureProgram.reload(r);
-    ri.fluid_sim.textureProgram.bind();
-    CHECK_OPENGL_ERROR(13);
-    */
+  ri.develop_sprite_sampling.reload(r);
+  ri.develop_sprite_sampling.bind();
+  ri.develop_sprite_sampling.set_uniform_block_binding("Data", 0);
+  ri.develop_sprite_sampling.set_bool("is_fullscreen", true);
+  ri.develop_sprite_sampling.set_mat4("projection", camera.projection);
+  // const auto tex_nyan_cat = ri.user_textures[ri.user_textures.size() - 1].tex_unit.unit;
+  // const auto tex_kennynl = search_for_texture_unit_by_texture_path(ri, "custom")->unit;
+  const auto tex_kennynl = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
+  ri.develop_sprite_sampling.set_int("tex", tex_kennynl);
+  ri.develop_sprite_sampling.set_vec2("screen_wh", wh);
 
   // ri.blur.reload(r);
   // ri.blur.bind();
@@ -318,22 +301,23 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   // FBO textures
   Framebuffer::default_fbo();
   RenderCommand::set_viewport(0, 0, ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
-  RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 0.0f });
+  RenderCommand::set_clear_colour({ 0.0f, 0.0f, 0.0f, 0.0f });
   RenderCommand::clear();
 
-  ri.passes.push_back({ .pass = PassName::water, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::island_triangles, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::island_triangles_gradient, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::island_hidden, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::island_above_hidden, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::island_shore, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::linear_main, .double_wh = true });
-  ri.passes.push_back({ .pass = PassName::sprites_to_outline, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::outline, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::sprites_with_shield, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::shine, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::flame, .double_wh = false });
-  ri.passes.push_back({ .pass = PassName::mix_lighting_and_scene, .double_wh = false });
+  ri.passes.push_back({ .pass = PassName::water });
+  ri.passes.push_back({ .pass = PassName::island_triangles });
+  ri.passes.push_back({ .pass = PassName::island_triangles_gradient });
+  ri.passes.push_back({ .pass = PassName::island_hidden });
+  ri.passes.push_back({ .pass = PassName::island_above_hidden });
+  ri.passes.push_back({ .pass = PassName::island_shore });
+  ri.passes.push_back({ .pass = PassName::linear_main });
+  ri.passes.push_back({ .pass = PassName::sprites_to_outline });
+  ri.passes.push_back({ .pass = PassName::outline });
+  ri.passes.push_back({ .pass = PassName::sprites_with_shield });
+  ri.passes.push_back({ .pass = PassName::shine });
+  ri.passes.push_back({ .pass = PassName::flame });
+  ri.passes.push_back({ .pass = PassName::mix_lighting_and_scene });
+  ri.passes.push_back({ .pass = PassName::develop_sprite_sampling });
 
   // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // // Use the Jump flood algorithm to generate a voroi diagram,
@@ -345,8 +329,14 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   // ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   // ri.passes.push_back(RenderPass(PassName::bloom));
 
-  for (auto& rp : ri.passes)
-    setup_rp(rp, rp.double_wh ? 2 * fbo_size : fbo_size);
+  for (auto& rp : ri.passes) {
+#if defined(_DEBUG)
+    if (rp.pass == PassName::develop_sprite_sampling)
+      setup_rp(rp, { 768, 352 });
+    else
+#endif
+      setup_rp(rp, fbo_size);
+  }
 
   // Load fluidsim shaders/textures
   int used_tex_units = get_renderer_tex_unit_count(ri);
@@ -356,8 +346,8 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   for (int i = 0; i < (int)ri.user_textures.size(); i++) {
     auto& tex = ri.user_textures[i];
     tex.tex_unit.unit = used_tex_units + i;
-    const LinearTexture loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
-    tex.tex_id.id = setup_linear_texture(loaded_tex);
+    const SRGBTexture loaded_tex = engine::load_texture(tex.path, tex.tex_unit.unit);
+    tex.tex_id.id = loaded_tex.texture_id;
     tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
@@ -377,16 +367,13 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.jump_flood = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
+  ri.develop_sprite_sampling =
+    Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_develop_sprite_sampling.frag");
+
   // ri.crt = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_crt_effect.frag");
   // ri.blur = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/blur.frag");
   // ri.bloom = Shader(r, "assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
-  // initialize renderer
-#if !defined(__EMSCRIPTEN__)
-  glEnable(GL_MULTISAMPLE);
-#endif
-
-  // glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -420,6 +407,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
     data.view = camera_c.view;
     data.camera_pos = { camera_t.position.x, camera_t.position.y };
     data.zoom = camera_c.zoom_nonlinear;
+    data.tilesize = 64;
     auto grid_e = get_first<Effect_GridComponent>(r);
     if (grid_e != entt::null)
       data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
@@ -446,6 +434,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_shine_update(r);
   setup_flame_update(r);
   setup_mix_lighting_and_scene_update(r);
+  setup_develop_sprite_sampling_update(r);
   // setup_lighting_emitters_and_occluders_update(r);
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
@@ -477,9 +466,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   auto& ri = SINGLE_RendererInfo::instance;
   static const engine::SRGBColour black(0, 0, 0, 0);
 
-  // #if defined(_DEBUG)
-  //   CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
-  // #endif
+#if defined(_DEBUG)
+  CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
+#endif
 
   static float time = 0.0f;
   {
@@ -516,12 +505,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     data.time = time;
     data.zoom = camera_c.zoom_nonlinear;
     data.screenshake = screenshake_c.strength;
-  }
-
-  {
-#if defined(_DEBUG)
-    ZoneScopedN("UpdateLights");
-#endif
 
     // .w as 0 indicates light inactive.
     const int n_lights = 32;
@@ -572,11 +555,16 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
 
   for (const auto& pass : ri.passes) {
+
     Framebuffer::bind_fbo(pass.fbos[0]);
 
-    const auto wh = pass.double_wh ? 2 * ri.viewport_size_render_at : ri.viewport_size_render_at;
+    auto wh = ri.viewport_size_render_at;
+#if defined(_DEBUG)
+    if (pass.pass == PassName::develop_sprite_sampling)
+      wh = { 768, 352 };
+#endif
     RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::set_clear_colour(black);
     RenderCommand::clear();
 
     pass.update(r, dt, mouse_pos);
@@ -594,7 +582,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::set_clear_colour(black);
     RenderCommand::clear();
 
     // Which pass to render finally?
@@ -602,6 +590,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     // Note: ImGui::Image takes in TexID not TexUnit
     const auto& pass = ri.passes[(int)p];
+
     const auto tex_id = pass.texs[0].tex_id.id;
     const auto vi = render_texture_to_imgui_viewport(tex_id);
 
@@ -626,20 +615,30 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
         for (const auto& tex : rp.texs) {
           const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
-          ImGui::Begin(label.c_str());
+
+          if (rp.pass == PassName::develop_sprite_sampling)
+            ImGui::SetNextWindowSize({ 768, 352 });
+
+          ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+          ImGui::Begin(label.c_str(), NULL, ImGuiWindowFlags_NoTitleBar);
           const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
           const uint64_t id = tex.tex_id.id;
           ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
           ImGui::End();
+          ImGui::PopStyleVar();
         }
       }
       // Debug user Texture
       for (const auto& tex : ri.user_textures) {
+
+        // if (tex.path.find("monochrome") != std::string::npos)
+        //   ImGui::SetNextWindowSize({ 768, 352 });
+
         const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, tex.path, tex.tex_id.id);
-        ImGui::Begin(label.c_str());
+        ImGui::Begin(label.c_str(), NULL);
         ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         const uint64_t id = tex.tex_id.id;
-        ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        ImGui::Image((ImTextureID)(intptr_t)id, { viewport_size.x, viewport_size.y }, ImVec2(0, 0), ImVec2(1, 1));
         ImGui::End();
       }
     }

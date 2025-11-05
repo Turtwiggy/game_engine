@@ -16,19 +16,27 @@
 
 namespace game2d {
 
+// https://www.youtube.com/watch?v=LSNQuFEDOyQ
+const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
+  //
+  return b + (a - b) * glm::exp(-decay * dt);
+  //
+};
+
 void
 update_zoom(OrthographicCamera& camera, float dt)
 {
   auto& zoom = camera.zoom_linear;
   auto& zoom_nonlinear = camera.zoom_nonlinear;
 
-  bool zoom_enabled = false;
-  if (zoom_enabled) {
-    if (ImGui::GetIO().MouseWheel > 0.0f)
-      zoom -= 0.1f;
-    if (ImGui::GetIO().MouseWheel < 0.0f)
-      zoom += 0.1f;
-  }
+  // bool zoom_enabled = true;
+  // if (zoom_enabled) {
+  //   // ImGui::Text("MouseWheel: %f", ImGui::GetIO().MouseWheel);
+  //   if (ImGui::GetIO().MouseWheel > 0.0f)
+  //     zoom -= 0.1f;
+  //   if (ImGui::GetIO().MouseWheel < 0.0f)
+  //     zoom += 0.1f;
+  // }
 
   // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
   // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
@@ -89,8 +97,14 @@ update_camera_system(entt::registry& r, const float dt)
   if (i > 0) {
     aggregate_pos.x /= i;
     aggregate_pos.y /= i;
-    camera_transform.position.x = aggregate_pos.x;
-    camera_transform.position.y = aggregate_pos.y;
+    // camera_transform.position.x = aggregate_pos.x;
+    // camera_transform.position.y = aggregate_pos.y;
+
+    const float speed = 20.0f; // higher number = faster to destination
+    auto x = exp_decay(camera_transform.position.x, aggregate_pos.x, speed, dt);
+    auto y = exp_decay(camera_transform.position.y, aggregate_pos.y, speed, dt);
+    camera_transform.position.x = x;
+    camera_transform.position.y = y;
   }
 
   // update lerp
@@ -155,10 +169,12 @@ update_camera_system(entt::registry& r, const float dt)
   screen_offset.position.y = screen_y + screen_offset.position.y + screenshake_amount.y;
   camera.view = calculate_ortho_view(screen_offset, dt);
 
-  // no zooming unless on the viewport
-  // if (!ri.viewport_hovered)
-  //   return;
-  // update_zoom(camera, dt);
+// no zooming unless on the viewport
+// if (!ri.viewport_hovered)
+//   return;
+#if defined(_DEBUG)
+  update_zoom(camera, dt);
+#endif
 
   camera.projection_zoomed =
     calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, camera.zoom_nonlinear);

@@ -15,6 +15,7 @@ enum class Scene
   develop_enemy_waves,
   develop_snake,
   develop_islands,
+  develop_sprite_sampling,
 
   test, // used by tests
   count

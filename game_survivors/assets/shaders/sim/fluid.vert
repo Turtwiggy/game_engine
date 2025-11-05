@@ -7,8 +7,7 @@ layout(location = 1) in vec4 colour;
 layout(location = 2) in vec4 sprite_pos;
 layout(location = 3) in vec4 sprite_width_and_max;
 layout(location = 4) in float tex_unit;
-layout(location = 5) in vec4 parallax; // xy: translational offset. wz: rotation
-layout(location = 6) in mat4 model;
+layout(location = 5) in mat4 model;
 
 out SIM_VS_OUT {
   vec2 v_uv;

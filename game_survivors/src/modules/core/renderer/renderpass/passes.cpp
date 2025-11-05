@@ -2,11 +2,7 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/events/components.hpp"
-#include "engine/events/helpers/keyboard.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/opengl/render_command.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
@@ -358,13 +354,13 @@ setup_linear_main_update(entt::registry& r)
       });
 
 #if defined(_DEBUG)
-      const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
-      if (get_key_down(input_c, SDL_SCANCODE_1)) {
-        for (const auto& [z, e, transform, sc] : sorted_entities) {
-          SDL_Log("%s", std::format("entity: {}, zlayer: {}, tag{}", uint32_t(e), z, r.get<TagComponent>(e).tag).c_str());
-        }
-        int k = 1;
-      }
+      // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+      // if (get_key_down(input_c, SDL_SCANCODE_1)) {
+      //   for (const auto& [z, e, transform, sc] : sorted_entities) {
+      //     SDL_Log("%s", std::format("entity: {}, zlayer: {}, tag{}", uint32_t(e), z, r.get<TagComponent>(e).tag).c_str());
+      //   }
+      //   int k = 1;
+      // }
 #endif
 
       // Render in sorted order
@@ -785,6 +781,23 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };
 };
+
+void
+setup_develop_sprite_sampling_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::develop_sprite_sampling);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+    const auto& ri = SINGLE_RendererInfo::instance;
+
+    render_fullscreen_quad(r, ri.develop_sprite_sampling, ri.viewport_size_render_at);
+  };
+}
 
 /*
 

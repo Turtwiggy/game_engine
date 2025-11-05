@@ -7,7 +7,6 @@ in VS_OUT
 {
   vec2 v_uv;
   vec4 v_colour;
-  vec2 v_vertex;
 } fs_in;
 
 void

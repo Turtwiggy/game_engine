@@ -199,8 +199,6 @@ struct Raws
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, colours, items);
 };
 
-const int default_size = default_map_tilesize;
-
 Raws
 load_raws(std::string path);
 
@@ -220,7 +218,7 @@ void
 give_life(entt::registry& r,
           const entt::entity e,
           const glm::vec2& pos,
-          const glm::vec2& size = { default_size, default_size });
+          const glm::vec2& size = { default_map_unit_tilesize, default_map_unit_tilesize });
 
 void
 remove_life(entt::registry& r, const entt::entity e);

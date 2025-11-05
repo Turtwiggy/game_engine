@@ -29,30 +29,4 @@ struct SRGBColour
     , a(ca) {};
 };
 
-struct LinearColour
-{
-  float r = 0.0f;
-  float g = 0.0f;
-  float b = 0.0f;
-  float a = 0.0f;
-
-  constexpr LinearColour() = default;
-
-  constexpr LinearColour(float cr, float cg, float cb, float ca)
-    : r(cr)
-    , g(cg)
-    , b(cb)
-    , a(ca)
-  {
-  }
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LinearColour, r, g, b);
-};
-
-LinearColour
-SRGBToLinear(const SRGBColour& colour);
-
-SRGBColour
-LinearToSRGB(const LinearColour& colour);
-
 } // namespace engine

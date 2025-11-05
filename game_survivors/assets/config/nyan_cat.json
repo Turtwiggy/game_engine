@@ -1,0 +1,13 @@
+{
+  "spritesheet": {
+    "name": "custom",
+    "px_total": 256,
+    "py_total": 32,
+    "px": 256,
+    "py": 32,
+    "nx": 1,
+    "ny": 1
+  },
+  "sprites": [
+  ]
+}

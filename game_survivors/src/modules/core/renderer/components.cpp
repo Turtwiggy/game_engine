@@ -31,10 +31,11 @@ setup_rp(RenderPass& rp, const glm::ivec2& fbo_size, const int framebuffers)
   int tex_idx = 0;
 
   engine::TextureFiltering f;
-  f.texture_wrap_s = GL_CLAMP_TO_EDGE;
-  f.texture_wrap_t = GL_CLAMP_TO_EDGE;
-  f.texture_min_filter = GL_LINEAR;
-  f.texture_mag_filter = GL_LINEAR;
+  f.texture_wrap_s = engine::Filtering::clamp_to_border;
+  f.texture_wrap_t = engine::Filtering::clamp_to_border;
+  f.texture_min_filter = engine::Filtering::linear;
+  f.texture_mag_filter = engine::Filtering::linear;
+  // SDL_Log("Creating fbo texture for rp: %s", std::string(magic_enum::enum_name(rp.pass)).c_str());
 
   for (int n_fbos = 0; n_fbos < framebuffers; n_fbos++) {
 

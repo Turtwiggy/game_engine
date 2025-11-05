@@ -67,7 +67,7 @@ draw_all_sprites(entt::registry& r)
       t_c.scale = { spr.size.x, spr.size.y, 1.0f };
       t_c.z_index = (int)spr.z_idx;
       t_c.rotation_radians.z = spr.z_rotation;
-      spr_c.colour = engine::SRGBToLinear(spr.col);
+      spr_c.colour = spr.col;
 
     } else {
       // hide the unused sprite.

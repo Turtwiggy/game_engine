@@ -79,12 +79,19 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   const auto rnd_pos_around_player = rnd_position_around_point(r, target_pos, screen_max, screen_max);
 
   auto enemy_size = glm::vec2{ 32, 32 };
-  if (key == "actor_enemy_swarmlord_minion")
+
+  if (key == "actor_enemy_melee_1") // horseshoecrab
     enemy_size = { 16, 16 };
+  if (key == "actor_enemy_exploder")
+    enemy_size = { 32, 32 };
+  if (key == "actor_enemy_4") // anglerfish
+    enemy_size = { 32, 32 };
+  if (key == "actor_enemy_swarmlord_minion")
+    enemy_size = { 8, 8 };
   if (key == "actor_enemy_grower")
     enemy_size = { 0, 0 };
-  if (key == "actor_enemy_5")            // hogfish
-    enemy_size = { 48 * 2.0, 32 * 2.0 }; // i want big hogs!
+  if (key == "actor_enemy_5")        // hogfish
+    enemy_size = { 16 * 3, 16 * 2 }; // i want big hogs!
 
   // oyster
   entt::entity halo_e = entt::null;
@@ -92,7 +99,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     halo_e = create_transform(r, "GOLD_OUTLINE");
     r.emplace<SpriteComponent>(halo_e);
     set_sprite(r, halo_e, "GOLD_OUTLINE");
-    set_size(r, halo_e, 1.5f * enemy_size);
+    set_size(r, halo_e, 2.0f * enemy_size);
   }
 
   auto e = spawn(r, key);

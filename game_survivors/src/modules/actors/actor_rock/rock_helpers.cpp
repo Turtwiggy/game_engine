@@ -49,18 +49,16 @@ is_island(const float noise, const float cutoff)
   return noise >= cutoff;
 };
 
-engine::SRGBColour
-lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent)
-{
-  const auto a_lin = engine::SRGBToLinear(a);
-  const auto b_lin = engine::SRGBToLinear(b);
-
-  const float col_r = engine::lerp(a_lin.r, b_lin.r, percent);
-  const float col_g = engine::lerp(a_lin.g, b_lin.g, percent);
-  const float col_b = engine::lerp(a_lin.b, b_lin.b, percent);
-
-  return engine::LinearToSRGB({ col_r, col_g, col_b, 1.0f });
-};
+// engine::SRGBColour
+// lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent)
+// {
+//   const auto a_lin = engine::SRGBToLinear(a);
+//   const auto b_lin = engine::SRGBToLinear(b);
+//   const float col_r = engine::lerp(a_lin.r, b_lin.r, percent);
+//   const float col_g = engine::lerp(a_lin.g, b_lin.g, percent);
+//   const float col_b = engine::lerp(a_lin.b, b_lin.b, percent);
+//   return engine::LinearToSRGB({ col_r, col_g, col_b, 1.0f });
+// };
 
 std::vector<NoiseInfo>
 generate_noise(entt::registry& r, float cutoff, float frequency, int seed)
@@ -664,12 +662,13 @@ get_center_island_eid(entt::registry& r)
 void
 spawn_lighthouse(entt::registry& r, DebugContoursComponent& island_c, const glm::ivec2 gridpos)
 {
-  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto tilesize_unit = default_map_unit_tilesize;
+  const auto tilesize_map = SINGLE_Islands::instance.tilesize;
 
   const auto thing_e = spawn(r, "actor_lighthouse");
-  auto pos = engine::grid::gridspace_to_worldspace_center(gridpos, tilesize);
-  pos += glm::vec2{ tilesize * 0.5f, tilesize * 0.5f }; // off grid
-  give_life(r, thing_e, pos, { tilesize, tilesize });
+  auto pos = engine::grid::gridspace_to_worldspace_center(gridpos, tilesize_map);
+  pos += glm::vec2{ tilesize_map * 0.5f, tilesize_map * 0.5f }; // off grid
+  give_life(r, thing_e, pos, { tilesize_unit, tilesize_unit });
 
   // todo: set random rotation and slightly varying speed
   r.emplace<LighthouseComponent>(thing_e);
@@ -760,6 +759,8 @@ static engine::RandomState spawn_rnd(engine::get_system_time_for_seed());
 void
 generate_island_life__base_island(entt::registry& r)
 {
+  auto tilesize = default_map_unit_tilesize;
+
   // on the base island
   const auto center_island_eid = get_center_island_eid(r);
   auto& island_c = r.get<DebugContoursComponent>(center_island_eid);
@@ -801,7 +802,7 @@ generate_island_life__base_island(entt::registry& r)
     r.remove<SpriteComponent>(cannon_e);
 
     const auto weapon_data = get_weapon_data(r, "weapon_island_cannon");
-    const auto weapon_e = spawn_weapon(r, weapon_data, "weapon_island_cannon", { 16, 16 });
+    const auto weapon_e = spawn_weapon(r, weapon_data, "weapon_island_cannon", { tilesize, tilesize });
     r.emplace<WeaponDef>(weapon_e, get_weapon_def(r, weapon_e));
     r.emplace<BulletDef>(weapon_e, get_bullet_def(r, weapon_e));
     r.emplace<AutofireComponent>(weapon_e);
@@ -823,13 +824,13 @@ generate_island_life__other_islands(entt::registry& r)
       continue; // dont spawn mobs on the base island
 
     const auto enemy_keys = std::vector<std::string>{
-      "actor_islanddweller_pirate",   //
+      // "actor_islanddweller_pirate",   //
       "actor_islanddweller_spider",   //
       "actor_islanddweller_scorpion", //
     };
 
     // TODO: generate a spawn rate table for enemies.
-    spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_pirate", AvailableTeams::enemy, true);
+    // spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_pirate", AvailableTeams::enemy, true);
     spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_spider", AvailableTeams::enemy, true);
     spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_scorpion", AvailableTeams::enemy, true);
   }

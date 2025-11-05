@@ -111,7 +111,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
 
   std::vector<entt::entity> weapons;
 
-  // Spawn autofire weappons
+  // Spawn weappons
   for (const auto& hardpoint_data : hull.hardpoints) {
     // HACK: overrode all arcs to 360 degrees. i.e. full coverage
     // hardpoint_data.arc = 360;
@@ -602,6 +602,52 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     set_players_as_landed(r);
 
     */
+  }
+
+  if (s == Scene::develop_sprite_sampling) {
+    create_empty<CameraFreeMove>(r);
+
+    // create one sprite, that is the entire kennynl texture.
+    // auto e0 = spawn(r, "empty");
+    // give_life(r, e0, { 0, 0 }, { 768, 352 });
+
+    // // offset another by 0.5px
+    // auto e1 = spawn(r, "empty");
+    // give_life(r, e1, { 0.5f, 352 }, { 768, 352 });
+
+    auto e0 = spawn(r, "actor_islanddweller_player");
+    give_life(r, e0, { 0, 0 }, { 16, 16 });
+
+    // offset x
+    auto e1 = spawn(r, "actor_islanddweller_player");
+    give_life(r, e1, { 0.5, 16 }, { 16, 16 });
+
+    // offset y
+    auto e2 = spawn(r, "actor_islanddweller_player");
+    give_life(r, e2, { 0.5, 32.5 }, { 16, 16 });
+
+    // 2x
+    auto e3 = spawn(r, "actor_islanddweller_player");
+    give_life(r, e3, { 32, 32 }, { 32, 32 });
+
+    // 1.5x
+    {
+      auto e = spawn(r, "actor_islanddweller_player");
+      give_life(r, e, { -32, 0 }, { 16 * 1.5, 16 * 1.5 });
+    }
+
+    // 0.5x
+    auto e4 = spawn(r, "actor_islanddweller_player");
+    give_life(r, e4, { 64, 64 }, { 8, 8 });
+
+    // 2x offset
+    auto e5 = spawn(r, "actor_islanddweller_player");
+    give_life(r, e5, { 64.5, 32 }, { 32, 32 });
+
+    // rotated.
+    auto e6 = spawn(r, "actor_islanddweller_player");
+    give_life(r, e6, { 96, 32 }, { 16, 16 });
+    set_rotation(r, e6, glm::radians(45.0f));
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

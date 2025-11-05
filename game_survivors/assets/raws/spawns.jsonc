@@ -20,16 +20,15 @@
     {
       "name": "wave", "time": { "start": 0, "stop": 1 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data": { "hp": 10, "max": 10, "num_per_spawn": 5} }, // puffer
-        { "key": "actor_enemy_melee_1",  "data": { "hp": 10, "max": 20, "num_per_spawn": 5} }, // horseshoe
+        { "key": "actor_enemy_melee_1",  "data": { "hp": 10, "max": 50, "num_per_spawn": 5} }, // horseshoe
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }  // anglerfish (light source)
       ]
     },
     {
       "name": "wave", "time": { "start": 1, "stop": 2 },
       "enemies": [
-        { "key": "actor_enemy_exploder", "data": { "hp": 20, "max": 20, "num_per_spawn": 5}},  // puffer
-        { "key": "actor_enemy_melee_1",  "data": { "hp": 20, "max": 20, "num_per_spawn": 5}},  // horseshoe
+        { "key": "actor_enemy_exploder", "data": { "hp": 20, "max": 5, "num_per_spawn": 5}},   // puffer
+        { "key": "actor_enemy_melee_1",  "data": { "hp": 25, "max": 50, "num_per_spawn": 15}}, // horseshoe
         { "key": "actor_enemy_melee_2",  "data": { "hp": 20, "max": 20, "num_per_spawn": 8}},  // hermit
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }, // anglerfish (light source)
         { "key": "actor_enemy_projectile", "data": {"hp": 15, "max": 2, "num_per_spawn": 1}}   // archerfish
@@ -39,7 +38,7 @@
       "name": "wave", "time": { "start": 2, "stop": 3 },
       "enemies": [
         { "key": "actor_enemy_exploder", "data": {"hp": 30, "max": 10, "num_per_spawn": 6}},    // puffer
-        { "key": "actor_enemy_melee_1",  "data": {"hp": 30, "max": 150, "num_per_spawn": 50}},  // horseshoe
+        { "key": "actor_enemy_melee_1",  "data": {"hp": 30, "max": 300, "num_per_spawn": 50}},  // horseshoe
         { "key": "actor_enemy_melee_2",  "data": {"hp": 30, "max": 10, "num_per_spawn": 8}},    // hermit
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }   // anglerfish (light source)
       ]
@@ -48,7 +47,7 @@
       "name": "wave", "time": { "start": 3, "stop": 4 },
       "enemies": [
         { "key": "actor_enemy_exploder",  "data": { "hp": 40, "max": 4,  "num_per_spawn": 2}},    // puffer
-        { "key": "actor_enemy_melee_1",   "data": { "hp": 40, "max": 200, "num_per_spawn": 100}},  // horseshoe
+        { "key": "actor_enemy_melee_1",   "data": { "hp": 30, "max": 300, "num_per_spawn": 100}},  // horseshoe
         { "key": "actor_enemy_swarmlord", "data": { "hp": 100, "max": 10, "num_per_wave": 10, "num_per_spawn": 3}}, // jellyfish lords
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }     // anglerfish (light source)
       ]
@@ -113,14 +112,14 @@
 
   "enemy_spawner": [
 
-    {
-      "key": "actor_enemy_grower",
-      "desc": "SEA_URCHIN",
-      "waves": [
-        { "span":{"start": 0,  "stop": 5  }, "data": { "hp": 20, "max": 1, "num_per_spawn": 1 }},
-        { "span":{"start": 5,  "stop": 10 }, "data": { "hp": 20, "max": 3, "num_per_spawn": 1 }}
-      ]
-    },
+    // {
+    //   "key": "actor_enemy_grower",
+    //   "desc": "SEA_URCHIN",
+    //   "waves": [
+    //     { "span":{"start": 0,  "stop": 5  }, "data": { "hp": 20, "max": 1, "num_per_spawn": 1 }},
+    //     { "span":{"start": 5,  "stop": 10 }, "data": { "hp": 20, "max": 3, "num_per_spawn": 1 }}
+    //   ]
+    // },
     
     // when oyster destroyed it drops small shortlasting perks
     {

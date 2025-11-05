@@ -172,8 +172,8 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
     // todo: base it of the option type
     // if (option->value_type == UIValueType::BUTTON)
 
-    if (auto* o = dynamic_cast<Option_Rocks*>(option.get()))
-      display_button(o, o->populate_rocks, "##rocks");
+    // if (auto* o = dynamic_cast<Option_Rocks*>(option.get()))
+    //   display_button(o, o->populate_rocks, "##rocks");
 
     if (auto* o = dynamic_cast<Option_EnemyHealth*>(option.get())) {
       auto& h_value = dynamic_cast<OptionsCell*>(cell.get())->value;

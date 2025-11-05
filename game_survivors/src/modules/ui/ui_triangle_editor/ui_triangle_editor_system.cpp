@@ -35,9 +35,9 @@ update_ui_triangle_editor_system(entt::registry& r)
     // imgui_draw_vec2("pos_b", sc.b);
     // imgui_draw_vec2("pos_c", sc.c);
 
-    sc.a_colour = engine::SRGBToLinear(island_col);
-    sc.b_colour = engine::SRGBToLinear(island_col);
-    sc.c_colour = engine::SRGBToLinear(island_col);
+    sc.a_colour = island_col;
+    sc.b_colour = island_col;
+    sc.c_colour = island_col;
   }
 }
 

@@ -6,6 +6,7 @@
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"
+#include "modules/core/colour/colour_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"

@@ -31,7 +31,6 @@ update_debug_fixtures_system(entt::registry& r)
       const auto type = b2Shape_GetType(shape_id);
       if (type == b2_circleShape) {
 
-        /*
         const auto circle = b2Shape_GetCircle(shape_id);
         const auto pos_m = circle.center;
         const auto rad_m = circle.radius;
@@ -55,7 +54,6 @@ update_debug_fixtures_system(entt::registry& r)
           draw_sprite(r, s);
           prev_vert = cur_vert;
         }
-        */
       }
 
       // assume box

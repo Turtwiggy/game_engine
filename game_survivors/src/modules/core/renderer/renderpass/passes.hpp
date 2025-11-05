@@ -48,6 +48,9 @@ setup_voronoi_distance_field_update(entt::registry& r);
 void
 setup_mix_lighting_and_scene_update(entt::registry& r);
 
+void
+setup_develop_sprite_sampling_update(entt::registry& r);
+
 // FBO: gaussian blur.
 // void
 // setup_gaussian_blur_update(entt::registry& r);

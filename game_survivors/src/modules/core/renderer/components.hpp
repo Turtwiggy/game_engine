@@ -54,6 +54,8 @@ enum class PassName
   // bloom,
   // fluid_sim,
 
+  develop_sprite_sampling,
+
   count,
 };
 
@@ -61,7 +63,6 @@ struct RenderPass
 {
   PassName pass;
   std::vector<engine::FramebufferID> fbos;
-  bool double_wh = false;
 
   // one framebuffer can have multiple attachments,
   // in the form of multiple tex_ids.
@@ -94,6 +95,9 @@ struct SINGLE_RendererInfo
   // fluidsim
   // FluidSimData fluid_sim;
 
+  // engine::FramebufferID msaa_fbo;
+  // GLuint msaa_tex_id;
+
   // shaders
   engine::Shader water;
   engine::Shader instanced;
@@ -108,6 +112,7 @@ struct SINGLE_RendererInfo
   engine::Shader jump_flood;
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
+  engine::Shader develop_sprite_sampling;
   engine::Shader outline;
   // engine::Shader crt;
   // engine::Shader blur;

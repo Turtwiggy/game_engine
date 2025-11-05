@@ -36,18 +36,6 @@
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_empty", "type": "circle", "is_sensor": true } ]
     },
-    {
-      "name": "duck",
-      "display_name": "Angry Duck",
-      "display_desc": "Quuack Quack QUACK >:(",
-      "renderable": { "sprite": "DUCK", "colour": "white" }
-    },
-    {
-      "name": "seed_stun",
-      "display_name": "Stun Seed.",
-      "display_desc": "A stunningly backwards seed.",
-      "renderable": { "sprite": "BUSH_4_0", "colour": "white" }
-    },
 
     // Header: actors
     //
@@ -213,7 +201,7 @@
     {
       "name": "actor_enemy_melee_1",
       "speed": 2.0,
-      "renderable": { "sprite": "HORSESHOE_CRAB", "colour": "white" },
+      "renderable": { "sprite": "HORSESHOE_CRAB_SMALL", "colour": "white" },
       "traits": [ {"key": "DIRECT" } ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
@@ -259,7 +247,7 @@
       "traits": [ {"key": "ARC_ANGLE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
-        { "tag": "fixture_core", "type": "box", "is_sensor": false }
+        { "tag": "fixture_core", "type": "circle", "is_sensor": false }
       ]
     },
     // hogfish
@@ -330,7 +318,7 @@
     // destructable
     {
       "name": "actor_destructable",
-      "renderable": { "sprite": "OYSTER", "colour": "white" },
+      "renderable": { "sprite": "OYSTER_SMALL", "colour": "white" },
       "traits": [ ],
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": true } ]
@@ -374,7 +362,7 @@
       "speed": 10,
       "display_name": "XP",
       "display_desc": "Delicious experience. num num num num.",
-      "renderable": { "sprite": "PEARL_0", "colour": "white" },
+      "renderable": { "sprite": "SPRITE_XP", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": true },
       "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
     },

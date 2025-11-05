@@ -22,6 +22,7 @@
 
     { "name": "CIRCLE", "frames": [ { "x": 12, "y": 0, "w": 2, "h": 2 } ] },
     { "name": "PEARL_0", "frames": [ { "x": 12, "y": 2, "w": 1, "h": 1 } ] },
+    { "name": "SPRITE_XP", "frames": [ { "x": 12, "y": 3, "w": 1, "h": 1 } ] },
 
     { "name": "HERMIT_CRAB_TOP", "frames": [ { "x": 0, "y": 4, "w": 2, "h": 2 } ] },
     { "name": "HERMIT_CRAB_BOTTOM", "frames": [ { "x": 2, "y": 4, "w": 2, "h": 2 } ] },
@@ -29,6 +30,7 @@
     { "name": "REDCLAW_CRAB_RIGHT", "frames": [ { "x": 6, "y": 4, "w": 2, "h": 2 } ] },
 
     { "name": "HORSESHOE_CRAB", "frames": [ { "x": 0, "y": 6, "w": 2, "h": 2 } ], "angle": 135 },
+    { "name": "HORSESHOE_CRAB_SMALL", "frames": [ { "x": 0, "y": 8, "w": 1, "h": 1 } ], "angle": 135 },
     { "name": "HERMIT_CRAB", "frames": [ { "x": 2, "y": 6, "w": 2, "h": 2 } ] },
     { "name": "RED_CLAW_CRAB", "frames": [ { "x": 4, "y": 6, "w": 2, "h": 2 } ] },
     { "name": "PUFFERFISH", "frames": [ { "x": 6, "y": 6, "w": 2, "h": 2 } ] },
@@ -41,6 +43,8 @@
     { "name": "SEA_HORSE", "frames": [ { "x": 2, "y": 10, "w": 2, "h": 2 } ]},
     { "name": "OYSTER", "frames": [ { "x": 6, "y": 10, "w": 2, "h": 2 } ]},
     { "name": "GOLD_OUTLINE", "frames": [ { "x": 8, "y": 10, "w": 2, "h": 2 } ]},
+    { "name": "OYSTER_SMALL", "frames": [ { "x": 6, "y": 12, "w": 1, "h": 1 } ]},
+    { "name": "GOLD_OUTLINE_SMALL", "frames": [ { "x": 7, "y": 12, "w": 1, "h": 1 } ]},
 
     { "name": "ROCKS_0", "frames": [ { "x": 0, "y": 12, "w": 2, "h": 2 } ]},
     { "name": "BUBBLES_0", "frames": [ { "x": 2, "y": 12, "w": 1, "h": 1 } ]},
