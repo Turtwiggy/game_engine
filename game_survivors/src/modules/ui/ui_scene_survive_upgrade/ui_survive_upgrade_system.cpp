@@ -754,7 +754,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
         card_ui_c.time_to_confirm_cur = 0.0f;
 
       // if button held, increase timer
-      if (do_act_held)
+      if (do_act_held && card_ui_c.released_since_action)
         card_ui_c.time_to_confirm_cur += dt;
 
       // if timer > threshold, do the act.
