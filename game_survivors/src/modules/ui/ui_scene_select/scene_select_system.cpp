@@ -333,7 +333,8 @@ draw_card_inner(entt::registry& r,
       const bool is_hull = i == 0;
       const bool is_weapon = i == 1;
       const bool is_ability = i == 2;
-      const float icon_size = 32;
+      const float icon_sprite = 32;
+      const float icon_box_size = 32;
       const float padding_x = 10.0f;
 
       if (is_hull) {
@@ -346,7 +347,7 @@ draw_card_inner(entt::registry& r,
           const auto border_col = icon_active ? im_greenish : im_window_border_col;
 
           const auto pos_tl = ImVec2{ first_x, grid_tl.y };
-          const auto pos_br = ImVec2{ first_x + icon_size, grid_br.y };
+          const auto pos_br = ImVec2{ first_x + icon_box_size, grid_br.y };
           draw_list->AddRectFilled(pos_tl, pos_br, im_window_bg_col);
           draw_list->AddRect(pos_tl, pos_br, border_col);
 
@@ -354,12 +355,13 @@ draw_card_inner(entt::registry& r,
             draw_cursor(r, ui_c.player_cursor_state[player_idx], pos_tl, dt);
 
           // Draw boat icon
-          const auto icon_key = "ICON_"s + to_upper(hull.key);
-          ImGui::SetCursorScreenPos(pos_tl);
+          const auto icon_key = "ICON_"s + to_upper(hull.key) + "_32"s;
+          ImGui::SetCursorScreenPos(pos_tl +
+                                    ImVec2{ (icon_box_size - icon_sprite) * 0.5f, (icon_box_size - icon_sprite) * 0.5f });
           const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
-          ImGui::Image(custom_im_id, { icon_size, icon_size }, image_icon_tl, image_icon_br);
+          ImGui::Image(custom_im_id, { icon_sprite, icon_sprite }, image_icon_tl, image_icon_br);
 
-          first_x += icon_size + padding_x; // move horizontally
+          first_x += icon_box_size + padding_x; // move horizontally
         }
       }
       if (is_weapon) {
@@ -376,7 +378,7 @@ draw_card_inner(entt::registry& r,
           const auto border_col = icon_active ? im_greenish : im_window_border_col;
 
           const auto pos_tl = ImVec2{ first_x, grid_tl.y };
-          const auto pos_br = ImVec2{ first_x + icon_size, grid_br.y };
+          const auto pos_br = ImVec2{ first_x + icon_box_size, grid_br.y };
           draw_list->AddRectFilled(pos_tl, pos_br, im_window_bg_col);
           draw_list->AddRect(pos_tl, pos_br, border_col);
 
@@ -384,12 +386,13 @@ draw_card_inner(entt::registry& r,
             draw_cursor(r, ui_c.player_cursor_state[player_idx], pos_tl, dt);
 
           // Draw weapon icon
-          const auto icon_key = "ICON_"s + to_upper(weapon.key);
-          ImGui::SetCursorScreenPos(pos_tl);
+          const auto icon_key = "ICON_"s + to_upper(weapon.key) + "_32";
+          ImGui::SetCursorScreenPos(pos_tl +
+                                    ImVec2{ (icon_box_size - icon_sprite) * 0.5f, (icon_box_size - icon_sprite) * 0.5f });
           const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
-          ImGui::Image(custom_im_id, { icon_size, icon_size }, image_icon_tl, image_icon_br);
+          ImGui::Image(custom_im_id, { icon_sprite, icon_sprite }, image_icon_tl, image_icon_br);
 
-          first_x += icon_size + padding_x; // move horizontally
+          first_x += icon_box_size + padding_x; // move horizontally
         }
       }
     }
