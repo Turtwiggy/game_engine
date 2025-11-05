@@ -207,6 +207,13 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
     const auto icon_key = "ICON_" + stat_key;
 
+    // dont show the user levels for stats they cant buy
+    // const auto stat_str = stat_key;
+    // const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
+    // const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
+    // if (it == upgrade_c.upgrades.end())
+    //   continue;
+
     const auto [gx, gy] = engine::grid::index_to_grid_position(i, ui_c.grid_x);
     const auto x_hmm = (gx / (float)ui_c.grid_x);
     const auto y_hmm = (gy / (float)grid_y);

@@ -47,14 +47,16 @@ enum class PassName
   // voronoi_distance,
 
   mix_lighting_and_scene,
-  // crt_effect,
+// crt_effect,
 
-  // blur_pingpong_0,
-  // blur_pingpong_1,
-  // bloom,
-  // fluid_sim,
+// blur_pingpong_0,
+// blur_pingpong_1,
+// bloom,
+// fluid_sim,
 
+#if defined(_DEBUG)
   develop_sprite_sampling,
+#endif
 
   count,
 };

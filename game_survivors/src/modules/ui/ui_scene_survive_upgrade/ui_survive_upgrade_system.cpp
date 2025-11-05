@@ -257,9 +257,9 @@ draw_stats(entt::registry& r,
   const auto weapons_e = get_weapons(r, player_e);
 
   auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
-
-  float start_y = stats_tl.y + 5.0f; // add Xpx worth of padding
-  const auto key_x = stats_tl.x + icon_size.x + 5.0f;
+  const auto line_size = 16;
+  int start_y = (int)stats_tl.y + 5; // add Xpx worth of padding
+  const int key_x = stats_tl.x + icon_size.x + 5.0f;
 
   for (int i = 0; i < (int)stats.size(); i++) {
     const auto stat_enum = magic_enum::enum_value<UpgradeableStat>(i);
@@ -292,22 +292,27 @@ draw_stats(entt::registry& r,
     // some stats need spacers
     // TODO: remove string comparison
     if (stats[i].key == "BOUNCE")
-      start_y += text_size.y;
+      start_y += line_size;
     if (stats[i].key == "PROJECTILES")
-      start_y += text_size.y;
+      start_y += line_size;
     if (stats[i].key == "BEAMS_PER_WEAPON")
-      start_y += text_size.y;
+      start_y += line_size;
 
     // icon
-    auto icon_tl = ImVec2{ stats_tl.x, start_y };
-    auto icon_br = ImVec2{ stats_tl.x + icon_size.y, icon_tl.y + icon_size.y };
+    const auto icon_tl = ImVec2{ stats_tl.x, (float)start_y };
+    const auto icon_br = ImVec2{ stats_tl.x + icon_size.x, icon_tl.y + icon_size.y };
+    const auto icon_wh = icon_br - icon_tl;
+    // assert(icon_wh == icon_size);
+
+    const auto key_pos = ImVec2{ (float)key_x, (float)start_y };
+    const auto val_pos = ImVec2{ key_x + max_width + 5.0f, (float)start_y };
+
     const auto icon_key = "ICON_" + stat_str + "_CENTERED";
-    ImGui::SetCursorScreenPos(icon_tl);
     auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
-    ImGui::Image(custom_im_id, icon_size, image_icon_tl, image_icon_br);
+    draw_list->AddImage(custom_im_id, icon_tl, icon_br, image_icon_tl, image_icon_br);
 
     // key
-    draw_list->AddText({ key_x, start_y }, im_text_col, stats[i].key.c_str());
+    draw_list->AddText(key_pos, im_text_col, stats[i].key.c_str());
 
     // value
     std::string val_str = "N/A";
@@ -420,7 +425,7 @@ draw_stats(entt::registry& r,
     }
 
     // display your current stat value
-    draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, val_str.c_str());
+    draw_list->AddText(val_pos, im_text_col, val_str.c_str());
 
     // display the new stat value (i.e. how much the upgrade will change it by)
     {
@@ -431,30 +436,30 @@ draw_stats(entt::registry& r,
         auto stat_amount = std::format("+{:0.1f}", stat.value);
         if (stat.type == "stat_percent_increase")
           stat_amount += "%";
-        draw_list->AddText({ key_x + max_width + 50.0f, start_y }, im_greenish, stat_amount.c_str());
+        draw_list->AddText({ key_x + max_width + 50.0f, (float)start_y }, im_greenish, stat_amount.c_str());
       }
     }
 
     // Display weapon info (after the xp zone stat)
     {
       if (magic_enum::enum_value<UpgradeableStat>(i) == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
-        start_y += text_size.y;
+        start_y += line_size;
 
         // display weapon (key)
-        start_y += text_size.y;
-        draw_list->AddText({ key_x, start_y }, im_text_col, "WEAPON");
+        start_y += line_size;
+        draw_list->AddText({ (float)key_x, (float)start_y }, im_text_col, "WEAPON");
 
         // display weapon name (val)
         if (!upg_weapons.empty()) {
           const auto wep_e = upg_weapons[0];
           const auto& weapon_data_c = r.get<const Weapon_OnDiskData>(wep_e);
           const auto weapon_name = std::format("{}", weapon_data_c.name);
-          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, weapon_name.c_str());
+          draw_list->AddText({ key_x + max_width + 5.0f, (float)start_y }, im_text_col, weapon_name.c_str());
         }
 
         // display hardpoint idx (key)
-        start_y += text_size.y;
-        draw_list->AddText({ key_x, start_y }, im_text_col, "HARDPOINT");
+        start_y += line_size;
+        draw_list->AddText({ (float)key_x, (float)start_y }, im_text_col, "HARDPOINT");
 
         // display hardpoint idx (val)
         if (!upg_weapons.empty()) {
@@ -463,33 +468,33 @@ draw_stats(entt::registry& r,
           const auto it = std::find(weapons_e.begin(), weapons_e.end(), wep_e);
           const auto idx = static_cast<int>(it - weapons_e.begin());
           const auto idx_str = std::format("{}", idx);
-          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, idx_str.c_str());
+          draw_list->AddText({ key_x + max_width + 5.0f, (float)start_y }, im_text_col, idx_str.c_str());
         }
 
         // display current weapon level (key)
-        start_y += text_size.y;
-        draw_list->AddText({ key_x, start_y }, im_text_col, "LEVEL");
+        start_y += line_size;
+        draw_list->AddText({ (float)key_x, (float)start_y }, im_text_col, "LEVEL");
 
         // display current weapon level (val)
         if (!upg_weapons.empty()) {
           const auto& wep_e = upg_weapons[0];
           const auto& wep_c = r.get<WeaponLevelComponent>(wep_e);
           const auto wep_lv_str = std::format("{}", wep_c.level);
-          draw_list->AddText({ key_x + max_width + 5.0f, start_y }, im_text_col, wep_lv_str.c_str());
+          draw_list->AddText({ key_x + max_width + 5.0f, (float)start_y }, im_text_col, wep_lv_str.c_str());
 
           // assuming we're here, show a +1 to level because this would upgrade the weapon.
-          draw_list->AddText({ key_x + max_width + 50.0f, start_y }, im_greenish, "+1"s.c_str());
+          draw_list->AddText({ key_x + max_width + 50.0f, (float)start_y }, im_greenish, "+1"s.c_str());
         }
       }
     }
 
     // move vertically
-    start_y += text_size.y;
+    start_y += line_size;
   }
 
   // add a separator
-  start_y += text_size.y;
-  draw_list->AddText({ key_x, start_y }, im_text_col, "Overclocks (Lv 4, 8, 12)");
+  start_y += line_size;
+  draw_list->AddText({ (float)key_x, (float)start_y }, im_text_col, "Overclocks (Lv 4, 8, 12)");
 
   // list the (existing) weapon behaviours.
   if (!upg_weapons.empty()) {
@@ -498,21 +503,21 @@ draw_stats(entt::registry& r,
     const auto weapon_upgrades_data = get_upgrades_from_weapon_key(r, weapon_key.key);
     const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, wep_e);
     for (const auto& u_key : aquired_upg) {
-      start_y += text_size.y;
+      start_y += line_size;
       const auto dis_str = get_display_key_from_upgrade_key(r, u_key);
-      draw_list->AddText({ key_x, start_y }, im_text_col, dis_str.c_str());
+      draw_list->AddText({ (float)key_x, (float)start_y }, im_text_col, dis_str.c_str());
     }
   }
 
   // highlight (new) weapon behaviours.
   for (const auto& utrait : result.traits) {
-    start_y += text_size.y;
+    start_y += line_size;
     const auto upg_str = "(+) " + std::string(magic_enum::enum_name(utrait));
-    draw_list->AddText({ key_x, start_y }, im_greenish, upg_str.c_str());
+    draw_list->AddText({ (float)key_x, (float)start_y }, im_greenish, upg_str.c_str());
   }
 
   // if (result.traits.empty()) {
-  //   start_y += text_size.y;
+  //   start_y += line_size;
   //   draw_list->AddText({ key_x, start_y }, im_text_col, "NONE. Get @ Lv 4, 8, 12");
   // }
 };

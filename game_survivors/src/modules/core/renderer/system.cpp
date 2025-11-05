@@ -264,6 +264,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   // ri.mix_lighting_and_scene.set_int("tex_fluid", tex_unit_fluid);
   ri.mix_lighting_and_scene.set_float("zoom", get_first_component<OrthographicCamera>(r).zoom_nonlinear);
 
+#if defined(_DEBUG)
   ri.develop_sprite_sampling.reload(r);
   ri.develop_sprite_sampling.bind();
   ri.develop_sprite_sampling.set_uniform_block_binding("Data", 0);
@@ -274,6 +275,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const auto tex_kennynl = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
   ri.develop_sprite_sampling.set_int("tex", tex_kennynl);
   ri.develop_sprite_sampling.set_vec2("screen_wh", wh);
+#endif
 
   // ri.blur.reload(r);
   // ri.blur.bind();
@@ -317,7 +319,9 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.passes.push_back({ .pass = PassName::shine });
   ri.passes.push_back({ .pass = PassName::flame });
   ri.passes.push_back({ .pass = PassName::mix_lighting_and_scene });
+#if defined(_DEBUG)
   ri.passes.push_back({ .pass = PassName::develop_sprite_sampling });
+#endif
 
   // ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // // Use the Jump flood algorithm to generate a voroi diagram,
@@ -434,7 +438,9 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_shine_update(r);
   setup_flame_update(r);
   setup_mix_lighting_and_scene_update(r);
+#if defined(_DEBUG)
   setup_develop_sprite_sampling_update(r);
+#endif
   // setup_lighting_emitters_and_occluders_update(r);
   // setup_voronoi_seed_update(r);
   // setup_jump_flood_pass(r);
@@ -616,8 +622,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
         for (const auto& tex : rp.texs) {
           const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
 
+#if defined(_DEBUG)
           if (rp.pass == PassName::develop_sprite_sampling)
             ImGui::SetNextWindowSize({ 768, 352 });
+#endif
 
           ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
           ImGui::Begin(label.c_str(), NULL, ImGuiWindowFlags_NoTitleBar);
