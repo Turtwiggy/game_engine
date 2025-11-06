@@ -30,4 +30,10 @@ load_upgrade_values(const std::string& path);
 std::string
 make_stat_name_pretty_name(const std::string stat);
 
+std::string
+get_val_str_from_stat_enum(entt::registry& r,
+                           const entt::entity player_e,
+                           const std::vector<entt::entity>& upg_weapons,
+                           const UpgradeableStat stat_enum);
+
 } // namespace game2d

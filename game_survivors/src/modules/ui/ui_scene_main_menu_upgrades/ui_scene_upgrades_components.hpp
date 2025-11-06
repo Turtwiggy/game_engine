@@ -3,8 +3,6 @@
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 
-#include <optional>
-
 namespace game2d {
 
 struct RequestToShowUpgradesMenu

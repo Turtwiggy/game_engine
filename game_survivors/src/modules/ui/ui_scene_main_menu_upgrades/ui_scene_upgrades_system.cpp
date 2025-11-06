@@ -56,7 +56,7 @@ draw_moneybag(entt::registry& r, ImVec2 ui_tl, ImVec2 ui_wh, ImFont* header_font
   draw_list->AddImage(monochrome_im_id, icon_tl, icon_br, uv_tl, uv_br, im_gold_col);
 
   // draw the amount of gold you have.
-  const auto gold_txt = std::format(" {}g", gold_c.amount);
+  const auto gold_txt = std::format(" {}", gold_c.amount);
   draw_list->AddText(header_font, header_font_size, ImVec2{ icon_br.x, icon_tl.y }, im_text_col, gold_txt.c_str());
 }
 
