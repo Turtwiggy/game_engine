@@ -2,6 +2,7 @@
 
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
+#include "modules/core/ui/ui_common_helpers.hpp"
 #include "ui_scene_upgrades_components.hpp"
 #include "ui_scene_upgrades_helpers.hpp"
 
@@ -22,42 +23,11 @@ SINGLE_PersistentUpgradesMenuUI::do_init(entt::registry& r)
 
     Cell c;
     c.name = stat_str.c_str();
-    c.action = [&]() { selected_stat = stat_enum; };
+    c.action = [&]() {};
     state.cells.push_back(std::make_shared<Cell>(c));
   }
 
-  // setup navigation
-  {
-    const int s = state.cells.size();
-    const int grid_y = get_grid_y(s, grid_x);
-
-    // setup horizontal navigation for rows
-    // i.e. connect left and right.
-
-    for (int x = 0; x < grid_x; x++) {
-      for (int y = 0; y < grid_y; y++) {
-        const int idx = grid_position_to_index({ x, y }, grid_x);
-        if (idx >= state.cells.size())
-          break; // no more cells
-        const auto cell = state.cells[idx];
-
-        const auto l_idx = grid_position_to_index({ engine::wrap(x - 1, grid_x - 1), y }, grid_x + 1);
-        const auto r_idx = grid_position_to_index({ engine::wrap(x + 1, grid_x - 1), y }, grid_x + 1);
-        const auto u_idx = grid_position_to_index({ x, engine::wrap(y - 1, grid_y) }, grid_x + 1);
-        const auto d_idx = grid_position_to_index({ x, engine::wrap(y + 1, grid_y) }, grid_x + 1);
-
-        // connect in all directions
-        // clang-format off
-        const auto valid = [&s](int idx) { return idx >= 0 && idx <= (s - 1); };
-        if (valid(l_idx)) cell->l = state.cells[l_idx];
-        if (valid(r_idx)) cell->r = state.cells[r_idx];
-        if (valid(u_idx)) cell->u = state.cells[u_idx];
-        if (valid(d_idx)) cell->d = state.cells[d_idx];
-        // clang-format on
-      }
-    }
-  }
-
+  create_as_vertical_layout(state.cells);
   state.active = state.cells[0];
   init = true;
 }

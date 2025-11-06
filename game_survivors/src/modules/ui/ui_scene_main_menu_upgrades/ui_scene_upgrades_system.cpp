@@ -1,9 +1,13 @@
 #include "pch.hpp"
 
+#include "engine/deps/opengl.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/opengl/texture.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "engine/std/string/helpers.hpp"
 #include "entt/entity/fwd.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/io/io_helpers.hpp"
@@ -27,7 +31,7 @@ namespace game2d {
 using namespace std::literals;
 
 void
-draw_moneybag(entt::registry& r, ImVec2 ui_wh, ImVec2 icon_size, ImFont* header_font, float header_font_size)
+draw_moneybag(entt::registry& r, ImVec2 ui_tl, ImVec2 ui_wh, ImFont* header_font, float header_font_size)
 {
 #if defined(_DEBUG)
   ZoneScoped;
@@ -40,26 +44,20 @@ draw_moneybag(entt::registry& r, ImVec2 ui_wh, ImVec2 icon_size, ImFont* header_
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)monochrome_tex_id;
+  auto* draw_list = ImGui::GetWindowDrawList();
+
+  const auto icon_size = ImVec2{ 16, 16 };
+  const auto inset = ImVec2{ 8, 8 };
+  const auto icon_tl = ImVec2{ ui_tl.x + inset.x, ui_tl.y + inset.y };
+  const auto icon_br = ImVec2{ ui_tl.x + inset.x + icon_size.x, ui_tl.y + inset.y + icon_size.y };
 
   // draw a moneybag for your gold
-  const auto center_x = 0.5f * (ui_wh.x);
-  const ImVec2 moneybag_icon_size = { 32 * font_scale, 32 * font_scale };
-  const auto moneybag_icon_x = center_x - 0.5 * moneybag_icon_size.x;
-  const auto [gold_tl, gold_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
-  ImGui::SetCursorPosX(moneybag_icon_x);
+  const auto [uv_tl, uv_br] = convert_sprite_to_uv(r, "COINPILE_1"s);
+  draw_list->AddImage(monochrome_im_id, icon_tl, icon_br, uv_tl, uv_br, im_gold_col);
 
-  ImGui::PushStyleColor(ImGuiCol_Button, im_gold_col);
-  ImGui::Image(monochrome_tex_id, moneybag_icon_size, gold_tl, gold_br);
-  ImGui::PopStyleColor();
-
-  // Draw gold amount
-  ImGui::PushFont(header_font, header_font_size);
-  const auto gold_txt = std::format("{}", gold_c.amount);
-  const auto gold_txt_wh = ImGui::CalcTextSize(gold_txt.c_str());
-  ImGui::SetCursorPosX(moneybag_icon_x + moneybag_icon_size.x);        // right of icon
-  ImGui::SetCursorPosY(0.5f * (moneybag_icon_size.y - gold_txt_wh.y)); // center y
-  ImGui::TextColored(im_gold_col, "%s", gold_txt.c_str());
-  ImGui::PopFont();
+  // draw the amount of gold you have.
+  const auto gold_txt = std::format(" {}g", gold_c.amount);
+  draw_list->AddText(header_font, header_font_size, ImVec2{ icon_br.x, icon_tl.y }, im_text_col, gold_txt.c_str());
 }
 
 void
@@ -72,7 +70,6 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_PersistentUpgrades, r, upgrade_e, upgrade_c);
   auto& ri_c = SINGLE_RendererInfo::instance;
   auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
-  const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   if (!ui_c.init)
     ui_c.do_init(r);
@@ -83,20 +80,23 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
 
   // process actions.
   process_input_for_ui_all_handles(r, ui_c.state);
-  process_input_for_grid(r, ui_c);
 
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
   const auto& g_input_c = r.get<InputComponent>(g_input_e);
   const auto& b_s = g_input_c.button_s;
   const auto& b_e = g_input_c.button_e;
-  const bool hel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
+  bool hel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
   const bool rel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
   const bool do_back = std::find(b_e.begin(), b_e.end(), ActionStateEnum::DOWN) != b_e.end();
+  const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
+
+  // also held if mouse lmb clicked.
+  hel_sel |= ImGui::IsMouseDown(ImGuiMouseButton_Left);
 
   // update the selected stat
-  const auto stat_key = ui_c.state.cells[ui_c.grid_idx]->name;
-  const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
-  ui_c.selected_stat = stat_enum;
+  // const auto stat_key = .value()->name;
+  // const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
+  // ui_c.selected_stat = stat_enum;
 
   // back pressed
   if (do_back) {
@@ -110,291 +110,260 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   if (!hel_sel)
     ui_c.purchase_time -= dt;
   ui_c.purchase_time = glm::clamp(ui_c.purchase_time, 0.0f, ui_c.purchase_time_max);
-  if (hel_sel && ui_c.selected_stat.has_value() && ui_c.purchase_time >= ui_c.purchase_time_max) {
-    purchase_upgrade(r, ui_c.selected_stat.value());
+  if (hel_sel && ui_c.state.active != nullptr && ui_c.purchase_time >= ui_c.purchase_time_max) {
+    const auto& cell = ui_c.state.active;
+    const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(cell->name).value();
+    purchase_upgrade(r, stat_enum);
     ui_c.purchase_time = 0.0f;
   }
-
-  const auto viewport_tl = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
-  const auto viewport_wh = ImVec2((float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y);
-  const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
-  const float size_x = 0.5f * 1280.0f * font_scale;
-  const float size_y = 0.4f * 720.0f * font_scale;
-
-  // if pivot is 0, window is at the top at the center of the screen
-  // if pivot is 1, window is at the bot at the center of the screen
-
-  static float pivot = 0.5f;
-  const float pos_y = viewport_tl.y + 0.5f * viewport_wh.y - size_y * pivot;
-
-  const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, pos_y);
-  ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
-  // ImGui::SetNextWindowSizeConstraints({ 400, 200 }, { 1000, 1000 });
-
-  imgui_begin("upgrades menu");
-  auto* draw_list = ImGui::GetWindowDrawList();
-  const ImVec2 ui_tl = ImGui::GetWindowPos();
-  const ImVec2 ui_wh = ImGui::GetWindowSize();
-  const ImVec2 ui_br = { ui_tl.x + ui_wh.x, ui_tl.y + ui_wh.y };
 
   // fonts
   auto* fingerpaint_font = get_fingerpaint_font(r);
   auto* inter_font = get_inter_font(r);
   auto* text_font = inter_font;
-  const auto font_header_size = (float)FontSizes::SIZE_20 * font_scale;
-  const auto font_text_size = (float)FontSizes::SIZE_16 * font_scale;
-  const auto TEXT_SIZE = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, "A");
+  const auto font_header_size = (float)FontSizes::SIZE_20;
+  const auto font_text_size = (float)FontSizes::SIZE_16;
 
-  // background
-  const auto rounding = 6.0f;
-  const auto thickness = 2.0f;
-  draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
-  draw_list->AddRect(ui_tl, ui_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
+  const auto viewport_tl = ImVec2((float)ri_c.viewport_pos.x, (float)ri_c.viewport_pos.y);
+  const auto viewport_wh = ImVec2((float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y);
+  const auto viewport_wh_half = ImVec2(viewport_wh.x * 0.5f, viewport_wh.y * 0.5f);
+  const float size_x = 0.25f * 1280.0f;
+  const float size_y = 450.0f;
 
-  const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
-  const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
+  // if pivot is 0, window is at the top at the center of the screen
+  // if pivot is 1, window is at the bot at the center of the screen
+  const float pivot = 0.32f;
+  const float pos_y = viewport_tl.y + 0.5f * viewport_wh.y - size_y * pivot;
+  const auto pos = ImVec2(viewport_tl.x + viewport_wh_half.x, pos_y);
+  ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
+  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+  // ImGui::SetNextWindowSizeConstraints({ 400, 200 }, { 1000, 1000 });
 
-  const auto box_tl = ImGui::GetCursorScreenPos();
-  const auto box_wh = ui_br - box_tl;
-
-  const auto icon_size = ImVec2{ 32 * font_scale, 32 * font_scale };
-  draw_moneybag(r, ui_wh, icon_size, fingerpaint_font, font_header_size);
-
-  const auto box0_tl = box_tl;
-  const auto box0_br = box_tl + ImVec2{ 0.66f * box_wh.x, 1.0f * box_wh.y };
-  const auto box0_wh = box0_br - box0_tl;
-  const auto center_y = box0_tl.y + 0.5f * box0_wh.y;
-
-  const auto box1_tl = ImVec2{ box0_br.x, box0_tl.y };
-  const auto box1_br = ui_br;
-  // draw_list->AddRectFilled(box0_tl, box0_br, IM_COL32(255, 0, 0, 255), rounding);
-  // draw_list->AddRectFilled(box1_tl, box1_br, IM_COL32(0, 255, 0, 255), rounding);
-
-  const float rows = 4.0f; // TODo: fix this being hard coded
-  const auto box0_subset_tl = ImVec2{ box0_tl.x, center_y - rows * 0.5f * icon_size.y };
-  const auto box0_subset_br = ImVec2{ box0_br.x, center_y + rows * 0.5f * icon_size.y };
-  // draw_list->AddRectFilled(box0_subset_tl, box0_subset_br, IM_COL32(0, 0, 255, 255), 0);
-
-  // Draw the selected stat info
-  const auto box1_subset_tl = ImVec2{ box1_tl.x + 20, box0_tl.y + 20 };
-  const auto box1_subset_br = ImVec2{ box1_br.x - 20, box1_br.y - 20 };
-  draw_list->AddRectFilled(box1_subset_tl, box1_subset_br, im_window_bg_col, rounding);
-  draw_list->AddRect(box1_subset_tl, box1_subset_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
-
-  const int grid_y = get_grid_y(ui_c.state.cells.size(), ui_c.grid_x);
-  const auto grid_tl = box0_subset_tl;
-  const auto grid_br = box0_subset_br;
-  const auto grid_wh = ImVec2{ grid_br.x - grid_tl.x, grid_br.y - grid_tl.y };
-
-  static float pad_x = 16.0f;
-  static float pad_y = 16.0f;
-  // ImGui::Begin("DebugUI");
-  // imgui_draw_float("pad_x", pad_x);
-  // imgui_draw_float("pad_y", pad_y);
-  // ImGui::End();
-
-  // Draw upgrades in a grid.
-  const int valid_amount = (int)ui_c.state.cells.size();
-  for (int i = 0; i < ui_c.grid_x * grid_y; i++) {
-
-    const bool active = i < valid_amount;
-    if (!active)
-      continue; // skip entry
-
-    // the stat
-    const auto stat_key = ui_c.state.cells[i]->name;
-    const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
-    const auto icon_key = "ICON_" + stat_key;
-
-    // dont show the user levels for stats they cant buy
-    // const auto stat_str = stat_key;
-    // const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
-    // const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
-    // if (it == upgrade_c.upgrades.end())
-    //   continue;
-
-    const auto [gx, gy] = engine::grid::index_to_grid_position(i, ui_c.grid_x);
-    const auto x_hmm = (gx / (float)ui_c.grid_x);
-    const auto y_hmm = (gy / (float)grid_y);
-
-    // note: this equally splits the size
-    // auto x_pct = grid_tl.x + grid_wh.x * x_hmm;
-    // auto y_pct = grid_tl.y + grid_wh.y * y_hmm;
-    auto icon_tl = ImVec2{ grid_tl.x + gx * (icon_size.x + pad_x), grid_tl.y + gy * (icon_size.y + pad_y) };
-
-    // center the icon.
-    auto cell_w = grid_wh.x / (float)ui_c.grid_x;
-    auto cell_h = grid_wh.y / (float)grid_y;
-    icon_tl.x += 0.5f * (cell_w - icon_size.x);
-    // y_pct += 0.5f * (cell_h - icon_size.y);
-
-    // add background
-    const auto rect_min = icon_tl;
-    const auto rect_max = icon_tl + icon_size;
-    draw_list->AddRectFilled(rect_min, rect_max, im_window_bg_col);
-    draw_list->AddRect(rect_min, rect_max, im_window_border_col);
-
-    // add icon
-    ImGui::SetCursorScreenPos(icon_tl);
-    const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
-    ImGui::Image(custom_im_id, icon_size, image_icon_tl, image_icon_br);
-
-    // update selection with mouse as well
-    bool is_hovered = ImGui::IsMouseHoveringRect(rect_min, rect_max);
-    const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-    const bool mouse_move = mouse_delta.x != 0.0f || mouse_delta.y != 0.0f;
-    if (is_hovered && mouse_move)
-      ui_c.grid_idx = i;
-
-    // ImGui::SetCursorScreenPos(icon_tl);
-    // const auto& cell = ui_c.state.cells[i];
-    // const auto name = cell->name;
-    // const auto [aquired, total] = get_upgrade_level(r, upgrade_c, name);
-    // ImGui::TextColored(im_text_col, "%i/%i", aquired, total);
-  }
-
-  // Draw selected cursor
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+  imgui_begin("upgrades menu");
   {
-    const auto [gx, gy] = engine::grid::index_to_grid_position(ui_c.grid_idx, ui_c.grid_x);
-    auto icon_tl = ImVec2{ grid_tl.x + gx * (icon_size.x + pad_x), grid_tl.y + gy * (icon_size.y + pad_y) };
+    auto* draw_list = ImGui::GetWindowDrawList();
+    const ImVec2 ui_tl = ImGui::GetWindowPos();
+    const ImVec2 ui_wh = ImGui::GetWindowSize();
+    const ImVec2 ui_br = { ui_tl.x + ui_wh.x, ui_tl.y + ui_wh.y };
 
-    // center the cursor
-    auto cell_w = grid_wh.x / (float)ui_c.grid_x;
-    auto cell_h = grid_wh.y / (float)grid_y;
-    icon_tl.x += 0.5f * (cell_w - icon_size.x);
+    // background
+    const auto rounding = 6.0f;
+    const auto thickness = 2.0f;
+    draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
+    draw_list->AddRect(ui_tl, ui_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
-    // only one cursor in the upgrades menu.
-    auto& cursor_c = get_first_component<UiCursorComponent>(r);
-    draw_cursor(r, cursor_c, icon_tl, dt);
-  }
+    // tagline
+    ImGui::PushFont(text_font, font_text_size);
+    auto tagline = "Shipyard - Get good. And upgrade!"s;
+    auto tagline_size = ImGui::CalcTextSize(tagline.c_str());
+    ImGui::SetCursorPosX(ui_wh.x * 0.5f - tagline_size.x * 0.5f);
+    ImGui::Text("%s", tagline.c_str());
+    ImGui::PopFont();
 
-  // Draw selected stat info
-  {
-    const auto upgrade_tl = box1_subset_tl;
-    const auto upgrade_br = box1_subset_br;
-    const auto upgrade_wh = upgrade_br - upgrade_tl;
-    if (ui_c.selected_stat.has_value()) {
-      const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(ui_c.selected_stat.value()));
-      const auto display_str = make_stat_name_pretty_name(stat_str);
-      const auto display_str_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, display_str.c_str());
+    // moneybag
+    draw_moneybag(r, ui_tl, ui_wh, inter_font, font_text_size);
 
-      const auto header_text_pos_tl = ImVec2{ upgrade_tl.x, upgrade_tl.y + 4.0f };
-      const auto header_text_pos_adj =
-        ImVec2{ header_text_pos_tl.x + 0.5f * (upgrade_wh.x - display_str_size.x), header_text_pos_tl.y };
-      draw_list->AddText(text_font, font_text_size, header_text_pos_adj, im_text_col, display_str.c_str());
-      // ImGui::TextColored(im_text_col, "Upgrade: %s. Available: %i. Purchased: %i.", u.key.c_str(), total, aquired);
+    // draw available upgrades.
+    ImGui::NewLine();
+    const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+    const auto custom_im_id = (ImTextureID)(intptr_t)custom_tex_id;
+    float start_y = ui_tl.y + 16 * 2;
+    for (int i = 0; i < (int)ui_c.state.cells.size(); i++) {
+      auto& base = ui_c.state.cells[i];
 
-      const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
-      const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
-      if (it == upgrade_c.upgrades.end()) {
-        const auto err = std::format("Upgrade does not exist: {} in SINGLE_PersistentUpgrades", stat_str);
-        SDL_Log("error: %s", err.c_str());
-        // throw std::runtime_error(err.c_str());
-        // NO persistent upgrade for this stat
-        ImGui::End();
-        return;
-      }
-      const Upgrade u = (*it);
-      const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);
+      // which is the active cell index
+      const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
+      const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
+      const int col_idx = 0;
+      const int row_idx = cell_idx;
+      const bool active = base == ui_c.state.active;
 
-      // loaded on-disk values
-      int your_level = 0;
-      auto str_opt = savefile_get_key(r, stat_str);
-      if (str_opt.has_value())
-        str_opt->get_to(your_level);
+      // the stat
+      const auto stat_key = base->name;
+      const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(stat_key);
+      const auto icon_key = "ICON_" + stat_key + "_CENTERED";
+      const auto display_txt = make_stat_name_pretty_name(stat_key);
 
-      const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "kenneynl_gameicons")->id;
-      const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
-      const ImVec2 upg_icon_size{ TEXT_SIZE.y, TEXT_SIZE.y };
+      auto a_def = SelectableButtonDef{
+        .display_str = display_txt,
+        .imgui_hash = "##" + base->name,
+        .size = { ui_tl.x, 16 },
+        .input = do_act,
+        .cell = base,
+        .active_cell = ui_c.state.active,
 
-      // display the current upgrade level, and future upgrade levels
-      for (int i = 0; i < u.levels.size(); i++) {
-        const UpgradeLevel& l = u.levels[i];
-        const bool aquired = i < your_level;
+        .text_pivot = { 0.0f, 0.5f }, // center_y
+        .text_offset = { 32, 0 },
+        .font = inter_font,
+        .font_size = 13,
 
-        std::string str = "";
-        if (l.type == "stat_percent_increase")
-          str = std::format("{}G. +{}%", l.cost, l.value, aquired);
-        else if (l.type == "stat_flat_increase")
-          str = std::format("{}G. +{}", l.cost, l.value, aquired);
+        // hide the buttons
+        .active_outline_col = { 0.6f, 0.0f, 0.0f, 1.0f },
+        .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+        .active_bg_col = { 0.3f, 0.3f, 0.3f, 0.0f },
+        .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+      };
 
-        ImVec2 icon_pos = header_text_pos_tl;
-        icon_pos.y += (i + 1) * TEXT_SIZE.y;
+      if (selectable_button(r, a_def))
+        base->action();
 
-        ImVec2 text_pos = icon_pos;
-        text_pos.x += upg_icon_size.x;
+      // add icon
+      auto icon_tl = ImVec2(ui_tl.x + 5, start_y);
+      auto icon_br = ImVec2(ui_tl.x + 5 + 16, start_y + 16);
+      const auto [uv_tl, uv_br] = convert_sprite_to_uv(r, icon_key);
+      draw_list->AddImage(custom_im_id, icon_tl, icon_br, uv_tl, uv_br, im_white);
 
-        if (aquired) {
-          // tick icon
-          {
-            const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_TICK"s);
-            draw_list->AddImage(im_id, icon_pos, icon_pos + upg_icon_size, icon_tl, icon_br);
-          }
-        } else {
-          // circle icon
-          {
-            // const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_CROSS"s);
-            // draw_list->AddImage(im_id, icon_pos, icon_pos + upg_icon_size, icon_tl, icon_br);
-            auto center = icon_pos + ImVec2{ 0.5f * upg_icon_size.x, 0.5f * upg_icon_size.y };
-            draw_list->AddCircle(center, 0.33f * upg_icon_size.x, im_text_col, 16, 2.0f);
-          }
-        }
+      // add how many of this type you've aquired.
+      const auto name = base->name;
+      const auto [aquired, total] = get_upgrade_level(r, upgrade_c, name);
+      ImGui::PushFont(text_font, 13);
+      const auto text = std::format("{}/{}", aquired, total);
+      const auto text_size = ImGui::CalcTextSize(text.c_str());
+      const auto text_pos = ImVec2{ ui_tl.x + ui_wh.x - text_size.x - 5, start_y };
+      draw_list->AddText(text_pos, im_text_col, text.c_str());
+      ImGui::PopFont();
 
-        if (aquired)
-          draw_list->AddText(text_font, font_text_size, text_pos, aquired_col, str.c_str());
-        else
-          draw_list->AddText(text_font, font_text_size, text_pos, unaquired_col, str.c_str());
-
-        //
-      }
-
-      // todo: draw a "hold to aquire" button
+      start_y += 16;
     }
   }
+  ImGui::End();
+  ImGui::PopStyleVar();
 
-  // Draw purchase bar.
+  ImGui::SetNextWindowSize(ImVec2(size_x, size_y * 0.5f), ImGuiCond_Always);
+  ImGui::SetNextWindowPos({ pos.x + size_x + 10, pos.y + size_y * 0.5f }, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+
+  imgui_begin("stats menu");
   {
-    const auto purchasebar_tl = ImVec2{ box1_subset_tl.x + 5.0f, box1_subset_br.y - 25.0f };
-    const auto purchasebar_br = ImVec2{ box1_subset_br.x - 5.0f, box1_subset_br.y - 5.0f };
-    const auto purchasebar_wh = purchasebar_br - purchasebar_tl;
+    auto* draw_list = ImGui::GetWindowDrawList();
+    const ImVec2 ui_tl = ImGui::GetWindowPos();
+    const ImVec2 ui_wh = ImGui::GetWindowSize();
+    const ImVec2 ui_br = { ui_tl.x + ui_wh.x, ui_tl.y + ui_wh.y };
 
-    const engine::SRGBColour my_player_col = default_player_colours[0];
-    auto my_player_col_active = my_player_col;
-    auto my_player_col_inactive = my_player_col;
-    my_player_col_inactive.a = 0.25f * 255;
-    const auto im_player_col_active = convert_my_to_im(my_player_col_active);
-    const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
-    const auto im_player_col = convert_my_to_im(my_player_col);
-    const float bar_rounding = 0.0f;
+    // background
+    const auto rounding = 6.0f;
+    const auto thickness = 2.0f;
+    draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
+    draw_list->AddRect(ui_tl, ui_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
-    const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
-      const ImVec2 bar_wh = bar_br - bar_tl;
+    const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
+    const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
+    const auto& cell = ui_c.state.cells[cell_idx];
 
-      // draw a box around the bar
-      draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
+    const auto stat_str = std::string(cell->name);
+    const auto display_str = make_stat_name_pretty_name(stat_str);
+    const auto display_str_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, display_str.c_str());
 
-      // bar bg
-      draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
+    const auto header_tl = ImVec2{ ui_tl.x, ui_tl.y + 4.0f };
+    const auto header_adj = ImVec2{ header_tl.x + 0.5f * (ui_wh.x - display_str_size.x), header_tl.y };
+    draw_list->AddText(text_font, font_text_size, header_adj, im_text_col, display_str.c_str());
 
-      // bar fg
-      float x = bar_tl.x + percent * bar_wh.x;
-      const auto partial_bar_br = ImVec2(x, bar_br.y);
-      ImU32 col_l = im_player_col_active;
-      ImU32 col_r = im_player_col_inactive;
-      draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
-    };
+    const auto find_by_key = [&stat_str](Upgrade& u) { return u.key == stat_str; };
+    const auto it = std::find_if(upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), find_by_key);
+    if (it == upgrade_c.upgrades.end()) {
+      const auto err = std::format("Upgrade does not exist: {} in SINGLE_PersistentUpgrades", stat_str);
+      SDL_Log("error: %s", err.c_str());
+      // NO persistent upgrade for this stat
+      ImGui::End();
+      return;
+    }
+    const Upgrade u = (*it);
+    const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);
 
-    const float percent = ui_c.purchase_time / ui_c.purchase_time_max;
-    draw_bar(purchasebar_tl, purchasebar_br, percent);
+    // loaded on-disk values
+    int your_level = 0;
+    auto str_opt = savefile_get_key(r, stat_str);
+    if (str_opt.has_value())
+      str_opt->get_to(your_level);
 
-    const auto text = "Hold to Purchase"s;
-    const auto text_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, text.c_str());
-    const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x),
-                                  purchasebar_tl.y + 0.5f * (purchasebar_wh.y - text_size.y) };
-    draw_list->AddText(text_font, font_text_size, text_pos, im_text_col, text.c_str());
+    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "kenneynl_gameicons")->id;
+    const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
+    const ImVec2 upg_icon_size{ 16, 16 };
 
-    //
+    // display the current upgrade level, and future upgrade levels
+    for (int i = 0; i < u.levels.size(); i++) {
+      const UpgradeLevel& l = u.levels[i];
+      const bool aquired = i < your_level;
+
+      std::string str = "";
+      if (l.type == "stat_percent_increase")
+        str = std::format("{}G. +{}%", l.cost, l.value, aquired);
+      else if (l.type == "stat_flat_increase")
+        str = std::format("{}G. +{}", l.cost, l.value, aquired);
+
+      ImVec2 icon_pos = header_adj;
+      icon_pos.y += (i + 1) * 16;
+
+      ImVec2 text_pos = icon_pos;
+      text_pos.x += upg_icon_size.x;
+
+      if (aquired) {
+        // tick icon
+        {
+          const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_TICK"s);
+          draw_list->AddImage(im_id, icon_pos, icon_pos + upg_icon_size, icon_tl, icon_br);
+        }
+      } else {
+        // circle icon
+        {
+          // const auto [icon_tl, icon_br] = convert_sprite_to_uv(r, "ICON_CROSS"s);
+          // draw_list->AddImage(im_id, icon_pos, icon_pos + upg_icon_size, icon_tl, icon_br);
+          auto center = icon_pos + ImVec2{ 0.5f * upg_icon_size.x, 0.5f * upg_icon_size.y };
+          draw_list->AddCircle(center, 0.33f * upg_icon_size.x, im_text_col, 16, 2.0f);
+        }
+      }
+
+      if (aquired)
+        draw_list->AddText(text_font, font_text_size, text_pos, aquired_col, str.c_str());
+      else
+        draw_list->AddText(text_font, font_text_size, text_pos, unaquired_col, str.c_str());
+
+      //
+    }
+
+    // Draw purchase bar.
+    {
+      const auto purchasebar_tl = ImVec2{ ui_tl.x + 5.0f, ui_br.y - 25.0f };
+      const auto purchasebar_br = ImVec2{ ui_br.x - 5.0f, ui_br.y - 5.0f };
+      const auto purchasebar_wh = purchasebar_br - purchasebar_tl;
+
+      const engine::SRGBColour my_player_col = default_player_colours[0];
+      auto my_player_col_active = my_player_col;
+      auto my_player_col_inactive = my_player_col;
+      my_player_col_inactive.a = 0.25f * 255;
+      const auto im_player_col_active = convert_my_to_im(my_player_col_active);
+      const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
+      const auto im_player_col = convert_my_to_im(my_player_col);
+      const float bar_rounding = 0.0f;
+
+      const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
+        const ImVec2 bar_wh = bar_br - bar_tl;
+
+        // draw a box around the bar
+        draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
+
+        // bar bg
+        draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
+
+        // bar fg
+        float x = bar_tl.x + percent * bar_wh.x;
+        const auto partial_bar_br = ImVec2(x, bar_br.y);
+        ImU32 col_l = im_player_col_active;
+        ImU32 col_r = im_player_col_inactive;
+        draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
+      };
+
+      const float percent = ui_c.purchase_time / ui_c.purchase_time_max;
+      draw_bar(purchasebar_tl, purchasebar_br, percent);
+
+      const auto text = "Hold to Purchase"s;
+      const auto text_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, text.c_str());
+      const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x),
+                                    purchasebar_tl.y + 0.5f * (purchasebar_wh.y - text_size.y) };
+      draw_list->AddText(text_font, font_text_size, text_pos, im_text_col, text.c_str());
+
+      //
+    }
   }
 
   ImGui::End();

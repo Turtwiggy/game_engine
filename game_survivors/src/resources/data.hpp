@@ -35,6 +35,7 @@ const auto my_inactive_col = hex_to_srgb("#737a7e");
 const auto my_separator_col = hex_to_srgb("#7d8488");
 const auto my_window_bg_col = engine::SRGBColour(0.13f, 0.14f, 0.17f, 1.00f);
 const auto my_window_border_col = hex_to_srgb("#3B5676");
+const auto my_gold_col = hex_to_srgb("#ffee00ff");
 
 const auto im_text_col_vec = ImVec4{ 0.86f, 0.93f, 0.89f, 0.78f };
 const auto im_text_col =
@@ -45,7 +46,8 @@ const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
 const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
 const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
 const auto im_window_border_col = convert_my_to_im(my_window_border_col);
-const auto im_gold_col = ImVec4(255 * 1.0f, 238 * 1.0f, 0 * 1.0f, 1.0f);
+const auto im_gold_col = convert_my_to_im(my_gold_col);
+const auto im_gold_col_vec = convert_my_to_im_vec(my_gold_col);
 const auto im_icon_col =
   ImVec4(my_separator_col.r / 255.0f, my_separator_col.g / 255.0f, my_separator_col.b / 255.0f, (80 / 255.0f));
 

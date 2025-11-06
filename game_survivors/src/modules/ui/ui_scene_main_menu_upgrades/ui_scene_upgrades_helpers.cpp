@@ -23,8 +23,7 @@ back_to_main_menu(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
 {
   ui_c.open = false;
   ui_c.one_frame_buffer = true;
-  ui_c.selected_stat = std::nullopt;
-  ui_c.grid_idx = 0;
+  ui_c.state.active = nullptr;
   create_empty<RequestToShowMainMenu>(r);
 }
 
@@ -113,36 +112,6 @@ get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::
   // display_stat_key
   // std::string button_str = std::format("{}/{}", n_stat_upgrades_aquired, n_stat_upgrades);
   return { n_stat_upgrades_aquired, n_stat_upgrades };
-};
-
-void
-process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c)
-{
-  auto& acts = ui_c.state.actions;
-  const auto val_u = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_U) != acts.end();
-  const auto val_d = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_D) != acts.end();
-  const auto val_l = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_L) != acts.end();
-  const auto val_r = std::find(acts.begin(), acts.end(), UIAction::NAV_MOVE_R) != acts.end();
-
-  const auto [cur_x, cur_y] = engine::grid::index_to_grid_position(ui_c.grid_idx, ui_c.grid_x);
-  auto new_x = cur_x;
-  auto new_y = cur_y;
-
-  if (val_r)
-    new_x++;
-  if (val_l)
-    new_x--;
-  if (val_u)
-    new_y--;
-  if (val_d)
-    new_y++;
-
-  int max_x = ui_c.grid_x - 1;
-  int max_y = get_grid_y(ui_c.state.cells.size(), ui_c.grid_x) - 1;
-  new_x = glm::clamp(new_x, 0, max_x);
-  new_y = glm::clamp(new_y, 0, max_y);
-  ui_c.grid_idx = engine::grid::grid_position_to_index({ new_x, new_y }, ui_c.grid_x);
-  ui_c.grid_idx = glm::clamp(ui_c.grid_idx, 0, (int)ui_c.state.cells.size() - 1);
 };
 
 } // namespace game2d

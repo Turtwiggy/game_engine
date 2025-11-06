@@ -14,10 +14,6 @@ struct RequestToShowUpgradesMenu
 
 struct SINGLE_PersistentUpgradesMenuUI : public DefaultUI
 {
-  int grid_idx = 0;
-  const int grid_x = 8;
-  std::optional<UpgradeableStat> selected_stat = std::nullopt;
-
   // hold a button to purchase upgrade
   float purchase_time = 0.0f;
   const float purchase_time_max = 1.0f;
