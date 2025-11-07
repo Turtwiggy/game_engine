@@ -209,9 +209,9 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
         base->action();
 
       // add icon
-      const auto offset_y = -2.5f;
-      const auto icon_tl = ImVec2(ui_tl.x + 5, start_y + offset_y);
-      const auto icon_br = ImVec2(ui_tl.x + 5 + 16, start_y + 16 + offset_y);
+      const auto offset_y = -2.0f;
+      const auto icon_tl = ImVec2(ui_tl.x + 6, start_y + offset_y);
+      const auto icon_br = ImVec2(ui_tl.x + 6 + 16, start_y + 16 + offset_y);
       const auto [uv_tl, uv_br] = convert_sprite_to_uv(r, icon_key);
       draw_list->AddImage(custom_im_id, icon_tl, icon_br, uv_tl, uv_br, im_white);
 
@@ -248,6 +248,11 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     draw_list->AddRect(ui_tl, ui_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
     const auto cell_it = std::find(ui_c.state.cells.begin(), ui_c.state.cells.end(), ui_c.state.active);
+    if (cell_it == ui_c.state.cells.end()) {
+      ImGui::End();
+      return;
+    }
+
     const auto cell_idx = static_cast<int>(cell_it - ui_c.state.cells.begin());
     const auto& cell = ui_c.state.cells[cell_idx];
 

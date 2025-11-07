@@ -4,6 +4,9 @@
 #include "ui_survive_upgrade_helpers.hpp"
 #include "ui_survive_upgrade_system.hpp"
 
+#if !defined(_DEBUG)
+#include "modules/steam_input/steam_input_helpers.hpp"
+#endif
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/sprites/helpers.hpp"

@@ -258,7 +258,7 @@
       "traits": [ {"key": "DIRECT"} ], 
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
-        { "tag": "fixture_core", "type": "box", "is_sensor": false, "size": [{"x":96, "y": 64}] }
+        { "tag": "fixture_core", "type": "box", "is_sensor": false }
       ]
     },
     // exploder

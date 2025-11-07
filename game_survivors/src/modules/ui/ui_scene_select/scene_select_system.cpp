@@ -246,7 +246,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     // calculate the max width of all keys
     const float max_width = calculate_width(display_stats);
     const auto text_wh = ImGui::CalcTextSize("A");
-    static float offset = 2.5f;
+    static float offset = 2.0f;
 
     for (int idx = 0; idx < (int)display_stats.size(); idx++) {
       const auto& stat = display_stats[idx];

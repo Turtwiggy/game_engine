@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "resources/data.hpp"
 #include "rock_components.hpp"
 #include "rock_helpers.hpp"
 #include "rock_system.hpp"
@@ -336,7 +337,7 @@ create_island_floor_sprites(entt::registry& r) {
 void
 create_above_island_sprites(entt::registry& r)
 {
-  const auto tilesize = SINGLE_Islands::instance.tilesize;
+  const auto tilesize = default_map_unit_tilesize;
 
   const auto view = r.view<IslandHiddenComponent, const BoundingBoxComponent>();
   for (const auto& [e, hidden_c, aabb_c] : view.each()) {

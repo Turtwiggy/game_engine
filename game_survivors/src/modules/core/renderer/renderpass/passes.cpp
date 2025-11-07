@@ -785,6 +785,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 void
 setup_develop_sprite_sampling_update(entt::registry& r)
 {
+#if defined(_DEBUG)
   auto& ri = SINGLE_RendererInfo::instance;
   const auto pass_idx = get_pass_idx(ri, PassName::develop_sprite_sampling);
   auto& pass = ri.passes[pass_idx];
@@ -797,6 +798,7 @@ setup_develop_sprite_sampling_update(entt::registry& r)
 
     render_fullscreen_quad(r, ri.develop_sprite_sampling, ri.viewport_size_render_at);
   };
+#endif
 }
 
 /*

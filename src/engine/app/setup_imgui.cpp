@@ -175,7 +175,9 @@ ImGui_Manager::end_frame(const GameWindow& window)
   io.DisplaySize = ImVec2(static_cast<float>(window_size.x), static_cast<float>(window_size.y));
 
   {
+#if defined(_DEBUG)
     ZoneScopedN("ImGui::EndFrame()");
+#endif
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

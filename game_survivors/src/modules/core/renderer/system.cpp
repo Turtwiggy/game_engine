@@ -477,10 +477,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 #endif
 
   static float time = 0.0f;
-  {
-    ZoneScopedN("IncrementTime");
-    time += dt;
-  }
+  time += dt;
 
   ri.viewport_size_current = { ImGui::GetMainViewport()->WorkSize.x, ImGui::GetMainViewport()->WorkSize.y };
   if (check_if_viewport_resize(ri))

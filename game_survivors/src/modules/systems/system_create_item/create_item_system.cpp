@@ -24,7 +24,7 @@ update_create_item_system(entt::registry& r)
   for (const auto& [e, req_c] : view.each()) {
 
     auto item_e = spawn(r, req_c.item);
-    give_life(r, item_e, req_c.position, { default_map_unit_tilesize, default_map_unit_tilesize });
+    give_life(r, item_e, req_c.position, { 2.0 * default_map_unit_tilesize, 2.0 * default_map_unit_tilesize });
     r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
     r.remove<OnDeathCallbacks>(item_e);
 

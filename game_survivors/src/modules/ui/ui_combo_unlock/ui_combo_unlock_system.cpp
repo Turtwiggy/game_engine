@@ -55,6 +55,9 @@ update_ui_combo_unlock_system(entt::registry& r)
   const ImVec2 ui_wh = ImGui::GetWindowSize();
   auto* draw_list = ImGui::GetWindowDrawList();
 
+  auto bg_col_transparent = my_window_border_col;
+  bg_col_transparent.a = 100;
+
   for (const auto& [e, treasure_c, combo_c] : r.view<TreasureEnemyComponent, ComboUnlockComponent>().each()) {
 
     if (!combo_c.display)
@@ -65,50 +68,32 @@ update_ui_combo_unlock_system(entt::registry& r)
     const auto wsp_ss = worldspace_to_screenspace(r, wsp);
     const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
 
-    // draw_popup(r, ss_pos_tl, "here!"s, font, im_window_border_col);
-
-    auto TEXT_SIZE = font->CalcTextSizeA(font_scale, FLT_MAX, -1, "A");
-    const float first_y_pos = ss_pos_tl.y + 0.5f * size.y;
+    // const float first_y_pos = ss_pos_tl.y + 0.5f * size.y;
     // const float first_y_neg = ss_pos_tl.y - 0.5f * size.y;
     // draw_list->AddRect({ first_x, first_y_neg }, { first_x + size.x, first_y_neg + size.y }, IM_COL32(255, 0, 0, 255));
     // draw_list->AddRect(ss_pos_tl, { ss_pos_tl.x + size.x, ss_pos_tl.y + size.y }, IM_COL32(0, 255, 0, 255));
 
-    const auto unlock_text = "Unlock";
-    const auto unlock_text_size = font->CalcTextSizeA(font_scale, FLT_MAX, -1, unlock_text);
-
     const auto pad = 4.0f;
     const float icon_size = 16.0f;
-    const float display_w = glm::max(unlock_text_size.x, 4 * (icon_size) + (2 * pad));
-    const float display_h = unlock_text_size.y + (icon_size + 2.0f * pad);
+    const float display_w = 4 * (icon_size) + (2 * pad);
+    const float display_h = (icon_size + 2.0f * pad);
 
-    const float first_x = ss_pos_tl.x;
-
-    const auto text_pos_tl = ImVec2{ first_x - 0.5f * display_w, first_y_pos };
-    const auto text_pos_br = ImVec2{ text_pos_tl.x + display_w, text_pos_tl.y + display_h };
-
-    const auto popup_tl = text_pos_tl;
-    const auto popup_br = ImVec2{ text_pos_tl.x + display_w, text_pos_tl.y + display_h };
-    auto bg_col_transparent = my_window_border_col;
-    bg_col_transparent.a = 100;
+    const auto popup_tl = ImVec2(ss_pos_tl.x - 0.5f * display_w, ss_pos_tl.y - 0.5f * display_h + size.y);
+    const auto popup_br = ImVec2(popup_tl.x + display_w, popup_tl.y + display_h);
+    const float first_x = popup_tl.x + pad;
 
     // draw a popup
     const auto im_bg_col_transparent = convert_my_to_im(bg_col_transparent);
     draw_list->AddRectFilled(popup_tl, popup_br, im_bg_col_transparent, 0.0f);
     draw_list->AddRect(popup_tl, popup_br, im_window_border_col);
 
-    // draw the text
-    // draw_list->AddRect(text_pos_tl, text_pos_br, IM_COL32(100, 100, 100, 255));
-    const auto text_pos_center = ImVec2{ text_pos_tl.x + 0.5f * (display_w - unlock_text_size.x), text_pos_tl.y };
-    draw_list->AddText(font, font_scale, text_pos_center, im_text_col, unlock_text);
-
     // draw the combo code.
     for (int i = 0; i < combo_c.unlock.size(); i++) {
       const auto val = combo_c.unlock[i];
       const auto spr = get_sprite_for_combodir(val);
-      const auto icon_tl = ImVec2{ pad + text_pos_tl.x + icon_size * i, text_pos_tl.y + unlock_text_size.y };
+      const auto icon_tl = ImVec2{ first_x + icon_size * i, popup_tl.y + pad };
       const auto icon_br = ImVec2{ icon_tl.x + icon_size, icon_tl.y + icon_size };
       const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, spr);
-      // draw_list->AddRect(icon_tl, icon_br, IM_COL32(255, 0, 0, 255));
       draw_list->AddImage(monochrome_im_id, icon_tl, icon_br, icon_uv_tl, icon_uv_br);
     }
 
@@ -116,7 +101,7 @@ update_ui_combo_unlock_system(entt::registry& r)
     for (int i = 0; i < combo_c.current.size(); i++) {
       const auto val = combo_c.current[i];
       const auto spr = get_sprite_for_combodir(val);
-      const auto icon_tl = ImVec2{ pad + text_pos_tl.x + icon_size * i, text_pos_tl.y + unlock_text_size.y };
+      const auto icon_tl = ImVec2{ first_x + icon_size * i, popup_tl.y + pad };
       const auto icon_br = ImVec2{ icon_tl.x + icon_size, icon_tl.y + icon_size };
       const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, spr);
       draw_list->AddImage(monochrome_im_id, icon_tl, icon_br, icon_uv_tl, icon_uv_br, im_greenish);
