@@ -254,7 +254,7 @@
     {
       "name": "actor_enemy_5",
       "speed": 1.0,
-      "renderable": { "sprite": "HOGFISH", "colour": "white" },
+      "renderable": { "sprite": "SWORDFISH_IDLE", "colour": "white" },
       "traits": [ {"key": "DIRECT"} ], 
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 

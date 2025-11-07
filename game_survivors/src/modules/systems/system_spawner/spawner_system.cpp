@@ -90,8 +90,8 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     enemy_size = { 8, 8 };
   if (key == "actor_enemy_grower")
     enemy_size = { 0, 0 };
-  if (key == "actor_enemy_5")        // hogfish
-    enemy_size = { 16 * 3, 16 * 2 }; // i want big hogs!
+  if (key == "actor_enemy_5")                // hogfish
+    enemy_size = { 2 * 16 * 3, 2 * 16 * 2 }; // i want big hogs!
 
   // oyster
   entt::entity halo_e = entt::null;
@@ -220,6 +220,14 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // hogfish
   if (key == "actor_enemy_5") {
+    const float sprite_fps = 8;
+    SpriteAnimationState anim_c;
+    anim_c.playing_animation_name = "SWORDFISH_IDLE";
+    const auto& anims = SINGLE_Animations::instance;
+    const auto& [spritesheet, anim] = find_animation(anims, anim_c.playing_animation_name);
+    anim_c.duration = (1.0f / sprite_fps) * anim.animation_frames.size();
+    anim_c.looping = true;
+    r.emplace<SpriteAnimationState>(e, anim_c);
   }
 
   // archerfish
