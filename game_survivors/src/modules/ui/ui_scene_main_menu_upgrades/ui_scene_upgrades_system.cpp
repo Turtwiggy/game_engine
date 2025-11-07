@@ -209,8 +209,9 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
         base->action();
 
       // add icon
-      auto icon_tl = ImVec2(ui_tl.x + 5, start_y);
-      auto icon_br = ImVec2(ui_tl.x + 5 + 16, start_y + 16);
+      const auto offset_y = -2.5f;
+      const auto icon_tl = ImVec2(ui_tl.x + 5, start_y + offset_y);
+      const auto icon_br = ImVec2(ui_tl.x + 5 + 16, start_y + 16 + offset_y);
       const auto [uv_tl, uv_br] = convert_sprite_to_uv(r, icon_key);
       draw_list->AddImage(custom_im_id, icon_tl, icon_br, uv_tl, uv_br, im_white);
 

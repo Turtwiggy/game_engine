@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/core/ui/ui_common_components.hpp"
+#include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
 
 #include <string>
@@ -55,6 +56,7 @@ struct DisplayStat
 {
   std::string key;
   std::string val;
+  std::optional<UpgradeableStat> stat = std::nullopt;
 };
 
 } // namespace game2d

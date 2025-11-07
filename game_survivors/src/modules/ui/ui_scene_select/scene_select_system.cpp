@@ -29,6 +29,7 @@
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -175,6 +176,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.03f * box_wh.y);
   const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.07f * box_wh.y);
   const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.12f * box_wh.y);
+  const auto line_height = 13.0f;
 
   // header text.
   {
@@ -199,9 +201,9 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     auto* font = get_inter_font(r);
 
     const float width_limit = box_wh.x - (2.0f * 4);
-    const auto text_size = font->CalcTextSizeA(font_size, width_limit, width_limit, desc.c_str());
+    const auto text_size_x = font->CalcTextSizeA(font_size, width_limit, width_limit, desc.c_str()).x;
 
-    const auto desc_text_pos_centered = ImVec2(desc_pos.x - 0.5f * text_size.x, desc_pos.y);
+    const auto desc_text_pos_centered = ImVec2(desc_pos.x - 0.5f * text_size_x, desc_pos.y);
     draw_list->AddText(font, font_size, desc_text_pos_centered, im_text_col, desc.c_str(), NULL, width_limit);
   }
 
@@ -219,10 +221,11 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     if (is_weapon) {
       const auto& weapon = weapons_c.weapons[cell.value];
       for (const auto& [key, val] : weapon.data) {
+        auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(key).value();
         auto clean_key = key;
         clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
         clean_key = str_remove_all_occurances(clean_key, "BULLET_");
-        display_stats.push_back({ .key = clean_key, .val = std::format("{:.1f}", val) });
+        display_stats.push_back({ .key = clean_key, .val = std::format("{:.1f}", val), .stat = stat_enum });
       }
 
       // hack: if you're a sea turret, you deploy other weapons.
@@ -243,6 +246,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     // calculate the max width of all keys
     const float max_width = calculate_width(display_stats);
     const auto text_wh = ImGui::CalcTextSize("A");
+    static float offset = 2.5f;
 
     for (int idx = 0; idx < (int)display_stats.size(); idx++) {
       const auto& stat = display_stats[idx];
@@ -251,8 +255,20 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       auto r_stat_pos = stat_pos;
       l_stat_pos.x = box_tl.x + 0.1f * box_wh.x;
       r_stat_pos.x = l_stat_pos.x + max_width + 10;
-      l_stat_pos.y += text_wh.y * idx;
-      r_stat_pos.y += text_wh.y * idx;
+      l_stat_pos.y += line_height * idx;
+      r_stat_pos.y += line_height * idx;
+
+      if (stat.stat.has_value()) {
+        const auto stat_enum = stat.stat.value();
+        const auto stat_key = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
+        const auto icon_key = "ICON_" + stat_key + "_CENTERED";
+        auto& ri_c = SINGLE_RendererInfo::instance;
+        const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+        const auto custom_im_id = (ImTextureID)(intptr_t)custom_tex_id;
+        const auto [uv_tl, uv_br] = convert_sprite_to_uv(r, icon_key);
+        ImGui::SetCursorPos({ l_stat_pos.x - 16, l_stat_pos.y - offset });
+        ImGui::Image(custom_im_id, { 16, 16 }, uv_tl, uv_br);
+      }
 
       ImGui::SetCursorPos(l_stat_pos);
       ImGui::Text("%s", stat.key.c_str());
