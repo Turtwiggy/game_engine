@@ -89,6 +89,28 @@ get_aquired_upgrades(entt::registry& r,
   return upgrades;
 };
 
+std::vector<std::string>
+get_unaquired_upgrades(entt::registry& r,
+                       const std::vector<WeaponUpgrade_OnDiskData>& weapon_upgrades_data,
+                       entt::entity wep_e)
+{
+  auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, wep_e);
+
+  // unaquired upgrades
+  std::vector<std::string> upg_keys;
+  for (const auto& data : weapon_upgrades_data)
+    upg_keys.push_back(data.u_key);
+
+  std::vector<std::string> unaquired_upg;
+  for (const auto& upg_key : upg_keys) {
+    auto it = std::find(aquired_upg.begin(), aquired_upg.end(), upg_key);
+    if (it == aquired_upg.end())
+      unaquired_upg.push_back(upg_key);
+  }
+
+  return unaquired_upg;
+}
+
 std::string
 get_wb_key_from_upgrade_key(entt::registry& r, const std::string& u_key)
 {

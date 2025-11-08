@@ -20,6 +20,11 @@ get_aquired_upgrades(entt::registry& r,
                      const std::vector<WeaponUpgrade_OnDiskData>& weapon_upgrades_data,
                      entt::entity wep_e);
 
+std::vector<std::string>
+get_unaquired_upgrades(entt::registry& r,
+                       const std::vector<WeaponUpgrade_OnDiskData>& weapon_upgrades_data,
+                       entt::entity wep_e);
+
 std::string
 get_wb_key_from_upgrade_key(entt::registry& r, const std::string& u_key);
 

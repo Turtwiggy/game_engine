@@ -26,6 +26,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
@@ -356,7 +357,7 @@ draw_stats(entt::registry& r,
     start_y += line_size;
   }
 
-  // list the (existing) weapon behaviours.
+  // list the weapon behaviours.
   if (!upg_weapons.empty()) {
     // add a separator
     start_y += line_size;
@@ -365,19 +366,39 @@ draw_stats(entt::registry& r,
     const auto wep_e = upg_weapons[0];
     const auto& weapon_key = r.get<ItemKey>(wep_e);
     const auto weapon_upgrades_data = get_upgrades_from_weapon_key(r, weapon_key.key);
+
     const auto aquired_upg = get_aquired_upgrades(r, weapon_upgrades_data, wep_e);
+    const auto unaquired_upg = get_unaquired_upgrades(r, weapon_upgrades_data, wep_e);
+
+    // aquired upgrades
     for (const auto& u_key : aquired_upg) {
       start_y += line_size;
       const auto dis_str = get_display_key_from_upgrade_key(r, u_key);
       draw_list->AddText({ (float)key_x, (float)start_y }, im_text_col, dis_str.c_str());
     }
-  }
 
-  // highlight (new) weapon behaviours.
-  for (const auto& utrait : result.traits) {
-    start_y += line_size;
-    const auto upg_str = "(+) " + std::string(magic_enum::enum_name(utrait));
-    draw_list->AddText({ (float)key_x, (float)start_y }, im_greenish, upg_str.c_str());
+    // which behaviour are we upgrading
+    std::optional<WeaponBehaviour> behaviour = std::nullopt;
+    if (!upg_traits.empty())
+      behaviour = upg_traits[0];
+
+    // display unaquired upgrades
+    for (const std::string& u_key : unaquired_upg) {
+      start_y += line_size;
+
+      const auto wb_key = get_wb_key_from_upgrade_key(r, u_key);
+      const auto dis_str = get_display_key_from_upgrade_key(r, u_key);
+
+      // whichever behaviour is selected, highlight it
+      auto col = im_inactive_col;
+      if (behaviour.has_value()) {
+        auto b_enum = magic_enum::enum_cast<WeaponBehaviour>(wb_key).value();
+        if (behaviour.value() == b_enum)
+          col = im_greenish;
+      }
+
+      draw_list->AddText({ (float)key_x, (float)start_y }, col, dis_str.c_str());
+    }
   }
 
   // if (result.traits.empty()) {

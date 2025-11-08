@@ -42,7 +42,8 @@ const auto im_text_col =
   IM_COL32(im_text_col_vec.x * 255, im_text_col_vec.y * 255, im_text_col_vec.z * 255, im_text_col_vec.z * 255);
 const auto im_text_disabled_col = ImVec4{ 0.86f, 0.93f, 0.89f, 0.28f };
 
-const auto im_inactive_col = convert_my_to_im_vec(my_inactive_col);
+const auto im_inactive_col = convert_my_to_im(my_inactive_col);
+const auto im_inactive_col_vec = convert_my_to_im_vec(my_inactive_col);
 const auto im_separator_col = convert_my_to_im_vec(my_separator_col);
 const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
 const auto im_window_border_col = convert_my_to_im(my_window_border_col);

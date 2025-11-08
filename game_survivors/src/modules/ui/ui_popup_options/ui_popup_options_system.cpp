@@ -165,10 +165,10 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
 
         ImGui::NewLine();
         ImGui::SameLine(padding_x);
-        ImGui::TextColored(im_inactive_col, "RESOLUTION (auto)");
+        ImGui::TextColored(im_inactive_col_vec, "RESOLUTION (auto)");
 
         ImGui::SameLine(window_wh.x * 0.5f);
-        ImGui::TextColored(im_inactive_col, "%i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
+        ImGui::TextColored(im_inactive_col_vec, "%i %i", ri_c.viewport_size_render_at.x, ri_c.viewport_size_render_at.y);
         continue;
       }
     }
