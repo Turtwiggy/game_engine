@@ -291,7 +291,9 @@ void main()
   // SDF for lights?
   //
   vec3 lighting_col = vec3(0.0);
+  
   {
+    float d = 1e10;
 		float aspect_x = viewport_wh.x / viewport_wh.y;
 
 		// convert uv to -1 and 1
@@ -300,7 +302,6 @@ void main()
 		uv.x *= aspect_x;
 		uv *= zoom;
 
-    float d = 1e10;
 
     for(int i = 0; i < 32; i++){
 
@@ -387,7 +388,7 @@ void main()
     }
 
     // coloring
-    vec3 no_light_col = vec3(0.0,0.0,0.0);
+    vec3 no_light_col = vec3(0.6,0.2,0.2);
     vec3 light_col = vec3(255/255.0f, 255/255.0f, 255/255.0f); // 3100k
     vec3 col = mix(light_col, no_light_col, float(d > 0.0));
     col *= 1.0 - exp(-6.0*abs(d));
@@ -401,6 +402,7 @@ void main()
     // if no lights (d == 1e10), set vec3 to 1.0 to display full scene
     lighting_col = d == 1e10 ? vec3(1.0): lighting_col;
   }
+
 
   // islands.
   vec3 srgb_water = texture(tex_unit_water, v_uv).rgb;
