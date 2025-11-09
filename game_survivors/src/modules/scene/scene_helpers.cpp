@@ -615,6 +615,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // auto e1 = spawn(r, "empty");
     // give_life(r, e1, { 0.5f, 352 }, { 768, 352 });
 
+    /*
     auto e0 = spawn(r, "actor_islanddweller_player");
     give_life(r, e0, { 0, 0 }, { 16, 16 });
 
@@ -648,6 +649,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     auto e6 = spawn(r, "actor_islanddweller_player");
     give_life(r, e6, { 96, 32 }, { 16, 16 });
     set_rotation(r, e6, glm::radians(45.0f));
+    */
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

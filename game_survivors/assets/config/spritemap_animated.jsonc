@@ -1,0 +1,145 @@
+{
+  "spritesheet": {
+    "name": "animated",
+    "px_total": 2048,
+    "py_total": 2048,
+    "px": 16,
+    "py": 16,
+    "nx": 128,
+    "ny": 128
+  },
+  "sprites": [
+
+    // jellyfish (1/16)
+    { "name": "AX_JELLYFISH_ATTACK", "start_frame": { "x": 1, "y": 0, "w": 3, "h": 3 }, "n_frames": 4 },
+    { "name": "AX_JELLYFISH_DEATH", "start_frame": { "x": 20, "y": 0, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_JELLYFISH_IDLE", "start_frame": { "x": 39, "y": 0, "w": 3, "h": 3 }, "n_frames": 4 },
+    { "name": "AX_JELLYFISH_WALK", "start_frame": { "x": 52, "y": 0, "w": 3, "h": 3 }, "n_frames": 4 },
+
+    // turtle (2/16)
+    { "name": "AX_TURTLE0_ATTACK", "start_frame": { "x": 1, "y": 4, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE0_DEATH", "start_frame": { "x": 20, "y": 4, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE0_IDLE", "start_frame": { "x": 39, "y": 4, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE0_WALK", "start_frame": { "x": 52, "y": 4, "w": 3, "h": 2 }, "n_frames": 6 },
+
+    // swordfish (3/16)
+    { "name": "AX_SWORDFISH_ATTACK", "start_frame": { "x": 1, "y": 7, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_SWORDFISH_DEATH", "start_frame": { "x": 20, "y": 7, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_SWORDFISH_IDLE", "start_frame": { "x": 39, "y": 7, "w": 3, "h": 2 }, "n_frames": 4 },
+    { "name": "AX_SWORDFISH_WALK", "start_frame": { "x": 52, "y": 7, "w": 3, "h": 2 }, "n_frames": 4 },
+
+      // anglerfish (4/16)
+    { "name": "AX_SWORDFISH_ATTACK", "start_frame": { "x": 1, "y": 10, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_SWORDFISH_DEATH", "start_frame": { "x": 20, "y": 10, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_SWORDFISH_IDLE", "start_frame": { "x": 39, "y": 10, "w": 3, "h": 2 }, "n_frames": 4 },
+    { "name": "AX_SWORDFISH_WALK", "start_frame": { "x": 52, "y": 10, "w": 3, "h": 2 }, "n_frames": 4 },
+
+    // minisnake (5/16)
+    { "name": "AX_MINISNAKE_ATTACK", "start_frame": { "x": 1, "y": 13, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_MINISNAKE_DEATH", "start_frame": { "x": 20, "y": 13, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_MINISNAKE_IDLE", "start_frame": { "x": 39, "y": 13, "w": 3, "h": 2 }, "n_frames": 4 },
+    { "name": "AX_MINISNAKE_WALK", "start_frame": { "x": 52, "y": 13, "w": 3, "h": 2 }, "n_frames": 6 },
+
+    // octopus (6/16)
+    { "name": "AX_OCTOPUS_ATTACK", "start_frame": { "x": 1, "y": 16, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_OCTOPUS_DEATH", "start_frame": { "x": 20, "y": 16, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_OCTOPUS_IDLE", "start_frame": { "x": 39, "y": 16, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_OCTOPUS_WALK", "start_frame": { "x": 58, "y": 16, "w": 3, "h": 3 }, "n_frames": 6 },
+
+    // minisquid (7/16)
+    { "name": "AX_MINISQUID_D_DEATH", "start_frame": { "x": 20, "y": 22, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_MINISQUID_D_SWIM", "start_frame": { "x": 39, "y": 22, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_MINISQUID_S_DEATH", "start_frame": { "x": 20, "y": 26, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_MINISQUID_S_SWIM", "start_frame": { "x": 39, "y": 26, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_MINISQUID_U_DEATH", "start_frame": { "x": 20, "y": 30, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_MINISQUID_U_SWIM", "start_frame": { "x": 39, "y": 30, "w": 3, "h": 3 }, "n_frames": 6 },
+
+    // riverenemy (8/16)
+    // { "name": "AX_RIVERENEMY_S_ATTACK", "start_frame": { "x": 20, "y": 37, "w": 3, "h": 3 }, "n_frames": 6 },
+    // { "name": "AX_RIVERENEMY_S_WALK", "start_frame": { "x": 20, "y": 37, "w": 3, "h": 2 }, "n_frames": 4 },
+    { "name": "AX_RIVERENEMY_D_DEATH", "start_frame": { "x": 20, "y": 34, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_RIVERENEMY_D_SWIM", "start_frame": { "x": 39, "y": 34, "w": 2, "h": 2 }, "n_frames": 4 },
+    { "name": "AX_RIVERENEMY_S_DEATH", "start_frame": { "x": 20, "y": 37, "w": 3, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_RIVERENEMY_S_SWIM", "start_frame": { "x": 39, "y": 37, "w": 3, "h": 2 }, "n_frames": 4 },
+
+    // turtle (9/16)
+    { "name": "AX_TURTLE1_D_ATTACK", "start_frame": { "x": 1, "y": 40, "w": 2, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE1_S_ATTACK", "start_frame": { "x": 1, "y": 43, "w": 2, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE1_D_DEATH", "start_frame": { "x": 20, "y": 40, "w": 2, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE1_S_DEATH", "start_frame": { "x": 20, "y": 43, "w": 2, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE1_D_WALK", "start_frame": { "x": 39, "y": 43, "w": 2, "h": 2 }, "n_frames": 6 },
+    { "name": "AX_TURTLE1_S_WALK", "start_frame": { "x": 39, "y": 43, "w": 2, "h": 2 }, "n_frames": 6 },
+
+    // bird (10/16)
+    { "name": "AX_BIRD_D_DEATH", "start_frame": { "x": 20, "y": 46, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_BIRD_S_DEATH", "start_frame": { "x": 20, "y": 50, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_BIRD_U_DEATH", "start_frame": { "x": 20, "y": 54, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_BIRD_D_FLY", "start_frame": { "x": 39, "y": 46, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_BIRD_S_FLY", "start_frame": { "x": 39, "y": 50, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_BIRD_U_FLY", "start_frame": { "x": 39, "y": 54, "w": 3, "h": 3 }, "n_frames": 6 },
+
+    // dinosaur (11/16)
+    { "name": "AX_DINOSAUR_ATTACK_1", "frames": [
+      { "x": 1, "y": 59, "w": 4, "h": 4 },
+      { "x": 5, "y": 59, "w": 4, "h": 4 },
+      { "x": 9, "y": 59, "w": 4, "h": 4 },
+      { "x": 13, "y": 59, "w": 5, "h": 4 },
+      { "x": 18, "y": 59, "w": 6, "h": 4 },
+      { "x": 24, "y": 59, "w": 4, "h": 4 }
+    ] },
+    { "name": "AX_DINOSAUR_ATTACK_3", "frames": [
+      { "x": 1, "y": 64, "w": 4, "h": 4 },
+      { "x": 5, "y": 64, "w": 4, "h": 4 },
+      { "x": 9, "y": 64, "w": 4, "h": 4 },
+      { "x": 13, "y": 64, "w": 5, "h": 4 },
+      { "x": 18, "y": 64, "w": 6, "h": 4 },
+      { "x": 24, "y": 64, "w": 4, "h": 4 }
+    ] },
+    { "name": "AX_DINOSAUR_ATTACK_2", "frames": [
+      { "x": 37, "y": 59, "w": 4, "h": 4 },
+      { "x": 41, "y": 59, "w": 4, "h": 4 },
+      { "x": 45, "y": 59, "w": 4, "h": 4 },
+      { "x": 49, "y": 59, "w": 5, "h": 4 },
+      { "x": 54, "y": 59, "w": 6, "h": 4 },
+      { "x": 60, "y": 59, "w": 4, "h": 4 }
+    ] },
+    { "name": "AX_DINOSAUR_ATTACK_4", "frames": [
+      { "x": 37, "y": 64, "w": 4, "h": 4 },
+      { "x": 41, "y": 64, "w": 4, "h": 4 },
+      { "x": 45, "y": 64, "w": 4, "h": 4 },
+      { "x": 49, "y": 64, "w": 5, "h": 4 },
+      { "x": 54, "y": 64, "w": 6, "h": 4 },
+      { "x": 60, "y": 64, "w": 4, "h": 4 }
+    ] },
+    { "name": "AX_DINOSAUR_DEATH", "start_frame": { "x": 73, "y": 59, "w": 6, "h": 4 }, "n_frames": 6 },
+    { "name": "AX_DINOSAUR_IDLE", "start_frame": { "x": 73, "y": 64, "w": 4, "h": 4 }, "n_frames": 4 },
+    { "name": "AX_DINOSAUR_WALK", "start_frame": { "x": 92, "y": 64, "w": 4, "h": 4 }, "n_frames": 6 },
+
+    // merking (12/16)
+    { "name": "AX_MERKING_IDLE", "start_frame": { "x": 73, "y": 74, "w": 3, "h": 4 }, "n_frames": 4 },
+    { "name": "AX_MERKING_WALK", "start_frame": { "x": 1, "y": 81, "w": 6, "h": 3 }, "n_frames": 6 },
+
+    // bigsnake (13/16)
+    { "name": "AX_SNAKE_HEAD", "frames": [ { "x": 1, "y": 85, "w": 4, "h": 4} ] },
+    { "name": "AX_SNAKE_BODY_BIG", "frames": [ { "x": 18, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_BIG_TO_MED", "frames": [ { "x": 22, "y": 85,"w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_MED", "frames": [ { "x": 24, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_MED_TO_SMALL", "frames": [ { "x": 28, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_SMALL", "frames": [ { "x": 32, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_TAIL", "frames": [ { "x": 36, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_TAIL", "frames": [ { "x": 40, "y": 85, "w": 4, "h": 4 } ] },
+
+    // shark (14/16)
+    { "name": "AX_SHARK_IDLE", "start_frame": { "x": 1, "y": 90, "w": 6, "h": 4 }, "n_frames": 4  },
+    { "name": "AX_SHARK_ATTACK_1", "start_frame": { "x": 1, "y": 95, "w": 6, "h": 4 }, "n_frames": 6  },
+    { "name": "AX_SHARK_WALK", "start_frame": { "x": 63, "y": 90, "w": 6, "h": 4 }, "n_frames": 6   },
+
+    // squid (15/16)
+    { "name": "AX_SQUID_IDLE", "start_frame": { "x": 1, "y": 100, "w": 4, "h": 4 }, "n_frames": 6  },
+
+    // crab (16/16)
+    { "name": "AX_CRABS_IDLE", "start_frame": { "x": 1, "y": 107, "w": 5, "h": 3}, "n_frames": 4  },
+
+    { "name": "END", "start_frame": { "x": 0, "y": 0, "w": 1, "h": 1 }, "n_frames": 40 }
+  ]
+}

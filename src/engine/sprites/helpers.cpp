@@ -73,20 +73,35 @@ load_sprites(SINGLE_Animations& anims, const engine::Texture& texture)
   auto s = data["sprites"]; // consumes
   for (auto& el : s) {
     const auto name = el["name"];
-    const auto frames = el["frames"];
 
     SpriteAnimation anim;
     anim.name = name;
 
-    for (auto& frame : frames) {
-      SpritePosition pos;
-      pos.x = frame["x"];
-      pos.y = frame["y"];
-      if (frame.contains("w"))
-        pos.w = frame["w"];
-      if (frame.contains("h"))
-        pos.h = frame["h"];
-      anim.animation_frames.push_back(pos);
+    if (el.contains("frames")) {
+      const auto& frames = el["frames"];
+      for (auto& frame : frames) {
+        SpritePosition pos;
+        pos.x = frame["x"];
+        pos.y = frame["y"];
+        if (frame.contains("w"))
+          pos.w = frame["w"];
+        if (frame.contains("h"))
+          pos.h = frame["h"];
+        anim.animation_frames.push_back(pos);
+      }
+    }
+
+    if (el.contains("start_frame")) {
+      const auto start_frame = el["start_frame"];
+      const auto n_frames = el["n_frames"];
+      for (int i = 0; i < n_frames; i++) {
+        SpritePosition pos;
+        pos.x = (int)start_frame["x"] + i * (int)start_frame["w"];
+        pos.y = start_frame["y"];
+        pos.w = start_frame["w"];
+        pos.h = start_frame["h"];
+        anim.animation_frames.push_back(pos);
+      }
     }
 
     if (el.contains("angle"))

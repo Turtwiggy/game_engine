@@ -38,13 +38,6 @@
     { "name": "JELLYFISH", "frames": [ { "x": 10, "y": 6, "w": 2, "h": 2 } ], "angle": -45 },
     { "name": "ABYSSAL_ANGLERFISH", "frames": [ { "x": 12, "y": 6, "w": 2, "h": 2 } ] },
     { "name": "HOGFISH", "frames": [ { "x": 14, "y": 6, "w": 3, "h": 2 } ] },
-    { "name": "SWORDFISH_IDLE", "frames": [ 
-        { "x": 2, "y": 20, "w": 3, "h": 2 },
-        { "x": 5, "y": 20, "w": 3, "h": 2 },
-        { "x": 8, "y": 20, "w": 3, "h": 2 },
-        { "x": 11, "y": 20, "w": 3, "h": 2 }
-      ]
-    },
 
     { "name": "SEA_URCHIN", "frames": [ { "x": 0, "y": 10, "w": 2, "h": 2 } ]},
     { "name": "SEA_HORSE", "frames": [ { "x": 2, "y": 10, "w": 2, "h": 2 } ]},
@@ -141,7 +134,6 @@
     { "name": "ICON_CARGOBOAT", "frames": [ { "x": 8, "y": 28, "w": 4, "h": 4 } ]},
     { "name": "ICON_WAND", "frames": [ { "x": 12, "y": 28, "w": 4, "h": 4 } ]},
 
-    { "name": "TEMPORARY_PUFFERFISH_0", "frames": [ { "x": 2, "y": 20, "w": 4, "h": 4 } ]},
-    { "name": "TEMPORARY_PUFFERFISH_1", "frames": [ { "x": 6, "y": 20, "w": 4, "h": 4 } ]}
+    { "name": "GRIME_BAR", "frames": [ { "x": 3, "y": 12, "w": 25, "h": 2 } ] }
   ]
 }

@@ -254,7 +254,7 @@
     {
       "name": "actor_enemy_5",
       "speed": 1.0,
-      "renderable": { "sprite": "SWORDFISH_IDLE", "colour": "white" },
+      "renderable": { "sprite": "AX_SWORDFISH_IDLE", "colour": "white" },
       "traits": [ {"key": "DIRECT"} ], 
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
@@ -334,21 +334,21 @@
     {
       "name": "actor_snake_head",
       "speed": 1.0,
-      "renderable": { "sprite": "snake_head", "colour": "white" },
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
     },
     {
       "name": "actor_snake_body",
       "speed": 0.0,
-      "renderable": { "sprite": "snake_body_0", "colour": "white" },
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
     },
     {
       "name": "actor_snake_tail",
       "speed": 0.0,
-      "renderable": { "sprite": "snake_tail", "colour": "white" },
+      "renderable": { "sprite": "EMPTY", "colour": "white" },
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
     },

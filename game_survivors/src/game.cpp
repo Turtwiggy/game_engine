@@ -101,6 +101,7 @@
 #include "modules/ui/ui_collisions/system.hpp"
 #include "modules/ui/ui_colours/ui_colours_system.hpp"
 #include "modules/ui/ui_combo_unlock/ui_combo_unlock_system.hpp"
+#include "modules/ui/ui_debug_animations/ui_debug_animations_system.hpp"
 #include "modules/ui/ui_debug_effects/ui_debug_effects_system.hpp"
 #include "modules/ui/ui_debug_elemental/ui_debug_elemental_system.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
@@ -143,6 +144,7 @@
 #include "modules/ui/ui_triangle_editor/ui_triangle_editor_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -457,6 +459,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     ZoneScopedN("UpdateSettings");
 #endif
     update_ui_triangle_editor_system(r);
+    update_ui_debug_animations_system(r);
     update_ui_debug_elemental_system(r);
     update_ui_debug_menubar_system(r);
     update_ui_debug_upgrades_system(r);

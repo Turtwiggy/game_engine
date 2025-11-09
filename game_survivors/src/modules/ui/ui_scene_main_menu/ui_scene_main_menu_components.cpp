@@ -46,7 +46,7 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
     return state.cells.back();
   };
 
-// #define DEBUG_SPRITES 1
+#define DEBUG_SPRITES 1
 #if defined(_DEBUG) && defined(DEBUG_SPRITES)
   const auto action = [&]() {
     open = false;

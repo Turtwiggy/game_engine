@@ -28,8 +28,7 @@ get_default_textures()
   add_tex("smoke_fx_5.png", "spritemap_smoke_fx_5.jsonc");
   add_tex("smoke_fx_6.png", "spritemap_smoke_fx_6.jsonc");
   add_tex("custom.png", "spritemap_custom.json");
-  add_tex("grime_bar.png", "spritemap_grime_bar.json");
-  add_tex("snake.png", "spritemap_snake.json");
+  add_tex("animated.png", "spritemap_animated.jsonc");
   // add_tex("spritestack_rhib.png", "spritestack_rhib.json");
   // add_tex("spritestack_pbr.png", "spritestack_pbr.json");
   add_tex("spritestack_dinghy.png", "spritestack_dinghy.json");

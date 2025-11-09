@@ -49,7 +49,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   auto& ri_c = SINGLE_RendererInfo::instance;
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
-  const auto grime_tex_id = search_for_texture_id_by_texture_path(ri_c, "grime_bar")->id;
+  const auto grime_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
   const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto im_id = (ImTextureID)(void*)(intptr_t)(grime_tex_id);
   const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)(monochrome_tex_id);
