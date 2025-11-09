@@ -123,11 +123,10 @@
     { "name": "AX_SNAKE_HEAD", "frames": [ { "x": 1, "y": 85, "w": 4, "h": 4} ] },
     { "name": "AX_SNAKE_BODY_BIG", "frames": [ { "x": 18, "y": 85, "w": 4, "h": 4 } ] },
     { "name": "AX_SNAKE_BODY_BIG_TO_MED", "frames": [ { "x": 22, "y": 85,"w": 4, "h": 4 } ] },
-    { "name": "AX_SNAKE_BODY_MED", "frames": [ { "x": 24, "y": 85, "w": 4, "h": 4 } ] },
-    { "name": "AX_SNAKE_BODY_MED_TO_SMALL", "frames": [ { "x": 28, "y": 85, "w": 4, "h": 4 } ] },
-    { "name": "AX_SNAKE_BODY_SMALL", "frames": [ { "x": 32, "y": 85, "w": 4, "h": 4 } ] },
-    { "name": "AX_SNAKE_BODY_TAIL", "frames": [ { "x": 36, "y": 85, "w": 4, "h": 4 } ] },
-    { "name": "AX_SNAKE_TAIL", "frames": [ { "x": 40, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_MED", "frames": [ { "x": 26, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_MED_TO_SMALL", "frames": [ { "x": 30, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_BODY_SMALL", "frames": [ { "x": 34, "y": 85, "w": 4, "h": 4 } ] },
+    { "name": "AX_SNAKE_TAIL", "frames": [ { "x": 38, "y": 85, "w": 4, "h": 4 } ] },
 
     // shark (14/16)
     { "name": "AX_SHARK_IDLE", "start_frame": { "x": 1, "y": 90, "w": 6, "h": 4 }, "n_frames": 4  },

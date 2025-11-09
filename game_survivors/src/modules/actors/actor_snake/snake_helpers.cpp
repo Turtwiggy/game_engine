@@ -9,9 +9,11 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
@@ -77,10 +79,8 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
 
   if (type == SectionType::HEAD) {
     SnakeData snake_c;
-
-    // default is 32x32. the snake head is 1 square longer
-    snake_c.snake_segment_size.x = 16 * 3;
-    snake_c.snake_segment_size.y = 16 * 2;
+    snake_c.snake_segment_size.x = 16 * 4;
+    snake_c.snake_segment_size.y = 16 * 4;
     snake_c.distance_between_segment_pixels = snake_c.snake_segment_size.x;
 
     // create targets
@@ -97,11 +97,15 @@ create_segment(entt::registry& r, const SectionType type, entt::entity previous_
 
   auto& snake_c = get_first_component<SnakeData>(r);
 
+  const auto sprite_size = 2.0f * snake_c.snake_segment_size;
   const auto offscreen_pos = glm::vec2{ 2000, 2000 }; // spawn the snake offscreen
   const auto pos = glm::vec2{ offscreen_pos.x + idx * snake_c.distance_between_segment_pixels, offscreen_pos.y };
   give_life(r, segment_e, pos, snake_c.snake_segment_size);
   set_position(r, segment_e, pos);
   set_colour(r, segment_e, { 255, 255, 255, 255 });
+  set_size(r, segment_e, sprite_size);
+  r.get<DefaultSizeComponent>(segment_e).size = sprite_size;
+
   if (previous_e != entt::null) {
     r.emplace<HasParentComponent>(segment_e, HasParentComponent{ .parent = previous_e, .destroy_parent_on_cleanup = false });
     r.emplace<HasChildrenComponent>(previous_e, HasChildrenComponent{ { segment_e } });
@@ -193,6 +197,43 @@ create_snake(entt::registry& r)
       prv_section_e = create_segment(r, SectionType::TAIL, prv_section_e, i);
     else
       prv_section_e = create_segment(r, SectionType::BODY, prv_section_e, i);
+  }
+
+  // Iterate long the snake and set all the sprites.
+  const std::vector<std::string> snake_sprites = {
+    "AX_SNAKE_TAIL",              //
+    "AX_SNAKE_BODY_SMALL",        //
+    "AX_SNAKE_BODY_MED_TO_SMALL", //
+    "AX_SNAKE_BODY_MED",          //
+    "AX_SNAKE_BODY_BIG_TO_MED",   //
+    "AX_SNAKE_BODY_BIG",          //
+    "AX_SNAKE_HEAD",              //
+  };
+
+  auto tail_e = head_e;
+  for (int i = 0; i < snake_c.snake_segments; i++) {
+    auto* child_c = r.try_get<HasChildrenComponent>(tail_e);
+    if (!child_c)
+      break;
+    tail_e = child_c->children[0]; // note: assuming only 1 child
+  }
+  assert(r.get<TagComponent>(tail_e).tag == "actor_snake_tail");
+
+  // now we have the tail... iterate back up, setting the sprites.
+  auto segment_e = tail_e;
+  for (int i = 0; i < snake_c.snake_segments; i++) {
+
+    if (i < snake_sprites.size() - 1)
+      set_sprite(r, segment_e, snake_sprites[i]);
+    else
+      set_sprite(r, segment_e, "AX_SNAKE_BODY_BIG");
+
+    auto* has_parent_c = r.try_get<HasParentComponent>(segment_e);
+    if (!has_parent_c) {
+      set_sprite(r, segment_e, "AX_SNAKE_HEAD");
+      continue;
+    }
+    segment_e = has_parent_c->parent;
   }
 
   return head_e;
