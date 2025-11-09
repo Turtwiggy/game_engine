@@ -11,7 +11,7 @@
 
 namespace game2d {
 
-entt::entity
+std::tuple<entt::entity, SpriteAnimation>
 spawn_sprite(entt::registry& r, std::string name, glm::vec2 pos, float sprite_fps, bool looping)
 {
   const auto& anims = SINGLE_Animations::instance;
@@ -37,7 +37,7 @@ spawn_sprite(entt::registry& r, std::string name, glm::vec2 pos, float sprite_fp
     r.emplace<EntityTimedLifecycle>(effect_e, lifecycle_c);
   }
 
-  return effect_e;
+  return { effect_e, anim };
 }
 
 void
@@ -49,24 +49,52 @@ update_ui_debug_animations_system(entt::registry& r)
 
   imgui_begin("DebugAnimations");
 
-  static std::string animation_to_play = "AX_JELLYFISH_ATTACK";
   static int sprite_fps = 12;
   static bool looping = true;
+  static bool loaded_animations = false;
+  static std::vector<std::string> animations;
+  static int idx;
+  static glm::vec2 anim_pos; // stop spawning on top of eachother
 
-  imgui_draw_string("animation_to_play", animation_to_play);
+  if (!loaded_animations) {
+    const SINGLE_Animations& anims = SINGLE_Animations::instance;
+    for (const auto& [spritesheet, anims] : anims.animations) {
+      if (spritesheet.name != "animated")
+        continue;
+      for (const auto& anim : anims)
+        animations.push_back(anim.name);
+    }
+    loaded_animations = true;
+  }
+
   imgui_draw_int("sprite_fps", sprite_fps);
   imgui_draw_bool("looping", looping);
 
-  if (ImGui::Button("SpawnSprite"))
-    spawn_sprite(r, animation_to_play, { 0, 0 }, 12, looping);
+  WomboComboIn combo_in(animations);
+  combo_in.label = "animations";
+  combo_in.current_index = idx;
+  idx = draw_wombo_combo(combo_in).selected;
+
+  if (ImGui::Button("SpawnSprite")) {
+    const std::string animation_to_play = animations[idx];
+    auto [e, anim] = spawn_sprite(r, animation_to_play, anim_pos, 12, looping);
+    anim_pos.x += anim.animation_frames[0].w * 16;
+  }
 
   auto view = r.view<SpriteAnimation>();
   ImGui::Text("Animations: %i", (int)view.size());
 
   ImGui::Separator();
+
+  ImGui::Text("spawnpos: %f %f", anim_pos.x, anim_pos.y);
+  if (ImGui::Button("NewLine")) {
+    anim_pos.x = 0;
+    anim_pos.y += 16;
+  }
   if (ImGui::Button("ClearSprites")) {
-    auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-    dead.dead.insert(dead.dead.end(), view.begin(), view.end());
+    // auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
+    // dead.dead.insert(dead.dead.end(), view.begin(), view.end());
+    r.destroy(view.begin(), view.end());
   }
 
   ImGui::End();

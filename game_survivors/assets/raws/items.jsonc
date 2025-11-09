@@ -88,6 +88,9 @@
       "display_desc": "Freeze!",
       "renderable": { "sprite": "CIRCLE", "colour": "white" }
     },
+    //
+    // bullets
+    //
     {
       "name": "bullet_default",
       "display_name": "Bullet",
@@ -126,6 +129,7 @@
         { "tag": "fixture_xp_zone", "type": "circle","is_sensor": true }
       ]
     },
+    
     //
     // island stuff
     // 
@@ -331,6 +335,7 @@
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
     },
 
+    // boss: snake
     {
       "name": "actor_snake_head",
       "speed": 1.0,
@@ -353,10 +358,7 @@
       "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
     },
 
-    {
-      "name": "vfx_thunder",
-      "renderable": { "sprite": "LIGHTNING_0", "colour": "gold_yellow" }
-    },
+    // items
     {
       "name": "item_xp",
       "speed": 10,
