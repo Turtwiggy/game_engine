@@ -53,6 +53,18 @@
 
 namespace game2d {
 
+void
+add_animation(entt::registry& r, entt::entity e, std::string key, int sprite_fps = 8)
+{
+  SpriteAnimationState anim_c;
+  anim_c.playing_animation_name = key;
+  const auto& anims = SINGLE_Animations::instance;
+  const auto& [spritesheet, anim] = find_animation(anims, anim_c.playing_animation_name);
+  anim_c.duration = (1.0f / sprite_fps) * anim.animation_frames.size();
+  anim_c.looping = true;
+  r.emplace<SpriteAnimationState>(e, anim_c);
+};
+
 entt::entity
 spawn_enemy(entt::registry& r, std::string key, float hp)
 {
@@ -80,12 +92,12 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   auto enemy_size = glm::vec2{ 32, 32 };
 
-  if (key == "actor_enemy_melee_1") // horseshoecrab
-    enemy_size = { 16, 16 };
+  if (key == "actor_enemy_melee_1") // horseshoecrab (minisquid)
+    enemy_size = { 32, 32 };
   if (key == "actor_enemy_exploder")
     enemy_size = { 32, 32 };
   if (key == "actor_enemy_4") // anglerfish
-    enemy_size = { 32, 32 };
+    enemy_size = { 16 * 3, 16 * 2 };
   if (key == "actor_enemy_swarmlord_minion")
     enemy_size = { 8, 8 };
   if (key == "actor_enemy_grower")
@@ -147,6 +159,11 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_melee_1") {
     r.emplace<RotateToVelocityComponent>(e);
     r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
+
+    static engine::RandomState sprite_anim_rng(0);
+    const std::vector<std::string> valid_anims{ "AX_MINISQUID_D_SWIM", "AX_MINISQUID_S_SWIM" };
+    const std::string anim_str = valid_anims[engine::rand_det_s(sprite_anim_rng.rng, 0, (int)valid_anims.size())];
+    add_animation(r, e, anim_str);
   }
 
   // hermit crab
@@ -216,18 +233,13 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_4") {
     r.emplace<LightEmitterComponent>(e);
     r.emplace<LightTypeCircle>(e);
+
+    add_animation(r, e, "AX_ANGLERFISH_IDLE", 10);
   }
 
   // hogfish
   if (key == "actor_enemy_5") {
-    const float sprite_fps = 8;
-    SpriteAnimationState anim_c;
-    anim_c.playing_animation_name = "SWORDFISH_IDLE";
-    const auto& anims = SINGLE_Animations::instance;
-    const auto& [spritesheet, anim] = find_animation(anims, anim_c.playing_animation_name);
-    anim_c.duration = (1.0f / sprite_fps) * anim.animation_frames.size();
-    anim_c.looping = true;
-    r.emplace<SpriteAnimationState>(e, anim_c);
+    add_animation(r, e, "AX_SWORDFISH_IDLE");
   }
 
   // archerfish

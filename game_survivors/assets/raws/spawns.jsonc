@@ -7,7 +7,7 @@
   //   hermit crab (actor_enemy_melee_2)
   //   redclaw crab (actor_enemy_melee_3)
   //   anglerfish (actor_enemy_4)
-  //   hogfish (actor_enemy_5)
+  //   hogfish (now swordfish) (actor_enemy_5)
   //   archerfish (actor_enemy_projectile)
   //   jellyfish (actor_enemy_swarmlord)
   //   sea horse (actor_enemy_charger)
@@ -57,7 +57,7 @@
       "enemies": [
         // { "key": "actor_enemy_exploder", "data" : { "hp": 35, "max": 5,  "num_per_spawn": 2}}, // puffer
         { "key": "actor_enemy_melee_2",  "data" : { "hp": 50, "max": 80, "num_per_spawn": 15}},  // hermit
-        { "key": "actor_enemy_melee_3",  "data" : { "hp": 50, "max": 80, "num_per_spawn": 15}},  // redclaw
+        // { "key": "actor_enemy_melee_3",  "data" : { "hp": 50, "max": 80, "num_per_spawn": 15}},  // redclaw
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} }     // anglerfish (light source)
       ]
     },
@@ -93,7 +93,7 @@
       "enemies": [
         { "key": "actor_enemy_exploder", "data": { "hp": 90, "max": 5, "num_per_spawn": 3} }, // puffer
         { "key": "actor_enemy_melee_1",  "data": { "hp": 90, "max": 100, "num_per_spawn": 20}}, // horseshoe
-        { "key": "actor_enemy_melee_3",  "data": { "hp": 90, "max": 30, "num_per_spawn": 4}},  // redclaw
+        // { "key": "actor_enemy_melee_3",  "data": { "hp": 90, "max": 30, "num_per_spawn": 4}},  // redclaw
         { "key": "actor_enemy_projectile", "data": {"hp": 40, "max": 20, "num_per_spawn": 1}}, // archerfish
         { "key": "actor_enemy_4",        "data": { "hp": 25, "max": 10, "num_per_spawn": 4} } // anglerfish (light source)
       ]

@@ -47,12 +47,12 @@
     { "name": "AX_OCTOPUS_WALK", "start_frame": { "x": 58, "y": 16, "w": 3, "h": 3 }, "n_frames": 6 },
 
     // minisquid (7/16)
-    { "name": "AX_MINISQUID_D_DEATH", "start_frame": { "x": 20, "y": 22, "w": 3, "h": 3 }, "n_frames": 6 },
-    { "name": "AX_MINISQUID_D_SWIM", "start_frame": { "x": 39, "y": 22, "w": 3, "h": 3 }, "n_frames": 6 },
-    { "name": "AX_MINISQUID_S_DEATH", "start_frame": { "x": 20, "y": 26, "w": 3, "h": 3 }, "n_frames": 6 },
-    { "name": "AX_MINISQUID_S_SWIM", "start_frame": { "x": 39, "y": 26, "w": 3, "h": 3 }, "n_frames": 6 },
-    { "name": "AX_MINISQUID_U_DEATH", "start_frame": { "x": 20, "y": 30, "w": 3, "h": 3 }, "n_frames": 6 },
-    { "name": "AX_MINISQUID_U_SWIM", "start_frame": { "x": 39, "y": 30, "w": 3, "h": 3 }, "n_frames": 6 },
+    { "name": "AX_MINISQUID_D_DEATH", "start_frame": { "x": 20, "y": 22, "w": 3, "h": 3 }, "n_frames": 6, "angle": 270 },
+    { "name": "AX_MINISQUID_D_SWIM", "start_frame": { "x": 39, "y": 22, "w": 2, "h": 2 }, "n_frames": 6, "angle": 270},
+    { "name": "AX_MINISQUID_S_DEATH", "start_frame": { "x": 20, "y": 26, "w": 3, "h": 3 }, "n_frames": 6, "angle": 200 },
+    { "name": "AX_MINISQUID_S_SWIM", "start_frame": { "x": 39, "y": 26, "w": 2, "h": 2 }, "n_frames": 6 , "angle": 200},
+    { "name": "AX_MINISQUID_U_DEATH", "start_frame": { "x": 20, "y": 30, "w": 3, "h": 3 }, "n_frames": 6,  "angle": 90 },
+    { "name": "AX_MINISQUID_U_SWIM", "start_frame": { "x": 39, "y": 30, "w": 2, "h": 2 }, "n_frames": 6 ,  "angle": 90 },
 
     // riverenemy (8/16)
     // { "name": "AX_RIVERENEMY_S_ATTACK", "start_frame": { "x": 20, "y": 37, "w": 3, "h": 3 }, "n_frames": 6 },

@@ -3,6 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
@@ -50,9 +51,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
   const auto grime_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
-  const auto monochrome_tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
   const auto im_id = (ImTextureID)(void*)(intptr_t)(grime_tex_id);
-  const auto monochrome_im_id = (ImTextureID)(void*)(intptr_t)(monochrome_tex_id);
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_size = (float)FontSizes::SIZE_13 * font_scale;
@@ -133,9 +132,11 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     draw_list->AddRectFilled(fg_bar_tl, fg_bar_br, fg_col);
 
     // bar fg (textured).
-    const auto tex_tl = ImVec2{ 0.0f, 0.0f };
-    const auto tex_br = ImVec2{ hp_percent * 1.0f, 1.0f };
-    draw_list->AddImage(im_id, fg_bar_tl, fg_bar_br, tex_tl, tex_br);
+    auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, "GRIME_BAR");
+    // icon_uv_br.x *= hp_percent;
+    // const auto tex_uv_tl = ImVec2{ 0.0f, 0.0f };
+    // const auto tex_uv_br = ImVec2{ hp_percent * 1.0f, 1.0f };
+    draw_list->AddImage(im_id, fg_bar_tl, fg_bar_br, icon_uv_tl, icon_uv_br);
 
     // hp bar bold line
     const auto line_col = IM_COL32(player_col.r, player_col.g, player_col.b, 255);

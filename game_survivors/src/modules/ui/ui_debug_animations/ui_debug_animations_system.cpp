@@ -77,7 +77,7 @@ update_ui_debug_animations_system(entt::registry& r)
 
   if (ImGui::Button("SpawnSprite")) {
     const std::string animation_to_play = animations[idx];
-    auto [e, anim] = spawn_sprite(r, animation_to_play, anim_pos, 12, looping);
+    auto [e, anim] = spawn_sprite(r, animation_to_play, anim_pos, sprite_fps, looping);
     anim_pos.x += anim.animation_frames[0].w * 16;
   }
 
