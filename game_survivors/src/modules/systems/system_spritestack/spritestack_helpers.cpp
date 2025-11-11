@@ -1,10 +1,10 @@
-#include "engine/lifecycle/components.hpp"
-#include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "pch.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
+#include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/helpers.hpp"

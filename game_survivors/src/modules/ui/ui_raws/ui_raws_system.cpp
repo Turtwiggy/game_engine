@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "modules/ui/ui_raws/ui_raws_system.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -6,10 +8,6 @@
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
-
-#include <imgui.h>
-
-#include <format>
 
 namespace game2d {
 

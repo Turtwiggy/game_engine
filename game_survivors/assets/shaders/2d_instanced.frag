@@ -110,6 +110,13 @@ main()
     vec4 col = vec4(1.0f);
     {{ generate_sampler_if_statements }}
 
+    // if(v_uv.y > 0.5)
+    // {
+    //   out_colour.b = 1.0f;
+    //   out_colour.a = 1.0f;
+    //   return;
+    // }
+
     // out_colour.rgb = lin_to_srgb(srgb_to_lin(v_colour.rgb) * srgb_to_lin(col.rgb));
     out_colour.rgb = v_colour.rgb * col.rgb;
     out_colour.a = col.a;

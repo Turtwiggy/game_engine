@@ -166,9 +166,9 @@ update_ui_label_system(entt::registry& r)
 
     const auto hits = cannon_c.hits_to_repair - cannon_c.hits_to_repair_left;
     const bool repaired = cannon_c.hits_to_repair_left == 0;
-    auto text = std::format("Repairable ({}/{})", hits, cannon_c.hits_to_repair);
+    auto text = std::format("{}/{}", hits, cannon_c.hits_to_repair);
     if (repaired)
-      text = std::format("Shooting ({}/{})", clip_c.bullets_cur, clip_c.bullets_max);
+      text = std::format("{}/{}", clip_c.bullets_cur, clip_c.bullets_max);
 
     // assuming this cannon is on an edge of the island,
     // work out which way is the edge to the ocean.
@@ -196,16 +196,20 @@ update_ui_label_system(entt::registry& r)
     const auto p1 = im_ss_pos + offset * ImVec2(16, 16);
     const auto p2 = p1 + ImVec2(offset.x * text_size.x, 0);
 
-    draw_dashed_line(draw_list, p0, p1, 1, { 1.0f, 1.0f, 1.0f, 1.0f });
-    draw_dashed_line(draw_list, p1, p2, 1, { 1.0f, 1.0f, 1.0f, 1.0f });
-
-    auto col = IM_COL32(255, 255, 255, 255);
+    auto im_col = im_line_col;
     if (repaired)
-      col = im_greenish;
+      im_col = im_greenish;
+
+    auto my_col = my_line_col;
+    if (repaired)
+      my_col = my_greenish;
+
+    draw_dashed_line(draw_list, p0, p1, 1, my_col);
+    draw_dashed_line(draw_list, p1, p2, 1, my_col);
 
     // const auto text_pos = ImVec2{ glm::min(p1.x, p2.x), p1.y } + ImVec2(0, +text_size.y * 0.5f);
     const auto text_pos = ImVec2{ glm::min(p1.x, p2.x), p1.y };
-    draw_list->AddText(font, font_size, text_pos, col, text.c_str());
+    draw_list->AddText(font, font_size, text_pos, im_col, text.c_str());
   }
 
   ImGui::End();

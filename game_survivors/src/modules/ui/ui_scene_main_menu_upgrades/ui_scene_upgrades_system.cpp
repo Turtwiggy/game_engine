@@ -196,7 +196,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
         .text_pivot = { 0.0f, 0.5f }, // center_y
         .text_offset = { 32, 0 },
         .font = inter_font,
-        .font_size = 13,
+        .font_size = 16,
 
         // hide the buttons
         .active_outline_col = { 0.6f, 0.0f, 0.0f, 1.0f },

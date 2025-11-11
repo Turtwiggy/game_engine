@@ -79,12 +79,43 @@ struct Bullet
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Bullet, damage);
 };
 
+struct AnimationFrame
+{
+  std::string key = "";
+  int fps = 12;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnimationFrame, key, fps);
+};
+
 struct Renderable
 {
   std::string sprite = "EMPTY";
   std::string colour = "white";
+  std::optional<std::vector<AnimationFrame>> animations = std::nullopt;
+  std::optional<std::string> start_animation = std::nullopt;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Renderable, sprite, colour);
+  friend void to_json(nlohmann ::json& j, const Renderable& val)
+  {
+    j["sprite"] = val.sprite;
+    j["colour"] = val.colour;
+
+    if (val.animations.has_value())
+      j["animations"] = val.animations.value();
+
+    if (val.start_animation.has_value())
+      j["start_animation"] = val.start_animation.value();
+  }
+  friend void from_json(const nlohmann ::json& j, Renderable& val)
+  {
+    j.at("sprite").get_to(val.sprite);
+    j.at("colour").get_to(val.colour);
+
+    if (j.contains("animations"))
+      j.at("animations").get_to(val.animations.emplace());
+
+    if (j.contains("start_animation"))
+      j.at("start_animation").get_to(val.start_animation.emplace());
+  };
 };
 
 struct Use

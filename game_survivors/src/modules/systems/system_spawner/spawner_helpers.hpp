@@ -8,7 +8,7 @@
 namespace game2d {
 
 int
-min_to_sec(int min);
+min_to_sec(float min);
 
 SINGLE_OnDiskSpawners
 load_spawns(std::string directory);

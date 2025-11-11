@@ -53,18 +53,6 @@
 
 namespace game2d {
 
-void
-add_animation(entt::registry& r, entt::entity e, std::string key, int sprite_fps = 8)
-{
-  SpriteAnimationState anim_c;
-  anim_c.playing_animation_name = key;
-  const auto& anims = SINGLE_Animations::instance;
-  const auto& [spritesheet, anim] = find_animation(anims, anim_c.playing_animation_name);
-  anim_c.duration = (1.0f / sprite_fps) * anim.animation_frames.size();
-  anim_c.looping = true;
-  r.emplace<SpriteAnimationState>(e, anim_c);
-};
-
 entt::entity
 spawn_enemy(entt::registry& r, std::string key, float hp)
 {
@@ -159,11 +147,6 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_melee_1") {
     r.emplace<RotateToVelocityComponent>(e);
     r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
-
-    static engine::RandomState sprite_anim_rng(0);
-    const std::vector<std::string> valid_anims{ "AX_MINISQUID_D_SWIM", "AX_MINISQUID_S_SWIM" };
-    const std::string anim_str = valid_anims[engine::rand_det_s(sprite_anim_rng.rng, 0, (int)valid_anims.size())];
-    add_animation(r, e, anim_str);
   }
 
   // hermit crab
@@ -233,13 +216,22 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_4") {
     r.emplace<LightEmitterComponent>(e);
     r.emplace<LightTypeCircle>(e);
-
-    add_animation(r, e, "AX_ANGLERFISH_IDLE", 10);
   }
 
   // hogfish
   if (key == "actor_enemy_5") {
-    add_animation(r, e, "AX_SWORDFISH_IDLE");
+  }
+  if (key == "actor_enemy_6") {
+  }
+  if (key == "actor_enemy_7") {
+  }
+  if (key == "actor_enemy_8") {
+  }
+  if (key == "actor_enemy_9") {
+  }
+  if (key == "actor_enemy_10") {
+  }
+  if (key == "actor_enemy_11") {
   }
 
   // archerfish
@@ -391,13 +383,9 @@ update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int
 
       // check global enemy count multiplier
       float max = data.max;
-      {
-        auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_COUNT);
-        if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get())) {
-          // SDL_Log("Spawning enemy count modified by: %f", o->multiplier);
-          max *= o->multiplier;
-        }
-      }
+      auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_COUNT);
+      if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get()))
+        max *= o->multiplier;
 
       // spawn conditions
       bool allowed_to_spawn = (enemies + data.num_per_spawn) <= max;
@@ -509,6 +497,73 @@ update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, in
 };
 
 void
+update_random_spawner(entt::registry& r, const std::unordered_map<std::string, int>& enemy_to_amount)
+{
+  GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
+  GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
+  GET_FIRST_OR_RETURN(SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
+
+  const auto& random_spawner = disk_spawn_data_c.random_spawner;
+  const int seconds_from_start = survive_c.time_left_max - survive_c.time_left_cur;
+
+  for (const auto& [spawner_e, cooldown_c, wave] : r.view<CooldownComponent, const EnemyRandomData>().each()) {
+    if (cooldown_c.time > 0.0f)
+      continue;
+
+    // Filter wave by time.
+    const bool in_lower_bound = seconds_from_start >= min_to_sec(wave.time.start);
+    const bool in_upper_bound = seconds_from_start < min_to_sec(wave.time.stop);
+    if (!in_lower_bound || !in_upper_bound)
+      continue; // not this wave.
+
+    // Get the enemy type we want to be spawning.
+    const auto& enemy_key = wave.keys[wave.chosen_key_idx];
+    const auto& data = wave.data;
+
+    const RandomSpawnerWaveKey wave_key{
+      .idx_in_random_spawner = wave.on_disk_index,
+      .idx_in_random_spawner_waves = wave.chosen_key_idx,
+    };
+
+    // live data
+    int enemies = 0;
+    if (enemy_to_amount.contains(enemy_key))
+      enemies = enemy_to_amount.at(enemy_key);
+    const auto has_wave_data = live_spawn_data_c.randomspawner_data.contains(wave_key);
+    if (!has_wave_data)
+      live_spawn_data_c.randomspawner_data[wave_key] = {};
+
+    // check global enemy count
+    float max = data.max;
+    auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_COUNT);
+    if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get()))
+      max *= o->multiplier;
+
+    // spawn conditions
+    bool allowed_to_spawn = (enemies + data.num_per_spawn) <= max;
+
+    // limit: if you only want to spawn X enemies this wave instead of continuous
+    if (data.num_per_wave.has_value()) {
+      const int enemies_spawned = live_spawn_data_c.randomspawner_data[wave_key].spawned;
+      allowed_to_spawn &= (enemies_spawned + data.num_per_spawn) <= data.num_per_wave.value();
+    }
+
+    if (!allowed_to_spawn)
+      continue;
+
+    // spawn the thing
+    for (int i = 0; i < data.num_per_spawn; i++) {
+      spawn_enemy(r, enemy_key, data.hp);
+      live_spawn_data_c.randomspawner_data[wave_key].spawned++;
+    }
+
+    // once spawned, put this mob's spawner on cooldown
+    cooldown_c.time_max = 2.0f; // time between spawner checks
+    reset_cooldown(cooldown_c);
+  }
+};
+
+void
 update_spawner_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
@@ -571,6 +626,7 @@ update_spawner_system(entt::registry& r, const float dt)
 
   update_enemy_spawner(r, enemy_to_amount);
   update_wave_spawner(r, enemy_to_amount);
+  update_random_spawner(r, enemy_to_amount);
 };
 
 } // namespace game2d

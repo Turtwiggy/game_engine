@@ -205,7 +205,10 @@
     {
       "name": "actor_enemy_melee_1",
       "speed": 2.0,
-      "renderable": { "sprite": "AX_MINISQUID_D_SWIM", "colour": "white" },
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [
+          {"key": "AX_MINISQUID_D_SWIM", "fps": 10 },
+          {"key": "AX_MINISQUID_S_SWIM", "fps": 10 } ], 
+      "start_animation": "RANDOM" },
       "traits": [ {"key": "DIRECT" } ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
@@ -234,7 +237,7 @@
         { "tag": "fixture_shield", "type": "box", "is_sensor": false, "offset":[{"x":8, "y":0}], "size": [{"x":16, "y": 32}]}
       ]
     },
-    // text the flow-field mechanics.
+    // test the flow-field mechanics.
     {
       "name": "actor_enemy_flow",
       "speed": 0.015,
@@ -247,24 +250,80 @@
     {
       "name": "actor_enemy_4",
       "speed": 0.015,
-      "renderable": { "sprite": "AX_ANGLERFISH_IDLE", "colour": "white" },
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_ANGLERFISH_IDLE", "fps": 10 } ] },
       "traits": [ {"key": "ARC_ANGLE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
         { "tag": "fixture_core", "type": "circle", "is_sensor": false }
       ]
     },
-    // hogfish
+    // hogfish (now swordfish)
     {
       "name": "actor_enemy_5",
       "speed": 1.0,
-      "renderable": { "sprite": "AX_SWORDFISH_IDLE", "colour": "white" },
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_SWORDFISH_IDLE", "fps": 12 } ] },
       "traits": [ {"key": "DIRECT"} ], 
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
         { "tag": "fixture_core", "type": "box", "is_sensor": false }
       ]
     },
+    
+    // riverenemy
+    {
+      "name": "actor_enemy_6",
+      "speed": 0.015,
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_RIVERENEMY_S_SWIM", "fps": 12 } ] },
+      "traits": [ {"key": "ARC_ANGLE"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
+    // turtle0
+    {
+      "name": "actor_enemy_7",
+      "speed": 0.015,
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_TURTLE0_WALK", "fps": 12 } ] },
+      "traits": [ {"key": "ARC_ANGLE"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
+    // turtle1
+    {
+      "name": "actor_enemy_8",
+      "speed": 0.015,
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_TURTLE1_D_WALK", "fps": 12 } ] },
+      "traits": [ {"key": "ARC_ANGLE"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
+    // bird
+    {
+      "name": "actor_enemy_9",
+      "speed": 2.0,
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_BIRD_U_FLY", "fps": 12 } ] },
+      "traits": [ {"key": "DIRECT"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
+    // minisnake
+    {
+      "name": "actor_enemy_10",
+      "speed": 2.0,
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_MINISNAKE_WALK", "fps": 12 } ] },
+      "traits": [ {"key": "DIRECT"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
+    // octopus
+    {
+      "name": "actor_enemy_11",
+      "speed": 2.0,
+      "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [ {"key": "AX_OCTOPUS_WALK", "fps": 12 } ] },
+      "traits": [ {"key": "DIRECT"} ],
+      "phys_body": { "is_bullet": false, "is_static": false },
+      "phys_fixtures": [ { "tag": "fixture_core", "type": "circle", "is_sensor": false } ]
+    },
+
     // exploder
     {
       "name": "actor_enemy_exploder",

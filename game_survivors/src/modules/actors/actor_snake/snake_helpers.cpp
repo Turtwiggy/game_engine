@@ -50,6 +50,8 @@ auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   entt::entity e = dead_e;
   while (auto* children_c = r.try_get<HasChildrenComponent>(e)) {
     dead_c.dead.push_back(e);
+    if (children_c->children.empty())
+      break;
     e = children_c->children[0]; // note: assuming only 1 child
     dead_c.dead.push_back(e);
   }

@@ -162,6 +162,20 @@ create_fixture(b2BodyId bodyId, const PhysicsFixtureDef& fix, const b2Vec2 size_
 };
 
 void
+add_animation(entt::registry& r, entt::entity e, std::string key, int sprite_fps = 8)
+{
+  SpriteAnimationState anim_c;
+  anim_c.playing_animation_name = key;
+  const auto& anims = SINGLE_Animations::instance;
+  const auto& [spritesheet, anim] = find_animation(anims, anim_c.playing_animation_name);
+  anim_c.duration = (1.0f / sprite_fps) * anim.animation_frames.size();
+  anim_c.looping = true;
+  r.emplace<SpriteAnimationState>(e, anim_c);
+
+  set_sprite(r, e, anim_c.playing_animation_name);
+};
+
+void
 give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const glm::vec2& size)
 {
   const auto& raws = get_first_component<Raws>(r);
@@ -186,6 +200,22 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     set_colour(r, e, col);
     set_sprite(r, e, t.renderable.sprite);
     // set_z_index(r, e, ZLayer::DEFAULT);
+
+    if (t.renderable.animations.has_value()) {
+      auto anim_key = t.renderable.animations.value()[0].key;
+      auto anim_fps = t.renderable.animations.value()[0].fps;
+
+      if (t.renderable.start_animation.has_value()) {
+        auto start_anim = t.renderable.start_animation.value();
+        if (start_anim == "RANDOM") {
+          static engine::RandomState anim_rnd(0);
+          const auto rnd_idx = engine::rand_det_s(anim_rnd.rng, 0, (int)t.renderable.animations.value().size());
+          anim_key = t.renderable.animations.value()[rnd_idx].key;
+          anim_fps = t.renderable.animations.value()[rnd_idx].fps;
+        }
+      }
+      add_animation(r, e, anim_key, anim_fps);
+    }
   }
 
   // create_physics()

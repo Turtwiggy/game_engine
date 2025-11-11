@@ -3,17 +3,19 @@
   //
   // 10 waves with various combinations of the following:
   //   pufferfish (actor_enemy_exploder)
-  //   horseshoe crab (actor_enemy_melee_1)
+  //   horseshoe crab (now minisquid) (actor_enemy_melee_1)
   //   hermit crab (actor_enemy_melee_2)
-  //   redclaw crab (actor_enemy_melee_3)
   //   anglerfish (actor_enemy_4)
   //   hogfish (now swordfish) (actor_enemy_5)
   //   archerfish (actor_enemy_projectile)
   //   jellyfish (actor_enemy_swarmlord)
   //   sea horse (actor_enemy_charger)
-  //   sea urchin (actor_enemy_grower) <1 <5 minutes, 1+ 5+ minutes
   //   oyster (actor_destructable) ( spawns 1 every minute )
   //   boss: (actor_snake) (spawns 1 at 5 minutes)
+  //  
+  //   removed:
+  //   redclaw crab (actor_enemy_melee_3)
+  //   sea urchin (actor_enemy_grower) <1 <5 minutes, 1+ 5+ minutes
   //
 
   "wave_spawner": [
@@ -164,5 +166,33 @@
       ]
     }
 
+  ],
+
+  // choose any of the enemy keys
+  "random_spawner": [
+    {
+      "time": { "start": 1.5, "stop": 2.5 }, "keys": [ 
+        "actor_enemy_6", "actor_enemy_7", "actor_enemy_8", 
+        "actor_enemy_9", "actor_enemy_10", "actor_enemy_11"
+      ], "data": { "hp": 25, "max": 20, "num_per_spawn": 4 }
+    },
+    {
+     "time": { "start": 3.5, "stop": 4.5 }, "keys": [ 
+        "actor_enemy_6", "actor_enemy_7", "actor_enemy_8", 
+        "actor_enemy_9", "actor_enemy_10", "actor_enemy_11"
+      ], "data": { "hp": 25, "max": 30, "num_per_spawn": 4 } 
+    },
+    {
+     "time": { "start": 6.5, "stop": 7.5 }, "keys": [ 
+        "actor_enemy_6", "actor_enemy_7", "actor_enemy_8", 
+        "actor_enemy_9", "actor_enemy_10", "actor_enemy_11"
+      ], "data": { "hp": 25, "max": 30, "num_per_spawn": 4 } 
+    },
+    {
+      "time": { "start": 8.5, "stop": 9.5 }, "keys": [ 
+        "actor_enemy_6", "actor_enemy_7", "actor_enemy_8", 
+        "actor_enemy_9", "actor_enemy_10", "actor_enemy_11"
+      ], "data": { "hp": 25, "max": 30, "num_per_spawn": 4 }
+    }
   ]
 }

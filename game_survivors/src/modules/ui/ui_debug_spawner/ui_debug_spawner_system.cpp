@@ -21,17 +21,17 @@ update_ui_wave_spawner(entt::registry& r, int seconds_from_start)
 
   ImGui::SeparatorText("WaveSpawner");
 
-  for (const auto& [spawner_e, cooldown_c, wave] : r.view<CooldownComponent, const EnemyWavesData>().each()) {
+  for (const auto& [spawner_e, cooldown_c, wave] : r.view<const CooldownComponent, const EnemyWavesData>().each()) {
 
     // Filter wave by time.
     const bool in_lower_bound = seconds_from_start >= min_to_sec(wave.time.start);
     const bool in_upper_bound = seconds_from_start < min_to_sec(wave.time.stop);
     if (!in_lower_bound || !in_upper_bound) {
-      ImGui::Text("wave %i %i", wave.time.start, wave.time.stop);
+      ImGui::Text("wave %0.1f %0.1f", wave.time.start, wave.time.stop);
       continue;
     }
 
-    ImGui::Text("(active) wave: %i %i", wave.time.start, wave.time.stop);
+    ImGui::Text("(active) wave: %.1f %0.1f", wave.time.start, wave.time.stop);
     ImGui::Text("(active) enemies: %zu", wave.enemies.size());
     ImGui::Text("cooldown: %f", cooldown_c.time);
 
@@ -61,7 +61,7 @@ update_ui_enemy_spawner(entt::registry& r, int seconds_from_start)
 
   ImGui::SeparatorText("EnemySpawner");
 
-  for (const auto [e, data_c, cooldown_c] : r.view<EnemySpawnsData, CooldownComponent>().each()) {
+  for (const auto [e, data_c, cooldown_c] : r.view<const EnemySpawnsData, const CooldownComponent>().each()) {
 
     const std::optional<int> w_idx_opt = get_wave_index_from_time(data_c, seconds_from_start);
 
@@ -93,6 +93,41 @@ update_ui_enemy_spawner(entt::registry& r, int seconds_from_start)
       ImGui::Text("num_per_wave %i", w.data.num_per_wave.value());
     else
       ImGui::Text("num_per_wave (infinite)");
+  }
+}
+
+void
+update_ui_random_spawner(entt::registry& r, int seconds_from_start)
+{
+  GET_FIRST_OR_RETURN(SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
+
+  ImGui::SeparatorText("RandomSpawner");
+
+  for (const auto& [spawner_e, cooldown_c, wave] : r.view<const CooldownComponent, const EnemyRandomData>().each()) {
+
+    // ImGui::Text("chosen_enemy: %s", wave.keys[wave.chosen_key_idx].c_str());
+
+    // Filter wave by time.
+    const bool in_lower_bound = seconds_from_start >= min_to_sec(wave.time.start);
+    const bool in_upper_bound = seconds_from_start < min_to_sec(wave.time.stop);
+    if (!in_lower_bound || !in_upper_bound) {
+      ImGui::Text("wave %0.1f %0.1f", wave.time.start, wave.time.stop);
+      continue;
+    }
+
+    ImGui::Text("(active) wave: %0.1f %0.1f", wave.time.start, wave.time.stop);
+    ImGui::Text("(active) cooldown: %f", cooldown_c.time);
+
+    const RandomSpawnerWaveKey wave_key{
+      .idx_in_random_spawner = wave.on_disk_index,
+      .idx_in_random_spawner_waves = 0,
+    };
+    const auto has_wave_data = live_spawn_data_c.randomspawner_data.contains(wave_key);
+    if (!has_wave_data)
+      live_spawn_data_c.randomspawner_data[wave_key] = {};
+
+    const auto spawned = live_spawn_data_c.randomspawner_data[wave_key].spawned;
+    ImGui::Text("Enemy %s spawned: %i", wave.keys[wave.chosen_key_idx].c_str(), spawned);
   }
 }
 
@@ -134,6 +169,7 @@ update_ui_debug_spawner_system(entt::registry& r)
 
   update_ui_wave_spawner(r, seconds_from_start);
   update_ui_enemy_spawner(r, seconds_from_start);
+  update_ui_random_spawner(r, seconds_from_start);
 
   ImGui::End();
 }

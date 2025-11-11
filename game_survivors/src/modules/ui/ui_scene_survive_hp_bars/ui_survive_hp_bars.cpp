@@ -228,7 +228,8 @@ update_ui_survive_hp_bars_system(entt::registry& r)
       if (r.all_of<Weapon_OnDiskData, WeaponLevelComponent>(wep_e)) {
         const auto& wep_ondiskdata = r.get<Weapon_OnDiskData>(wep_e);
         const auto& wep_level_c = r.get<WeaponLevelComponent>(wep_e);
-        const auto text = std::format("[{}] {} Lv {}", j, wep_ondiskdata.name, wep_level_c.level);
+        // const auto text = std::format("[{}] {} Lv {}", j, wep_ondiskdata.name, wep_level_c.level);
+        const auto text = std::format("{} Lv {}", wep_ondiskdata.name, wep_level_c.level);
         draw_list->AddText(font, font_size, txt_pos, IM_COL32(255, 255, 255, 255), text.c_str());
       }
 

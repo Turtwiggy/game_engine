@@ -1,12 +1,13 @@
-#include "engine/lifecycle/components.hpp"
-#include "imgui.h"
 #include "pch.hpp"
 
 #include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "ui_debug_animations_system.hpp"
 
 namespace game2d {
@@ -46,6 +47,11 @@ update_ui_debug_animations_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+
+  auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
+  const auto effects_ui = gesert_menubar_state(menu_c, "DebugSprites");
+  if (!effects_ui.enabled)
+    return;
 
   imgui_begin("DebugAnimations");
 

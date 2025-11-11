@@ -42,7 +42,7 @@ load_spawns(std::string filepath)
 };
 
 int
-min_to_sec(int min)
+min_to_sec(float min)
 {
   return min * 60;
 };
@@ -79,6 +79,16 @@ init_spawners(entt::registry& r)
     auto wave = spawn_c.enemy_spawner[i];
     wave.on_disk_index = i;
     r.emplace<EnemySpawnsData>(spawner_e, wave);
+  }
+
+  static engine::RandomState rnd(0);
+  for (int i = 0; i < spawn_c.random_spawner.size(); i++) {
+    const auto spawner_e = create_empty<CooldownComponent>(r);
+    auto wave = spawn_c.random_spawner[i];
+    wave.on_disk_index = i;
+    wave.chosen_key_idx = engine::rand_det_s(rnd.rng, 0, (int)wave.keys.size());
+    SDL_Log("wave %i chosen key: %s", i, wave.keys[wave.chosen_key_idx].c_str());
+    r.emplace<EnemyRandomData>(spawner_e, wave);
   }
 };
 

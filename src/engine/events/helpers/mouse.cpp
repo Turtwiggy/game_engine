@@ -3,9 +3,6 @@
 
 #include "engine/entt/helpers.hpp"
 
-// other lib headers
-#include <imgui.h>
-
 namespace game2d {
 
 bool

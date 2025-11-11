@@ -8,8 +8,8 @@ namespace game2d {
 
 struct TimeSpan
 {
-  int start = 0;
-  int stop = 0;
+  float start = 0;
+  float stop = 0;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(TimeSpan, start, stop);
 };
@@ -96,12 +96,26 @@ struct EnemySpawnsData
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(EnemySpawnsData, key, waves)
 };
 
+// pick an enemy to spawn for the duration
+struct EnemyRandomData
+{
+  TimeSpan time;
+  std::vector<std::string> keys;
+  WaveData data;
+
+  int chosen_key_idx = 0;
+  int on_disk_index = 0; // position in SINGLE_Spawners
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(EnemyRandomData, time, keys, data)
+};
+
 struct SINGLE_OnDiskSpawners
 {
   std::vector<EnemyWavesData> wave_spawner;
   std::vector<EnemySpawnsData> enemy_spawner;
+  std::vector<EnemyRandomData> random_spawner;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_OnDiskSpawners, wave_spawner, enemy_spawner);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLE_OnDiskSpawners, wave_spawner, enemy_spawner, random_spawner);
 };
 
 //
@@ -122,6 +136,14 @@ struct EnemySpawnerWaveKey
   int idx_in_enemy_spawner_waves = 0; // idx in enemy_spawner[0].waves
 
   auto operator<=>(const EnemySpawnerWaveKey&) const = default;
+};
+
+struct RandomSpawnerWaveKey
+{
+  int idx_in_random_spawner = 0;
+  int idx_in_random_spawner_waves = 0;
+
+  auto operator<=>(const RandomSpawnerWaveKey&) const = default;
 };
 
 struct WaveLiveData
@@ -149,10 +171,21 @@ struct wavespawnerwavekey_hash
   }
 };
 
+struct randomspawnerwavekey_hash
+{
+  std::size_t operator()(const RandomSpawnerWaveKey& key) const
+  {
+    const auto hash1 = std::hash<int>{}(key.idx_in_random_spawner);
+    const auto hash2 = std::hash<int>{}(key.idx_in_random_spawner_waves);
+    return hash1 ^ (hash2 << 1);
+  }
+};
+
 struct SpawnerLiveData
 {
   std::unordered_map<EnemySpawnerWaveKey, WaveLiveData, enemyspawnerwavekey_hash> enemyspawner_data;
   std::unordered_map<WaveSpawnerWaveKey, WaveLiveData, wavespawnerwavekey_hash> wavespawner_data;
+  std::unordered_map<RandomSpawnerWaveKey, WaveLiveData, randomspawnerwavekey_hash> randomspawner_data;
 };
 
 } // namespace game2d

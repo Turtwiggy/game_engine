@@ -11,6 +11,7 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "resources/data.hpp"
 #include "ui_survive_timer_components.hpp"
 
 namespace game2d {
@@ -65,7 +66,7 @@ update_ui_survive_timer_system(entt::registry& r)
   const float rounding = 8.0f;
 
   // display time.
-  const auto display = std::format("{:02}:{:02}", minutes, seconds);
+  const auto display = std::format("{:01}:{:02}", minutes, seconds);
   const auto padding = ImGui::GetStyle().WindowPadding;
   auto* font = get_inter_font(r);
   ImGui::PushFont(font, header_font_size); // Use the larger font (index 1)
@@ -85,22 +86,48 @@ update_ui_survive_timer_system(entt::registry& r)
   const auto fg_bar_br = ImVec2(ui_tl.x + percent * ui_wh.x, bar_tl_y + bar_height);
   draw_list->AddRectFilled(fg_bar_tl, fg_bar_br, im_fg_col, rounding, ImDrawFlags_RoundCornersAll);
 
-  // draw a skull icon halfway on the bar
-  {
+  const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
+  const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
+
+  auto draw_icon_on_bar = [&](ImVec2 pos) {
     const auto icon = "SKULL_AND_BONES";
-    const auto icon_size_half = 10.0f * header_font_scale;
+    const auto icon_size_half = 16;
     const auto icon_padding = 0;
-    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "monochrome")->id;
-    const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
-    const auto bar_center = ImVec2{ 0.5f * (bar_tl.x + bar_br.x), 0.5f * (bar_tl.y + bar_br.y) };
-    const auto icon_tl = ImVec2(bar_center.x - icon_size_half, bar_center.y - icon_size_half);
-    const auto icon_br = ImVec2(bar_center.x + icon_size_half, bar_center.y + icon_size_half);
+    const auto icon_tl = ImVec2(pos.x - icon_size_half, pos.y - icon_size_half);
+    const auto icon_br = ImVec2(pos.x + icon_size_half, pos.y + icon_size_half);
     const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, icon);
     const auto icon_p_tl = ImVec2{ icon_tl.x + icon_padding, icon_tl.y + icon_padding };
     const auto icon_p_br = ImVec2{ icon_br.x - icon_padding, icon_br.y - icon_padding };
     // draw_list->AddRectFilled(icon_p_tl, icon_p_br, IM_COL32(255, 0, 0, 255), rounding, ImDrawFlags_RoundCornersBottom);
     draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_uv_tl, icon_uv_br, im_icon_col);
-  }
+  };
+  auto draw_miniicon_on_bar = [&](ImVec2 pos) {
+    const auto icon = "SKULL_AND_BONES";
+    const auto icon_size_half = 16;
+    const auto icon_padding = 0;
+    const auto icon_tl = ImVec2(pos.x - icon_size_half, pos.y - icon_size_half);
+    const auto icon_br = ImVec2(pos.x + icon_size_half, pos.y + icon_size_half);
+    const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, icon);
+    const auto icon_p_tl = ImVec2{ icon_tl.x + icon_padding, icon_tl.y + icon_padding };
+    const auto icon_p_br = ImVec2{ icon_br.x - icon_padding, icon_br.y - icon_padding };
+    // draw_list->AddRectFilled(icon_p_tl, icon_p_br, IM_COL32(255, 0, 0, 255), rounding, ImDrawFlags_RoundCornersBottom);
+    draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_uv_tl, icon_uv_br, im_inactive_col);
+  };
+
+  // draw a skull icon halfway on the bar
+  const auto bar_center = ImVec2{ 0.5f * (bar_tl.x + bar_br.x), 0.5f * (bar_tl.y + bar_br.y) };
+  draw_icon_on_bar(bar_center);
+
+  // draw icons at 2, 4, 6, 8 minutes.
+  const auto bar_wh = ImVec2{ bar_br.x - bar_tl.x, bar_br.y - bar_tl.y };
+  const auto barpos_2 = ImVec2{ bar_tl.x + ((1.5f / (float)timer_c.minute) * bar_wh.x), 0.5f * (bar_tl.y + bar_br.y) };
+  const auto barpos_4 = ImVec2{ bar_tl.x + ((3.5f / (float)timer_c.minute) * bar_wh.x), 0.5f * (bar_tl.y + bar_br.y) };
+  const auto barpos_6 = ImVec2{ bar_tl.x + ((6.5f / (float)timer_c.minute) * bar_wh.x), 0.5f * (bar_tl.y + bar_br.y) };
+  const auto barpos_8 = ImVec2{ bar_tl.x + ((8.5f / (float)timer_c.minute) * bar_wh.x), 0.5f * (bar_tl.y + bar_br.y) };
+  draw_miniicon_on_bar(barpos_2);
+  draw_miniicon_on_bar(barpos_4);
+  draw_miniicon_on_bar(barpos_6);
+  draw_miniicon_on_bar(barpos_8);
 
   // if (r.view<BossComponent>().size() > 0) {
 
