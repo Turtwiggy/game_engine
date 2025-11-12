@@ -11,7 +11,7 @@ in VS_OUT
   vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
-  vec2 v_sprite_global_pos;
+  vec3 v_sprite_global_pos_and_rot;
   float v_tex_unit;
 } fs_in;
 

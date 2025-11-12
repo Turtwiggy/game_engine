@@ -206,8 +206,9 @@
       "name": "actor_enemy_melee_1",
       "speed": 2.0,
       "renderable": { "sprite": "EMPTY", "colour": "white", "animations": [
-          {"key": "AX_MINISQUID_D_SWIM", "fps": 10 },
-          {"key": "AX_MINISQUID_S_SWIM", "fps": 10 } ], 
+          {"key": "AX_MINISQUID_D_SWIM", "fps": 10 }
+          // {"key": "AX_MINISQUID_S_SWIM", "fps": 10 } 
+      ], 
       "start_animation": "RANDOM" },
       "traits": [ {"key": "DIRECT" } ],
       "phys_body": { "is_bullet": false, "is_static": false },

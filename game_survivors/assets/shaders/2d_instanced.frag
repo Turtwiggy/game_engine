@@ -11,7 +11,7 @@ in VS_OUT
   vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
-  vec2 v_sprite_global_pos;
+  vec3 v_sprite_global_pos_and_rot;
   float v_tex_unit;
 } fs_in;
 
@@ -90,7 +90,7 @@ main()
     // vec2 sprite_uv = ((sprite_wh * v_uv * tex_size) / sprite_max) + sprite_pixels * sprite_pos;
 
     vec2 uv = sprite_uv * tex_size;
-    vec2 offset = fs_in.v_sprite_global_pos;
+    vec2 offset = fs_in.v_sprite_global_pos_and_rot.xy;
 
     // try keep the pixel art crisp
 
@@ -109,13 +109,6 @@ main()
     vec2 tex_uv = uv;
     vec4 col = vec4(1.0f);
     {{ generate_sampler_if_statements }}
-
-    // if(v_uv.y > 0.5)
-    // {
-    //   out_colour.b = 1.0f;
-    //   out_colour.a = 1.0f;
-    //   return;
-    // }
 
     // out_colour.rgb = lin_to_srgb(srgb_to_lin(v_colour.rgb) * srgb_to_lin(col.rgb));
     out_colour.rgb = v_colour.rgb * col.rgb;

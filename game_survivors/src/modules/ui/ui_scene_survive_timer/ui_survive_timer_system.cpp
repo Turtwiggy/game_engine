@@ -91,25 +91,29 @@ update_ui_survive_timer_system(entt::registry& r)
 
   auto draw_icon_on_bar = [&](ImVec2 pos) {
     const auto icon = "SKULL_AND_BONES";
-    const auto icon_size_half = 16;
+    const auto icon_size_half = 8;
     const auto icon_padding = 0;
-    const auto icon_tl = ImVec2(pos.x - icon_size_half, pos.y - icon_size_half);
-    const auto icon_br = ImVec2(pos.x + icon_size_half, pos.y + icon_size_half);
+    auto icon_tl = ImVec2(pos.x - icon_size_half, pos.y - icon_size_half);
+    auto icon_br = ImVec2(pos.x + icon_size_half, pos.y + icon_size_half);
+    icon_tl.x = glm::floor(icon_tl.x);
+    icon_tl.y = glm::floor(icon_tl.y);
+    icon_br.y = glm::floor(icon_br.y);
+    icon_br.x = glm::floor(icon_br.x);
     const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, icon);
-    const auto icon_p_tl = ImVec2{ icon_tl.x + icon_padding, icon_tl.y + icon_padding };
-    const auto icon_p_br = ImVec2{ icon_br.x - icon_padding, icon_br.y - icon_padding };
+    const auto icon_p_tl = ImVec2{ icon_tl.x, icon_tl.y };
+    const auto icon_p_br = ImVec2{ icon_br.x, icon_br.y };
     // draw_list->AddRectFilled(icon_p_tl, icon_p_br, IM_COL32(255, 0, 0, 255), rounding, ImDrawFlags_RoundCornersBottom);
     draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_uv_tl, icon_uv_br, im_icon_col);
   };
   auto draw_miniicon_on_bar = [&](ImVec2 pos) {
     const auto icon = "SKULL_AND_BONES";
-    const auto icon_size_half = 16;
+    const auto icon_size_half = 8;
     const auto icon_padding = 0;
     const auto icon_tl = ImVec2(pos.x - icon_size_half, pos.y - icon_size_half);
     const auto icon_br = ImVec2(pos.x + icon_size_half, pos.y + icon_size_half);
     const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, icon);
-    const auto icon_p_tl = ImVec2{ icon_tl.x + icon_padding, icon_tl.y + icon_padding };
-    const auto icon_p_br = ImVec2{ icon_br.x - icon_padding, icon_br.y - icon_padding };
+    const auto icon_p_tl = ImVec2{ icon_tl.x, icon_tl.y };
+    const auto icon_p_br = ImVec2{ icon_br.x, icon_br.y };
     // draw_list->AddRectFilled(icon_p_tl, icon_p_br, IM_COL32(255, 0, 0, 255), rounding, ImDrawFlags_RoundCornersBottom);
     draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_uv_tl, icon_uv_br, im_inactive_col);
   };

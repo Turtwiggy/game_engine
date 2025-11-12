@@ -93,18 +93,22 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   if (key == "actor_enemy_5")                // hogfish
     enemy_size = { 2 * 16 * 3, 2 * 16 * 2 }; // i want big hogs!
 
-  // oyster
-  entt::entity halo_e = entt::null;
-  if (key == "actor_destructable") {
-    halo_e = create_transform(r, "GOLD_OUTLINE");
-    r.emplace<SpriteComponent>(halo_e);
-    set_sprite(r, halo_e, "GOLD_OUTLINE");
-    set_size(r, halo_e, 2.0f * enemy_size);
-  }
-
   auto e = spawn(r, key);
   r.emplace<EnemyComponent>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::enemy });
+
+  // also spawn drowpshadow sprite for the enemy to make it like theyre in the water
+  if (key != "actor_enemy_9") // bird
+  {
+    auto dropshadow_e = spawn(r, "empty");
+    give_life(r, dropshadow_e, { 0, 0 }, enemy_size);
+    set_size(r, dropshadow_e, enemy_size);
+    r.emplace<DynamicTargetComponent>(dropshadow_e, DynamicTargetComponent{ e });
+    r.emplace<SetPositionAtDynamicTarget>(dropshadow_e);
+    r.emplace<Effect_RippleComponent>(dropshadow_e);
+    r.emplace<HasParentComponent>(dropshadow_e, HasParentComponent{ e });
+    r.get_or_emplace<HasChildrenComponent>(e).children.push_back(dropshadow_e);
+  }
 
   // Make it a variant.
   // outline it
@@ -143,7 +147,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.emplace<DeathThroesComponent>(e);
   }
 
-  // horseshoe crab
+  // horseshoe crab (now minisquid)
   if (key == "actor_enemy_melee_1") {
     r.emplace<RotateToVelocityComponent>(e);
     r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
@@ -227,7 +231,9 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   }
   if (key == "actor_enemy_8") {
   }
-  if (key == "actor_enemy_9") {
+  if (key == "actor_enemy_9") { // bird
+    r.emplace<RotateToVelocityComponent>(e);
+    r.emplace<SetTransformRotationBasedOnPhysicsBody>(e);
   }
   if (key == "actor_enemy_10") {
   }
@@ -294,26 +300,31 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // oyster
   if (key == "actor_destructable") {
-    r.emplace<TreasureEnemyComponent>(e);
 
     const auto rnd_pos_inside_map = rnd_position_in_map_but_not_inside_players_or_islands(r);
+
+    // oyster
+    entt::entity halo_e = entt::null;
+    halo_e = create_transform(r, "GOLD_OUTLINE");
+    r.emplace<SpriteComponent>(halo_e);
+    set_sprite(r, halo_e, "GOLD_OUTLINE");
+    set_size(r, halo_e, 2.0f * enemy_size);
+
     set_position(r, e, rnd_pos_inside_map);
     set_position(r, halo_e, rnd_pos_inside_map);
+
+    const auto wiggle_c = WiggleUpAndDown{ .base_position = rnd_pos_inside_map, .amplitude = 2.0f, .frequency = 4.0f };
+    // r.emplace<WiggleUpAndDown>(e, wiggle_c);
+    r.emplace<TreasureEnemyComponent>(e);
 
     // Dont drop xp. (drop something else)
     auto& callbacks_c = r.get<OnDeathCallbacks>(e);
     callbacks_c.callbacks.clear();
 
-    r.emplace<HasParentComponent>(halo_e, e);
-    r.emplace<WiggleUpAndDown>(halo_e,
-                               WiggleUpAndDown{
-                                 .base_position = rnd_pos_inside_map,
-                                 .amplitude = 2.0f,
-                                 .frequency = 4.0f,
-                               });
     set_z_index(r, halo_e, ZLayer::VFX);
-    auto& enemy_children_c = r.get_or_emplace<HasChildrenComponent>(e);
-    enemy_children_c.children.push_back(halo_e);
+    r.emplace<HasParentComponent>(halo_e, e);
+    r.emplace<WiggleUpAndDown>(halo_e, wiggle_c);
+    r.get_or_emplace<HasChildrenComponent>(e).children.push_back(halo_e);
 
     // make it in to a combo unlockable thing
     r.remove<HealthComponent>(fixture_e);

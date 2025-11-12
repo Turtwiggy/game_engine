@@ -76,14 +76,18 @@ handle_death_event__treasure_enemy(entt::registry& r, const DeathEvent& evt)
   // if (treasure_enum == TreasureOption::GOLD)
   //   create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_gold", get_position(r, dead_e) });
 
+  auto pos = get_position(r, dead_e);
+  pos.x = floor(pos.x);
+  pos.y = floor(pos.y);
+
   if (treasure_enum == TreasureOption::HEALING_PACK)
-    create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_hp_pack", get_position(r, dead_e) });
+    create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_hp_pack", pos });
 
   else if (treasure_enum == TreasureOption::SEA_MINE)
-    create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_sea_mine", get_position(r, dead_e) });
+    create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_sea_mine", pos });
 
   else if (treasure_enum == TreasureOption::VACUUM_ORB)
-    create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_vacuum_orb", get_position(r, dead_e) });
+    create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_vacuum_orb", pos });
 
   else
     throw std::runtime_error("Unknown item type");

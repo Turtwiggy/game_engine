@@ -145,7 +145,6 @@
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-
 namespace game2d {
 using namespace std::literals;
 

@@ -3,6 +3,7 @@
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
@@ -276,42 +277,6 @@ setup_linear_main_update(entt::registry& r)
 #endif
 
     auto& ri = SINGLE_RendererInfo::instance;
-    // const auto camera_e = get_first<OrthographicCamera>(r);
-    // const auto& camera_t = r.get<const TransformComponent>(camera_e);
-    // const auto& camera_c = r.get<const OrthographicCamera>(camera_e);
-
-    // glEnable(GL_BLEND);
-    // glEnable(GL_DEPTH_TEST);
-
-    // set the positions of the units with circles units & update TBO
-    /*
-    const int N_MAX_CIRCLES = 100;
-    {
-      static std::vector<CircleComponent> points(N_MAX_CIRCLES);
-
-      int i = 0;
-
-      // draw active circles
-      const auto view = r.view<const TransformComponent, CircleComponent>();
-      for (const auto& [e, transform_c, circle_c] : view.each()) {
-        if (i > N_MAX_CIRCLES)
-          break;
-        circle_c.shader_pos = get_position(r, e);
-        points[i] = circle_c;
-        i++;
-      }
-
-      // reset inactive circles
-      for (; i < N_MAX_CIRCLES; i++)
-        points[i].shader_pos = { 0, 0 };
-
-      // Update texture
-      const int num_rows = N_MAX_CIRCLES;
-      const int num_cols = sizeof(game2d::CircleComponent) / sizeof(float); // floats per comp
-      // glBindTexture(GL_TEXTURE_2D, ri.renderer.data.TEX);
-      // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, num_cols, num_rows, GL_RGBA, GL_FLOAT, points.data());
-    }
-    */
 
     // Render some quads
     {
@@ -320,7 +285,6 @@ setup_linear_main_update(entt::registry& r)
 
       // Instead of using group.sort (which can be slow for large groups),
       // collect entities and sort pointers to their data, then render in order.
-
       // auto group = r.group<TransformComponent, SpriteComponent>();
       // // sort by z-index; adds ~0.5ms
       // group.sort([&group](const entt::entity lhs, const entt::entity rhs) {
@@ -334,7 +298,8 @@ setup_linear_main_update(entt::registry& r)
 
       // Collect entities and their z-index into a vector
       std::vector<std::tuple<int, entt::entity, const TransformComponent*, const SpriteComponent*>> sorted_entities;
-      auto view = r.view<const TransformComponent, const SpriteComponent>(entt::exclude<AboveHiddenComponent>);
+      auto view = r.view<const TransformComponent, const SpriteComponent>(
+        entt::exclude<AboveHiddenComponent, ShieldComponent, Effect_RippleComponent>);
       sorted_entities.reserve(view.size_hint());
 
       for (const auto e : view) {
@@ -566,6 +531,77 @@ setup_flame_update(entt::registry& r)
 
     ri.renderer.end_batch();
     ri.renderer.flush(ri.flame);
+  };
+}
+
+void
+setup_ripples_update(entt::registry& r)
+{
+  auto& ri = SINGLE_RendererInfo::instance;
+  const auto pass_idx = get_pass_idx(ri, PassName::ripples);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r, float dt, glm::vec2 mouse_pos) {
+#if defined(_DEBUG)
+    ZoneScoped;
+#endif
+
+    auto& ri = SINGLE_RendererInfo::instance;
+
+    ri.ripples.bind();
+    auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
+
+    ri.renderer.reset_quad_vert_count();
+    ri.renderer.begin_batch();
+    const auto view = r.view<const TransformComponent, const Effect_RippleComponent, const HasParentComponent>();
+    for (const auto& [e, transform, ripple_c, parent_c] : view.each()) {
+      if (parent_c.parent == entt::null) {
+        dead_c.dead.push_back(e);
+        continue;
+      }
+      if (!r.valid(parent_c.parent)) {
+        dead_c.dead.push_back(e);
+        dead_c.dead.push_back(parent_c.parent);
+        continue;
+      }
+      auto* sc_opt = r.try_get<const SpriteComponent>(parent_c.parent);
+      if (!sc_opt) {
+        // if you're a hermit crab, try get the sprite component from your fixture.
+        auto* pb_c = r.try_get<PhysicsBodyComponent>(parent_c.parent);
+        if (!pb_c)
+          continue;
+        auto fixture_e = pb_c->fixtures[0]; // 0 is bottom (legs), 1 is top (shield)
+        sc_opt = r.try_get<const SpriteComponent>(fixture_e);
+        if (!sc_opt)
+          continue;
+      }
+
+      if (!sc_opt) {
+#if defined(_DEBUG)
+        auto& tag_c = r.get<TagComponent>(parent_c.parent);
+        SDL_Log("Warning: why does a ripple parent have no sprite component? (%s)", tag_c.tag.c_str());
+#endif
+        continue;
+      }
+      const auto& sc = *sc_opt;
+
+      engine::quad_renderer::RenderDescriptor desc;
+      desc.pos_tl = transform.position - (transform.scale * 0.5f);
+      desc.size = transform.scale;
+      desc.yaw_pitch_roll_radians = { transform.rotation_radians.x,
+                                      transform.rotation_radians.y,
+                                      // sc.angle_radians + transform.rotation_radians.z };
+                                      transform.rotation_radians.z };
+      desc.colour = sc.colour;
+      desc.tex_unit = sc.tex_unit;
+      desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+      desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+      desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+      ri.renderer.draw_sprite(desc, ri.ripples);
+    }
+
+    ri.renderer.end_batch();
+    ri.renderer.flush(ri.ripples);
   };
 }
 

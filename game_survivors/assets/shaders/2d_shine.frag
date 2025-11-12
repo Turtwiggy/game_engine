@@ -11,7 +11,7 @@ in VS_OUT
   vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
-  vec2 v_sprite_global_pos;
+  vec3 v_sprite_global_pos_and_rot;
   float v_tex_unit;
 } fs_in;
 
@@ -51,9 +51,16 @@ main()
       (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
       (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
     );
+
+    // try keep the pixel art crisp
+    vec2 tex_size = textureSize(u_textures[index - RENDERER_TEX_UNIT_COUNT], 0);
+    vec2 uv = sprite_uv * tex_size;
+    vec2 offset = fs_in.v_sprite_global_pos_and_rot.xy;
+    uv = floor(uv) + min(fract(offset) / fwidth(offset), 1.0) - 0.5; 
+    uv /= tex_size;
     
     vec4 col = vec4(1.0f);
-    vec2 tex_uv = sprite_uv;
+    vec2 tex_uv = uv;
 {{ generate_sampler_if_statements }}
     out_colour = v_colour * col;
   }

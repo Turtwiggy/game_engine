@@ -11,7 +11,7 @@ in VS_OUT
   vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;   // desired sprites e.g. 2, 2
   vec2 v_sprite_max;  // 22 sprites
-  vec2 v_sprite_global_pos;
+  vec3 v_sprite_global_pos_and_rot;
   float v_tex_unit;
 } fs_in;
 
@@ -25,6 +25,7 @@ uniform sampler2D tex_unit_water;
 uniform sampler2D tex_outline;
 uniform sampler2D tex_shine_shells;
 uniform sampler2D tex_flame;
+uniform sampler2D tex_ripples;
 uniform vec2 viewport_wh;
 uniform bool add_grid;
 uniform bool invert_colours;
@@ -414,14 +415,16 @@ void main()
   vec4 shore_col = texture(tex_island_shore, v_uv).rgba;
   vec3 tex_shells = texture(tex_shine_shells, v_uv).rgb;
   vec3 tex_flame_col = texture(tex_flame, v_uv).rgb;
+  vec4 tex_ripples_col = texture(tex_ripples, v_uv).rgba;
 
   vec4 lc_vec4 = vec4(lighting_col, 1.0f);
   vec3 col_water = lighting_col * srgb_water;
   vec3 col_itg = lighting_col * itg_col; // island triangle gradient
   vec3 col_hidden = lighting_col * island_hidden_col;
   vec3 col_above_hidden = lighting_col * island_above_hidden_col;
-  vec4 col_scene = lc_vec4 *  scene_col.rgba;
+  vec4 col_scene = lc_vec4 * scene_col.rgba;
   vec4 col_island_shore = lc_vec4 * shore_col;
+  vec4 col_ripples = lc_vec4 * tex_ripples_col;
 
   // add the water
   out_colour.rgb = col_water.rgb;
@@ -433,7 +436,30 @@ void main()
   out_colour.rgb = mix( out_colour.rgb, col_itg.rgb, sign(length( col_itg.rgb )));
 
   // scene
-  out_colour.rgb = mix( out_colour.rgb, col_scene.rgb,  sign(length( col_scene.rgb )) );
+  // vec3 lin_scene = srgb_to_lin(vec3(255)*col_scene.rgb);
+  // vec3 lin_ripples = srgb_to_lin(vec3(255)*col_ripples.rgb);
+  // vec3 adj_col = lin_to_srgb( max(lin_scene, lin_ripples) );
+  vec3 adj_col = col_scene.rgb;
+  // if(tex_ripples_col.rgb == vec3(1.0f)){
+  //   // adj_col = lighting_col * vec3(0.7f);
+  // }else 
+  // 
+  if(length(tex_ripples_col.rgb) > 0 && length(col_scene.rgb) > 0 ){
+    // adj_col *= col_ripples.rgb;
+    adj_col = col_ripples.rgb;
+    adj_col *= lighting_col;
+    // adj_col.b = 0.5f;
+  }
+
+  // vec3 adj_col = tex_ripples_col.rgb;
+  out_colour.rgb = mix( out_colour.rgb, adj_col, sign(length( col_scene.rgb )) );
+
+  // ripples
+  // out_colour.rgb = mix( out_colour.rgb, col_ripples.rgb, sign(length( col_ripples.rgb )) );
+
+  // ripples
+  // out_colour.rgb = mix( out_colour.rgb, col_ripples.rgb,  sign(length( col_ripples.rgb )) );
+  // out_colour.rgb = mix( out_colour.rgb, col_ripples.rgb, col_ripples.a );
 
   // hide parts of the scene
   out_colour.rgb = mix( out_colour.rgb, col_hidden.rgb, sign(length( col_hidden.rgb )));
@@ -445,10 +471,10 @@ void main()
   // out_colour.rgb += grid_col;
 
   // shiney shells
-  out_colour.rgb = mix( out_colour.rgb, lin_to_srgb(tex_shells), length(tex_shells.r) );
-  
+  out_colour.rgb = mix( out_colour.rgb, tex_shells, sign(length(tex_shells.rgb)) );
+
   // flames
-  out_colour.rgb = mix( out_colour.rgb, lin_to_srgb(tex_flame_col), length(tex_flame_col.r) );
+  out_colour.rgb = mix( out_colour.rgb, tex_flame_col, length(tex_flame_col.r) );
 
   // vignette
   // if(add_vignette){

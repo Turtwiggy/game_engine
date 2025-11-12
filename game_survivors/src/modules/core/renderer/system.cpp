@@ -107,6 +107,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   const int tex_unit_sprites_with_shield = get_tex_unit(PassName::sprites_with_shield);
   const int tex_unit_shine_shells = get_tex_unit(PassName::shine);
   const int tex_unit_flame = get_tex_unit(PassName::flame);
+  const int tex_unit_ripples = get_tex_unit(PassName::ripples);
   const int tex_unit_island_triangles = get_tex_unit(PassName::island_triangles);
   const int tex_unit_island_triangles_gradient = get_tex_unit(PassName::island_triangles_gradient);
   const int tex_unit_island_hidden = get_tex_unit(PassName::island_hidden);
@@ -131,7 +132,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.water.set_uniform_block_binding("Data", 0);
   ri.water.set_mat4("projection", camera.projection);
   ri.water.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  ri.water.set_float("water_safe_radius", 10'000); // basically no danger zone
+
+  float water_safe_radius = 10'000;
+  const auto& scene = SINGLE_CurrentScene::instance;
+  if (scene.s == Scene::survive)
+    water_safe_radius = 800;                                  // size of the map
+  ri.water.set_float("water_safe_radius", water_safe_radius); // basically no danger zone
 
   // set user textures in shaders
   const auto clean_path = [](const std::string& path) -> std::string {
@@ -210,6 +216,12 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.flame.set_bool("do_zoom", true);
   ri.flame.set_mat4("projection", camera.projection);
 
+  ri.ripples.reload(r);
+  ri.ripples.bind();
+  ri.ripples.set_uniform_block_binding("Data", 0);
+  ri.ripples.set_bool("do_zoom", true);
+  ri.ripples.set_mat4("projection", camera.projection);
+
   ri.outline.reload(r);
   ri.outline.bind();
   ri.outline.set_uniform_block_binding("Data", 0);
@@ -223,24 +235,24 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.lighting_emitters_and_occluders.set_uniform_block_binding("Data", 0);
   ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
 
-  ri.voronoi_seed.reload(r);
-  ri.voronoi_seed.bind();
-  ri.voronoi_seed.set_bool("is_fullscreen", true);
-  ri.voronoi_seed.set_mat4("projection", camera.projection);
-  // ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
+  // ri.voronoi_seed.reload(r);
+  // ri.voronoi_seed.bind();
+  // ri.voronoi_seed.set_bool("is_fullscreen", true);
+  // ri.voronoi_seed.set_mat4("projection", camera.projection);
+  // // ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
 
-  ri.jump_flood.reload(r);
-  ri.jump_flood.bind();
-  ri.jump_flood.set_bool("is_fullscreen", true);
-  ri.jump_flood.set_mat4("projection", camera.projection);
-  ri.jump_flood.set_vec2("screen_wh", wh);
+  // ri.jump_flood.reload(r);
+  // ri.jump_flood.bind();
+  // ri.jump_flood.set_bool("is_fullscreen", true);
+  // ri.jump_flood.set_mat4("projection", camera.projection);
+  // ri.jump_flood.set_vec2("screen_wh", wh);
 
-  ri.voronoi_distance.reload(r);
-  ri.voronoi_distance.bind();
-  ri.voronoi_distance.set_bool("is_fullscreen", true);
-  ri.voronoi_distance.set_mat4("projection", camera.projection);
-  // ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit_emitters_and_occluders);
-  ri.voronoi_distance.set_vec2("screen_wh", wh);
+  // ri.voronoi_distance.reload(r);
+  // ri.voronoi_distance.bind();
+  // ri.voronoi_distance.set_bool("is_fullscreen", true);
+  // ri.voronoi_distance.set_mat4("projection", camera.projection);
+  // // ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit_emitters_and_occluders);
+  // ri.voronoi_distance.set_vec2("screen_wh", wh);
 
   ri.mix_lighting_and_scene.reload(r);
   ri.mix_lighting_and_scene.bind();
@@ -258,6 +270,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_outline", tex_unit_outline);
   ri.mix_lighting_and_scene.set_int("tex_shine_shells", tex_unit_shine_shells);
   ri.mix_lighting_and_scene.set_int("tex_flame", tex_unit_flame);
+  ri.mix_lighting_and_scene.set_int("tex_ripples", tex_unit_ripples);
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", wh);
   ri.mix_lighting_and_scene.set_bool("add_grid", true);
   ri.mix_lighting_and_scene.set_bool("add_vignette", true);
@@ -318,6 +331,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.passes.push_back({ .pass = PassName::sprites_with_shield });
   ri.passes.push_back({ .pass = PassName::shine });
   ri.passes.push_back({ .pass = PassName::flame });
+  ri.passes.push_back({ .pass = PassName::ripples });
   ri.passes.push_back({ .pass = PassName::mix_lighting_and_scene });
 #if defined(_DEBUG)
   ri.passes.push_back({ .pass = PassName::develop_sprite_sampling });
@@ -364,12 +378,13 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   ri.island_shore = Shader(r, "assets/shaders/2d_instanced_tri.vert", "assets/shaders/2d_island_shore.frag");
   ri.shine = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_shine.frag");
   ri.flame = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_flame.frag");
+  ri.ripples = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_ripples.frag");
   ri.outline = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_outline.frag");
   ri.lighting_emitters_and_occluders =
     Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
-  ri.voronoi_seed = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
-  ri.jump_flood = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
-  ri.voronoi_distance = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
+  // ri.voronoi_seed = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
+  // ri.jump_flood = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
+  // ri.voronoi_distance = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
   ri.develop_sprite_sampling =
     Shader(r, "assets/shaders/2d_instanced.vert", "assets/shaders/2d_develop_sprite_sampling.frag");
@@ -437,6 +452,7 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   setup_sprites_with_shield_update(r);
   setup_shine_update(r);
   setup_flame_update(r);
+  setup_ripples_update(r);
   setup_mix_lighting_and_scene_update(r);
 #if defined(_DEBUG)
   setup_develop_sprite_sampling_update(r);
@@ -620,12 +636,12 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
           const std::string label = std::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
 
 #if defined(_DEBUG)
-          if (rp.pass == PassName::develop_sprite_sampling)
-            ImGui::SetNextWindowSize({ 768, 352 });
+          // if (rp.pass == PassName::develop_sprite_sampling)
+          //   ImGui::SetNextWindowSize({ 768, 352 });
 #endif
 
           ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
-          ImGui::Begin(label.c_str(), NULL, ImGuiWindowFlags_NoTitleBar);
+          ImGui::Begin(label.c_str(), NULL);
           const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
           const uint64_t id = tex.tex_id.id;
           ImGui::Image((ImTextureID)id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));

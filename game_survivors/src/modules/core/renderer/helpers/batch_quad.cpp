@@ -76,7 +76,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->colour = colour;
   data.buffer_ptr->sprite_size_and_offset = { size.x, size.y, sprite_offset.x, sprite_offset.y };
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
-  data.buffer_ptr->sprite_global_pos = pos;
+  data.buffer_ptr->sprite_global_pos_and_rot = glm::vec3{ pos.x, pos.y, angle };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -86,7 +86,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->colour = colour;
   data.buffer_ptr->sprite_size_and_offset = { size.x, size.y, sprite_offset.x, sprite_offset.y };
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
-  data.buffer_ptr->sprite_global_pos = pos;
+  data.buffer_ptr->sprite_global_pos_and_rot = glm::vec3{ pos.x, pos.y, angle };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -96,7 +96,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->colour = colour;
   data.buffer_ptr->sprite_size_and_offset = { size.x, size.y, sprite_offset.x, sprite_offset.y };
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
-  data.buffer_ptr->sprite_global_pos = pos;
+  data.buffer_ptr->sprite_global_pos_and_rot = glm::vec3{ pos.x, pos.y, angle };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -106,7 +106,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   data.buffer_ptr->colour = colour;
   data.buffer_ptr->sprite_size_and_offset = { size.x, size.y, sprite_offset.x, sprite_offset.y };
   data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
-  data.buffer_ptr->sprite_global_pos = pos;
+  data.buffer_ptr->sprite_global_pos_and_rot = glm::vec3{ pos.x, pos.y, angle };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -146,7 +146,7 @@ QuadRenderer::init()
   glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_width_and_max));
 
   glEnableVertexAttribArray(4);
-  glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_global_pos));
+  glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_global_pos_and_rot));
 
   glEnableVertexAttribArray(5);
   glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex_unit));

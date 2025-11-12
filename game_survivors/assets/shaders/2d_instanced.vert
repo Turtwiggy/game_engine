@@ -6,7 +6,7 @@ layout(location = 0) in vec4 vertex; // xy and uv
 layout(location = 1) in vec4 colour;
 layout(location = 2) in vec4 sprite_size_and_offset;
 layout(location = 3) in vec4 sprite_width_and_max;
-layout(location = 4) in vec2 sprite_global_pos;
+layout(location = 4) in vec3 sprite_global_pos_and_rot;
 layout(location = 5) in float tex_unit;
 layout(location = 6) in mat4 model;
 
@@ -17,7 +17,7 @@ out VS_OUT {
   vec2 v_sprite_size; // e.g. 16, 16
   vec2 v_sprite_wh;
   vec2 v_sprite_max;
-  vec2 v_sprite_global_pos;
+  vec3 v_sprite_global_pos_and_rot;
   float v_tex_unit;
 } vs_out;
 
@@ -60,7 +60,7 @@ void main() {
   vs_out.v_sprite_pos = sprite_size_and_offset.zw;
   vs_out.v_sprite_wh = sprite_width_and_max.xy;
   vs_out.v_sprite_max = sprite_width_and_max.zw;
-  vs_out.v_sprite_global_pos = sprite_global_pos;
+  vs_out.v_sprite_global_pos_and_rot = sprite_global_pos_and_rot;
   vs_out.v_tex_unit = tex_unit;
   // vs_out.v_vertex = vec4(model * vec4(vertex.xy, 1.0, 1.0)).xy;
 

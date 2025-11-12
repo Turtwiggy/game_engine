@@ -3,6 +3,7 @@
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/texture.hpp"
+#include "engine/sprites/components.hpp"
 #include "modules/core/renderer/fluidsim/components.hpp"
 #include "modules/core/renderer/helpers/batch_quad.hpp"
 #include "modules/core/renderer/helpers/batch_triangle.hpp"
@@ -40,6 +41,7 @@ enum class PassName
   sprites_with_shield,
   shine,
   flame,
+  ripples,
 
   // lighting_emitters_and_occluders,
   // voronoi_seed,
@@ -109,10 +111,11 @@ struct SINGLE_RendererInfo
   engine::Shader island_shore;
   engine::Shader shine;
   engine::Shader flame;
+  engine::Shader ripples;
   engine::Shader lighting_emitters_and_occluders;
-  engine::Shader voronoi_seed; // this shader stores the uv coordinates in the texture
-  engine::Shader jump_flood;
-  engine::Shader voronoi_distance;
+  // engine::Shader voronoi_seed; // this shader stores the uv coordinates in the texture
+  // engine::Shader jump_flood;
+  // engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
   engine::Shader develop_sprite_sampling;
   engine::Shader outline;
@@ -145,6 +148,11 @@ struct Effect_BlurInfo
 struct Effect_GridComponent
 {
   int gridsize = 64;
+};
+
+struct Effect_RippleComponent
+{
+  bool placeholder = true;
 };
 
 enum class ZLayer : int

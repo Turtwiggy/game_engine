@@ -628,9 +628,9 @@ spawn_particle(entt::registry& r, const std::string& key, const Particle& desc)
     r.emplace<SetAlphaBasedOnLifecycleComponent>(e);
 
   // WARNING: random rotation here
-  static engine::RandomState rnd(0);
-  auto& t = r.get<TransformComponent>(e);
-  t.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI); // rnd rotation
+  // static engine::RandomState rnd(0);
+  // auto& t = r.get<TransformComponent>(e);
+  // t.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI); // rnd rotation
 
   // make it shrink
   const ScaleOverTimeComponent sotc{

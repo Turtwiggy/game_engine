@@ -38,7 +38,7 @@ struct Vertex
   glm::vec4 colour;
   glm::vec4 sprite_size_and_offset;
   glm::vec4 sprite_width_and_max;
-  glm::vec2 sprite_global_pos;
+  glm::vec3 sprite_global_pos_and_rot;
   float tex_unit;
   glm::vec4 parallax; // xy: translational offset. wz: rotation
   glm::mat4 model;
