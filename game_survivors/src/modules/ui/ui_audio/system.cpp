@@ -52,7 +52,8 @@ update_ui_audio_system(entt::registry& r)
       // Close old device, if exists
       if (audio.captured_device_id != -1) {
         SDL_Log("Closing old audio device.");
-        SDL_CloseAudioDevice(audio.captured_device_id);
+        // SDL_CloseAudioDevice(audio.captured_device_id);
+        Mix_CloseAudio();
         audio.captured_device_id = -1;
       }
 
@@ -65,7 +66,7 @@ update_ui_audio_system(entt::registry& r)
       int chunk_size = 2048;
       audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, NULL, 0);
 
-      if (audio.captured_device_id == -1)
+      if (audio.captured_device_id < 0)
         SDL_Log("%s", std::format("Tried to capture audio device: failed.").c_str());
       else if (audio.captured_device_id == 0)
         SDL_Log("%s", std::format("Tried to capture audio device: success.").c_str());

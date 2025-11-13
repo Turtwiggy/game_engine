@@ -3,6 +3,7 @@
 #include "engine/entt/helpers.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/systems/system_gameover/gameover_helpers.hpp"
+#include "modules/ui/ui_popup_are_you_sure/ui_popup_are_you_sure_components.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_popup_pause/ui_popup_pause_components.hpp"
@@ -43,6 +44,9 @@ require_pause(entt::registry& r)
     const auto& options_menu_c = get_first_component<SINGLE_OptionsMenuState>(r);
     pause |= options_menu_c.open;
   }
+
+  // pause when the "are you sure" menu is open
+  pause |= SINGLE_UIAreYouSure::instance.open;
 
   return pause;
 };

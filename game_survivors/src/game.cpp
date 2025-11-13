@@ -116,6 +116,7 @@
 #include "modules/ui/ui_island_display_hp/ui_island_display_hp_system.hpp"
 #include "modules/ui/ui_island_interact_system/ui_island_interact_system.hpp"
 #include "modules/ui/ui_label/ui_label_system.hpp"
+#include "modules/ui/ui_popup_are_you_sure/ui_popup_are_you_sure_system.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_components.hpp"
 #include "modules/ui/ui_popup_controller_disconnected/ui_popup_controller_disconnected_system.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_system.hpp"
@@ -406,6 +407,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_popup_pause_system(app, r);
   update_ui_popup_options_system(app, r);
   update_ui_popup_controller_disconnected_system(r);
+  update_ui_popup_are_you_sure_system(r);
   update_ui_worldspace_text_system(r);
   update_ui_back_button_system(r);
   update_ui_scene_header_system(r);
@@ -490,7 +492,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_collisions_system(r);
   }
 
-  // update_ui_blur_system(r, dt);
+  update_ui_blur_system(r, dt);
 
 #if defined(_DEBUG)
   // hack: reload RAWS

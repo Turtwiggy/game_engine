@@ -5,6 +5,7 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_quit/quit_components.hpp"
+#include "modules/ui/ui_popup_are_you_sure/ui_popup_are_you_sure_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
 #include "ui_scene_main_menu_components.hpp"
@@ -36,7 +37,12 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
     open = false;
     create_empty<RequestToShowOptionsMenu>(r);
   };
-  const auto exit_action = [&r]() { create_empty<RequestQuitApplication>(r); };
+  const auto exit_action = [&r]() {
+    SINGLE_UIAreYouSure::instance.action = [&r](bool confirmed) {
+      if (confirmed)
+        create_empty<RequestQuitApplication>(r);
+    };
+  };
 
   const auto make_cell = [&](auto name, auto action) -> std::shared_ptr<Cell>& {
     Cell c;

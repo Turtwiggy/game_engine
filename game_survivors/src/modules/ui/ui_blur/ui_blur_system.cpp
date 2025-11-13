@@ -6,6 +6,7 @@
 #include "engine/events/components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
+#include "modules/ui/ui_popup_are_you_sure/ui_popup_are_you_sure_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_popup_pause/ui_popup_pause_components.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
@@ -63,6 +64,10 @@ update_ui_blur_system(entt::registry& r, const float dt)
 
   // blur with game upgrade menu...
   else if (game_upgrade_c && game_upgrade_c->open)
+    blur_amount += fade_in_speed * dt;
+
+  // blur with are you sure popup...
+  else if (SINGLE_UIAreYouSure::instance.open)
     blur_amount += fade_in_speed * dt;
 
   else

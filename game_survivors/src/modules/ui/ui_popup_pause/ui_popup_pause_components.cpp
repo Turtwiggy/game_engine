@@ -5,6 +5,7 @@
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_quit/quit_components.hpp"
+#include "modules/ui/ui_popup_are_you_sure./ui_popup_are_you_sure_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "ui_popup_pause_components.hpp"
 
@@ -26,9 +27,21 @@ SINGLE_PauseMenuState::do_init(entt::registry& r)
     auto& input_c = r.get<InputComponent>(input_e);
     input_c.button_s.clear();
 
-    move_to_scene_start(r, Scene::menu);
+    // note: the action for this button is to open the are you sure popup
+    SINGLE_UIAreYouSure::instance.action = [&](bool confirmed) {
+      if (confirmed)
+        move_to_scene_start(r, Scene::menu);
+      else
+        open = true;
+    };
   };
-  auto quit_to_desktop_action = [&]() { create_empty<RequestQuitApplication>(r); };
+  auto quit_to_desktop_action = [&]() {
+    // note: the action for this button is to open the are you sure popup
+    SINGLE_UIAreYouSure::instance.action = [&r](bool confirmed) {
+      if (confirmed)
+        create_empty<RequestQuitApplication>(r);
+    };
+  };
 
   const auto make_cell = [&](auto name, auto action) {
     Cell c;
