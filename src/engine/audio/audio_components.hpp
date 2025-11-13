@@ -76,7 +76,7 @@ struct SINGLE_AudioComponent
   bool refresh_devices = true;
   std::vector<std::string> devices;
 
-  int captured_device_id = -1;
+  // int captured_device_id = -1;
 };
 
 } // namespace game2d

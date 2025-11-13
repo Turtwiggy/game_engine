@@ -2,6 +2,9 @@
 
 #include "steam_helpers.hpp"
 
+#include "modules/events/event_steam_remote_player_connected/event_steam_remote_player_connected_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
+
 namespace game2d {
 
 void
@@ -68,6 +71,19 @@ SteamOverlayManager::OnGameOverlayActivated(GameOverlayActivated_t* pCallback)
     SDL_Log("Steam overlay now active");
   else
     SDL_Log("Steam overlay now inactive");
+};
+
+void
+SteamRemotePlayManager::OnRemotePlaySessionConnected(SteamRemotePlaySessionConnected_t* pParam)
+{
+  SDL_Log("Someone connected via remote play.");
+
+  auto& evts_c = SINGLE_Events::instance;
+
+  RemotePlayerConnectedEvent evt;
+
+  evts_c.dispatcher->trigger(evt);
+  evts_c.dispatcher->update();
 }
 
 } // namespace game2d

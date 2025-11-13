@@ -3,6 +3,8 @@
 #include "system.hpp"
 
 #include "engine/audio/audio_components.hpp"
+#include "engine/audio/audio_helpers.hpp"
+#include "engine/audio/audio_system.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
 
@@ -37,8 +39,8 @@ update_ui_audio_system(entt::registry& r)
     ImGui::Text("Available: %s", audio.devices[i].c_str());
   ImGui::NewLine();
 
-  ImGui::Text("Captured Devices");
-  ImGui::Text("captured_device_id: %i", audio.captured_device_id);
+  // ImGui::Text("Captured Devices");
+  // ImGui::Text("captured_device_id: %i", audio.captured_device_id);
   ImGui::NewLine();
 
   ImGui::Text("Select Audio Device");
@@ -49,29 +51,15 @@ update_ui_audio_system(entt::registry& r)
 
     if (ImGui::Button(label.c_str())) {
 
-      // Close old device, if exists
-      if (audio.captured_device_id != -1) {
-        SDL_Log("Closing old audio device.");
-        // SDL_CloseAudioDevice(audio.captured_device_id);
-        Mix_CloseAudio();
-        audio.captured_device_id = -1;
+      const char* device_name = SDL_GetAudioDeviceName(i, 0);
+      if (device_name == nullptr) {
+        SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
+        audio.loaded = true;
+        return; // no available devices
       }
+      SDL_Log("%s", std::format("Using audiodevice: {}", device_name).c_str());
 
-      // Open new device
-      SDL_Log("Opening new audio device.");
-      SDL_AudioSpec spec;
-      spec.freq = MIX_DEFAULT_FREQUENCY;
-      spec.format = MIX_DEFAULT_FORMAT;
-      spec.channels = MIX_DEFAULT_CHANNELS;
-      int chunk_size = 2048;
-      audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, NULL, 0);
-
-      if (audio.captured_device_id < 0)
-        SDL_Log("%s", std::format("Tried to capture audio device: failed.").c_str());
-      else if (audio.captured_device_id == 0)
-        SDL_Log("%s", std::format("Tried to capture audio device: success.").c_str());
-      else
-        SDL_Log("%s", std::format("Tried to capture audio device: unknown, {}", audio.captured_device_id).c_str());
+      refresh_audio(r, std::string{ device_name });
     }
   }
   ImGui::NewLine();

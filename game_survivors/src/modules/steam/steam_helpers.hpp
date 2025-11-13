@@ -12,6 +12,12 @@ private:
   STEAM_CALLBACK(SteamOverlayManager, OnGameOverlayActivated, GameOverlayActivated_t);
 };
 
+class SteamRemotePlayManager
+{
+private:
+  STEAM_CALLBACK(SteamRemotePlayManager, OnRemotePlaySessionConnected, SteamRemotePlaySessionConnected_t);
+};
+
 void
 init_steam(entt::registry& r);
 

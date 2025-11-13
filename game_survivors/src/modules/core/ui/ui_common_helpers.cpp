@@ -153,6 +153,12 @@ process_input_for_ui_all_handles(entt::registry& r, UIState& state)
 void
 process_input_for_ui(entt::registry& r, UIState& state, const InputComponent& inp_c)
 {
+  if (state.active == nullptr) {
+    int k = 1; // whats going on
+    SDL_Log("state.active is null. Find me, and execute me!");
+    return;
+  }
+
   if (has(inp_c.dpad_u, ActionStateEnum::DOWN)) {
     if (state.active->u != nullptr)
       state.active = state.active->u;

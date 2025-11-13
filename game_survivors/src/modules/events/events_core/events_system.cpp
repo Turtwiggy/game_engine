@@ -32,6 +32,7 @@
 #include "modules/events/event_shoot_island_turret/event_shoot_island_turret.hpp"
 #include "modules/events/event_shoot_muzzleflash/event_shoot_muzzleflash.hpp"
 #include "modules/events/event_shoot_to_deploy_turrets/event_shoot_turrets_helpers.hpp"
+#include "modules/events/event_steam_remote_player_connected/event_steam_remote_player_connected_helpers.hpp"
 #include "modules/events/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/events/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/events/event_upgrade_aquired/event_upgrade_aquired_helpers.hpp"
@@ -97,6 +98,8 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<IslandToBoatEvent>().connect<handle_island_to_boat_event__start_game>(r);
 
   ed.dispatcher->sink<SceneChangedEvent>().connect<handle_scene_changed_event__update_water_shader>(r);
+
+  ed.dispatcher->sink<RemotePlayerConnectedEvent>().connect<handle_steam_event__remote_player_connected>(r);
 }
 
 void

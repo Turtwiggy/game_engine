@@ -17,41 +17,7 @@ init_audio_system(entt::registry& r)
 {
   auto& audio = get_first_component<SINGLE_AudioComponent>(r);
 
-  // Initialize sdl_mixer with standard format and sample rate
-  SDL_AudioSpec spec;
-  spec.freq = MIX_DEFAULT_FREQUENCY;
-  spec.format = MIX_DEFAULT_FORMAT;
-  spec.channels = MIX_DEFAULT_CHANNELS;
-  int chunk_size = 2048;
-
-  // Try to open the most reasonable device
-  int device_index = 0;
-  const char* device_name = SDL_GetAudioDeviceName(device_index, 0);
-  if (device_name == nullptr) {
-    SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
-    audio.loaded = true;
-    return; // no available devices
-  }
-  SDL_Log("%s", std::format("Using audiodevice: {}", device_name).c_str());
-  audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, device_name, 0);
-
-  // Check if that worked.
-  if (audio.captured_device_id == -1) {
-    SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
-    return;
-  }
-
-  // request some channels
-  const int request_channels = 64;
-  Mix_AllocateChannels(request_channels);
-  audio.max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
-  SDL_Log("%s", std::format("Audio sources to create: {}", audio.max_audio_sources).c_str());
-  for (int i = 0; i < audio.max_audio_sources; i++) {
-    create_persistent<AudioSource>(r, AudioSource(i));
-
-    // set volume to user pref
-    Mix_Volume(i, static_cast<int>(MIX_MAX_VOLUME * audio.volume_master));
-  }
+  refresh_audio(r);
 
   SDL_Log("%s", std::format("Loading audio...").c_str());
   for (auto& file : audio.sounds) {

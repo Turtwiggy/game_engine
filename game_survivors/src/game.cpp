@@ -173,6 +173,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   init_steam(r);
   init_steam_input(r);
   create_persistent<SteamOverlayManager>(r);
+  create_persistent<SteamRemotePlayManager>(r);
 #endif
 
   {
