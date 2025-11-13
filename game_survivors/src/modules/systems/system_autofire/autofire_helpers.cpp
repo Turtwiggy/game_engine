@@ -168,7 +168,7 @@ get_bullet_def(entt::registry& r, const entt::entity wep_e)
   return bullet_def;
 };
 
-AreaDef_ModifiersApplied
+ElementalDef_ModifiersApplied
 get_area_def(entt::registry& r, const entt::entity wep_e)
 {
   if (wep_e == entt::null) {
@@ -183,24 +183,24 @@ get_area_def(entt::registry& r, const entt::entity wep_e)
   const auto key_stack_duration = std::string(magic_enum::enum_name(UpgradeableStat::AREA_STACK_DURATION));
   const auto key_stacks_applied = std::string(magic_enum::enum_name(UpgradeableStat::AREA_STACKS_PER_SHOT));
 
-  const auto val_beams_per_weapon = r.get<const AreaWeapon_Beams>(wep_e).beams;
-  const auto val_size_x = r.get<const AreaWeapon_Size>(wep_e).size_x;
-  const auto val_size_y = r.get<const AreaWeapon_Size>(wep_e).size_y;
-  const auto val_stack_damage = r.get<const AreaWeapon_StackDamage>(wep_e).damage_mul;
-  const auto val_stack_duration = r.get<const AreaWeapon_StackDuration>(wep_e).seconds;
-  const auto val_stacks_applied = r.get<const AreaWeapon_StacksAppliedPerShot>(wep_e).stacks;
+  // const auto val_beams_per_weapon = r.get<const AreaWeapon_Beams>(wep_e).beams;
+  // const auto val_size_x = r.get<const AreaWeapon_Size>(wep_e).size_x;
+  // const auto val_size_y = r.get<const AreaWeapon_Size>(wep_e).size_y;
+  const auto val_stack_damage = r.get<const ElementalWeapon_StackDamage>(wep_e).damage_mul;
+  const auto val_stack_duration = r.get<const ElementalWeapon_StackDuration>(wep_e).seconds;
+  const auto val_stacks_applied = r.get<const ElementalWeapon_StacksAppliedPerShot>(wep_e).stacks;
 
-  const auto mod_beams_per_weapon = (int)upgrades_c.apply_modifiers(val_beams_per_weapon, key_beams_per_weapon);
-  const auto mod_size_x = upgrades_c.apply_modifiers(val_size_x, key_size);
-  const auto mod_size_y = upgrades_c.apply_modifiers(val_size_y, key_size);
+  // const auto mod_beams_per_weapon = (int)upgrades_c.apply_modifiers(val_beams_per_weapon, key_beams_per_weapon);
+  // const auto mod_size_x = upgrades_c.apply_modifiers(val_size_x, key_size);
+  // const auto mod_size_y = upgrades_c.apply_modifiers(val_size_y, key_size);
   const auto mod_stack_damage = upgrades_c.apply_modifiers(val_stack_damage, key_stack_damage);
   const auto mod_stack_duration = upgrades_c.apply_modifiers(val_stack_duration, key_stack_duration);
   const auto mod_stacks_applied = (int)upgrades_c.apply_modifiers(val_stacks_applied, key_stacks_applied);
 
-  return AreaDef_ModifiersApplied{
-    .beams = mod_beams_per_weapon,
-    .size_x = mod_size_x,
-    .size_y = mod_size_y,
+  return ElementalDef_ModifiersApplied{
+    // .beams = mod_beams_per_weapon,
+    // .size_x = mod_size_x,
+    // .size_y = mod_size_y,
     .stack_damage = mod_stack_damage,
     .stack_duration = mod_stack_duration,
     .stacks_per_shot = mod_stacks_applied,

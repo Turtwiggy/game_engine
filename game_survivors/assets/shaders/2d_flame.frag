@@ -37,7 +37,10 @@ vec2 hash( vec2 p )
 			 dot(p,vec2(269.5,183.3)) );
 	return -1.0 + 2.0*fract(sin(p)*43758.5453123);
 }
-
+float hash12(vec2 x)
+{
+ 	return fract(sin(dot(x, vec2(533.59731, 821.49221))) * 4315.212331);   
+}
 
 float noise( in vec2 p )
 {
@@ -79,6 +82,11 @@ main()
 	float tmp = v_uv.x;
 	v_uv.x = v_uv.y;
 	v_uv.y = tmp;
+	v_uv.y = 1.0 - v_uv.y;
+
+	// out_colour.r = 1.0f;
+	// out_colour.a = 1.0f;
+	// return;
 
 	// v_uv.x -= -1.0f;
 	// v_uv.y -= -1.0f;
@@ -89,8 +97,8 @@ main()
 	float strength = floor(q.x+1.);
 	float T3 = max(3.,1.25*strength)*iTime;
 	q.x = mod(q.x,1.)-0.5;
-  q.x *= 2.0;
-  // q.x *= 0.5;
+  // q.x *= 2.0;
+  q.x *= 0.5;
 	q.y -= 0.3;
 	float n = fbm(strength*q - vec2(0,T3));
   float c = 1. - 16. * pow( max( 0., length(q*vec2(1.8+q.y*1.5,.75) ) - n * max( 0., q.y+.25 ) ),1.2 );

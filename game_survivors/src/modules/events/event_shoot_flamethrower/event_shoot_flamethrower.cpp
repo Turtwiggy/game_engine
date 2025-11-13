@@ -20,6 +20,8 @@ handle_shoot_event__flamethrower(entt::registry& r, const ShootEvent& evt)
   ZoneScoped;
 #endif
 
+  return; // disabled
+
   const auto wep_e = evt.weapon_e;
 
   if (wep_e == entt::null)

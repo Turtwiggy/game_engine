@@ -99,7 +99,8 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       auto stats = upgradeable_weapon_stats;
       if (weapon_type.type_as_enum == WEAPON_TYPE::PROJECTILE || weapon_type.type_as_enum == WEAPON_TYPE::DEPLOY)
         stats.insert(stats.end(), upgradeable_bullet_stats.begin(), upgradeable_bullet_stats.end());
-      if (weapon_type.type_as_enum == WEAPON_TYPE::AREA)
+
+      if (weapon_type.damage_as_enum == WEAPON_DAMAGE::FIRE)
         stats.insert(stats.end(), upgradeable_area_stats.begin(), upgradeable_area_stats.end());
 
       const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)stats.size());
@@ -409,15 +410,16 @@ get_val_str_from_stat_enum(entt::registry& r,
     const auto wep_def = get_weapon_def(r, wep_e);
     const auto wep_data = r.get<Weapon_OnDiskData>(wep_e);
     const auto wep_type = wep_data.type_as_enum;
+    const auto wep_damage = wep_data.damage_as_enum;
 
-    if (wep_type == WEAPON_TYPE::AREA) {
+    if (wep_damage == WEAPON_DAMAGE::FIRE) {
       const auto area_def = get_area_def(r, wep_e);
 
-      if (stat_enum == UpgradeableStat::AREA_BEAMS_PER_WEAPON)
-        val_str = std::format("{}", (int)area_def.beams);
-      else if (stat_enum == UpgradeableStat::AREA_SIZE)
-        val_str = std::format("{} x {}", area_def.size_x, area_def.size_y);
-      else if (stat_enum == UpgradeableStat::AREA_STACK_DAMAGE)
+      // if (stat_enum == UpgradeableStat::AREA_BEAMS_PER_WEAPON)
+      //   val_str = std::format("{}", (int)area_def.beams);
+      // else if (stat_enum == UpgradeableStat::AREA_SIZE)
+      //   val_str = std::format("{} x {}", area_def.size_x, area_def.size_y);
+      if (stat_enum == UpgradeableStat::AREA_STACK_DAMAGE)
         val_str = std::format("{}", area_def.stack_damage);
       else if (stat_enum == UpgradeableStat::AREA_STACK_DURATION)
         val_str = std::format("{}", area_def.stack_duration);

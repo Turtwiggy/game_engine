@@ -195,19 +195,20 @@
       "desc": "Fire [Fire], Fire!",
       "audio": [ ],
 
-      "weapon_type": "AREA",
+      "weapon_type": "PROJECTILE",
       "weapon_damage": "FIRE",
       "useable_by": ["BOATS"],
 
       "data": {
         "WEAPON_CLIP_SIZE": 10   , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
-        "WEAPON_FIRERATE": 1.0 , // per second
-        "WEAPON_RELOAD": 5      , // seconds
-        "WEAPON_RANGE": 5.0     , // meters 
-        "WEAPON_SPREAD": 0        , // degrees
-        // "BULLET_DAMAGE": 1      , 
-        // "BULLET_KNOCKBACK": 0   , // force
+        "WEAPON_FIRERATE": 1.0   , // per second
+        "WEAPON_RELOAD": 5       , // seconds
+        "WEAPON_RANGE": 5.0      , // meters 
+        "WEAPON_SPREAD": 0       , // degrees
+        "BULLET_DAMAGE": 0       , // no damage (applied via elemental damage)
+        "BULLET_KNOCKBACK": 0    , // force
+        "BULLET_SIZE": 32        ,
         "AREA_STACK_DAMAGE": 1,
         "AREA_STACK_DURATION": 1.5,
         "AREA_STACKS_PER_SHOT":2 // how many fire stacks to apply per tick

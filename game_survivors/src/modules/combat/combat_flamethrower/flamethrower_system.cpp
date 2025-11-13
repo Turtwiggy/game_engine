@@ -27,6 +27,8 @@ update_flamethrower_system(entt::registry& r)
   // imgui_draw_float("flame_size_y", size_y);
   // ImGui::End();
 
+  return; // disabled
+
   // rotate the flame
   {
     const auto view = r.view<const FlamethrowerFlameComponent, const HasParentComponent, TransformComponent>();

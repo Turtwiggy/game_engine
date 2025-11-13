@@ -4,8 +4,12 @@
 
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
 #include "engine/std/vector/helpers.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
@@ -62,10 +66,22 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
   // const auto par_id = r.get<const PhysicsBodyComponent>(par_e).bodyId;
   // const auto vel_meters = b2Body_GetLinearVelocity(par_id);
 
+  const auto& wep_data = r.get<Weapon_OnDiskData>(wep_e);
+  bool is_fire = wep_data.damage_as_enum == WEAPON_DAMAGE::FIRE;
+  is_fire |= has(wep_behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
+
   const auto spread_rad = altered_w_def.spread_deg * engine::Deg2Rad;
   const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, spread_rad);
   for (int i = 0; i < altered_w_def.projectiles; i++) {
     const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
+
+    if (is_fire) {
+      r.remove<SpriteComponent>(bullet_e);
+      r.emplace<FlamethrowerFlameComponent>(bullet_e);
+      auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
+      r.emplace<FlamethrowerFlameFixtureComponent>(fixture_e);
+    }
+
     const auto bullet_dir = engine::normalize_safe(engine::angle_radians_to_direction(ar[i]));
     const auto bullet_vel = altered_b_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };
     b2Body_SetLinearVelocity(r.get<PhysicsBodyComponent>(bullet_e).bodyId, bullet_vel);

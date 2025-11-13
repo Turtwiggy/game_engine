@@ -268,7 +268,7 @@ draw_stats(entt::registry& r,
 
       // skip the AREA_ stats if you're not an AREA weapon.
       const bool is_area_stat = stat_str.find("AREA_") != std::string::npos;
-      if (is_area_stat && wep_type != WEAPON_TYPE::AREA)
+      if (is_area_stat && wep_data.damage_as_enum != WEAPON_DAMAGE::FIRE)
         continue;
     }
 
@@ -513,7 +513,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
       ImGui::Begin("CheatLevelUp", nullptr, flags);
 
-      if (ImGui::Button("LevelUp"))
+      if (ImGui::Button("LevelUp") && r.view<UpgradeResultsComponent>().size() == 0)
         sxp_c.xp += sxp_c.xp_for_next_level;
 
       for (int i = 0; i < 4; i++) {

@@ -129,24 +129,24 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
       r.emplace<WeaponSeaTurret>(wep_e);
       r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     }
-    if (weapon_data.type_as_enum == WEAPON_TYPE::AREA) {
-      r.emplace<AutofireComponent>(wep_e);
-      // r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
 
-      // Spawn one square with the flame shader.
-      {
-        const auto flame_e = spawn(r, "weapon_flamethrower_flame");
-        give_life(r, flame_e, { 0, 0 }, { 100, 100 });
-        r.remove<SpriteComponent>(flame_e); // flame no sprite, is a custom shader
-        r.emplace<FlamethrowerFlameComponent>(flame_e);
-        r.emplace<HasParentComponent>(flame_e, HasParentComponent{ wep_e });
-        auto& weapon_children_c = r.get_or_emplace<HasChildrenComponent>(wep_e);
-        weapon_children_c.children.push_back(flame_e);
+    // if (weapon_data.type_as_enum == WEAPON_TYPE::AREA) {
+    //   r.emplace<AutofireComponent>(wep_e);
+    //   // r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
 
-        auto flame_fixture_e = get_fixture_by_tag(r, flame_e, "fixture_flame");
-        r.emplace<FlamethrowerFlameFixtureComponent>(flame_fixture_e);
-      }
-    }
+    //   // Spawn one square with the flame shader.
+    //   {
+    // const auto flame_e = spawn(r, "weapon_flamethrower_flame");
+    // give_life(r, flame_e, { 0, 0 }, { 100, 100 });
+    // r.remove<SpriteComponent>(flame_e); // flame no sprite, is a custom shader
+    // r.emplace<FlamethrowerFlameComponent>(flame_e);
+    // r.emplace<HasParentComponent>(flame_e, HasParentComponent{ wep_e });
+    // auto& weapon_children_c = r.get_or_emplace<HasChildrenComponent>(wep_e);
+    // weapon_children_c.children.push_back(flame_e);
+    // auto flame_fixture_e = get_fixture_by_tag(r, flame_e, "fixture_flame");
+    // r.emplace<FlamethrowerFlameFixtureComponent>(flame_fixture_e);
+    //   }
+    // }
 
     weapons.push_back(wep_e);
 

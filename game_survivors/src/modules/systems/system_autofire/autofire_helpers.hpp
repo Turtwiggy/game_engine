@@ -19,7 +19,7 @@ get_weapon_def(entt::registry& r, const entt::entity wep_e);
 BulletDef
 get_bullet_def(entt::registry& r, const entt::entity wep_e);
 
-AreaDef_ModifiersApplied
+ElementalDef_ModifiersApplied
 get_area_def(entt::registry& r, const entt::entity wep_e);
 
 } // namespace game2d

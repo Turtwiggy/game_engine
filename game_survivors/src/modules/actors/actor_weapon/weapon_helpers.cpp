@@ -96,12 +96,14 @@ become_weapon(entt::registry& r, const entt::entity wep_e, const Weapon_OnDiskDa
   //   r.emplace<WeaponSeaTurret>(wep_e);
 
   // e.g. flamethrower
-  if (wep_type_enum == WEAPON_TYPE::AREA) {
-    r.emplace<AreaWeapon_Beams>(wep_e, AreaWeapon_Beams{ (int)AREA_BEAMS_PER_WEAPON });
-    r.emplace<AreaWeapon_Size>(wep_e, AreaWeapon_Size{ AREA_SIZE_X, AREA_SIZE_Y });
-    r.emplace<AreaWeapon_StackDamage>(wep_e, AreaWeapon_StackDamage{ AREA_STACK_DAMAGE });
-    r.emplace<AreaWeapon_StackDuration>(wep_e, AreaWeapon_StackDuration{ AREA_STACK_DURATION });
-    r.emplace<AreaWeapon_StacksAppliedPerShot>(wep_e, AreaWeapon_StacksAppliedPerShot{ (int)AREA_STACKS_PER_SHOT });
+  // if (wep_type_enum == WEAPON_TYPE::AREA)
+  if (w_data.damage_as_enum == WEAPON_DAMAGE::FIRE) {
+    // r.emplace<AreaWeapon_Beams>(wep_e, AreaWeapon_Beams{ (int)AREA_BEAMS_PER_WEAPON });
+    // r.emplace<AreaWeapon_Size>(wep_e, AreaWeapon_Size{ AREA_SIZE_X, AREA_SIZE_Y });
+    r.emplace<ElementalWeapon_StackDamage>(wep_e, ElementalWeapon_StackDamage{ AREA_STACK_DAMAGE });
+    r.emplace<ElementalWeapon_StackDuration>(wep_e, ElementalWeapon_StackDuration{ AREA_STACK_DURATION });
+    r.emplace<ElementalWeapon_StacksAppliedPerShot>(wep_e,
+                                                    ElementalWeapon_StacksAppliedPerShot{ (int)AREA_STACKS_PER_SHOT });
   }
 
   set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);

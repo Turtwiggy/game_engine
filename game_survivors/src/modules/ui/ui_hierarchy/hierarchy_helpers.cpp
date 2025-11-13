@@ -7,6 +7,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/std/string/helpers.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {
@@ -74,6 +75,11 @@ draw_hierarchy(entt::registry& r, const std::vector<Category>& categories, entt:
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+
+  const auto& ri_c = SINGLE_RendererInfo::instance;
+  ImGui::SetNextWindowSizeConstraints({ 0, 0 },
+                                      { (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y });
+  ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Appearing);
 
   ImGui::Begin("Hierarchy", NULL, flags);
 

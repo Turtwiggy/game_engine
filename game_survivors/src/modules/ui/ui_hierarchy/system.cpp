@@ -91,6 +91,8 @@ update_ui_hierarchy_system(entt::registry& r)
       std::sort(categories.begin(), categories.end(), [](const Category& a, const Category& b) { return a.tag < b.tag; });
     }
 
+    ImGui::SetNextWindowCollapsed(true, ImGuiCond_FirstUseEver);
+
     ImGui::Begin(cf_menu_state.name.c_str(), &cf_menu_state.enabled);
 
     // Display a filter for the categories
@@ -122,6 +124,17 @@ update_ui_hierarchy_system(entt::registry& r)
 
   auto properties_menu_state = gesert_menubar_state(menu_c, "HierarchyProperties");
   if (properties_menu_state.enabled) {
+    static bool initialized = false;
+    if (!initialized) {
+      // auto* viewport = ImGui::GetMainViewport();
+      // ImGuiID dockspace_id = ImGui::GetID("Viewport");
+      // ImGuiID top, bottom;
+      // ImGuiID dock_id_down = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.3f, &bottom, &top);
+      // ImGui::DockBuilderDockWindow("Hierarchy", top);
+      // ImGui::DockBuilderDockWindow("HierarchyProperties", bottom);
+      initialized = true;
+    }
+
     // If an entity is selected draw it's properties
     ImGui::Begin(properties_menu_state.name.c_str(), NULL, ImGuiWindowFlags_NoFocusOnAppearing);
     if (selected_entity == entt::null) {
