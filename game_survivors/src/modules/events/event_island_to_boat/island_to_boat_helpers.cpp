@@ -13,7 +13,7 @@ handle_island_to_boat_event__start_game(entt::registry& r, const IslandToBoatEve
 {
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
 
-  survive_c.game_started = true;
+  // survive_c.game_started = true;
 }
 
 } // namespace game2d

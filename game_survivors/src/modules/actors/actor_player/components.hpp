@@ -92,6 +92,7 @@ struct InputComponent
   float ly = 0.0f;
   float rx = 0.0f;
   float ry = 0.0f;
+  std::vector<ActionStateEnum> select;
   std::vector<ActionStateEnum> pause;
   std::vector<ActionStateEnum> ability1;
   std::vector<ActionStateEnum> ability2;

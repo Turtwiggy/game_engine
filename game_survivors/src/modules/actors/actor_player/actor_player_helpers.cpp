@@ -9,6 +9,7 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
+#include <SDL_scancode.h>
 
 namespace game2d {
 
@@ -24,6 +25,7 @@ merge_inputs(InputComponent& i, const InputComponent& input)
   i.rx = glm::clamp(i.rx, -1.0f, 1.0f);
   i.ry = glm::clamp(i.ry, -1.0f, 1.0f);
 
+  i.select.insert(i.select.end(), input.select.begin(), input.select.end());
   i.pause.insert(i.pause.end(), input.pause.begin(), input.pause.end());
   i.ability1.insert(i.ability1.end(), input.ability1.begin(), input.ability1.end());
   i.ability2.insert(i.ability2.end(), input.ability2.begin(), input.ability2.end());
@@ -70,6 +72,8 @@ generate_from_keyboard(entt::registry& r)
     if (get_key_up(sdl_input_c, key))
       acts.push_back(ActionStateEnum::RELEASE);
   };
+  generate_actions_from_keyboard(i.select, SDL_SCANCODE_E);
+  generate_actions_from_keyboard(i.select, SDL_SCANCODE_BACKSPACE);
   generate_actions_from_keyboard(i.pause, SDL_SCANCODE_ESCAPE);
   generate_actions_from_keyboard(i.dpad_u, SDL_SCANCODE_UP);
   generate_actions_from_keyboard(i.dpad_d, SDL_SCANCODE_DOWN);
@@ -109,6 +113,7 @@ generate_from_handle(entt::registry& r, const InputHandle_t handle)
     if (controller_button_release(steam_c, handle, da))
       acts.push_back(ActionStateEnum::RELEASE);
   };
+  generate_actions(i.select, DA::Game_Back);
   generate_actions(i.pause, DA::Game_Start);
   generate_actions(i.ability1, DA::Game_LB);
   generate_actions(i.ability2, DA::Game_RB);

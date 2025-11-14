@@ -2,13 +2,15 @@
 
 #include "ui_scene_upgrades_helpers.hpp"
 
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
-#include "engine/maths/grid.hpp"
+#include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/io/io_helpers.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_components.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -113,5 +115,53 @@ get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::
   // std::string button_str = std::format("{}/{}", n_stat_upgrades_aquired, n_stat_upgrades);
   return { n_stat_upgrades_aquired, n_stat_upgrades };
 };
+
+void
+draw_purchasebar(entt::registry& r,
+                 const ImVec2 tl,
+                 const ImVec2 br,
+                 const float percent,
+                 const std::string text,
+                 const engine::SRGBColour& col)
+{
+  auto* draw_list = ImGui::GetWindowDrawList();
+  auto* text_font = get_inter_font(r);
+  const auto font_text_size = (float)FontSizes::SIZE_16;
+
+  const auto purchasebar_wh = br - tl;
+
+  auto my_player_col = col;
+  auto my_player_col_active = my_player_col;
+  auto my_player_col_inactive = my_player_col;
+  my_player_col_inactive.a = 0.25f * 255;
+  const auto im_player_col_active = convert_my_to_im(my_player_col_active);
+  const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
+  const auto im_player_col = convert_my_to_im(my_player_col);
+  const float bar_rounding = 0.0f;
+
+  const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
+    const ImVec2 bar_wh = bar_br - bar_tl;
+
+    // draw a box around the bar
+    draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
+
+    // bar bg
+    draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
+
+    // bar fg
+    float x = bar_tl.x + percent * bar_wh.x;
+    const auto partial_bar_br = ImVec2(x, bar_br.y);
+    ImU32 col_l = im_player_col_active;
+    ImU32 col_r = im_player_col_inactive;
+    draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
+  };
+
+  draw_bar(tl, br, percent);
+
+  const auto text_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, text.c_str());
+  const auto text_pos =
+    ImVec2{ tl.x + 0.5f * (purchasebar_wh.x - text_size.x), tl.y + 0.5f * (purchasebar_wh.y - text_size.y) };
+  draw_list->AddText(text_font, font_text_size, text_pos, im_text_col, text.c_str());
+}
 
 } // namespace game2d

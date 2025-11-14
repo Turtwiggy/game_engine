@@ -331,44 +331,9 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     {
       const auto purchasebar_tl = ImVec2{ ui_tl.x + 5.0f, ui_br.y - 25.0f };
       const auto purchasebar_br = ImVec2{ ui_br.x - 5.0f, ui_br.y - 5.0f };
-      const auto purchasebar_wh = purchasebar_br - purchasebar_tl;
-
-      const engine::SRGBColour my_player_col = default_player_colours[0];
-      auto my_player_col_active = my_player_col;
-      auto my_player_col_inactive = my_player_col;
-      my_player_col_inactive.a = 0.25f * 255;
-      const auto im_player_col_active = convert_my_to_im(my_player_col_active);
-      const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
-      const auto im_player_col = convert_my_to_im(my_player_col);
-      const float bar_rounding = 0.0f;
-
-      const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
-        const ImVec2 bar_wh = bar_br - bar_tl;
-
-        // draw a box around the bar
-        draw_list->AddRect(bar_tl, bar_br, im_player_col, bar_rounding, ImDrawFlags_RoundCornersAll, 1);
-
-        // bar bg
-        draw_list->AddRectFilled(bar_tl, bar_br, im_player_col_inactive, bar_rounding, ImDrawFlags_RoundCornersAll);
-
-        // bar fg
-        float x = bar_tl.x + percent * bar_wh.x;
-        const auto partial_bar_br = ImVec2(x, bar_br.y);
-        ImU32 col_l = im_player_col_active;
-        ImU32 col_r = im_player_col_inactive;
-        draw_list->AddRectFilledMultiColor(bar_tl, partial_bar_br, col_r, col_l, col_l, col_r);
-      };
-
+      const auto my_player_col = default_player_colours[0];
       const float percent = ui_c.purchase_time / ui_c.purchase_time_max;
-      draw_bar(purchasebar_tl, purchasebar_br, percent);
-
-      const auto text = "Hold to Purchase"s;
-      const auto text_size = text_font->CalcTextSizeA(font_text_size, FLT_MAX, -1, text.c_str());
-      const auto text_pos = ImVec2{ purchasebar_tl.x + 0.5f * (purchasebar_wh.x - text_size.x),
-                                    purchasebar_tl.y + 0.5f * (purchasebar_wh.y - text_size.y) };
-      draw_list->AddText(text_font, font_text_size, text_pos, im_text_col, text.c_str());
-
-      //
+      draw_purchasebar(r, purchasebar_tl, purchasebar_br, percent, "Hold (Action)", my_player_col);
     }
   }
 

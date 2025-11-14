@@ -396,6 +396,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
   auto& g_input_c = r.get<InputComponent>(g_input_e);
   {
+    g_input_c.select.clear();
     g_input_c.pause.clear();
     g_input_c.ability1.clear();
     g_input_c.ability2.clear();

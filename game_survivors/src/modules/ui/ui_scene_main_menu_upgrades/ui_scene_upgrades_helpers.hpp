@@ -22,4 +22,12 @@ get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::
 void
 process_input_for_grid(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c);
 
+void
+draw_purchasebar(entt::registry& r,
+                 const ImVec2 tl,
+                 const ImVec2 br,
+                 const float percent,
+                 const std::string text,
+                 const engine::SRGBColour& col);
+
 } // namespace game2d

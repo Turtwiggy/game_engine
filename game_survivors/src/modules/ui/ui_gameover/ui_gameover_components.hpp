@@ -11,6 +11,9 @@ struct SINGLE_GameoverUI : public DefaultUI
 {
   std::optional<GameOverComponent> request = std::nullopt;
 
+  const float time_to_back_max = 2.0f;
+  float time_to_back = 0.0f;
+
   SINGLE_GameoverUI()
   {
     Cell c;

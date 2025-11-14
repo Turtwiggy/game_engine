@@ -14,6 +14,8 @@
 #include "modules/systems/system_gameover/gameover_components.hpp"
 #include "modules/systems/system_stats/stats_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu/helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_helpers.hpp"
 #include "resources/data.hpp"
 #include "ui_gameover_components.hpp"
 #include "ui_gameover_system.hpp"
@@ -21,7 +23,7 @@
 namespace game2d {
 
 void
-update_ui_gameover_system(entt::registry& r)
+update_ui_gameover_system(entt::registry& r, const float dt)
 {
 #if defined(_DEBUG)
   ZoneScoped;
@@ -33,13 +35,13 @@ update_ui_gameover_system(entt::registry& r)
 
 #if defined(_DEBUG)
   auto input_c = get_first_component<SINGLE_InputComponent>(r);
-  if (get_key_down(input_c, SDL_SCANCODE_KP_8)) {
+  if (get_key_down(input_c, SDL_SCANCODE_1)) {
     GameOverComponent req;
     req.win_condition = true;
     req.reason = "forced gameover (win)";
     create_empty<GameOverComponent>(r, req);
   }
-  if (get_key_down(input_c, SDL_SCANCODE_KP_9)) {
+  if (get_key_down(input_c, SDL_SCANCODE_2)) {
     GameOverComponent req;
     req.win_condition = false;
     req.reason = "forced gameover (loss)";
@@ -54,41 +56,58 @@ update_ui_gameover_system(entt::registry& r)
   if (!ui_c.open || !ui_c.request.has_value())
     return;
 
+  // process actions.
   process_input_for_ui_all_handles(r, ui_c.state);
+
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
   const auto& g_input_c = r.get<InputComponent>(g_input_e);
-  const auto& b = g_input_c.button_s;
-  const bool do_act = std::find(b.begin(), b.end(), ActionStateEnum::DOWN) != b.end();
+  const auto& b = g_input_c.select;
+  bool hel_back = std::find(b.begin(), b.end(), ActionStateEnum::HELD) != b.end();
+
+  // also held if mouse lmb clicked.
+  hel_back |= ImGui::IsMouseDown(ImGuiMouseButton_Left);
 
   bool back_to_menu = false;
   const std::string discord_link = "https/discord.gg/8RTzsm25pR";
-  const std::string header_win = "Oh Buoy! You did it!";
-  const std::string header_loss = "Oh Buoy! You're Dead!";
+  const std::string header_win = "Oh Buoy!";
+  const std::string header_loss = "Oh Buoy!";
   const std::string subheader_w = "You did it!";
   const std::string subheader_l = "Was it you or us? Feedback @ \n" + discord_link;
 
-  const ImVec2 wh = { (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
-  const ImVec2 tl = { 0, 0 };
-  const auto ui_center = ImVec2{ tl.x + wh.x * 0.5f, tl.y + wh.y * 0.5f };
+  // update held time
+  if (hel_back)
+    ui_c.time_to_back += dt;
+  if (!hel_back)
+    ui_c.time_to_back -= dt;
+  ui_c.time_to_back = glm::clamp(ui_c.time_to_back, 0.0f, ui_c.time_to_back_max);
+  const bool do_act = ui_c.time_to_back >= ui_c.time_to_back_max;
 
+  const ImVec2 window_wh = { (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
+  const ImVec2 window_tl = { 0, 0 };
+  const auto ui_center = ImVec2{ window_tl.x + window_wh.x * 0.5f, window_tl.y + window_wh.y * 0.5f };
   ImGui::SetNextWindowPos(ui_center, ImGuiCond_Always, { 0.5f, 0.5f });
+  ImGui::SetNextWindowSizeConstraints({ 0, 200 }, { 1000, 1000 });
 
   static float wp = 6.0f;
-  // static float wr = 0.0f;
-  // static float fp = 0.0f;
-  // static float fr = 0.0f;
-  // imgui_draw_float("wp", wp);
-  // imgui_draw_float("wr", wr);
-  // imgui_draw_float("fp", fp);
-  // imgui_draw_float("fr", fr);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, wp));
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, wr);
-  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fp, fp));
-  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, fr);
-
   imgui_begin("Gameover");
-  const auto ui_tl = ImGui::GetCursorPos();
-  const auto ui_wh = ImGui::GetContentRegionAvail();
+  const auto ui_tl = ImGui::GetWindowPos();
+  const auto ui_wh = ImGui::GetWindowSize();
+  const auto ui_br = ImVec2{ ui_tl.x + ui_wh.x, ui_tl.y + ui_wh.y };
+  auto* draw_list = ImGui::GetWindowDrawList();
+
+  const auto col = ui_c.request->win_condition ? my_w_col : my_l_col;
+  const auto im_col = ui_c.request->win_condition ? im_w_col : im_l_col;
+
+  // background
+  auto my_window_bg_col_transparent = my_window_bg_col;
+  my_window_bg_col_transparent.a = 200;
+  const auto im_window_bg_col_transparent = convert_my_to_im(my_window_bg_col_transparent);
+  const auto rounding = 4.0f;
+  const auto thickness = 2.0f;
+  const auto rect_flags = ImDrawFlags_RoundCornersAll;
+  draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col_transparent, rounding);
+  draw_list->AddRect(ui_tl, ui_br, im_col, rounding, rect_flags, thickness);
 
   const auto text_font_size = (float)FontSizes::SIZE_16;
   const auto fingerpaint_font_size = (float)FontSizes::HEADER;
@@ -97,40 +116,52 @@ update_ui_gameover_system(entt::registry& r)
 
   if (ui_c.request->win_condition) {
     ImGui::PushFont(fingerpaint_font, fingerpaint_font_size);
-    ImGui::TextColored(im_w_col, "%s", std::format("{}", header_win).c_str());
+    ImGui::TextColored(im_w_col_vec, "%s", std::format("  {}  ", header_win).c_str());
     ImGui::PopFont();
 
-    ImGui::Text("With some luck, you did it!");
+    ImGui::PushFont(text_font, text_font_size);
+    ImGui::Text("  With some luck, you did it!");
+    ImGui::PopFont();
   }
   if (!ui_c.request->win_condition) {
     ImGui::PushFont(fingerpaint_font, fingerpaint_font_size);
-    ImGui::TextColored(im_l_col, "%s", std::format("{}", header_loss).c_str());
+    ImGui::TextColored(im_l_col_vec, "%s", std::format("  {}  ", header_loss).c_str());
     ImGui::PopFont();
 
-    // ImGui::Text("honk!");
+    ImGui::PushFont(text_font, text_font_size);
+    ImGui::Text("  Uh Oh! You ded!");
+    ImGui::PopFont();
   }
 
-  ImGui::NewLine();
-  ImGui::Text("%s", std::format("-{} angry sea monsters", stats_c.enemies_killed).c_str());
-  ImGui::Text("%s", std::format("+{} gold", stats_c.gold_earned).c_str());
+  ImGui::PushFont(text_font, text_font_size);
+  ImGui::Text("  %s", std::format("{} defeated sea monsters", stats_c.enemies_killed).c_str());
+  ImGui::Text("  %s", std::format("{} plundered gold", stats_c.gold_earned).c_str());
+  ImGui::PopFont();
 
-  const ImVec2 button_size = { 88.5f * font_scale, 25.0f * font_scale };
+  // const ImVec2 button_size = { 88.5f * font_scale, 25.0f * font_scale };
+  // SelectableButtonDef def{
+  //   .display_str = "To Menu",
+  //   .imgui_hash = "##tomenubutton",
+  //   .size = button_size,
+  //   .input = do_act,
+  //   .cell = ui_c.state.cells[0], // only one button (continue)
+  //   .active_cell = ui_c.state.active,
+  //   .font = text_font,
+  //   .font_size = text_font_size,
+  // };
+  // ImGui::NewLine();
+  // ImGui::NewLine();
+  // ImGui::SetCursorPosX(ui_wh.x * 0.5f - button_size.x * 0.5f); // center
+  // if (selectable_button(r, def))
+  //   back_to_menu = true;
 
-  SelectableButtonDef def{
-    .display_str = "To Menu",
-    .imgui_hash = "##tomenubutton",
-    .size = button_size,
-    .input = do_act,
-    .cell = ui_c.state.cells[0], // only one button (continue)
-    .active_cell = ui_c.state.active,
-    .font = text_font,
-    .font_size = text_font_size,
-  };
+  // draw a hold to back button.
+  const auto tl = ImVec2{ ui_tl.x + 5.0f, ui_br.y - 25.0f };
+  const auto br = ImVec2{ ui_br.x - 5.0f, ui_br.y - 5.0f };
+  const auto percent = ui_c.time_to_back / ui_c.time_to_back_max;
+  draw_purchasebar(r, tl, br, percent, "Hold (Return) for Menu", col);
 
-  ImGui::NewLine();
-  ImGui::NewLine();
-  ImGui::SetCursorPosX(ui_wh.x * 0.5f - button_size.x * 0.5f); // center
-  if (selectable_button(r, def))
+  if (percent >= 1.0f)
     back_to_menu = true;
 
   ImGui::End();

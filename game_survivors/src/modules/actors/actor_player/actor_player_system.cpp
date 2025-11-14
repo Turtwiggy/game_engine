@@ -134,6 +134,7 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
     input_c.ly = 0.0f;
     input_c.rx = 0.0f;
     input_c.ry = 0.0f;
+    input_c.select.clear();
     input_c.pause.clear();
     input_c.ability1.clear();
     input_c.ability2.clear();
