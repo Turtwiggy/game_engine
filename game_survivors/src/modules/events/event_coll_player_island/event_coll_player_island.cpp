@@ -13,6 +13,8 @@ namespace game2d {
 void
 handle_player_enter_island(entt::registry& r, const OnCollisionEnter& evt)
 {
+  return; // disabled
+
   const auto [pfixture_e, fix_island_e] = coll<PlayerFixtureComponent, IslandFixtureComponent>(r, evt.a, evt.b);
   if (pfixture_e == entt::null || fix_island_e == entt::null)
     return;

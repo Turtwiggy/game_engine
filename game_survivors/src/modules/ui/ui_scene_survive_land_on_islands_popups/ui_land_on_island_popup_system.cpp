@@ -9,6 +9,7 @@
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -30,7 +31,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_size = (float)FontSizes::SIZE_16 * font_scale;
+  const auto font_size = (float)FontSizes::SIZE_13;
   auto* font = get_inter_font(r);
   ImGui::PushFont(font, font_size);
 
@@ -45,23 +46,36 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   //
   // Display "press x to land" popup
   //
-  if (false) {
-    auto view = r.view<const IslandNearestComponent, const PlayerComponent>();
-    for (const auto& [e, nearest_c, player_c] : view.each()) {
+  {
+    auto view = r.view<const IslandNearestComponent, const PlayerComponent, const TransformComponent>();
+    for (const auto& [e, nearest_c, player_c, t_c] : view.each()) {
       if (nearest_c.landable_positions.empty())
         continue; // not interested.
       ImGui::PushID(static_cast<uint32_t>(e));
 
-      const auto handle = steam_c.handles[player_c.idx];
-      const auto confirm_button_str = get_confirm_button_str(r, handle);
-      const auto label = std::format("Press {} to land", confirm_button_str);
+      const auto font_size = (float)FontSizes::SIZE_13;
+      ImGui::PushFont(font, font_size);
 
-      const auto wsp = nearest_c.landable_positions[0];
+      // const auto handle = steam_c.handles[player_c.idx];
+      // const auto confirm_button_str = get_confirm_button_str(r, handle);
+      const auto label = std::string("(Confirm) Land");
+      const auto label_size = ImGui::CalcTextSize(label.c_str());
+
+      ImGui::PopFont();
+
+      const auto boat_pos = get_position(r, e);
+      const auto boat_size = glm::vec2{ t_c.scale.x, t_c.scale.y };
+
+      auto offset = glm::vec2{ 0, 0 };
+      offset.x -= 0.5f * label_size.x;
+      offset.y -= 1.5f * boat_size.y;
+
+      const auto wsp = boat_pos + offset;
       const auto wsp_ss = worldspace_to_screenspace(r, wsp);
       const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
 
       const auto border_col = default_player_colours_im[player_c.idx];
-      draw_popup(r, ss_pos_tl, label, font, border_col);
+      draw_popup(r, ss_pos_tl, label, font, font_size, border_col);
 
       ImGui::PopID();
     }
@@ -70,7 +84,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   //
   // Display "press x to return to boat" (on your boat) popup
   //
-  if (false) {
+  {
     const auto view = r.view<const MovementIslandComponent, const TransformComponent, const InputComponent>();
     for (const auto [e, movement_c, t_c, input_c] : view.each()) {
       auto boat_e = movement_c.boat_e;
@@ -78,19 +92,34 @@ update_ui_land_on_island_popup_system(entt::registry& r)
         continue;
       ImGui::PushID(static_cast<uint32_t>(e));
 
-      const auto boat_pos = get_position(r, boat_e);
-      const auto wsp_ss = worldspace_to_screenspace(r, boat_pos);
+      ImGui::PushFont(font, font_size);
+      const auto str0 = "(DPAD) Move & Attack";
+      const auto str1 = "(Back) Embark";
+      const auto str0_len = ImGui::CalcTextSize(str0);
+      const auto str1_len = ImGui::CalcTextSize(str1);
+      ImGui::PopFont();
+
+      const auto& boat_tc = r.get<const TransformComponent>(boat_e);
+      const auto boat_pos = glm::vec2{ boat_tc.position.x, boat_tc.position.y };
+      const auto boat_size = glm::vec2{ boat_tc.scale.x, boat_tc.scale.y };
+
+      auto offset = glm::vec2{ 0, 0 };
+      offset.y -= 1.5f * boat_size.y;
+
+      const auto wsp = boat_pos + offset;
+      const auto wsp_ss = worldspace_to_screenspace(r, wsp);
       const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
 
       const auto player_idx = r.get<PlayerComponent>(boat_e).idx;
-      const auto handle = steam_c.handles[0];
-      const auto confirm_button_str = get_back_button_str(r, handle);
-      const auto label = std::format("Use DPAD (move/attack)\nPress {} - return to boat", confirm_button_str);
-      const auto label_wh = ImGui::CalcTextSize(label.c_str());
-      const auto ss_pos = ss_pos_tl + ImVec2{ -0.5f * label_wh.x, 0.5f * label_wh.y };
+      // const auto handle = steam_c.handles[0];
+      // const auto confirm_button_str = get_back_button_str(r, handle);
 
+      const auto ss_pos = ss_pos_tl;
       const auto border_col = default_player_colours_im[player_idx];
-      draw_popup(r, ss_pos, label, font, border_col);
+
+      const float max = glm::max(str0_len.x, str1_len.x);
+      draw_popup(r, ss_pos + ImVec2{ -0.5f * max, -str0_len.y }, str0, font, font_size, border_col);
+      draw_popup(r, ss_pos + ImVec2{ -0.5f * max, 0.0f }, str1, font, font_size, border_col);
 
       ImGui::PopID();
     }

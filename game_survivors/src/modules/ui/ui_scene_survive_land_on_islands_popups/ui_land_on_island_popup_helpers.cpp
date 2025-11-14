@@ -8,10 +8,10 @@
 namespace game2d {
 
 void
-draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, ImU32 border_col)
+draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, float font_size, ImU32 border_col)
 {
   auto* draw_list = ImGui::GetWindowDrawList();
-  ImGui::PushFont(font, (float)FontSizes::SIZE_13);
+  ImGui::PushFont(font, font_size);
 
   // add a background
   const float padding = 4;
@@ -29,7 +29,7 @@ draw_popup(entt::registry& r, const ImVec2 tl, std::string text, ImFont* font, I
 
   // add text
   ImGui::SetCursorScreenPos({ tl.x, tl.y });
-  ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), "%s", text.c_str());
+  ImGui::TextColored(im_text_col_vec, "%s", text.c_str());
   ImGui::PopFont();
 }
 

@@ -62,8 +62,9 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
 
   // Player's neighbour gridpos selct tiles.
   {
-    const auto view = r.view<const PlayerComponent, const TransformComponent, const MovementDirectComponent>();
-    for (const auto& [e, player_c, t_c, m_c] : view.each()) {
+    const auto view =
+      r.view<const PlayerComponent, const TransformComponent, const InputComponent, const MovementDirectComponent>();
+    for (const auto& [e, player_c, t_c, input_c, m_c] : view.each()) {
 
       auto& nearest_c = r.get_or_emplace<IslandNearestComponent>(e);
       nearest_c.landable_positions.clear();
@@ -175,12 +176,16 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
                     });
 
         // keep track of landable positions
-        nearest_c.landable_positions.push_back(n_pos);
+        nearest_c.landable_positions.push_back({ island_e, n_pos });
 
         // if you collide with the island, land the player.
-        const auto* collided_with_island = r.try_get<PlayerCollidedWithIsland>(e);
-        const auto* immunity = r.try_get<IslandCollisionImmunity>(e);
-        if ((immunity && immunity->island_e == island_e) || !collided_with_island)
+        // const auto* collided_with_island = r.try_get<PlayerCollidedWithIsland>(e);
+        // const auto* immunity = r.try_get<IslandCollisionImmunity>(e);
+        // if ((immunity && immunity->island_e == island_e) || !collided_with_island)
+        //   continue;
+
+        // no inputs.
+        if (!has(input_c.button_s, ActionStateEnum::DOWN))
           continue;
 
         const auto boat_e = e;
@@ -189,6 +194,9 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
         land_player_on_island(r, island_c, n_gp, boat_e, island_e);
         nearest_c.landable_positions.clear();
         remove_hidden_state_from_island(r, island_e);
+
+        // stop the boats momentum when you land.
+        b2Body_SetLinearVelocity(r.get<PhysicsBodyComponent>(boat_e).bodyId, { 0, 0 });
 
         break; // give movement to one thing
       }

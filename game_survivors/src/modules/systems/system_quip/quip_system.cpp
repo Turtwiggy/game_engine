@@ -62,7 +62,7 @@ update_quip_system(entt::registry& r, const float dt)
 
       auto* font = get_inter_font(r);
       const std::string label = std::format("{}", req.message);
-      draw_popup(r, ss_pos_tl, label, font, im_window_border_col);
+      draw_popup(r, ss_pos_tl, label, font, (float)FontSizes::SIZE_13, im_window_border_col);
     };
 
     auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);

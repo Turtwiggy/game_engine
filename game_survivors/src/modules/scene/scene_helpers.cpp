@@ -482,7 +482,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     spawn_islands(r); // before spawn_players
     spawn_players(r);
-    set_players_as_landed(r);
+    // set_players_as_landed(r);
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
 
@@ -534,7 +534,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     spawn_islands(r); // before spawn_players
     spawn_players(r);
-    set_players_as_landed(r);
+    // set_players_as_landed(r);
     generate_island_life__base_island(r);
     generate_island_life__other_islands(r);
 

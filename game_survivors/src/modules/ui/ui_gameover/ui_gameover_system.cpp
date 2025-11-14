@@ -62,8 +62,8 @@ update_ui_gameover_system(entt::registry& r)
 
   bool back_to_menu = false;
   const std::string discord_link = "https/discord.gg/8RTzsm25pR";
-  const std::string header_win = "Congrats!";
-  const std::string header_loss = "womp womp!";
+  const std::string header_win = "Oh Buoy! You did it!";
+  const std::string header_loss = "Oh Buoy! You're Dead!";
   const std::string subheader_w = "You did it!";
   const std::string subheader_l = "Was it you or us? Feedback @ \n" + discord_link;
 

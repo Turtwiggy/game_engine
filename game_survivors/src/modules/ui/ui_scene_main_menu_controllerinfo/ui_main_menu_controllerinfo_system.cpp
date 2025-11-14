@@ -507,8 +507,12 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
     timer += dt;
     timer_inc += dt;
 
+    bool steaminput_enabled = SteamInput();
+
     imgui_begin("WaitingForControllerUI", ImGuiWindowFlags_NoInputs);
-    auto txt = std::format("Loading steam input...\nWaiting for a controller... ({:0.1f})", timer);
+    auto txt = std::format("Detecting Controllers... {:0.1f}", timer);
+    txt += "\n(Requires SteamInput Enabled)";
+
     ImGui::Text("%s", txt.c_str());
     ImGui::End();
 
