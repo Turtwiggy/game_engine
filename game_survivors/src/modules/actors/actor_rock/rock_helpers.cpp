@@ -580,15 +580,19 @@ generate_rocks(entt::registry& r)
   const auto wh = SINGLE_Islands::instance.wh;
   SDL_Log("Generating rocks, cutoff: %f", cutoff);
 
-  {
-    const auto generated = generate_noise__with_base_island(r);
-    SINGLE_Islands::instance.generated = std::move(generated);
+  int iterations = 5;
+  int cur_islands = 0;
+  int min_islands = 6;
+  std::vector<std::vector<NoiseInfo>> islands;
+  while ((cur_islands < min_islands) && (iterations > 0)) {
+    iterations--;
+    SINGLE_Islands::instance.generated = generate_noise__with_base_island(r);
+    const auto& generated = SINGLE_Islands::instance.generated;
+    const auto i = identify_islands(generated, cutoff);
+    cur_islands = i.size();
+    islands = i;
+    SDL_Log("Iteration... found %i islands", cur_islands);
   }
-
-  const auto& generated = SINGLE_Islands::instance.generated;
-
-  // identify the noise into islands.
-  const auto islands = identify_islands(generated, cutoff);
 
   // after converting in to islands, generate the contours (outline)
   for (int i = 0; const std::vector<NoiseInfo>& island : islands) {

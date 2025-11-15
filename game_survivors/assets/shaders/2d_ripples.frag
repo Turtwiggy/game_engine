@@ -96,8 +96,6 @@ main()
     return;
   }
 
-
-
   // draw the white line
   if(v_uv.y > min_val && v_uv.y < max_val)
   {

@@ -114,15 +114,16 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
   // outline it
   // 10x the HP, but it also drops a level up.
   static engine::RandomState variant_rng(0);
+  // const float variant_chance_percent_0_100 = 0.25f; // 0.25%
   const float variant_chance_percent_0_100 = 0.25f; // 0.25%
   const float variant_hp_multiplier = 10.0f;
   const bool is_variant = engine::rand_det_s(variant_rng.rng, 0, 100) < variant_chance_percent_0_100;
   if (is_variant && key != "actor_destructable") {
     r.emplace<SpriteOutline>(e);
     hp *= variant_hp_multiplier;
-    auto& death_c = r.get<OnDeathCallbacks>(e);
-    auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
-    death_c.callbacks.push_back(drop_xp_callback);
+    // auto& death_c = r.get<OnDeathCallbacks>(e);
+    // auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
+    // death_c.callbacks.push_back(drop_xp_callback);
   }
 
   // check global hp multipler
@@ -136,7 +137,8 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   give_life(r, e, rnd_pos_around_player, enemy_size);
 
-  if (!is_variant) {
+  // Make enemies drop xp
+  {
     auto& callbacks_c = r.get<OnDeathCallbacks>(e);
     auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_xp_on_death_callback(r, e); };
     callbacks_c.callbacks.push_back(drop_xp_callback);

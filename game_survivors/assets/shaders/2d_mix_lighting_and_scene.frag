@@ -436,14 +436,7 @@ void main()
   out_colour.rgb = mix( out_colour.rgb, col_itg.rgb, sign(length( col_itg.rgb )));
 
   // scene
-  // vec3 lin_scene = srgb_to_lin(vec3(255)*col_scene.rgb);
-  // vec3 lin_ripples = srgb_to_lin(vec3(255)*col_ripples.rgb);
-  // vec3 adj_col = lin_to_srgb( max(lin_scene, lin_ripples) );
   vec3 adj_col = col_scene.rgb;
-  // if(tex_ripples_col.rgb == vec3(1.0f)){
-  //   // adj_col = lighting_col * vec3(0.7f);
-  // }else 
-  // 
   if(length(tex_ripples_col.rgb) > 0 && length(col_scene.rgb) > 0 ){
     // adj_col *= col_ripples.rgb;
     adj_col = col_ripples.rgb;
@@ -453,13 +446,6 @@ void main()
 
   // vec3 adj_col = tex_ripples_col.rgb;
   out_colour.rgb = mix( out_colour.rgb, adj_col, sign(length( col_scene.rgb )) );
-
-  // ripples
-  // out_colour.rgb = mix( out_colour.rgb, col_ripples.rgb, sign(length( col_ripples.rgb )) );
-
-  // ripples
-  // out_colour.rgb = mix( out_colour.rgb, col_ripples.rgb,  sign(length( col_ripples.rgb )) );
-  // out_colour.rgb = mix( out_colour.rgb, col_ripples.rgb, col_ripples.a );
 
   // hide parts of the scene
   out_colour.rgb = mix( out_colour.rgb, col_hidden.rgb, sign(length( col_hidden.rgb )));
@@ -475,6 +461,9 @@ void main()
 
   // flames
   out_colour.rgb = mix( out_colour.rgb, tex_flame_col, length(tex_flame_col.r) );
+
+  // outline
+  out_colour.rgb = mix(out_colour.rgb, outline_col, length(outline_col.rgb));
 
   // vignette
   // if(add_vignette){
