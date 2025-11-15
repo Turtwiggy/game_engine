@@ -2,11 +2,17 @@
 *.exe
 *.o
 *.log
-build/
 .vs/
 .cache/
 .DS_Store
 !thirdparty/sdk/*.dll
+
+# ignore everything under build
+/build/**
+# but allow directories so git can reach inside them
+!/build/**/
+# and allow any .vdf file at any depth
+!/build/**/*.vdf
 
 # Configs
 imgui.ini

@@ -64,7 +64,8 @@ update_actor_snake_projectiles_system(entt::registry& r)
     b2Body_SetLinearVelocity(bul_body_c_1.bodyId, { bullet_speed * neg_perp.x, bullet_speed * neg_perp.y });
 
     AnimationRotate rotate_c{ .speed = 3.0f };
-    r.emplace<AnimationRotate>(bullet_e, rotate_c);
+    r.emplace<AnimationRotate>(bullet_e_0, rotate_c);
+    r.emplace<AnimationRotate>(bullet_e_1, rotate_c);
   }
 }
 

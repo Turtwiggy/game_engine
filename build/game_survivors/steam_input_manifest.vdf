@@ -1,0 +1,73 @@
+"Action Manifest"
+{
+  "configurations"
+	{
+    "controller_xbox360"
+		{
+			"0"
+			{
+				"path" "steam_input_xbox360_controller.vdf"
+			}
+		}
+	}
+  "actions"
+  {
+    "game_controls"
+    {
+      "title"          			"#Set_GameControls"
+      "StickPadGyro"
+      {
+        "l_analog"
+        {
+          "title"       "#GameLAnalogControls"
+          "input_mode"  "joystick_move"
+        }
+        "r_analog"
+        {
+          "title"       "#GameRAnalogControls"
+          "input_mode"  "joystick_move"
+        }
+      }
+      "Button"
+      {
+        "action_up"         "#Game_Up"
+        "action_down"       "#Game_Down"
+        "action_left"       "#Game_Left"
+        "action_right"      "#Game_Right"
+
+        "game_start"        "#Game_Start"
+        "game_back"         "#Game_Back"
+        "game_north"        "#Game_North"
+        "game_south"        "#Game_South"
+        "game_east"         "#Game_East"
+        "game_west"         "#Game_West"
+        "game_lb"           "#Game_LB"
+        "game_rb"           "#Game_RB"
+      }
+    }
+  }
+  "localization"
+  {
+    "english"
+    {
+      "Set_GameControls"   "Game Controls"
+
+      "GameLAnalogControls"		"Game Left Analog"
+      "GameRAnalogControls"		"Game Right Analog"
+
+			"Game_Up"          "DpadUp"
+			"Game_Down"        "DpadDown"
+			"Game_Left"        "DpadLeft"
+			"Game_Right"       "DpadRight"
+
+      "Game_Start"       "ButtonStart"
+      "Game_Back"        "ButtonBack"
+      "Game_North"       "ButtonNorth"
+      "Game_South"       "ButtonSouth"
+      "Game_East"        "ButtonEast"
+      "Game_West"        "ButtonWest"
+      "Game_LB"          "BumperLeft"
+      "Game_RB"          "BumperRight"
+    }
+  }
+}
