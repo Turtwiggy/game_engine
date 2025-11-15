@@ -78,6 +78,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
   const auto thickness = 2.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
   draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, rounding);
+  draw_list->AddRect(window_tl, window_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
   const auto TEXT_SIZE = font->CalcTextSizeA(font_size, FLT_MAX, -1, "A");
   const ImVec2 button_size = { 200.0f, TEXT_SIZE.y + 2.0f };

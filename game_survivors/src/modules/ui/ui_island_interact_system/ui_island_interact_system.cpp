@@ -94,7 +94,7 @@ update_ui_island_interact_system(entt::registry& r, const float dt)
     float rounding = 0.0f;
     float thickness = 1.0f;
     draw_list->AddRectFilled(pad_tl, pad_br, IM_COL32(0, 0, 0, 100), rounding);
-    draw_list->AddRect(pad_tl, pad_br, IM_COL32(255, 255, 255, 255), rounding, ImDrawFlags_RoundCornersAll, thickness);
+    draw_list->AddRect(pad_tl, pad_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
 
     // text
     draw_list->AddText(font, font_size, text_pos, IM_COL32(255, 255, 255, 255), text.c_str());

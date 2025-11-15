@@ -120,14 +120,15 @@ init_steam_input(entt::registry& r)
   // ALTERNATIVELY: upload your generated config via
   // steamworkshop, and dont bundle a .vdf with the app
   //
-  // const auto path = std::filesystem::absolute(".");
-  // const auto abs_path_to_vdf = path.generic_string() + "/steam_input_manifest.vdf";
-  // SDL_Log("Absolute path: %s", abs_path_to_vdf.c_str());
-  // auto result = SteamInput()->SetInputActionManifestFilePath(abs_path_to_vdf.c_str());
-  // if (!result) {
-  //   SDL_Log(".vdf file not found or corrupt");
-  //   exit(1);
-  // }
+
+  const auto path = std::filesystem::absolute(".");
+  const auto abs_path_to_vdf = path.generic_string() + "/steam_input_manifest.vdf";
+  SDL_Log("Absolute path: %s", abs_path_to_vdf.c_str());
+  auto result = SteamInput()->SetInputActionManifestFilePath(abs_path_to_vdf.c_str());
+  if (!result) {
+    SDL_Log(".vdf file not found or corrupt");
+    exit(1);
+  }
 
   create_persistent<SINGLE_SteamControllers>(r);
   init_steam_input_actions(r);

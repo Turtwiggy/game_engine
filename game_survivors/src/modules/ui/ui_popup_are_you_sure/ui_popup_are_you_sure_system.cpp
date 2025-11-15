@@ -81,7 +81,7 @@ update_ui_popup_are_you_sure_system(entt::registry& r)
   const auto thickness = 2.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
   draw_list->AddRectFilled(ui_tl, ui_br, im_window_bg_col, rounding);
-  draw_list->AddRect(ui_tl, ui_br, IM_COL32(255, 255, 255, 255), rounding, rect_flags, thickness);
+  draw_list->AddRect(ui_tl, ui_br, im_window_border_col, rounding, rect_flags, thickness);
 
   ImGui::PushFont(font, text_size);
   ImGui::PushStyleColor(ImGuiCol_Separator, im_separator_col);

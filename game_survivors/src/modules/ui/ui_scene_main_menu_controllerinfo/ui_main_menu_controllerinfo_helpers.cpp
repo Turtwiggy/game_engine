@@ -106,7 +106,8 @@ get_str_for_da(const SINGLE_SteamControllers& steam_c, const InputHandle_t handl
   // return SteamInput()->GetStringForDigitalActionName(h);
 
   EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
-  const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
+  auto n_origins = SteamAPI_ISteamInput_GetDigitalActionOrigins(SteamAPI_SteamInput(), handle, as, h, origins);
+
   if (n_origins > 0) {
     // use the first origin keyname
     EInputActionOrigin origin = origins[0];
@@ -123,6 +124,7 @@ get_str_for_da(const SINGLE_SteamControllers& steam_c, const InputHandle_t handl
     return button_str;
   }
 
+  // TODO: work out when some controllers are returning this
   return "...";
 };
 
