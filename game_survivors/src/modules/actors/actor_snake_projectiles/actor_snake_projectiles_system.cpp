@@ -8,6 +8,7 @@
 #include "modules/actors/actor_snake/snake_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
+#include "modules/core/animations/rotate_components.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
@@ -61,6 +62,9 @@ update_actor_snake_projectiles_system(entt::registry& r)
     auto& bul_body_c_1 = r.get<PhysicsBodyComponent>(bullet_e_1);
     b2Body_SetLinearVelocity(bul_body_c_0.bodyId, { bullet_speed * pos_perp.x, bullet_speed * pos_perp.y });
     b2Body_SetLinearVelocity(bul_body_c_1.bodyId, { bullet_speed * neg_perp.x, bullet_speed * neg_perp.y });
+
+    AnimationRotate rotate_c{ .speed = 3.0f };
+    r.emplace<AnimationRotate>(bullet_e, rotate_c);
   }
 }
 

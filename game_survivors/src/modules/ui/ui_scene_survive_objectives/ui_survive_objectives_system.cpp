@@ -30,19 +30,19 @@ update_ui_survive_objectives_system(entt::registry& r)
 
   imgui_begin("SurviveSceneObjectives", ImGuiWindowFlags_NoInputs);
 
-  ImGui::SeparatorText("Earnings");
-  {
-    const auto& stats_c = get_first_component<SINGLE_SurviveStatsComponent>(r);
-    auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
+  // ImGui::SeparatorText("Earnings");
+  // {
+  const auto& stats_c = get_first_component<SINGLE_SurviveStatsComponent>(r);
+  auto& gold_c = get_first_component<SINGLE_GoldComponent>(r);
 
-    // hack: this shouldnt be here.
-    // this updates the gold amount based on enemies killed,
-    // but this shouldnt live in the ui component.
-    gold_c.temp_amount_enemies = glm::max((int)(stats_c.enemies_killed / 50), 0);
+  // hack: this shouldnt be here.
+  // this updates the gold amount based on enemies killed,
+  // but this shouldnt live in the ui component.
+  gold_c.temp_amount_enemies = glm::max((int)(stats_c.enemies_killed / 50), 0);
 
-    const auto gold = gold_c.temp_amount_pickup + gold_c.temp_amount_enemies;
-    ImGui::Text("%s", std::format("Gold: {}", gold).c_str());
-  }
+  //   const auto gold = gold_c.temp_amount_pickup + gold_c.temp_amount_enemies;
+  //   ImGui::Text("%s", std::format("Gold: {}", gold).c_str());
+  // }
 
   ImGui::NewLine();
   ImGui::SeparatorText("Sub-Objectives");

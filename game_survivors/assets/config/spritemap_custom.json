@@ -47,7 +47,7 @@
     { "name": "GOLD_OUTLINE_SMALL", "frames": [ { "x": 5, "y": 10, "w": 1, "h": 1 } ]},
 
     { "name": "ROCKS_0", "frames": [ { "x": 0, "y": 12, "w": 2, "h": 2 } ]},
-    { "name": "BUBBLES_0", "frames": [ { "x": 2, "y": 12, "w": 1, "h": 1 } ]},
+    { "name": "SNAKE_BULLET", "frames": [ { "x": 2, "y": 12, "w": 1, "h": 1 } ]},
 
     { "name": "ICON_ACTOR_DODGE_CHANCE", "frames": [ { "x": 3, "y": 27, "w": 1, "h": 1 } ]},
     { "name": "ICON_ACTOR_HEALTH_MAX", "frames": [ { "x": 4, "y": 27, "w": 1, "h": 1 } ]},
