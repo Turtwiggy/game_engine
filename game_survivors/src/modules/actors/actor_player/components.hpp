@@ -17,6 +17,7 @@ namespace game2d {
 struct PlayerComponent
 {
   int idx = 0;
+  std::string display_name = "player";
 };
 
 struct ActorSpeedComponent

@@ -150,7 +150,7 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
       }
     };
 
-    const auto display_increment = [&r, window_wh](auto& o, int& h_value, const float& data, const std::string label) {
+    const auto display_increment = [&r, window_wh](auto& o, int& h_value, const float data, const std::string label) {
       ImGui::SameLine(window_wh.x * 0.75f);
 
       float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
@@ -181,14 +181,14 @@ update_ui_scene_select_modifiers_system(entt::registry& r)
 
       float data = o->multiplier;
       display_increment(o, h_value, data, "##enemy_health");
-      o->multiplier = data;
+      // o->multiplier = data;
     }
 
     if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get())) {
       auto& h_value = dynamic_cast<OptionsCell*>(cell.get())->value;
       float data = o->multiplier;
       display_increment(o, h_value, data, "##enemy_count");
-      o->multiplier = data;
+      // o->multiplier = data;
     }
   }
 

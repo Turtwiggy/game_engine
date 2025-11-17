@@ -94,7 +94,13 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 };
 
 entt::entity
-spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, std::string weapon_key, const glm::vec2 pos)
+spawn_player(entt::registry& r,
+             std::string key,
+             std::string name,
+             int num,
+             std::string hull_key,
+             std::string weapon_key,
+             const glm::vec2 pos)
 {
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
   const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
@@ -160,7 +166,7 @@ spawn_player(entt::registry& r, std::string key, int num, std::string hull_key, 
   r.emplace<PlayerBoatComponent>(e);
 
   give_life(r, e, pos, hull_size);
-  r.emplace<PlayerComponent>(e, num);
+  r.emplace<PlayerComponent>(e, PlayerComponent{ .idx = num, .display_name = name });
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<MovementDirectComponent>(e);
@@ -327,8 +333,10 @@ spawn_players(entt::registry& r)
       throw std::runtime_error("weapon_str not set");
     SDL_Log("player wants to spawn with (boat)%s (weapon)%s", boat_str.c_str(), weapon_str.c_str());
 
+    const auto player_name = hull_keys[i].player_name;
+
     const auto pos = get_player_spawn_point_around_starting_island(r, i);
-    const auto p = spawn_player(r, "actor_player", i, boat_str, weapon_str, pos);
+    const auto p = spawn_player(r, "actor_player", player_name, i, boat_str, weapon_str, pos);
 
     if (handle_joined)
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
@@ -548,7 +556,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // create_empty<CameraFreeMove>(r);
 
     const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
-    const auto p = spawn_player(r, "actor_player", 0, "dinghy", "weapon_deck_cannon", pos);
+    const auto p = spawn_player(r, "actor_player", "player", 0, "dinghy", "weapon_deck_cannon", pos);
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {

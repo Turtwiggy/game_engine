@@ -1,6 +1,10 @@
 #include "pch.hpp"
 
+#include "ui_survive_hp_bars.hpp"
+
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -15,10 +19,16 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
+#include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
+#include "modules/scene/scene_components.hpp"
+#include "modules/scene/scene_helpers.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
-#include "ui_survive_hp_bars.hpp"
+#include "steam/isteaminput.h"
 
 namespace game2d {
 
@@ -47,21 +57,37 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
+  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+
+  // #if defined(_DEBUG)
+  //   const auto& scene_c = SINGLE_CurrentScene::instance;
+  //   if (scene_c.s == Scene::menu) {
+  //     gesert_component<SINGLE_XpComponent>(r);
+  //     gesert_component<SINGLE_LevelUpUI>(r);
+  //     gesert_component<SINGLE_PersistentUpgrades>(r);
+  //     static bool init = false;
+  //     if (!init) {
+  //       for (int i = 0; i < 4; i++) {
+  //         // create a fake player
+  //         auto e = spawn_player(r, "actor_player", i, "dinghy", "weapon_deck_cannon", { 0, 0 });
+  //         if (i == 0)
+  //           r.emplace<KeyboardComponent>(e);
+  //       }
+  //       init = true;
+  //     }
+  //   }
+  // #endif
+
   auto& ri_c = SINGLE_RendererInfo::instance;
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-
   const auto grime_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
   const auto im_id = (ImTextureID)(void*)(intptr_t)(grime_tex_id);
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_size = (float)FontSizes::SIZE_13 * font_scale;
   auto* font = get_inter_font(r);
-  ImGui::PushFont(font, font_size);
 
-  const float hp_bar_height = font_size;
   const float hp_bar_width = 200.0f * font_scale;
   const float distance_from_bottom_of_screen = 15.0f;
-  const float space_between_bars = 45.0f * font_scale;
 
   // make sure player entities are oredered by index
   std::map<int, entt::entity> players_e_map;
@@ -71,45 +97,53 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   for (const auto& [player_idx, player_e] : players_e_map)
     players_e_vec.push_back(player_e);
 
+  // #if defined(_DEBUG)
+  //   static auto num_active_players = 4;
+  //   imgui_draw_int("debug_players", num_active_players);
+  // #else
   const auto num_active_players = (int)players_e_vec.size();
-  int n_weapons = max_weapons_per_players(r, players_e_vec);
-
-  // static auto num_active_players = 1;
-  // imgui_draw_int("debug_players", num_active_players);
+  // #endif
+  const int n_weapons = max_weapons_per_players(r, players_e_vec);
 
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoInputs;
-  flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  flags |= ImGuiWindowFlags_NoBackground;
-  // flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  static float hp_bar_height = 12;
+  static float space_between_bars = 24.0f;
+  static glm::vec2 pos{ 0, (float)ri_c.viewport_size_render_at.y };
+  static glm::vec2 size{ 300, 300 };
+  // imgui_draw_vec2("set_window_pos", pos);
+  // imgui_draw_vec2("set_window_size", size);
+  // imgui_draw_float("space_between_bars", space_between_bars);
+  // imgui_draw_float("hp_bar_height", hp_bar_height);
+  const auto set_window_pos = pos;
+  const auto set_window_size = size;
 
-  const auto set_window_pos = ImVec2{ 0, (float)ri_c.viewport_size_render_at.y - distance_from_bottom_of_screen };
-  const auto set_window_size = ImVec2{ (float)ri_c.viewport_size_render_at.x, hp_bar_height * (2 + n_weapons) * ui_scale };
-  ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.0f, 1.0f });
-  ImGui::SetNextWindowSize(set_window_size, ImGuiCond_Always);
+  ImGui::SetNextWindowPos({ 0, pos.y }, ImGuiCond_Always, { 0.0f, 1.0f });
+  ImGui::SetNextWindowSize({ size.x, size.y }, ImGuiCond_Always);
+  imgui_begin("HpBars", ImGuiWindowFlags_NoInputs);
 
-  ImGui::Begin("HpBars", NULL, flags);
   const ImVec2 window_tl = ImGui::GetWindowPos();
   const ImVec2 window_wh = ImGui::GetWindowSize();
   auto* draw_list = ImGui::GetWindowDrawList();
+  // draw_list->AddRect(window_tl, window_tl + window_wh, IM_COL32(255, 0, 0, 255), 0.0f, 0, 3);
 
-  const auto center_x = window_tl.x + 0.5f * window_wh.x;
-  auto first_tl_x = center_x;
-  first_tl_x -= num_active_players * (0.5f * hp_bar_width);
-  first_tl_x -= (num_active_players - 1) * (0.5f * space_between_bars);
+  auto hp_bar_tl = ImVec2{ window_tl.x + 4, window_tl.y + 32 };
+  auto hp_bar_br = hp_bar_tl + ImVec2{ hp_bar_width, hp_bar_height };
+
+  // const auto center_x = window_tl.x + 0.5f * window_wh.x;
+  // auto first_tl_x = center_x;
+  // first_tl_x -= num_active_players * (0.5f * hp_bar_width);
+  // first_tl_x -= (num_active_players - 1) * (0.5f * space_between_bars);
 
   for (int i = 0; i < num_active_players; i++) {
 
     // data per bar.
     const auto player_e = players_e_vec[i];
-    const auto player_idx = r.get<PlayerComponent>(player_e).idx;
+    const auto& player_c = r.get<PlayerComponent>(player_e);
+    const auto player_idx = player_c.idx;
     const auto children_c = r.get<HasChildrenComponent>(player_e);
     const auto fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
     const auto& hp_c = r.get<HealthComponent>(fixture_e);
@@ -118,17 +152,18 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     const float hp_percent = hp / max_hp;
     const auto player_col = default_player_colours[player_idx];
 
-    // draw health bar!
+    // draw text
+    const auto display_name = player_c.display_name;
+    const auto text_pad_x = 4.0f;
+    draw_list->AddText(font, 16, { hp_bar_tl.x + text_pad_x, hp_bar_tl.y - 16 }, im_text_col, display_name.c_str());
 
     // bar bg.
-    const auto full_bar_tl = ImVec2(first_tl_x, window_tl.y);
-    const auto full_bar_br = ImVec2(first_tl_x + hp_bar_width, window_tl.y + hp_bar_height);
-    draw_list->AddRectFilled(full_bar_tl, full_bar_br, im_hp_bar_background_col);
+    draw_list->AddRectFilled(hp_bar_tl, hp_bar_br, im_hp_bar_background_col);
 
     // bar fg.
     const auto fg_col = IM_COL32(player_col.r, player_col.g, player_col.b, 0.5f * 255);
-    const auto fg_bar_tl = ImVec2(first_tl_x, window_tl.y);
-    const auto fg_bar_br = ImVec2(first_tl_x + hp_percent * hp_bar_width, window_tl.y + hp_bar_height);
+    const auto fg_bar_tl = hp_bar_tl;
+    const auto fg_bar_br = ImVec2{ hp_bar_tl.x + hp_bar_width * hp_percent, hp_bar_br.y };
     draw_list->AddRectFilled(fg_bar_tl, fg_bar_br, fg_col);
 
     // bar fg (textured).
@@ -136,18 +171,18 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     // icon_uv_br.x *= hp_percent;
     // const auto tex_uv_tl = ImVec2{ 0.0f, 0.0f };
     // const auto tex_uv_br = ImVec2{ hp_percent * 1.0f, 1.0f };
-    draw_list->AddImage(im_id, fg_bar_tl, fg_bar_br, icon_uv_tl, icon_uv_br);
+    draw_list->AddImage(im_id, hp_bar_tl, hp_bar_br, icon_uv_tl, icon_uv_br);
 
     // hp bar bold line
     const auto line_col = IM_COL32(player_col.r, player_col.g, player_col.b, 255);
-    const auto line_tex_tl = ImVec2(first_tl_x, window_tl.y);
-    const auto line_tex_br = ImVec2(first_tl_x + hp_bar_width, window_tl.y + 1);
+    const auto line_tex_tl = hp_bar_tl;
+    const auto line_tex_br = ImVec2{ hp_bar_br.x, hp_bar_tl.y + 1 };
     draw_list->AddRectFilled(line_tex_tl, line_tex_br, line_col);
 
     // hp bar black line
     const auto bottom_line_col = IM_COL32(20, 20, 20, 255);
-    const auto bottom_line_tex_tl = ImVec2(first_tl_x, window_tl.y + hp_bar_height - 2);
-    const auto bottom_line_tex_br = ImVec2(first_tl_x + hp_bar_width, window_tl.y + hp_bar_height);
+    const auto bottom_line_tex_tl = ImVec2{ hp_bar_tl.x, hp_bar_br.y - 2 };
+    const auto bottom_line_tex_br = hp_bar_br;
     draw_list->AddRectFilled(bottom_line_tex_tl, bottom_line_tex_br, bottom_line_col);
 
     // health text.
@@ -161,6 +196,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     // weapon reload / bullet info
     //
 
+    /*
     const auto weapons_e_vec = get_weapons(r, players_e_vec[i]);
     const auto num_active_weapons = (int)weapons_e_vec.size();
 
@@ -235,14 +271,17 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 
       txt_tl.y += font_size; // move vertically
     }
+    */
 
-    first_tl_x += hp_bar_width;
-    first_tl_x += space_between_bars;
+    // first_tl_x += hp_bar_width;
+    // first_tl_x += space_between_bars;
+
+    hp_bar_tl.y += hp_bar_height + space_between_bars;
+    hp_bar_br.y += hp_bar_height + space_between_bars;
   }
 
   ImGui::End();
   ImGui::PopStyleVar(4);
-  ImGui::PopFont();
 }
 
 } // namespace game2d

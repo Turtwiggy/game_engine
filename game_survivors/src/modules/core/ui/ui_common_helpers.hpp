@@ -32,6 +32,9 @@ void
 process_input_for_ui(entt::registry& r, UIState& state, const InputComponent& inp_c);
 
 void
+clear_navlinks(std::vector<std::shared_ptr<Cell>>& cells);
+
+void
 create_as_vertical_layout(std::vector<std::shared_ptr<Cell>>& cells);
 
 void

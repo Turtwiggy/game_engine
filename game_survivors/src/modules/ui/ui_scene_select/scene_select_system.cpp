@@ -64,7 +64,6 @@ update_selections(entt::registry& r,
                   SINGLE_SelectSceneData& ui_c,
                   const std::shared_ptr<Cell>& base,
                   const int player_idx,
-                  const int cell_idx,
                   const ImVec2 pos,
                   const ImVec2 button_size,
                   const bool active,
@@ -75,11 +74,19 @@ update_selections(entt::registry& r,
   auto& player_state = ui_c.player_choice_state[player_idx];
 
   auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
-  const bool is_hull = cell_idx == 0;
-  const bool is_weapon = cell_idx == 1;
-  const bool is_ability = cell_idx == 2;
+
+  const bool is_name = cell.name.find("Name") != std::string::npos;
+  const bool is_hull = cell.name.find("Hull") != std::string::npos;
+  const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
 
   std::string name = "";
+
+  if (is_name) {
+    cell.value = engine::wrap(cell.value, (int)ui_c.available_names.size());
+    const auto& out_name = ui_c.available_names[cell.value];
+    name = out_name;
+    player_state.player_name = name;
+  }
 
   // convert index to hull choice
   if (is_hull) {
@@ -106,8 +113,8 @@ update_selections(entt::registry& r,
   }
 
   // convert index to ability choice.
-  if (is_ability)
-    name = "None";
+  // if (is_ability)
+  //   name = "None";
 
   // center the text y
   // ImGui::SetCursorPos({ pos.x - 0.5f * text_wh.x, pos.y + 0.5f * (button_size.y - text_wh.y) });
@@ -145,9 +152,9 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   const auto cell_it = std::find(cs.begin(), cs.end(), active_cell);
   const auto cell_idx = static_cast<int>(cell_it - cs.begin());
   auto& cell = *(dynamic_cast<OptionsCell*>(cell_it->get()));
-  const bool is_hull = cell_idx == 0;
-  const bool is_weapon = cell_idx == 1;
-  const bool is_ability = cell_idx == 2;
+  const bool is_name = cell.name.find("Name") != std::string::npos;
+  const bool is_hull = cell.name.find("Hull") != std::string::npos;
+  const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
 
   std::string info_key = "";
   std::string info_desc = "";
@@ -169,8 +176,6 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     const auto& weapon = weapons_c.weapons[wep_idxs[cell.value]];
     info_key = weapon.name;
     info_desc = weapon.desc;
-  }
-  if (is_ability) {
   }
 
   const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.03f * box_wh.y);
@@ -315,7 +320,6 @@ draw_card_inner(entt::registry& r,
     const bool active = base == player_ui_c.state.active;
 
     ImGui::SetCursorPos(button_tl);
-
     SelectableButtonDef def{
       .display_str = base->name,
       .imgui_hash = "##" + base->name + std::to_string(player_idx),
@@ -323,12 +327,12 @@ draw_card_inner(entt::registry& r,
       .input = do_act,
       .cell = base,
       .active_cell = player_ui_c.state.active,
+      .update_selected_on_mouse_move = true,
       .font = header_font,
       .font_size = header_font_size,
       .rounding = 0.0f,
       .thickness = 1.0f,
     };
-
     if (selectable_button(r, def))
       base->action();
 
@@ -337,22 +341,44 @@ draw_card_inner(entt::registry& r,
     const float pos_l = main_quarter_tl.x + button_size.x;
     const float pos_w = main_quarter_br.x - pos_l;
     const auto pos = ImVec2{ pos_l + pos_w * 0.5f, button_tl.y };
-    update_selections(r, ui_c, base, player_idx, i, pos, button_size, active, dt);
+    update_selections(r, ui_c, base, player_idx, pos, button_size, active, dt);
 
     const auto grid_tl = button_tl + ImVec2{ button_size.x, 0 };
     const auto grid_br = ImVec2{ main_quarter_br.x, button_tl.y + button_size.y };
+    const auto grid_wh = calc_wh(grid_tl, grid_br);
     // draw_list->AddRect(grid_tl, grid_br, im_white);
 
-    // Draw grid for hull and weapons
+    // Draw grid
     {
       auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
-      const bool is_hull = i == 0;
-      const bool is_weapon = i == 1;
-      const bool is_ability = i == 2;
+      const bool is_name = cell.name.find("Name") != std::string::npos;
+      const bool is_hull = cell.name.find("Hull") != std::string::npos;
+      const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
       const float icon_sprite = 32;
       const float icon_box_size = 32;
       const float padding_x = 10.0f;
 
+      if (is_name) {
+        const auto& names = ui_c.available_names;
+
+        // auto first_x = grid_tl.x + padding_x;
+        // draw_list->AddRect(grid_tl, grid_br, IM_COL32(255, 0, 0, 255));
+
+        const auto col = active ? im_text_col : im_text_col_inactive;
+        const auto name_size = 16;
+        const auto name = names[cell.value];
+        ImGui::PushFont(text_font, name_size);
+        const auto name_len = ImGui::CalcTextSize(name.c_str());
+        ImGui::PopFont();
+        const auto text_pos = calc_center(grid_tl, grid_wh) - ImVec2{ 0.5f * name_len.x, 0.5f * name_len.y };
+        draw_list->AddText(text_font, name_size, text_pos, col, name.c_str());
+
+        // add some < and > arrow.
+        draw_list->AddText(text_font, name_size, text_pos - ImVec2{ name_size, 0 }, col, "<");
+        draw_list->AddText(text_font, name_size, text_pos + ImVec2{ name_len.x + name_size, 0 }, col, ">");
+
+        //
+      }
       if (is_hull) {
         const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
 
@@ -413,16 +439,19 @@ draw_card_inner(entt::registry& r,
       }
     }
 
-    if (i + 1 < player_ui_c.state.cells.size())
-      button_tl.y += button_size.y + space_between_buttons;
+    button_tl.y += button_size.y + space_between_buttons;
 
     ImGui::PushFont(text_font, text_font_size);
     const auto text_size_y = ImGui::CalcTextSize("A").y;
 
     // begin info section.
-    const auto box_tl = ImVec2{ main_quarter_tl.x, button_tl.y + button_size.y + space_between_buttons };
+    // const auto box_tl = ImVec2{ main_quarter_tl.x, button_tl.y + button_size.y + space_between_buttons };
+    const int rows = player_ui_c.state.cells.size() + 1;
+    const auto offset_y = main_quarter_tl.y + rows * button_size.y;
+    const auto box_tl = ImVec2{ main_quarter_tl.x, offset_y };
     const auto box_br = main_quarter_br;
     const auto box_wh = ImVec2{ box_br.x - box_tl.x, box_br.y - box_tl.y };
+    // draw_list->AddRect(box_tl, box_br, IM_COL32(255, 0, 0, 255));
     draw_stats(r, box_tl, box_wh, player_ui_c);
 
     // Display the overclocks
@@ -432,9 +461,9 @@ draw_card_inner(entt::registry& r,
       const auto cell_it = std::find(cs.begin(), cs.end(), active_cell);
       const auto cell_idx = static_cast<int>(cell_it - cs.begin());
       auto& cell = *(dynamic_cast<OptionsCell*>(cell_it->get()));
-      const bool is_hull = cell_idx == 0;
-      const bool is_weapon = cell_idx == 1;
-      const bool is_ability = cell_idx == 2;
+      const bool is_name = cell.name.find("Name") != std::string::npos;
+      const bool is_hull = cell.name.find("Hull") != std::string::npos;
+      const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
 
       if (is_weapon) {
         const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
@@ -678,10 +707,37 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     ui_c.player_ui_state.resize(max_num_players);
     ui_c.player_choice_state.resize(max_num_players);
 
+    // get all the available names.
+#if defined(USE_STEAM)
+
+    // add your name.
+    const auto name = std::string(SteamFriends()->GetPersonaName());
+    ui_c.available_names.push_back(name);
+
+    // add your remote player names.
+    int session_count = SteamRemotePlay()->GetSessionCount();
+    for (int i = 0; i < session_count; i++) {
+      auto id = SteamRemotePlay()->GetSessionID(i);
+      auto name = SteamRemotePlay()->GetSessionClientName(id);
+      ui_c.available_names.push_back(name);
+    }
+
+#endif
+    ui_c.available_names.push_back("Destroyer of Worlds");
+    ui_c.available_names.push_back("Kleptomaniac");
+    ui_c.available_names.push_back("Passionate Lover");
+    ui_c.available_names.push_back("Hat Wearer");
+    ui_c.available_names.push_back("Big Chonk");
+
     for (int i = 0; i < max_num_players; i++) {
       auto& ui_state_c = ui_c.player_ui_state[i];
 
       if (!ui_state_c.init) {
+
+        OptionsCell c0;
+        c0.name = "Name";
+        c0.action = []() {};
+        ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c0));
 
         OptionsCell c;
         c.name = "Hull";

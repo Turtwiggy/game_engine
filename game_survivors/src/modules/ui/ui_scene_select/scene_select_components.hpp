@@ -25,6 +25,7 @@ struct HullChoice
   std::string player_boat_key = "unknown";
   std::string player_gun_key = "unknown";
   std::string player_ability_key = "unknown";
+  std::string player_name = "unknown";
 };
 
 struct SelectUI : public DefaultUI
@@ -45,6 +46,7 @@ struct SINGLE_SelectSceneData : public DefaultUI
   std::vector<SelectUI> player_ui_state;
   std::vector<HullChoice> player_choice_state;
   std::vector<UiCursorComponent> player_cursor_state;
+  std::vector<std::string> available_names;
 };
 
 struct SelectSceneToSurviveScene

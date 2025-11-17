@@ -180,7 +180,8 @@ update_player_upgrade_ui(entt::registry& r, entt::entity player_e, UIState& stat
   }
 
   // create navlinks
-  create_as_horizontal_layout(state_c.cells);
+  // create_as_horizontal_layout(state_c.cells);
+  create_as_vertical_layout(state_c.cells); // simple uses vertical layout
 
   // reset the selection
   state_c.active = state_c.cells[0];
@@ -302,6 +303,7 @@ make_stat_name_pretty_name(const std::string stat)
 
   // remove ACTOR_
   result = str_remove_all_occurances(result, "ACTOR_");
+  result = str_remove_all_occurances(result, "AREA_");
 
   /**/
   // convert from bold uppercase to regular.
@@ -325,7 +327,6 @@ get_val_str_from_stat_enum(entt::registry& r,
 {
   std::string val_str = "N/A";
   const auto& actor_upgrades_c = r.get<StatModifierComponent>(player_e);
-  const auto player_fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
   const auto stat_str = std::string(magic_enum::enum_name(stat_enum));
 
   // DISPLAY ACTOR_ stats
@@ -337,6 +338,7 @@ get_val_str_from_stat_enum(entt::registry& r,
       val_str = std::format("{:0.1f}", v_out) + "%"s;
     }
     if (stat_enum == UpgradeableStat::ACTOR_HEALTH_MAX) {
+      const auto player_fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
       const auto v = r.get<const HealthComponent>(player_fixture_e).max_hp;
       const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
       val_str = std::format("{:0.0f}", v_out);
@@ -420,9 +422,9 @@ get_val_str_from_stat_enum(entt::registry& r,
       // else if (stat_enum == UpgradeableStat::AREA_SIZE)
       //   val_str = std::format("{} x {}", area_def.size_x, area_def.size_y);
       if (stat_enum == UpgradeableStat::AREA_STACK_DAMAGE)
-        val_str = std::format("{}", area_def.stack_damage);
+        val_str = std::format("{:0.2f}", area_def.stack_damage);
       else if (stat_enum == UpgradeableStat::AREA_STACK_DURATION)
-        val_str = std::format("{}", area_def.stack_duration);
+        val_str = std::format("{:0.2f}", area_def.stack_duration);
       else if (stat_enum == UpgradeableStat::AREA_STACKS_PER_SHOT)
         val_str = std::format("{}", area_def.stacks_per_shot);
     }

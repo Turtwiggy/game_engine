@@ -11,11 +11,16 @@
 
 namespace game2d {
 
+struct LevelupUIState : UIState
+{
+  bool show_simple_ui = true;
+};
+
 struct SINGLE_LevelUpUI
 {
   bool open = false;
 
-  std::vector<UIState> ui_states;
+  std::vector<LevelupUIState> ui_states;
   std::vector<UiCursorComponent> ui_cursors;
 };
 
@@ -216,12 +221,19 @@ const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
   return { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
+struct CardLine
+{
+  std::string text;
+  bool centered = true;
+};
+
 struct CardDataUI
 {
   Rarity rarity = Rarity::COMMON;
   std::string rarity_txt = "common";
   std::string header_txt = "Bronze Hulls";
-  std::string desc_txt = "+15 firerate";
+  std::vector<CardLine> lines;
+
   bool selected = false;
 };
 

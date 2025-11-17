@@ -341,6 +341,10 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_debug_fixtures_system(r);
   // update_generate_flow_field_system(r, mouse_pos);
   // update_display_flow_field_system(r);
+  // hack: debug upgrade ui in menu
+  // if (scene.s == Scene::menu)
+  //   update_ui_survive_upgrade_system(r, dt);
+  // update_ui_survive_hp_bars_system(r);
 #endif
 
   const auto& state = get_first_component<SINGLE_GameStateComponent>(r);
@@ -420,11 +424,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_scene_main_menu(app, r);
     update_ui_scene_main_menu_controllerinfo_system(r, dt);
     update_ui_scene_upgrades_system(r, dt);
-
-// hack: debug upgrade ui in menu
-#if defined(_DEBUG)
-    // update_ui_survive_upgrade_system(r, dt);
-#endif
   }
 
   if (scene.s == Scene::select_modifiers)

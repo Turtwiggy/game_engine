@@ -98,7 +98,7 @@ main()
 	float T3 = max(3.,1.25*strength)*iTime;
 	q.x = mod(q.x,1.)-0.5;
   // q.x *= 2.0;
-  q.x *= 0.5;
+  // q.x *= 0.5; 
 	q.y -= 0.3;
 	float n = fbm(strength*q - vec2(0,T3));
   float c = 1. - 16. * pow( max( 0., length(q*vec2(1.8+q.y*1.5,.75) ) - n * max( 0., q.y+.25 ) ),1.2 );

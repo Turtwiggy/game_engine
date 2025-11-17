@@ -52,7 +52,7 @@ struct IOption
 
 struct Option_AudioMasterVolume : public IOption
 {
-  Audio_OnDisk data;
+  Audio_OnDisk data{ .value = 0.5f };
 
   Option_AudioMasterVolume()
     : IOption(GAME_OPTIONS::AUDIO_MASTER_VOLUME, "Master", UIValueType::SCROLL) {};
