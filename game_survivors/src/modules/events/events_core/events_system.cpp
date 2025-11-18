@@ -22,6 +22,7 @@
 #include "modules/events/event_death_exploder_screenshake/exploder_screenshake.hpp"
 #include "modules/events/event_death_islander_give_xp/islander_death_give_xp_helpers.hpp"
 #include "modules/events/event_death_islander_remove_from_island/islander_remove_from_island_helpers.hpp"
+#include "modules/events/event_death_reassign_targets/reassign_targets_helpers.hpp"
 #include "modules/events/event_death_spawn_revive_islander/spawn_revive_islander_helpers.hpp"
 #include "modules/events/event_death_treasure_enemy/treasure_enemy_death_helpers.hpp"
 #include "modules/events/event_island_to_boat/island_to_boat_helpers.hpp"
@@ -42,7 +43,6 @@
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_stats/stats_helpers.hpp"
-
 
 namespace game2d {
 
@@ -93,6 +93,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__islander_death_give_xp>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__islander_remove_from_island>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__spawn_revive_islander>(r);
+  ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__reassign_targets>(r);
 
   ed.dispatcher->sink<AudioCompleteEvent>().connect<&handle_audio_complete_event__new_game_track>(r);
 

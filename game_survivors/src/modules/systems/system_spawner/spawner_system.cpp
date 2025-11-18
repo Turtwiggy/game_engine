@@ -73,7 +73,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // get a random position around target player?
   // TODO: should be a larger zone considering all players?
-  const auto& target_t = r.get<TransformComponent>(target_e);
+  const auto& target_t = r.get<const TransformComponent>(target_e);
   const auto target_pos = glm::vec2{ target_t.position.x, target_t.position.y };
   const float screen_max = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const auto rnd_pos_around_player = rnd_position_around_point(r, target_pos, screen_max, screen_max);
@@ -584,6 +584,15 @@ update_spawner_system(entt::registry& r, const float dt)
 #endif
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
   GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
+
+  auto& alive_players = SINGLE_AlivePlayers::instance;
+  alive_players.players.clear();
+  for (const auto& [e, boat_c] : r.view<PlayerBoatComponent>().each()) {
+    auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
+    auto& hp_c = r.get<HealthComponent>(fixture_e);
+    if (hp_c.hp > 0)
+      alive_players.players.push_back(e);
+  }
 
   // dont update survive timer when theres a boss
   // const bool boss_is_alive = r.view<const BossComponent>().size() > 0;

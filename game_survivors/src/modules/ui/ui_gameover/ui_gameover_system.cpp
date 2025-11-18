@@ -52,6 +52,7 @@ update_ui_gameover_system(entt::registry& r, const float dt)
     create_empty<GameOverComponent>(r, req);
   }
 
+  /*
   ImGui::Begin("DebugHP");
   {
     const auto& evts_c = SINGLE_Events::instance;
@@ -74,6 +75,7 @@ update_ui_gameover_system(entt::registry& r, const float dt)
     }
   }
   ImGui::End();
+  */
 
 #endif
 

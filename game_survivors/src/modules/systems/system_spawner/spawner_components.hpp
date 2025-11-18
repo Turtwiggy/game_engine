@@ -188,4 +188,11 @@ struct SpawnerLiveData
   std::unordered_map<RandomSpawnerWaveKey, WaveLiveData, randomspawnerwavekey_hash> randomspawner_data;
 };
 
+struct SINGLE_AlivePlayers
+{
+  std::vector<entt::entity> players;
+
+  static SINGLE_AlivePlayers instance;
+};
+
 } // namespace game2d

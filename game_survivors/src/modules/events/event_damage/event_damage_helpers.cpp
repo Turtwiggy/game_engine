@@ -24,6 +24,7 @@
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_death_throes/death_throes_components.hpp"
+#include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
@@ -261,13 +262,31 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     // const auto str = std::format("{} died. Parent: {}", b_name, parent_name);
     // SDL_Log("%s", str.c_str());
 
-    // Send death event.
-    DeathEvent d_evt;
-    d_evt.killed_by = evt.from; // can be entt::null
-    d_evt.dead = parent_e;      // parent not fixture
-    auto& evts_c = SINGLE_Events::instance;
-    evts_c.dispatcher->trigger(d_evt);
-    evts_c.dispatcher->update();
+    if (r.all_of<PlayerBoatComponent>(parent_e)) {
+      // you'rea boat who died without a revive component on.
+      // coount this as your "official" death
+      if (!r.all_of<RevivableComponent>(parent_e)) {
+        SDL_Log("Sending boat death event...");
+
+        // Send death event.
+        DeathEvent d_evt;
+        d_evt.killed_by = evt.from; // can be entt::null
+        d_evt.dead = parent_e;      // parent not fixture
+        auto& evts_c = SINGLE_Events::instance;
+        evts_c.dispatcher->trigger(d_evt);
+        evts_c.dispatcher->update();
+      } else {
+        // dont send death event again
+      }
+    } else {
+      // Send death event.
+      DeathEvent d_evt;
+      d_evt.killed_by = evt.from; // can be entt::null
+      d_evt.dead = parent_e;      // parent not fixture
+      auto& evts_c = SINGLE_Events::instance;
+      evts_c.dispatcher->trigger(d_evt);
+      evts_c.dispatcher->update();
+    }
   }
 };
 
