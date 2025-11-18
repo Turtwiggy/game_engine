@@ -20,6 +20,7 @@
 #include "modules/core/ui/ui_draw_text_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
+#include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
 
@@ -65,14 +66,13 @@ struct EdgeInfoOut
   std::vector<glm::ivec2> land_edges;
 };
 void
-calculate_edges(entt::registry& r, entt::entity cannon_e, IslandCannonComponent& cannon_c)
+calculate_edges(entt::registry& r, entt::entity e, IslandLineInfo& cannon_c)
 {
   if (cannon_c.initialized_edges)
     return;
-  cannon_c.initialized_edges = true;
 
   const auto tilesize = SINGLE_Islands::instance.tilesize;
-  const auto& transform_c = r.get<TransformComponent>(cannon_e);
+  const auto& transform_c = r.get<TransformComponent>(e);
   const auto pos = glm::vec2{ transform_c.position.x, transform_c.position.y };
   const auto pos_adj = pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
   const auto gp = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
@@ -100,27 +100,6 @@ calculate_edges(entt::registry& r, entt::entity cannon_e, IslandCannonComponent&
 
   cannon_c.water_edges = water_neighbours;
   cannon_c.land_edges = island_neighbours;
-
-  SDL_Log("Assigning island cannon a hardpoint direction.");
-  HardpointComponent hardpoint_c;
-  hardpoint_c.data.key = "cannon";
-  // note: in data format, 90degrees is up, 270 is down.
-  // when load in, convert to engine, where 90 is down, 270 is up
-  // here, we consider it in "data" format, as the arcs_system flips it.
-  hardpoint_c.data.arc_mid = 0;
-  hardpoint_c.data.arc = 360;
-  hardpoint_c.data.x_rel_tl = 8;
-  hardpoint_c.data.y_rel_tl = 8;
-  r.emplace<HardpointComponent>(cannon_e, hardpoint_c);
-
-  // aim the cannon at one of the water tiles
-  const auto water_gp = cannon_c.water_edges[0].second;
-  const auto you_gp = gp;
-  const auto dir_gp = water_gp - you_gp;
-  const auto angle = engine::dir_to_angle_radians(dir_gp);
-  const auto cannon_par_e = r.get<HasParentComponent>(cannon_e).parent;
-  set_rotation(r, cannon_par_e, angle);
-  SDL_Log("cannon_par_e: %u", static_cast<uint32_t>(cannon_par_e));
 };
 
 void
@@ -172,8 +151,39 @@ update_ui_label_system(entt::registry& r)
 
     // assuming this cannon is on an edge of the island,
     // work out which way is the edge to the ocean.
-    calculate_edges(r, e, cannon_c);
-    const auto invalid_neighbours = cannon_c.water_edges;
+    auto& line_info_c = r.get_or_emplace<IslandLineInfo>(e);
+    calculate_edges(r, e, line_info_c);
+    const auto invalid_neighbours = line_info_c.water_edges;
+
+    if (!line_info_c.initialized_edges) {
+      auto cannon_e = e;
+      SDL_Log("Assigning island cannon a hardpoint direction.");
+      HardpointComponent hardpoint_c;
+      hardpoint_c.data.key = "cannon";
+      // note: in data format, 90degrees is up, 270 is down.
+      // when load in, convert to engine, where 90 is down, 270 is up
+      // here, we consider it in "data" format, as the arcs_system flips it.
+      hardpoint_c.data.arc_mid = 0;
+      hardpoint_c.data.arc = 360;
+      hardpoint_c.data.x_rel_tl = 8;
+      hardpoint_c.data.y_rel_tl = 8;
+      r.emplace<HardpointComponent>(cannon_e, hardpoint_c);
+
+      const auto& transform_c = r.get<TransformComponent>(cannon_e);
+      const auto pos = glm::vec2{ transform_c.position.x, transform_c.position.y };
+      const auto pos_adj = pos - glm::vec2{ tilesize * 0.5f, tilesize * 0.5f };
+      const auto gp = engine::grid::worldspace_to_gridspace(pos_adj, tilesize);
+
+      // aim the cannon at one of the water tiles
+      const auto water_gp = line_info_c.water_edges[0].second;
+      const auto you_gp = gp;
+      const auto dir_gp = water_gp - you_gp;
+      const auto angle = engine::dir_to_angle_radians(dir_gp);
+      const auto cannon_par_e = r.get<HasParentComponent>(cannon_e).parent;
+      set_rotation(r, cannon_par_e, angle);
+
+      line_info_c.initialized_edges = true;
+    }
 
     // if its north, bump right one.
     // if its south, bump right one.
@@ -208,6 +218,55 @@ update_ui_label_system(entt::registry& r)
     draw_dashed_line(draw_list, p1, p2, 1, my_col);
 
     // const auto text_pos = ImVec2{ glm::min(p1.x, p2.x), p1.y } + ImVec2(0, +text_size.y * 0.5f);
+    const auto text_pos = ImVec2{ glm::min(p1.x, p2.x), p1.y };
+    draw_list->AddText(font, font_size, text_pos, im_col, text.c_str());
+  }
+
+  for (const auto& [e, t_c, islander_c, revivable_c] :
+       r.view<const TransformComponent, const MovementIslandComponent, const RevivableComponent>().each()) {
+    const auto ws_pos = glm::vec2{ t_c.position.x, t_c.position.y };
+    const auto ss_pos = worldspace_to_screenspace(r, ws_pos);
+    const auto im_ss_pos = ImVec2(ss_pos.x, ss_pos.y);
+
+    const auto hits_cur = revivable_c.hits_to_revive_cur;
+    const auto hits_max = revivable_c.hits_to_revive;
+    const auto text = std::format("Revive {}/{}", hits_cur, hits_max);
+
+    // assuming this cannon is on an edge of the island,
+    // work out which way is the edge to the ocean.
+    auto& line_info_c = r.get_or_emplace<IslandLineInfo>(e);
+    calculate_edges(r, e, line_info_c);
+    if (!line_info_c.initialized_edges)
+      line_info_c.initialized_edges = true;
+
+    const auto invalid_neighbours = line_info_c.water_edges;
+    // if its north, bump right one.
+    // if its south, bump right one.
+    // if you're east, bump up one.
+    // if you're west, bump up one.
+    auto [empty_dir, empty_gp] = invalid_neighbours[0];
+    auto offset = ImVec2{ 0, 0 };
+    if (empty_dir == engine::grid::GridDirection::north)
+      offset = ImVec2(1, 1);
+    else if (empty_dir == engine::grid::GridDirection::south)
+      offset = ImVec2(1, -1);
+    else if (empty_dir == engine::grid::GridDirection::east)
+      offset = ImVec2(1, 1);
+    else if (empty_dir == engine::grid::GridDirection::west)
+      offset = ImVec2(-1, 1);
+
+    // point p1 off the island
+    const auto text_size = font->CalcTextSizeA(font_size, FLT_MAX, -1, text.c_str());
+    const auto p0 = im_ss_pos;
+    const auto p1 = im_ss_pos + offset * ImVec2(16, 16);
+    const auto p2 = p1 + ImVec2(offset.x * text_size.x, 0);
+
+    const auto my_col = my_line_col;
+    const auto im_col = im_line_col;
+
+    draw_dashed_line(draw_list, p0, p1, 1, my_col);
+    draw_dashed_line(draw_list, p1, p2, 1, my_col);
+
     const auto text_pos = ImVec2{ glm::min(p1.x, p2.x), p1.y };
     draw_list->AddText(font, font_size, text_pos, im_col, text.c_str());
   }

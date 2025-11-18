@@ -39,7 +39,7 @@ handle_death_event__spawn_revive_islander(entt::registry& r, const DeathEvent& e
 
   SDL_Log("Spawning a revive islander...");
   auto islander_e =
-    spawn_islander_unoccupied(r, spawn_rnd, base_island_e, "actor_islanddweller_player", AvailableTeams::player, false);
+    spawn_islander_unoccupied_edge(r, spawn_rnd, base_island_e, "actor_islanddweller_player", AvailableTeams::player, false);
   r.emplace<PlayerComponent>(islander_e, PlayerComponent{ .idx = player_idx });
   auto col = default_player_colours[player_idx];
   r.emplace_or_replace<DefaultColour>(islander_e, col);

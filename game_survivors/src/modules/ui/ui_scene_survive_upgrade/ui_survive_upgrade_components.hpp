@@ -4,6 +4,7 @@
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
+#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
 
 #include <unordered_map>

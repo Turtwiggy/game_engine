@@ -1,3 +1,4 @@
+#include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "pch.hpp"
 
 #include "ui_survive_hp_bars.hpp"
@@ -153,9 +154,11 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     const auto player_col = default_player_colours[player_idx];
 
     // draw text
-    const auto display_name = player_c.display_name;
+    auto display_str = std::format("{}", player_c.display_name);
+    if (r.all_of<RevivableComponent>(player_e))
+      display_str += " (Revive at base island)";
     const auto text_pad_x = 4.0f;
-    draw_list->AddText(font, 16, { hp_bar_tl.x + text_pad_x, hp_bar_tl.y - 16 }, im_text_col, display_name.c_str());
+    draw_list->AddText(font, 16, { hp_bar_tl.x + text_pad_x, hp_bar_tl.y - 16 }, im_text_col, display_str.c_str());
 
     // bar bg.
     draw_list->AddRectFilled(hp_bar_tl, hp_bar_br, im_hp_bar_background_col);
