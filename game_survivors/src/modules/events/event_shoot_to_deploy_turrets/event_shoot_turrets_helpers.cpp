@@ -83,7 +83,7 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
     ApplyForceToDynamicTarget tgt_c;
     tgt_c.orbit = true;
     tgt_c.reduce_thrusters = true;
-    tgt_c.distance_to_reduce_thrust = 6.0; // meters to shoot from
+    tgt_c.distance_to_reduce_thrust_meters = 6.0; // meters to shoot from
     r.emplace<ApplyForceToDynamicTarget>(turret_e, tgt_c);
     r.emplace<PhysicsDynamicTarget>(turret_e, player_e);
     b2Body_SetLinearDamping(r.get<const PhysicsBodyComponent>(turret_e).bodyId, 1.0f);

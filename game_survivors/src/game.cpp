@@ -55,6 +55,7 @@
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_ability/ability_system.hpp"
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
+#include "modules/systems/system_anchor/anchor_system.hpp"
 #include "modules/systems/system_aoe_slow/aoe_slow_system.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_autofire/autofire_system.hpp"
@@ -369,6 +370,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_quip_system(r, dt);
     update_flamethrower_system(r);
     update_reload_draw_sprite_system(r);
+    update_anchor_system(r);
 
     update_island_ai_system(r, dt);
     update_island_nearest_system(r, mouse_pos);

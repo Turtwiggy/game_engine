@@ -244,7 +244,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // archerfish
   if (key == "actor_enemy_projectile") {
-    r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust = 6.0f;
+    r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust_meters = 6.0f;
 
     // give the projectile enemy a weapon.
     // TODO: make it it's own weapon, not weapon_deck_cannon
@@ -258,7 +258,7 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   // jellyfish
   if (key == "actor_enemy_swarmlord") {
-    r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust = 9.0f;
+    r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust_meters = 9.0f;
     r.emplace<CooldownComponent>(e,
                                  CooldownComponent{
                                    .time_max = 7.0f,

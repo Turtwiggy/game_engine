@@ -25,9 +25,6 @@ handle_death_event__spawn_revive_islander(entt::registry& r, const DeathEvent& e
   if (r.all_of<RevivableComponent>(dead_e))
     return; // you should already have a revive islander
 
-  // todo: add a positional tether
-  r.emplace_or_replace<DroppedAnchorComponent>(dead_e);
-
   // spawn a person on the base island.
   auto player_idx = r.get<PlayerComponent>(dead_e).idx;
 
@@ -45,8 +42,9 @@ handle_death_event__spawn_revive_islander(entt::registry& r, const DeathEvent& e
   r.emplace_or_replace<DefaultColour>(islander_e, col);
   set_colour(r, islander_e, col);
 
-  r.emplace<RevivableComponent>(dead_e);     // add to boat
-  r.emplace<RevivableComponent>(islander_e); // add to islander
+  r.emplace_or_replace<DroppedAnchorComponent>(dead_e); // add a positional tether to boat
+  r.emplace<RevivableComponent>(dead_e);                // add to boat
+  r.emplace<RevivableComponent>(islander_e);            // add to islander
 
   // note: this islander player is deliberately missing components. e.g.
   // InputComponent

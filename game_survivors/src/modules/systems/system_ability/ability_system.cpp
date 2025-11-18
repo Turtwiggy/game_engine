@@ -56,12 +56,6 @@ boop_ability(entt::registry& r, entt::entity e)
 };
 
 void
-anchor_down(entt::registry& r, entt::entity e)
-{
-  r.emplace_or_replace<LockedInSpotComponent>(e); // signal state
-}
-
-void
 speedboost_ability(entt::registry& r, entt::entity e, const InputComponent& input_c, const PhysicsBodyComponent& body_c)
 {
   b2Body_ApplyForceToCenter(body_c.bodyId, { 5000.0f * input_c.lx, 5000.0f * input_c.ly }, true);

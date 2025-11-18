@@ -33,7 +33,7 @@ glm::vec2
 apply_inside_out_force(const ApplyForceToDynamicTarget& req, glm::vec2 nrm_dir, float distance)
 {
   const auto counter_dir = -nrm_dir;
-  const auto distance_from_orbit_ring = glm::abs(req.distance_to_reduce_thrust - distance);
+  const auto distance_from_orbit_ring = glm::abs(req.distance_to_reduce_thrust_meters - distance);
 
   // note: clamp the distance from orbit_ring to a curve
   // if distance_from_orbit_ring is negative, you're outside.
@@ -73,12 +73,12 @@ calculate_desired_velocity(entt::registry& r,
 
   // full-speed ahead!
   const float distance = glm::length(raw_dir);
-  if (distance > req.distance_to_reduce_thrust)
+  if (distance > req.distance_to_reduce_thrust_meters)
     return speed_c.current_speed * nrm_dir;
 
   // Adjust the desired vel to account for target's velocity,
   // reduce speed the closer to the target you get
-  const float percent = glm::clamp((distance / req.distance_to_reduce_thrust), 0.0f, 1.0f);
+  const float percent = glm::clamp((distance / req.distance_to_reduce_thrust_meters), 0.0f, 1.0f);
   const glm::vec2 reduced_vel = percent * speed_c.current_speed * nrm_dir;
 
   // try adding perpendcular vel to make it orbit
@@ -304,6 +304,7 @@ update_physics_apply_force_system(entt::registry& r)
   debug_flowfields.clear();
 #endif
 
+  /*
   // Force via Flowfield.
   {
     const auto flowfield_e = get_first<SINGLE_Flowfield>(r);
@@ -353,6 +354,7 @@ update_physics_apply_force_system(entt::registry& r)
     }
     //
   }
+  */
 }
 
 void

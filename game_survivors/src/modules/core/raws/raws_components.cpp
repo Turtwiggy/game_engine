@@ -333,7 +333,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         ApplyForceToDynamicTarget tgt_c;
         tgt_c.orbit = true;
         tgt_c.reduce_thrusters = true;
-        tgt_c.distance_to_reduce_thrust = 6.0; // meters to shoot from
+        tgt_c.distance_to_reduce_thrust_meters = 6.0; // meters to shoot from
         r.emplace<ApplyForceToDynamicTarget>(e, tgt_c);
         b2Body_SetLinearDamping(r.get<PhysicsBodyComponent>(e).bodyId, 1.0f);
       }

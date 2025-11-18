@@ -129,6 +129,10 @@
         { "tag": "fixture_xp_zone", "type": "circle","is_sensor": true }
       ]
     },
+    {
+      "name": "actor_anchor",
+      "renderable": { "sprite": "PICKAXE", "colour":  "white" }
+    },
     
     //
     // island stuff

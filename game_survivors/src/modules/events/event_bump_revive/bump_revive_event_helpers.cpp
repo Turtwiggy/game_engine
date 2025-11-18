@@ -13,7 +13,9 @@
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
+#include "modules/core/raws/raws_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "modules/systems/system_anchor/anchor_helpers.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
@@ -48,18 +50,23 @@ handle_bump_event__revive(entt::registry& r, const BumpEvent& evt)
     auto& hp_c = r.get<HealthComponent>(fixture_e);
     hp_c.hp = hp_c.max_hp;
 
-    // todo: remove positional tether
+    // remove positional tether
+    remove_anchor(r, player_e);
 
     // you're alive and can move
     r.emplace<InputComponent>(player_e);
     r.remove<RevivableComponent>(player_e);
-    r.remove<DroppedAnchorComponent>(player_e);
 
     // movementdirect gets removed when a player goes from boat => island.
     // If the boat died while a player was on the island, this component wont exist.
     // because the player never went through the return islander=>boat path.
     if (!r.all_of<MovementDirectComponent>(player_e))
       r.emplace<MovementDirectComponent>(player_e);
+
+    // reset to default player speed
+    const auto default_player_config = find_item(r, "actor_player");
+    const auto default_speed = default_player_config.speed;
+    r.get<ActorSpeedComponent>(player_e).current_speed = default_speed;
   }
 
   //

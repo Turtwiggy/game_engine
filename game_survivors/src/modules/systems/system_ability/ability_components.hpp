@@ -17,9 +17,4 @@ struct AbilityComponent
   bool ability_2_in_progress = false;
 };
 
-struct LockedInSpotComponent
-{
-  bool placeholder = true;
-};
-
 } // namespace game2d

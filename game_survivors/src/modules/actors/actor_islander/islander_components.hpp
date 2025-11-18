@@ -11,7 +11,7 @@ struct IslandDwellerComponent
 
 struct DroppedAnchorComponent
 {
-  bool placeholder = true;
+  entt::entity target_e = entt::null;
 };
 
 } // namespace game2d
