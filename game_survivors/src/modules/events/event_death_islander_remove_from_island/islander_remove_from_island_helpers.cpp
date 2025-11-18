@@ -4,7 +4,7 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "islander_remove_from_island_helpers.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"

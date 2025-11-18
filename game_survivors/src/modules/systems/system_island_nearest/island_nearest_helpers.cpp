@@ -6,7 +6,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"

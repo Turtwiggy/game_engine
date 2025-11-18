@@ -478,7 +478,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   const float pos_padding_x = -8.0f * ui_scale.scaling;
   const float pos_padding_y = 0.0f * ui_scale.scaling;
   const float ui_pos_x = viewport_pos.x + (ri.viewport_size_render_at.x * (12 / 12.0f)) + pos_padding_x;
-  const float ui_pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (6 / 12.0f)) + pos_padding_y;
+  const float ui_pos_y = viewport_pos.y + (ri.viewport_size_render_at.y * (5 / 12.0f)) + pos_padding_y;
   const auto ui_pos = ImVec2(ui_pos_x, ui_pos_y);
   ImGui::SetNextWindowPos(ui_pos, ImGuiCond_Always, ImVec2(1.0f, 0.5f));
 
@@ -662,9 +662,12 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
 
   ImGui::NewLine();
   ImGui::SeparatorText("Help! Connected but no input!");
+  ImGui::Text("- Check SteamInput is enabled.");
   ImGui::Text("- Unplug/Replug Controller.");
-  ImGui::Text("- Check SteamInput bindings.");
   ImGui::Text("- Check with a HTML5 gamepad tester.");
+  ImGui::Text("- If buttons show '...'");
+  ImGui::Text("  => Assign inputs via Steam Overlay.");
+  ImGui::Text("  => Potentially restart the game.");
 
   if (ImGui::Button("Reset")) {
     for (int i = 0; i < ui_c.players; i++)

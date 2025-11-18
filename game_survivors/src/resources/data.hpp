@@ -9,11 +9,22 @@ constexpr int n_players = 4;
 constexpr float default_map_tilesize = 20;
 constexpr float default_map_unit_tilesize = 16;
 
-const engine::SRGBColour default_player_colours[n_players] = {
+const std::vector<engine::SRGBColour> default_player_colours = {
+
+  hex_to_srgb("#B3BFFF"), //
+  hex_to_srgb("#DD7BDF"), //
+  hex_to_srgb("#FFBBE1"), //
+  hex_to_srgb("#FFF58A"), //
+
+  hex_to_srgb("#00A8EB"), // blue
+  hex_to_srgb("#D075CE"), // pink
   hex_to_srgb("#E8AE58"), // orangeish
   hex_to_srgb("#42B14F"), // green
-  hex_to_srgb("#D075CE"), // pink
-  hex_to_srgb("#00A8EB"), // blue
+
+  hex_to_srgb("#00FFFF"), //
+  hex_to_srgb("#E83C91"), //
+  hex_to_srgb("#FF5F1F"), //
+  hex_to_srgb("#00FFA2"), //
 };
 const ImU32 default_player_colours_im[n_players] = {
   convert_my_to_im(default_player_colours[0]),
@@ -36,6 +47,10 @@ const auto my_separator_col = hex_to_srgb("#7d8488");
 const auto my_window_bg_col = engine::SRGBColour(0.13f, 0.14f, 0.17f, 1.00f);
 const auto my_window_border_col = hex_to_srgb("#3B5676");
 const auto my_gold_col = hex_to_srgb("#ffee00ff");
+
+const auto my_red = hex_to_srgb("#d74200");
+const auto my_orange = hex_to_srgb("#e99f10");
+const auto my_reload_col = my_orange;
 
 const auto im_text_col_vec = ImVec4{ 0.86f, 0.93f, 0.89f, 0.78f };
 const auto im_text_col =

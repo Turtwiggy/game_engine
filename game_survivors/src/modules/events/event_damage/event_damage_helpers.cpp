@@ -8,6 +8,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
@@ -248,7 +249,13 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     }
 
     // else: die now!
-    dead.dead.push_back(parent_e);
+    // if you're a player, just remove your input on your boat.
+    if (r.all_of<PlayerBoatComponent>(parent_e)) {
+      SDL_Log("Setting boat as dead state...");
+      if (r.all_of<InputComponent>(parent_e))
+        r.remove<InputComponent>(parent_e);
+    } else
+      dead.dead.push_back(parent_e);
 
     // const auto& parent_name = r.get<TagComponent>(parent_e).tag;
     // const auto str = std::format("{} died. Parent: {}", b_name, parent_name);

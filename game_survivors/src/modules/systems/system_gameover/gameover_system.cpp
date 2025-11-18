@@ -1,8 +1,10 @@
 #include "pch.hpp"
 
 #include "engine/entt/helpers.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "gameover_system.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
+#include "modules/combat/combat_core/components.hpp"
 #include "modules/core/io/io_helpers.hpp"
 #include "modules/systems/system_gameover/gameover_components.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
@@ -68,7 +70,15 @@ update_gameover_system(entt::registry& r)
   //
   // lose condition: all players dead
   //
-  if (r.view<PlayerBoatComponent>().empty()) {
+
+  float total_player_hp = 0.0f;
+  auto boats_view = r.view<PlayerBoatComponent>();
+  for (const auto& [e, boat_c] : boats_view.each()) {
+    auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
+    total_player_hp += r.get<HealthComponent>(fixture_e).hp;
+  }
+
+  if (total_player_hp <= 0.0f) {
     GameOverComponent gameover_c;
     gameover_c.win_condition = false;
     gameover_c.reason = "All players dead";

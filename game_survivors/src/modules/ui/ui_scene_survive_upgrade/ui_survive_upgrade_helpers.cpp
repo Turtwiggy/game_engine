@@ -49,6 +49,9 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       continue;
     const auto& player_c = r.get<const PlayerBoatComponent>(player_e);
 
+    if (!r.all_of<HealthComponent>(player_e))
+      continue; // ur dead!
+
     UpgradeResultsComponent results_c;
 
     const auto get_rarity_from_roll = [](float roll) -> Rarity {

@@ -20,8 +20,9 @@ update_upgrade_xp_zone_size_system(entt::registry& r)
 #endif
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
-  auto view = r.view<const PlayerComponent, const ActorXpZoneSizeComponent, const StatModifierComponent>();
-  for (const auto& [e, player_c, xp_zone_c, stats_c] : view.each()) {
+  auto view =
+    r.view<const PlayerComponent, const PhysicsBodyComponent, const ActorXpZoneSizeComponent, const StatModifierComponent>();
+  for (const auto& [e, player_c, player_body_c, xp_zone_c, stats_c] : view.each()) {
 
     const auto key = std::string(magic_enum::enum_name(UpgradeableStat::ACTOR_XP_ZONE_SIZE));
     const auto val = xp_zone_c.radius_meters;

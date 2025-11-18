@@ -73,6 +73,7 @@
 #include "modules/systems/system_island_nearest/island_nearest_system.hpp"
 #include "modules/systems/system_island_return_to_boat/island_return_to_boat_system.hpp"
 #include "modules/systems/system_island_return_to_boat_land_immunity/island_return_to_boat_land_immunity_system.hpp"
+#include "modules/systems/system_island_stranded_islander/island_stranded_islander_system.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_item_gold/gold_helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
@@ -84,6 +85,7 @@
 #include "modules/systems/system_player_out_of_bounds/player_out_of_bounds_system.hpp"
 #include "modules/systems/system_quip/quip_system.hpp"
 #include "modules/systems/system_quit/quit_system.hpp"
+#include "modules/systems/system_reload_draw_sprite/reload_draw_sprite_system.hpp"
 #include "modules/systems/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/systems/system_scene_splashscreen_move_to_next/system.hpp"
 #include "modules/systems/system_screenshake/system.hpp"
@@ -366,12 +368,14 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_player_out_of_bounds_system(r, dt);
     update_quip_system(r, dt);
     update_flamethrower_system(r);
+    update_reload_draw_sprite_system(r);
 
     update_island_ai_system(r, dt);
     update_island_nearest_system(r, mouse_pos);
     update_island_movement_system(r);
     update_island_return_to_boat_system(r);
     update_island_return_to_boat_land_immunity_system(r, dt);
+    update_island_stranded_islander_system(r);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);

@@ -4,6 +4,7 @@
 
 #include "engine/lifecycle/components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "upgrade_hp_regen_components.hpp"
 
@@ -15,7 +16,7 @@ update_upgrade_hp_regen_system(entt::registry& r, float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& view = r.view<HealthComponent, HasParentComponent>();
+  const auto& view = r.view<HealthComponent, HasParentComponent>(entt::exclude<RevivableComponent>);
   for (const auto& [e, hp_c, parent_c] : view.each()) {
 
     // Check the parent for the stat modifier

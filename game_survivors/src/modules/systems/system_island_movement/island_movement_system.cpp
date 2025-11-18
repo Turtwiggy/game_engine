@@ -4,13 +4,11 @@
 
 #include "engine/maths/grid.hpp"
 #include "engine/renderer/transform.hpp"
-#include "engine/std/unordered_set/glm_hash.hpp"
+#include "engine/std/unordered_set/glm_hash.hpp" // dont remove
 #include "engine/std/vector/helpers.hpp"
 #include "island_movement_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
-#include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
-#include "modules/core/sprites/sprite_helpers.hpp"
 #include "modules/events/event_bump/bump_event_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"

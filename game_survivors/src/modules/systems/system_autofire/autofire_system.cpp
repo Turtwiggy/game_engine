@@ -13,7 +13,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_enemy/components.hpp"
 #include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
@@ -246,7 +246,7 @@ update_autofire_system(entt::registry& r, const float dt)
         continue;
 
       const auto par_e = par_c.parent;
-      const auto& par_inp = r.get<const InputComponent>(par_e);
+      const auto* par_inp = r.try_get<const InputComponent>(par_e);
       const auto& par_t = r.get<const TransformComponent>(par_e);
       const auto& par_col = r.get<const DefaultColour>(par_e).colour;
 
@@ -260,17 +260,19 @@ update_autofire_system(entt::registry& r, const float dt)
       auto dir_to_enemy = glm::vec2();
 
       // If the player is holding the right analogue, overwrite the shoot_angle.
-      const float deadzone = 0.05f;
-      auto override_autofire = false;
-      if (glm::abs(par_inp.rx) > deadzone || glm::abs(par_inp.ry) > deadzone) {
-        override_autofire = true;
-        autofire_c.target = entt::null;
-        dir_to_enemy = { par_inp.rx, par_inp.ry };
-        draw_crosshair(r, wep_pos, dir_to_enemy, par_col);
+      if (par_inp) {
+        const float deadzone = 0.05f;
+        auto override_autofire = false;
+        if (glm::abs(par_inp->rx) > deadzone || glm::abs(par_inp->ry) > deadzone) {
+          override_autofire = true;
+          autofire_c.target = entt::null;
+          dir_to_enemy = { par_inp->rx, par_inp->ry };
+          draw_crosshair(r, wep_pos, dir_to_enemy, par_col);
 
-        // rotate the gun to the target
-        wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);
-        continue;
+          // rotate the gun to the target
+          wep_t.rotation_radians.z = engine::dir_to_angle_radians(dir_to_enemy);
+          continue;
+        }
       }
 
       // get a target

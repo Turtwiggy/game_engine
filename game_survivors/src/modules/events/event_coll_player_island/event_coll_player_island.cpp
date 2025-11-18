@@ -3,7 +3,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "event_coll_player_island.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/systems/system_island_return_to_boat_land_immunity/island_return_to_boat_land_immunity_components.hpp"

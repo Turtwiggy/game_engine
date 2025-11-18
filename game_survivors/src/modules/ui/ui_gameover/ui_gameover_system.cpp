@@ -5,11 +5,15 @@
 #include "engine/events/helpers/keyboard.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "engine/physics/physics_helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
+#include "modules/events/event_damage/event_damage_components.hpp"
+#include "modules/events/events_core/events_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_gameover/gameover_components.hpp"
 #include "modules/systems/system_stats/stats_components.hpp"
@@ -47,6 +51,30 @@ update_ui_gameover_system(entt::registry& r, const float dt)
     req.reason = "forced gameover (loss)";
     create_empty<GameOverComponent>(r, req);
   }
+
+  ImGui::Begin("DebugHP");
+  {
+    const auto& evts_c = SINGLE_Events::instance;
+    auto view = r.view<PlayerBoatComponent, PlayerComponent>();
+    for (const auto& [e, boat_c, player_c] : view.each()) {
+      auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
+
+      ImGui::PushID((uint32_t)e);
+
+      auto button_str = std::format("Kill Boat {}", player_c.display_name);
+      if (ImGui::Button(button_str.c_str())) {
+        DamageEvent evt;
+        evt.amount = 1000;
+        evt.to_fixture = fixture_e;
+        evt.to_parent = e;
+        evts_c.dispatcher->trigger(evt);
+      }
+
+      ImGui::PopID();
+    }
+  }
+  ImGui::End();
+
 #endif
 
   const auto request_opt = ui_c.update<GameOverComponent>(r);
@@ -159,7 +187,7 @@ update_ui_gameover_system(entt::registry& r, const float dt)
   const auto tl = ImVec2{ ui_tl.x + 5.0f, ui_br.y - 25.0f };
   const auto br = ImVec2{ ui_br.x - 5.0f, ui_br.y - 5.0f };
   const auto percent = ui_c.time_to_back / ui_c.time_to_back_max;
-  draw_purchasebar(r, tl, br, percent, "Hold (Return) for Menu", col);
+  draw_purchasebar(r, tl, br, percent, "Hold (Select) for Menu", col);
 
   if (percent >= 1.0f)
     back_to_menu = true;

@@ -9,6 +9,13 @@
 				"path" "steam_input_xbox360_controller.vdf"
 			}
 		}
+    "controller_switch_pro"
+		{
+			"0"
+			{
+				"path" "steam_input_switch_pro_controller.vdf"
+			}
+		}
 	}
   "actions"
   {

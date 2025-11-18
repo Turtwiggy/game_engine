@@ -66,8 +66,11 @@ DrawArc(const glm::vec2& screenspace_pos,
 void
 FadeRangeArc(entt::registry& r, entt::entity parent_e, HardpointComponent& hardpoint_c, float dt)
 {
-  const auto& input_c = r.get<InputComponent>(parent_e);
-  if (glm::abs(input_c.rx) > 0.0f || glm::abs(input_c.ry) > 0.0f) {
+  const auto* input_c = r.try_get<InputComponent>(parent_e);
+  if (!input_c)
+    return;
+
+  if (glm::abs(input_c->rx) > 0.0f || glm::abs(input_c->ry) > 0.0f) {
     hardpoint_c.outline_alpha_cur = hardpoint_c.outline_alpha_max;
     hardpoint_c.outline_alpha_time_left_cur = hardpoint_c.outline_alpha_time_left_max;
   }

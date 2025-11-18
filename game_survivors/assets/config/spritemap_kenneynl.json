@@ -219,8 +219,8 @@
 
     { "name": "TEXT_!", "frames": [ { "x": 35, "y": 13 } ] },
     { "name": "TEXT_?", "frames": [ { "x": 37, "y": 13 } ] },
-
-
+    { "name": "CROSS", "frames": [ { "x": 40, "y": 13 } ] },
+   
     { "name": "DICE_DARK_O", "frames": [ { "x": 40, "y": 14 } ] },
     { "name": "DICE_DARK_X", "frames": [ { "x": 41, "y": 14 } ] },
     { "name": "DICE_DARK_SKULL", "frames": [ { "x": 42, "y": 14 } ] },

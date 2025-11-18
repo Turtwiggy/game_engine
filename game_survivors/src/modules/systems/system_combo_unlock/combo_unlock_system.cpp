@@ -42,11 +42,13 @@ update_combo_unlock_system(entt::registry& r)
 
     // append all the player inputs.
     for (const auto [player_e, colls] : players_map) {
-      const auto& input_c = r.get<const InputComponent>(player_e);
-      const auto& b_s = input_c.dpad_d;
-      const auto& b_e = input_c.dpad_r;
-      const auto& b_n = input_c.dpad_u;
-      const auto& b_w = input_c.dpad_l;
+      const auto* input_c = r.try_get<const InputComponent>(player_e);
+      if (!input_c)
+        continue;
+      const auto& b_s = input_c->dpad_d;
+      const auto& b_e = input_c->dpad_r;
+      const auto& b_n = input_c->dpad_u;
+      const auto& b_w = input_c->dpad_l;
       const bool dir_d = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
       const bool dir_u = std::find(b_n.begin(), b_n.end(), ActionStateEnum::DOWN) != b_n.end();
       const bool dir_l = std::find(b_w.begin(), b_w.end(), ActionStateEnum::DOWN) != b_w.end();

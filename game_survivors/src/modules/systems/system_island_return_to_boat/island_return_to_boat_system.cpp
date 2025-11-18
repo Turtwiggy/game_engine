@@ -10,7 +10,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/std/vector/helpers.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/events/event_island_to_boat/island_to_boat_components.hpp"

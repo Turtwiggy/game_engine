@@ -20,7 +20,8 @@
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
 #include "modules/actors/actor_island_drum/drum_component.hpp"
-#include "modules/actors/actor_islanddweller/islanddweller_components.hpp"
+#include "modules/actors/actor_islander/islander_components.hpp"
+#include "modules/actors/actor_islander/islander_helpers.hpp"
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"
@@ -40,6 +41,7 @@
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
 #include "modules/ui/ui_island_interact_system/ui_island_interact_components.hpp"
 #include "resources/data.hpp"
+
 
 namespace game2d {
 
@@ -687,39 +689,6 @@ spawn_lighthouse(entt::registry& r, DebugContoursComponent& island_c, const glm:
   // r.emplace<InteractableComponent>(thing_e);
 
   island_c.occupied_island_xy.push_back({ gridpos, thing_e });
-};
-
-entt::entity
-spawn_islander_unoccupied(entt::registry& r,
-                          engine::RandomState& rnd,
-                          const entt::entity island_e,
-                          std::string tag,
-                          const AvailableTeams team,
-                          const bool has_brain = false)
-{
-  const auto tilesize_unit = default_map_unit_tilesize;
-  const auto tilesize_map = SINGLE_Islands::instance.tilesize;
-
-  auto& island_c = r.get<DebugContoursComponent>(island_e);
-
-  const auto unoccupied = get_unoccupied_tiles(island_c);
-  const auto xy = unoccupied[(int)engine::rand_det_s(rnd.rng, 0, (int)unoccupied.size())];
-  const auto thing_e = spawn(r, tag);
-  auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize_map);
-  pos += glm::vec2{ tilesize_map, tilesize_map }; // off grid
-  give_life(r, thing_e, pos, { tilesize_unit, tilesize_unit });
-  r.emplace<IslandDwellerComponent>(thing_e);
-  r.emplace<HealthComponent>(thing_e, HealthComponent{ 2, 2 });
-  r.emplace<TeamComponent>(thing_e, TeamComponent{ .team = team });
-
-  // let the thing move
-  // add brains to enemies
-  r.emplace<MovementIslandComponent>(thing_e, MovementIslandComponent{ .island_e = island_e });
-  if (has_brain)
-    r.emplace<IslanderAiComponent>(thing_e);
-
-  island_c.occupied_island_xy.push_back({ xy, thing_e });
-  return thing_e;
 };
 
 entt::entity

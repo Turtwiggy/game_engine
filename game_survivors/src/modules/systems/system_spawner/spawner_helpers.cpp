@@ -11,8 +11,10 @@
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
+#include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "resources/data.hpp"
 #include "spawner_components.hpp"
+
 
 namespace game2d {
 
@@ -97,10 +99,15 @@ static engine::RandomState target_rnd(0);
 entt::entity
 get_random_player_target(entt::registry& r)
 {
-  const auto players_view = r.view<PlayerBoatComponent>();
-  if (players_view.empty())
+  const auto players_view = r.view<PlayerBoatComponent>(entt::exclude<RevivableComponent>);
+
+  int size = 0;
+  for (const auto e : players_view.each())
+    size++;
+
+  if (size == 0)
     return entt::null;
-  const int rnd = engine::rand_det_s(target_rnd.rng, 0, (int)players_view.size());
+  const int rnd = engine::rand_det_s(target_rnd.rng, 0, (int)size);
 
   auto it = players_view.begin();
   std::advance(it, rnd);
