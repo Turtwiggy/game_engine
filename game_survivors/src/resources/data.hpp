@@ -9,6 +9,8 @@ constexpr int n_players = 4;
 constexpr float default_map_tilesize = 20;
 constexpr float default_map_unit_tilesize = 16;
 
+const std::string discord_link = "https/discord.gg/8RTzsm25pR";
+
 const std::vector<engine::SRGBColour> default_player_colours = {
 
   hex_to_srgb("#B3BFFF"), //

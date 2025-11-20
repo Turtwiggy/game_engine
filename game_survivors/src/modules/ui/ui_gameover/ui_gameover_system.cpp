@@ -98,11 +98,9 @@ update_ui_gameover_system(entt::registry& r, const float dt)
   hel_back |= ImGui::IsMouseDown(ImGuiMouseButton_Left);
 
   bool back_to_menu = false;
-  const std::string discord_link = "https/discord.gg/8RTzsm25pR";
   const std::string header_win = "Oh Buoy!";
   const std::string header_loss = "Oh Buoy!";
   const std::string subheader_w = "You did it!";
-  const std::string subheader_l = "Was it you or us? Feedback @ \n" + discord_link;
 
   // update held time
   if (hel_back)

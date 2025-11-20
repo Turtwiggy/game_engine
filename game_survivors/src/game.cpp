@@ -113,6 +113,7 @@
 #include "modules/ui/ui_debug_spawner/ui_debug_spawner_system.hpp"
 #include "modules/ui/ui_debug_upgrades/ui_debug_upgrades_system.hpp"
 #include "modules/ui/ui_debug_weapons/ui_debug_weapons_system.hpp"
+#include "modules/ui/ui_display_build_number/ui_display_build_number_system.hpp"
 #include "modules/ui/ui_fps_counter/system.hpp"
 #include "modules/ui/ui_gameover/ui_gameover_system.hpp"
 #include "modules/ui/ui_hierarchy/system.hpp"
@@ -430,6 +431,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_scene_main_menu(app, r);
     update_ui_scene_main_menu_controllerinfo_system(r, dt);
     update_ui_scene_upgrades_system(r, dt);
+    update_ui_display_build_number_system(r);
   }
 
   if (scene.s == Scene::select_modifiers)
