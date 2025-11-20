@@ -49,7 +49,8 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       continue;
     const auto& player_c = r.get<const PlayerBoatComponent>(player_e);
 
-    if (!r.all_of<HealthComponent>(player_e))
+    auto fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
+    if (!r.all_of<HealthComponent>(fixture_e))
       continue; // ur dead!
 
     UpgradeResultsComponent results_c;

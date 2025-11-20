@@ -235,6 +235,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
 
       // hack: if you're a sea turret, you deploy other weapons.
       // show the other weapon stats.
+      /*
       if (weapon.key == "weapon_sea_turret") {
         auto deployed_weapon = weapons_c.weapons[0];
         display_stats.push_back({ .key = "", .val = "" });
@@ -246,6 +247,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
           display_stats.push_back({ .key = clean_key, .val = std::format("{:.1f}", val) });
         }
       }
+      */
     }
 
     // calculate the max width of all keys
