@@ -16,11 +16,14 @@ update_upgrade_hp_regen_system(entt::registry& r, float dt)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& view = r.view<HealthComponent, HasParentComponent>(entt::exclude<RevivableComponent>);
+  const auto& view = r.view<HealthComponent, HasParentComponent>();
   for (const auto& [e, hp_c, parent_c] : view.each()) {
 
     // Check the parent for the stat modifier
     auto parent_e = parent_c.parent;
+
+    if (r.all_of<RevivableComponent>(parent_e))
+      continue;
 
     // the stat modifier is on the parent, not on the fixture
     const auto* stat_c = r.try_get<StatModifierComponent>(parent_e);
