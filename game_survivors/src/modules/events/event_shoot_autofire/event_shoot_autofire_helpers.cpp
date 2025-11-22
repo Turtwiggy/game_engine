@@ -90,6 +90,7 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
   // shoot bullets in opposite direction?
   if (has(wep_behaviours_c.behaviours, WeaponBehaviour::SHOOT_BULLETS_OPPOSITE_DIRECTION)) {
     const auto in = WeaponBehaviourBulletOppositeDirectionIn{
+      .wep_e = wep_e,
       .wep_def = altered_w_def,
       .bul_def = altered_b_def,
       .wep_pos = wep_pos,

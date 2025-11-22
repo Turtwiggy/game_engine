@@ -4,6 +4,10 @@
 
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
+#include "engine/sprites/components.hpp"
+#include "engine/std/vector/helpers.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 
 namespace game2d {
@@ -45,9 +49,23 @@ weapon_behaviour_shoot_in_opposite_direction(entt::registry& r, const WeaponBeha
   const auto& bul_def = in.bul_def;
   const auto& wep_pos = in.wep_pos;
   const auto& angles_rad = in.angles_rad;
+  const auto wep_e = in.wep_e;
+  const auto& wep_behaviours_c = r.get<const WeaponBehaviourComponent>(wep_e);
+
+  const auto& wep_data = r.get<Weapon_OnDiskData>(wep_e);
+  bool is_fire = wep_data.damage_as_enum == WEAPON_DAMAGE::FIRE;
+  is_fire |= has(wep_behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
 
   for (int i = 0; i < wep_def.projectiles; i++) {
     const auto bullet_e = spawn_projectile(r, bul_def, wep_pos);
+
+    if (is_fire) {
+      r.remove<SpriteComponent>(bullet_e);
+      r.emplace<FlamethrowerFlameComponent>(bullet_e);
+      auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
+      r.emplace<FlamethrowerFlameFixtureComponent>(fixture_e);
+    }
+
     const auto altered_angle = engine::clamp_axis(angles_rad[i] - engine::PI); // flip the dir
     const auto bullet_dir = engine::angle_radians_to_direction(altered_angle);
     const b2Vec2 bullet_vel = bul_def.speed * b2Vec2{ bullet_dir.x, bullet_dir.y };

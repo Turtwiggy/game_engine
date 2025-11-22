@@ -34,7 +34,7 @@ update_ui_popup_are_you_sure_system(entt::registry& r)
     return;
   }
 
-  if (ui_c.action == nullptr)
+  if (!ui_c.action.has_value())
     return;
 
   if (!ui_c.init) {

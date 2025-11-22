@@ -420,7 +420,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   // reset the "are you sure" popup
-  SINGLE_UIAreYouSure::instance.action = nullptr;
+  SINGLE_UIAreYouSure::instance.action = std::nullopt;
 
   if (s == Scene::splashscreen) {
     create_empty<SINGLE_SplashScreen>(r);

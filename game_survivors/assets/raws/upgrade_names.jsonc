@@ -73,6 +73,12 @@
     { "stat": "BULLET_PIERCE", "rarity":"LEGENDARY",            "name": "Monobloc Round",             "desc": "Solid metal penetrators." },
     { "stat": "BULLET_PIERCE", "rarity":"SUPER_LEGENDARY",      "name": "Screw-Piercing Shot",        "desc": "Drills through armor." },
 
+    { "stat": "BULLET_SIZE", "rarity":"COMMON",                "name": "SIZE_A",      "desc": "" },
+    { "stat": "BULLET_SIZE", "rarity":"UNCOMMON",              "name": "SIZE_B",      "desc": "" },
+    { "stat": "BULLET_SIZE", "rarity":"RARE",                  "name": "SIZE_C",      "desc": "" },
+    { "stat": "BULLET_SIZE", "rarity":"LEGENDARY",             "name": "SIZE_D",      "desc": "" },
+    { "stat": "BULLET_SIZE", "rarity":"SUPER_LEGENDARY",       "name": "SIZE_E",      "desc": "" },
+
     { "stat": "BULLET_SPEED", "rarity":"COMMON",                "name": "Fast-Burning Powder",        "desc": "Sprinkle in some magic." },
     { "stat": "BULLET_SPEED", "rarity":"UNCOMMON",              "name": "Smoothbore Barrels",         "desc": "Less drag." },
     { "stat": "BULLET_SPEED", "rarity":"RARE",                  "name": "Electrothermal Charges",     "desc": "Enhanced ignition." },

@@ -112,7 +112,7 @@ update_ui_gameover_system(entt::registry& r, const float dt)
 
   const ImVec2 window_wh = { (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
   const ImVec2 window_tl = { 0, 0 };
-  const auto ui_center = ImVec2{ window_tl.x + window_wh.x * 0.5f, window_tl.y + window_wh.y * 0.5f };
+  const auto ui_center = ImVec2{ window_tl.x + window_wh.x * 0.5f, window_tl.y + window_wh.y * 0.33f };
   ImGui::SetNextWindowPos(ui_center, ImGuiCond_Always, { 0.5f, 0.5f });
   ImGui::SetNextWindowSizeConstraints({ 0, 200 }, { 1000, 1000 });
 

@@ -394,7 +394,7 @@ draw_stats(entt::registry& r,
 };
 
 CardDataUI
-get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult& result)
+get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult& result, int cards)
 {
   const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
   const auto& upg_name_c = get_first_component<SINGLE_UpgradeToName>(r);
@@ -466,7 +466,7 @@ get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult&
   // }
 
   // this is an overclock!
-  if (result.stats.empty() && !result.weapons.empty()) {
+  if (cards == 2) {
     rarity = Rarity::SUPER_LEGENDARY;
     rarity_str = "";
   }
@@ -573,7 +573,7 @@ draw_simple_upgrade_ui(entt::registry& r,
     const std::vector<UpgradeRollResult> upgrades_vec = { upgrades_c->results.begin(), upgrades_c->results.end() };
     const auto result = upgrades_vec[card_idx];
 
-    auto data = get_card_data(r, player_e, result);
+    auto data = get_card_data(r, player_e, result, cards);
     data.selected = cell_idx == card_idx;
 
     const auto im_rcol_vec = rarity_to_col(data.rarity);

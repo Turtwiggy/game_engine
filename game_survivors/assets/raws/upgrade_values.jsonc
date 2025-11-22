@@ -85,13 +85,13 @@
       {"rarity": "LEGENDARY",       "value": 4},
       {"rarity": "SUPER_LEGENDARY", "value": 5}
     ]},
-    // {"stat": "BULLET_SIZE", "type": "stat_percent_increase", "values":[
-    //   {"rarity": "COMMON",          "value": 10},
-    //   {"rarity": "UNCOMMON",        "value": 20},
-    //   {"rarity": "RARE",            "value": 30},
-    //   {"rarity": "LEGENDARY",       "value": 40},
-    //   {"rarity": "SUPER_LEGENDARY", "value": 50}
-    // ]},
+    {"stat": "BULLET_SIZE", "type": "stat_percent_increase", "values":[
+      {"rarity": "COMMON",          "value": 10},
+      {"rarity": "UNCOMMON",        "value": 20},
+      {"rarity": "RARE",            "value": 30},
+      {"rarity": "LEGENDARY",       "value": 40},
+      {"rarity": "SUPER_LEGENDARY", "value": 50}
+    ]},
     {"stat": "BULLET_SPEED", "type": "stat_percent_increase", "values":[
       {"rarity": "COMMON",          "value": 10},
       {"rarity": "UNCOMMON",        "value": 20},

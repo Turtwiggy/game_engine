@@ -23,6 +23,7 @@ weapon_behaviour_megabullet(entt::registry& r, const WeaponBehaviourMegabulletIn
 
 struct WeaponBehaviourBulletOppositeDirectionIn
 {
+  entt::entity wep_e;
   WeaponDef wep_def;
   BulletDef bul_def;
   glm::vec2 wep_pos;

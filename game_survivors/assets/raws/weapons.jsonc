@@ -8,7 +8,9 @@
       { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
     ] },
     { "u_key": "HP_UPGRADE_D", "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET",      "display": "[+FANFIRE]", "desc": "Every 10 bullets [+fanfire]" },
-    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE",             "display": "[+BULLETS (FIRE)]", "desc": "[+damage:fire]" },
+    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE",             "display": "[+BULLETS (FIRE)]", "desc": "[+damage:fire]", "stats": [
+      { "stat": "BULLET_SIZE",      "type": "stat_flat_increase", "value": 26 } 
+    ] },
 
     { "u_key": "GS_UPGRADE_A", "wb_key": "MEGABULLET",                        "display": "[+BIG BUOYS]",  "desc": "Combine all projectiles. [+BIG BUOY!]" },
     { "u_key": "GS_UPGRADE_B", "wb_key": "DOUBLE_PROJECTILES",                "display": "[+2x BULLETS]",  "desc": "[+2x projectiles]" },
