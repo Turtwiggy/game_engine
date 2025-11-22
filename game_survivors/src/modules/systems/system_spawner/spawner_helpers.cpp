@@ -12,6 +12,7 @@
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
+#include "modules/systems/system_alive_players/alive_players_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "resources/data.hpp"

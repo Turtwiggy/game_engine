@@ -24,7 +24,17 @@ update_ui_popup_are_you_sure_system(entt::registry& r)
   auto& ui_c = SINGLE_UIAreYouSure::instance;
   ui_c.open = ui_c.action.has_value();
 
-  if (!ui_c.open)
+  if (!ui_c.open) {
+    ui_c.one_frame_buffer = true;
+    return;
+  }
+
+  if (ui_c.one_frame_buffer) {
+    ui_c.one_frame_buffer = false;
+    return;
+  }
+
+  if (ui_c.action == nullptr)
     return;
 
   if (!ui_c.init) {
@@ -38,7 +48,7 @@ update_ui_popup_are_you_sure_system(entt::registry& r)
     ui_c.state.cells.push_back(std::make_shared<Cell>(no_cell));
 
     // create navlinks
-    create_as_horizontal_layout(ui_c.state.cells);
+    create_as_vertical_layout(ui_c.state.cells);
 
     ui_c.state.active = ui_c.state.cells[0];
 

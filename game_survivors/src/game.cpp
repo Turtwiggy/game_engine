@@ -54,6 +54,7 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_ability/ability_system.hpp"
+#include "modules/systems/system_alive_players/alive_players_system.hpp"
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_system.hpp"
 #include "modules/systems/system_anchor/anchor_system.hpp"
 #include "modules/systems/system_aoe_slow/aoe_slow_system.hpp"
@@ -326,6 +327,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_input_open_ui_system(r);
   update_events_system(r); // dispatch events
   update_quit_system(r, app);
+  update_alive_players_system(r);
 
   if (scene.s == Scene::pressanykey)
     update_scene_pressanykey_move_to_next_system(r, dt);

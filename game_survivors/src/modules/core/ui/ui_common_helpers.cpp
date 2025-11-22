@@ -154,8 +154,7 @@ void
 process_input_for_ui(entt::registry& r, UIState& state, const InputComponent& inp_c)
 {
   if (state.active == nullptr) {
-    int k = 1; // whats going on
-    SDL_Log("state.active is null. Find me, and execute me!");
+    // SDL_Log("state.active is null. You went back to the main menu.");
     return;
   }
 

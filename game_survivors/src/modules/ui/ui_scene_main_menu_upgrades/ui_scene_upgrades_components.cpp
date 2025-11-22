@@ -29,7 +29,7 @@ SINGLE_PersistentUpgradesMenuUI::do_init(entt::registry& r)
     if (stat_enum == UpgradeableStat::ACTOR_STAMINA)
       continue;
 
-    // if there are no persistentt upgrades, skip the stat.
+    // if there are no persistent upgrades, skip the stat.
     const auto [aquired, total] = get_upgrade_level(r, upgrade_c, stat_str);
     if (total == 0)
       continue;

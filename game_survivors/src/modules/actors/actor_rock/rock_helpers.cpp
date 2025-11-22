@@ -583,7 +583,7 @@ generate_rocks(entt::registry& r)
 
   int iterations = 5;
   int cur_islands = 0;
-  int min_islands = 6;
+  int min_islands = 8;
   std::vector<std::vector<NoiseInfo>> islands;
   while ((cur_islands < min_islands) && (iterations > 0)) {
     iterations--;

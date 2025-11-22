@@ -47,9 +47,9 @@
 
     { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "TURRET_FOLLOW_PLAYER",       "display": "[+TURRET MOVE]", "desc": "" },
     { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "TURRET_SLOW_ENEMIES",        "display": "[+TURRET AOE] [+TURRET SLOW]",  "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "TURRET_EXTRA_TURRETS_UPGRADE", "display": "[+2x TURRETS] [+TURRET DAMAGE]", "desc": "", "stats": [
-      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
-      { "stat": "WEAPON_PROJECTILES", "type": "stat_flat_increase", "value": 2 } // rare
+    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "TURRET_EXTRA_TURRETS_UPGRADE", "display": "[+TURRET DAMAGE]", "desc": "", "stats": [
+      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 } // rare
+      // { "stat": "WEAPON_PROJECTILES", "type": "stat_flat_increase", "value": 2 } // rare
     ] },
     { "u_key": "SEATURRET_UPGRADE_D", "wb_key": "TURRET_EXPLODE_ON_DEATH",    "display": "[+TURRET EXPLODE] [-TURRET LIFETIME]", "desc": "", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 10 }, 

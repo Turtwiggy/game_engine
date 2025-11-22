@@ -10,6 +10,7 @@
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
+#include "modules/systems/system_alive_players/alive_players_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "resources/data.hpp"
 #include "ui_survive_timer_components.hpp"
@@ -25,8 +26,8 @@ update_ui_survive_timer_system(entt::registry& r)
   const auto& ri_c = SINGLE_RendererInfo::instance;
   const glm::vec2 tr = ri_c.viewport_size_render_at;
 
-  const auto players_view = r.view<PlayerBoatComponent>();
-  if (players_view.empty())
+  const auto& players = SINGLE_AlivePlayers::instance.players;
+  if (players.empty())
     return; // no players, dont count down timer
 
   const auto view = r.view<const SurviveTimerComponent>();

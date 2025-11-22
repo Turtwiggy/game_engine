@@ -104,6 +104,10 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     return;
   }
 
+  // always be selecting something
+  if (ui_c.state.active == nullptr)
+    ui_c.state.active = ui_c.state.cells[0];
+
   // hold to purchase upgrade
   if (hel_sel)
     ui_c.purchase_time += dt;

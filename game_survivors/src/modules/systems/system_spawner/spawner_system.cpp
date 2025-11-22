@@ -31,6 +31,7 @@
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "modules/systems/system_alive_players/alive_players_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_components.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_helpers.hpp"
@@ -585,15 +586,6 @@ update_spawner_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
   GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
 
-  auto& alive_players = SINGLE_AlivePlayers::instance;
-  alive_players.players.clear();
-  for (const auto& [e, boat_c] : r.view<PlayerBoatComponent>().each()) {
-    auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
-    auto& hp_c = r.get<HealthComponent>(fixture_e);
-    if (hp_c.hp > 0)
-      alive_players.players.push_back(e);
-  }
-
   // dont update survive timer when theres a boss
   // const bool boss_is_alive = r.view<const BossComponent>().size() > 0;
   // if (boss_is_alive)
@@ -633,6 +625,11 @@ update_spawner_system(entt::registry& r, const float dt)
       return; // pause all the spawners!
   }
 #endif
+
+  // no players, dont count down timer and spawn things
+  const auto& players = SINGLE_AlivePlayers::instance.players;
+  if (players.empty())
+    return;
 
   // Update survive timer
   survive_c.time_left_cur -= dt;

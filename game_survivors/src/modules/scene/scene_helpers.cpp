@@ -64,6 +64,7 @@
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
 #include "modules/ui/ui_gameover/ui_gameover_components.hpp"
+#include "modules/ui/ui_popup_are_you_sure/ui_popup_are_you_sure_components.hpp"
 #include "modules/ui/ui_scene_main_menu/helpers.hpp"
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
@@ -417,6 +418,9 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     g_input_c.button_e.clear();
     g_input_c.button_w.clear();
   }
+
+  // reset the "are you sure" popup
+  SINGLE_UIAreYouSure::instance.action = nullptr;
 
   if (s == Scene::splashscreen) {
     create_empty<SINGLE_SplashScreen>(r);

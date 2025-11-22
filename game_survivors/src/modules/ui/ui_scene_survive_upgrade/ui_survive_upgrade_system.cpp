@@ -38,6 +38,7 @@
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_helpers.hpp"
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -839,11 +840,19 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
       continue; // this player isnt upgrading
     }
 
+    if (!r.all_of<InputComponent>(player_e)) {
+      if (r.all_of<UpgradeResultsComponent>(player_e))
+        r.remove<UpgradeResultsComponent>(player_e);
+      ui_move_horizontally();
+      continue;
+    }
+
     ImGui::PushID((uint32_t)player_e);
 
     // update input
     auto& state_c = ui_c.ui_states[player_idx];
     state_c.actions.clear();
+
     const auto input = r.get<const InputComponent>(player_e);
     process_input_for_ui(r, state_c, input);
 
