@@ -22,6 +22,8 @@ struct HullChoice
 
   int player_row_idx = 0;
   int player_idx = 0;
+  int player_colour_idx = 0;
+
   std::string player_boat_key = "unknown";
   std::string player_gun_key = "unknown";
   std::string player_ability_key = "unknown";

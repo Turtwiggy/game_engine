@@ -28,18 +28,19 @@ const std::vector<engine::SRGBColour> default_player_colours = {
   hex_to_srgb("#FF5F1F"), //
   hex_to_srgb("#00FFA2"), //
 };
-const ImU32 default_player_colours_im[n_players] = {
-  convert_my_to_im(default_player_colours[0]),
-  convert_my_to_im(default_player_colours[1]),
-  convert_my_to_im(default_player_colours[2]),
-  convert_my_to_im(default_player_colours[3]),
-};
-const ImU32 default_player_colours_im_transparent[n_players] = {
-  convert_my_to_im({ default_player_colours[0].r, default_player_colours[0].g, default_player_colours[0].b, 100 }),
-  convert_my_to_im({ default_player_colours[1].r, default_player_colours[1].g, default_player_colours[1].b, 100 }),
-  convert_my_to_im({ default_player_colours[2].r, default_player_colours[2].g, default_player_colours[2].b, 100 }),
-  convert_my_to_im({ default_player_colours[3].r, default_player_colours[3].g, default_player_colours[3].b, 100 }),
-};
+
+inline const std::vector<ImU32> default_player_colours_im = [] {
+  std::vector<ImU32> v;
+  auto convert = [](const auto& c) { return convert_my_to_im(c); };
+  std::transform(default_player_colours.begin(), default_player_colours.end(), std::back_inserter(v), convert);
+  return v;
+}();
+inline const std::vector<ImU32> default_player_colours_im_transparent = [] {
+  std::vector<ImU32> v;
+  auto convert = [](const auto& c) { return convert_my_to_im({ c.r, c.g, c.b, 100 }); };
+  std::transform(default_player_colours.begin(), default_player_colours.end(), std::back_inserter(v), convert);
+  return v;
+}();
 
 const auto my_white = hex_to_srgb("#FFFFFF");
 const ImU32 im_white = IM_COL32(255, 255, 255, 255);

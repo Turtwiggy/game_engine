@@ -7,6 +7,7 @@
 #if !defined(_DEBUG)
 #include "modules/steam_input/steam_input_helpers.hpp"
 #endif
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/maths.hpp"
@@ -484,6 +485,7 @@ draw_confirm_bar(entt::registry& r,
                  ImVec2 tl,
                  ImVec2 br,
                  const int player_idx,
+                 const int colour_idx,
                  const CardUIUpgradeComponent& card_ui_c,
                  ImFont* font,
                  const float font_size)
@@ -496,7 +498,7 @@ draw_confirm_bar(entt::registry& r,
   const auto purchasebar_wh = purchasebar_br - purchasebar_tl;
   // draw_list->AddRect(purchasebar_tl, purchasebar_br, im_player_col);
 
-  auto my_player_col = default_player_colours[player_idx];
+  auto my_player_col = default_player_colours[colour_idx];
   auto my_player_col_active = my_player_col;
   auto my_player_col_inactive = my_player_col;
   my_player_col_inactive.a = 0.25f * 255;
@@ -543,10 +545,12 @@ draw_simple_upgrade_ui(entt::registry& r,
 {
   GET_FIRST_OR_RETURN(SINGLE_LevelUpUI, r, ui_e, ui_c);
   auto* draw_list = ImGui::GetWindowDrawList();
-  auto player_idx = r.get<PlayerComponent>(player_e).idx;
+  const auto& player_c = r.get<PlayerComponent>(player_e);
+  const auto player_idx = player_c.idx;
+  const auto colour_idx = player_c.colour_idx;
   auto& card_ui_c = r.get<CardUIUpgradeComponent>(player_e);
   auto& state_c = ui_c.ui_states[player_idx];
-  const auto im_player_col = default_player_colours_im[player_idx];
+  const auto im_player_col = default_player_colours_im[colour_idx];
   const auto selection_wh = calc_wh(selection_tl, selection_br);
 
   auto* head_font = get_fingerpaint_font(r);
@@ -782,6 +786,13 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     SDL_Log("Levelup");
     generate_upgrades_for_players(r, ui_c);
     populate_ui_based_on_upgrades(r, ui_c);
+
+    // play some audio
+    // static engine::RandomState rnd(0);
+    // const auto track_key = std::format("LEVEL_UP");
+    // AudioRequestPlayEvent audio_evt;
+    // audio_evt.tag = track_key;
+    // create_empty<AudioRequestPlayEvent>(r, audio_evt);
   }
 
   // dont show upgrade ui
@@ -900,7 +911,9 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     // process the first upgrade results
     const std::pair<entt::entity, UpgradeResultsComponent*>& upgs_pair = upgrades[0];
     const auto* upgrades_c = upgs_pair.second;
-    const auto im_player_col = default_player_colours_im[player_idx];
+    const auto& player_c = r.get<PlayerComponent>(player_e);
+    const auto colour_idx = player_c.colour_idx;
+    const auto im_player_col = default_player_colours_im[player_c.colour_idx];
 
     const auto card_center_x = first_tl_x + 0.5f * p_card_w;
     const auto card_tl = ImVec2{ card_center_x - 0.5f * p_card_w + p_card_pad_x, center_y - (p_card_h * pivot) };
@@ -964,7 +977,7 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
 
       // draw the confirm bar#
       ImGui::PushFont(body_font, body_font_size);
-      draw_confirm_bar(r, selection_tl, selection_br, player_idx, card_ui_c, body_font, body_font_size);
+      draw_confirm_bar(r, selection_tl, selection_br, player_idx, colour_idx, card_ui_c, body_font, body_font_size);
       ImGui::PopFont();
 
       // Draw the stats

@@ -76,6 +76,7 @@ update_selections(entt::registry& r,
   auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
 
   const bool is_name = cell.name.find("Name") != std::string::npos;
+  const bool is_colour = cell.name.find("Colour") != std::string::npos;
   const bool is_hull = cell.name.find("Hull") != std::string::npos;
   const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
 
@@ -86,6 +87,13 @@ update_selections(entt::registry& r,
     const auto& out_name = ui_c.available_names[cell.value];
     name = out_name;
     player_state.player_name = name;
+  }
+
+  if (is_colour) {
+    int n_colours = (int)default_player_colours.size();
+    cell.value = engine::wrap(cell.value, n_colours);
+    name = "";
+    player_state.player_colour_idx = cell.value;
   }
 
   // convert index to hull choice
@@ -295,6 +303,7 @@ draw_card_inner(entt::registry& r,
                 SelectUI& player_ui_c,
                 HullChoice& player_state_c,
                 const int player_idx,
+                const int player_col_idx,
                 const ImVec2 button_size,
                 const bool do_act,
                 const ImVec2 main_quarter_tl,
@@ -354,8 +363,10 @@ draw_card_inner(entt::registry& r,
     {
       auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
       const bool is_name = cell.name.find("Name") != std::string::npos;
+      const bool is_colour = cell.name.find("Colour") != std::string::npos;
       const bool is_hull = cell.name.find("Hull") != std::string::npos;
       const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
+
       const float icon_sprite = 32;
       const float icon_box_size = 32;
       const float padding_x = 10.0f;
@@ -367,6 +378,9 @@ draw_card_inner(entt::registry& r,
         // draw_list->AddRect(grid_tl, grid_br, IM_COL32(255, 0, 0, 255));
 
         const auto col = active ? im_text_col : im_text_col_inactive;
+        const auto border_col = active ? im_greenish : im_window_border_col;
+        const float arrow_pad = 16;
+
         const auto name_size = 16;
         const auto name = names[cell.value];
         ImGui::PushFont(text_font, name_size);
@@ -376,9 +390,38 @@ draw_card_inner(entt::registry& r,
         draw_list->AddText(text_font, name_size, text_pos, col, name.c_str());
 
         // add some < and > arrow.
-        draw_list->AddText(text_font, name_size, text_pos - ImVec2{ name_size, 0 }, col, "<");
-        draw_list->AddText(text_font, name_size, text_pos + ImVec2{ name_len.x + name_size, 0 }, col, ">");
+        draw_list->AddText(text_font, name_size, text_pos - ImVec2{ arrow_pad, 0 }, border_col, "<");
+        draw_list->AddText(text_font, name_size, text_pos + ImVec2{ name_len.x + 8, 0 }, border_col, ">");
 
+        // if (active_cell) {
+        //   auto cursor_tl = calc_center(grid_tl, grid_wh);
+        //   draw_cursor(r, ui_c.player_cursor_state[player_idx], cursor_tl, dt);
+        // }
+        //
+      }
+      if (is_colour) {
+
+        const auto text_size = 16;
+        // const auto text = std::string("todo: colour");
+        const auto text = std::format("{}/{}", (cell.value + 1), ((int)default_player_colours.size()));
+        const auto col = active ? im_text_col : im_text_col_inactive;
+        const auto border_col = active ? im_greenish : im_window_border_col;
+        const float arrow_pad = 16;
+
+        ImGui::PushFont(text_font, text_size);
+        const auto name_len = ImGui::CalcTextSize(text.c_str());
+        ImGui::PopFont();
+        const auto text_pos = calc_center(grid_tl, grid_wh) - ImVec2{ 0.5f * name_len.x, 0.5f * name_len.y };
+        draw_list->AddText(text_font, text_size, text_pos, col, text.c_str());
+
+        // add some < and > arrow.
+        draw_list->AddText(text_font, text_size, text_pos - ImVec2{ arrow_pad, 0 }, border_col, "<");
+        draw_list->AddText(text_font, text_size, text_pos + ImVec2{ name_len.x + 8, 0 }, border_col, ">");
+
+        // if (active_cell) {
+        //   auto cursor_tl = calc_center(grid_tl, grid_wh);
+        //   draw_cursor(r, ui_c.player_cursor_state[player_idx], cursor_tl, dt);
+        // }
         //
       }
       if (is_hull) {
@@ -463,7 +506,6 @@ draw_card_inner(entt::registry& r,
       const auto cell_it = std::find(cs.begin(), cs.end(), active_cell);
       const auto cell_idx = static_cast<int>(cell_it - cs.begin());
       auto& cell = *(dynamic_cast<OptionsCell*>(cell_it->get()));
-      const bool is_name = cell.name.find("Name") != std::string::npos;
       const bool is_hull = cell.name.find("Hull") != std::string::npos;
       const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
 
@@ -496,7 +538,7 @@ draw_card_inner(entt::registry& r,
       const auto im_player_col_inactive = convert_my_to_im(my_player_col_inactive);
 
       const float bar_rounding = 0.0f;
-      const auto my_player_col = default_player_colours[player_idx];
+      const auto my_player_col = default_player_colours[player_col_idx];
       const auto im_player_col = convert_my_to_im(my_player_col);
 
       const auto draw_bar = [&](const ImVec2 bar_tl, const ImVec2 bar_br, const float percent) {
@@ -624,9 +666,19 @@ update_player_select_ui(entt::registry& r,
     if (r_pressed)
       h_value++;
 
-    auto* draw_list = ImGui::GetWindowDrawList();
-    const auto my_player_col = default_player_colours[player_idx];
+    // get player_idx_col value
+    int player_col_idx = 0;
+    for (const auto& c : player_ui_c.state.cells) {
+      const bool is_colour = c->name.find("Colour") != std::string::npos;
+      if (!is_colour)
+        continue;
+      auto& cell = *(dynamic_cast<OptionsCell*>(c.get()));
+      player_col_idx = cell.value;
+    }
+    const auto my_player_col = default_player_colours[player_col_idx];
     const auto im_player_col = convert_my_to_im(my_player_col);
+
+    auto* draw_list = ImGui::GetWindowDrawList();
 
     // const auto width = 300;
     const auto height = 480; // or 1/6th of the screen
@@ -653,6 +705,7 @@ update_player_select_ui(entt::registry& r,
                       player_ui_c,
                       player_state_c,
                       player_idx,
+                      player_col_idx,
                       button_size,
                       do_act,
                       card_tl,
@@ -709,6 +762,10 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     ui_c.player_ui_state.resize(max_num_players);
     ui_c.player_choice_state.resize(max_num_players);
 
+    // default players to choose different colours
+    for (int i = 0; i < max_num_players; i++)
+      ui_c.player_choice_state[0].player_colour_idx = i;
+
     // get all the available names.
 #if defined(USE_STEAM)
 
@@ -725,6 +782,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     }
 
 #endif
+
     ui_c.available_names.push_back("Destroyer of Worlds");
     ui_c.available_names.push_back("Kleptomaniac");
     ui_c.available_names.push_back("Passionate Lover");
@@ -740,6 +798,14 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
         c0.name = "Name";
         c0.action = []() {};
         ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c0));
+
+        {
+          OptionsCell c;
+          c.name = "Colour";
+          c.action = []() {};
+          ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c));
+          ((OptionsCell*)ui_state_c.state.cells[1].get())->value = i; // set default
+        }
 
         OptionsCell c;
         c.name = "Hull";

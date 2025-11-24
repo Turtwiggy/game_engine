@@ -99,6 +99,7 @@ spawn_player(entt::registry& r,
              std::string key,
              std::string name,
              int num,
+             int colour_idx,
              std::string hull_key,
              std::string weapon_key,
              const glm::vec2 pos)
@@ -167,7 +168,7 @@ spawn_player(entt::registry& r,
   r.emplace<PlayerBoatComponent>(e);
 
   give_life(r, e, pos, hull_size);
-  r.emplace<PlayerComponent>(e, PlayerComponent{ .idx = num, .display_name = name });
+  r.emplace<PlayerComponent>(e, PlayerComponent{ .idx = num, .colour_idx = colour_idx, .display_name = name });
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<MovementDirectComponent>(e);
@@ -198,7 +199,7 @@ spawn_player(entt::registry& r,
 
   // r.emplace<SpriteOutline>(e);
 
-  const auto add_trail = [&r, e, num](glm::vec2 offset) {
+  const auto add_trail = [&r, e, colour_idx](glm::vec2 offset) {
     const auto tl_offset = offset;
     const auto emitter_parent_e = create_transform(r, "trail-emitter-parent-l");
     r.emplace<DynamicTargetComponent>(emitter_parent_e, e);
@@ -207,7 +208,7 @@ spawn_player(entt::registry& r,
     RequestToSpawnParticles req;
     req.key = "default_trail";
     req.parent = emitter_parent_e;
-    req.colour = default_player_colours[num];
+    req.colour = default_player_colours[colour_idx];
     spawn_particle_emitter(r, req);
   };
 
@@ -244,7 +245,7 @@ spawn_player(entt::registry& r,
     hull_key.begin(), hull_key.end(), std::back_inserter(hull_lower), [](const auto& c) { return std::tolower(c); });
 
   // set the player colour.
-  const auto col = default_player_colours[num];
+  const auto& col = default_player_colours[colour_idx];
   r.get_or_emplace<DefaultColour>(e).colour = col;
 
   // TODO: come up with something better to set sprites
@@ -335,9 +336,10 @@ spawn_players(entt::registry& r)
     SDL_Log("player wants to spawn with (boat)%s (weapon)%s", boat_str.c_str(), weapon_str.c_str());
 
     const auto player_name = hull_keys[i].player_name;
+    const auto col_idx = hull_keys[i].player_colour_idx;
 
     const auto pos = get_player_spawn_point_around_starting_island(r, i);
-    const auto p = spawn_player(r, "actor_player", player_name, i, boat_str, weapon_str, pos);
+    const auto p = spawn_player(r, "actor_player", player_name, i, col_idx, boat_str, weapon_str, pos);
 
     if (handle_joined)
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
@@ -560,7 +562,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // create_empty<CameraFreeMove>(r);
 
     const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
-    const auto p = spawn_player(r, "actor_player", "player", 0, "dinghy", "weapon_deck_cannon", pos);
+    const auto p = spawn_player(r, "actor_player", "player", 0, 0, "dinghy", "weapon_deck_cannon", pos);
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles.size(); i++) {

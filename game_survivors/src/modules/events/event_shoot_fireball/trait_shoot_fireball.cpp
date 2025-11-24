@@ -4,8 +4,11 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
+#include "engine/sprites/components.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/systems/system_autofire/autofire_components.hpp"
@@ -76,10 +79,16 @@ handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
   const auto bullet_vel = fireball_def.speed * b2Vec2{ dir.x, dir.y };
   b2Body_SetLinearVelocity(r.get<PhysicsBodyComponent>(bullet_e).bodyId, bullet_vel);
 
+  // make it look like a fireball
+  r.remove<SpriteComponent>(bullet_e);
+  r.emplace<FlamethrowerFlameComponent>(bullet_e);
+  auto fixture_e = get_fixture_by_tag(r, bullet_e, "fixture_bullet");
+  r.emplace<FlamethrowerFlameFixtureComponent>(fixture_e);
+
   // fireballs to player col
   // const auto& player_col = r.get<DefaultColour>(from_e).colour;
   // set_colour(r, bullet_e, player_col);
-  set_colour(r, bullet_e, { 255, 0, 0, 255 });
+  // set_colour(r, bullet_e, { 255, 0, 0, 255 });
 }
 
 } // namespace game2d

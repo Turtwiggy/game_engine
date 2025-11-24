@@ -18,6 +18,7 @@ spawn_player(entt::registry& r,
              std::string key,
              std::string name,
              int num,
+             int colour_idx,
              std::string hull_key,
              std::string weapon_key,
              const glm::vec2 pos);

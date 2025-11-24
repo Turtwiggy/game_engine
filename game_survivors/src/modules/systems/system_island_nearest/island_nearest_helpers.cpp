@@ -41,7 +41,7 @@ land_player_on_island(entt::registry& r,
   // r.emplace<CameraFollow>(island_player_e);
 
   // make the islander the colour of the player
-  auto col = default_player_colours[r.get<PlayerComponent>(boat_e).idx];
+  auto col = default_player_colours[r.get<PlayerComponent>(boat_e).colour_idx];
   r.emplace_or_replace<DefaultColour>(island_player_e, col);
   set_colour(r, island_player_e, col);
 

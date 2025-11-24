@@ -74,7 +74,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       const auto wsp_ss = worldspace_to_screenspace(r, wsp);
       const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
 
-      const auto border_col = default_player_colours_im[player_c.idx];
+      const auto border_col = default_player_colours_im[player_c.colour_idx];
       draw_popup(r, ss_pos_tl, label, font, font_size, border_col);
 
       ImGui::PopID();
@@ -111,11 +111,12 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       const auto ss_pos_tl = ImVec2(wsp_ss.x, wsp_ss.y);
 
       const auto player_idx = r.get<PlayerComponent>(boat_e).idx;
+      const auto player_col_idx = r.get<PlayerComponent>(boat_e).colour_idx;
       // const auto handle = steam_c.handles[0];
       // const auto confirm_button_str = get_back_button_str(r, handle);
 
       const auto ss_pos = ss_pos_tl;
-      const auto border_col = default_player_colours_im[player_idx];
+      const auto border_col = default_player_colours_im[player_col_idx];
 
       const float max = glm::max(str0_len.x, str1_len.x);
       draw_popup(r, ss_pos + ImVec2{ -0.5f * max, -str0_len.y }, str0, font, font_size, border_col);

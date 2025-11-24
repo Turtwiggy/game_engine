@@ -1,4 +1,3 @@
-#include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "pch.hpp"
 
 #include "ui_survive_hp_bars.hpp"
@@ -25,6 +24,7 @@
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
@@ -145,13 +145,14 @@ update_ui_survive_hp_bars_system(entt::registry& r)
     const auto player_e = players_e_vec[i];
     const auto& player_c = r.get<PlayerComponent>(player_e);
     const auto player_idx = player_c.idx;
+    const auto player_col_idx = player_c.colour_idx;
     const auto children_c = r.get<HasChildrenComponent>(player_e);
     const auto fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
     const auto& hp_c = r.get<HealthComponent>(fixture_e);
     const float hp = hp_c.hp;
     const float max_hp = hp_c.max_hp;
     const float hp_percent = hp / max_hp;
-    const auto player_col = default_player_colours[player_idx];
+    const auto player_col = default_player_colours[player_col_idx];
 
     // draw text
     auto display_str = std::format("{}", player_c.display_name);

@@ -163,8 +163,7 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
         auto n_pos = engine::grid::gridspace_to_worldspace(n_gp, tilesize);
         n_pos += glm::vec2{ tilesize, tilesize };
 
-        // not sure about using player_c.idx
-        auto col = default_player_colours[player_c.idx];
+        auto col = default_player_colours[player_c.colour_idx];
 
         draw_sprite(r,
                     Sprite{

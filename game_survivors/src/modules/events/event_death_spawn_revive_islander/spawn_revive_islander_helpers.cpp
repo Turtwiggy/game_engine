@@ -26,7 +26,9 @@ handle_death_event__spawn_revive_islander(entt::registry& r, const DeathEvent& e
     return; // you should already have a revive islander
 
   // spawn a person on the base island.
-  auto player_idx = r.get<PlayerComponent>(dead_e).idx;
+  auto& player_c = r.get<PlayerComponent>(dead_e);
+  auto player_idx = player_c.idx;
+  auto colour_idx = player_c.colour_idx;
 
   // the revive mechanic. spawn a player-islander on the base island.
   auto base_island_e = get_center_island_eid(r);
@@ -37,8 +39,8 @@ handle_death_event__spawn_revive_islander(entt::registry& r, const DeathEvent& e
   SDL_Log("Spawning a revive islander...");
   auto islander_e =
     spawn_islander_unoccupied_edge(r, spawn_rnd, base_island_e, "actor_islanddweller_player", AvailableTeams::player, false);
-  r.emplace<PlayerComponent>(islander_e, PlayerComponent{ .idx = player_idx });
-  auto col = default_player_colours[player_idx];
+  r.emplace<PlayerComponent>(islander_e, PlayerComponent{ .idx = player_idx, .colour_idx = colour_idx });
+  auto col = default_player_colours[colour_idx];
   r.emplace_or_replace<DefaultColour>(islander_e, col);
   set_colour(r, islander_e, col);
 
