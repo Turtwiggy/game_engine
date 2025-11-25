@@ -673,8 +673,10 @@ update_player_select_ui(entt::registry& r,
       if (!is_colour)
         continue;
       auto& cell = *(dynamic_cast<OptionsCell*>(c.get()));
+      cell.value = engine::wrap(cell.value, (int)default_player_colours.size());
       player_col_idx = cell.value;
     }
+
     const auto my_player_col = default_player_colours[player_col_idx];
     const auto im_player_col = convert_my_to_im(my_player_col);
 

@@ -19,6 +19,8 @@ struct PlayerComponent
   int idx = 0;
   int colour_idx = 0; // idx into default_player_colours
   std::string display_name = "player";
+  std::string back_button_cached = "";
+  std::string confirm_button_cached = "";
 };
 
 struct ActorSpeedComponent

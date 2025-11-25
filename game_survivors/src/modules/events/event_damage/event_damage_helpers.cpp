@@ -223,9 +223,11 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
 
   // player hit audio
   if (const auto* player_c = r.try_get<const PlayerComponent>(parent_e)) {
-    const auto hit_idx = engine::rand_det_s(audio_hit_rnd.rng, 1, 4);
-    const auto hit_str = std::format("HIT_0{}", hit_idx);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = hit_str });
+    if (!r.all_of<RevivableComponent>(parent_e)) {
+      const auto hit_idx = engine::rand_det_s(audio_hit_rnd.rng, 1, 4);
+      const auto hit_str = std::format("HIT_0{}", hit_idx);
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = hit_str });
+    }
   }
 
   create_damage_popup(r, damage, crit, parent_e);
