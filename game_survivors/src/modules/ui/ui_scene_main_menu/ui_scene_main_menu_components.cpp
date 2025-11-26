@@ -89,7 +89,7 @@ SINGLE_MainMenuUI::do_init(entt::registry& r)
 #endif
 
   auto a = make_cell("Play", play_action);
-  auto b = make_cell("Upgrades", upgrade_action);
+  auto b = make_cell("Shipyard", upgrade_action);
   auto c = make_cell("Options", options_action);
   auto d = make_cell("Exit", exit_action);
   auto e = make_cell("Modifiers", modifiers_action);

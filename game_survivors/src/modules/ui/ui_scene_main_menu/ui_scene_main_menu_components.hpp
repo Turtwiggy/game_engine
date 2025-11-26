@@ -11,6 +11,8 @@ struct SINGLE_MainMenuUI : public DefaultUI
   int v_index = 0;
   // std::vector<std::string> hovered_buttons;
 
+  std::map<int, float> idx_to_size;
+
   void do_init(entt::registry& r) override;
 };
 

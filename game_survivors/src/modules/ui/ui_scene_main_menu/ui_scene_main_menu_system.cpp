@@ -2,7 +2,9 @@
 
 #include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_system.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
@@ -16,7 +18,7 @@ namespace game2d {
 using namespace std::literals;
 
 void
-update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
+update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r, float dt)
 {
 #if defined(_DEBUG)
   ZoneScoped;
@@ -40,9 +42,16 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
   // button idx
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_size = (float)FontSizes::SIZE_32 * font_scale;
+  const auto min_font_size = (float)FontSizes::SIZE_32 * font_scale;
+  const auto max_font_size = (float)34 * font_scale;
   auto* font = get_inter_font(r);
-  ImGui::PushFont(font, font_size);
+  static float text_scale_speed = 50.0f;
+
+#if defined(_DEBUG)
+  // ImGui::Begin("Debug");
+  // imgui_draw_float("text_scale_speed", text_scale_speed);
+  // ImGui::End();
+#endif
 
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
@@ -70,6 +79,21 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   const auto& b_s = g_input_c.button_s;
   const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
 
+  const std::vector<UIAction> audio_pop_ui = {
+    UIAction::NAV_MOVE_U, UIAction::NAV_MOVE_D, UIAction::NAV_MOVE_L, UIAction::NAV_MOVE_R
+  };
+  bool make_pop_audio_sound = false;
+  if (ui_c.state.actions.size() > 0) {
+    for (const auto& act : ui_c.state.actions) {
+      if (std::find(audio_pop_ui.begin(), audio_pop_ui.end(), act) != audio_pop_ui.end()) {
+        make_pop_audio_sound = true;
+        break;
+      }
+    }
+  }
+  if (make_pop_audio_sound)
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_HOVER_0" });
+
   int i = 0;
   const std::shared_ptr<Cell> root = ui_c.state.cells[0];
   std::shared_ptr<Cell> base = root;
@@ -78,6 +102,15 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 
     if (i > 0)
       ImGui::Dummy(space_between_buttons);
+
+    // scale up text size if it's selected
+    // bool active = ui_c.state.active == base;
+    // auto [it, _] = ui_c.idx_to_size.insert({ i, min_font_size });
+    // ui_c.idx_to_size[i] += active ? dt * text_scale_speed : -dt * text_scale_speed;
+    // ui_c.idx_to_size[i] = std::clamp(ui_c.idx_to_size[i], min_font_size, max_font_size);
+    // const auto font_size_final = ui_c.idx_to_size[i];
+    const auto font_size_final = min_font_size;
+    ImGui::PushFont(font, font_size_final);
 
     const auto draw_button = [&](std::shared_ptr<Cell>& cell, int my_col_index) {
       auto a_def = SelectableButtonDef{
@@ -88,7 +121,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         .cell = cell,
         .active_cell = ui_c.state.active,
         .font = font,
-        .font_size = font_size,
+        .font_size = font_size_final,
+        .play_audio = true,
 
         .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       };
@@ -121,7 +155,8 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         .cell = cell,
         .active_cell = ui_c.state.active,
         .font = font,
-        .font_size = font_size,
+        .font_size = min_font_size,
+        .play_audio = true,
 
         .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       };
@@ -129,6 +164,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
         cell->action();
     }
 
+    ImGui::PopFont();
     base = base->d;
     if (base == root)
       break;
@@ -136,7 +172,6 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
   }
   ImGui::PopStyleVar(5);
   ImGui::End();
-  ImGui::PopFont();
 
   // note: could be in a separate file
   // ui_mute_sound_icon(r);

@@ -7,6 +7,6 @@
 namespace game2d {
 
 void
-update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r);
+update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r, float dt);
 
 }; // namespace game2d

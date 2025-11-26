@@ -75,9 +75,15 @@ get_default_audio()
   audio.sounds.push_back({ "GAME_3", mus_path + "psychronic-wacky-fight.mp3", SoundType::BACKGROUND });
 
   // audio.sounds.push_back({ "BUOY_0", path + "marblehead_bell_buoy_nrm_23.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back({ "UI_HOVER_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
-  audio.sounds.push_back({ "UI_SELECT_0", sfx_path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
+  audio.sounds.push_back({ "UI_HOVER_0", sfx_path + "/zapsplat/click_001.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "UI_SELECT_0", sfx_path + "/zapsplat/click_002.mp3", SoundType::SFX });
   audio.sounds.push_back({ "XP_0", sfx_path + "UI_SCI-FI_Tone_Bright_Dry_12_stereo_nrm.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "POSITIVE_01", sfx_path + "positive-7.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "POSITIVE_02", sfx_path + "positive-10.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "POSITIVE_03", sfx_path + "positive-17.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "POSITIVE_04", sfx_path + "positive-18.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "POSITIVE_05", sfx_path + "positive-21.mp3", SoundType::SFX });
+  audio.sounds.push_back({ "POSITIVE_06", sfx_path + "positive-22.mp3", SoundType::SFX });
 
   audio.sounds.push_back({ "BOMB_EXPLOSION_01", sfx_path + "cannon_shot_nrm.mp3", SoundType::SFX });
   audio.sounds.push_back({ "ENEMY_EXPLODER_01", sfx_path + "exploder_explosion_1.mp3", SoundType::SFX });

@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -56,6 +57,9 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   const bool is_hovered = ImGui::IsItemHovered();
   const bool is_clicked = ImGui::IsItemClicked();
 
+  bool newly_selected = false;
+  auto old_active_cell = def.active_cell;
+
   if (is_hovered && mouse_move && def.update_selected_on_mouse_move)
     def.active_cell = def.cell;
 
@@ -63,6 +67,9 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     def.active_cell = def.cell;
     do_act = true;
   }
+
+  if (def.active_cell != old_active_cell)
+    newly_selected = true;
 
   bool is_selected = def.active_cell == def.cell;
   if (def.update_selected_only_with_mouse)
@@ -120,17 +127,15 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
   // "commit changes"
   // draw_list->ChannelsMerge();
 
-  // play_sound_if_hovered(r, ui.hovered_buttons, label);
-
-  // Do the callback for the button
-  // if (is_selected && do_ui_action) {
-  //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_SELECT_0" });
-  //   return true;
-  // }
-
   // input
   if (def.input && is_selected)
     do_act = true;
+
+  // Do the callback for the button
+  if (is_selected && do_act && def.play_audio)
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_SELECT_0" });
+  if (newly_selected && def.play_audio)
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_HOVER_0" });
 
   ImGui::PopStyleColor(2);
   ImGui::PopStyleVar(4);

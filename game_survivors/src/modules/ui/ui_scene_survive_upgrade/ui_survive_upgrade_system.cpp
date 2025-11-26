@@ -808,12 +808,10 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     generate_upgrades_for_players(r, ui_c);
     populate_ui_based_on_upgrades(r, ui_c);
 
-    // play some audio
-    // static engine::RandomState rnd(0);
-    // const auto track_key = std::format("LEVEL_UP");
-    // AudioRequestPlayEvent audio_evt;
-    // audio_evt.tag = track_key;
-    // create_empty<AudioRequestPlayEvent>(r, audio_evt);
+    // play some audio.
+    static engine::RandomState audio_rnd(0);
+    const int rnd_audio = engine::rand_det_s(audio_rnd.rng, 1, 7);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "POSITIVE_0" + std::to_string(rnd_audio) });
   }
 
   // dont show upgrade ui

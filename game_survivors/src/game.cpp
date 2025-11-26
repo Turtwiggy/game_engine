@@ -433,7 +433,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   //   update_ui_scene_press_any_key(r);
 
   if (scene.s == Scene::menu) {
-    update_ui_scene_main_menu(app, r);
+    update_ui_scene_main_menu(app, r, dt);
     update_ui_scene_main_menu_controllerinfo_system(r, dt);
     update_ui_scene_upgrades_system(r, dt);
     update_ui_display_build_number_system(r);

@@ -388,7 +388,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   // do not use create_persistent here. anything created
   // here should be expected to be removed between scenes
-  SINGLE_CurrentScene::instance = {};
+  // SINGLE_CurrentScene::instance = {};
   SINGLE_ScreenshakeComponent::instance = {};
   create_empty<SINGLE_EntityBinComponent>(r);
   create_empty<SINGLE_GameStateComponent>(r);

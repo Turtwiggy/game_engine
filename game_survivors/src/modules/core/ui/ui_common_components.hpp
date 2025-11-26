@@ -54,6 +54,8 @@ struct SelectableButtonDef
   float rounding = 6.0f;
   float thickness = 1.0f;
 
+  bool play_audio = false;
+
   engine::SRGBColour active_outline_col = hex_to_srgb("#FFFFFF", 255);
   engine::SRGBColour inactive_outline_col = hex_to_srgb("#FFFFFF", (int)(0.6f * 255));
   engine::SRGBColour active_bg_col = hex_to_srgb("#02526D", 255);

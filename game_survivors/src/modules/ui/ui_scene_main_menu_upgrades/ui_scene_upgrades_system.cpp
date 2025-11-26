@@ -1,10 +1,12 @@
 #include "pch.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/deps/opengl.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 #include "engine/opengl/texture.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "engine/std/string/helpers.hpp"
@@ -110,6 +112,7 @@ draw_header_row(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c, ImVec2
       .input = do_act,
       .cell = cell,
       .active_cell = ui_c.active_header,
+      .update_selected_on_mouse_move = false,
 
       .font = text_font,
       .font_size = font_text_size,
@@ -434,6 +437,11 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     savefile_put_key(r, "GOLD_AMOUNT", gold_c.amount);
     savefile_put_key(r, key, 1);
     savefile_save_disk(r);
+
+    // play some audio.
+    static engine::RandomState audio_rnd(0);
+    const int rnd_audio = engine::rand_det_s(audio_rnd.rng, 1, 7);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "POSITIVE_0" + std::to_string(rnd_audio) });
   }
 }
 
