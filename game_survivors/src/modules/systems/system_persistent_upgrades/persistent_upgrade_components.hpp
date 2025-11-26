@@ -7,11 +7,10 @@ namespace game2d {
 
 struct UpgradeLevel
 {
-  int cost;         // cost to upgrade
   std::string type; // stat_percent_increase or stat_flat_increase
   float value;      // the stat value to increase by
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UpgradeLevel, cost, type, value);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UpgradeLevel, type, value);
 };
 
 struct Upgrade

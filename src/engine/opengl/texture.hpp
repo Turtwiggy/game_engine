@@ -70,6 +70,7 @@ struct Texture
   TextureUnit tex_unit;
   TextureId tex_id;
   glm::ivec2 size{ 0, 0 };
+  bool linear = true;
 
   Texture() = default;
   Texture(const std::string& p, const std::string& sp)
@@ -84,7 +85,7 @@ void
 unbind_tex();
 
 SRGBTexture
-load_texture(std::string path, const uint32_t tex_unit);
+load_texture(std::string path, const uint32_t tex_unit, bool linear = true);
 
 void
 update_bound_texture_size(const glm::ivec2 size);

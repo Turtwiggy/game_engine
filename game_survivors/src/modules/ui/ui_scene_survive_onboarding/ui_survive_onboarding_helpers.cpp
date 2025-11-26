@@ -37,10 +37,8 @@ get_back_button_str(entt::registry& r, InputHandle_t handle)
   if (handle != 0)
     back_str = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
 
-  // if (back_str == "...")
-  // back_str = "ESC";
   else
-    back_str = "ESC";
+    back_str = "Q";
 
   return back_str;
 }

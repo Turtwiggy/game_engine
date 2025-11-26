@@ -2,32 +2,32 @@
   "weapon_upgrades": [
     
     { "u_key": "HP_UPGRADE_A", "wb_key": "MEGABULLET",                        "display": "[+BIG BUOYS]", "desc": "Combine all projectiles" },
-    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION",  "display": "[+BULLETS (OPPOSITE)]", "desc": "Shoot in the opposite direction." },
+    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION",  "display": "[+OPPOSITE SHOTS]", "desc": "Shoot in the opposite direction." },
     { "u_key": "HP_UPGRADE_C", "wb_key": "HEAVY_PISTOL_CRIT_UPGRADE",         "display": "[+CRIT]", "desc": "", "stats": [
       { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 20 },
       { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
     ] },
     { "u_key": "HP_UPGRADE_D", "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET",      "display": "[+FANFIRE]", "desc": "Every X bullets, shoot a fan of bullets" },
-    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE",             "display": "[+BULLETS (FIRE)]", "desc": "", "stats": [
+    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE",             "display": "[+FIRE SHOTS]", "desc": "", "stats": [
       { "stat": "BULLET_SIZE",      "type": "stat_flat_increase", "value": 26 } 
     ] },
 
     { "u_key": "GS_UPGRADE_A", "wb_key": "MEGABULLET",                        "display": "[+BIG BUOYS]",  "desc": "Combine all projectiles." },
-    { "u_key": "GS_UPGRADE_B", "wb_key": "DOUBLE_PROJECTILES",                "display": "[+2x BULLETS]",  "desc": "" },
-    { "u_key": "GS_UPGRADE_C", "wb_key": "SHOTGUN_CLIPSIZE_UPGRADE",          "display": "[+CLIPSIZE RELOAD]",  "desc": "", "stats": [
+    { "u_key": "GS_UPGRADE_B", "wb_key": "DOUBLE_PROJECTILES",                "display": "[+2x SHOTS]",  "desc": "" },
+    { "u_key": "GS_UPGRADE_C", "wb_key": "SHOTGUN_CLIPSIZE_UPGRADE",          "display": "[+MAGAZINE +1]",  "desc": "", "stats": [
       { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_percent_increase", "value": 30 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
     ] },
-    { "u_key": "GS_UPGRADE_D", "wb_key": "SHOTGUN_DAMAGE_UPGRADE",            "display": "[+DAMAGE]",  "desc": "", "stats": [
+    { "u_key": "GS_UPGRADE_D", "wb_key": "SHOTGUN_DAMAGE_UPGRADE",            "display": "[+CANNONBALLS +1]",  "desc": "", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
       { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 1.0 } // rare
     ] },
-    { "u_key": "GS_UPGRADE_E", "wb_key": "SHOTGUN_FIRERATE_UPGRADE",          "display": "[+FIRERATE]",  "desc": "", "stats": [
+    { "u_key": "GS_UPGRADE_E", "wb_key": "SHOTGUN_FIRERATE_UPGRADE",          "display": "[+CREW +1]",  "desc": "", "stats": [
       { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 25 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
     ] },
 
-    { "u_key": "SC_UPGRADE_A", "wb_key": "SMG_DAMAGE_UPGRADE",                "display": "Cannon [Fast] +1",  "desc": "", "stats": [
+    { "u_key": "SC_UPGRADE_A", "wb_key": "SMG_DAMAGE_UPGRADE",                "display": "[+CANNON +1]",  "desc": "", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 20 }, // rare
       { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 20 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -20 } // rare
@@ -47,27 +47,27 @@
       { "stat": "WEAPON_RELOAD",      "type": "stat_flat_increase", "value": 1 } // increase reload time 2 seconds
     ] },
 
-    { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "TURRET_FOLLOW_PLAYER",       "display": "[+TURRET MOVE]", "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "TURRET_SLOW_ENEMIES",        "display": "[+TURRET AOE] [+TURRET SLOW]",  "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "TURRET_EXTRA_TURRETS_UPGRADE", "display": "[+TURRET DAMAGE]", "desc": "", "stats": [
+    { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "TURRET_FOLLOW_PLAYER",       "display": "[+MOVEMENT]", "desc": "" },
+    { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "TURRET_SLOW_ENEMIES",        "display": "[+AOE SLOW]",  "desc": "" },
+    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "TURRET_EXTRA_TURRETS_UPGRADE", "display": "[+DAMAGE]", "desc": "", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 } // rare
       // { "stat": "WEAPON_PROJECTILES", "type": "stat_flat_increase", "value": 2 } // rare
     ] },
-    { "u_key": "SEATURRET_UPGRADE_D", "wb_key": "TURRET_EXPLODE_ON_DEATH",    "display": "[+TURRET EXPLODE] [-TURRET LIFETIME]", "desc": "", "stats": [
+    { "u_key": "SEATURRET_UPGRADE_D", "wb_key": "TURRET_EXPLODE_ON_DEATH",    "display": "[+EXPLODE] [-LIFETIME]", "desc": "", "stats": [
       { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 10 }, 
       { "stat": "BULLET_LIFETIME",    "type": "stat_percent_increase", "value": -50 }
     ]
     },
-    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_ICE",       "display": "[+BULLETS (ICE)]", "desc": "" },
+    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_ICE",       "display": "[+ICE BULLETS]", "desc": "" },
 
     { "u_key": "FLAME_UPGRADE_A", "wb_key": "FLAMETHROWER_UPGRADE_A",         "display": "[+FLAME DAMAGE]", "desc": "", "stats": [
       { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 50 }
     ] },
-    { "u_key": "FLAME_UPGRADE_B", "wb_key": "FLAMETHROWER_UPGRADE_B",         "display": "[+FLAME DAMAGE] [+RELOADSPEED]", "desc": "", "stats": [
+    { "u_key": "FLAME_UPGRADE_B", "wb_key": "FLAMETHROWER_UPGRADE_B",         "display": "[+FAST RELOAD]", "desc": "", "stats": [
       { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 15 }, 
       { "stat": "WEAPON_RELOAD",  "type": "stat_percent_increase", "value": -35 }
     ] },
-    { "u_key": "FLAME_UPGRADE_C", "wb_key": "FLAMETHROWER_UPGRADE_C",         "display": "[+FLAME DAMAGE] [+FLAME DURATION]", "desc": "", "stats": [
+    { "u_key": "FLAME_UPGRADE_C", "wb_key": "FLAMETHROWER_UPGRADE_C",         "display": "[+FLAME DURATION]", "desc": "", "stats": [
       { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 100 }, 
       { "stat": "AREA_STACK_DURATION",  "type": "stat_percent_increase", "value": -35 } // flames shorter (less damage = bad)
     ] }
@@ -79,8 +79,8 @@
     // for which weapon that the sea-turret drops. 
     {
       "key": "weapon_deck_cannon",
-      "name": "Cannon [Heavy]", // heavy pistol
-      "desc": "[Heavy] shots at closest target.",
+      "name": "Heavy Cannon", // heavy pistol
+      "desc": "[Heavy] rounds. Simple. Effective.",
       "audio": ["RIFLE_01", "RIFLE_02"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -108,8 +108,8 @@
 
     {
       "key": "weapon_grapeshot_cannon",
-      "name": "Cannon [Grapeshot]", // shotgun
-      "desc": "[Grapeshot] rounds at closest. Short range. Multi-shot.",
+      "name": "Grapeshot Cannon", // shotgun
+      "desc": "Short range. Knockback. Keep blastin'",
       "audio": ["SHOTGUN_01", "SHOTGUN_02", "SHOTGUN_03", "SHOTGUN_04"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -121,7 +121,7 @@
         "WEAPON_RELOAD": 4       , // seconds
         "WEAPON_RANGE": 2.0      , // meters
         "BULLET_DAMAGE": 10      ,
-        "BULLET_KNOCKBACK": 0.3  , // force
+        "BULLET_KNOCKBACK": 0.6  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 4        
       },
@@ -136,8 +136,8 @@
 
     {
       "key": "weapon_swivel_cannon",
-      "name": "Cannon [Fast]",       // SMG-type
-      "desc": "Shoot [Fast] bullets at closest. High firerate.",
+      "name": "Gatling Cannon",       // SMG-type
+      "desc": "Pew pew pew. High firerate.",
       "audio": ["SMG_01", "SMG_02", "SMG_03"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -149,7 +149,7 @@
         "WEAPON_RELOAD": 1       , // seconds
         "WEAPON_RANGE": 2.5      , // meters
         "BULLET_DAMAGE": 4       ,
-        "BULLET_KNOCKBACK": 0.3  , // force
+        "BULLET_KNOCKBACK": 0.1  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 2        
       },
@@ -165,7 +165,7 @@
     {
       "key": "weapon_sea_turret",
       "name": "Turret Deployer",
-      "desc": "Deploy [Turrets] as you move that fire [Heavy]",
+      "desc": "Drop turrets that fire [Heavy]",
       "audio": ["TURRET_01", "TURRET_02"],
       "weapon_type": "DEPLOY",
       "weapon_damage": "KINETIC",
@@ -194,13 +194,11 @@
     {
       "key": "weapon_flamethrower",
       "name": "Flamethrower",
-      "desc": "Fire [Fire], Fire!",
+      "desc": "Fire [Fire] Fire! Fire? FIRE!!!!",
       "audio": [ ],
-
       "weapon_type": "PROJECTILE",
       "weapon_damage": "FIRE",
       "useable_by": ["BOATS"],
-
       "data": {
         "WEAPON_CLIP_SIZE": 10   , // shots before reload
         "WEAPON_PROJECTILES": 1  ,

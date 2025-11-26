@@ -1,0 +1,21 @@
+{
+  "items": [
+    // ships
+    {"key": "dinghy", "default_unlocked": true, "cost": 0},
+
+    // weapons
+    {"key": "weapon_deck_cannon",      "default_unlocked": true,  "cost": 0},
+    {"key": "weapon_grapeshot_cannon", "default_unlocked": false,  "cost": 5},
+    {"key": "weapon_swivel_cannon",    "default_unlocked": false,  "cost": 5},
+    {"key": "weapon_sea_turret",       "default_unlocked": false,  "cost": 5},
+    {"key": "weapon_flamethrower",     "default_unlocked": false,  "cost": 5},
+    {"key": "weapon_island_cannon",    "default_unlocked": false,  "cost": 0},
+
+    // crew
+    {"key": "ACTOR_DODGE_CHANCE",     "default_unlocked": false,  "cost": 2},
+    {"key": "ACTOR_HEALTH_MAX",       "default_unlocked": false,  "cost": 1},
+    {"key": "ACTOR_HEALTH_REGEN",     "default_unlocked": false,  "cost": 4},
+    {"key": "ACTOR_SPEED",            "default_unlocked": false,  "cost": 2},
+    {"key": "BULLET_CRIT_CHANCE",     "default_unlocked": false,  "cost": 2}
+  ]
+}

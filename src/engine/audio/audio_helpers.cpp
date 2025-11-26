@@ -23,7 +23,7 @@ get_sound(const SINGLE_AudioComponent& audio, const std::string& tag)
   return (*it);
 };
 
-void
+bool
 refresh_audio(entt::registry& r, std::string device_name)
 {
   {
@@ -60,7 +60,7 @@ refresh_audio(entt::registry& r, std::string device_name)
   // Check if that worked.
   if (result == -1) {
     SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
-    return;
+    return false;
   }
 
   SDL_Log("SDL audio driver: %s\n", SDL_GetCurrentAudioDriver());
@@ -81,7 +81,7 @@ refresh_audio(entt::registry& r, std::string device_name)
     Mix_Volume(i, static_cast<int>(MIX_MAX_VOLUME * audio.volume_master));
   }
 
-  //
+  return true;
 }
 
 } // namespace game2d

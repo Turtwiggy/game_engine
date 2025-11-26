@@ -17,7 +17,11 @@ init_audio_system(entt::registry& r)
 {
   auto& audio = get_first_component<SINGLE_AudioComponent>(r);
 
-  refresh_audio(r);
+  if (!refresh_audio(r)) {
+    SDL_Log("Audio init failed; (no audio device.)");
+    audio.loaded = true;
+    return;
+  }
 
   SDL_Log("%s", std::format("Loading audio...").c_str());
   for (auto& file : audio.sounds) {

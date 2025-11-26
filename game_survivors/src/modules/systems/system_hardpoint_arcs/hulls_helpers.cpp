@@ -33,7 +33,7 @@ load_hull(std::string filepath)
 
 // directory e.g. assets/raws/hulls/
 SINGLE_Hulls
-load_hulls(std::string directory)
+load_hulls(entt::registry& r, std::string directory)
 {
   SINGLE_Hulls hulls;
 

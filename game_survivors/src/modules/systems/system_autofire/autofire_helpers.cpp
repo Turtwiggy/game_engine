@@ -130,7 +130,7 @@ get_bullet_def(entt::registry& r, const entt::entity wep_e)
   const auto mod_bul_speed = upgrades_c.apply_modifiers(val_bullet_speed, key_bullet_speed);
   const auto mod_bul_damage = (int)upgrades_c.apply_modifiers(val_bullet_damage, key_bullet_damage);
   const auto mod_bul_pierce = (int)upgrades_c.apply_modifiers(val_bullet_pierce, key_bullet_pierce);
-  const auto mod_bul_knockback = (int)upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
+  const auto mod_bul_knockback = upgrades_c.apply_modifiers(val_bullet_knockback, key_bullet_knockback);
   const auto mod_bul_crit_chance = upgrades_c.apply_modifiers(val_bullet_crit_chance, key_bullet_crit_chance);
   const auto mod_bul_crit_damage = upgrades_c.apply_modifiers(val_bullet_crit_damage, key_bullet_crit_damage);
   const auto mod_bul_lifesteal = upgrades_c.apply_modifiers(val_bullet_lifesteal, key_bullet_lifesteal);

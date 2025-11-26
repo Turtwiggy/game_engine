@@ -15,10 +15,11 @@ get_default_textures()
   std::string path = engine::get_exe_path_without_exe_name();
   path += "assets/";
 
-  const auto add_tex = [&ri, &path](const std::string& p, const std::string& sp) {
+  const auto add_tex = [&ri, &path](const std::string& p, const std::string& sp, bool linear = true) {
     engine::Texture tex;
     tex.path = path + "textures/" + p;
     tex.spritesheet_path = path + "config/" + sp;
+    tex.linear = linear;
     ri.user_textures.push_back(tex);
   };
 
@@ -28,6 +29,7 @@ get_default_textures()
   add_tex("smoke_fx_5.png", "spritemap_smoke_fx_5.jsonc");
   add_tex("smoke_fx_6.png", "spritemap_smoke_fx_6.jsonc");
   add_tex("custom.png", "spritemap_custom.json");
+  add_tex("custom.png", "spritemap_custom.json", false);
   add_tex("animated.png", "spritemap_animated.jsonc");
   // add_tex("spritestack_rhib.png", "spritestack_rhib.json");
   // add_tex("spritestack_pbr.png", "spritestack_pbr.json");

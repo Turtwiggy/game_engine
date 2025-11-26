@@ -12,6 +12,7 @@
 #include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
 #include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 #include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
+#include "modules/core/io/io_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/raws/raws_helpers.hpp"
 #include "modules/core/renderer/components.hpp"

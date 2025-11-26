@@ -15,6 +15,7 @@
 #include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
+#include "modules/core/io/io_helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
@@ -31,6 +32,7 @@
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 #include "resources/data.hpp"
+
 
 namespace game2d {
 
@@ -75,6 +77,18 @@ update_selections(entt::registry& r,
 
   auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
 
+  std::vector<ShipHullData> unlocked_hulls;
+  for (const auto& hull : hulls_c.hulls) {
+    if (savefile_get_key(r, hull.key))
+      unlocked_hulls.push_back(hull);
+  }
+
+  std::vector<Weapon_OnDiskData> unlocked_weapons;
+  for (const auto& weapon : weapons_c.weapons) {
+    if (savefile_get_key(r, weapon.key) && weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
+      unlocked_weapons.push_back(weapon);
+  }
+
   const bool is_name = cell.name.find("Name") != std::string::npos;
   const bool is_colour = cell.name.find("Colour") != std::string::npos;
   const bool is_hull = cell.name.find("Hull") != std::string::npos;
@@ -98,24 +112,16 @@ update_selections(entt::registry& r,
 
   // convert index to hull choice
   if (is_hull) {
-    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size());
-    const auto& hull = hulls_c.hulls[cell.value];
+    cell.value = engine::wrap(cell.value, (int)unlocked_hulls.size());
+    const auto& hull = unlocked_hulls[cell.value];
     name = hull.name;
     player_state.player_boat_key = hull.key;
   }
 
   // convert index to weapon choice
   if (is_weapon) {
-
-    // collect only weapons usable by boats.
-    std::vector<int> wep_idxs;
-    for (int i = 0; i < (int)weapons_c.weapons.size(); ++i) {
-      if (weapons_c.weapons[i].useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
-        wep_idxs.push_back(i);
-    }
-
-    cell.value = engine::wrap(cell.value, (int)wep_idxs.size());
-    const auto& weapon = weapons_c.weapons[wep_idxs[cell.value]];
+    cell.value = engine::wrap(cell.value, (int)unlocked_weapons.size());
+    const auto& weapon = unlocked_weapons[cell.value];
     name = weapon.name.c_str();
     player_state.player_gun_key = weapon.key;
   }
@@ -167,21 +173,26 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
   std::string info_key = "";
   std::string info_desc = "";
 
+  std::vector<ShipHullData> unlocked_hulls;
+  for (const auto& hull : hulls_c.hulls) {
+    if (savefile_get_key(r, hull.key))
+      unlocked_hulls.push_back(hull);
+  }
+  std::vector<Weapon_OnDiskData> unlocked_weapons;
+  for (const auto& weapon : weapons_c.weapons) {
+    if (savefile_get_key(r, weapon.key) && weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
+      unlocked_weapons.push_back(weapon);
+  }
+
   if (is_hull) {
-    cell.value = engine::wrap(cell.value, (int)hulls_c.hulls.size());
-    const auto& hull = hulls_c.hulls[cell.value];
+    cell.value = engine::wrap(cell.value, (int)unlocked_hulls.size());
+    const auto& hull = unlocked_hulls[cell.value];
     info_key = hull.name;
     info_desc = hull.desc;
   }
   if (is_weapon) {
-    // collect only weapons usable by boats.
-    std::vector<int> wep_idxs;
-    for (int i = 0; i < (int)weapons_c.weapons.size(); ++i) {
-      if (weapons_c.weapons[i].useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
-        wep_idxs.push_back(i);
-    }
-    cell.value = engine::wrap(cell.value, (int)wep_idxs.size());
-    const auto& weapon = weapons_c.weapons[wep_idxs[cell.value]];
+    cell.value = engine::wrap(cell.value, (int)unlocked_weapons.size());
+    const auto& weapon = unlocked_weapons[cell.value];
     info_key = weapon.name;
     info_desc = weapon.desc;
   }
@@ -235,10 +246,13 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       const auto& weapon = weapons_c.weapons[cell.value];
       for (const auto& [key, val] : weapon.data) {
         auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(key).value();
-        auto clean_key = key;
-        clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
-        clean_key = str_remove_all_occurances(clean_key, "BULLET_");
-        display_stats.push_back({ .key = clean_key, .val = std::format("{:.1f}", val), .stat = stat_enum });
+        auto clean_key = make_stat_name_pretty_name(key);
+
+        bool is_int = std::floor(val) == val;
+        if (is_int)
+          display_stats.push_back({ .key = clean_key, .val = std::format("{:.0f}", val), .stat = stat_enum });
+        else
+          display_stats.push_back({ .key = clean_key, .val = std::format("{:.1f}", val), .stat = stat_enum });
       }
 
       // hack: if you're a sea turret, you deploy other weapons.
@@ -261,7 +275,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
     // calculate the max width of all keys
     const float max_width = calculate_width(display_stats);
     const auto text_wh = ImGui::CalcTextSize("A");
-    static float offset = 2.0f;
+    const float offset = 2.0f;
 
     for (int idx = 0; idx < (int)display_stats.size(); idx++) {
       const auto& stat = display_stats[idx];
@@ -317,8 +331,10 @@ draw_card_inner(entt::registry& r,
                 const float dt)
 {
   const auto& ri_c = SINGLE_RendererInfo::instance;
-  const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+  const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom.png(GL_NEAREST)")->id;
   const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
+  GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
+  GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
 
   // Draw categories + values
   const auto space_between_buttons = 6;
@@ -371,6 +387,18 @@ draw_card_inner(entt::registry& r,
       const float icon_box_size = 32;
       const float padding_x = 10.0f;
 
+      std::vector<ShipHullData> unlocked_hulls;
+      for (const auto& hull : hulls_c.hulls) {
+        if (savefile_get_key(r, hull.key))
+          unlocked_hulls.push_back(hull);
+      }
+
+      std::vector<Weapon_OnDiskData> unlocked_weapons;
+      for (const auto& weapon : weapons_c.weapons) {
+        if (savefile_get_key(r, weapon.key) && weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
+          unlocked_weapons.push_back(weapon);
+      }
+
       if (is_name) {
         const auto& names = ui_c.available_names;
 
@@ -392,12 +420,6 @@ draw_card_inner(entt::registry& r,
         // add some < and > arrow.
         draw_list->AddText(text_font, name_size, text_pos - ImVec2{ arrow_pad, 0 }, border_col, "<");
         draw_list->AddText(text_font, name_size, text_pos + ImVec2{ name_len.x + 8, 0 }, border_col, ">");
-
-        // if (active_cell) {
-        //   auto cursor_tl = calc_center(grid_tl, grid_wh);
-        //   draw_cursor(r, ui_c.player_cursor_state[player_idx], cursor_tl, dt);
-        // }
-        //
       }
       if (is_colour) {
 
@@ -417,19 +439,12 @@ draw_card_inner(entt::registry& r,
         // add some < and > arrow.
         draw_list->AddText(text_font, text_size, text_pos - ImVec2{ arrow_pad, 0 }, border_col, "<");
         draw_list->AddText(text_font, text_size, text_pos + ImVec2{ name_len.x + 8, 0 }, border_col, ">");
-
-        // if (active_cell) {
-        //   auto cursor_tl = calc_center(grid_tl, grid_wh);
-        //   draw_cursor(r, ui_c.player_cursor_state[player_idx], cursor_tl, dt);
-        // }
-        //
       }
       if (is_hull) {
-        const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
 
         auto first_x = grid_tl.x + padding_x;
-        for (int j = 0; j < (int)hulls_c.hulls.size(); j++) {
-          const auto& hull = hulls_c.hulls[j];
+        for (int j = 0; j < (int)unlocked_hulls.size(); j++) {
+          const auto& hull = unlocked_hulls[j];
           const bool icon_active = j == cell.value;
           const auto border_col = icon_active ? im_greenish : im_window_border_col;
 
@@ -455,8 +470,8 @@ draw_card_inner(entt::registry& r,
         const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
 
         auto first_x = grid_tl.x + padding_x;
-        for (int j = 0; j < (int)weapons_c.weapons.size(); j++) {
-          const auto& weapon = weapons_c.weapons[j];
+        for (int j = 0; j < (int)unlocked_weapons.size(); j++) {
+          const auto& weapon = unlocked_weapons[j];
 
           if (weapon.useable_by_as_enum != WEAPON_USEABLE_BY::BOATS)
             continue; // not a boat weapon

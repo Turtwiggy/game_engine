@@ -91,6 +91,8 @@
 #include "modules/systems/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/systems/system_scene_splashscreen_move_to_next/system.hpp"
 #include "modules/systems/system_screenshake/system.hpp"
+#include "modules/systems/system_shop/shop_components.hpp"
+#include "modules/systems/system_shop/shop_helpers.hpp"
 #include "modules/systems/system_spawner/spawner_components.hpp"
 #include "modules/systems/system_spawner/spawner_helpers.hpp"
 #include "modules/systems/system_spawner/spawner_system.hpp"
@@ -195,11 +197,14 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     SINGLE_Animations::instance = anims;
   }
 
+  create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
+  create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
   create_persistent<SINGLE_PauseMenuState>(r);
   create_persistent<SINGLE_DebugMenuBar>(r);
   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
-  create_persistent<SINGLE_Hulls>(r, load_hulls("assets/raws/hulls/"));
+  create_persistent<SINGLE_Hulls>(r, load_hulls(r, "assets/raws/hulls/"));
   create_persistent<SINGLE_Weapons>(r, load_weapons(r, "assets/raws/weapons.jsonc"));
+  create_persistent<SINGLE_Shop>(r, load_shop(r, "assets/raws/shop.jsonc")); // after savefile_load_disk
   create_persistent<SINGLE_OnDiskSpawners>(r, load_spawns("assets/raws/spawns.jsonc"));
   create_persistent<SINGLE_PersistentUpgrades>(r, load_upgrades("assets/raws/upgrade_persistent.jsonc"));
   create_persistent<SINGLE_UpgradeToName>(r, load_upgrade_names("assets/raws/upgrade_names.jsonc"));
@@ -214,8 +219,6 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   create_persistent<SINGLE_DisconnectedControllerUI>(r);
   create_persistent<SINGLE_UIScaling>(r); // HMM: could make a setting
   create_persistent<SINGLE_GameOptions>(r);
-  create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
-  create_persistent<SINGLE_GoldComponent>(r, load_gold_from_disk(r)); // easy to cheat! have fun.
 
   // the "global" input component, which processes all inputs from keyboard & controllers
   // note: players also have an InputComponent attached
@@ -460,9 +463,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  static bool show_settings_ui = true;
+  const bool show_settings_ui = true;
 #else
-  static bool show_settings_ui = false;
+  const bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
 #if defined(_DEBUG)

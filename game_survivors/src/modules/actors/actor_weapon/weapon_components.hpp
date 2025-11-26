@@ -44,7 +44,7 @@ struct Weapon_OnDiskData
   WEAPON_DAMAGE damage_as_enum = WEAPON_DAMAGE::KINETIC;
   WEAPON_USEABLE_BY useable_by_as_enum = WEAPON_USEABLE_BY::BOATS; // note: this should be std::vector. change when needed.
 
-  std::unordered_map<std::string, float> data;
+  std::map<std::string, float> data;
   std::vector<std::string> upgrades; // assigned upgrades (keys; data stored in WeponUpgrade_OnDiskData)
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(Weapon_OnDiskData,

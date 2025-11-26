@@ -9,6 +9,7 @@
         "n_x_rel_tl" : 13,
         "n_y_rel_tl" : 9
     },
+
     // 0 = along x axis. +90 = 'up', +270 = 'down'
     "n_forward_dir_angle" : 0,
     "o_rudder_pivot" : {

@@ -13,9 +13,6 @@ get_grid_y(int n_cells, int grid_x);
 void
 back_to_main_menu(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c);
 
-void
-purchase_upgrade(entt::registry& r, const UpgradeableStat stat);
-
 std::pair<int, int>
 get_upgrade_level(entt::registry& r, SINGLE_PersistentUpgrades& upgrade_c, std::string stat_key);
 
@@ -29,5 +26,11 @@ draw_purchasebar(entt::registry& r,
                  const float percent,
                  const std::string text,
                  const engine::SRGBColour& col);
+
+std::string
+get_gridcell_item_key(entt::registry& r, const GridCell* gc);
+
+int
+get_item_key_cost(entt::registry& r, std::string key);
 
 } // namespace game2d

@@ -111,7 +111,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
     const auto pos_y = p_tl.y + 0.5f * (space_y - def.icon_size.y);
     const auto icon_p_tl = ImVec2{ pos_x, pos_y };
     const auto icon_p_br = ImVec2{ pos_x + def.icon_size.x, pos_y + def.icon_size.y };
-    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "custom")->id;
+    const auto tex_id = search_for_texture_id_by_texture_path(ri_c, "custom.png(GL_NEAREST)")->id;
     const auto im_id = (ImTextureID)(void*)(intptr_t)tex_id;
     const auto [icon_uv_tl, icon_uv_br] = convert_sprite_to_uv(r, icon);
     draw_list->AddImage(im_id, icon_p_tl, icon_p_br, icon_uv_tl, icon_uv_br, text_col);

@@ -36,6 +36,7 @@
 #include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_upgrades/ui_scene_upgrades_helpers.hpp"
 #include "modules/ui/ui_scene_select/scene_select_components.hpp"
 #include "modules/ui/ui_scene_select/scene_select_helpers.hpp"
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding_helpers.hpp"
@@ -106,7 +107,9 @@ draw_upgrade_selections_in_grid(entt::registry& r,
 
     const UpgradeRollResult result = upgrades_vec[i];
     const auto rarity = result.rarity;
-    const auto rarity_str = std::string(magic_enum::enum_name(rarity));
+    auto rarity_str = std::string(magic_enum::enum_name(rarity));
+    rarity_str = str_remove_all_occurances(rarity_str, "_");
+
     const auto im_rcol_vec = rarity_to_col(rarity);
     const auto im_rcol = IM_COL32(im_rcol_vec.x * 255, im_rcol_vec.y * 255, im_rcol_vec.z * 255, im_rcol_vec.w * 255);
 
@@ -449,14 +452,32 @@ get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult&
     lines.push_back(CardLine{ .text = clean_key, .centered = true });
 
     // your current value.
-    const auto val = get_val_str_from_stat_enum(r, player_e, upg_weapons, stat_enum);
+    auto val = get_val_str_from_stat_enum(r, player_e, upg_weapons, stat_enum);
+
+    // some stats are % anyway.
+    if (stat_enum == UpgradeableStat::ACTOR_DODGE_CHANCE)
+      val += "%";
+    else if (stat_enum == UpgradeableStat::BULLET_CRIT_CHANCE)
+      val += "%";
+    else if (stat_enum == UpgradeableStat::BULLET_CRIT_DAMAGE)
+      val += "%";
 
     // your upgrade value
-    auto stat_amount = std::format("{:0.1f}", value);
+    bool is_int = std::floor(value) == value;
+    std::string stat_amount = "";
+    if (is_int)
+      stat_amount = std::format("{:0.0f}", value);
+    else
+      stat_amount = std::format("{:0.1f}", value);
     if (type == "stat_percent_increase")
       stat_amount += "%";
 
-    std::string val_line = std::format("{} +{}", val, stat_amount);
+    std::string val_line = "";
+    if (stat_amount.find("-") != std::string::npos)
+      val_line = std::format("{} {}", val, stat_amount);
+    else
+      val_line = std::format("{} +{}", val, stat_amount);
+
     lines.push_back(CardLine{ .text = val_line, .centered = true });
   }
 
@@ -587,7 +608,7 @@ draw_simple_upgrade_ui(entt::registry& r,
     const auto my_card_bg_col = hex_to_srgb("#21242B", 0.75f * 255);
     const auto im_card_bg_col = convert_my_to_im(my_card_bg_col);
     draw_list->AddRectFilled(card_ui_tl, card_ui_br, im_card_bg_col, rounding);
-    draw_list->AddRect(card_ui_tl, card_ui_br, im_rcol, rounding, 0, 2.0f);
+    // draw_list->AddRect(card_ui_tl, card_ui_br, im_rcol, rounding, 0, 2.0f);
 
     // card header background.
     const auto header_bg_tl = ImVec2(card_ui_tl.x + header_pad, card_ui_tl.y + header_pad);

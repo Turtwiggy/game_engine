@@ -364,9 +364,13 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
   for (int i = 0; i < (int)ri.user_textures.size(); i++) {
     auto& tex = ri.user_textures[i];
     tex.tex_unit.unit = used_tex_units + i;
-    const SRGBTexture loaded_tex = engine::load_texture(tex.path, tex.tex_unit.unit);
+    const SRGBTexture loaded_tex = engine::load_texture(tex.path, tex.tex_unit.unit, tex.linear);
     tex.tex_id.id = loaded_tex.texture_id;
     tex.size = glm::vec2{ loaded_tex.width, loaded_tex.height };
+
+    if (!tex.linear)
+      tex.path += "(GL_NEAREST)";
+
     SDL_Log("%s", std::format("loaded texture... {}, ncomp: {}", tex.path, loaded_tex.nr_components).c_str());
   }
 

@@ -1,129 +1,130 @@
 {
   "upgrades": [
+
     { "key": "ACTOR_DODGE_CHANCE",
       "levels": [
-        { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 2 }
+        { "type": "stat_flat_increase", "value": 2 },
+        { "type": "stat_flat_increase", "value": 2 },
+        { "type": "stat_flat_increase", "value": 2 },
+        { "type": "stat_flat_increase", "value": 2 },
+        { "type": "stat_flat_increase", "value": 2 }
       ]
     },
     { "key": "ACTOR_HEALTH_MAX",
       "levels": [
-        { "cost": 2, "type": "stat_flat_increase", "value": 1 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 3 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 4 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 5 }
+        { "type": "stat_flat_increase", "value": 1 },
+        { "type": "stat_flat_increase", "value": 2 },
+        { "type": "stat_flat_increase", "value": 3 },
+        { "type": "stat_flat_increase", "value": 4 },
+        { "type": "stat_flat_increase", "value": 5 }
       ]
     },
     { "key": "ACTOR_HEALTH_REGEN",
       "levels": [
-        { "cost": 1, "type": "stat_flat_increase", "value": 0.1 },
-        { "cost": 2, "type": "stat_flat_increase", "value": 0.1 },
-        { "cost": 3, "type": "stat_flat_increase", "value": 0.1 },
-        { "cost": 4, "type": "stat_flat_increase", "value": 0.1 },
-        { "cost": 5, "type": "stat_flat_increase", "value": 0.1 }
+        { "type": "stat_flat_increase", "value": 0.1 },
+        { "type": "stat_flat_increase", "value": 0.1 },
+        { "type": "stat_flat_increase", "value": 0.1 },
+        { "type": "stat_flat_increase", "value": 0.1 },
+        { "type": "stat_flat_increase", "value": 0.1 }
       ]
     },
     { "key": "ACTOR_SPEED",
       "levels": [
-        { "cost": 2, "type": "stat_percent_increase", "value": 4 },
-        { "cost": 3, "type": "stat_percent_increase", "value": 4 },
-        { "cost": 4, "type": "stat_percent_increase", "value": 4 },
-        { "cost": 5, "type": "stat_percent_increase", "value": 4 },
-        { "cost": 6, "type": "stat_percent_increase", "value": 4 }
+        { "type": "stat_percent_increase", "value": 4 },
+        { "type": "stat_percent_increase", "value": 4 },
+        { "type": "stat_percent_increase", "value": 4 },
+        { "type": "stat_percent_increase", "value": 4 },
+        { "type": "stat_percent_increase", "value": 4 }
       ]
     },
-    { "key": "ACTOR_XP_ZONE_SIZE", "levels": [
-      { "cost": 1, "type": "stat_percent_increase", "value": 20 },
-      { "cost": 2, "type": "stat_percent_increase", "value": 20 },
-      { "cost": 3, "type": "stat_percent_increase", "value": 20 },
-      { "cost": 4, "type": "stat_percent_increase", "value": 20 },
-      { "cost": 5, "type": "stat_percent_increase", "value": 20 }
-    ]},
-    {"key": "BULLET_BOUNCE", "levels": [
-      { "cost": 2, "type": "stat_flat_increase", "value": 1 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 1 },
-      { "cost": 3, "type": "stat_flat_increase", "value": 1 },
-      { "cost": 3, "type": "stat_flat_increase", "value": 1 },
-      { "cost": 5, "type": "stat_flat_increase", "value": 1 }
-    ]},
+    // { "key": "ACTOR_XP_ZONE_SIZE", "levels": [
+    //   { "type": "stat_percent_increase", "value": 20 },
+    //   { "type": "stat_percent_increase", "value": 20 },
+    //   { "type": "stat_percent_increase", "value": 20 },
+    //   { "type": "stat_percent_increase", "value": 20 },
+    //   { "type": "stat_percent_increase", "value": 20 }
+    // ]},
+    // {"key": "BULLET_BOUNCE", "levels": [
+    //   { "type": "stat_flat_increase", "value": 1 },
+    //   { "type": "stat_flat_increase", "value": 1 },
+    //   { "type": "stat_flat_increase", "value": 1 },
+    //   { "type": "stat_flat_increase", "value": 1 },
+    //   { "type": "stat_flat_increase", "value": 1 }
+    // ]},
     {"key": "BULLET_CRIT_CHANCE", "levels": [
-      { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 2 }
-    ]},
-    {"key": "BULLET_CRIT_DAMAGE", "levels": [
-      { "cost": 2, "type": "stat_flat_increase", "value": 5 },
-      { "cost": 3, "type": "stat_flat_increase", "value": 10 },
-      { "cost": 4, "type": "stat_flat_increase", "value": 15 },
-      { "cost": 6, "type": "stat_flat_increase", "value": 20 },
-      { "cost": 8, "type": "stat_flat_increase", "value": 25 }
-    ]},
-    {"key": "BULLET_DAMAGE", "levels": [
-      { "cost": 2, "type": "stat_percent_increase", "value": 20 },
-      { "cost": 4, "type": "stat_percent_increase", "value": 40 },
-      { "cost": 6, "type": "stat_percent_increase", "value": 60 },
-      { "cost": 8, "type": "stat_percent_increase", "value": 80 },
-      { "cost": 10, "type": "stat_percent_increase", "value": 100 }
-    ]},
-    {"key": "BULLET_KNOCKBACK", "levels": [
-      { "cost": 1, "type": "stat_flat_increase", "value": 0.05 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 0.10 },
-      { "cost": 3, "type": "stat_flat_increase", "value": 0.15 },
-      { "cost": 4, "type": "stat_flat_increase", "value": 0.20 },
-      { "cost": 5, "type": "stat_flat_increase", "value": 0.25 }
-    ]},
-    {"key": "BULLET_LIFESTEAL", "levels": [
-      { "cost": 1, "type": "stat_flat_increase", "value": 0.05 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 0.10 },
-      { "cost": 3, "type": "stat_flat_increase", "value": 0.15 },
-      { "cost": 4, "type": "stat_flat_increase", "value": 0.20 },
-      { "cost": 5, "type": "stat_flat_increase", "value": 0.25 }
-    ]},
-    {"key": "BULLET_LIFETIME", "levels": [
-    ]},
-    {"key": "BULLET_PIERCE", "levels": [
-      { "cost": 1, "type": "stat_flat_increase", "value": 1 },
-      { "cost": 2, "type": "stat_flat_increase", "value": 2 },
-      { "cost": 3, "type": "stat_flat_increase", "value": 3 },
-      { "cost": 4, "type": "stat_flat_increase", "value": 4 },
-      { "cost": 5, "type": "stat_flat_increase", "value": 5 }
-    ]},
-    {"key": "BULLET_SIZE", "levels": [
-      { "cost": 1, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 3, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 5, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 7, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 9, "type": "stat_percent_increase", "value": 25 }
-    ]},
-    {"key": "BULLET_SPEED", "levels": [
-      { "cost": 1, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 3, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 5, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 7, "type": "stat_percent_increase", "value": 25 },
-      { "cost": 9, "type": "stat_percent_increase", "value": 25 }
-    ]},
-    {"key": "WEAPON_PROJECTILES", "levels": [
-      { "cost": 10, "type": "stat_flat_increase", "value": 1 },
-      { "cost": 20, "type": "stat_flat_increase", "value": 1 },
-      { "cost": 30, "type": "stat_flat_increase", "value": 1 }
-    ]},
-    {"key": "WEAPON_SPREAD", "levels": []},
-    {"key": "WEAPON_FIRERATE", "levels": [
-      { "cost": 1, "type": "stat_percent_increase", "value": 10 },
-      { "cost": 2, "type": "stat_percent_increase", "value": 10 },
-      { "cost": 3, "type": "stat_percent_increase", "value": 10 },
-      { "cost": 4, "type": "stat_percent_increase", "value": 10 },
-      { "cost": 5, "type": "stat_percent_increase", "value": 10 }
-    ]},
-    {"key": "WEAPON_CLIP_SIZE", "levels": []},
-    {"key": "WEAPON_RELOAD", "levels": []},
-    {"key": "WEAPON_RANGE", "levels": []}
+      { "type": "stat_flat_increase", "value": 2 },
+      { "type": "stat_flat_increase", "value": 2 },
+      { "type": "stat_flat_increase", "value": 2 },
+      { "type": "stat_flat_increase", "value": 2 },
+      { "type": "stat_flat_increase", "value": 2 }
+    ]}
+    // {"key": "BULLET_CRIT_DAMAGE", "levels": [
+    //   { "type": "stat_flat_increase", "value": 5 },
+    //   { "type": "stat_flat_increase", "value": 10 },
+    //   { "type": "stat_flat_increase", "value": 15 },
+    //   { "type": "stat_flat_increase", "value": 20 },
+    //   { "type": "stat_flat_increase", "value": 25 }
+    // ]},
+    // {"key": "BULLET_DAMAGE", "levels": [
+    //   { "type": "stat_percent_increase", "value": 20 },
+    //   { "type": "stat_percent_increase", "value": 40 },
+    //   { "type": "stat_percent_increase", "value": 60 },
+    //   { "type": "stat_percent_increase", "value": 80 },
+    //   { "type": "stat_percent_increase", "value": 100 }
+    // ]},
+    // {"key": "BULLET_KNOCKBACK", "levels": [
+    //   { "type": "stat_flat_increase", "value": 0.05 },
+    //   { "type": "stat_flat_increase", "value": 0.10 },
+    //   { "type": "stat_flat_increase", "value": 0.15 },
+    //   { "type": "stat_flat_increase", "value": 0.20 },
+    //   { "type": "stat_flat_increase", "value": 0.25 }
+    // ]},
+    // {"key": "BULLET_LIFESTEAL", "levels": [
+    //   { "type": "stat_flat_increase", "value": 0.05 },
+    //   { "type": "stat_flat_increase", "value": 0.10 },
+    //   { "type": "stat_flat_increase", "value": 0.15 },
+    //   { "type": "stat_flat_increase", "value": 0.20 },
+    //   { "type": "stat_flat_increase", "value": 0.25 }
+    // ]},
+    // {"key": "BULLET_LIFETIME", "levels": [
+    // ]},
+    // {"key": "BULLET_PIERCE", "levels": [
+    //   { "type": "stat_flat_increase", "value": 1 },
+    //   { "type": "stat_flat_increase", "value": 2 },
+    //   { "type": "stat_flat_increase", "value": 3 },
+    //   { "type": "stat_flat_increase", "value": 4 },
+    //   { "type": "stat_flat_increase", "value": 5 }
+    // ]},
+    // {"key": "BULLET_SIZE", "levels": [
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 }
+    // ]},
+    // {"key": "BULLET_SPEED", "levels": [
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 },
+    //   { "type": "stat_percent_increase", "value": 25 }
+    // ]},
+    // {"key": "WEAPON_PROJECTILES", "levels": [
+    //   { "type": "stat_flat_increase", "value": 1 },
+    //   { "type": "stat_flat_increase", "value": 1 },
+    //   { "type": "stat_flat_increase", "value": 1 }
+    // ]},
+    // {"key": "WEAPON_SPREAD", "levels": []},
+    // {"key": "WEAPON_FIRERATE", "levels": [
+    //   { "type": "stat_percent_increase", "value": 10 },
+    //   { "type": "stat_percent_increase", "value": 10 },
+    //   { "type": "stat_percent_increase", "value": 10 },
+    //   { "type": "stat_percent_increase", "value": 10 },
+    //   { "type": "stat_percent_increase", "value": 10 }
+    // ]},
+    // {"key": "WEAPON_CLIP_SIZE", "levels": []},
+    // {"key": "WEAPON_RELOAD", "levels": []},
+    // {"key": "WEAPON_RANGE", "levels": []}
 
     // Luck for stat rarity?
     // Gold drop rate?

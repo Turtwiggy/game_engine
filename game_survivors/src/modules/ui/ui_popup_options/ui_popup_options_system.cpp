@@ -85,8 +85,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const ImVec2 window_wh = ImGui::GetWindowSize();
   const ImVec2 window_br = { window_tl.x + window_wh.x, window_tl.y + window_wh.y };
 
-  const auto rounding = 6.0f;
-  const auto thickness = 2.0f;
+  const auto rounding = 0.0f;
+  const auto thickness = 1.0f;
   const auto rect_flags = ImDrawFlags_RoundCornersAll;
   draw_list->AddRectFilled(window_tl, window_br, im_window_bg_col, rounding);
   draw_list->AddRect(window_tl, window_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);

@@ -23,8 +23,8 @@ update_combo_unlock_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  static float offset_1st_row = -32;
-  static float offset_2nd_row = -32;
+  const float offset_1st_row = -32;
+  const float offset_2nd_row = -32;
   // imgui_draw_float("offset_1st_row", offset_1st_row);
   // imgui_draw_float("offset_2nd_row", offset_2nd_row);
 

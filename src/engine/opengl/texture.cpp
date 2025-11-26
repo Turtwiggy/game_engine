@@ -63,7 +63,7 @@ get_format(const int nr_components, GLenum& a, GLenum& b)
 };
 
 engine::SRGBTexture
-load_texture(std::string path, const uint32_t tex_unit)
+load_texture(std::string path, const uint32_t tex_unit, bool linear)
 {
   int width = 0;
   int height = 0;
@@ -91,9 +91,14 @@ load_texture(std::string path, const uint32_t tex_unit)
   glActiveTexture(GL_TEXTURE0 + tex_unit);
   glBindTexture(GL_TEXTURE_2D, image_texture);
 
-  // Setup filtering parameters for display
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // Setup filtering parameters
+  if (linear) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  } else {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  }
 
   // Upload pixels into texture
   glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);

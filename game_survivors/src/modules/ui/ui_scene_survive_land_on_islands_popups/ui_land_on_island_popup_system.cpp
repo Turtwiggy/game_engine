@@ -83,7 +83,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       if (confirm_button_str == "")
         confirm_button_str = "Enter";
 
-      const auto label = std::format("({}) Land", player_c.confirm_button_cached);
+      const auto label = std::format("({}) Land", confirm_button_str);
       const auto label_size = ImGui::CalcTextSize(label.c_str());
       ImGui::PopFont();
 
@@ -123,7 +123,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
 
       auto back_button = player_c.back_button_cached;
       if (back_button == "")
-        back_button = "ESC";
+        back_button = "Q";
 
       ImGui::PushFont(font, font_size);
       const auto str0 = "(DPAD) Act";

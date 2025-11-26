@@ -308,6 +308,8 @@ make_stat_name_pretty_name(const std::string stat)
   // remove ACTOR_
   result = str_remove_all_occurances(result, "ACTOR_");
   result = str_remove_all_occurances(result, "AREA_");
+  result = str_remove_all_occurances(result, "WEAPON_");
+  result = str_remove_all_occurances(result, "BULLET_");
 
   /**/
   // convert from bold uppercase to regular.
@@ -329,9 +331,10 @@ get_val_str_from_stat_enum(entt::registry& r,
                            const std::vector<entt::entity>& upg_weapons,
                            const UpgradeableStat stat_enum)
 {
-  std::string val_str = "N/A";
   const auto& actor_upgrades_c = r.get<StatModifierComponent>(player_e);
   const auto stat_str = std::string(magic_enum::enum_name(stat_enum));
+
+  std::optional<float> value = std::nullopt;
 
   // DISPLAY ACTOR_ stats
   // assume no upg_weapons means ACTOR_ stat
@@ -339,28 +342,28 @@ get_val_str_from_stat_enum(entt::registry& r,
     if (stat_enum == UpgradeableStat::ACTOR_DODGE_CHANCE) {
       const auto v = r.get<const ActorDodgeComponent>(player_e).dodge_percent;
       const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
-      val_str = std::format("{:0.1f}", v_out) + "%"s;
+      value = v_out;
     }
     if (stat_enum == UpgradeableStat::ACTOR_HEALTH_MAX) {
       const auto player_fixture_e = get_fixture_by_tag(r, player_e, "fixture_player");
       const auto v = r.get<const HealthComponent>(player_fixture_e).max_hp;
       const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
-      val_str = std::format("{:0.0f}", v_out);
+      value = v_out;
     }
     if (stat_enum == UpgradeableStat::ACTOR_HEALTH_REGEN) {
       const auto v = r.get<const ActorHealthRegenComponent>(player_e).hp_per_second;
       const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
-      val_str = std::format("{:0.2f}", v_out);
+      value = v_out;
     }
     if (stat_enum == UpgradeableStat::ACTOR_SPEED) {
       const auto v = r.get<const ActorSpeedComponent>(player_e).base_speed;
       const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
-      val_str = std::format("{:0.2f}", 100.0f * v_out); // mul x100 to make it more appealing
+      value = v_out;
     }
     if (stat_enum == UpgradeableStat::ACTOR_XP_ZONE_SIZE) {
       const auto v = r.get<const ActorXpZoneSizeComponent>(player_e).radius_meters;
       const auto v_out = actor_upgrades_c.apply_modifiers(v, stat_str);
-      val_str = std::format("{:0.2f}", v_out);
+      value = v_out;
     }
   }
 
@@ -374,40 +377,40 @@ get_val_str_from_stat_enum(entt::registry& r,
     if (wep_type == WEAPON_TYPE::PROJECTILE || wep_type == WEAPON_TYPE::DEPLOY) {
       const auto bul_def = get_bullet_def(r, wep_e);
       if (stat_enum == UpgradeableStat::BULLET_BOUNCE)
-        val_str = std::format("{:0.0f}", (float)bul_def.bounces);
+        value = (float)bul_def.bounces;
       else if (stat_enum == UpgradeableStat::BULLET_CRIT_CHANCE)
-        val_str = std::format("{}%", (int)bul_def.crit_chance);
+        value = (int)bul_def.crit_chance;
       else if (stat_enum == UpgradeableStat::BULLET_CRIT_DAMAGE)
-        val_str = std::format("{}%", (int)bul_def.crit_damage);
+        value = (int)bul_def.crit_damage;
       else if (stat_enum == UpgradeableStat::BULLET_DAMAGE)
-        val_str = std::format("{:0.2f}", (float)bul_def.damage);
+        value = (float)bul_def.damage;
       else if (stat_enum == UpgradeableStat::BULLET_KNOCKBACK)
-        val_str = std::format("{:0.2f}", 100.0f * bul_def.knockback_force); // mul x100 to make it more appealing
+        value = bul_def.knockback_force; // mul x100 to make it more appealing
       else if (stat_enum == UpgradeableStat::BULLET_LIFESTEAL)
-        val_str = std::format("{:0.2f}", (float)bul_def.lifesteal);
+        value = (float)bul_def.lifesteal;
       else if (stat_enum == UpgradeableStat::BULLET_LIFETIME)
-        val_str = std::format("{:0.2f}", (float)bul_def.lifecycle * 0.001f); // ms => s);
+        value = (float)bul_def.lifecycle * 0.001f; // ms => s);
       else if (stat_enum == UpgradeableStat::BULLET_PIERCE)
-        val_str = std::format("{}", bul_def.pierce);
+        value = bul_def.pierce;
       else if (stat_enum == UpgradeableStat::BULLET_SIZE)
-        val_str = std::format("{:0.2f}", (float)bul_def.size.x);
+        value = (float)bul_def.size.x;
       else if (stat_enum == UpgradeableStat::BULLET_SPEED)
-        val_str = std::format("{:0.2f}", (float)bul_def.speed);
+        value = (float)bul_def.speed;
     }
 
     // note: display the weapon that the upgrade is upgrading.
     if (stat_enum == UpgradeableStat::WEAPON_PROJECTILES)
-      val_str = std::format("{}", wep_def.projectiles);
+      value = wep_def.projectiles;
     else if (stat_enum == UpgradeableStat::WEAPON_SPREAD)
-      val_str = std::format("{:0.2f}", (float)wep_def.spread_deg);
+      value = (float)wep_def.spread_deg;
     else if (stat_enum == UpgradeableStat::WEAPON_FIRERATE)
-      val_str = std::format("{:0.2f}", (float)wep_def.fire_rate);
+      value = (float)wep_def.fire_rate;
     else if (stat_enum == UpgradeableStat::WEAPON_CLIP_SIZE)
-      val_str = std::format("{}", (int)wep_def.bullets_max);
+      value = wep_def.bullets_max;
     else if (stat_enum == UpgradeableStat::WEAPON_RELOAD)
-      val_str = std::format("{:0.2f}", (float)wep_def.reload_rate);
+      value = (float)wep_def.reload_rate;
     else if (stat_enum == UpgradeableStat::WEAPON_RANGE)
-      val_str = std::format("{:0.2f}", (float)wep_def.range);
+      value = (float)wep_def.range;
   }
 
   // DISPLAY AREA_ stats
@@ -426,15 +429,22 @@ get_val_str_from_stat_enum(entt::registry& r,
       // else if (stat_enum == UpgradeableStat::AREA_SIZE)
       //   val_str = std::format("{} x {}", area_def.size_x, area_def.size_y);
       if (stat_enum == UpgradeableStat::AREA_STACK_DAMAGE)
-        val_str = std::format("{:0.2f}", area_def.stack_damage);
+        value = area_def.stack_damage;
       else if (stat_enum == UpgradeableStat::AREA_STACK_DURATION)
-        val_str = std::format("{:0.2f}", area_def.stack_duration);
+        value = area_def.stack_duration;
       else if (stat_enum == UpgradeableStat::AREA_STACKS_PER_SHOT)
-        val_str = std::format("{}", area_def.stacks_per_shot);
+        value = area_def.stacks_per_shot;
     }
   }
 
-  return val_str;
+  if (!value.has_value())
+    return "N/A";
+
+  bool is_int = std::floor(value.value()) == value.value();
+  if (is_int)
+    return std::format("{}", (int)value.value());
+
+  return std::format("{:.2f}", value.value());
 };
 
 } // namespace game2d
