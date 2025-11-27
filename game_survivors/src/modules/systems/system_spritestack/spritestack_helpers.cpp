@@ -18,20 +18,14 @@ bool
 add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
 {
   const std::vector<std::string> supported_spritestacks{
-    "dinghy",
-    "rhib",
-    "pbr",
-    "bond",
+    "dinghy", "rhib", "pbr", "bond", "castaway",
   };
 
   // i.e. which layer makes mose sense to have as the hitbox?
   // note: ignoring {0, 0}. so if dinghy_1 is frame {0, 1} = 0,
   // the int value 1 in this vector represents 1 frame after that.
   const std::vector<int> spritestack_base_layer{
-    1,
-    9,
-    26,
-    0,
+    1, 9, 26, 0, 0,
   };
 
   auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);

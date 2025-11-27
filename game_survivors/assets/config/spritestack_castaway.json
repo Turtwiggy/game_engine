@@ -1,0 +1,31 @@
+{
+  "spritesheet": {
+    "name": "castaway",
+    "px_total": 25,
+    "py_total": 475,
+    "px": 25,
+    "py": 25,
+    "nx": 1,
+    "ny": 19
+  },
+  "sprites": [
+    { "name": "castaway_1", "frames": [{"x": 0,"y": 1}]},
+    { "name": "castaway_2", "frames": [{"x": 0,"y": 2}]},
+    { "name": "castaway_3", "frames": [{"x": 0,"y": 3}]},
+    { "name": "castaway_4", "frames": [{"x": 0,"y": 4}]},
+    { "name": "castaway_5", "frames": [{"x": 0,"y": 5}]},
+    { "name": "castaway_6", "frames": [{"x": 0,"y": 6}]},
+    { "name": "castaway_7", "frames": [{"x": 0,"y": 7}]},
+    { "name": "castaway_8", "frames": [{"x": 0,"y": 8}]},
+    { "name": "castaway_9", "frames": [{"x": 0,"y": 9}]},
+    { "name": "castaway_10", "frames": [{"x": 0,"y": 10}]},
+    { "name": "castaway_11", "frames": [{"x": 0,"y": 11}]},
+    { "name": "castaway_12", "frames": [{"x": 0,"y": 12}]},
+    { "name": "castaway_13", "frames": [{"x": 0,"y": 13}]},
+    { "name": "castaway_14", "frames": [{"x": 0,"y": 14}]},
+    { "name": "castaway_15", "frames": [{"x": 0,"y": 15}]},
+    { "name": "castaway_16", "frames": [{"x": 0,"y": 16}]},
+    { "name": "castaway_17", "frames": [{"x": 0,"y": 17}]},
+    { "name": "castaway_18", "frames": [{"x": 0,"y": 18}]}
+  ]
+}

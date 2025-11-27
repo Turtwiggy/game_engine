@@ -35,7 +35,8 @@ get_default_textures()
   // add_tex("spritestack_pbr.png", "spritestack_pbr.json");
   add_tex("spritestack_dinghy.png", "spritestack_dinghy.json");
   add_tex("spritestack_rhib.png", "spritestack_rhib.json");
-  add_tex("spritestack_bond.png", "spritestack_bond.json");
+  // add_tex("spritestack_bond.png", "spritestack_bond.json");
+  // add_tex("spritestack_castaway.png", "spritestack_castaway.json");
   // add_tex("hulls-0-YellowSubmarine.png", "hulls-0-YellowSubmarine.json");
   // add_tex("hulls-4-Castaway.png", "hulls-4-Castaway.json");
 
