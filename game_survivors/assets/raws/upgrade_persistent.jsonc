@@ -3,38 +3,38 @@
 
     { "key": "ACTOR_DODGE_CHANCE",
       "levels": [
-        { "type": "stat_flat_increase", "value": 2 },
-        { "type": "stat_flat_increase", "value": 2 },
-        { "type": "stat_flat_increase", "value": 2 },
-        { "type": "stat_flat_increase", "value": 2 },
-        { "type": "stat_flat_increase", "value": 2 }
+        { "type": "stat_flat_increase", "value": 5 }
+        // { "type": "stat_flat_increase", "value": 2 },
+        // { "type": "stat_flat_increase", "value": 2 },
+        // { "type": "stat_flat_increase", "value": 2 },
+        // { "type": "stat_flat_increase", "value": 2 }
       ]
     },
     { "key": "ACTOR_HEALTH_MAX",
       "levels": [
-        { "type": "stat_flat_increase", "value": 1 },
-        { "type": "stat_flat_increase", "value": 2 },
-        { "type": "stat_flat_increase", "value": 3 },
-        { "type": "stat_flat_increase", "value": 4 },
         { "type": "stat_flat_increase", "value": 5 }
+        // { "type": "stat_flat_increase", "value": 2 },
+        // { "type": "stat_flat_increase", "value": 3 },
+        // { "type": "stat_flat_increase", "value": 4 },
+        // { "type": "stat_flat_increase", "value": 5 }
       ]
     },
     { "key": "ACTOR_HEALTH_REGEN",
       "levels": [
-        { "type": "stat_flat_increase", "value": 0.1 },
-        { "type": "stat_flat_increase", "value": 0.1 },
-        { "type": "stat_flat_increase", "value": 0.1 },
-        { "type": "stat_flat_increase", "value": 0.1 },
-        { "type": "stat_flat_increase", "value": 0.1 }
+        { "type": "stat_flat_increase", "value": 0.25 }
+        // { "type": "stat_flat_increase", "value": 0.1 },
+        // { "type": "stat_flat_increase", "value": 0.1 },
+        // { "type": "stat_flat_increase", "value": 0.1 },
+        // { "type": "stat_flat_increase", "value": 0.1 }
       ]
     },
     { "key": "ACTOR_SPEED",
       "levels": [
-        { "type": "stat_percent_increase", "value": 4 },
-        { "type": "stat_percent_increase", "value": 4 },
-        { "type": "stat_percent_increase", "value": 4 },
-        { "type": "stat_percent_increase", "value": 4 },
-        { "type": "stat_percent_increase", "value": 4 }
+        { "type": "stat_percent_increase", "value": 10 }
+        // { "type": "stat_percent_increase", "value": 4 },
+        // { "type": "stat_percent_increase", "value": 4 },
+        // { "type": "stat_percent_increase", "value": 4 },
+        // { "type": "stat_percent_increase", "value": 4 }
       ]
     },
     // { "key": "ACTOR_XP_ZONE_SIZE", "levels": [
@@ -52,11 +52,11 @@
     //   { "type": "stat_flat_increase", "value": 1 }
     // ]},
     {"key": "BULLET_CRIT_CHANCE", "levels": [
-      { "type": "stat_flat_increase", "value": 2 },
-      { "type": "stat_flat_increase", "value": 2 },
-      { "type": "stat_flat_increase", "value": 2 },
-      { "type": "stat_flat_increase", "value": 2 },
-      { "type": "stat_flat_increase", "value": 2 }
+      { "type": "stat_flat_increase", "value": 7.5 }
+      // { "type": "stat_flat_increase", "value": 2 },
+      // { "type": "stat_flat_increase", "value": 2 },
+      // { "type": "stat_flat_increase", "value": 2 },
+      // { "type": "stat_flat_increase", "value": 2 }
     ]}
     // {"key": "BULLET_CRIT_DAMAGE", "levels": [
     //   { "type": "stat_flat_increase", "value": 5 },

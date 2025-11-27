@@ -26,9 +26,9 @@ update_ui_survive_timer_system(entt::registry& r)
   const auto& ri_c = SINGLE_RendererInfo::instance;
   const glm::vec2 tr = ri_c.viewport_size_render_at;
 
-  const auto& players = SINGLE_AlivePlayers::instance.players;
-  if (players.empty())
-    return; // no players, dont count down timer
+  // const auto& players = SINGLE_AlivePlayers::instance.players;
+  // if (players.empty())
+  //   return; // no players, dont count down timer
 
   const auto view = r.view<const SurviveTimerComponent>();
   const auto survive_e = view.front();

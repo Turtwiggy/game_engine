@@ -38,6 +38,7 @@
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
 #include "modules/systems/system_death_throes/death_throes_components.hpp"
+#include "modules/systems/system_gameover/gameover_helpers.hpp"
 #include "modules/systems/system_items_drop_on_death/helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
@@ -629,6 +630,10 @@ update_spawner_system(entt::registry& r, const float dt)
   // no players, dont count down timer and spawn things
   const auto& players = SINGLE_AlivePlayers::instance.players;
   if (players.empty())
+    return;
+
+  // if game is over, dont count down the timer.
+  if (is_gameover(r))
     return;
 
   // Update survive timer

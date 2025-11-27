@@ -323,7 +323,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
             .input = false,
             .cell = cell_ptr,
             .active_cell = ui_c.state.active,
-            .update_selected_on_mouse_move = false,
+            .update_selected_on_mouse_move = true,
 
             .font = text_font,
             .font_size = font_text_size,
@@ -408,6 +408,43 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
       text_pos.x -= 0.5f * text_wh.x;
       text_pos.y -= 0.5f * text_wh.y;
       draw_list->AddText(text_font, font_text_size, text_pos, im_text_col, text.c_str());
+
+      // if its a stat, show what you're getting.
+      if (gc->type == GridCellType::STAT) {
+        text_pos.y += font_text_size; // move vertically
+
+        const auto idx = gc->index;
+        const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(idx).value();
+        const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
+        auto it = std::find_if(
+          upgrade_c.upgrades.begin(), upgrade_c.upgrades.end(), [&](const auto& upg) { return upg.key == stat_str; });
+        if (it != upgrade_c.upgrades.end()) {
+          auto& upg = (*it);
+          float value = upg.levels[0].value;
+          std::string type = upg.levels[0].type;
+
+          std::string upg_str = "";
+          bool is_int = std::floor(value) == value;
+          if (is_int)
+            upg_str = std::format("+{}", (int)value);
+          else
+            upg_str = std::format("+{:.2f}", value);
+          // if (type == "stat_flat_increase")
+          //   upg_str += "";
+          if (type == "stat_percent_increase")
+            upg_str += "%";
+          // some stats are % anyway
+          else if (stat_enum == UpgradeableStat::ACTOR_DODGE_CHANCE)
+            upg_str += "%";
+          else if (stat_enum == UpgradeableStat::BULLET_CRIT_CHANCE)
+            upg_str += "%";
+          else if (stat_enum == UpgradeableStat::BULLET_CRIT_DAMAGE)
+            upg_str += "%";
+
+          text_pos.x = center.x - ImGui::CalcTextSize(upg_str.c_str()).x * 0.5f;
+          draw_list->AddText(text_font, font_text_size, text_pos, im_text_col, upg_str.c_str());
+        }
+      }
 
       // Show the cost.
       const auto key = get_gridcell_item_key(r, gc);
