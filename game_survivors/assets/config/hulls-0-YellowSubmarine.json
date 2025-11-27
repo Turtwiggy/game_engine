@@ -1,0 +1,553 @@
+{
+  "spritesheet": {
+    "name": "hulls-0-YellowSubmarine",
+    "px_total": 117,
+    "py_total": 3050,
+    "px": 117,
+    "py": 50,
+    "nx": 1,
+    "ny": 61
+  },
+  "sprites": [
+    {
+      "name": "hulls-0-YellowSubmarine_1",
+      "frames": [
+        {
+          "x": 0,
+          "y": 1
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_2",
+      "frames": [
+        {
+          "x": 0,
+          "y": 2
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_3",
+      "frames": [
+        {
+          "x": 0,
+          "y": 3
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_4",
+      "frames": [
+        {
+          "x": 0,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_5",
+      "frames": [
+        {
+          "x": 0,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_6",
+      "frames": [
+        {
+          "x": 0,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_7",
+      "frames": [
+        {
+          "x": 0,
+          "y": 7
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_8",
+      "frames": [
+        {
+          "x": 0,
+          "y": 8
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_9",
+      "frames": [
+        {
+          "x": 0,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_10",
+      "frames": [
+        {
+          "x": 0,
+          "y": 10
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_11",
+      "frames": [
+        {
+          "x": 0,
+          "y": 11
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_12",
+      "frames": [
+        {
+          "x": 0,
+          "y": 12
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_13",
+      "frames": [
+        {
+          "x": 0,
+          "y": 13
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_14",
+      "frames": [
+        {
+          "x": 0,
+          "y": 14
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_15",
+      "frames": [
+        {
+          "x": 0,
+          "y": 15
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_16",
+      "frames": [
+        {
+          "x": 0,
+          "y": 16
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_17",
+      "frames": [
+        {
+          "x": 0,
+          "y": 17
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_18",
+      "frames": [
+        {
+          "x": 0,
+          "y": 18
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_19",
+      "frames": [
+        {
+          "x": 0,
+          "y": 19
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_20",
+      "frames": [
+        {
+          "x": 0,
+          "y": 20
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_21",
+      "frames": [
+        {
+          "x": 0,
+          "y": 21
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_22",
+      "frames": [
+        {
+          "x": 0,
+          "y": 22
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_23",
+      "frames": [
+        {
+          "x": 0,
+          "y": 23
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_24",
+      "frames": [
+        {
+          "x": 0,
+          "y": 24
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_25",
+      "frames": [
+        {
+          "x": 0,
+          "y": 25
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_26",
+      "frames": [
+        {
+          "x": 0,
+          "y": 26
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_27",
+      "frames": [
+        {
+          "x": 0,
+          "y": 27
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_28",
+      "frames": [
+        {
+          "x": 0,
+          "y": 28
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_29",
+      "frames": [
+        {
+          "x": 0,
+          "y": 29
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_30",
+      "frames": [
+        {
+          "x": 0,
+          "y": 30
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_31",
+      "frames": [
+        {
+          "x": 0,
+          "y": 31
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_32",
+      "frames": [
+        {
+          "x": 0,
+          "y": 32
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_33",
+      "frames": [
+        {
+          "x": 0,
+          "y": 33
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_34",
+      "frames": [
+        {
+          "x": 0,
+          "y": 34
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_35",
+      "frames": [
+        {
+          "x": 0,
+          "y": 35
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_36",
+      "frames": [
+        {
+          "x": 0,
+          "y": 36
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_37",
+      "frames": [
+        {
+          "x": 0,
+          "y": 37
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_38",
+      "frames": [
+        {
+          "x": 0,
+          "y": 38
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_39",
+      "frames": [
+        {
+          "x": 0,
+          "y": 39
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_40",
+      "frames": [
+        {
+          "x": 0,
+          "y": 40
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_41",
+      "frames": [
+        {
+          "x": 0,
+          "y": 41
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_42",
+      "frames": [
+        {
+          "x": 0,
+          "y": 42
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_43",
+      "frames": [
+        {
+          "x": 0,
+          "y": 43
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_44",
+      "frames": [
+        {
+          "x": 0,
+          "y": 44
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_45",
+      "frames": [
+        {
+          "x": 0,
+          "y": 45
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_46",
+      "frames": [
+        {
+          "x": 0,
+          "y": 46
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_47",
+      "frames": [
+        {
+          "x": 0,
+          "y": 47
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_48",
+      "frames": [
+        {
+          "x": 0,
+          "y": 48
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_49",
+      "frames": [
+        {
+          "x": 0,
+          "y": 49
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_50",
+      "frames": [
+        {
+          "x": 0,
+          "y": 50
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_51",
+      "frames": [
+        {
+          "x": 0,
+          "y": 51
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_52",
+      "frames": [
+        {
+          "x": 0,
+          "y": 52
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_53",
+      "frames": [
+        {
+          "x": 0,
+          "y": 53
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_54",
+      "frames": [
+        {
+          "x": 0,
+          "y": 54
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_55",
+      "frames": [
+        {
+          "x": 0,
+          "y": 55
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_56",
+      "frames": [
+        {
+          "x": 0,
+          "y": 56
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_57",
+      "frames": [
+        {
+          "x": 0,
+          "y": 57
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_58",
+      "frames": [
+        {
+          "x": 0,
+          "y": 58
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_59",
+      "frames": [
+        {
+          "x": 0,
+          "y": 59
+        }
+      ]
+    },
+    {
+      "name": "hulls-0-YellowSubmarine_60",
+      "frames": [
+        {
+          "x": 0,
+          "y": 60
+        }
+      ]
+    }
+  ]
+}

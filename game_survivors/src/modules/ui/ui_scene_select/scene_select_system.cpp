@@ -33,7 +33,6 @@
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 #include "resources/data.hpp"
 
-
 namespace game2d {
 
 struct TextDesc
@@ -199,7 +198,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
 
   const auto head_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.03f * box_wh.y);
   const auto desc_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.07f * box_wh.y);
-  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.12f * box_wh.y);
+  const auto stat_pos = ImVec2(box_tl.x + 0.5f * box_wh.x, box_tl.y + 0.15f * box_wh.y);
   const auto line_height = 13.0f;
 
   // header text.
@@ -240,6 +239,9 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
       display_stats.push_back({ .key = "Hardpoints", .val = std::to_string(hull.hardpoints.size()) });
       display_stats.push_back({ .key = "Width", .val = std::format("{:.1f}m", pixels_to_meters(hull.width * 10)) });
       display_stats.push_back({ .key = "Height", .val = std::format("{:.1f}m", pixels_to_meters(hull.height * 10)) });
+
+      const int hp = (int)((hull.width * hull.height) / 100.0f);
+      display_stats.push_back({ .key = "HP", .val = std::format("{}", hp) });
     }
 
     if (is_weapon) {

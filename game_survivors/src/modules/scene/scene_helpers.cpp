@@ -214,10 +214,11 @@ spawn_player(entt::registry& r,
 
   // add trail to the butt of the boat
   //
+  const auto inset = 2.0f;
+  add_trail({ inset, inset });
+  add_trail({ inset, hull_size.y - inset });
+
   if (hull_key == "dinghy") {
-    const auto inset = 2.0f;
-    add_trail({ inset, inset });
-    add_trail({ inset, hull_size.y - inset });
   }
   if (hull_key == "pbr") {
     const auto inset = 2.0f;

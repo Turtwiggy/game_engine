@@ -1,0 +1,20 @@
+{
+  "spritesheet": {
+    "name": "bond",
+    "px_total": 36,
+    "py_total": 144,
+    "px": 36,
+    "py": 18,
+    "nx": 1,
+    "ny": 8
+  },
+  "sprites": [
+    { "name": "bond_1", "frames": [{"x": 0,"y": 1}], "angle": 180.0 },
+    { "name": "bond_2", "frames": [{"x": 0,"y": 2}], "angle": 180.0 },
+    { "name": "bond_3", "frames": [{"x": 0,"y": 3}], "angle": 180.0 },
+    { "name": "bond_4", "frames": [{"x": 0,"y": 4}], "angle": 180.0 },
+    { "name": "bond_5", "frames": [{"x": 0,"y": 5}], "angle": 180.0 },
+    { "name": "bond_6", "frames": [{"x": 0,"y": 6}], "angle": 180.0 },
+    { "name": "bond_7", "frames": [{"x": 0,"y": 7}], "angle": 180.0 }
+  ]
+}

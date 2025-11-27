@@ -21,6 +21,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     "dinghy",
     "rhib",
     "pbr",
+    "bond",
   };
 
   // i.e. which layer makes mose sense to have as the hitbox?
@@ -30,6 +31,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     1,
     9,
     26,
+    0,
   };
 
   auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);
@@ -65,6 +67,16 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
 
     // hack: set colour for the "core" layer
     if (sprite == "dinghy" && i == 0) {
+      const auto& col_c = r.get<DefaultColour>(e);
+      set_colour(r, spawned_e, col_c.colour);
+      r.get<DefaultColour>(spawned_e).colour = col_c.colour;
+    }
+    if (sprite == "bond" && i == 0) {
+      const auto& col_c = r.get<DefaultColour>(e);
+      set_colour(r, spawned_e, col_c.colour);
+      r.get<DefaultColour>(spawned_e).colour = col_c.colour;
+    }
+    if (sprite == "rhib" && i == 0) {
       const auto& col_c = r.get<DefaultColour>(e);
       set_colour(r, spawned_e, col_c.colour);
       r.get<DefaultColour>(spawned_e).colour = col_c.colour;

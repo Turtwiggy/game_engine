@@ -1,0 +1,166 @@
+{
+  "spritesheet": {
+    "name": "hulls-4-Castaway",
+    "px_total": 25,
+    "py_total": 450,
+    "px": 25,
+    "py": 25,
+    "nx": 1,
+    "ny": 18
+  },
+  "sprites": [
+    {
+      "name": "hulls-4-Castaway_1",
+      "frames": [
+        {
+          "x": 0,
+          "y": 1
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_2",
+      "frames": [
+        {
+          "x": 0,
+          "y": 2
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_3",
+      "frames": [
+        {
+          "x": 0,
+          "y": 3
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_4",
+      "frames": [
+        {
+          "x": 0,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_5",
+      "frames": [
+        {
+          "x": 0,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_6",
+      "frames": [
+        {
+          "x": 0,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_7",
+      "frames": [
+        {
+          "x": 0,
+          "y": 7
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_8",
+      "frames": [
+        {
+          "x": 0,
+          "y": 8
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_9",
+      "frames": [
+        {
+          "x": 0,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_10",
+      "frames": [
+        {
+          "x": 0,
+          "y": 10
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_11",
+      "frames": [
+        {
+          "x": 0,
+          "y": 11
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_12",
+      "frames": [
+        {
+          "x": 0,
+          "y": 12
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_13",
+      "frames": [
+        {
+          "x": 0,
+          "y": 13
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_14",
+      "frames": [
+        {
+          "x": 0,
+          "y": 14
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_15",
+      "frames": [
+        {
+          "x": 0,
+          "y": 15
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_16",
+      "frames": [
+        {
+          "x": 0,
+          "y": 16
+        }
+      ]
+    },
+    {
+      "name": "hulls-4-Castaway_17",
+      "frames": [
+        {
+          "x": 0,
+          "y": 17
+        }
+      ]
+    }
+  ]
+}
