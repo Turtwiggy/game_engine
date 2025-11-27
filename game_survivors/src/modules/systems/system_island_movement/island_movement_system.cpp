@@ -100,8 +100,8 @@ update_island_movement_system(entt::registry& r)
         // SDL_Log("tile is off the island...");
 
         // return to your boat.
-        if (is_player)
-          r.emplace_or_replace<WantToReturnToBoat>(e);
+        // if (is_player)
+        //   r.emplace_or_replace<WantToReturnToBoat>(e);
 
         continue; // you'd move off the island!
       }

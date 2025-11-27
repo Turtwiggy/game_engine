@@ -401,7 +401,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   r.get<TransformComponent>(camera_e).position = { 0, 0, 0 };
   r.get<TransformComponent>(camera_e).scale = { 0, 0, 0 };
 
-  audio::sdl_mixer::stop_all_audio(r);
+  // when you open the options menu it goes from menu => menu scene
+  bool moved_to_different_scene = s != SINGLE_CurrentScene::instance.s;
+  SDL_Log("Moved to different scene? %s", moved_to_different_scene ? "true" : "false");
+  if (moved_to_different_scene)
+    audio::sdl_mixer::stop_all_audio(r);
 
   // clear all the inputs when moving scene
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
@@ -446,8 +450,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     SINGLE_MainMenuAnimatedData menu_anim_c;
     menu_anim_c.data.resize(num_players);
     create_empty<SINGLE_MainMenuAnimatedData>(r, menu_anim_c);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    if (moved_to_different_scene) { // i.e. moved to menu scene
+      SDL_Log("Starting menu audio");
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "MENU_0", .looping = true });
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ .tag = "WATER_AMBIENCE_0", .looping = true });
+    }
     init_oh_buoy_header_text(r);
     create_empty<UiCursorComponent>(r);
 

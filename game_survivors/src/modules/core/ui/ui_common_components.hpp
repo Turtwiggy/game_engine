@@ -87,6 +87,7 @@ struct DefaultUI
   bool one_frame_buffer = true;
   UIState state;
 
+  virtual ~DefaultUI() = default;
   virtual void do_init(entt::registry& r) {};
 
   template<class T>

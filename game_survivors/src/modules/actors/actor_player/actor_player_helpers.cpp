@@ -79,6 +79,10 @@ generate_from_keyboard(entt::registry& r)
   generate_actions_from_keyboard(i.dpad_d, SDL_SCANCODE_DOWN);
   generate_actions_from_keyboard(i.dpad_l, SDL_SCANCODE_LEFT);
   generate_actions_from_keyboard(i.dpad_r, SDL_SCANCODE_RIGHT);
+  generate_actions_from_keyboard(i.dpad_u, SDL_SCANCODE_W);
+  generate_actions_from_keyboard(i.dpad_d, SDL_SCANCODE_S);
+  generate_actions_from_keyboard(i.dpad_l, SDL_SCANCODE_A);
+  generate_actions_from_keyboard(i.dpad_r, SDL_SCANCODE_D);
   generate_actions_from_keyboard(i.button_n, SDL_SCANCODE_KP_8);
   generate_actions_from_keyboard(i.button_s, SDL_SCANCODE_KP_2);
   generate_actions_from_keyboard(i.button_e, SDL_SCANCODE_KP_6);

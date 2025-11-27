@@ -124,15 +124,17 @@ draw_header_row(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c, ImVec2
       .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
-    // if the header is clicked, make it the active header
-    ImGui::SetCursorScreenPos(button_header_pos);
-    if (selectable_button(r, header_button_def))
-      ui_c.active_header = cell;
-
-    // additionally, if the cell is active, make it the active header
+    // if the cell is active, make it the active header
     bool active = ui_c.state.active == cell;
     if (active)
       ui_c.active_header = cell;
+
+    // if the header is clicked, make it the active header
+    ImGui::SetCursorScreenPos(button_header_pos);
+    if (selectable_button(r, header_button_def)) {
+      ui_c.active_header = cell;
+      ui_c.state.active = base->gridcells[0]; // set to the first gridcell
+    }
 
     // draw a cursor on the active cell
     auto pos_tl = button_header_pos;

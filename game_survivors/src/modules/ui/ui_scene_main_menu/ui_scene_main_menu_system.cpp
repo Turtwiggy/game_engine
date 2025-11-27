@@ -104,36 +104,36 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r, fl
       ImGui::Dummy(space_between_buttons);
 
     // scale up text size if it's selected
-    // bool active = ui_c.state.active == base;
-    // auto [it, _] = ui_c.idx_to_size.insert({ i, min_font_size });
-    // ui_c.idx_to_size[i] += active ? dt * text_scale_speed : -dt * text_scale_speed;
-    // ui_c.idx_to_size[i] = std::clamp(ui_c.idx_to_size[i], min_font_size, max_font_size);
-    // const auto font_size_final = ui_c.idx_to_size[i];
-    const auto font_size_final = min_font_size;
+    bool active = ui_c.state.active == base;
+    auto [it, _] = ui_c.idx_to_size.insert({ i, min_font_size });
+    ui_c.idx_to_size[i] += active ? dt * text_scale_speed : -dt * text_scale_speed;
+    ui_c.idx_to_size[i] = std::clamp(ui_c.idx_to_size[i], min_font_size, max_font_size);
+    const auto font_size_final = ui_c.idx_to_size[i];
+    // const auto font_size_final = min_font_size;
     ImGui::PushFont(font, font_size_final);
 
-    const auto draw_button = [&](std::shared_ptr<Cell>& cell, int my_col_index) {
-      auto a_def = SelectableButtonDef{
-        .display_str = cell->name,
-        .imgui_hash = "##" + cell->name,
-        .size = button_size,
-        .input = do_act,
-        .cell = cell,
-        .active_cell = ui_c.state.active,
-        .font = font,
-        .font_size = font_size_final,
-        .play_audio = true,
+    auto& cell = base;
+    auto a_def = SelectableButtonDef{
+      .display_str = cell->name,
+      .imgui_hash = "##" + cell->name,
+      .size = button_size,
+      .input = do_act,
+      .cell = cell,
+      .active_cell = ui_c.state.active,
+      .font = font,
+      .font_size = font_size_final,
+      .play_audio = true,
 
-        .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-      };
-      if (selectable_button(r, a_def))
-        cell->action();
+      .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
     const auto pos_x = 0.5f * (ui_wh.x - button_size.x);
     ImGui::SetCursorPosX(pos_x);
-
-    draw_button(base, 0);
+    if (selectable_button(r, a_def)) {
+      cell->action();
+      ImGui::PopFont();
+      break;
+    }
 
     if (base->r != nullptr) {
       ImGui::SameLine();
@@ -160,8 +160,11 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r, fl
 
         .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       };
-      if (selectable_button(r, a_def))
+      if (selectable_button(r, a_def)) {
         cell->action();
+        ImGui::PopFont();
+        break;
+      }
     }
 
     ImGui::PopFont();
