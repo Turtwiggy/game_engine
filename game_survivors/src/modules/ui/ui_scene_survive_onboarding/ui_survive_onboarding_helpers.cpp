@@ -19,10 +19,8 @@ get_confirm_button_str(entt::registry& r, InputHandle_t handle)
   if (handle != 0)
     confirm_str = get_str_for_da(steam_c, handle, DigitalAction::Game_South);
 
-  // if (confirm_str == "...")
-  // confirm_str = "ENTER";
   else
-    confirm_str = "ENTER";
+    confirm_str = "E";
 
   return confirm_str;
 }

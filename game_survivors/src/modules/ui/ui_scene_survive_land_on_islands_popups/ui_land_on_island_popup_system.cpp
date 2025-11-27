@@ -81,7 +81,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
 
       auto confirm_button_str = player_c.confirm_button_cached;
       if (confirm_button_str == "")
-        confirm_button_str = "Enter";
+        confirm_button_str = "E";
 
       const auto label = std::format("({}) Land", confirm_button_str);
       const auto label_size = ImGui::CalcTextSize(label.c_str());

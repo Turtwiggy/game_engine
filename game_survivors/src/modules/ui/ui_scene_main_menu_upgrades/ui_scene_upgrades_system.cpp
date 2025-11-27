@@ -109,18 +109,19 @@ draw_header_row(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c, ImVec2
       .display_str = base->name,
       .imgui_hash = "##" + base->name,
       .size = button_wh,
-      .input = do_act,
+      .input = false, // cant interact with headers
       .cell = cell,
       .active_cell = ui_c.active_header,
       .update_selected_on_mouse_move = false,
 
       .font = text_font,
       .font_size = font_text_size,
+      .rounding = 2.0f,
 
       // hide the buttons
       .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
       .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
-      .active_bg_col = { 0.3f, 0.3f, 0.3f, 0.0f },
+      .active_bg_col = { 0.1f, 0.1f, 0.1f, 1.0f },
       .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
@@ -133,7 +134,7 @@ draw_header_row(entt::registry& r, SINGLE_PersistentUpgradesMenuUI& ui_c, ImVec2
     ImGui::SetCursorScreenPos(button_header_pos);
     if (selectable_button(r, header_button_def)) {
       ui_c.active_header = cell;
-      ui_c.state.active = base->gridcells[0]; // set to the first gridcell
+      ui_c.state.active = cell;
     }
 
     // draw a cursor on the active cell
@@ -179,7 +180,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   bool hel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
   const bool rel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
   const bool do_back = std::find(b_e.begin(), b_e.end(), ActionStateEnum::DOWN) != b_e.end();
-  const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
+  // const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
 
   // also held if mouse lmb clicked.
   hel_sel |= ImGui::IsMouseDown(ImGuiMouseButton_Left);
@@ -270,7 +271,7 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
 
   // draw header1 (the rows)
   draw_list->AddRect(header_1_tl, header_1_br, im_window_border_col, rounding, ImDrawFlags_RoundCornersAll, thickness);
-  draw_header_row(r, ui_c, header_1_tl, do_act, dt);
+  draw_header_row(r, ui_c, header_1_tl, false, dt);
   draw_moneybag(r, header_1_tl, header_1_wh, text_font, font_text_size, gold_c.amount);
 
   // draw grid cells
@@ -279,84 +280,110 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
 
     std::shared_ptr<Cell> selected_header_base = ui_c.active_header;
     if (selected_header_base != nullptr) {
-      // just display which header is selected
-      const std::string name = selected_header_base.get()->name;
-      // draw_list->AddText(grid_tl, im_text_col, name.c_str());
+      if (auto hc = dynamic_cast<HeaderCell*>(selected_header_base.get())) {
+        std::vector<std::shared_ptr<Cell>>& gridcells = hc->gridcells;
 
-      HeaderCell* selected_header = (HeaderCell*)selected_header_base.get();
-      std::vector<std::shared_ptr<Cell>> gridcells = selected_header->gridcells;
-      ImVec2 grid_pos = grid_tl;
+        // just display which header is selected
+        const std::string name = selected_header_base.get()->name;
 
-      // add some padding
-      grid_pos.x += button_offset;
-      grid_pos.y += button_offset;
+        ImVec2 grid_pos = grid_tl;
 
-      // hack: the cursor seems to be a bit off without this
-      const float offset = 14;
-      // ImGui::Begin("Debug");
-      // imgui_draw_float("offset", offset);
-      // ImGui::End();
+        // add some padding
+        grid_pos.x += button_offset;
+        grid_pos.y += button_offset;
 
-      for (const auto& cell : gridcells) {
-        GridCell* gridcell = (GridCell*)cell.get();
+        // hack: the cursor seems to be a bit off without this
+        const float offset = 14;
+        // ImGui::Begin("Debug");
+        // imgui_draw_float("offset", offset);
+        // ImGui::End();
 
-        bool active = cell == ui_c.state.active;
-        auto colour = active ? im_greenish : im_text_col;
+        for (const std::shared_ptr<Cell>& cell : gridcells) {
+          GridCell* gridcell = (GridCell*)cell.get();
 
-        // draw_list->AddText(grid_pos, colour, gridcell->name.c_str());
-        draw_list->AddRect(grid_pos, { grid_pos.x + button_size_x, grid_pos.y + button_size_x }, colour);
+          bool active = cell == ui_c.state.active;
+          auto colour = active ? im_greenish : im_text_col;
 
-        // draw a cursor on the active cell
-        const float cursor_size = ui_c.cursor_c.cursor_size;
-        auto pos_tl = grid_pos;
-        pos_tl.x += 0.5f * button_size_x - offset;
-        if (active)
-          draw_cursor(r, ui_c.cursor_c, pos_tl, dt);
+          // draw_list->AddText(grid_pos, colour, gridcell->name.c_str());
+          draw_list->AddRect(grid_pos, { grid_pos.x + button_size_x, grid_pos.y + button_size_x }, colour);
 
-        const float icon_sprite = 32;
-        const float lock_size = 16;
-        const auto draw_icon = [&](std::string key) {
-          const auto icon_key = to_upper(key);
-          const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
-          auto icon_pos = grid_pos;
-          icon_pos.x += 0.5f * (button_size_x - icon_sprite);
-          icon_pos.y += 0.5f * (button_size_x - icon_sprite);
-          ImGui::SetCursorScreenPos(icon_pos);
-          ImGui::Image(custom_im_id, { icon_sprite, icon_sprite }, image_icon_tl, image_icon_br);
-        };
-        const auto draw_lock_icon = [&](std::string key) {
-          const auto ondisk_opt = savefile_get_key(r, key);
-          const auto purchased = ondisk_opt.has_value();
-          if (!purchased) {
-            const auto [lock_tl, lock_br] = convert_sprite_to_uv(r, "ICON_LOCK_32");
-            auto lock_pos = grid_pos;
-            lock_pos.x += 0.0f * (button_size_x - lock_size);
-            lock_pos.y += 1.0f * (button_size_x - lock_size);
-            ImGui::SetCursorScreenPos(lock_pos);
-            ImGui::Image(custom_im_id, { lock_size, lock_size }, lock_tl, lock_br);
+          // draw a cursor on the active cell
+          const float cursor_size = ui_c.cursor_c.cursor_size;
+          auto pos_tl = grid_pos;
+          pos_tl.x += 0.5f * button_size_x - offset;
+          if (active)
+            draw_cursor(r, ui_c.cursor_c, pos_tl, dt);
+
+          std::shared_ptr<Cell> cell_ptr = cell;
+          ImVec2 button_wh = { button_size_x, button_size_x };
+          SelectableButtonDef button_def = {
+            .display_str = "",
+            .imgui_hash = "##" + cell->name,
+            .size = button_wh,
+            .input = false,
+            .cell = cell_ptr,
+            .active_cell = ui_c.state.active,
+            .update_selected_on_mouse_move = false,
+
+            .font = text_font,
+            .font_size = font_text_size,
+
+            // hide the buttons
+            .active_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+            .inactive_outline_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+            .active_bg_col = { 0.3f, 0.3f, 0.3f, 0.0f },
+            .inactive_bg_col = { 0.0f, 0.0f, 0.0f, 0.0f },
+          };
+          ImGui::SetCursorScreenPos(grid_pos);
+          if (selectable_button(r, button_def))
+            ui_c.state.active = cell;
+
+          const float icon_sprite = 32;
+          const float lock_size = 16;
+          const auto draw_icon = [&](std::string key) {
+            const auto icon_key = to_upper(key);
+            const auto [image_icon_tl, image_icon_br] = convert_sprite_to_uv(r, icon_key);
+            auto icon_pos = grid_pos;
+            icon_pos.x += 0.5f * (button_size_x - icon_sprite);
+            icon_pos.y += 0.5f * (button_size_x - icon_sprite);
+            ImGui::SetCursorScreenPos(icon_pos);
+            ImGui::Image(custom_im_id, { icon_sprite, icon_sprite }, image_icon_tl, image_icon_br);
+          };
+          const auto draw_lock_icon = [&](std::string key) {
+            const auto ondisk_opt = savefile_get_key(r, key);
+            const auto purchased = ondisk_opt.has_value();
+            if (!purchased) {
+              const auto [lock_tl, lock_br] = convert_sprite_to_uv(r, "ICON_LOCK_32");
+              auto lock_pos = grid_pos;
+              lock_pos.x += 0.0f * (button_size_x - lock_size);
+              lock_pos.y += 1.0f * (button_size_x - lock_size);
+              ImGui::SetCursorScreenPos(lock_pos);
+              ImGui::Image(custom_im_id, { lock_size, lock_size }, lock_tl, lock_br);
+            }
+          };
+
+          if (gridcell->type == GridCellType::HULL) {
+            const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
+            const auto& hull = hulls_c.hulls[gridcell->index];
+            draw_icon("ICON_" + to_upper(hull.key) + "_32");
+            draw_lock_icon(hull.key);
           }
-        };
+          if (gridcell->type == GridCellType::WEAPON) {
+            const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+            const auto& weapon = weapons_c.weapons[gridcell->index];
+            draw_icon("ICON_" + to_upper(weapon.key) + "_32");
+            draw_lock_icon(weapon.key);
+          }
+          if (gridcell->type == GridCellType::STAT) {
+            const auto idx = gridcell->index;
+            const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(idx).value();
+            const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
+            draw_icon("ICON_" + stat_str + "_CENTERED");
+            draw_lock_icon(stat_str);
+          }
 
-        if (gridcell->type == GridCellType::HULL) {
-          const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
-          const auto& hull = hulls_c.hulls[gridcell->index];
-          draw_icon("ICON_" + to_upper(hull.key) + "_32");
-          draw_lock_icon(hull.key);
+          grid_pos.x += button_size_x + button_inbetween_space_x;
         }
-        if (gridcell->type == GridCellType::WEAPON) {
-          const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
-          const auto& weapon = weapons_c.weapons[gridcell->index];
-          draw_icon("ICON_" + to_upper(weapon.key) + "_32");
-          draw_lock_icon(weapon.key);
-        }
-        if (gridcell->type == GridCellType::STAT) {
-          const auto idx = gridcell->index;
-          const auto stat_enum = magic_enum::enum_cast<UpgradeableStat>(idx).value();
-          const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
-          draw_icon("ICON_" + stat_str + "_CENTERED");
-          draw_lock_icon(stat_str);
-        }
-        grid_pos.x += button_size_x + button_inbetween_space_x;
       }
     }
   }
