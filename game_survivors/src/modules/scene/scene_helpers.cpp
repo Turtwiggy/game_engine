@@ -115,7 +115,7 @@ spawn_player(entt::registry& r,
   };
   const auto hull = get_key(hulls_c.hulls, hull_key).value();
   const auto weapon_data = get_key(weps_c.weapons, weapon_key).value();
-  const auto hull_size = glm::vec2{ hull.width, hull.height };
+  auto hull_size = glm::vec2{ hull.width, hull.height };
 
   std::vector<entt::entity> weapons;
 
@@ -166,6 +166,11 @@ spawn_player(entt::registry& r,
   const auto e = spawn(r, key);
   r.emplace<StatModifierComponent>(e); //  upgrades ACTOR_
   r.emplace<PlayerBoatComponent>(e);
+
+  // if (hull_key == "trimaran") {
+  // hull_size.x *= 0.5f;
+  // hull_size.y *= 0.5f;
+  // }
 
   give_life(r, e, pos, hull_size);
   r.emplace<PlayerComponent>(e, PlayerComponent{ .idx = num, .colour_idx = colour_idx, .display_name = name });

@@ -28,9 +28,9 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
   // because it SHOULD be in top-down perspective
   // values of 0 are just top down perspective,
   // so a value of 0-1 is recommended between these two.
-  static float scale_up_by = 0.6f;
-  static int sprite_height = 1;
-  static int parallax_offset_amount = 0;
+  float scale_up_by = 0.6f;
+  int sprite_height = 1;
+  int parallax_offset_amount = 0;
 
 #if defined(_DEBUG)
   auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
@@ -61,8 +61,15 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
     }
 
     const auto [spritesheet, anim] = find_animation(anims, ssc.tag);
-    const int sprite_scale_x = spritesheet.px;
-    const int sprite_scale_y = spritesheet.py;
+    int sprite_scale_x = spritesheet.px;
+    int sprite_scale_y = spritesheet.py;
+
+    // hack: make the trimaran half the size
+    // if (ssc.tag.find("trimaran") != std::string::npos) {
+    //   sprite_scale_x *= 0.5;
+    //   sprite_scale_y *= 0.5;
+    //   scale_up_by = 0.6f * 0.5f;
+    // }
 
     // Set position for each child sprite
     // if (ssc.spritestack_index != 0)

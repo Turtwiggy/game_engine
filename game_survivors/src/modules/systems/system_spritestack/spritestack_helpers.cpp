@@ -2,6 +2,7 @@
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
@@ -18,14 +19,14 @@ bool
 add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
 {
   const std::vector<std::string> supported_spritestacks{
-    "dinghy", "rhib", "pbr", "bond", "castaway",
+    "dinghy", "rhib", "pbr", "bond", "castaway", "trimaran",
   };
 
   // i.e. which layer makes mose sense to have as the hitbox?
   // note: ignoring {0, 0}. so if dinghy_1 is frame {0, 1} = 0,
   // the int value 1 in this vector represents 1 frame after that.
   const std::vector<int> spritestack_base_layer{
-    1, 9, 26, 0, 0,
+    1, 9, 26, 0, 0, 166,
   };
 
   auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);
@@ -45,15 +46,18 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
   // note: {0, 0} is an empty frame, so start the counter at 1.
   int counter = 1;
 
+  auto& transform_c = r.get<TransformComponent>(e);
+
   for (int i = root_spritestack_img_idx; i < max; i++) {
     const auto i_as_str = std::to_string(counter++);
     const auto tag_str = sprite + "_"s + i_as_str;
 
     // needs to be emplaced in order to maintain spritestack
     entt::entity spawned_e = create_transform(r, tag_str);
+    auto size = glm::vec2{ transform_c.scale.x, transform_c.scale.y };
     r.emplace<SpriteComponent>(spawned_e);
     r.emplace<DefaultColour>(spawned_e);
-    r.emplace<DefaultSizeComponent>(spawned_e, get_size(r, e));
+    r.emplace<DefaultSizeComponent>(spawned_e, size);
     set_sprite(r, spawned_e, sprite + "_"s + i_as_str);
     auto& child_c = r.get_or_emplace<HasChildrenComponent>(e);
     child_c.children.push_back(spawned_e);
@@ -71,6 +75,11 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
       r.get<DefaultColour>(spawned_e).colour = col_c.colour;
     }
     if (sprite == "rhib" && i == 0) {
+      const auto& col_c = r.get<DefaultColour>(e);
+      set_colour(r, spawned_e, col_c.colour);
+      r.get<DefaultColour>(spawned_e).colour = col_c.colour;
+    }
+    if (sprite == "trimaran" && i == 0) {
       const auto& col_c = r.get<DefaultColour>(e);
       set_colour(r, spawned_e, col_c.colour);
       r.get<DefaultColour>(spawned_e).colour = col_c.colour;
