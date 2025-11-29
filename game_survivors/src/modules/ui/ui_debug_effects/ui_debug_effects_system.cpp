@@ -61,10 +61,13 @@ update_ui_debug_effects_system(entt::registry& r)
   };
   request_particles("default_explode");
   request_particles("death_sea_mine", 200);
-  request_particles("enemy_death");
-  request_particles("fire_particles");
+  request_particles("enemy_death", 32);
   request_particles("death_exploder", 50);
+  request_particles("death_turret_explode", 16);
+  request_particles("fire_particles");
+  request_particles("ice_particles");
   request_particles("vfx_boop");
+  request_particles("vfx_ice_boop");
   request_particles("vfx_levelup_outer");
   request_particles("vfx_levelup_inner");
 

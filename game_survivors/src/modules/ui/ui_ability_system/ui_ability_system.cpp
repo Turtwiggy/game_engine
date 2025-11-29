@@ -76,14 +76,15 @@ update_ui_ability_system(entt::registry& r, float dt)
     const auto im_cooldown_col = convert_my_to_im(my_cooldown_col);
     const auto im_active_col = convert_my_to_im(my_active_col);
 
-    auto button_size = ImVec2{ 24, 24 };
-    auto half_button_size = ImVec2{ 12, 12 };
-
-    // dont show full button after initial controls
-    if (ability_c.ability_1_pressed && ability_c.ability_2_pressed) {
-      button_size = { 12, 12 };
-      half_button_size = { 6, 6 };
-    }
+    // auto button_size = ImVec2{ 24, 24 };
+    // auto half_button_size = ImVec2{ 12, 12 };
+    // // dont show full button after initial controls
+    // if (ability_c.ability_1_pressed && ability_c.ability_2_pressed) {
+    //   button_size = { 12, 12 };
+    //   half_button_size = { 6, 6 };
+    // }
+    auto button_size = ImVec2{ 16, 16 };
+    auto half_button_size = ImVec2{ 8, 8 };
 
     const float space_between_buttons = 4.0f;
     const float icon_padding_x = 6.0f;
@@ -98,7 +99,7 @@ update_ui_ability_system(entt::registry& r, float dt)
     const auto screenspace2 = worldspace_to_screenspace(r, pos2);
     const auto im_screenspace1 = ImVec2(screenspace1.x, screenspace1.y);
     const auto im_screenspace2 = ImVec2(screenspace2.x, screenspace2.y);
-    const float rounding = 8.0f;
+    const float rounding = 16.0f;
 
     const auto button1_tl = ImVec2{ im_screenspace1.x - half_button_size.x, im_screenspace1.y - half_button_size.y };
     const auto button1_br = ImVec2{ im_screenspace1.x + half_button_size.x, im_screenspace1.y + half_button_size.y };
@@ -117,17 +118,18 @@ update_ui_ability_system(entt::registry& r, float dt)
     // draw_list->AddRect(button2_tl, button2_br, im_window_border_col, rounding);
 
     auto lb_text = player_c.lb_cached;
-    if (lb_text == "")
-      lb_text = "LMB";
+    // if (lb_text == "")
+    //   lb_text = "LMB";
     auto rb_text = player_c.rb_cached;
-    if (rb_text == "")
-      rb_text = "RMB";
-    if (ability_c.ability_1_pressed && ability_c.ability_2_pressed) {
-      lb_text = "1";
-      rb_text = "2";
+    // if (rb_text == "")
+    //   rb_text = "RMB";
+    // if (ability_c.ability_1_pressed && ability_c.ability_2_pressed)
+    {
+      lb_text = "L";
+      rb_text = "R";
     }
 
-    auto font_size = (float)FontSizes::SIZE_12;
+    auto font_size = (float)FontSizes::SIZE_13;
     auto* font = get_inter_font(r);
     ImGui::PushFont(font, font_size);
     const auto text_size1 = font->CalcTextSizeA(font_size, FLT_MAX, -1, lb_text.c_str());

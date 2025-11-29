@@ -2,7 +2,7 @@
     // 0,0 top left
     "s_key": "castaway",
     "s_name" : "Castaway",
-    "s_description" : "Jiminy Cricket! Rickety sticks!",
+    "s_description" : "Jiminy Cricket! A castaway's rickety sticks",
     "n_height_px" : 25,
     "n_width_px" : 25,
     "o_center_of_mass": {

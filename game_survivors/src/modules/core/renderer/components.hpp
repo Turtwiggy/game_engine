@@ -157,10 +157,12 @@ struct Effect_RippleComponent
 
 enum class ZLayer : int
 {
-  BACKGROUND = -5,
+  BACKGROUND = -7,
   FLOOR,
   ENVIRONMENT,
   BEHIND_PLAYER,
+  XP_BACK,
+  XP_FRONT,
   PLAYER_GUN_BEHIND_PLAYER,
   DEFAULT = 0,
   PLAYER_GUN_ABOVE_PLAYER,

@@ -6,9 +6,11 @@
 #include "engine/colour/colour.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/animations/rotate_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "resources/data.hpp"
@@ -39,10 +41,18 @@ void
 drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
 {
   float size = default_map_unit_tilesize;
+  auto pos = get_position(r, e);
+
+  const auto skull_e = spawn(r, "empty");
+  give_life(r, skull_e, pos, { default_map_unit_tilesize, default_map_unit_tilesize });
+  set_sprite(r, skull_e, "SKULL_AND_BONES");
+  set_colour(r, skull_e, my_grey);
+  set_z_index(r, skull_e, ZLayer::XP_BACK);
 
   const auto item_e = spawn(r, "item_xp");
-  give_life(r, item_e, get_position(r, e), { default_map_unit_tilesize, default_map_unit_tilesize });
+  give_life(r, item_e, pos, { default_map_unit_tilesize, default_map_unit_tilesize });
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
+  set_z_index(r, item_e, ZLayer::XP_FRONT);
 
   auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_item");
   r.emplace<XpComponent>(fixture_e);

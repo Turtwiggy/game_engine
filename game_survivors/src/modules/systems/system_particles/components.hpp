@@ -16,6 +16,7 @@ struct Particle
 
   glm::vec2 position{ 0, 0 }; // seems wrong
   glm::vec2 velocity{ 0, 0 };
+  bool random_rotation = false;
 
   bool fade = true;
   engine::SRGBColour start_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
