@@ -1,5 +1,7 @@
 #include "pch.hpp"
 
+#include "engine/audio/audio_components.hpp"
+#include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
@@ -78,8 +80,16 @@ update_ui_gameover_system(entt::registry& r, const float dt)
 #endif
 
   const auto request_opt = ui_c.update<GameOverComponent>(r);
-  if (request_opt.has_value())
+  if (request_opt.has_value()) {
     ui_c.request = request_opt.value();
+
+    SDL_Log("Gameover!");
+    audio::sdl_mixer::stop_all_audio(r); // todo: make the audio fade
+    AudioRequestPlayEvent req;
+    req.tag = request_opt->win_condition ? "VICTORY_0" : "DEFEAT_0";
+    req.looping = true;
+    create_empty<AudioRequestPlayEvent>(r, req);
+  }
 
   if (!ui_c.open || !ui_c.request.has_value())
     return;

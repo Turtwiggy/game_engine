@@ -9,6 +9,7 @@
 #include "engine/maths/maths.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/scene/scene_components.hpp"
+#include "modules/systems/system_gameover/gameover_helpers.hpp"
 
 namespace game2d {
 
@@ -28,6 +29,10 @@ handle_audio_complete_event__new_game_track(entt::registry& r, const AudioComple
   // not in the survive scene
   const auto& scene_c = SINGLE_CurrentScene::instance;
   if (scene_c.s != Scene::survive)
+    return;
+
+  // the game is over
+  if (is_gameover(r))
     return;
 
   create_empty<RequestGameTrack>(r);

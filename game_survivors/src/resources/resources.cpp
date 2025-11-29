@@ -73,11 +73,13 @@ get_default_audio()
 
   audio.sounds.push_back({ "MENU_0", mus_path + "sergepavkin_smooth-waters_quieter.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "SELECT_0", mus_path + "stranger-things-124008.mp3", SoundType::BACKGROUND });
-  audio.sounds.push_back({ "UPGRADE_0", mus_path + "pixabay_ninja.mp3", SoundType::BACKGROUND });
+  // audio.sounds.push_back({ "UPGRADE_0", mus_path + "pixabay_ninja.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_0", mus_path + "psychronic-antimatter-ancestor.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_1", mus_path + "psychronic-digital-driving-force.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_2", mus_path + "psychronic-fight-for-the-future.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "GAME_3", mus_path + "psychronic-wacky-fight.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "VICTORY_0", mus_path + "fassounds_upbeat.mp3", SoundType::BACKGROUND });
+  audio.sounds.push_back({ "DEFEAT_0", mus_path + "inono777_guerre.mp3", SoundType::BACKGROUND });
 
   // audio.sounds.push_back({ "BUOY_0", path + "marblehead_bell_buoy_nrm_23.mp3", SoundType::BACKGROUND });
   audio.sounds.push_back({ "UI_HOVER_0", sfx_path + "/zapsplat/click_001.mp3", SoundType::SFX });
