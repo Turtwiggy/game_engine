@@ -15,6 +15,16 @@ struct AbilityComponent
   float ability_2_cooldown = 6.5f;
   float ability_2_cooldown_left = 0.0f;
   bool ability_2_in_progress = false;
+
+  // the players input sets these to true
+  bool ability_1_flash_when_off_cooldown = false;
+  bool ability_2_flash_when_off_cooldown = false;
+
+  // ui display
+  bool ability_1_pressed = false;
+  bool ability_2_pressed = false;
+  float ability_1_alpha = 1.0f;
+  float ability_2_alpha = 1.0f;
 };
 
 } // namespace game2d

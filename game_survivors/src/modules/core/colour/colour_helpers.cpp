@@ -39,12 +39,11 @@ lerp_colour(engine::SRGBColour a, engine::SRGBColour b, float percent)
   float mix_g = engine::lerp(a_g, b_g, percent);
   float mix_b = engine::lerp(a_b, b_b, percent);
 
-  return engine::SRGBColour{
-    LinearFloatToSRGBFloat(mix_r) * 255.0f,
-    LinearFloatToSRGBFloat(mix_g) * 255.0f,
-    LinearFloatToSRGBFloat(mix_b) * 255.0f,
-    (a.a + b.a) * 0.5f,
-  };
+  const int srgb_r = (int)(LinearFloatToSRGBFloat(mix_r) * 255.0f);
+  const int srgb_g = (int)(LinearFloatToSRGBFloat(mix_g) * 255.0f);
+  const int srgb_b = (int)(LinearFloatToSRGBFloat(mix_b) * 255.0f);
+  const int srgb_a = (int)((a.a + b.a) * 0.5f) * 255.0f;
+  return engine::SRGBColour{ srgb_r, srgb_g, srgb_b, srgb_a };
 }
 
 } // namespace game2d

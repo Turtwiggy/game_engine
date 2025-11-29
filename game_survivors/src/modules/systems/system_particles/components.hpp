@@ -34,6 +34,8 @@ struct Particle
 
   bool make_darker_based_on_distance_from_center = false;
   // engine::SRGBColour end_colour;  // not implemented
+
+  std::string sprite = "";
 };
 
 struct ParticleEmitter

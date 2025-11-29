@@ -55,7 +55,9 @@ const auto my_red = hex_to_srgb("#d74200");
 const auto my_orange = hex_to_srgb("#e99f10");
 const auto my_reload_col = my_orange;
 
-const auto im_text_col_vec = ImVec4{ 0.86f, 0.93f, 0.89f, 0.78f };
+const auto my_text_col_dark = engine::SRGBColour(23, 23, 23, 255);
+const auto my_text_col = engine::SRGBColour(0.86f, 0.93f, 0.89f, 0.78f);
+const auto im_text_col_vec = convert_my_to_im_vec(my_text_col);
 const auto im_text_col =
   IM_COL32(im_text_col_vec.x * 255, im_text_col_vec.y * 255, im_text_col_vec.z * 255, im_text_col_vec.z * 255);
 const auto im_text_disabled_col = ImVec4{ 0.86f, 0.93f, 0.89f, 0.28f };

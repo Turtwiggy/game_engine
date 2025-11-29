@@ -476,6 +476,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
     pdesc.random_velocity_bound = 50;
     pdesc.velocity_in_dir = true;
     pdesc.linear_scale = false;
+    pdesc.sprite = "SKULL_AND_BONES";
   }
   //
   else if (key.find("enemy_death") != std::string::npos) {
@@ -484,6 +485,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
     // pdesc.start_colour = hex_to_srgb("#a64a2e"); // dark red
     pdesc.start_colour = hex_to_srgb("#0096ff"); // death col
     pdesc.random_velocity_bound = 20;
+    pdesc.sprite = "SKULL_AND_BONES";
   }
   //
   else if (key.find("death_exploder") != std::string::npos) {
@@ -494,8 +496,9 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
     pdesc.random_velocity_bound = 50;
     pdesc.velocity_in_dir = true;
     pdesc.make_darker_based_on_distance_from_center = true;
-    pdesc.start_colour = hex_to_srgb("#ffffff"); // death col
+    pdesc.start_colour = hex_to_srgb("#de9e41"); // death col
     pdesc.linear_scale = false;
+    pdesc.sprite = "SKULL_AND_BONES";
   }
   //
   else if (key.find("death_turret_explode") != std::string::npos) {
@@ -577,11 +580,11 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   } else if (key.find("default_explode") != std::string::npos) {
     emitter.particles_to_spawn_before_emitter_expires = 1;
   } else if (key.find("death_sea_mine") != std::string::npos) {
-    emitter.particles_to_spawn_before_emitter_expires = 50;
+    emitter.particles_to_spawn_before_emitter_expires = 60;
   } else if (key.find("enemy_death") != std::string::npos) {
-    emitter.particles_to_spawn_before_emitter_expires = 4;
+    emitter.particles_to_spawn_before_emitter_expires = 8;
   } else if (key.find("death_exploder") != std::string::npos) {
-    emitter.particles_to_spawn_before_emitter_expires = 10;
+    emitter.particles_to_spawn_before_emitter_expires = 20;
   } else if (key.find("death_turret_explode") != std::string::npos) {
     emitter.particles_to_spawn_before_emitter_expires = 10;
   } else if (key.find("fire_particles") != std::string::npos) {

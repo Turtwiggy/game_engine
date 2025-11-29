@@ -21,6 +21,9 @@ struct PlayerComponent
   std::string display_name = "player";
   std::string back_button_cached = "";
   std::string confirm_button_cached = "";
+
+  std::string lb_cached = "";
+  std::string rb_cached = "";
 };
 
 struct ActorSpeedComponent

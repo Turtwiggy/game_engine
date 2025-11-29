@@ -5,6 +5,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"
 #include "modules/core/colour/colour_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
@@ -89,6 +90,9 @@ update_particle_system(entt::registry& r, const float dt)
 
     pd.position = adj_pos;
     const entt::entity particle_e = spawn_particle(r, "default_particle", pd);
+
+    if (pd.sprite != "")
+      set_sprite(r, particle_e, pd.sprite);
   };
 
   // spawn the particles

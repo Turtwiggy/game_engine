@@ -64,6 +64,24 @@ update_ui_land_on_island_popup_system(entt::registry& r)
           player_c.confirm_button_cached = button_str;
       }
     }
+    if (player_c.lb_cached == "") {
+      if (handle != 0) {
+        auto button_str = get_str_for_da(steam_c, handle, DigitalAction::Game_LB);
+        if (button_str != "...")
+          player_c.lb_cached = button_str;
+        if (button_str == "Left Shoulder")
+          player_c.lb_cached = "LB";
+      }
+    }
+    if (player_c.rb_cached == "") {
+      if (handle != 0) {
+        auto button_str = get_str_for_da(steam_c, handle, DigitalAction::Game_RB);
+        if (button_str != "...")
+          player_c.rb_cached = button_str;
+        if (button_str == "Right Shoulder")
+          player_c.rb_cached = "RB";
+      }
+    }
   }
 
   //

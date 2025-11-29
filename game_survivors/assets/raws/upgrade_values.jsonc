@@ -9,10 +9,10 @@
     ]},
     {"stat": "ACTOR_HEALTH_MAX", "type": "stat_flat_increase", "values":[
       {"rarity": "COMMON",          "value": 2},
-      {"rarity": "UNCOMMON",        "value": 5},
-      {"rarity": "RARE",            "value": 10},
-      {"rarity": "LEGENDARY",       "value": 15},
-      {"rarity": "SUPER_LEGENDARY", "value": 20}
+      {"rarity": "UNCOMMON",        "value": 4},
+      {"rarity": "RARE",            "value": 6},
+      {"rarity": "LEGENDARY",       "value": 8},
+      {"rarity": "SUPER_LEGENDARY", "value": 10}
     ]},
     {"stat": "ACTOR_HEALTH_REGEN", "type": "stat_flat_increase", "values":[
       {"rarity": "COMMON",          "value": 0.10},

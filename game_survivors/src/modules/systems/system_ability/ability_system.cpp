@@ -90,6 +90,8 @@ update_ability_system(entt::registry& r, const float dt)
       if (has(input_c.ability1, ActionStateEnum::RELEASE)) {
         ability_c.ability_1_in_progress = false;
         ability_c.ability_1_cooldown_left = ability_c.ability_1_cooldown;
+        ability_c.ability_1_pressed = true;
+        ability_c.ability_1_flash_when_off_cooldown = true;
       }
     }
 
@@ -109,6 +111,8 @@ update_ability_system(entt::registry& r, const float dt)
       if (has(input_c.ability2, ActionStateEnum::RELEASE)) {
         ability_c.ability_2_in_progress = false;
         ability_c.ability_2_cooldown_left = ability_c.ability_2_cooldown;
+        ability_c.ability_2_pressed = true;
+        ability_c.ability_2_flash_when_off_cooldown = true;
       }
     }
   }

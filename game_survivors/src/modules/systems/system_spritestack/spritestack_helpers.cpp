@@ -26,7 +26,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
   // note: ignoring {0, 0}. so if dinghy_1 is frame {0, 1} = 0,
   // the int value 1 in this vector represents 1 frame after that.
   const std::vector<int> spritestack_base_layer{
-    1, 9, 26, 0, 0, 166,
+    1, 9, 26, 0, 14, 166,
   };
 
   auto it = std::find(supported_spritestacks.begin(), supported_spritestacks.end(), sprite);
@@ -64,22 +64,7 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
     auto& par_e = r.emplace<HasParentComponent>(spawned_e, HasParentComponent{ e });
 
     // hack: set colour for the "core" layer
-    if (sprite == "dinghy" && i == 0) {
-      const auto& col_c = r.get<DefaultColour>(e);
-      set_colour(r, spawned_e, col_c.colour);
-      r.get<DefaultColour>(spawned_e).colour = col_c.colour;
-    }
-    if (sprite == "bond" && i == 0) {
-      const auto& col_c = r.get<DefaultColour>(e);
-      set_colour(r, spawned_e, col_c.colour);
-      r.get<DefaultColour>(spawned_e).colour = col_c.colour;
-    }
-    if (sprite == "rhib" && i == 0) {
-      const auto& col_c = r.get<DefaultColour>(e);
-      set_colour(r, spawned_e, col_c.colour);
-      r.get<DefaultColour>(spawned_e).colour = col_c.colour;
-    }
-    if (sprite == "trimaran" && i == 0) {
+    if (i == 0) {
       const auto& col_c = r.get<DefaultColour>(e);
       set_colour(r, spawned_e, col_c.colour);
       r.get<DefaultColour>(spawned_e).colour = col_c.colour;

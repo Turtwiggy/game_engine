@@ -3,8 +3,8 @@
     "s_key": "castaway",
     "s_name" : "Castaway",
     "s_description" : "Jiminy Cricket! Rickety sticks!",
-    "n_height_px" : 18,
-    "n_width_px" : 33,
+    "n_height_px" : 25,
+    "n_width_px" : 25,
     "o_center_of_mass": {
         "n_x_rel_tl" : 13,
         "n_y_rel_tl" : 9
