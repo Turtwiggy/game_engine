@@ -29,13 +29,13 @@ const std::vector<engine::SRGBColour> default_player_colours = {
   hex_to_srgb("#00FFA2"), //
 };
 
-inline const std::vector<ImU32> default_player_colours_im = [] {
+const std::vector<ImU32> default_player_colours_im = [] {
   std::vector<ImU32> v;
   auto convert = [](const auto& c) { return convert_my_to_im(c); };
   std::transform(default_player_colours.begin(), default_player_colours.end(), std::back_inserter(v), convert);
   return v;
 }();
-inline const std::vector<ImU32> default_player_colours_im_transparent = [] {
+const std::vector<ImU32> default_player_colours_im_transparent = [] {
   std::vector<ImU32> v;
   auto convert = [](const auto& c) { return convert_my_to_im({ c.r, c.g, c.b, 100 }); };
   std::transform(default_player_colours.begin(), default_player_colours.end(), std::back_inserter(v), convert);

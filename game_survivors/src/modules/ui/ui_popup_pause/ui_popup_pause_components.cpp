@@ -5,7 +5,7 @@
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_quit/quit_components.hpp"
-#include "modules/ui/ui_popup_are_you_sure./ui_popup_are_you_sure_components.hpp"
+#include "modules/ui/ui_popup_are_you_sure/ui_popup_are_you_sure_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "ui_popup_pause_components.hpp"
 
