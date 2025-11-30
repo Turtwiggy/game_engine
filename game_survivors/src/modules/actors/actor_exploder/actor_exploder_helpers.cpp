@@ -48,12 +48,18 @@ add_explode_on_death_callback(entt::registry& r,
         const auto& tag_c = r.get<TagComponent>(par_e);
         SDL_Log("Exploooosion! hit: %s", tag_c.tag.c_str());
 
+        float explosion_damage = 50.0f;
+        if (is_player) {
+          // take off 30% of the players max health.
+          explosion_damage = r.get<const HealthComponent>(fixture_e).max_hp * 0.30f;
+        }
+
         // Send explosion damage event
         const DamageEvent evt{
           .from = entt::null, // exploder probably just died
           .to_parent = par_e,
           .to_fixture = fixture_e,
-          .amount = is_player ? 4.0f : 50.0f, // todo: replace with "correct" damage for explosion
+          .amount = explosion_damage,
           .type = WEAPON_DAMAGE::KINETIC,
         };
         evts_c.dispatcher->trigger(evt);

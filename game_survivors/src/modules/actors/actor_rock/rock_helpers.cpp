@@ -581,16 +581,15 @@ generate_rocks(entt::registry& r)
   const auto wh = SINGLE_Islands::instance.wh;
   SDL_Log("Generating rocks, cutoff: %f", cutoff);
 
-  int iterations = 5;
   int cur_islands = 0;
-  int min_islands = 8;
+  int min_islands = 7;
   std::vector<std::vector<NoiseInfo>> islands;
-  while ((cur_islands < min_islands) && (iterations > 0)) {
-    iterations--;
+
+  while (cur_islands < min_islands) {
     SINGLE_Islands::instance.generated = generate_noise__with_base_island(r);
     const auto& generated = SINGLE_Islands::instance.generated;
-    const auto i = identify_islands(generated, cutoff);
-    cur_islands = i.size();
+    const std::vector<std::vector<NoiseInfo>> i = identify_islands(generated, cutoff);
+    cur_islands = (int)i.size();
     islands = i;
     SDL_Log("Iteration... found %i islands", cur_islands);
   }
@@ -690,6 +689,23 @@ spawn_lighthouse(entt::registry& r, DebugContoursComponent& island_c, const glm:
   island_c.occupied_island_xy.push_back({ gridpos, thing_e });
 };
 
+void
+spawn_cannon(entt::registry& r, engine::RandomState& spawn_rnd, entt::entity island_eid)
+{
+  auto cannon_e = spawn_islander_unoccupied_edge(r, spawn_rnd, island_eid, "actor_island_cannon", AvailableTeams::player);
+  r.remove<HealthComponent>(cannon_e);
+  r.remove<SpriteComponent>(cannon_e);
+
+  const auto weapon_data = get_weapon_data(r, "weapon_island_cannon");
+  const auto weapon_e = spawn_weapon(r, weapon_data, "weapon_island_cannon", { default_map_tilesize, default_map_tilesize });
+  r.emplace<WeaponDef>(weapon_e, get_weapon_def(r, weapon_e));
+  r.emplace<BulletDef>(weapon_e, get_bullet_def(r, weapon_e));
+  r.emplace<AutofireComponent>(weapon_e);
+  r.emplace<IslandCannonComponent>(weapon_e);
+  connect_parent_and_weapon(r, cannon_e, weapon_e);
+  set_sprite(r, weapon_e, "CROSSBOW_37_5");
+};
+
 #if defined(_DEBUG)
 static engine::RandomState spawn_rnd(0); // same roll every time
 #else
@@ -735,21 +751,7 @@ generate_island_life__base_island(entt::registry& r)
   r.remove<HealthComponent>(drum_e);
 
   // spawn a broken cannon
-  {
-    auto cannon_e =
-      spawn_islander_unoccupied_edge(r, spawn_rnd, center_island_eid, "actor_island_cannon", AvailableTeams::player);
-    r.remove<HealthComponent>(cannon_e);
-    r.remove<SpriteComponent>(cannon_e);
-
-    const auto weapon_data = get_weapon_data(r, "weapon_island_cannon");
-    const auto weapon_e = spawn_weapon(r, weapon_data, "weapon_island_cannon", { tilesize, tilesize });
-    r.emplace<WeaponDef>(weapon_e, get_weapon_def(r, weapon_e));
-    r.emplace<BulletDef>(weapon_e, get_bullet_def(r, weapon_e));
-    r.emplace<AutofireComponent>(weapon_e);
-    r.emplace<IslandCannonComponent>(weapon_e);
-    connect_parent_and_weapon(r, cannon_e, weapon_e);
-    set_sprite(r, weapon_e, "CROSSBOW_37_5");
-  }
+  spawn_cannon(r, spawn_rnd, center_island_eid);
 }
 
 void
@@ -764,15 +766,27 @@ generate_island_life__other_islands(entt::registry& r)
       continue; // dont spawn mobs on the base island
 
     const auto enemy_keys = std::vector<std::string>{
-      // "actor_islanddweller_pirate",   //
+      "actor_islanddweller_pirate",   //
       "actor_islanddweller_spider",   //
       "actor_islanddweller_scorpion", //
     };
 
     // TODO: generate a spawn rate table for enemies.
+    int island_squares = (int)island_c.all_island_xy.size();
+
+    // e.g. 10 => 1 enemy
+    // e.g. 20 => 5 enemies
+    // e.g. 30 == 7 enemies
+    int enemies_to_spawn = glm::floor(island_squares * 0.1f);
+    enemies_to_spawn = glm::clamp(enemies_to_spawn, 1, 10);
+    for (int i = 0; i < enemies_to_spawn; i++) {
+      const auto idx = engine::rand_det_s(spawn_rnd.rng, (int)0, (int)enemy_keys.size());
+      spawn_islander_unoccupied(r, spawn_rnd, e, enemy_keys[idx], AvailableTeams::enemy, true);
+    }
+
     // spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_pirate", AvailableTeams::enemy, true);
-    spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_spider", AvailableTeams::enemy, true);
-    spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_scorpion", AvailableTeams::enemy, true);
+    // spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_spider", AvailableTeams::enemy, true);
+    // spawn_islander_unoccupied(r, spawn_rnd, e, "actor_islanddweller_scorpion", AvailableTeams::enemy, true);
   }
 };
 

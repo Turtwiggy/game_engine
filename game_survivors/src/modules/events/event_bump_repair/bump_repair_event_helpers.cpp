@@ -40,7 +40,8 @@ handle_bump_event__repair(entt::registry& r, const BumpEvent& evt)
 
   // refill the ammo.
   auto& mag_c = r.get<WeaponClipSize>(cannon_e);
-  if (repaired && mag_c.bullets_cur == 0)
+  // if (repaired && mag_c.bullets_cur == 0)
+  if (repaired) // allow fill up bullets when repaired
     mag_c.bullets_cur = mag_c.bullets_max;
 
   // play some audio

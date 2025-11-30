@@ -24,6 +24,7 @@
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -328,15 +329,31 @@ update_autofire_system(entt::registry& r, const float dt)
 
   // handle sending ShootEvent
   {
-    const auto view = r.view<const WeaponDef, WeaponFireRate, WeaponReloadRate, WeaponClipSize>();
-    for (const auto& [wep_e, wep_def, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c] : view.each()) {
+    const auto view = r.view<const WeaponDef, WeaponFireRate, WeaponReloadRate, WeaponClipSize, const AutofireComponent>();
+    for (const auto& [wep_e, wep_def, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c, autofire_c] :
+         view.each()) {
 
       // parent has dropped anchor, stop firing.
-      if (const auto* par_c = r.try_get<HasParentComponent>(wep_e)) {
-        const auto par_e = par_c->parent;
-        if (r.all_of<DroppedAnchorComponent>(par_e))
-          continue;
+      // if (const auto* par_c = r.try_get<HasParentComponent>(wep_e)) {
+      //   const auto par_e = par_c->parent;
+      //   if (r.all_of<DroppedAnchorComponent>(par_e))
+      //     continue;
+      // }
+
+      // keep shooting if player is holding input
+      bool override_autofire = false;
+      if (r.all_of<HasParentComponent>(wep_e)) {
+        const auto& par_c = r.get<HasParentComponent>(wep_e);
+        const auto* par_inp = r.try_get<const InputComponent>(par_c.parent);
+        if (par_inp) {
+          const float deadzone = 0.05f;
+          override_autofire = glm::abs(par_inp->rx) > deadzone || glm::abs(par_inp->ry) > deadzone;
+        }
       }
+
+      // only shoot if you've got a target (or holding input)
+      if (autofire_c.target == entt::null && !override_autofire)
+        continue;
 
       // gun is broken.
       if (r.all_of<IslandCannonComponent>(wep_e)) {

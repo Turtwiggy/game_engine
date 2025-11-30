@@ -193,7 +193,7 @@
     //
     {
       "name": "actor_islanddweller_pirate",
-      "renderable": { "sprite": "PERSON_25_0", "colour":  "dark_orange" }
+      "renderable": { "sprite": "PERSON_26_0", "colour":  "dark_orange" }
     },
     {
       "name": "actor_islanddweller_spider",

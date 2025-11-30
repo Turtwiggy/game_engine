@@ -28,6 +28,10 @@ spawn_islander_unoccupied(entt::registry& r,
   auto& island_c = r.get<DebugContoursComponent>(island_e);
 
   const auto unoccupied = get_unoccupied_tiles(island_c);
+  if (unoccupied.empty()) {
+    SDL_Log("warning: island full - cannot spawn %s", tag.c_str());
+    return entt::null;
+  }
   const auto xy = unoccupied[(int)engine::rand_det_s(rnd.rng, 0, (int)unoccupied.size())];
   const auto thing_e = spawn(r, tag);
   auto pos = engine::grid::gridspace_to_worldspace(xy, tilesize_map);

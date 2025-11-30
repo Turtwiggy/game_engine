@@ -44,6 +44,7 @@ struct NoiseInfo
   glm::ivec2 xy = { 0, 0 };
 };
 
+// I should really rename this as it because the "IslandComponent"
 struct DebugContoursComponent
 {
   std::vector<Edge> edges;

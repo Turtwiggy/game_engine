@@ -1,10 +1,13 @@
 #include "pch.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/audio/audio_components.hpp"
+#include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "islander_remove_from_island_helpers.hpp"
 #include "modules/actors/actor_islander/islander_components.hpp"
+#include "modules/actors/actor_islander/islander_helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/actors/actor_rock/rock_helpers.hpp"
@@ -83,6 +86,14 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
     SDL_Log("Island cleared of enemies");
     auto rnd_unoccipied_idx = engine::rand_det_s(lighthouse_rnd.rng, 0, (int)unoccupied.size());
     spawn_lighthouse(r, island_c, unoccupied[rnd_unoccipied_idx]);
+    spawn_cannon(r, lighthouse_rnd, island_e);
+    auto islander_tag = "actor_islanddweller_common_person";
+    spawn_islander_unoccupied(r, lighthouse_rnd, island_e, islander_tag, AvailableTeams::player, true);
+
+    // play some audio.
+    static engine::RandomState audio_rnd(0);
+    const int rnd_audio = engine::rand_det_s(audio_rnd.rng, 1, 7);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "POSITIVE_0" + std::to_string(rnd_audio) });
   }
 }
 
