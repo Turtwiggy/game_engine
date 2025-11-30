@@ -112,6 +112,7 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
 
   // Prepend e.g. "#version 330 core" to the shader.
   std::string version = GameWindow::get_glsl_version() + "\n"s;
+  SDL_Log("Using GLSL version: %s", version.c_str());
 
   // If the version is e.g. "#version 300 es",
   // we need to specify the float precision
@@ -134,16 +135,45 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
   for (const auto& tex : ri_c.user_textures)
     tex_keys.push_back("tex_" + clean_path(tex.path));
 
+  // const auto get_renderer_tex_unit_count = [&ri_c]() {
+  //   int i = 0;
+  //   for (const auto& p : ri_c.passes)
+  //     i += int(p.texs.size());
+  //   return i;
+  // };
+  // const int texs_used_by_renderer = get_renderer_tex_unit_count();
+  const int n_textures = (int)tex_keys.size();
+
   // generate user uniform sampler
   {
     const std::string key0 = "{{ generate_user_samplers }}";
     const size_t pos0 = code.find(key0);
     if (pos0 != std::string::npos) {
 
-      const int n_textures = (int)tex_keys.size();
-
       // use a texture array
       std::string generated = "uniform sampler2D u_textures[" + std::to_string(n_textures) + "];";
+
+      // SDL_Log("generated: %s", generated.c_str());
+      code.replace(pos0, key0.length(), generated);
+    }
+  }
+
+  // generate tex size
+  {
+    const std::string key0 = "{{ generate_tex_size }}";
+    const size_t pos0 = code.find(key0);
+    if (pos0 != std::string::npos) {
+
+      // use a texture array
+      std::string generated = "";
+
+      for (int i = 0; i < n_textures; i++) {
+        auto i_str = std::to_string(i);
+        if (i > 0)
+          generated += "else ";
+        generated +=
+          "if(index == RENDERER_TEX_UNIT_COUNT + " + i_str + "){ tex_size = textureSize(u_textures[" + i_str + "], 0); }\n";
+      }
 
       // SDL_Log("generated: %s", generated.c_str());
       code.replace(pos0, key0.length(), generated);
@@ -156,26 +186,21 @@ load_shader_from_disk(entt::registry& r, const std::string& path, unsigned int g
     const size_t pos1 = code.find(key1);
     if (pos1 != std::string::npos) {
 
-      const auto get_renderer_tex_unit_count = [&ri_c]() {
-        int i = 0;
-        for (const auto& p : ri_c.passes)
-          i += int(p.texs.size());
-        return i;
-      };
-      const int texs_used_by_renderer = get_renderer_tex_unit_count();
-
       std::string generated = "";
 
-      // for (size_t i = 0; i < tex_keys.size(); i++) {
-      //   auto key = tex_keys[i];
-      // const std::string l0 = "if(index == RENDERER_TEX_UNIT_COUNT){\n";
-      // const std::string l1 = "col *= texture(" + key + ", sprite_uv);\n";
+      // add the texture units used by the renderer
+      for (int i = 0; i < n_textures; i++) {
+        auto i_str = std::to_string(i);
+        if (i > 0)
+          generated += "else ";
+        generated +=
+          "if(index == RENDERER_TEX_UNIT_COUNT + " + i_str + "){ col *= texture(u_textures[" + i_str + "], tex_uv); }\n";
+      }
 
-      const std::string l0 = "col *= texture(u_textures[index - RENDERER_TEX_UNIT_COUNT], tex_uv);";
+      // const std::string l0 = "col *= texture(u_textures[index - RENDERER_TEX_UNIT_COUNT], tex_uv);";
+      // generated += l0;
 
-      generated += l0;
       // SDL_Log("generated: %s", generated.c_str());
-
       code.replace(pos1, key1.length(), generated);
 
       // SDL_Log("%s", code.c_str());

@@ -80,7 +80,8 @@ main()
   {
     // v_uv goes from 0 to 1
     // convert from 0 to 1 to the width/height desired
-    vec2 tex_size = textureSize(u_textures[index - RENDERER_TEX_UNIT_COUNT], 0);
+    vec2 tex_size = vec2(0, 0);
+    {{ generate_tex_size }}
     vec2 sprite_pos = v_sprite_pos;
     vec2 sprite_wh = v_sprite_wh;
     vec2 sprite_max = v_sprite_max;

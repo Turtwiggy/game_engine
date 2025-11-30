@@ -53,7 +53,8 @@ main()
     );
 
     // try keep the pixel art crisp
-    vec2 tex_size = textureSize(u_textures[index - RENDERER_TEX_UNIT_COUNT], 0);
+    vec2 tex_size = vec2(0, 0);
+    {{ generate_tex_size }}
     vec2 uv = sprite_uv * tex_size;
     vec2 offset = fs_in.v_sprite_global_pos_and_rot.xy;
     uv = floor(uv) + min(fract(offset) / fwidth(offset), 1.0) - 0.5; 
