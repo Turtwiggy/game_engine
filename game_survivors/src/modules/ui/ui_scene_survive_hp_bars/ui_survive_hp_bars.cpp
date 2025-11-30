@@ -33,9 +33,6 @@
 
 namespace game2d {
 
-const auto my_hp_bar_background_col = hex_to_srgb("#15171B");
-const auto im_hp_bar_background_col = convert_my_to_im(my_hp_bar_background_col);
-
 // e.g. 4 players with (0, 4, 2, 5) guns => returns 5
 int
 max_weapons_per_players(entt::registry& r, const std::vector<entt::entity>& players_e_vec)

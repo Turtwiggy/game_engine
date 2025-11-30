@@ -140,6 +140,7 @@
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_system.hpp"
 #include "modules/ui/ui_scene_survive/scene_survive_system.hpp"
 #include "modules/ui/ui_scene_survive_hp_bars/ui_survive_hp_bars.hpp"
+#include "modules/ui/ui_scene_survive_hp_bars_worldspace/ui_survive_hp_bars_worldspace_system.hpp"
 #include "modules/ui/ui_scene_survive_info/ui_survive_info_system.hpp"
 #include "modules/ui/ui_scene_survive_land_on_islands_popups/ui_land_on_island_popup_system.hpp"
 #include "modules/ui/ui_scene_survive_objectives/ui_survive_objectives_system.hpp"
@@ -152,6 +153,7 @@
 #include "modules/ui/ui_triangle_editor/ui_triangle_editor_system.hpp"
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -454,6 +456,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_timer_system(r);
     // update_ui_survive_info_system(r);
     update_ui_survive_hp_bars_system(r);
+    update_ui_survive_hp_bars_worldspace_system(r, dt);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_upgrade_system(r, dt);
     update_ui_gameover_system(r, dt);

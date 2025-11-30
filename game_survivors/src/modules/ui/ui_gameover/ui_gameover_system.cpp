@@ -72,6 +72,15 @@ update_ui_gameover_system(entt::registry& r, const float dt)
         evts_c.dispatcher->trigger(evt);
       }
 
+      auto damage_str = std::format("damage Boat {}", player_c.display_name);
+      if (ImGui::Button(damage_str.c_str())) {
+        DamageEvent evt;
+        evt.amount = 2;
+        evt.to_fixture = fixture_e;
+        evt.to_parent = e;
+        evts_c.dispatcher->trigger(evt);
+      }
+
       ImGui::PopID();
     }
   }

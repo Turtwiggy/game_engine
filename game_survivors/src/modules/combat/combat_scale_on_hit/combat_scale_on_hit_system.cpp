@@ -60,7 +60,7 @@ update_combat_scale_on_hit_system(entt::registry& r, const float dt)
 
     // variables
     const float speed = 5.0f;
-    const float scale_up = 2.0f;
+    const float scale_up = req_c.scale_up_pixels;
     req_c.t += dt * speed;
 
     const float scale = spike(req_c.t);

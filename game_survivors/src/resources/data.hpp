@@ -42,6 +42,9 @@ inline const std::vector<ImU32> default_player_colours_im_transparent = [] {
   return v;
 }();
 
+const auto my_hp_bar_background_col = hex_to_srgb("#15171B");
+const auto im_hp_bar_background_col = convert_my_to_im(my_hp_bar_background_col);
+
 const auto my_white = hex_to_srgb("#FFFFFF");
 const ImU32 im_white = IM_COL32(255, 255, 255, 255);
 const auto white_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);

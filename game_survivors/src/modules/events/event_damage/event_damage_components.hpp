@@ -27,4 +27,12 @@ struct DamageEvent
   WEAPON_DAMAGE type;
 };
 
+struct TookDamageEvent
+{
+  float amount = 0;
+  entt::entity from = entt::null;
+  entt::entity to_parent = entt::null;
+  entt::entity to_fixture = entt::null;
+};
+
 } // namespace game2d

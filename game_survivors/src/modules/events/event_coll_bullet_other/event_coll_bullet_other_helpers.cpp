@@ -10,6 +10,7 @@
 #include "engine/renderer/transform.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
+#include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/events/event_coll/event_coll_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
@@ -106,7 +107,9 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
     b2Body_SetLinearVelocity(bullet_body_c.bodyId, -1.0 * b2Body_GetLinearVelocity(bullet_body_c.bodyId));
   };
 
-  const auto is_scenery = r.try_get<RockComponent>(other_e_parent) != nullptr;
+  // const auto is_scenery = r.try_get<RockComponent>(other_e_parent) != nullptr;
+  // else if (is_scenery)
+  //   reverse_velocity();
 
   // Reverse yo velocity
   // Note: this should work as bullets only collide once with enemies.
@@ -114,9 +117,6 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
   if (bullet_bounce_c && bullet_bounce_c->bounces_left > 0) {
     reverse_velocity();
     bullet_bounce_c->bounces_left--;
-  } else if (is_scenery) {
-    reverse_velocity();
-
   } else if (fixture_tag == "fixture_shield") {
     reverse_velocity();
 
@@ -131,6 +131,8 @@ handle_bullet_other_coll(entt::registry& r, const OnCollisionEnter& coll_evt)
       // SDL_Log("Block random idx: %i", random_idx);
       const auto fx_str = std::format("BLOCK_FX_{}", 0);
       spawn_fx(r, fx_str, get_position(r, bullet_e_parent), { 32, 32 });
+
+      r.emplace_or_replace<RequestHitScaleComponent>(other_fixture_e, RequestHitScaleComponent{ .scale_up_pixels = 10.0f });
     }
   }
 

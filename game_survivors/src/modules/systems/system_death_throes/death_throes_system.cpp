@@ -32,9 +32,8 @@ update_death_throes_system(entt::registry& r, const float dt)
     }
 
     // Keep flashing & scaling to indicate you're dying
-    auto* scale_c = r.try_get<RequestHitScaleComponent>(e);
-    if (!scale_c)
-      r.emplace<RequestHitScaleComponent>(e);
+    if (!r.all_of<RequestHitScaleComponent>(e))
+      r.emplace<RequestHitScaleComponent>(e, RequestHitScaleComponent{ .scale_up_pixels = 10.0f });
 
     // check if you're actually dead.
     if (death_c.death_throws_time_cur > 0.0f)

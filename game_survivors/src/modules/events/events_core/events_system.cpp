@@ -17,6 +17,7 @@
 #include "modules/events/event_coll_player_sea_mine/event_coll_player_sea_mine_helpers.hpp"
 #include "modules/events/event_coll_player_vacuum_orb/event_coll_player_vacuum_orb_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
+#include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/event_damage/event_damage_helpers.hpp"
 #include "modules/events/event_damage_lifesteal/lifesteal_helpers.hpp"
 #include "modules/events/event_death_exploder_screenshake/exploder_screenshake.hpp"
@@ -43,6 +44,7 @@
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_stats/stats_helpers.hpp"
+#include "modules/ui/ui_scene_survive_hp_bars_worldspace/ui_survive_hp_bars_worldspace_helpers.hpp"
 
 namespace game2d {
 
@@ -71,6 +73,8 @@ init_events_system(entt::registry& r)
   // ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_for_ui>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_take_damage>(r);
   ed.dispatcher->sink<DamageEvent>().connect<&handle_damage_event_lifesteal>(r);
+
+  ed.dispatcher->sink<TookDamageEvent>().connect<&handle_damage_event__worldspace_hp_bars>(r);
 
   ed.dispatcher->sink<BumpEvent>().connect<&handle_bump_event__damage>(r);
   ed.dispatcher->sink<BumpEvent>().connect<&handle_bump_event__drum>(r);

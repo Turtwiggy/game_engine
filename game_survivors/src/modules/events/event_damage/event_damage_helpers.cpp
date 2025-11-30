@@ -221,6 +221,19 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
   // apply damage
   hp->hp -= damage;
 
+  // send an event with how much damage you actually took
+  {
+    const TookDamageEvent took_damage_evt{
+      .amount = damage,
+      .from = evt.from,
+      .to_parent = evt.to_parent,
+      .to_fixture = evt.to_fixture,
+    };
+    auto& evts_c = SINGLE_Events::instance;
+    evts_c.dispatcher->trigger(took_damage_evt);
+    evts_c.dispatcher->update();
+  }
+
   // player hit audio
   if (const auto* player_c = r.try_get<const PlayerComponent>(parent_e)) {
     if (!r.all_of<RevivableComponent>(parent_e)) {
