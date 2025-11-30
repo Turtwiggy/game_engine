@@ -67,13 +67,13 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
   // Follow your parent. // e.g. particle systems.
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
 
-  const auto& non_physics_view =
-    r.view<const DynamicTargetComponent, const SetPositionAtDynamicTarget>(entt::exclude<PhysicsBodyComponent>);
-  for (const auto& [e, target_c, req_c] : non_physics_view.each()) {
+  const auto& non_physics_view = r.view<const DynamicTargetComponent, const SetPositionAtDynamicTarget, TransformComponent>(
+    entt::exclude<PhysicsBodyComponent>);
+  for (const auto& [e, target_c, req_c, t_c] : non_physics_view.each()) {
     if (remove_dead_parents(r, dead, e, target_c.target))
       continue;
     const auto pos = get_position(r, target_c.target) + req_c.offset;
-    set_position(r, e, pos);
+    t_c.position = glm::vec3{ pos.x, pos.y, 0.0f };
   }
 
   //

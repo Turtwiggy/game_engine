@@ -23,7 +23,7 @@ init_audio_system(entt::registry& r)
     return;
   }
 
-  SDL_Log("%s", std::format("Loading audio...").c_str());
+  SDL_Log("%s", "Loading audio...");
   for (auto& file : audio.sounds) {
     auto* sound = Mix_LoadWAV(file.path.c_str());
     if (!sound) {
@@ -35,7 +35,7 @@ init_audio_system(entt::registry& r)
     file.buffer = sound;
   }
 
-  SDL_Log("%s", std::format("Loaded audio.").c_str());
+  SDL_Log("%s", "Loaded audio.");
   audio.loaded = true;
 };
 
@@ -177,7 +177,7 @@ update_audio_system(entt::registry& r, const float dt)
     const int channel = Mix_PlayChannel(audio_source_c.channel, s.buffer, request.looping ? -1 : 0);
 
     if (channel != audio_source_c.channel)
-      SDL_Log("%s", std::format("Warning: sound playing on incorrect channel").c_str());
+      SDL_Log("%s", "Warning: sound playing on incorrect channel");
 
     // process request
     r.destroy(entities.begin(), entities.end());

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "animator_system.hpp"
 
 #include "engine/entt/helpers.hpp"

@@ -17,7 +17,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   setvbuf(stdout, nullptr, _IONBF, 0); // dont buffer fmt::println
 #endif
 
-  SDL_Log("%s", std::format("Initializing SDL...").c_str());
+  SDL_Log("%s", "Initializing SDL...");
   SDL_Log("%s",
           std::format("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch)
             .c_str());
@@ -509,10 +509,10 @@ GameWindow::set_icon(const std::string& path)
   );
 
   if (hIcon) {
-    SDL_Log("%s", std::format("setting icon...").c_str());
+    SDL_Log("%s", "setting icon...");
     SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
   } else
-    SDL_Log("%s", std::format("unable to load icon...").c_str());
+    SDL_Log("%s", "unable to load icon...");
 
   //
 #endif

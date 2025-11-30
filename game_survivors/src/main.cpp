@@ -48,9 +48,9 @@ launch_thread()
   if (do_threaded) {
     const auto work = []() { game2d::init_slow(app, game); };
     slow_thread = std::thread(work);
-    SDL_Log("%s", std::format("spawning thread...").c_str());
+    SDL_Log("%s", "spawning thread...");
     slow_thread.value().join();
-    SDL_Log("%s", std::format("joined thread...").c_str());
+    SDL_Log("%s", "joined thread...");
   }
 
   // Just do the slow work. Non-threaded.
@@ -114,28 +114,28 @@ main(int argc, char* argv[])
   IM_UNUSED(argv);
 
 #if (defined(WIN32) || defined(_WIN32))
-  SDL_Log("%s", std::format("Hello, Windows!").c_str());
+  SDL_Log("%s", "Hello, Windows!");
   bool hide_windows_console = true;
   if (hide_windows_console) {
-    SDL_Log("%s", std::format("hiding console...").c_str());
+    SDL_Log("%s", "hiding console...");
     engine::hide_windows_console();
   }
 #endif
 
 #if defined(__EMSCRIPTEN__)
-  SDL_Log("%s", std::format("Hello, Emscripten!").c_str());
+  SDL_Log("%s", "Hello, Emscripten!");
 #endif
 
 #if defined(__EMSCRIPTEN_PTHREADS__)
-  SDL_Log("%s", std::format("Emscripten pthreads defined").c_str());
+  SDL_Log("%s", "Emscripten pthreads defined");
 #endif
 
 #if defined(__APPLE__)
-  SDL_Log("%s", std::format("Hello, Apple!").c_str());
+  SDL_Log("%s", "Hello, Apple!");
 #endif
 
 #if defined(__unix__)
-  SDL_Log("%s", std::format("Hello, Unix!").c_str());
+  SDL_Log("%s", "Hello, Unix!");
 #endif
 
   // const auto start = std::chrono::high_resolution_clock::now();
@@ -171,7 +171,7 @@ main(int argc, char* argv[])
   CHECK_OPENGL_ERROR(0);
 
 #if defined(__EMSCRIPTEN__)
-  SDL_Log("%s", std::format("about to start main loop...").c_str());
+  SDL_Log("%s", "about to start main loop...");
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
 

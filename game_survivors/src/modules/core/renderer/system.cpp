@@ -60,7 +60,7 @@ get_renderer_tex_unit_count(const SINGLE_RendererInfo& ri)
 void
 rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 {
-  SDL_Log("%s", std::format("rebind...").c_str());
+  SDL_Log("%s", "rebind...");
 
   // Super sampling, innit
   const auto wh = ri.viewport_size_render_at;

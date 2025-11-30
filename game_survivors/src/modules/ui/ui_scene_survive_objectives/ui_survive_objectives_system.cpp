@@ -49,7 +49,7 @@ update_ui_survive_objectives_system(entt::registry& r)
 
   const int island_count = (int)r.view<const DebugContoursComponent>().size();
   const int lighthouse_count = (int)r.view<const LighthouseComponent>().size();
-  ImGui::Text("%s", std::format("Islands Captured: {}/{}", lighthouse_count, island_count).c_str());
+  ImGui::Text("Islands Captured: %i/%i", lighthouse_count, island_count);
 
   if (island_count == lighthouse_count) {
     ImGui::SameLine();

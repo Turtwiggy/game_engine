@@ -53,7 +53,7 @@ update_ui_audio_system(entt::registry& r)
 
       const char* device_name = SDL_GetAudioDeviceName(i, 0);
       if (device_name == nullptr) {
-        SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
+        SDL_Log("%s", "No Default Audio Device enabled. Not loading sounds.");
         audio.loaded = true;
         return; // no available devices
       }

@@ -39,25 +39,25 @@ stop_all_audio(entt::registry& r)
 void
 process_audio_added(entt::registry& r)
 {
-  SDL_Log("%s", std::format("TODO: implement audio device added").c_str());
+  SDL_Log("%s", "TODO: implement audio device added");
 
-  SDL_Log("%s", std::format("~~~~ Devices ~~~~").c_str());
+  SDL_Log("%s", "~~~~ Devices ~~~~");
   for (const auto& device : list_devices())
     SDL_Log("%s", std::format("{}", device).c_str());
 
-  SDL_Log("%s", std::format("~~~~~~~~~~~~~~~~~").c_str());
+  SDL_Log("%s", "~~~~~~~~~~~~~~~~~");
 };
 
 void
 process_audio_removed(entt::registry& r) {
-  // SDL_Log("%s", std::format("TODO: implement audio device removed").c_str());
+  // SDL_Log("%s", "TODO: implement audio device removed");
 
-  // SDL_Log("%s", std::format("~~~~ Devices ~~~~").c_str());
+  // SDL_Log("%s", "~~~~ Devices ~~~~");
   // for (const auto& device : list_devices()) {
   //   // const std::string msg = std::format("%i", device);
   //   // SDL_Log("%s", msg.c_str());
   // }
-  // SDL_Log("%s", std::format("~~~~~~~~~~~~~~~~~").c_str());
+  // SDL_Log("%s", "~~~~~~~~~~~~~~~~~");
 };
 
 } // namespace audio

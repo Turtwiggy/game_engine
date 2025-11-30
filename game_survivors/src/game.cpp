@@ -154,7 +154,6 @@
 #include "modules/ui/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
 
-
 namespace game2d {
 using namespace std::literals;
 
@@ -466,14 +465,12 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  const bool show_settings_ui = true;
+  const bool show_settings_ui = false;
 #else
   const bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
-#if defined(_DEBUG)
     ZoneScopedN("UpdateSettings");
-#endif
     update_ui_triangle_editor_system(r);
     update_ui_debug_animations_system(r);
     update_ui_debug_elemental_system(r);
@@ -513,7 +510,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // hack: reload RAWS
   // const auto& input = get_first_component<SINGLE_InputComponent>(r);
   // if (get_key_down(input, SDL_SCANCODE_9)) {
-  //   SDL_Log("%s", std::format("reloading raws...").c_str());
+  //   SDL_Log("%s", "reloading raws...");
   //   destroy_first<Raws>(r);
   //   create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   //   move_to_scene_start(r, Scene::menu);

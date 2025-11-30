@@ -29,7 +29,7 @@ open_controllers(SINGLE_InputComponent& input)
 void
 process_controller_added(SINGLE_InputComponent& input)
 {
-  SDL_Log("%s", std::format("controller added... processing").c_str());
+  SDL_Log("%s", "controller added... processing");
 
   for (auto* controller : input.controllers) {
     if (controller)
@@ -43,7 +43,7 @@ process_controller_added(SINGLE_InputComponent& input)
 void
 process_controller_removed(SINGLE_InputComponent& input)
 {
-  SDL_Log("%s", std::format("controller removed... processing").c_str());
+  SDL_Log("%s", "controller removed... processing");
 
   for (auto* controller : input.controllers) {
     if (controller)

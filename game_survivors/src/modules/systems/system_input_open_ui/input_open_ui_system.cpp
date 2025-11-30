@@ -16,7 +16,7 @@ update_input_open_ui_system(entt::registry& r)
   ZoneScoped;
 #endif
 
-  for (const auto [e, input_c] : r.view<const InputComponent>().each()) {
+  for (const auto [e, input_c, player_c] : r.view<const InputComponent, const PlayerComponent>().each()) {
     if (has(input_c.pause, ActionStateEnum::DOWN))
       create_empty<RequestToShowPauseMenu>(r);
   }

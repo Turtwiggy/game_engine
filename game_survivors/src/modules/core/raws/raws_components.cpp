@@ -425,7 +425,8 @@ spawn(entt::registry& r, const std::string& key)
   r.emplace<ItemKey>(e, key);
   // r.emplace<Item>(e, templ);
 
-  r.emplace<InputComponent>(e);
+  if (key.find("actor_") != std::string::npos)
+    r.emplace<InputComponent>(e);
 
   return e;
 };
@@ -549,7 +550,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
     pdesc.random_radius_bound_upper = 8;
     pdesc.random_velocity_bound = 5;
     pdesc.velocity_in_dir = true;
-    pdesc.sprite = "FIRE";
+    // pdesc.sprite = "FIRE";
   }
   //
   else if (key.find("vfx_levelup_outer") != std::string::npos) {
@@ -588,7 +589,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   } else if (key.find("default_explode") != std::string::npos) {
     emitter.particles_to_spawn_before_emitter_expires = 1;
   } else if (key.find("death_sea_mine") != std::string::npos) {
-    emitter.particles_to_spawn_before_emitter_expires = 60;
+    emitter.particles_to_spawn_before_emitter_expires = 30;
   } else if (key.find("enemy_death") != std::string::npos) {
     emitter.particles_to_spawn_before_emitter_expires = 1;
   } else if (key.find("death_exploder") != std::string::npos) {
@@ -600,13 +601,13 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   } else if (key.find("ice_particles") != std::string::npos) {
     emitter.particles_to_spawn_before_emitter_expires = 5;
   } else if (key.find("vfx_boop") != std::string::npos) {
-    emitter.particles_to_spawn_before_emitter_expires = 50;
+    emitter.particles_to_spawn_before_emitter_expires = 20;
   } else if (key.find("vfx_ice_boop") != std::string::npos) {
     emitter.particles_to_spawn_before_emitter_expires = 10;
   } else if (key.find("vfx_levelup_outer") != std::string::npos) {
-    emitter.particles_to_spawn_before_emitter_expires = 50;
+    emitter.particles_to_spawn_before_emitter_expires = 20;
   } else if (key.find("vfx_levelup_inner") != std::string::npos) {
-    emitter.particles_to_spawn_before_emitter_expires = 50;
+    emitter.particles_to_spawn_before_emitter_expires = 20;
   }
   r.emplace<ParticleEmitterComponent>(e, emitter);
 

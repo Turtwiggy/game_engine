@@ -1,4 +1,3 @@
-#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "pch.hpp"
 
 #include "resources/data.hpp"
@@ -13,6 +12,7 @@
 #include "modules/core/camera/helpers.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_draw_text_helpers.hpp"
+#include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "ui_survive_hp_bars_worldspace_system.hpp"
 
 namespace game2d {

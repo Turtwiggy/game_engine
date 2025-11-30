@@ -120,11 +120,11 @@ ui_mute_sound_icon(entt::registry& r)
 
   // // toggle: mute to unmute
   // if (toggle_changed && mute == 0)
-  //   SDL_Log("%s", std::format("TODO: implement unmute all").c_str());
+  //   SDL_Log("%s", "TODO: implement unmute all");
 
   // // toggle: unmute to mute. stop all music.
   // if (toggle_changed && mute == 1) {
-  //   SDL_Log("%s", std::format("muted all").c_str());
+  //   SDL_Log("%s", "muted all");
   //   audio::sdl_mixer::stop_all_audio(r);
   // }
 

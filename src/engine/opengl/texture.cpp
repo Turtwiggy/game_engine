@@ -125,7 +125,7 @@ void
 engine::update_bound_texture_size(const glm::ivec2 size)
 {
   if (size.x <= 0 || size.y <= 0) {
-    SDL_Log("%s", std::format("(update_bound_texture_size) ERROR: Invalid resize for texture").c_str());
+    SDL_Log("%s", "(update_bound_texture_size) ERROR: Invalid resize for texture");
     return;
   }
 

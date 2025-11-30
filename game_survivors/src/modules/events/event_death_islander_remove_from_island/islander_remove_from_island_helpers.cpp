@@ -91,9 +91,9 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
     spawn_islander_unoccupied(r, lighthouse_rnd, island_e, islander_tag, AvailableTeams::player, true);
 
     // play some audio.
-    static engine::RandomState audio_rnd(0);
-    const int rnd_audio = engine::rand_det_s(audio_rnd.rng, 1, 7);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "POSITIVE_0" + std::to_string(rnd_audio) });
+    //  static engine::RandomState audio_rnd(0);
+    //  const int rnd_audio = engine::rand_det_s(audio_rnd.rng, 1, 7);
+    //  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "POSITIVE_0" + std::to_string(rnd_audio) });
   }
 }
 

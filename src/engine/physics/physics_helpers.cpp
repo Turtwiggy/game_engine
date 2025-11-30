@@ -122,7 +122,7 @@ emplace_or_replace_physics_world(entt::registry& r)
   // cleanup physics world...
   static bool needs_deleting = false;
   if (needs_deleting) {
-    SDL_Log("%s", std::format("cleaning up physics world..").c_str());
+    SDL_Log("%s", "cleaning up physics world..");
     b2DestroyWorld(worldId);
     worldId = b2_nullWorldId;
     worldId = b2CreateWorld(&world_def);

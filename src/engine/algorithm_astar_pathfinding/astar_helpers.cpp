@@ -26,7 +26,7 @@ reconstruct_path(std::map<vec2i, vec2i> came_from, vec2i from, vec2i to)
     current = came_from[current];
 
     if (equal<vec2i>(copy, current)) {
-      SDL_Log("%s", std::format("(error) pathfinding hit a loop.").c_str());
+      SDL_Log("%s", "(error) pathfinding hit a loop.");
       break;
     }
   }

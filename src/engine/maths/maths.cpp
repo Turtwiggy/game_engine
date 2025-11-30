@@ -147,7 +147,7 @@ encode_cantor_pairing_function(int x_in, int y_in)
   // }
 
   if (x < 0 || y < 0) {
-    SDL_Log("%s", std::format("encode cantor pairing function not implemented negative ints").c_str());
+    SDL_Log("%s", "encode cantor pairing function not implemented negative ints");
     exit(1); // crash
   }
 

@@ -47,7 +47,7 @@ reload_shader_program(entt::registry& r, unsigned int* id, const std::string& ve
   // SDL_Log("%s", std::format("reloading shader, new_id: {}", new_id).c_str());
 
   if (new_id) {
-    // SDL_Log("%s", std::format("deleting old shader program").c_str());
+    // SDL_Log("%s", "deleting old shader program");
     glDeleteProgram(*id);
     *id = new_id;
   }

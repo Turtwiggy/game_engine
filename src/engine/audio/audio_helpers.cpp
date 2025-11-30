@@ -46,7 +46,7 @@ refresh_audio(entt::registry& r, std::string device_name)
   // int device_index = 0;
   // const char* device_name = SDL_GetAudioDeviceName(device_index, 0);
   // if (device_name == nullptr) {
-  //   SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
+  //   SDL_Log("%s", "No Default Audio Device enabled. Not loading sounds.");
   //   audio.loaded = true;
   //   return; // no available devices
   // }
@@ -59,7 +59,7 @@ refresh_audio(entt::registry& r, std::string device_name)
 
   // Check if that worked.
   if (result == -1) {
-    SDL_Log("%s", std::format("No Default Audio Device enabled. Not loading sounds.").c_str());
+    SDL_Log("%s", "No Default Audio Device enabled. Not loading sounds.");
     return false;
   }
 

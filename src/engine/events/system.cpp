@@ -99,15 +99,15 @@ update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
         // SDL_HAT_DOWN
         // SDL_HAT_RIGHTDOWN
 
-        SDL_Log("%s", std::format("TODO: process joyhat button press").c_str());
+        SDL_Log("%s", "TODO: process joyhat button press");
       }
 
       // if (e.type == SDL_JOYDEVICEADDED) {
-      //   SDL_Log("%s", std::format("(SDL2) controller added").c_str());
+      //   SDL_Log("%s", "(SDL2) controller added");
       //   process_controller_added(input);
       // }
       // if (e.type == SDL_JOYDEVICEREMOVED) {
-      //   SDL_Log("%s", std::format("(SDL2) controller removed").c_str());
+      //   SDL_Log("%s", "(SDL2) controller removed");
       //   process_controller_removed(input);
       // }
 
