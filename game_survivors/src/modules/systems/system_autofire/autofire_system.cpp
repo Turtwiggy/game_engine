@@ -107,17 +107,18 @@ get_nearest_target(entt::registry& r, const entt::entity wep_e, const TransformC
       engine::Circle{ .pos = { enemy_pos_in_meters.x, enemy_pos_in_meters.y }, .radius = enemy_radius_meters });
 
 #if defined(_DEBUG)
-    if (is_enemy) {
-      // Sprite s;
-      // s.sprite = "EMPTY";
-      // s.pos = meters_to_pixels(enemy_pos_in_meters);
-      // s.size = { 8, 8 };
-      // if (coll)
-      //   s.col = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
-      // else
-      //   s.col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
-      // draw_sprite(r, s);
-    }
+    // if (is_enemy) {
+    //   Sprite s;
+    //   s.sprite = "EMPTY";
+    //   s.pos = meters_to_pixels(enemy_pos_in_meters);
+    //   s.size = { 8, 8 };
+    //   s.z_idx = ZLayer::FOREGROUND;
+    //   if (coll)
+    //     s.col = engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f);
+    //   else
+    //     s.col = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
+    //   draw_sprite(r, s);
+    // }
 #endif
 
     return is_enemy && coll;

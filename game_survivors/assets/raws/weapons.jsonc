@@ -206,7 +206,7 @@
         "WEAPON_RELOAD": 5       , // seconds
         "WEAPON_RANGE": 5.0      , // meters 
         "WEAPON_SPREAD": 0       , // degrees
-        "BULLET_DAMAGE": 0       , // no damage (applied via elemental damage)
+        "BULLET_DAMAGE": 1       , // no damage (applied via elemental damage)
         "BULLET_KNOCKBACK": 0    , // force
         "BULLET_SIZE": 32        ,
         "AREA_STACK_DAMAGE": 1,
