@@ -103,7 +103,6 @@ get_size(entt::registry& r, const entt::entity e)
 
     const float width = body_aabb.upperBound.x - body_aabb.lowerBound.x;
     const float height = body_aabb.upperBound.y - body_aabb.lowerBound.y;
-
     return meters_to_pixels({ width, height });
   }
 

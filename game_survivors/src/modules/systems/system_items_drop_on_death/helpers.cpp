@@ -43,11 +43,11 @@ drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
   float size = default_map_unit_tilesize;
   auto pos = get_position(r, e);
 
-  const auto skull_e = spawn(r, "empty");
-  give_life(r, skull_e, pos, { default_map_unit_tilesize, default_map_unit_tilesize });
-  set_sprite(r, skull_e, "SKULL_AND_BONES");
-  set_colour(r, skull_e, my_grey);
-  set_z_index(r, skull_e, ZLayer::XP_BACK);
+  // const auto skull_e = spawn(r, "empty");
+  // give_life(r, skull_e, pos, { default_map_unit_tilesize, default_map_unit_tilesize });
+  // set_sprite(r, skull_e, "SKULL_AND_BONES");
+  // set_colour(r, skull_e, my_grey);
+  // set_z_index(r, skull_e, ZLayer::XP_BACK);
 
   const auto item_e = spawn(r, "item_xp");
   give_life(r, item_e, pos, { default_map_unit_tilesize, default_map_unit_tilesize });

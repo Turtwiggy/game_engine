@@ -95,7 +95,7 @@
       "name": "bullet_default",
       "display_name": "Bullet",
       "display_desc": "Ballistic material",
-      "renderable": { "sprite": "CIRCLE", "colour": "white" },
+      "renderable": { "sprite": "ARROW_RIGHT", "colour": "white" },
       "combat": { "damage": 3, "range": 2, "type": "unknown" },
       "phys_body": { "is_bullet": true, "is_static": false },
       "phys_fixtures": [ { "tag": "fixture_bullet", "type": "circle", "is_sensor": true } ]

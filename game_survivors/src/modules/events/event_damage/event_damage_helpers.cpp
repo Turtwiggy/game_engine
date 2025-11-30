@@ -30,6 +30,7 @@
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_worldspace_text/components.hpp"
 #include "modules/ui/ui_worldspace_text/helpers.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -38,41 +39,28 @@ create_damage_popup(entt::registry& r, float damage, bool crit, entt::entity par
 {
   WorldspaceTextComponent wst_c;
 
-  wst_c.layout = [damage, crit](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
-    const auto my_non_crit_col = hex_to_srgb("#b1c9c3"); // grey
-    const auto my_crit_col = hex_to_srgb("#e99f10");     //
+  wst_c.layout = [&, damage, crit](entt::registry& r, entt::entity e, const WorldspaceTextComponent& data) {
+    const auto my_non_crit_col = my_text_col;
+    const auto my_crit_col = my_orange;
+    const auto& lifecycle_c = r.get<EntityTimedLifecycle>(e);
+    const float percent = 1.0f - (lifecycle_c.milliseconds_alive / (float)lifecycle_c.milliseconds_alive_max);
 
-    const auto im_non_crit_col = ImVec4{
-      my_non_crit_col.r / 255.0f,
-      my_non_crit_col.g / 255.0f,
-      my_non_crit_col.b / 255.0f,
-      my_non_crit_col.a / 255.0f,
-    };
-
-    const auto im_crit_col = ImVec4{
-      my_crit_col.r / 255.0f,
-      my_crit_col.g / 255.0f,
-      my_crit_col.b / 255.0f,
-      my_crit_col.a / 255.0f,
-    };
-
-    const auto col = crit ? im_crit_col : im_non_crit_col;
+    auto my_col = crit ? my_crit_col : my_non_crit_col;
+    my_col.a = (int)(255 * percent);
+    const auto im_col = convert_my_to_im_vec(my_col);
 
     auto* font = get_inter_font(r);
     ImGui::PushFont(font, (float)FontSizes::SIZE_12);
 
-    auto label = std::format("{}", (int)damage);
-    if (crit)
-      ImGui::TextColored(im_crit_col, "%s", label.c_str());
-    else
-      ImGui::TextColored(im_non_crit_col, "%s", label.c_str());
+    const auto label = std::format("{}", (int)damage);
+    ImGui::TextColored(im_col, "%s", label.c_str());
 
     ImGui::PopFont();
   };
 
   auto popup_e = create_empty<WorldspaceTextComponent>(r, wst_c);
   r.emplace<TransformComponent>(popup_e);
-  r.emplace<EntityTimedLifecycle>(popup_e, 1 * 3000);
+  r.emplace<EntityTimedLifecycle>(popup_e, (int)(1.5f * 1000));
   r.emplace<WiggleUpAndDown>(popup_e, WiggleUpAndDown{ .base_position = get_position(r, parent_e) });
   set_position(r, popup_e, get_position(r, parent_e));
 };

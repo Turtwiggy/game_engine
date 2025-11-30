@@ -66,7 +66,7 @@ update_ui_survive_hp_bars_worldspace_system(entt::registry& r, float dt)
       const auto boat_size = r.get<TransformComponent>(parent_e).scale;
 
       const float hp_bar_width = 1.6f * boat_size.x;
-      const float hp_bar_height = 8.0f;
+      const float hp_bar_height = 5.0f;
 
       const auto wsp = parent_pos + glm::vec2{ -0.5f * hp_bar_width, (0.5f * boat_size.y) + 12 };
       // const auto wsp = glm::vec2(text.worldspace_position.x, text.worldspace_position.y);

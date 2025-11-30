@@ -58,7 +58,9 @@ const auto my_red = hex_to_srgb("#d74200");
 const auto my_orange = hex_to_srgb("#e99f10");
 const auto my_reload_col = my_orange;
 const auto my_death_sprite_col = hex_to_srgb("#a64a2e");
-const auto my_grey = hex_to_srgb("#333333", 100);
+const auto my_grey = hex_to_srgb("#333333", 10);
+
+const auto im_orange_vec = convert_my_to_im_vec(my_orange);
 
 const auto my_text_col_dark = engine::SRGBColour(23, 23, 23, 255);
 const auto my_text_col = engine::SRGBColour(0.86f, 0.93f, 0.89f, 0.78f);

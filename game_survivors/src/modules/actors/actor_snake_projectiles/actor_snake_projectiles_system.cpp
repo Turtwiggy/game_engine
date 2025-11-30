@@ -51,7 +51,6 @@ update_actor_snake_projectiles_system(entt::registry& r)
     const auto bullet_e_0 = spawn_projectile(r, bullet_def, pos);
     const auto bullet_e_1 = spawn_projectile(r, bullet_def, pos);
 
-    // const auto col = hex_to_srgb("#FF0000");
     // set_colour(r, bullet_e_0, col);
     // set_colour(r, bullet_e_1, col);
     // r.get<DefaultColour>(bullet_e_0).colour = col;

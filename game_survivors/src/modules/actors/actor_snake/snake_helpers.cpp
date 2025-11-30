@@ -16,6 +16,7 @@
 #include "modules/combat/combat_scale_on_hit/combat_scale_on_hit_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
+#include "modules/systems/system_create_item/create_item_components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
 #include "snake_components.hpp"
 
@@ -55,6 +56,9 @@ auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
     e = children_c->children[0]; // note: assuming only 1 child
     dead_c.dead.push_back(e);
   }
+
+  // get it to drop some GOLD
+  create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_gold", get_position(r, dead_e) });
 };
 
 entt::entity

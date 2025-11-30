@@ -2,6 +2,7 @@
 
 #include "event_shoot_autofire_helpers.hpp"
 
+#include "engine/actors/actor_helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
@@ -74,6 +75,7 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
   const auto ar = generate_angles(shoot_angle, altered_w_def.projectiles, spread_rad);
   for (int i = 0; i < altered_w_def.projectiles; i++) {
     const auto bullet_e = spawn_projectile(r, altered_b_def, wep_pos);
+    set_rotation(r, bullet_e, shoot_angle);
 
     if (is_fire) {
       r.remove<SpriteComponent>(bullet_e);

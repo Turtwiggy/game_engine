@@ -25,6 +25,13 @@ handle_player_enter_gold(entt::registry& r, const OnCollisionEnter& evt)
 
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   dead.dead.push_back(item_e);
+
+  // {
+  //   RequestToSpawnParticles request;
+  //   request.key = "vfx_levelup_outer";
+  //   request.position = get_position(r, par_e);
+  //   create_empty<RequestToSpawnParticles>(r, request);
+  // }
 }
 
 } // namespace game2d
