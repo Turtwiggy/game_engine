@@ -134,6 +134,7 @@ spawn_player(entt::registry& r,
       r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     }
     if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY) {
+      r.emplace<AutofireComponent>(wep_e);
       r.emplace<WeaponSeaTurret>(wep_e);
       r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     }

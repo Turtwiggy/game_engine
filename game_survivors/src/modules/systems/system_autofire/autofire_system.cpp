@@ -15,6 +15,7 @@
 #include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
 #include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
@@ -329,8 +330,13 @@ update_autofire_system(entt::registry& r, const float dt)
 
   // handle sending ShootEvent
   {
-    const auto view = r.view<const WeaponDef, WeaponFireRate, WeaponReloadRate, WeaponClipSize, const AutofireComponent>();
-    for (const auto& [wep_e, wep_def, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c, autofire_c] :
+    const auto view = r.view<const WeaponDef,
+                             WeaponFireRate,
+                             WeaponReloadRate,
+                             WeaponClipSize,
+                             const Weapon_OnDiskData,
+                             const AutofireComponent>();
+    for (const auto& [wep_e, wep_def, weapon_fire_rate_c, weapon_reload_rate_c, weapon_clip_size_c, wep_data_c, autofire_c] :
          view.each()) {
 
       // parent has dropped anchor, stop firing.
@@ -350,6 +356,10 @@ update_autofire_system(entt::registry& r, const float dt)
           override_autofire = glm::abs(par_inp->rx) > deadzone || glm::abs(par_inp->ry) > deadzone;
         }
       }
+
+      // the sea turret never has a target
+      if (wep_data_c.type_as_enum == WEAPON_TYPE::DEPLOY)
+        override_autofire = true;
 
       // only shoot if you've got a target (or holding input)
       if (autofire_c.target == entt::null && !override_autofire)
