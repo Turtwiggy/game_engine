@@ -38,15 +38,15 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
 #endif
   // update static lerps
   {
-    const auto& view = r.view<LerpToFixedTarget>(entt::exclude<WaitForInitComponent>);
-    for (const auto& [e, info] : view.each()) {
+    const auto& view = r.view<LerpToFixedTarget, TransformComponent>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [e, info, t_c] : view.each()) {
       if (info.t >= 1.0f)
         info.t = 1.0f;
       info.t += dt;
 
       const float pos_x = exp_decay(info.a.x, info.b.x, info.speed, info.t);
       const float pos_y = exp_decay(info.a.y, info.b.y, info.speed, info.t);
-      set_position(r, e, { pos_x, pos_y });
+      t_c.position = { pos_x, pos_y, 0.0f };
 
       // check not out of bounds
       if (info.t >= 1.0f)
@@ -56,11 +56,11 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
 
   // update dynamic lerps
   {
-    const auto& view = r.view<LerpToMovingTarget>(entt::exclude<WaitForInitComponent>);
-    for (const auto& [e, info] : view.each()) {
+    const auto& view = r.view<LerpToMovingTarget, TransformComponent>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [e, info, t_c] : view.each()) {
       const float pos_x = exp_decay(info.a.x, info.b.x, info.speed, dt);
       const float pos_y = exp_decay(info.a.y, info.b.y, info.speed, dt);
-      set_position(r, e, { pos_x, pos_y });
+      t_c.position = { pos_x, pos_y, 0.0f };
     }
   }
 

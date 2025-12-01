@@ -470,7 +470,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   const bool show_settings_ui = false;
 #endif
   if (show_settings_ui) {
+#if defined(_DEBUG)
     ZoneScopedN("UpdateSettings");
+#endif
     update_ui_triangle_editor_system(r);
     update_ui_debug_animations_system(r);
     update_ui_debug_elemental_system(r);

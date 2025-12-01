@@ -92,7 +92,7 @@ update_ui_survive_hp_bars_worldspace_system(entt::registry& r, float dt)
       const auto player_col_idx = player_c.colour_idx;
       const auto player_col = default_player_colours[player_col_idx];
       const auto fg_col = IM_COL32(player_col.r, player_col.g, player_col.b, alpha);
-      const auto dmg_col = IM_COL32(255, 255, 255, alpha);
+      const auto dmg_col = IM_COL32(200, 50, 50, alpha);
       const auto line_col = IM_COL32(player_col.r, player_col.g, player_col.b, alpha);
       const auto bottom_line_col = IM_COL32(20, 20, 20, alpha);
 

@@ -2,8 +2,6 @@
 
 #include "animator_system.hpp"
 
-#include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 
@@ -15,8 +13,8 @@ get_index(const float time, const float duration, const int size)
   if (duration == 0.0f)
     return 0;
   const float r = time / duration;                      // a value between 0 and 1
-  const int s = static_cast<int>(std::floor(r * size)); // a value between 0 and size
-  return std::clamp(s, 0, size);                        // check between 0 and size
+  const int s = static_cast<int>(glm::floor(r * size)); // a value between 0 and size
+  return glm::clamp(s, 0, size);                        // check between 0 and size
 };
 
 void
@@ -51,29 +49,25 @@ update_animator_system(entt::registry& r, const float dt)
     animation.timer += dt;
     // ImGui::Text("animation timer: %f", animation.timer);
 
-    // should end or loop the animation?
-    if (animation.timer >= animation.duration && !animation.looping) {
-      // dead.dead.push_back(e); // destroy this effect
-      continue;
-    }
+    const int n_frames = (int)anim.animation_frames.size();
 
     // pause on final frame if not looping
     if (animation.timer >= animation.duration && !animation.looping) {
-      const int i0 = static_cast<int>(anim.animation_frames.size() - 1);
+      const int i0 = (int)(n_frames - 1);
       const SpritePosition& frame = anim.animation_frames[i0];
       sprite_c.tex_pos = frame;
       continue;
     }
 
     // loop the timer
-    animation.timer = fmod(animation.timer, animation.duration);
+    if (animation.timer >= animation.duration)
+      animation.timer -= animation.duration * glm::floor(animation.timer / animation.duration);
 
     // get the index of the frame to play
-    const int i0 = get_index(animation.timer, animation.duration, static_cast<int>(anim.animation_frames.size()));
+    const int i0 = get_index(animation.timer, animation.duration, n_frames);
 
-    const auto& hmm = anim.animation_frames[i0];
     // ImGui::Text("i0: %i x: %i y: %i, w: %i h: %i", i0, hmm.x, hmm.y, hmm.w, hmm.h);
-    sprite_c.tex_pos = hmm;
+    sprite_c.tex_pos = anim.animation_frames[i0];
   }
 }
 

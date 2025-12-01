@@ -531,12 +531,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     // .w as 0 indicates light inactive.
     const int n_lights = 32;
-    for (int i = 0; i < n_lights; i++) {
-      data.light_positions[i].x = 0.0f;
-      data.light_positions[i].y = 0.0f;
-      data.light_positions[i].z = 0.0f;
-      data.light_positions[i].w = 0.0f;
-    }
+    for (int i = 0; i < n_lights; i++)
+      data.light_positions[i] = {};
 
     // update light emitters (that arnt players)
     int i = 0;
