@@ -69,7 +69,6 @@
 #include "modules/systems/system_hardpoint_arcs/hardpoint_arcs_system.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_helpers.hpp"
-#include "modules/systems/system_input_open_ui/input_open_ui_system.hpp"
 #include "modules/systems/system_island_ai/island_ai_system.hpp"
 #include "modules/systems/system_island_movement/island_movement_system.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_system.hpp"
@@ -331,7 +330,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_audio_mix_system(r);
   update_player_controller_system(r, mouse_pos);
   update_screenshake_system(r, dt);
-  update_input_open_ui_system(r);
   update_events_system(r); // dispatch events
   update_quit_system(r, app);
   update_alive_players_system(r);
@@ -424,8 +422,8 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
   update_ui_fps_counter_system(r);
+  update_ui_popup_options_system(app, r); // before _pause
   update_ui_popup_pause_system(app, r);
-  update_ui_popup_options_system(app, r);
   update_ui_popup_controller_disconnected_system(r);
   update_ui_popup_are_you_sure_system(r);
   update_ui_worldspace_text_system(r);

@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/opengl/texture.hpp"
@@ -31,6 +32,7 @@
 #include "ui_scene_upgrades_components.hpp"
 #include "ui_scene_upgrades_helpers.hpp"
 #include "ui_scene_upgrades_system.hpp"
+
 
 namespace game2d {
 using namespace std::literals;
@@ -485,6 +487,21 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   }
 
   ImGui::End();
+
+  // draw the boat as a spritestack.
+  // auto& active_header = ui_c.active_header;
+  // auto& active_cell = ui_c.state.active;
+  // auto* active_gc = dynamic_cast<GridCell*>(active_cell.get());
+  // bool update_boat = active_cell->name != ui_c.display_boat && active_gc && active_gc->type == GridCellType::HULL;
+  // if (update_boat) {
+  //   SDL_Log("Update Boat...");
+  //   ui_c.display_boat = active_cell->name;
+  //   if (ui_c.display_boat_e != entt::null) {
+  //     auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
+  //     dead_c.dead.push_back(ui_c.display_boat_e);
+  //     ui_c.display_boat_e = entt::null;
+  //   }
+  // }
 
   if (do_purchase) {
     const auto& cell = ui_c.state.active;

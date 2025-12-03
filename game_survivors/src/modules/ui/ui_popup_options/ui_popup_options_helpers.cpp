@@ -9,18 +9,6 @@
 
 namespace game2d {
 
-void
-back_to_main_menu(entt::registry& r, SINGLE_OptionsMenuState& ui_c)
-{
-  SDL_Log("Closing Options Menu");
-  ui_c.open = false;
-
-  // save your changes
-  savefile_save_disk(r);
-
-  create_empty<RequestToShowMainMenu>(r);
-};
-
 std::shared_ptr<IOption>
 get_option(entt::registry& r, const GAME_OPTIONS o)
 {

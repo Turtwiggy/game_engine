@@ -36,22 +36,33 @@ update_ui_back_button_system(entt::registry& r)
     ui_c.do_init(r);
 
   bool something_open = false;
+  process_input_for_ui_all_handles(r, ui_c.state);
+  const auto g_input_e = get_first<InputComponent, Persistent>(r);
+  const auto& g_input_c = r.get<InputComponent>(g_input_e);
+  const auto& b_sel = g_input_c.select;
+  bool do_act = false;
+  do_act |= std::find(b_sel.begin(), b_sel.end(), ActionStateEnum::DOWN) != b_sel.end();
+  do_act |= get_key_down(input_c, SDL_SCANCODE_ESCAPE);
 
   //
   // which ui to show the back button?
   //
 
-  if (get_first<SINGLE_OptionsMenuState>(r) != entt::null) {
+  auto options_e = get_first<SINGLE_OptionsMenuState>(r);
+  auto upgrades_e = get_first<SINGLE_PersistentUpgradesMenuUI>(r);
+  auto modifiers_e = get_first<SINGLE_UISelectModifiersMenuState>(r);
+
+  if (options_e != entt::null) {
     const auto& ui_options_c = get_first_component<SINGLE_OptionsMenuState>(r);
     something_open |= ui_options_c.open;
   }
 
-  if (get_first<SINGLE_PersistentUpgradesMenuUI>(r) != entt::null) {
+  if (upgrades_e != entt::null) {
     const auto& ui_modifiers_c = get_first_component<SINGLE_PersistentUpgradesMenuUI>(r);
     something_open |= ui_modifiers_c.open;
   }
 
-  if (get_first<SINGLE_UISelectModifiersMenuState>(r) != entt::null) {
+  if (modifiers_e != entt::null) {
     const auto& ui_modifiers_c = get_first_component<SINGLE_UISelectModifiersMenuState>(r);
     something_open |= ui_modifiers_c.open;
   }
@@ -63,6 +74,7 @@ update_ui_back_button_system(entt::registry& r)
   if (scene_c.s == Scene::select_ships)
     something_open |= true;
 
+  // only show the back button if something is open
   if (!something_open)
     return;
 
@@ -71,7 +83,7 @@ update_ui_back_button_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
 
-  const auto button_size = ImVec2{ 120, 30 };
+  const auto button_size = ImVec2{ 200, 30 };
 
   const auto font_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_scale = (float)FontSizes::SIZE_16;
@@ -110,8 +122,18 @@ update_ui_back_button_system(entt::registry& r)
   ImGui::End();
   ImGui::PopStyleVar(4);
 
-  if (get_key_down(input_c, SDL_SCANCODE_ESCAPE))
-    move_to_scene_start(r, Scene::menu);
+  const auto& cur_s = SINGLE_CurrentScene::instance;
+  if (do_act) {
+
+    if (cur_s.s == Scene::survive) {
+      // close the open menu.
+      if (options_e != entt::null)
+        get_first_component<SINGLE_OptionsMenuState>(r).open = false;
+    }
+
+    else
+      move_to_scene_start(r, Scene::menu);
+  }
 }
 
 } // namespace game2d

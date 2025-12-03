@@ -98,8 +98,7 @@ update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
         // SDL_HAT_LEFTDOWN
         // SDL_HAT_DOWN
         // SDL_HAT_RIGHTDOWN
-
-        SDL_Log("%s", "TODO: process joyhat button press");
+        // SDL_Log("%s", "TODO: process joyhat button press");
       }
 
       // if (e.type == SDL_JOYDEVICEADDED) {

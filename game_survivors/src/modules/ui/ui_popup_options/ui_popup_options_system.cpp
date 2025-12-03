@@ -9,12 +9,16 @@
 #include "engine/std/string/helpers.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
+#include "modules/core/io/io_helpers.hpp"
 #include "modules/core/options/options_components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
+#include "modules/scene/scene_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
+#include "modules/ui/ui_popup_pause/ui_popup_pause_components.hpp"
+#include "modules/ui/ui_scene_main_menu/ui_scene_main_menu_components.hpp"
 #include "resources/data.hpp"
 
 namespace game2d {
@@ -45,7 +49,19 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
   const bool do_back = std::find(b_e.begin(), b_e.end(), ActionStateEnum::DOWN) != b_e.end();
 
   if (do_back) {
-    back_to_main_menu(r, ui_c);
+
+    SDL_Log("Closing Options Menu");
+    ui_c.open = false;
+
+    // save your changes
+    savefile_save_disk(r);
+
+    const auto& cur_s = SINGLE_CurrentScene::instance;
+    if (cur_s.s == Scene::menu)
+      create_empty<RequestToShowMainMenu>(r);
+    if (cur_s.s == Scene::survive)
+      create_empty<RequestToShowPauseMenu>(r);
+
     return;
   }
 

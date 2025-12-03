@@ -47,6 +47,9 @@ struct SINGLE_PersistentUpgradesMenuUI : public DefaultUI
   std::shared_ptr<Cell> active_header;
   UiCursorComponent cursor_c;
 
+  std::string display_boat = "";
+  entt::entity display_boat_e = entt::null;
+
   void do_init(entt::registry& r) override;
 };
 

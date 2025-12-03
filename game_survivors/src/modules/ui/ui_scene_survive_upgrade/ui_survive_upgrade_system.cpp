@@ -33,6 +33,7 @@
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_components.hpp"
+#include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
@@ -749,10 +750,10 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
   // Cheats..!! CHEATSS!!! CHEEEATTTSSSSSSS!!!!!!!
   {
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
-    // auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
+    auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
 
-    // if (cheat_levelup_state.enabled) {
-    if (true) {
+    if (cheat_levelup_state.enabled) {
+      // if (true) {
 
       ImGui::SetNextWindowPos(ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y },
                               ImGuiCond_Always,

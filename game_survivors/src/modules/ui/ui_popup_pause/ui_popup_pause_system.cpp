@@ -5,6 +5,7 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
+#include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "game_state.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
@@ -45,22 +46,31 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   if (has(scene_not_to_show_pause_menu, scene_c.s))
     return;
 
-  // TEMPORARY: input to generate open/close events
-  {
-    GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input)
-    if (get_key_down(input, SDL_SCANCODE_ESCAPE))
-      create_empty<RequestToShowPauseMenu>(r);
+  // input
+  process_input_for_ui_all_handles(r, ui_c.state);
+  const auto g_input_e = get_first<InputComponent, Persistent>(r);
+  const auto& g_input_c = r.get<InputComponent>(g_input_e);
+  const auto& b_pause = g_input_c.pause;
+  const auto& b_e = g_input_c.button_e;
+  const auto& b_s = g_input_c.button_s;
+  const bool do_pause = std::find(b_pause.begin(), b_pause.end(), ActionStateEnum::DOWN) != b_pause.end();
+  const bool do_back = std::find(b_e.begin(), b_e.end(), ActionStateEnum::DOWN) != b_e.end();
+  const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
+
+  if (do_pause && !ui_c.open)
+    create_empty<RequestToShowPauseMenu>(r);
+  if (do_back && ui_c.open) {
+    ui_c.open = false;
+    ui_c.one_frame_buffer = true;
   }
 
   ui_c.update<RequestToShowPauseMenu>(r);
-
-  const bool open = ui_c.open;
   auto& state = get_first_component<SINGLE_GameStateComponent>(r);
-  if (open)
+  if (ui_c.open)
     state.state = state.state == GameState::RUNNING ? GameState::PAUSED : state.state;
-  if (!open)
+  if (!ui_c.open)
     state.state = state.state == GameState::PAUSED ? GameState::RUNNING : state.state;
-  if (!open)
+  if (!ui_c.open)
     return;
 
   if (!ui_c.init)
@@ -80,29 +90,13 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   const auto font_size = (float)FontSizes::SIZE_16;
   auto* font = get_inter_font(r);
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoDecoration;
-  flags |= ImGuiWindowFlags_NoCollapse;
-  flags |= ImGuiWindowFlags_NoResize;
-  flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoSavedSettings;
-  // flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0.0f, 0.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 10.0f, 10.0f });
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
-  process_input_for_ui_all_handles(r, ui_c.state);
-  const auto g_input_e = get_first<InputComponent, Persistent>(r);
-  const auto& g_input_c = r.get<InputComponent>(g_input_e);
-  const auto& b_s = g_input_c.button_s;
-  const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
-
-  ImGui::Begin("Paused", NULL, flags);
-
+  imgui_begin("paused");
   const auto ui_wh = ImGui::GetContentRegionAvail();
   const auto ui_tl = ImGui::GetCursorPos();
 

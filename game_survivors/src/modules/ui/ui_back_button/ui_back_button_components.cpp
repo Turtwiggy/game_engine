@@ -10,7 +10,7 @@ void
 UI_BackButton::do_init(entt::registry& r)
 {
   Cell c;
-  c.name = "Back (Esc)";
+  c.name = "Back (Esc / Select)";
   c.action = [&]() { move_to_scene_start(r, Scene::menu); };
   state.cells.push_back(std::make_shared<Cell>(c));
 
