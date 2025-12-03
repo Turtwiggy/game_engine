@@ -212,7 +212,7 @@ spawn_player(entt::registry& r,
     r.emplace<SetPositionAtDynamicTargetFromRotation>(emitter_parent_e, tl_offset);
 
     RequestToSpawnParticles req;
-    req.key = "default_trail";
+    req.particle_type = ParticleType::DEFAULT_TRAIL;
     req.parent = emitter_parent_e;
     req.colour = default_player_colours[colour_idx];
     spawn_particle_emitter(r, req);

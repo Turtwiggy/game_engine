@@ -54,13 +54,24 @@ const auto my_window_bg_col = engine::SRGBColour(0.13f, 0.14f, 0.17f, 1.00f);
 const auto my_window_border_col = hex_to_srgb("#3B5676");
 const auto my_gold_col = hex_to_srgb("#ffee00ff");
 
+const auto my_xp_fg_col = hex_to_srgb("#508FC8");
+const auto my_xp_bg_col = hex_to_srgb("#293448", 100);
+const auto my_xp_icon_col = hex_to_srgb("#FF0000", 200);
+const auto im_xp_fg_col = convert_my_to_im(my_xp_fg_col);
+const auto im_xp_bg_col = convert_my_to_im(my_xp_bg_col);
+const auto im_xp_icon_col = convert_my_to_im(my_xp_icon_col);
+
 const auto my_red = hex_to_srgb("#d74200");
 const auto my_orange = hex_to_srgb("#e99f10");
 const auto my_reload_col = my_orange;
 const auto my_death_sprite_col = hex_to_srgb("#a64a2e");
 const auto my_grey = hex_to_srgb("#333333", 10);
+const auto my_dark_orange = hex_to_srgb("#f15f22");
 
 const auto im_orange_vec = convert_my_to_im_vec(my_orange);
+
+const auto my_charger_col = my_orange;
+const auto my_charger_deflated_col = my_dark_orange;
 
 const auto my_text_col_dark = engine::SRGBColour(23, 23, 23, 255);
 const auto my_text_col = engine::SRGBColour(0.86f, 0.93f, 0.89f, 0.78f);

@@ -182,7 +182,7 @@ update_generate_flow_field_system(entt::registry& r, glm::vec2 mouse_pos)
   }
 
   // generate flowfield if kp pressed
-  auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  auto& input_c = SINGLE_InputComponent::instance;
   if (get_key_down(input_c, SDL_SCANCODE_KP_4)) {
     SDL_Log("Request generate flowfield... (to mouse position)");
     request_generate_flowfield(r, mouse_pos);

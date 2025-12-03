@@ -60,9 +60,10 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
       continue;
     }
 
-    const auto [spritesheet, anim] = find_animation(anims, ssc.tag);
-    int sprite_scale_x = spritesheet.px;
-    int sprite_scale_y = spritesheet.py;
+    const auto [a, b] = find_animation(anims, ssc.tag);
+    const auto& spritesheet = anims.animations[a].first;
+    const int sprite_scale_x = spritesheet.px;
+    const int sprite_scale_y = spritesheet.py;
 
     // hack: make the trimaran half the size
     // if (ssc.tag.find("trimaran") != std::string::npos) {

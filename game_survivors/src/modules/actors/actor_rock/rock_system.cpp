@@ -387,7 +387,7 @@ update_actor_rocks_system(entt::registry& r, glm::vec2 mouse_pos, const float dt
     ImGui::Text("offset mousepos: %f, %f", offset_mouse_pos.x, offset_mouse_pos.y);
     ImGui::Text("mouse idx: %i", mouse_idx);
 
-    if (generated.size() > 0)
+    if (!generated.empty())
       ImGui::Text(
         "noise at (%i %i), idx: %f", generated[mouse_idx].xy.x, generated[mouse_idx].xy.y, generated[mouse_idx].noise);
 
@@ -395,7 +395,7 @@ update_actor_rocks_system(entt::registry& r, glm::vec2 mouse_pos, const float dt
   }
 
 #if defined(_DEBUG)
-  auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  auto& input_c = SINGLE_InputComponent::instance;
   if (get_key_down(input_c, SDL_SCANCODE_KP_7)) {
     // Destroy all the old rocks.
     for (const auto& [e, rock_c] : r.view<const RockComponent>().each())
@@ -447,7 +447,7 @@ ImGui::ColorEdit4("mixed_col", im_lerp);
   process_requests<RequestGenerateRocks>(r, callback);
 
   // int j = 0;
-  // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  // const auto& input_c = SINGLE_InputComponent::instance
   // static int debug_island = 0;
   // static int debug_edge = 0;
   // imgui_draw_int("debug_island", debug_island);

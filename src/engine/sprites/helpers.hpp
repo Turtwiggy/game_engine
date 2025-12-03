@@ -13,7 +13,7 @@ namespace game2d {
 void
 load_sprites(SINGLE_Animations& anims, const engine::Texture& texture);
 
-std::pair<Spritesheet, SpriteAnimation>
+std::pair<int, int>
 find_animation(const SINGLE_Animations& anims, const std::string& name);
 
 void

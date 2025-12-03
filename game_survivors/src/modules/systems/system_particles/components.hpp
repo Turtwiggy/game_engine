@@ -6,16 +6,14 @@
 
 namespace game2d {
 
-struct Particle
+struct ParticleDescriptor
 {
-  int time_to_live_ms = 3 * 1000;
+  int time_to_live_ms = 1 * 1000;
 
   // size curve
   std::vector<glm::vec2> size_curve{ { 0, 0 }, { 16, 16 }, { 0, 0 } };
   bool linear_scale = true;
 
-  glm::vec2 position{ 0, 0 }; // seems wrong
-  glm::vec2 velocity{ 0, 0 };
   bool random_rotation = false;
 
   bool fade = true;
@@ -36,7 +34,7 @@ struct Particle
   bool make_darker_based_on_distance_from_center = false;
   // engine::SRGBColour end_colour;  // not implemented
 
-  std::string sprite = "";
+  std::string sprite = "EMPTY";
 };
 
 struct ParticleEmitter
@@ -70,12 +68,35 @@ struct ScaleOverTimeComponent
   bool linear = true;
 };
 
+enum class ParticleType
+{
+  DEFAULT_TRAIL = 0,
+  DEFAULT_EXPLODE,
+  DEATH_SEA_MINE,
+  DEATH_EXPLODER,
+  ENEMY_DEATH,
+  DEFAULT_TURRET_EXPLODE,
+  FIRE_PARTICLES,
+  ICE_PARTICLES,
+  VFX_BOOP,
+  VFX_ICE_BOOP,
+  VFX_LEVELUP_OUTER,
+  VFX_LEVELUP_INNER,
+
+  count,
+};
+struct SINGLE_DefaultParticles
+{
+  std::map<ParticleType, ParticleDescriptor> particles; // should match the above enum
+
+  static SINGLE_DefaultParticles instance;
+};
+
 // the emitter that spawns the particle
 struct ParticleEmitterComponent
 {
-  Particle particle_to_emit;
+  ParticleType particle_type;
   bool spawn_all_particles_at_once = false;
-
   bool expires = false;
   int particles_to_spawn_before_emitter_expires = 0;
 };
@@ -83,7 +104,7 @@ struct ParticleEmitterComponent
 struct RequestToSpawnParticles
 {
   glm::ivec2 position{ 0, 0 };
-  std::string key = "default_explode";
+  ParticleType particle_type;
 
   float radius_pixels_lower = 0.0f;
   float radius_pixels_upper = 0.0f;

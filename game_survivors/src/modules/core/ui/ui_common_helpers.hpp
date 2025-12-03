@@ -13,6 +13,10 @@ template<class T>
 void
 process_requests(entt::registry& r, const std::function<void(const T& req)>& callback)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const auto& view = r.view<T>();
 
   const bool has_requests = !view.empty();

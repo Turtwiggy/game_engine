@@ -83,7 +83,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r, fl
     UIAction::NAV_MOVE_U, UIAction::NAV_MOVE_D, UIAction::NAV_MOVE_L, UIAction::NAV_MOVE_R
   };
   bool make_pop_audio_sound = false;
-  if (ui_c.state.actions.size() > 0) {
+  if (!ui_c.state.actions.empty()) {
     for (const auto& act : ui_c.state.actions) {
       if (std::find(audio_pop_ui.begin(), audio_pop_ui.end(), act) != audio_pop_ui.end()) {
         make_pop_audio_sound = true;

@@ -115,14 +115,15 @@ load_sprites(SINGLE_Animations& anims, const engine::Texture& texture)
   anims.animations.push_back(std::move(info));
 };
 
-std::pair<Spritesheet, SpriteAnimation>
+std::pair<int, int>
 find_animation(const SINGLE_Animations& anims, const std::string& name)
 {
-  for (const auto& [spritesheet, sprites] : anims.animations) {
+  for (int i = 0; i < anims.animations.size(); i++) {
+    const auto& [spritesheet, sprites] = anims.animations[i];
     const auto s =
       std::find_if(sprites.begin(), sprites.end(), [&name](const SpriteAnimation& spr) { return spr.name == name; });
     if (s != std::end(sprites))
-      return { spritesheet, *s };
+      return { i, std::distance(sprites.begin(), s) };
   }
 
   const std::string err = std::format("config error: sprite not found: {}", name);
@@ -135,7 +136,10 @@ set_sprite(entt::registry& r, const entt::entity e, const std::string& sprite)
 {
   const auto& ri = SINGLE_RendererInfo::instance;
   const auto& anims = SINGLE_Animations::instance;
-  const auto [spritesheet, anim] = find_animation(anims, sprite);
+
+  const auto [a, b] = find_animation(anims, sprite);
+  const auto spritesheet = anims.animations[a].first;
+  const auto& anim = anims.animations[a].second[b];
 
   auto& sc = r.get<SpriteComponent>(e);
   sc.tex_unit = search_for_texture_unit_by_spritesheet_path(ri, spritesheet.path)->unit;
@@ -155,7 +159,11 @@ convert_sprite_to_uv(entt::registry& r, const std::string& sprite)
 {
   // convert to imgui representation
   const auto& anims = SINGLE_Animations::instance;
-  const auto [ss, frames] = find_animation(anims, sprite);
+
+  const auto [a, b] = find_animation(anims, sprite);
+  const auto ss = anims.animations[a].first;
+  const auto& frames = anims.animations[a].second[b];
+
   const int size_x = ss.px_total;
   const int size_y = ss.py_total;
   const int cols_x = ss.nx;

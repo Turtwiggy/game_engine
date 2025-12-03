@@ -79,6 +79,7 @@
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_item_gold/gold_helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/move_to_target_via_lerp_system.hpp"
+#include "modules/systems/system_particles/particle_helpers.hpp"
 #include "modules/systems/system_particles/particle_system.hpp"
 #include "modules/systems/system_particles_on_death/system.hpp"
 #include "modules/systems/system_pause/pause_helpers.hpp"
@@ -196,6 +197,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
     for (const auto& tex : ri.user_textures)
       load_sprites(anims, tex);
     SINGLE_Animations::instance = anims;
+    init_particles(r);
   }
 
   create_persistent<SINGLE_OnDiskData>(r, savefile_load_disk(r));
@@ -263,7 +265,7 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t 
   ZoneScoped;
 #endif
 
-  auto& input = get_first_component<SINGLE_InputComponent>(r);
+  auto& input = SINGLE_InputComponent::instance;
   auto& fixed_input = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
 
   // move inputs from Update() to this FixedUpdate() tick
@@ -324,6 +326,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 #endif
 
   // update_camera_system(r, dt); // jittery camera
+  update_camera_zoom_system(r, dt);
   update_audio_system(r, dt);
   update_audio_mix_system(r);
   update_player_controller_system(r, mouse_pos);
@@ -374,7 +377,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_alpha_based_on_lifecycle_system(r);
     update_gameover_system(r);
     update_player_out_of_bounds_system(r, dt);
-    update_quip_system(r, dt);
+    // update_quip_system(r, dt);
     update_flamethrower_system(r);
     update_reload_draw_sprite_system(r);
     update_anchor_system(r);
@@ -465,7 +468,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   }
 
 #if defined(_DEBUG)
-  const bool show_settings_ui = false;
+  const bool show_settings_ui = true;
 #else
   const bool show_settings_ui = false;
 #endif
@@ -510,7 +513,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
 #if defined(_DEBUG)
   // hack: reload RAWS
-  // const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  // const auto& input = SINGLE_InputComponent::instance
   // if (get_key_down(input, SDL_SCANCODE_9)) {
   //   SDL_Log("%s", "reloading raws...");
   //   destroy_first<Raws>(r);

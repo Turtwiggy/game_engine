@@ -42,7 +42,7 @@ merge_inputs(InputComponent& i, const InputComponent& input)
 InputComponent
 generate_from_keyboard(entt::registry& r)
 {
-  const auto& sdl_input_c = get_first_component<SINGLE_InputComponent>(r);
+  const auto& sdl_input_c = SINGLE_InputComponent::instance;
 
   InputComponent i;
 

@@ -37,7 +37,13 @@ update_animator_system(entt::registry& r, const float dt)
 
   const auto& view = r.view<SpriteComponent, SpriteAnimationState>();
   for (const auto& [e, sprite_c, animation] : view.each()) {
-    const auto& [spritesheet, anim] = find_animation(anims, animation.playing_animation_name);
+    if (animation.cached_playing_animation != animation.playing_animation_name) {
+      auto [a, b] = find_animation(anims, animation.playing_animation_name);
+      animation.cached_idx_a = a; // a is the index of the sprite texture
+      animation.cached_idx_b = b; // b is the index of the sprite animation in the spritesheet
+      animation.cached_playing_animation = animation.playing_animation_name;
+    }
+    const auto& anim = anims.animations[animation.cached_idx_a].second[animation.cached_idx_b];
 
     // #if defined(_DEBUG)
     //     // debug: change animation speed;

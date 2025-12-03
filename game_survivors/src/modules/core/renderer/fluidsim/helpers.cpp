@@ -150,7 +150,7 @@ setup_fluidsim_update(entt::registry& r)
 
   pass.update = [&pass](entt::registry& r, const float dt, const glm::vec2& mouse_pos) {
     auto& ri = SINGLE_RendererInfo::instance;
-    auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+    auto& input_c = SINGLE_InputComponent::instance
     auto& data = ri.fluid_sim;
 
 // fluidsim disabled

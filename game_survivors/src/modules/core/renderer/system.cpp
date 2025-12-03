@@ -151,7 +151,7 @@ rebind(entt::registry& r, SINGLE_RendererInfo& ri)
   ri.instanced.bind();
   ri.instanced.set_uniform_block_binding("Data", 0);
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used);
-  // ri.instanced.set_bool("do_zoom", false);
+  ri.instanced.set_bool("do_zoom", true);
   ri.instanced.set_mat4("projection", camera.projection);
   for (int i = 0; i < (int)ri.user_textures.size(); i++) {
     const auto& tex = ri.user_textures[i];
@@ -427,13 +427,15 @@ init_render_system(const glm::vec2 screen_wh, entt::registry& r)
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
     data.time = 0;
+    if (camera_c.zoom_changed)
+      data.projection_zoomed = camera_c.projection_zoomed;
     data.view = camera_c.view;
     data.camera_pos = { camera_t.position.x, camera_t.position.y };
     data.zoom = camera_c.zoom_nonlinear;
     data.tilesize = 64;
-    auto grid_e = get_first<Effect_GridComponent>(r);
-    if (grid_e != entt::null)
-      data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
+    // auto grid_e = get_first<Effect_GridComponent>(r);
+    // if (grid_e != entt::null)
+    //   data.tilesize = r.get<Effect_GridComponent>(grid_e).gridsize;
 
     glBindBuffer(GL_UNIFORM_BUFFER, ri.tex_unit_ubo_data);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UboData), &data);
@@ -505,7 +507,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   // reload all shaders
-  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  const auto& input = SINGLE_InputComponent::instance;
   if (get_key_down(input, SDL_SCANCODE_0)) {
     SDL_Log("(DEBUG) Reloading shaders");
     rebind(r, ri);

@@ -198,27 +198,27 @@ constexpr std::array<std::pair<Rarity, int>, 5> rarity_chance_map = { {
 std::pair<float, std::string>
 get_stat_from_stat_table(entt::registry& r, Rarity rarity, UpgradeableStat upgrade);
 
+const auto my_rarity_0 = hex_to_srgb("#D9D9D9");
+const auto my_rarity_1 = hex_to_srgb("#00c420");
+const auto my_rarity_2 = hex_to_srgb("#00b6ff");
+const auto my_rarity_3 = hex_to_srgb("#cfc041");
+const auto my_rarity_4 = hex_to_srgb("#d74200");
+const auto im_rarity_0_vec = convert_my_to_im_vec(my_rarity_0);
+const auto im_rarity_1_vec = convert_my_to_im_vec(my_rarity_1);
+const auto im_rarity_2_vec = convert_my_to_im_vec(my_rarity_2);
+const auto im_rarity_3_vec = convert_my_to_im_vec(my_rarity_3);
+const auto im_rarity_4_vec = convert_my_to_im_vec(my_rarity_4);
 const auto rarity_to_col = [](Rarity rarity) -> ImVec4 {
-  if (rarity == Rarity::COMMON) {
-    const auto srgb = hex_to_srgb("#D9D9D9"); //  white
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::UNCOMMON) {
-    const auto srgb = hex_to_srgb("#00c420"); //  green
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::RARE) {
-    const auto srgb = hex_to_srgb("#00b6ff"); //  bright blue
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::LEGENDARY) {
-    const auto srgb = hex_to_srgb("#cfc041"); //  gold
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
-  if (rarity == Rarity::SUPER_LEGENDARY) {
-    const auto srgb = hex_to_srgb("#d74200"); //  red
-    return { srgb.r / 255.0f, srgb.g / 255.0f, srgb.b / 255.0f, srgb.a / 255.0f };
-  }
+  if (rarity == Rarity::COMMON)
+    return im_rarity_0_vec;
+  if (rarity == Rarity::UNCOMMON)
+    return im_rarity_1_vec;
+  if (rarity == Rarity::RARE)
+    return im_rarity_2_vec;
+  if (rarity == Rarity::LEGENDARY)
+    return im_rarity_3_vec;
+  if (rarity == Rarity::SUPER_LEGENDARY)
+    return im_rarity_4_vec;
   return { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 

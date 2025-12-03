@@ -32,7 +32,7 @@ update_quip_system(entt::registry& r, const float dt)
   // #endif
 
 #if defined(_DEBUG)
-  // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  // const auto& input_c = SINGLE_InputComponent::instance
   // if (get_key_down(input_c, SDL_SCANCODE_8)) {
   //   const auto view = r.view<const IslanderAiComponent, TeamComponent>();
   //   for (const auto& [e, islander_ai_c, team_c] : view.each()) {
@@ -58,7 +58,7 @@ update_quip_system(entt::registry& r, const float dt)
       auto* draw_list = ImGui::GetWindowDrawList();
       const auto ss_pos_tl = ImGui::GetCursorScreenPos();
 
-      const auto text_col = hex_to_srgb("#ffffff");
+      const auto text_col = my_white;
 
       auto* font = get_inter_font(r);
       const std::string label = std::format("{}", req.message);

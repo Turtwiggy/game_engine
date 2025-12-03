@@ -319,7 +319,7 @@ setup_linear_main_update(entt::registry& r)
       });
 
 #if defined(_DEBUG)
-      // const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+      // const auto& input_c = SINGLE_InputComponent::instance;
       // if (get_key_down(input_c, SDL_SCANCODE_1)) {
       //   for (const auto& [z, e, transform, sc] : sorted_entities) {
       //     SDL_Log("%s", std::format("entity: {}, zlayer: {}, tag{}", uint32_t(e), z, r.get<TagComponent>(e).tag).c_str());

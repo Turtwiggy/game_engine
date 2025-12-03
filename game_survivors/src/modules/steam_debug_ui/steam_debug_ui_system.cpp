@@ -18,7 +18,7 @@ update_steam_debug_ui_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  const auto& input_c = SINGLE_InputComponent::instance;
   auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
 
   ImGuiWindowFlags flags = 0;

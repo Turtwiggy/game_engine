@@ -29,7 +29,7 @@ handle_death_event__reassign_targets(entt::registry& r, const DeathEvent& evt)
       alive_players.push_back(e);
   }
 
-  if (alive_players.size() == 0)
+  if (alive_players.empty())
     return; // no one is alive?!
 
   static engine::RandomState random_target(0);

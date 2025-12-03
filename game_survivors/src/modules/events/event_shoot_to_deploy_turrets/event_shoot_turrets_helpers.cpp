@@ -18,6 +18,7 @@
 #include "modules/systems/system_aoe_slow/aoe_slow_components.hpp"
 #include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_particles/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
@@ -108,7 +109,8 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
       return valid_target;
     };
     const float enemy_explosion_radius_pixels = 50.0f;
-    add_explode_on_death_callback(r, turret_e, enemy_explosion_radius_pixels, filter_criteria, "death_turret_explode");
+    add_explode_on_death_callback(
+      r, turret_e, enemy_explosion_radius_pixels, filter_criteria, ParticleType::DEFAULT_TURRET_EXPLODE);
   }
 }
 

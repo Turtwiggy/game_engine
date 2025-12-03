@@ -16,7 +16,7 @@ namespace game2d {
 // https://www.youtube.com/watch?v=LSNQuFEDOyQ
 const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
   //
-  return b + (a - b) * glm::exp(-decay * dt);
+  return b + (a - b) * expf(-decay * dt);
   //
 };
 
@@ -72,7 +72,9 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
   for (const auto& [e, target_c, req_c, t_c] : non_physics_view.each()) {
     if (remove_dead_parents(r, dead, e, target_c.target))
       continue;
-    const auto pos = get_position(r, target_c.target) + req_c.offset;
+    const auto& par_t = r.get<const TransformComponent>(target_c.target);
+    const auto par_pos = glm::vec2{ par_t.position.x, par_t.position.y };
+    const auto pos = par_pos + req_c.offset;
     t_c.position = glm::vec3{ pos.x, pos.y, 0.0f };
   }
 

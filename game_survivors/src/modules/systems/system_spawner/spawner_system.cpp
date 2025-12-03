@@ -360,6 +360,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 void
 update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int>& enemy_to_amount)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
   GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
   GET_FIRST_OR_RETURN(SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
@@ -435,6 +439,10 @@ update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int
 void
 update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, int>& enemy_to_amount)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
   GET_FIRST_OR_RETURN(SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);
@@ -514,6 +522,9 @@ update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, in
 void
 update_random_spawner(entt::registry& r, const std::unordered_map<std::string, int>& enemy_to_amount)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
   GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, survive_e, survive_c);
   GET_FIRST_OR_RETURN(SpawnerLiveData, r, live_spawn_data_e, live_spawn_data_c);

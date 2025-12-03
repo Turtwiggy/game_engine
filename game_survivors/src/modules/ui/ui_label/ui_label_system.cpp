@@ -94,7 +94,7 @@ calculate_edges(entt::registry& r, entt::entity e, IslandLineInfo& cannon_c)
         water_neighbours.push_back({ n_dir, n_xy });
     }
     // the cannon should've been spawned on the edge of an island (i.e. 3 neighbours, 1 nothing.)
-    if (water_neighbours.size() == 0)
+    if (water_neighbours.empty())
       throw std::runtime_error("all neighbours are land?");
   }
 
@@ -112,7 +112,7 @@ update_ui_label_system(entt::registry& r)
   // dont show labels if players are upgrading.
   {
     const auto view = r.view<UpgradeResultsComponent>();
-    if (view.size() > 0)
+    if (!view.empty())
       return;
   }
 

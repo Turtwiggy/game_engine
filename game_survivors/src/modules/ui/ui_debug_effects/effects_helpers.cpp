@@ -22,7 +22,9 @@ spawn_fx(entt::registry& r, std::string name, glm::vec2 pos, glm::vec2 size, flo
   set_sprite(r, effect_e, anim_c.playing_animation_name);
 
   const auto& anims = SINGLE_Animations::instance;
-  const auto& [spritesheet, anim] = find_animation(anims, anim_c.playing_animation_name);
+  const auto [a, b] = find_animation(anims, anim_c.playing_animation_name);
+  const auto spritesheet = anims.animations[a].first;
+  const auto& anim = anims.animations[a].second[b];
   anim_c.duration = (1.0f / sprite_fps) * anim.animation_frames.size();
   anim_c.looping = false;
 

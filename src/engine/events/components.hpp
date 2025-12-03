@@ -81,6 +81,8 @@ struct SINGLE_InputComponent
   std::vector<std::pair<SDL_JoystickID, SDL_GameControllerButton>> button_released;
 
   bool update_since_last_fixed_update = false;
+
+  static SINGLE_InputComponent instance;
 };
 
 } // namespace game2d

@@ -101,6 +101,10 @@ struct SpriteAnimationState
   bool playing = true;
   bool looping = true;
   // bool destroy_after_play = true;
+
+  std::string cached_playing_animation;
+  int cached_idx_a = 0;
+  int cached_idx_b = 0;
 };
 
 } // namespace game2d

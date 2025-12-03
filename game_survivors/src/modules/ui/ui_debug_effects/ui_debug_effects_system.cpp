@@ -50,26 +50,17 @@ update_ui_debug_effects_system(entt::registry& r)
   if (ImGui::Button("S6_EXPLODE_FX_21"))
     spawn_fx(r, "S6_EXPLODE_FX_21", vfx_offset, { 128, 128 }, sprite_fps);
 
-  const auto request_particles = [&](std::string key, float radius = 0) {
+  const auto request_particles = [&](ParticleType type) {
+    auto key = std::string(magic_enum::enum_name(type));
     if (ImGui::Button(key.c_str())) {
       RequestToSpawnParticles request;
-      request.key = key;
+      request.particle_type = type;
       request.position = vfx_offset;
-      request.radius_pixels_upper = radius;
       create_empty<RequestToSpawnParticles>(r, request);
     }
   };
-  request_particles("default_explode");
-  request_particles("death_sea_mine", 200);
-  request_particles("enemy_death", 32);
-  request_particles("death_exploder", 50);
-  request_particles("death_turret_explode", 16);
-  request_particles("fire_particles");
-  request_particles("ice_particles");
-  request_particles("vfx_boop");
-  request_particles("vfx_ice_boop");
-  request_particles("vfx_levelup_outer");
-  request_particles("vfx_levelup_inner");
+  for (int i = 0; i < (int)ParticleType::count; i++)
+    request_particles((magic_enum::enum_value<ParticleType>(i)));
 
   // static bool invert = false;
   // static bool changed = false;

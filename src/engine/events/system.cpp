@@ -27,7 +27,7 @@ update_sdl_event_system(engine::SINGLE_Application& app, entt::registry& r)
   ZoneScoped;
 #endif
 
-  auto& input = get_first_component<SINGLE_InputComponent>(r);
+  auto& input = SINGLE_InputComponent::instance;
   input.update_since_last_fixed_update = true;
 
   input.keys_pressed.clear();

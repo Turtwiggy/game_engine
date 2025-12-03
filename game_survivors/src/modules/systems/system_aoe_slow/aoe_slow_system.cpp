@@ -36,7 +36,7 @@ update_aoe_slow_system(entt::registry& r, const float dt)
 
     // produce an aoe slow particles.
     RequestToSpawnParticles request;
-    request.key = "vfx_ice_boop";
+    request.particle_type = ParticleType::VFX_ICE_BOOP;
     request.position = get_position(r, e);
     create_empty<RequestToSpawnParticles>(r, request);
 

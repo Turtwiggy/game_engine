@@ -41,13 +41,13 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
 
   {
     RequestToSpawnParticles request;
-    request.key = "vfx_levelup_inner";
+    request.particle_type = ParticleType::VFX_LEVELUP_INNER;
     request.position = get_position(r, par_e);
     create_empty<RequestToSpawnParticles>(r, request);
   }
   {
     RequestToSpawnParticles request;
-    request.key = "vfx_levelup_outer";
+    request.particle_type = ParticleType::VFX_LEVELUP_OUTER;
     request.position = get_position(r, par_e);
     create_empty<RequestToSpawnParticles>(r, request);
   }

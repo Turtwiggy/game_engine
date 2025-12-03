@@ -85,7 +85,7 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
 
       // Request some fire particles at this pos while on fire
       RequestToSpawnParticles request;
-      request.key = "fire_particles";
+      request.particle_type = ParticleType::FIRE_PARTICLES;
       request.position = get_position(r, par_e);
       create_empty<RequestToSpawnParticles>(r, request);
     }
@@ -96,8 +96,8 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
     {
       auto& speed_c = r.get<ActorSpeedComponent>(par_e);
 
-      // make it so that 10 ice stacks completely stop something
-      const float slow_amount = (speed_c.base_speed / (float)10) * ice_stacks;
+      // make it so that 20 ice stacks completely stop something
+      const float slow_amount = (speed_c.base_speed / (float)20) * ice_stacks;
 
       speed_c.current_speed = glm::max(speed_c.base_speed - slow_amount, 0.0f);
       if (speed_c.current_speed == 0.0f)
@@ -105,7 +105,7 @@ update_combat_elemental_damage_system(entt::registry& r, const float dt)
 
       if (ice_stacks > 0) {
         RequestToSpawnParticles request;
-        request.key = "ice_particles";
+        request.particle_type = ParticleType::ICE_PARTICLES;
         request.position = get_position(r, par_e);
         create_empty<RequestToSpawnParticles>(r, request);
       }

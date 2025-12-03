@@ -13,6 +13,7 @@
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
+#include "resources/data.hpp"
 
 namespace game2d {
 
@@ -37,7 +38,7 @@ update_enemy_charger_system(entt::registry& r)
     }
 
     if (charger_c.state == ChargerEnemyState::START_APPROACH) {
-      set_colour(r, e, hex_to_srgb("#e99f10")); // orange
+      set_colour(r, e, my_charger_col); // orange
 
       ApplyForceToDynamicTarget tgt_c;
       tgt_c.orbit = false;
@@ -113,7 +114,7 @@ update_enemy_charger_system(entt::registry& r)
     if (charger_c.state == ChargerEnemyState::CATCH_YOUR_BREATH) {
 
       // show that the seahorse is "deflated"... change it's colour?
-      set_colour(r, e, hex_to_srgb("#f15f22")); // dark_orange
+      set_colour(r, e, my_charger_deflated_col); // dark_orange
 
       if (cooldown_c.time > 0.0f)
         continue;

@@ -29,22 +29,15 @@ update_zoom(OrthographicCamera& camera, float dt)
   auto& zoom = camera.zoom_linear;
   auto& zoom_nonlinear = camera.zoom_nonlinear;
 
-  // bool zoom_enabled = true;
-  // if (zoom_enabled) {
-  //   // ImGui::Text("MouseWheel: %f", ImGui::GetIO().MouseWheel);
-  //   if (ImGui::GetIO().MouseWheel > 0.0f)
-  //     zoom -= 0.1f;
-  //   if (ImGui::GetIO().MouseWheel < 0.0f)
-  //     zoom += 0.1f;
-  // }
+  const float speed = 15.0;
+  const float zoom_in = 0.25f;
+  const float zoom_out = 2.0f;
 
   // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
   // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
   // If zoom = -1, then 2^(-1 / 2) gives a zoom factor of ~0.707 (zooming out by 29%).
   float new_zoom_nonlinear = glm::pow(2.0f, (zoom / 2.0f));
-  const float speed = 7.5;
-  const float zoom_in = 0.25f;
-  const float zoom_out = 2.0f;
+
   zoom_nonlinear = engine::lerp(zoom_nonlinear, new_zoom_nonlinear, dt * speed);
 
   // clamp zoomout
@@ -72,7 +65,7 @@ update_camera_system(entt::registry& r, const float dt)
 #endif
 
   const auto& ri = SINGLE_RendererInfo::instance;
-  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  const auto& input = SINGLE_InputComponent::instance;
   const auto camera_ent = get_first<OrthographicCamera>(r);
 
   auto& camera = r.get<OrthographicCamera>(camera_ent);
@@ -169,15 +162,43 @@ update_camera_system(entt::registry& r, const float dt)
   screen_offset.position.y = screen_y + screen_offset.position.y + screenshake_amount.y;
   camera.view = calculate_ortho_view(screen_offset, dt);
 
-// no zooming unless on the viewport
-// if (!ri.viewport_hovered)
-//   return;
-#if defined(_DEBUG)
   update_zoom(camera, dt);
-#endif
 
   camera.projection_zoomed =
     calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, camera.zoom_nonlinear);
 };
+
+void
+update_camera_zoom_system(entt::registry& r, const float dt)
+{
+  auto& camera = get_first_component<OrthographicCamera>(r);
+  camera.zoom_changed = false;
+  auto& zoom = camera.zoom_linear;
+  auto& zoom_nonlinear = camera.zoom_nonlinear;
+  bool zoom_enabled = true;
+  if (zoom_enabled) {
+    // ImGui::Text("MouseWheel: %f", ImGui::GetIO().MouseWheel);
+    if (ImGui::GetIO().MouseWheel > 0.0f) {
+      zoom -= 0.1f;
+      camera.zoom_changed = true;
+    }
+    if (ImGui::GetIO().MouseWheel < 0.0f) {
+      zoom += 0.1f;
+      camera.zoom_changed = true;
+    }
+
+    // hack: reset zoom.
+    if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+      zoom = 0.0f;
+      zoom_nonlinear = 1.0f;
+      camera.zoom_changed = true;
+    }
+  }
+#if defined(_DEBUG)
+  ImGui::Begin("DebugZoom");
+  ImGui::SliderFloat("Zoom", &zoom, -1.0f, 1.0f);
+  ImGui::End();
+#endif
+}
 
 } // namespace game2d

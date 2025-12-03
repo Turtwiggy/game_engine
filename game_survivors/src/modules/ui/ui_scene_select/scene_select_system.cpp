@@ -332,6 +332,10 @@ draw_card_inner(entt::registry& r,
                 const float text_font_size,
                 const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   const auto& ri_c = SINGLE_RendererInfo::instance;
   const auto custom_tex_id = search_for_texture_id_by_texture_path(ri_c, "custom.png(GL_NEAREST)")->id;
   const auto custom_im_id = (ImTextureID)(void*)(intptr_t)custom_tex_id;
@@ -628,6 +632,10 @@ update_player_select_ui(entt::registry& r,
                         const int max_num_players,
                         const float dt)
 {
+#if defined(_DEBUG)
+  ZoneScoped;
+#endif
+
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
 

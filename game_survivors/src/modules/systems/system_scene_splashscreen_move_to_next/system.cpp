@@ -46,7 +46,7 @@ update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, e
   ZoneScoped;
 #endif
   auto& data = get_first_component<SINGLE_SplashScreen>(r);
-  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  const auto& input = SINGLE_InputComponent::instance;
 
   const auto audio_e = get_first<SINGLE_AudioComponent>(r);
   if (audio_e == entt::null)

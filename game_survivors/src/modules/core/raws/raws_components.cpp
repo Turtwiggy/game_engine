@@ -26,6 +26,7 @@
 #include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
+#include "modules/systems/system_particles/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
 #include "modules/systems/system_traits/trait_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
@@ -167,7 +168,8 @@ add_animation(entt::registry& r, entt::entity e, std::string key, int sprite_fps
   SpriteAnimationState anim_c;
   anim_c.playing_animation_name = key;
   const auto& anims = SINGLE_Animations::instance;
-  const auto& [spritesheet, anim] = find_animation(anims, anim_c.playing_animation_name);
+  const auto [a, b] = find_animation(anims, anim_c.playing_animation_name);
+  const auto& anim = anims.animations[a].second[b];
   anim_c.duration = (1.0f / sprite_fps) * anim.animation_frames.size();
   anim_c.looping = true;
   r.emplace<SpriteAnimationState>(e, anim_c);
@@ -363,7 +365,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
         };
 
         const float enemy_explosion_radius_pixels = 50.0f;
-        add_explode_on_death_callback(r, e, enemy_explosion_radius_pixels, filter_criteria, "death_exploder");
+        add_explode_on_death_callback(r, e, enemy_explosion_radius_pixels, filter_criteria, ParticleType::DEATH_EXPLODER);
       }
 
       if (trait_enum == AiBehaviour::CHARGE) {
@@ -380,7 +382,7 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     if (auto* callbacks_c = r.try_get<OnDeathCallbacks>(e)) {
       const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
         RequestToSpawnParticles request;
-        request.key = "enemy_death";
+        request.particle_type = ParticleType::ENEMY_DEATH;
         request.position = get_position(r, e);
         auto& default_size_c = r.get<DefaultSizeComponent>(e);
         request.radius_pixels_upper = glm::max(default_size_c.size.x, default_size_c.size.y);
@@ -438,175 +440,52 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   if (parent == entt::null)
     throw std::runtime_error("particle-emitter parent not set.");
 
-  const auto key = req.key;
-
   // trial: new vfx for exploder
+  ParticleType key = req.particle_type;
 
   // note: * 3.0f as it should be 2.0f (as width = 2.0 * radius),
   // but the explosions sprite doesnt fill up the entire width, so scale it up.
-  if (key.find("death_exploder") != std::string::npos)
+  if (key == ParticleType::DEATH_EXPLODER)
     return spawn_fx(r, "EXPLODE_FX_6", req.position, { req.radius_pixels_upper * 3.0f, req.radius_pixels_upper * 3.0f });
   // if (key.find("death_sea_mine") != std::string::npos)
   //   return spawn_fx(r, "S6_EXPLODE_FX_7", req.position, { req.radius_pixels * 2.0f, req.radius_pixels * 2.0f });
-  if (key.find("enemy_death") != std::string::npos)
+  if (key == ParticleType::ENEMY_DEATH)
     return spawn_fx(r, "S6_EXPLODE_FX_14", req.position, { req.radius_pixels_upper, req.radius_pixels_upper });
 
   const auto e = create_transform(r, "particle_emitter");
   r.emplace<SetPositionAtDynamicTarget>(e);
   r.emplace<DynamicTargetComponent>(e, parent);
 
-  Particle pdesc;
-  pdesc.time_to_live_ms = 1 * 1000;
-
-  if (key.find("default_trail") != std::string::npos) {
-    pdesc.size_curve = { { 2, 2 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(0.5 * 1000);
-    if (req.colour.has_value())
-      pdesc.start_colour = req.colour.value();
-  }
-  //
-  else if (key.find("default_explode") != std::string::npos) {
-    pdesc.size_curve = { { 8, 8 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(1.0 * 1000);
-    pdesc.random_velocity_bound = 5;
-  }
-  //
-  else if (key.find("death_sea_mine") != std::string::npos) {
-    pdesc.size_curve = { { 64, 64 }, { 128, 128 }, { 0, 0 } };
-    pdesc.start_colour = hex_to_srgb("#de9e41"); // explosion colour
-    pdesc.time_to_live_ms = static_cast<int>(0.7f * 1000);
-    pdesc.random_radius_bound_lower = -req.radius_pixels_upper;
-    pdesc.random_radius_bound_upper = req.radius_pixels_upper;
-    pdesc.make_darker_based_on_distance_from_center = true;
-    pdesc.random_velocity_bound = 50;
-    pdesc.velocity_in_dir = true;
-    pdesc.linear_scale = false;
-    pdesc.sprite = "CIRCLE";
-  }
-  //
-  else if (key.find("enemy_death") != std::string::npos) {
-    // when an enemy dies, it drops xp and a persistent skull
-    // pdesc.size_curve = { { 0.5 * req.radius_pixels_upper, 0.5 * req.radius_pixels_upper }, { 0, 0 } };
-    // pdesc.time_to_live_ms = static_cast<int>(0.2 * 1000);
-    // pdesc.start_colour = my_death_sprite_col; // dark red
-    // // pdesc.start_colour = hex_to_srgb("#0096ff"); // death col
-    // // pdesc.random_velocity_bound = 5;
-    // pdesc.velocity_in_dir = true;
-    // pdesc.sprite = "SKULL_AND_BONES";
-  }
-  //
-  else if (key.find("death_exploder") != std::string::npos) {
-    pdesc.size_curve = { { 2.0f * req.radius_pixels_upper, 2.0f * req.radius_pixels_upper }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(0.6 * 1000);
-    pdesc.random_radius_bound_lower = -req.radius_pixels_upper;
-    pdesc.random_radius_bound_upper = req.radius_pixels_upper;
-    pdesc.make_darker_based_on_distance_from_center = true;
-    pdesc.random_velocity_bound = 50;
-    pdesc.velocity_in_dir = true;
-    pdesc.start_colour = hex_to_srgb("#de9e41"); // death col
-    pdesc.linear_scale = false;
-    pdesc.sprite = "CIRCLE";
-  }
-  //
-  else if (key.find("death_turret_explode") != std::string::npos) {
-    pdesc.size_curve = { { 3.0f * req.radius_pixels_upper, 3.0f * req.radius_pixels_upper }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(0.8f * 1000);
-    pdesc.start_colour = hex_to_srgb("#b1c9c3"); // turret death col
-    pdesc.linear_scale = false;
-  }
-  //
-  else if (key.find("fire_particles") != std::string::npos) {
-    pdesc.size_curve = { { 0, 0 }, { 8, 8 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(1.0 * 1000);
-    pdesc.start_colour = engine::SRGBColour{ 233, 159, 16, 255 }; // orangeish
-    pdesc.random_radius_bound_upper = 16;
-    pdesc.random_velocity_bound = 5;
-    // pdesc.sprite = "FIRE";
-  }
-  //
-  else if (key.find("ice_particles") != std::string::npos) {
-    pdesc.size_curve = { { 0, 0 }, { 4, 4 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(1.0 * 1000);
-    pdesc.start_colour = hex_to_srgb("#90D1CA"); // blueish for ice
-    pdesc.random_radius_bound_upper = 16;
-    pdesc.random_velocity_bound = 5;
-  }
-  //
-  else if (key.find("vfx_boop") != std::string::npos) {
-    pdesc.size_curve = { { 8, 8 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(0.8 * 1000);
-    pdesc.start_colour = engine::SRGBColour{ 159, 233, 16, 255 }; // greenish
-    pdesc.random_radius_bound_lower = 8;
-    pdesc.random_radius_bound_upper = 8;
-    pdesc.random_velocity_bound = 50;
-    pdesc.velocity_in_dir = true;
-  }
-  //
-  else if (key.find("vfx_ice_boop") != std::string::npos) {
-    pdesc.size_curve = { { 8, 8 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(0.8 * 1000);
-    pdesc.start_colour = hex_to_srgb("#90D1CA"); // blueish for ice
-    pdesc.random_radius_bound_lower = 8;
-    pdesc.random_radius_bound_upper = 8;
-    pdesc.random_velocity_bound = 5;
-    pdesc.velocity_in_dir = true;
-    // pdesc.sprite = "FIRE";
-  }
-  //
-  else if (key.find("vfx_levelup_outer") != std::string::npos) {
-    pdesc.size_curve = { { 0, 0 }, { 0, 0 }, { 6, 6 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(1.75 * 1000);
-    pdesc.start_colour = hex_to_srgb("#cfc041"); // gold_yellow
-    pdesc.random_radius_bound_lower = 0;
-    pdesc.random_radius_bound_upper = 0;
-    pdesc.random_velocity_bound = 60;
-    pdesc.velocity_in_dir = true;
-    if (req.colour.has_value())
-      pdesc.start_colour = req.colour.value();
-    pdesc.linear_scale = false;
-  }
-  //
-  else if (key.find("vfx_levelup_inner") != std::string::npos) {
-    pdesc.size_curve = { { 0, 0 }, { 6, 6 }, { 0, 0 } };
-    pdesc.time_to_live_ms = static_cast<int>(2.0 * 1000);
-    pdesc.start_colour = hex_to_srgb("#cfc041"); // gold_yellow
-    pdesc.random_radius_bound_lower = 32;
-    pdesc.random_radius_bound_upper = 32;
-    pdesc.random_velocity_bound = 60;
-    pdesc.velocity_in_dir = true;
-    pdesc.velocity_away = false;
-    pdesc.linear_scale = false;
-  }
-
   // which particle to spawn?
   ParticleEmitterComponent emitter;
-  emitter.particle_to_emit = pdesc;
+  emitter.particle_type = key;
   emitter.expires = true;
   emitter.spawn_all_particles_at_once = true;
-  if (key.find("default_trail") != std::string::npos) {
+
+  if (key == ParticleType::DEFAULT_TRAIL) {
     emitter.expires = false;
     emitter.spawn_all_particles_at_once = false;
-  } else if (key.find("default_explode") != std::string::npos) {
+  } else if (key == ParticleType::DEFAULT_EXPLODE) {
     emitter.particles_to_spawn_before_emitter_expires = 1;
-  } else if (key.find("death_sea_mine") != std::string::npos) {
+  } else if (key == ParticleType::DEATH_SEA_MINE) {
     emitter.particles_to_spawn_before_emitter_expires = 30;
-  } else if (key.find("enemy_death") != std::string::npos) {
+  } else if (key == ParticleType::ENEMY_DEATH) {
     emitter.particles_to_spawn_before_emitter_expires = 1;
-  } else if (key.find("death_exploder") != std::string::npos) {
+  } else if (key == ParticleType::DEATH_EXPLODER) {
     emitter.particles_to_spawn_before_emitter_expires = 10;
-  } else if (key.find("death_turret_explode") != std::string::npos) {
+  } else if (key == ParticleType::DEFAULT_TURRET_EXPLODE) {
     emitter.particles_to_spawn_before_emitter_expires = 10;
-  } else if (key.find("fire_particles") != std::string::npos) {
+  } else if (key == ParticleType::FIRE_PARTICLES) {
     emitter.particles_to_spawn_before_emitter_expires = 5;
-  } else if (key.find("ice_particles") != std::string::npos) {
+  } else if (key == ParticleType::ICE_PARTICLES) {
     emitter.particles_to_spawn_before_emitter_expires = 5;
-  } else if (key.find("vfx_boop") != std::string::npos) {
+  } else if (key == ParticleType::VFX_BOOP) {
     emitter.particles_to_spawn_before_emitter_expires = 20;
-  } else if (key.find("vfx_ice_boop") != std::string::npos) {
+  } else if (key == ParticleType::VFX_ICE_BOOP) {
     emitter.particles_to_spawn_before_emitter_expires = 10;
-  } else if (key.find("vfx_levelup_outer") != std::string::npos) {
+  } else if (key == ParticleType::VFX_LEVELUP_OUTER) {
     emitter.particles_to_spawn_before_emitter_expires = 20;
-  } else if (key.find("vfx_levelup_inner") != std::string::npos) {
+  } else if (key == ParticleType::VFX_LEVELUP_INNER) {
     emitter.particles_to_spawn_before_emitter_expires = 20;
   }
   r.emplace<ParticleEmitterComponent>(e, emitter);
@@ -615,7 +494,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   CooldownComponent cooldown;
   cooldown.time_max = 0.1f;
 
-  if (key.find("default_trail") != std::string::npos)
+  if (key == ParticleType::DEFAULT_TRAIL)
     cooldown.time_max = 1 / 30.0f; // 30 particle-a-second innit
 
   cooldown.time = cooldown.time_max;
@@ -626,38 +505,40 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
 };
 
 entt::entity
-spawn_particle(entt::registry& r, const std::string& key, const Particle& desc)
+spawn_particle(entt::registry& r,
+               const ParticleDescriptor& p_desc,
+               const glm::vec2 pos,
+               const glm::vec2 vel,
+               const engine::SRGBColour col)
 {
-  const auto e = create_transform(r, "particle");
-  r.emplace<SpriteComponent>(e);
-  set_sprite(r, e, "EMPTY");
-  // set_sprite(r, e, "CIRCLE");
+  const auto particle_e = create_transform(r, "particle");
+  r.emplace<EntityTimedLifecycle>(particle_e, p_desc.time_to_live_ms);
+  if (p_desc.fade)
+    r.emplace<SetAlphaBasedOnLifecycleComponent>(particle_e);
+  r.emplace<VelocityComponent>(particle_e, VelocityComponent{ vel.x, vel.y });
 
-  r.emplace<EntityTimedLifecycle>(e, desc.time_to_live_ms);
-  r.emplace<VelocityComponent>(e, VelocityComponent{ desc.velocity.x, desc.velocity.y });
+  r.emplace<SpriteComponent>(particle_e);
+  set_sprite(r, particle_e, p_desc.sprite);
+  set_colour(r, particle_e, col);
 
-  if (desc.fade)
-    r.emplace<SetAlphaBasedOnLifecycleComponent>(e);
+  auto& t_c = r.get<TransformComponent>(particle_e);
+  t_c.position = { pos.x, pos.y, 0.0f };
+  t_c.z_index = (int)ZLayer::VFX;
 
-  // WARNING: random rotation here
-  if (desc.random_rotation) {
+  if (p_desc.random_rotation) {
     static engine::RandomState rnd(0);
-    auto& t = r.get<TransformComponent>(e);
-    t.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI); // rnd rotation
+    t_c.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI); // rnd rotation
   }
 
   // make it shrink
   const ScaleOverTimeComponent sotc{
-    .seconds_until_complete = desc.time_to_live_ms / 1000.0f,
-    .size_curve = desc.size_curve,
-    .linear = desc.linear_scale,
+    .seconds_until_complete = p_desc.time_to_live_ms / 1000.0f,
+    .size_curve = p_desc.size_curve,
+    .linear = p_desc.linear_scale,
   };
-  r.emplace<ScaleOverTimeComponent>(e, sotc);
+  r.emplace<ScaleOverTimeComponent>(particle_e, sotc);
 
-  set_colour(r, e, desc.start_colour);
-  set_position(r, e, desc.position);
-  set_z_index(r, e, ZLayer::VFX);
-  return e;
+  return particle_e;
 };
 
 // entt::entity

@@ -62,8 +62,6 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
   // If the weapon has enough weapon spread (e.g. 90 degrees)
   // It could still shoot at the limited angles.
 
-  //
-
   // const auto par_id = r.get<const PhysicsBodyComponent>(par_e).bodyId;
   // const auto vel_meters = b2Body_GetLinearVelocity(par_id);
 

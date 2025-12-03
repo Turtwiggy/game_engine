@@ -16,7 +16,9 @@ std::tuple<entt::entity, SpriteAnimation>
 spawn_sprite(entt::registry& r, std::string name, glm::vec2 pos, float sprite_fps, bool looping)
 {
   const auto& anims = SINGLE_Animations::instance;
-  const auto& [spritesheet, anim] = find_animation(anims, name);
+  const auto [a, b] = find_animation(anims, name);
+  const auto spritesheet = anims.animations[a].first;
+  const auto& anim = anims.animations[a].second[b];
   const auto& frames = anim.animation_frames;
 
   const auto size = glm::vec2{ 16 * frames[0].w, 16 * frames[0].h };

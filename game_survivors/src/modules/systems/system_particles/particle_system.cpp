@@ -1,7 +1,10 @@
+#include "pch.hpp"
+
 #include "particle_system.hpp"
 
 #include "components.hpp"
 #include "engine/actors/actor_helpers.hpp"
+#include "engine/colour/colour.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
@@ -10,6 +13,7 @@
 #include "modules/core/colour/colour_helpers.hpp"
 #include "modules/core/raws/raws_components.hpp"
 #include "modules/core/renderer/helpers.hpp"
+#include "modules/systems/system_alpha_based_on_lifecycle/alpha_based_on_lifecycle_components.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
@@ -31,31 +35,30 @@ update_particle_system(entt::registry& r, const float dt)
   ZoneScoped;
 #endif
   const auto spawn_particle_helper = [&r](const ParticleEmitterComponent& emitter, const entt::entity e) {
-    // per-instance? seems bad
-    Particle pd = emitter.particle_to_emit;
+    // get the descriptor
+    const ParticleDescriptor& p_desc = SINGLE_DefaultParticles::instance.particles[emitter.particle_type];
 
     // spawn at e
-    pd.position = get_position(r, e);
-
+    auto position = get_position(r, e);
     if (const auto* target_c = r.try_get<const DynamicTargetComponent>(e)) {
       if (!r.valid(target_c->target)) {
         r.remove<DynamicTargetComponent>(e);
         return;
       }
-      pd.position = get_position(r, target_c->target);
+      position = get_position(r, target_c->target);
     }
 
     static engine::RandomState rnd;
 
     // adjust the position inside a circle
     float distance = 0;
-    auto adj_pos = pd.position;
-    if (pd.random_radius_bound_upper > 0.0f) {
-      distance = engine::rand_det_s(rnd.rng, pd.random_radius_bound_lower, pd.random_radius_bound_upper);
+    auto adj_pos = position;
+    if (p_desc.random_radius_bound_upper > 0.0f) {
+      distance = engine::rand_det_s(rnd.rng, p_desc.random_radius_bound_lower, p_desc.random_radius_bound_upper);
       const float angle = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
       const auto dir = engine::normalize_safe(engine::angle_radians_to_direction(angle));
       const auto ray = engine::Ray{
-        .origin = { pd.position.x, pd.position.y, 0.0f },
+        .origin = { position.x, position.y, 0.0f },
         .dir = { dir.x, dir.y, 0.0f },
       };
       const auto p = engine::ray_at(ray, distance);
@@ -64,35 +67,35 @@ update_particle_system(entt::registry& r, const float dt)
     }
 
     // adjust colour based on distance from non-adj pos
-    if (pd.make_darker_based_on_distance_from_center) {
-      const auto col = pd.start_colour;
-      const auto min_distance = pd.random_radius_bound_lower;
-      const auto max_distance = pd.random_radius_bound_upper;
+
+    engine::SRGBColour col = p_desc.start_colour;
+    if (p_desc.make_darker_based_on_distance_from_center) {
+      // const auto col = p_desc.start_colour;
+      const auto min_distance = p_desc.random_radius_bound_lower;
+      const auto max_distance = p_desc.random_radius_bound_upper;
       const auto percent = 1.0f - (glm::abs(distance) / (max_distance - min_distance));
-      pd.start_colour = lerp_colour({ 0.0f, 0.0f, 0.0f, 1.0f }, pd.start_colour, percent);
+      col = lerp_colour({ 0.0f, 0.0f, 0.0f, 1.0f }, p_desc.start_colour, percent);
     }
 
     // set velocity
-    if (pd.random_velocity_bound > 0.0f) {
-      const int rnd_x = engine::rand_det_s(rnd.rng, -pd.random_velocity_bound, pd.random_velocity_bound);
-      const int rnd_y = engine::rand_det_s(rnd.rng, -pd.random_velocity_bound, pd.random_velocity_bound);
-      pd.velocity = glm::ivec2{ rnd_x, rnd_y };
+    glm::vec2 velocity = { 0, 0 };
+    if (p_desc.random_velocity_bound > 0.0f) {
+      const int rnd_x = engine::rand_det_s(rnd.rng, -p_desc.random_velocity_bound, p_desc.random_velocity_bound);
+      const int rnd_y = engine::rand_det_s(rnd.rng, -p_desc.random_velocity_bound, p_desc.random_velocity_bound);
+      velocity = glm::ivec2{ rnd_x, rnd_y };
     }
 
     // get your position vs your adj position, and set the vel as the dir
-    if (pd.velocity_in_dir && adj_pos != pd.position) {
-      const glm::vec2 dir = engine::normalize_safe(adj_pos - pd.position);
-      pd.velocity = pd.random_velocity_bound * dir;
-
-      if (!pd.velocity_away)
-        pd.velocity *= -1;
+    if (p_desc.velocity_in_dir && adj_pos != position) {
+      const glm::vec2 dir = engine::normalize_safe(adj_pos - position);
+      velocity = p_desc.random_velocity_bound * dir;
+      if (!p_desc.velocity_away)
+        velocity *= -1;
     }
 
-    pd.position = adj_pos;
-    const entt::entity particle_e = spawn_particle(r, "default_particle", pd);
+    position = adj_pos;
 
-    if (pd.sprite != "")
-      set_sprite(r, particle_e, pd.sprite);
+    spawn_particle(r, p_desc, position, velocity, col);
   };
 
   // spawn the particles

@@ -103,7 +103,7 @@ get_random_player_target(entt::registry& r)
 {
   const auto& alive_players = SINGLE_AlivePlayers::instance.players;
 
-  if (alive_players.size() == 0)
+  if (alive_players.empty())
     return entt::null;
 
   const int rnd = engine::rand_det_s(target_rnd.rng, 0, (int)alive_players.size());

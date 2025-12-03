@@ -69,7 +69,7 @@ public:
   int draw_calls() const;
 
 private:
-  constexpr static int max_tri = 5'000;
+  constexpr static int max_tri = 1'000;
   constexpr static int max_tri_vert_count = max_tri * 3;
   constexpr static int max_tri_index_count = max_tri * 3;
 };

@@ -37,7 +37,7 @@ handle_player_enter_sea_mine(entt::registry& r, const OnCollisionEnter& evt)
   };
 
   const float bomb_radius_pixels = 200;
-  add_explode_on_death_callback(r, item_par_e, bomb_radius_pixels, filter_criteria, "death_sea_mine");
+  add_explode_on_death_callback(r, item_par_e, bomb_radius_pixels, filter_criteria, ParticleType::DEATH_SEA_MINE);
 
   // explode audio
   const auto spawn_audio = [](entt::registry& r, const entt::entity e) {

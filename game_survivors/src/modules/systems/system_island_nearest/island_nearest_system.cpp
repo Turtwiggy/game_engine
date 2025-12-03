@@ -29,7 +29,7 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
   ZoneScoped;
 #endif
   const auto& islands_c = SINGLE_Islands::instance;
-  const auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  const auto& input_c = SINGLE_InputComponent::instance;
   const float tilesize = SINGLE_Islands::instance.tilesize;
 
 // for (const auto& [id, eid] : islands_c.id_to_island_eid)
@@ -62,16 +62,19 @@ update_island_nearest_system(entt::registry& r, glm::vec2 mouse_pos)
 
   // Player's neighbour gridpos selct tiles.
   {
-    const auto view =
-      r.view<const PlayerComponent, const TransformComponent, const InputComponent, const MovementDirectComponent>();
-    for (const auto& [e, player_c, t_c, input_c, m_c] : view.each()) {
+    const auto view = r.view<const PlayerComponent,
+                             const TransformComponent,
+                             const InputComponent,
+                             const MovementDirectComponent,
+                             const PhysicsBodyComponent>();
+    for (const auto& [e, player_c, t_c, input_c, m_c, body_c] : view.each()) {
 
       auto& nearest_c = r.get_or_emplace<IslandNearestComponent>(e);
       nearest_c.landable_positions.clear();
 
       // const auto& wh = t_c.scale;
       const auto pos = glm::vec2{ t_c.position.x, t_c.position.y };
-      const auto fixture_e = get_fixture_by_tag(r, e, "fixture_player");
+      const auto fixture_e = body_c.fixtures[0]; // assume first fixture is player(!)
       const auto fixture_c = r.get<const PhysicsFixtureComponent>(fixture_e);
       const auto aabb = b2Shape_GetAABB(fixture_c.shapeId);
       const auto size = meters_to_pixels({ aabb.upperBound.x - aabb.lowerBound.x, aabb.upperBound.y - aabb.lowerBound.y });

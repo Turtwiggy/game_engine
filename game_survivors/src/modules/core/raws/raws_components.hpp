@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/physics/physics_components.hpp"
 #include "modules/systems/system_particles/components.hpp"
@@ -261,6 +262,10 @@ entt::entity
 spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req);
 
 entt::entity
-spawn_particle(entt::registry& r, const std::string& key, const Particle& desc);
+spawn_particle(entt::registry& r,
+               const ParticleDescriptor& p_desc,
+               const glm::vec2 pos,
+               const glm::vec2 vel,
+               const engine::SRGBColour col);
 
 } // namespace game2d

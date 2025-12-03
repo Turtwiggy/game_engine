@@ -28,7 +28,7 @@ spawn_projectile(entt::registry& r, const BulletDef& bullet_def, glm::vec2 pos)
   callbacks_c.callbacks.clear();
   const auto spawn_particles_callback = [](entt::registry& r, entt::entity e) {
     RequestToSpawnParticles request;
-    request.key = "default_explode";
+    request.particle_type = ParticleType::DEFAULT_EXPLODE;
     request.position = get_position(r, e);
     create_empty<RequestToSpawnParticles>(r, request);
   };

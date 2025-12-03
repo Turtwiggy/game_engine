@@ -145,7 +145,7 @@ update_ui_debug_spawner_system(entt::registry& r)
   GET_FIRST_OR_RETURN(SurviveTimerComponent, r, timer_e, timer_c);
   GET_FIRST_OR_RETURN(SINGLE_OnDiskSpawners, r, disk_spawn_data_e, disk_spawn_data_c);
 
-  auto& input_c = get_first_component<SINGLE_InputComponent>(r);
+  auto& input_c = SINGLE_InputComponent::instance;
 
   if (get_key_held(input_c, SDL_SCANCODE_LSHIFT)) {
     // todo: go to next/previous wave

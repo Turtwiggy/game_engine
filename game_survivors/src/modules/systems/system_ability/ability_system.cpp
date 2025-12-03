@@ -99,7 +99,7 @@ update_ability_system(entt::registry& r, const float dt)
       if (has(input_c.ability2, ActionStateEnum::DOWN)) {
 
         RequestToSpawnParticles request;
-        request.key = "vfx_boop";
+        request.particle_type = ParticleType::VFX_BOOP;
         request.position = get_position(r, e);
         create_empty<RequestToSpawnParticles>(r, request);
 

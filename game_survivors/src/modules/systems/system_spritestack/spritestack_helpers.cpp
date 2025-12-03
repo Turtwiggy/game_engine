@@ -35,7 +35,10 @@ add_spritestack(entt::registry& r, entt::entity e, std::string sprite)
   const auto idx = static_cast<int>(it - supported_spritestacks.begin());
 
   const auto& anims = SINGLE_Animations::instance;
-  const auto [spritesheet, anim] = find_animation(anims, sprite + "_1"s);
+
+  const auto [a, b] = find_animation(anims, sprite + "_1"s);
+  const auto spritesheet = anims.animations[a].first;
+  const auto& anim = anims.animations[a].second[b];
   const int sprites_for_total_sprite = spritesheet.ny - 1; // note: -1 because {0, 0} should be empty
 
   // iterate from e.g. [-26, 12] for a ydepth of 38, where the center is 26 now

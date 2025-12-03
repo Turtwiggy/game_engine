@@ -40,7 +40,7 @@ update_ui_gameover_system(entt::registry& r, const float dt)
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
 
 #if defined(_DEBUG)
-  auto input_c = get_first_component<SINGLE_InputComponent>(r);
+  auto input_c = SINGLE_InputComponent::instance;
   if (get_key_down(input_c, SDL_SCANCODE_1)) {
     GameOverComponent req;
     req.win_condition = true;

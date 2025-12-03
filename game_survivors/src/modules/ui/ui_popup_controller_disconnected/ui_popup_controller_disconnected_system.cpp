@@ -12,6 +12,7 @@
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_helpers.hpp"
+#include "resources/data.hpp"
 #include "ui_popup_controller_disconnected_components.hpp"
 #include "ui_popup_controller_disconnected_system.hpp"
 
@@ -44,6 +45,11 @@ figure_out_if_controllers_disconnected(entt::registry& r, SINGLE_DisconnectedCon
       ui_c.handle_disconnected.push_back(handle);
   }
 };
+
+const auto my_con_col = hex_to_srgb("#1AFF00");
+const auto my_con_wait_input_col = hex_to_srgb("#E8DA58");
+const auto my_dc_col = hex_to_srgb("#C78B1A");
+const auto my_not_con_col = hex_to_srgb("#736767");
 
 void
 update_ui_popup_controller_disconnected_system(entt::registry& r)
@@ -122,10 +128,6 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     auto text_y = ui_tl.y;
 
     auto* draw_list = ImGui::GetWindowDrawList();
-    const auto my_window_bg_col = hex_to_srgb("#21242B");
-    const auto im_window_bg_col = convert_my_to_im(my_window_bg_col);
-    // const auto my_window_border_col = hex_to_srgb("#FFFFFF");
-    // const auto im_window_border_col = convert_my_to_im(my_window_bg_col);
     const auto rounding = 4.0f;
     const auto thickness = 2.0f;
     const auto rect_flags = ImDrawFlags_RoundCornersAll;
@@ -178,11 +180,6 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
 
       const auto text_l_pos = ImVec2{ ui_tl.x + (ui_wh.x * x_align_0), text_y };
       const auto text_r_pos = ImVec2{ ui_tl.x + (ui_wh.x * x_align_1), text_y };
-
-      const auto my_con_col = hex_to_srgb("#1AFF00");
-      const auto my_con_wait_input_col = hex_to_srgb("#E8DA58");
-      const auto my_dc_col = hex_to_srgb("#C78B1A");
-      const auto my_not_con_col = hex_to_srgb("#736767");
 
       const auto im_con_col = convert_my_to_im(my_con_col);
       const auto im_con_wait_input_col = convert_my_to_im(my_con_wait_input_col);
