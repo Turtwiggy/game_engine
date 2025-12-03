@@ -72,8 +72,8 @@ update_scene_splashscreen_move_to_next_system(engine::SINGLE_Application& app, e
   // Soon config information will be available immediately.
   // Until then try to init as long as the handles are invalid.
   //
-  const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-  const auto& digital_action_handles = steam_c.digital_action_handles;
+  // const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  // const auto& digital_action_handles = steam_c.digital_action_handles;
 
   // static float timer = 0.0f;
   // timer += dt;

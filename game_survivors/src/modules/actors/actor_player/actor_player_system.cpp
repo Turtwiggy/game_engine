@@ -124,7 +124,7 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
   ZoneScoped;
 #endif
   const auto& steam_gs_c = get_first_component<SINGLE_SteamControllerGameState>(r);
-  const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
   int sdl_controllers_used = 0;
 
   // reset all inputs;
@@ -166,8 +166,8 @@ update_player_controller_system(entt::registry& r, const glm::ivec2& mouse_pos)
         if (handle == 0)
           continue;
 
-        if (handle_joined_this_frame(steam_gs_c, handle))
-          return; // prevent immediately doing do_ui_action
+        // if (handle_joined_this_frame(steam_gs_c, handle))
+        //   return; // prevent immediately doing do_ui_action
 
         // need to improve this...
         const auto input = generate_from_handle(r, handle);

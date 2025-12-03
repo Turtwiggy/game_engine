@@ -21,11 +21,12 @@ namespace game2d {
 void
 update_input_for_select_ui(entt::registry& r, SINGLE_SelectSceneData& ui_c, const float dt)
 {
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
-  set_all_steam_controller_action_set(steam_c, ActionSet::ActionSet_GameControls);
+  const auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
+  const auto& steam_state_c = get_first_component<SINGLE_SteamControllerGameState>(r);
+  const auto& steam_con_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
+  set_all_steam_controller_action_set(steam_c, steam_con_c, ActionSet::ActionSet_GameControls);
 
-  const auto nz_handles = non_zero_handles(steam_state_c.handles);
+  const auto nz_handles = non_zero_handles(steam_state_c.handles_that_want_to_play);
   const int joined_players = glm::max(1, (int)nz_handles.size()); // at least 1 keyboard player
 
   for (int i = 0; i < 4; i++) {

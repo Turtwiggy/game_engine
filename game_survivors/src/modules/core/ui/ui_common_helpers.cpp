@@ -10,6 +10,7 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
+#include "modules/steam_input/steam_input_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 
@@ -146,7 +147,7 @@ selectable_button(entt::registry& r, SelectableButtonDef& def)
 void
 process_input_for_ui_all_handles(entt::registry& r, UIState& state)
 {
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
+  // GET_FIRST_OR_RETURN(SINGLE_SteamConnectedControllers, r, steam_con_e, steam_con_c)
 
   state.actions.clear();
 

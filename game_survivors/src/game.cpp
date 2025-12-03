@@ -138,7 +138,6 @@
 #include "modules/ui/ui_scene_select/scene_select_system.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_components.hpp"
 #include "modules/ui/ui_scene_select_modifiers/select_modifiers_system.hpp"
-#include "modules/ui/ui_scene_survive/scene_survive_system.hpp"
 #include "modules/ui/ui_scene_survive_hp_bars/ui_survive_hp_bars.hpp"
 #include "modules/ui/ui_scene_survive_hp_bars_worldspace/ui_survive_hp_bars_worldspace_system.hpp"
 #include "modules/ui/ui_scene_survive_info/ui_survive_info_system.hpp"
@@ -450,7 +449,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (scene.s == Scene::survive) {
     update_ui_island_interact_system(r, dt);
     update_ui_island_display_hp_system(r);
-    update_ui_scene_survive_system(r);
     update_ui_survive_objectives_system(r);
     // update_ui_survive_onboarding_system(r, dt);
     update_ui_survive_timer_system(r);

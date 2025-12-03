@@ -19,16 +19,16 @@ update_steam_input(entt::registry& r);
 //
 
 bool
-controller_button_down(const SINGLE_SteamControllers& steam_c, InputHandle_t handle, const DA dAction);
+controller_button_down(const SINGLE_SteamConnectedControllers& connected_c, InputHandle_t handle, const DA dAction);
 
 bool
-controller_button_held(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DA dAction);
+controller_button_held(const SINGLE_SteamMappings& steam_c, const InputHandle_t handle, const DA dAction);
 
 bool
-controller_button_release(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DA dAction);
+controller_button_release(const SINGLE_SteamConnectedControllers& connected_c, const InputHandle_t handle, const DA dAction);
 
 glm::vec2
-controller_axis(entt::registry& r, const InputHandle_t handle, AA aAction);
+controller_axis(const SINGLE_SteamMappings& steam_c, const InputHandle_t handle, AA aAction);
 
 std::vector<InputHandle_t>
 non_zero_handles(const std::vector<InputHandle_t>& handles);
@@ -36,6 +36,8 @@ non_zero_handles(const std::vector<InputHandle_t>& handles);
 //
 
 void
-set_all_steam_controller_action_set(SINGLE_SteamControllers& steam_c, AS set);
+set_all_steam_controller_action_set(const SINGLE_SteamMappings& mappings_c,
+                                    const SINGLE_SteamConnectedControllers& connected_c,
+                                    const AS set);
 
 } // namespace game2d

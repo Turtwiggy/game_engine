@@ -25,7 +25,7 @@ update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r, fl
 #endif
   const auto& ri = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_MainMenuUI, r, ui_e, ui_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamMappings, r, steam_e, steam_c)
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_size = ImVec2((float)ri.viewport_size_render_at.x, (float)ri.viewport_size_render_at.y);

@@ -5,13 +5,20 @@
 
 namespace game2d {
 
+// These are all the handles that want to play the game
+// i.e. a subset of SINGLE_SteamConnectedControllers
 struct SINGLE_SteamControllerGameState
 {
   int players = 4;
-  std::vector<InputHandle_t> handles;
-  std::vector<InputHandle_t> handles_joined_this_frame;
+  std::vector<InputHandle_t> handles_that_want_to_play;
+  // std::vector<InputHandle_t> handles_that_are_deactivated;
 
-  SINGLE_SteamControllerGameState() { handles.resize(players, 0); };
+  SINGLE_SteamControllerGameState()
+  {
+    //
+    handles_that_want_to_play.resize(players, 0); // max is players
+    //
+  };
 };
 
 struct PlayerAnimData

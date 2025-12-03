@@ -56,8 +56,9 @@ void
 update_ui_survive_onboarding_system(entt::registry& r, const float dt)
 {
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamMappings, r, steam_e, steam_c);
   GET_FIRST_OR_RETURN(SINGLE_InfoUI, r, ui_e, ui_c)
+  const auto& steam_con_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
 
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
 
@@ -162,8 +163,8 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   first_tl_x -= max_num_players * (0.5f * player_wh.x);
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
-    const auto handle = steam_ui_c.handles[player_idx];
-    const bool connected = handle_is_connected(steam_c, handle);
+    const auto handle = steam_ui_c.handles_that_want_to_play[player_idx];
+    const bool connected = handle_is_connected(steam_con_c, handle);
     const bool joined = handle_is_joined(steam_ui_c, handle);
 
     const auto my_player_col = default_player_colours[player_idx];

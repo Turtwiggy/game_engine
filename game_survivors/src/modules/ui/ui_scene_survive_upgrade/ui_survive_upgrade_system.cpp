@@ -549,7 +549,7 @@ draw_confirm_bar(entt::registry& r,
 
   // draw some text on the inside of the bar
   const auto center_pos = ImVec2{ purchasebar_tl.x + purchasebar_wh.x * 0.5f, purchasebar_tl.y + purchasebar_wh.y * 0.5f };
-  const auto handle = steam_ui_c.handles[player_idx];
+  const auto handle = steam_ui_c.handles_that_want_to_play[player_idx];
   const auto ready_text = std::format("Hold {} to select", get_confirm_button_str(r, handle));
   const auto ready_text_pos = center_text(font, font_size, ready_text, center_pos);
   ImGui::SetCursorPos(ready_text_pos);
@@ -1007,11 +1007,12 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
       end_of_box_y = stats_br.y;
     }
 
-    const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-    const auto handle = steam_c.handles[player_idx];
+    const auto& steam_state_c = get_first_component<SINGLE_SteamMappings>(r);
+    const auto& steam_gstate_c = get_first_component<SINGLE_SteamControllerGameState>(r);
+    const auto handle = steam_gstate_c.handles_that_want_to_play[player_idx];
     std::string button_str = "...";
     if (handle != 0)
-      button_str = get_str_for_da(steam_c, handle, DigitalAction::Game_West);
+      button_str = get_str_for_da(steam_state_c, handle, DigitalAction::Game_West);
     if (handle == 0 && player_idx == 0)
       button_str = "TAB";
 

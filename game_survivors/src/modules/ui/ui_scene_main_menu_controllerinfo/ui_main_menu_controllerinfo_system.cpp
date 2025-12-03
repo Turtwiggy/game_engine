@@ -24,9 +24,9 @@ using namespace std::literals;
 enum class ControllerState
 {
   CONNECTED = 0,
+  CONNECTED_WAITING_FOR_CONFIRM, // i.e. connected but the user doesnt want to use it
   DISCONNECTED,
   NOT_CONNECTED,
-
   count,
 };
 
@@ -37,17 +37,17 @@ enum class ControllerState
 // };
 
 ImColor
-get_button_col(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DigitalAction da, const int alpha)
+get_button_col(const SINGLE_SteamMappings& steam_c, const InputHandle_t handle, const DigitalAction da, const int alpha)
 {
   // if active, white
   if (controller_button_held(steam_c, handle, da))
-    return ImColor(255, 255, 255, alpha);
+    return ImColor(200, 200, 200, alpha);
   // if not active, black
   return ImColor(0, 0, 0, alpha);
 };
 
 void
-draw_dpad(const SINGLE_SteamControllers& steam_c,
+draw_dpad(const SINGLE_SteamMappings& steam_c,
           const InputHandle_t handle,
           auto* draw_list,
           const ImVec2 tl,
@@ -93,7 +93,7 @@ draw_dpad(const SINGLE_SteamControllers& steam_c,
 
 void
 draw_abxy_buttons(entt::registry& r,
-                  const SINGLE_SteamControllers& steam_c,
+                  const SINGLE_SteamMappings& steam_c,
                   const InputHandle_t handle,
                   auto* draw_list,
                   const ImVec2 tl,
@@ -122,7 +122,7 @@ draw_abxy_buttons(entt::registry& r,
 
 void
 draw_bumpers(entt::registry& r,
-             const SINGLE_SteamControllers& steam_c,
+             const SINGLE_SteamMappings& steam_c,
              const InputHandle_t handle,
              auto* draw_list,
              const ImVec2 tl,
@@ -158,7 +158,7 @@ draw_bumpers(entt::registry& r,
 }
 
 void
-draw_eyebrows(const SINGLE_SteamControllers& steam_c,
+draw_eyebrows(const SINGLE_SteamMappings& steam_c,
               const InputHandle_t handle,
               auto* draw_list,
               const ImVec2 tl,
@@ -180,7 +180,7 @@ draw_eyebrows(const SINGLE_SteamControllers& steam_c,
 
 void
 draw_eyes(entt::registry& r,
-          const SINGLE_SteamControllers& steam_c,
+          const SINGLE_SteamMappings& steam_c,
           const InputHandle_t handle,
           auto* draw_list,
           const ImVec2 tl,
@@ -199,8 +199,8 @@ draw_eyes(entt::registry& r,
   const ImVec2 eye_spec_offset = { 6 * ui_scale, -6 * ui_scale };
 
   // get the inputs...
-  const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
-  const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
+  const auto l_analog = controller_axis(steam_c, handle, AA::LAnalogControls);
+  const auto r_analog = controller_axis(steam_c, handle, AA::RAnalogControls);
 
   const auto strength = ImVec2(10.0f, 10.0f);
   const auto l_center = ImVec2{ tl.x + (0.334f * wh.x), tl.y + (0.667f * wh.y) };
@@ -226,7 +226,7 @@ draw_eyes(entt::registry& r,
 };
 
 void
-draw_mouth(const SINGLE_SteamControllers& steam_c,
+draw_mouth(const SINGLE_SteamMappings& steam_c,
            const InputHandle_t handle,
            auto* draw_list,
            const ImVec2 tl,
@@ -248,7 +248,7 @@ draw_player_ui_box(entt::registry& r,
                    const ImVec2 tl,
                    const ImVec2 wh,
                    const int player_idx,
-                   const SINGLE_SteamControllers& steam_c,
+                   const SINGLE_SteamMappings& steam_c,
                    const InputHandle_t handle,
                    const ControllerState state,
                    const float dt)
@@ -261,6 +261,8 @@ draw_player_ui_box(entt::registry& r,
   const auto my_col = default_player_colours[player_idx];
   float alpha = 0.9f;
   if (state == ControllerState::NOT_CONNECTED)
+    alpha = 0.5f;
+  if (state == ControllerState::CONNECTED_WAITING_FOR_CONFIRM)
     alpha = 0.5f;
   const auto im_bg_col = IM_COL32(my_col.r, my_col.g, my_col.b, 255 * alpha);
   const int alpha_int = (int)(255 * alpha);
@@ -415,12 +417,44 @@ draw_player_ui_box(entt::registry& r,
     }
   };
 
+  const auto show_connected_waiting_for_input_ui = [&]() {
+    add_bottom_left_text("Waiting to confirm");
+
+    draw_eyes(r, steam_c, handle, draw_list, tl, wh, ui_scale, player_idx, alpha_int);
+    draw_eyebrows(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_dpad(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_abxy_buttons(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_bumpers(r, steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+    draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
+
+    const auto button_str = get_str_for_da(steam_c, handle, DA::Game_West);
+    const auto text_str = std::format("Press {} to Join", button_str);
+    const auto font_size = (float)FontSizes::SIZE_16 * ui_scale;
+    auto* font = get_inter_font(r);
+    ImGui::PushFont(font, font_size);
+    const auto text_size = ImGui::CalcTextSize(text_str.c_str());
+    ImGui::PopFont();
+
+    // make it bob
+    const float amplitude = 3.0f;
+    const float speed = 3.0f;
+    anim_data.sleeping_mask_y_timer += dt * speed;
+    const float bob_val = glm::sin(anim_data.sleeping_mask_y_timer) * amplitude;
+
+    ImVec2 text_pos = calc_center(tl, wh);
+    text_pos -= ImVec2{ 0.5f * text_size.x, 0.5f * text_size.y };
+    text_pos.y += bob_val;
+    draw_list->AddText(font, font_size, text_pos, im_text_col, text_str.c_str());
+  };
+
   if (state == ControllerState::CONNECTED)
     show_connected_ui();
   if (state == ControllerState::DISCONNECTED)
     show_disconnected_ui();
   if (state == ControllerState::NOT_CONNECTED)
     show_not_connected_ui();
+  if (state == ControllerState::CONNECTED_WAITING_FOR_CONFIRM)
+    show_connected_waiting_for_input_ui();
 
   // Draw a black bar at the bottom.
   const auto bar_tl = ImVec2{ tl.x, tl.y + wh.y - bar_size }; // starting at the bl of the ui
@@ -460,9 +494,10 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
       return;
   }
 
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_e, ui_c);
   const auto& ri = SINGLE_RendererInfo::instance;
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  auto& ui_c = get_first_component<SINGLE_SteamControllerGameState>(r);
+  auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
+  auto& steam_connected_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
   const auto& ui_scale = get_first_component<SINGLE_UIScaling>(r);
 
   //
@@ -472,7 +507,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   // the "play" button would immediately be clicked,
   // which I doubt is the users intention
   //
-  ui_c.handles_joined_this_frame.clear();
+  // ui_c.handles_that_want_to_play_joined_this_frame.clear();
 
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const float pos_padding_x = -8.0f * ui_scale.scaling;
@@ -483,7 +518,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   ImGui::SetNextWindowPos(ui_pos, ImGuiCond_Always, ImVec2(1.0f, 0.5f));
 
   // Get state for UI.
-  const int active = steam_c.n_active;
+  const int active = steam_connected_c.n_active;
   const auto data = ui_c;
   const float padding_between_player_rows = 4.0f;
   const float total_padding_y = (3 * padding_between_player_rows);
@@ -519,45 +554,26 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
     return;
   }
 
-  // ImGui::Text("Connected Controllers: %i", steam_c.n_active);
-  // ImGui::Text("Assigned Controllers: %i", (int)non_zero_handles(ui_c.handles).size());
-  // ImGui::Separator();
-
   static std::unordered_map<InputHandle_t, std::string> join_key_map;
 
-  for (int i = 0; i < steam_c.n_active; i++) {
-    const InputHandle_t handle = steam_c.handles[i];
+  // ActionSet
+  const auto& actionset_handles = steam_c.action_set_handles;
+  const auto as = actionset_handles[(int)AS::ActionSet_GameControls];
+
+  const auto handles_pre_join = handles_ordered_by_joined_then_connected(r);
+  for (int i = 0; i < handles_pre_join.size(); i++) {
+    const InputHandle_t handle = handles_pre_join[i];
     if (handle == 0)
       continue;
-
-    // ActionSet
-    const auto& actionset_handles = steam_c.action_set_handles;
-    const auto as = actionset_handles[(int)AS::ActionSet_GameControls];
-
-    // DigitalAction
-    const auto& digital_action_handles = steam_c.digital_action_handles;
-    const auto h = digital_action_handles[(int)DA::Game_South];
-
-    EInputActionOrigin origins[STEAM_INPUT_MAX_ORIGINS];
-    const auto n_origins = SteamInput()->GetDigitalActionOrigins(handle, as, h, origins);
-    if (n_origins > 0) {
-      // use the first origin keyname
-      EInputActionOrigin origin = origins[0];
-      const char* keyname = SteamInput()->GetStringForActionOrigin(origin);
-      join_key_map[handle] = keyname;
-    }
-
-    if (!join_key_map.contains(handle))
-      join_key_map[handle] = "Loading...";
-
+    if (i > ui_c.players)
+      break;
     // Just keep assigning controllers
-    assign_handle_to_ui(ui_c, handle);
+    // assign_handle_to_ui(ui_c, handle);
 
-    // auto b_join = controller_button_down(steam_c, handle, DA::Game_Select);
-    // if (b_join) {
-    //   assign_handle_to_ui(ui_c, handle);
-    //   continue;
-    // }
+    // auto join_str = get_str_for_da(steam_c, handle, DA::Game_West);
+    auto b_join = controller_button_down(steam_connected_c, handle, DA::Game_West);
+    if (b_join)
+      assign_handle_to_ui(ui_c, handle);
 
     // auto b_leave = controller_button_down(steam_c, handle, DA::Game_Cancel);
     // if (b_leave) {
@@ -565,47 +581,6 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
     //   continue;
     // }
   }
-
-  // i.e. "waiting to assign"
-  const auto free_controllers = connected_but_not_joined_controllers(steam_c, ui_c);
-  int next_free_controller = 0;
-
-  for (int i = 0; i < 4; i++) {
-    // ImGui::Text("%s", ("P"s + std::to_string(i)).c_str());
-
-    const auto handle = ui_c.handles[i];
-    const bool connected = handle_is_connected(steam_c, handle);
-    const bool joined = handle_is_joined(ui_c, handle);
-
-    if (joined && !connected) {
-      // ImGui::SameLine();
-      // ImGui::Text("Disconnected!");
-      continue;
-    }
-
-    if (joined && connected) {
-      // ImGui::SameLine();
-      // ImGui::Text("Connected. %zu", ui_c.handles[i]);
-      // ImGui::Text("Connected.");
-      continue;
-    }
-
-    bool all_assigned = next_free_controller >= (int)free_controllers.size();
-    if (free_controllers.empty() || all_assigned) {
-      // ImGui::SameLine();
-      // ImGui::Text("No controller.");
-      continue; // no more free controllers
-    }
-
-    const auto unassigned_handle = free_controllers[next_free_controller++];
-    const auto unassigned_handle_joinkey = join_key_map[unassigned_handle];
-    const auto str = std::format("Press '{}' to join.", unassigned_handle_joinkey);
-
-    // ImGui::SameLine();
-    // ImGui::Text("%s", str.c_str());
-  }
-
-  // ImGui::End();
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
@@ -620,14 +595,16 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
   auto player_ui_tl = ImVec2{ window_pos.x, window_pos.y };
   auto player_ui_br = ImVec2{ window_pos.x + player_ui_w, window_pos.y + player_ui_h };
 
-  for (int i = 0; i < ui_c.players; i++) {
-    const auto handle = data.handles[i];
-    const bool connected = handle_is_connected(steam_c, handle);
+  auto handles = handles_ordered_by_joined_then_connected(r);
+  for (int i = 0; i < 4; i++) {
+    const auto handle = handles[i];
+    const bool connected = handle_is_connected(steam_connected_c, handle);
     const bool joined = handle_is_joined(ui_c, handle);
-
     ControllerState ui_state = ControllerState::NOT_CONNECTED;
     if (joined && connected)
       ui_state = ControllerState::CONNECTED;
+    if (!joined && connected)
+      ui_state = ControllerState::CONNECTED_WAITING_FOR_CONFIRM;
     if (joined && !connected)
       ui_state = ControllerState::DISCONNECTED;
     if (!joined && !connected)
@@ -671,8 +648,7 @@ update_ui_scene_main_menu_controllerinfo_system(entt::registry& r, const float d
 
   if (ImGui::Button("Reset")) {
     for (int i = 0; i < ui_c.players; i++)
-      ui_c.handles[i] = 0;
-    ui_c.handles_joined_this_frame.clear();
+      ui_c.handles_that_want_to_play[i] = 0;
   }
 
   ImGui::End();

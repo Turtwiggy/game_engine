@@ -3,7 +3,6 @@
 #include "ui_survive_hp_bars.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
@@ -55,7 +54,6 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
 
   // #if defined(_DEBUG)
   //   const auto& scene_c = SINGLE_CurrentScene::instance;

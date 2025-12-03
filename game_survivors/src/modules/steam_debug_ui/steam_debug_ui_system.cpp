@@ -4,8 +4,10 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "game_state.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
+#include "modules/ui/ui_scene_main_menu_controllerinfo/ui_main_menu_controllerinfo_components.hpp"
 
 namespace game2d {
 using DA = DigitalAction;
@@ -19,7 +21,9 @@ update_steam_debug_ui_system(entt::registry& r)
   ZoneScoped;
 #endif
   const auto& input_c = SINGLE_InputComponent::instance;
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
+  auto& steam_con_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
+  auto& steam_ui_c = get_first_component<SINGLE_SteamControllerGameState>(r);
 
   ImGuiWindowFlags flags = 0;
 
@@ -28,7 +32,7 @@ update_steam_debug_ui_system(entt::registry& r)
   // TEMP: debug your steam name
   const char* name = SteamFriends()->GetPersonaName();
   ImGui::Text("Welcome, %s", name);
-  ImGui::Text("ConnectedControllers: %i", steam_c.n_active);
+  ImGui::Text("ConnectedControllers: %i", steam_con_c.n_active);
 
   // There's a bug where the action handles aren't non-zero until a config is done loading. Soon config
   // information will be available immediately. Until then try to init as long as the handles are invalid.
@@ -49,8 +53,8 @@ update_steam_debug_ui_system(entt::registry& r)
   // auto& handles = steam_c.handles;
   // auto action_set = AS::ActionSet_GameControls;
 
-  for (int i = 0; i < steam_c.n_active; i++) {
-    const auto handle = steam_c.handles[i];
+  for (int i = 0; i < steam_con_c.n_active; i++) {
+    const auto handle = steam_con_c.handles[i];
     const auto label = std::format("Controller: {}", i);
     ImGui::SeparatorText(label.c_str());
     // SteamInput()->ActivateActionSet(handle, action_set);
@@ -64,10 +68,16 @@ update_steam_debug_ui_system(entt::registry& r)
 
     // ImGui::Text("Action_GameCancel %i", controller_button_held(steam_c, handles[i], Action_GameCancel));
     // ImGui::Text("Action_GameMenu %i", controller_button_held(steam_c, handles[i], Action_GameMenu));
-    auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
-    auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
+    auto l_analog = controller_axis(steam_c, handle, AA::LAnalogControls);
+    auto r_analog = controller_axis(steam_c, handle, AA::RAnalogControls);
     ImGui::Text("LAnalog: %f %f", l_analog.x, l_analog.y);
     ImGui::Text("RAnalog: %f %f", r_analog.x, r_analog.y);
+
+    auto it = std::find(steam_ui_c.handles_that_want_to_play.begin(), steam_ui_c.handles_that_want_to_play.end(), handle);
+    if (it != steam_ui_c.handles_that_want_to_play.end())
+      ImGui::Text("Handle has joined game (y)");
+    else
+      ImGui::Text("Handle has joined game (n)");
   }
 
   ImGui::End();

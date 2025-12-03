@@ -29,13 +29,13 @@ enum class UIControllerState
 void
 figure_out_if_controllers_disconnected(entt::registry& r, SINGLE_DisconnectedControllerUI& ui_c)
 {
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_steam_e, ui_steam_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_game_e, ui_game_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamConnectedControllers, r, steam_e, steam_c);
 
   for (int i = 0; i < 4; i++) {
-    const auto handle = ui_steam_c.handles[i];
+    const auto handle = ui_game_c.handles_that_want_to_play[i];
     const bool connected = handle_is_connected(steam_c, handle);
-    const bool joined = handle_is_joined(ui_steam_c, handle);
+    const bool joined = handle_is_joined(ui_game_c, handle);
     const bool is_disconnected = joined && !connected;
     const bool is_connected = joined && connected;
     if (!is_disconnected)
@@ -59,7 +59,8 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
 #endif
   GET_FIRST_OR_RETURN(SINGLE_DisconnectedControllerUI, r, ui_e, ui_c);
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, ui_steam_e, ui_steam_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamMappings, r, steam_e, steam_c);
+  const auto& steam_con_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
   const auto& scene_c = SINGLE_CurrentScene::instance;
 
   const float x_align_0 = 0.33f;
@@ -91,8 +92,8 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
       const auto act = static_cast<DigitalAction>(i);
       input |= controller_button_held(steam_c, handle, act);
     }
-    const auto lx = controller_axis(r, handle, AA::LAnalogControls);
-    const auto rx = controller_axis(r, handle, AA::RAnalogControls);
+    const auto lx = controller_axis(steam_c, handle, AA::LAnalogControls);
+    const auto rx = controller_axis(steam_c, handle, AA::RAnalogControls);
     input |= lx.x != 0.0f || lx.y != 0.0f || rx.x != 0.0f || rx.y != 0.0f;
 
     // A handle that disconnected just pressed some input.
@@ -120,6 +121,8 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
   const auto window_size = glm::vec2{ 300 * font_scale, 175 * font_scale };
   ImGui::SetNextWindowSize({ window_size.x, window_size.y }, ImGuiCond_Always);
 
+  ImGui::SetNextWindowFocus();
+
   imgui_begin("DisconnectedUI");
   {
     const auto ui_tl = ImGui::GetWindowPos();
@@ -145,8 +148,8 @@ update_ui_popup_controller_disconnected_system(entt::registry& r)
     text_y += 10.0f; // add some padding
 
     for (int i = 0; i < 4; i++) {
-      const auto handle = ui_steam_c.handles[i];
-      const bool connected = handle_is_connected(steam_c, handle);
+      const auto handle = ui_steam_c.handles_that_want_to_play[i];
+      const bool connected = handle_is_connected(steam_con_c, handle);
       const bool joined = handle_is_joined(ui_steam_c, handle);
 
       const bool is_disconnected = joined && !connected;

@@ -100,24 +100,24 @@ generate_from_keyboard(entt::registry& r)
 InputComponent
 generate_from_handle(entt::registry& r, const InputHandle_t handle)
 {
-  const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
-  const auto& steam_gs_c = get_first_component<SINGLE_SteamControllerGameState>(r);
+  const auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
+  const auto& steam_con_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
 
   InputComponent i;
 
-  const auto l_analog = controller_axis(r, handle, AA::LAnalogControls);
-  const auto r_analog = controller_axis(r, handle, AA::RAnalogControls);
+  const auto l_analog = controller_axis(steam_c, handle, AA::LAnalogControls);
+  const auto r_analog = controller_axis(steam_c, handle, AA::RAnalogControls);
   i.lx += l_analog.x;
   i.ly += -l_analog.y; // flip y
   i.rx += r_analog.x;
   i.ry += -r_analog.y; // flip y
 
-  const auto generate_actions = [&steam_c, &handle](std::vector<ActionStateEnum>& acts, const DA& da) {
-    if (controller_button_down(steam_c, handle, da))
+  const auto generate_actions = [&steam_c, &handle, &steam_con_c](std::vector<ActionStateEnum>& acts, const DA& da) {
+    if (controller_button_down(steam_con_c, handle, da))
       acts.push_back(ActionStateEnum::DOWN);
     if (controller_button_held(steam_c, handle, da))
       acts.push_back(ActionStateEnum::HELD);
-    if (controller_button_release(steam_c, handle, da))
+    if (controller_button_release(steam_con_c, handle, da))
       acts.push_back(ActionStateEnum::RELEASE);
   };
   generate_actions(i.select, DA::Game_Back);

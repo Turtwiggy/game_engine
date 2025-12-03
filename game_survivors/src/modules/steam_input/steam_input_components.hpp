@@ -59,12 +59,9 @@ using DA = DigitalAction;
 using AA = AnalogAction;
 using AS = ActionSet;
 
-struct SINGLE_SteamControllers
+// This is all handles that steam is aware of.
+struct SINGLE_SteamConnectedControllers
 {
-  InputDigitalActionHandle_t digital_action_handles[(int)DA::count];
-  InputAnalogActionHandle_t analog_action_handles[(int)AA::count];
-  InputActionSetHandle_t action_set_handles[(int)AS::count];
-
   int n_active = 0;
   std::vector<InputHandle_t> handles;
 
@@ -73,10 +70,17 @@ struct SINGLE_SteamControllers
   std::unordered_map<InputHandle_t, std::vector<DA>> this_frame_down;
   std::unordered_map<InputHandle_t, std::vector<DA>> this_frame_release;
 
-  SINGLE_SteamControllers()
-  {
-    handles.resize(STEAM_CONTROLLER_MAX_COUNT);
+  SINGLE_SteamConnectedControllers() { handles.resize(STEAM_CONTROLLER_MAX_COUNT, 0); }
+};
 
+struct SINGLE_SteamMappings
+{
+  InputDigitalActionHandle_t digital_action_handles[(int)DA::count];
+  InputAnalogActionHandle_t analog_action_handles[(int)AA::count];
+  InputActionSetHandle_t action_set_handles[(int)AS::count];
+
+  SINGLE_SteamMappings()
+  {
     for (int i = 0; i < static_cast<int>(DA::count); i++)
       digital_action_handles[i] = 0;
     for (int i = 0; i < static_cast<int>(AA::count); i++)

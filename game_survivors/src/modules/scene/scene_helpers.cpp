@@ -326,7 +326,7 @@ spawn_players(entt::registry& r)
   for (int i = 0; i < n_max_players; i++) {
 
     // controller connected for players
-    const auto handle = controller_ui.handles[i];
+    const auto handle = controller_ui.handles_that_want_to_play[i];
     const bool handle_joined = handle_is_joined(controller_ui, handle);
 
     // note: always has 1 player using keyboard
@@ -579,8 +579,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto p = spawn_player(r, "actor_player", "player", 0, 0, "dinghy", "weapon_deck_cannon", pos);
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
-    for (int i = 0; i < (int)controller_ui.handles.size(); i++) {
-      auto handle = controller_ui.handles[i];
+    for (int i = 0; i < (int)controller_ui.handles_that_want_to_play.size(); i++) {
+      auto handle = controller_ui.handles_that_want_to_play[i];
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
       break;
     }

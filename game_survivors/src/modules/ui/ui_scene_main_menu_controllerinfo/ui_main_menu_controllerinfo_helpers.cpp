@@ -7,11 +7,12 @@
 #include "modules/core/fonts/fonts_helpers.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 
 namespace game2d {
 
 bool
-handle_is_connected(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle)
+handle_is_connected(const SINGLE_SteamConnectedControllers& steam_c, const InputHandle_t handle)
 {
   if (handle == 0)
     return false;
@@ -24,18 +25,8 @@ handle_is_joined(const SINGLE_SteamControllerGameState& ui_c, const InputHandle_
 {
   if (handle == 0)
     return false;
-  auto it = std::find(ui_c.handles.begin(), ui_c.handles.end(), handle);
-  return it != ui_c.handles.end();
-};
-
-bool
-handle_joined_this_frame(const SINGLE_SteamControllerGameState& ui_c, const InputHandle_t handle)
-{
-  if (handle == 0)
-    return false;
-  const auto& hs = ui_c.handles_joined_this_frame;
-  auto it = std::find(hs.begin(), hs.end(), handle);
-  return it != hs.end();
+  auto it = std::find(ui_c.handles_that_want_to_play.begin(), ui_c.handles_that_want_to_play.end(), handle);
+  return it != ui_c.handles_that_want_to_play.end();
 };
 
 void
@@ -45,26 +36,36 @@ assign_handle_to_ui(SINGLE_SteamControllerGameState& ui_c, InputHandle_t handle)
     return;
 
   for (int i = 0; i < ui_c.players; i++) {
-    if (ui_c.handles[i] != 0)
+    if (ui_c.handles_that_want_to_play[i] != 0)
       continue;
-    ui_c.handles[i] = handle;
-    ui_c.handles_joined_this_frame.push_back(handle);
+    ui_c.handles_that_want_to_play[i] = handle;
+    // ui_c.handles_that_want_to_play_joined_this_frame.push_back(handle);
     break;
   }
 };
 
-void
-unassign_handle_from_ui(SINGLE_SteamControllerGameState& ui_c, InputHandle_t handle)
+std::vector<InputHandle_t>
+handles_ordered_by_joined_then_connected(entt::registry& r)
 {
-  if (!handle_is_joined(ui_c, handle))
-    return;
-  auto it = std::find(ui_c.handles.begin(), ui_c.handles.end(), handle);
-  const auto idx = static_cast<int>(it - ui_c.handles.begin());
-  ui_c.handles[idx] = 0;
+  auto& ui_c = get_first_component<SINGLE_SteamControllerGameState>(r);
+  auto& steam_connected_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
+
+  auto join_handles = non_zero_handles(ui_c.handles_that_want_to_play);
+  auto conn_handles = non_zero_handles(connected_but_not_joined_controllers(steam_connected_c, ui_c));
+
+  std::vector<InputHandle_t> handles;
+  handles.insert(handles.end(), join_handles.begin(), join_handles.end());
+  handles.insert(handles.end(), conn_handles.begin(), conn_handles.end());
+
+  for (int i = handles.size(); i < ui_c.players; i++)
+    handles.push_back(0);
+
+  return handles;
 };
 
 std::vector<InputHandle_t>
-connected_but_not_joined_controllers(const SINGLE_SteamControllers& steam_c, const SINGLE_SteamControllerGameState& ui_c)
+connected_but_not_joined_controllers(const SINGLE_SteamConnectedControllers& steam_c,
+                                     const SINGLE_SteamControllerGameState& ui_c)
 {
   std::vector<InputHandle_t> connected_but_not_joined;
   for (int i = 0; i < steam_c.n_active; i++) {
@@ -92,7 +93,7 @@ add_text_centered(entt::registry& r, ImDrawList* draw_list, const std::string te
 };
 
 std::string
-get_str_for_da(const SINGLE_SteamControllers& steam_c, const InputHandle_t handle, const DigitalAction da)
+get_str_for_da(const SINGLE_SteamMappings& steam_c, const InputHandle_t handle, const DigitalAction da)
 {
   // DigitalAction
   const auto& digital_action_handles = steam_c.digital_action_handles;

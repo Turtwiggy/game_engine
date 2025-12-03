@@ -23,6 +23,7 @@
 #include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/steam_input/steam_input_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_helpers.hpp"
@@ -296,7 +297,7 @@ void
 draw_card_inner(entt::registry& r,
                 SINGLE_SelectSceneData& ui_c,
                 const SINGLE_SteamControllerGameState& steam_ui_c,
-                const SINGLE_SteamControllers& steam_c,
+                const SINGLE_SteamMappings& steam_c,
                 const InputHandle_t handle,
                 SelectUI& player_ui_c,
                 HullChoice& player_state_c,
@@ -609,7 +610,8 @@ update_player_select_ui(entt::registry& r,
 #endif
 
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_ui_e, steam_ui_c);
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c);
+  GET_FIRST_OR_RETURN(SINGLE_SteamMappings, r, steam_e, steam_c);
+  const auto& steam_con_c = get_first_component<SINGLE_SteamConnectedControllers>(r);
 
   auto* font = get_inter_font(r);
   auto* header_font = font;
@@ -639,8 +641,8 @@ update_player_select_ui(entt::registry& r,
 
   for (int player_idx = 0; player_idx < max_num_players; player_idx++) {
 
-    const auto handle = steam_ui_c.handles[player_idx];
-    const bool connected = handle_is_connected(steam_c, handle);
+    const auto handle = steam_ui_c.handles_that_want_to_play[player_idx];
+    const bool connected = handle_is_connected(steam_con_c, handle);
     const bool joined = handle_is_joined(steam_ui_c, handle);
 
     // always show one player. player_idx either using keyboard or controller
@@ -695,7 +697,7 @@ update_player_select_ui(entt::registry& r,
     draw_list->AddRectFilled(card_tl, card_br, im_window_bg_col, 6);
     draw_list->AddRect(card_tl, card_br, im_player_col, 2.0f, ImDrawFlags_RoundCornersAll, 1.0f);
 
-    if ((connected && joined) || player_idx == 0) {
+    if ((joined) || player_idx == 0) {
       draw_card_inner(r,
                       ui_c,
                       steam_ui_c,
@@ -750,11 +752,12 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamMappings, r, steam_e, steam_c)
   const auto& scene_c = SINGLE_CurrentScene::instance;
 
   const int max_num_players = 4;
-  const auto num_active_players = glm::max(1, (int)steam_c.n_active);
+  const auto joined_handles = non_zero_handles(steam_state_c.handles_that_want_to_play);
+  const auto num_active_players = glm::max(1, (int)joined_handles.size()); // 1 because keyboard
 
   ui_c.player_cursor_state.resize(num_active_players);
   if (!ui_c.init) {

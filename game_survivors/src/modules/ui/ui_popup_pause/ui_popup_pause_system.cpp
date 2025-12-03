@@ -28,7 +28,7 @@ update_ui_popup_pause_system(engine::SINGLE_Application& app, entt::registry& r)
   ZoneScoped;
 #endif
   const auto& ri = SINGLE_RendererInfo::instance;
-  GET_FIRST_OR_RETURN(SINGLE_SteamControllers, r, steam_e, steam_c)
+  GET_FIRST_OR_RETURN(SINGLE_SteamMappings, r, steam_e, steam_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_gs_e, steam_gs_c)
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, ui_e, ui_c);
   const auto ui_scale = get_first_component<SINGLE_UIScaling>(r).scaling;

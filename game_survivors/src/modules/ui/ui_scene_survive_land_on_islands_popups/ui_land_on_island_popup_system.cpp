@@ -29,7 +29,8 @@ update_ui_land_on_island_popup_system(entt::registry& r)
 #if defined(_DEBUG)
   ZoneScoped;
 #endif
-  const auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
+  const auto& steam_ui_c = get_first_component<SINGLE_SteamControllerGameState>(r);
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   const auto font_size = (float)FontSizes::SIZE_13;
   auto* font = get_inter_font(r);
@@ -49,7 +50,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
   // so take a cache of the value it was when it wasnt "..."
   //
   for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {
-    const auto handle = steam_c.handles[player_c.idx];
+    const auto handle = steam_ui_c.handles_that_want_to_play[player_c.idx];
     if (player_c.back_button_cached == "") {
       if (handle != 0) {
         auto str_east = get_str_for_da(steam_c, handle, DigitalAction::Game_East);
@@ -137,7 +138,7 @@ update_ui_land_on_island_popup_system(entt::registry& r)
       auto& player_c = r.get<PlayerComponent>(boat_e);
       const auto player_idx = player_c.idx;
       const auto player_col_idx = player_c.colour_idx;
-      const auto handle = steam_c.handles[player_idx];
+      const auto handle = steam_ui_c.handles_that_want_to_play[player_idx];
 
       auto back_button = player_c.back_button_cached;
       if (back_button == "")

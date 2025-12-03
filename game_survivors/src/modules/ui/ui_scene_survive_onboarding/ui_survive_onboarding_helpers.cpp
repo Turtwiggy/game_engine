@@ -12,7 +12,7 @@ namespace game2d {
 std::string
 get_confirm_button_str(entt::registry& r, InputHandle_t handle)
 {
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
 
   std::string confirm_str = "...";
 
@@ -28,7 +28,7 @@ get_confirm_button_str(entt::registry& r, InputHandle_t handle)
 std::string
 get_back_button_str(entt::registry& r, InputHandle_t handle)
 {
-  auto& steam_c = get_first_component<SINGLE_SteamControllers>(r);
+  const auto& steam_c = get_first_component<SINGLE_SteamMappings>(r);
 
   std::string back_str = "...";
 
