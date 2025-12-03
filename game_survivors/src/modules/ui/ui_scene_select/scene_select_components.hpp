@@ -1,6 +1,8 @@
 #pragma once
 
+#include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
+#include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/ui/ui_element_cursor/element_cursor_components.hpp"
 
@@ -49,6 +51,9 @@ struct SINGLE_SelectSceneData : public DefaultUI
   std::vector<HullChoice> player_choice_state;
   std::vector<UiCursorComponent> player_cursor_state;
   std::vector<std::string> available_names;
+
+  std::vector<ShipHullData> unlocked_hulls;
+  std::vector<Weapon_OnDiskData> unlocked_weapons;
 };
 
 struct SelectSceneToSurviveScene

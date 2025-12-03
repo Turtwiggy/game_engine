@@ -75,18 +75,8 @@ update_selections(entt::registry& r,
   auto& player_state = ui_c.player_choice_state[player_idx];
 
   auto& cell = *(dynamic_cast<OptionsCell*>(base.get()));
-
-  std::vector<ShipHullData> unlocked_hulls;
-  for (const auto& hull : hulls_c.hulls) {
-    if (savefile_get_key(r, hull.key))
-      unlocked_hulls.push_back(hull);
-  }
-
-  std::vector<Weapon_OnDiskData> unlocked_weapons;
-  for (const auto& weapon : weapons_c.weapons) {
-    if (savefile_get_key(r, weapon.key) && weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
-      unlocked_weapons.push_back(weapon);
-  }
+  const auto& unlocked_hulls = ui_c.unlocked_hulls;
+  const auto& unlocked_weapons = ui_c.unlocked_weapons;
 
   const bool is_name = cell.name.find("Name") != std::string::npos;
   const bool is_colour = cell.name.find("Colour") != std::string::npos;
@@ -153,6 +143,7 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
 {
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
+  GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, scene_e, scene_c)
 
   const auto box_br = box_tl + box_wh;
   auto* draw_list = ImGui::GetWindowDrawList();
@@ -171,17 +162,8 @@ draw_stats(entt::registry& r, ImVec2 box_tl, ImVec2 box_wh, SelectUI& player_ui_
 
   std::string info_key = "";
   std::string info_desc = "";
-
-  std::vector<ShipHullData> unlocked_hulls;
-  for (const auto& hull : hulls_c.hulls) {
-    if (savefile_get_key(r, hull.key))
-      unlocked_hulls.push_back(hull);
-  }
-  std::vector<Weapon_OnDiskData> unlocked_weapons;
-  for (const auto& weapon : weapons_c.weapons) {
-    if (savefile_get_key(r, weapon.key) && weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
-      unlocked_weapons.push_back(weapon);
-  }
+  const auto& unlocked_hulls = scene_c.unlocked_hulls;
+  const auto& unlocked_weapons = scene_c.unlocked_weapons;
 
   if (is_hull) {
     cell.value = engine::wrap(cell.value, (int)unlocked_hulls.size());
@@ -392,18 +374,8 @@ draw_card_inner(entt::registry& r,
       const float icon_sprite = 32;
       const float icon_box_size = 32;
       const float padding_x = 10.0f;
-
-      std::vector<ShipHullData> unlocked_hulls;
-      for (const auto& hull : hulls_c.hulls) {
-        if (savefile_get_key(r, hull.key))
-          unlocked_hulls.push_back(hull);
-      }
-
-      std::vector<Weapon_OnDiskData> unlocked_weapons;
-      for (const auto& weapon : weapons_c.weapons) {
-        if (savefile_get_key(r, weapon.key) && weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
-          unlocked_weapons.push_back(weapon);
-      }
+      const auto& unlocked_hulls = ui_c.unlocked_hulls;
+      const auto& unlocked_weapons = ui_c.unlocked_weapons;
 
       if (is_name) {
         const auto& names = ui_c.available_names;
@@ -809,6 +781,19 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
     }
 
 #endif
+
+    std::vector<ShipHullData> unlocked_hulls;
+    for (const auto& hull : hulls_c.hulls) {
+      if (savefile_get_key(r, hull.key))
+        unlocked_hulls.push_back(hull);
+    }
+    std::vector<Weapon_OnDiskData> unlocked_weapons;
+    for (const auto& weapon : weapons_c.weapons) {
+      if (savefile_get_key(r, weapon.key) && weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
+        unlocked_weapons.push_back(weapon);
+    }
+    ui_c.unlocked_hulls = unlocked_hulls;
+    ui_c.unlocked_weapons = unlocked_weapons;
 
     ui_c.available_names.push_back("Destroyer of Worlds");
     ui_c.available_names.push_back("Kleptomaniac");
