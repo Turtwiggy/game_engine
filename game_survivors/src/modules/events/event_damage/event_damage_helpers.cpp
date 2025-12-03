@@ -138,7 +138,7 @@ handle_damage_event_take_damage(entt::registry& r, const DamageEvent& evt)
     return;
 
   // .. pop & flash the parent
-  r.emplace_or_replace<RequestHitScaleComponent>(parent_e);
+  r.emplace_or_replace<RequestHitScaleComponent>(parent_e, RequestHitScaleComponent{ .scale_up_pixels = 10.0f });
 
   static engine::RandomState dodge_rnd(0);
   static engine::RandomState crit_rnd(0);
