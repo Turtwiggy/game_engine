@@ -95,6 +95,10 @@ update_island_return_to_boat_system(entt::registry& r)
     // const auto impuse = boat_mass * impulse_amount;
     // b2Body_ApplyLinearImpulseToCenter(boat_body_id, impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
 
+    // allow movement.
+    auto& pb_c = r.get<PhysicsBodyComponent>(boat_e);
+    b2Body_SetType(pb_c.bodyId, b2_dynamicBody);
+
     // send an event
     IslandToBoatEvent evt;
     auto& evts_c = SINGLE_Events::instance;

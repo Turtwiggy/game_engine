@@ -6,7 +6,7 @@ namespace game2d {
 
 struct ItemGoldComponent
 {
-  bool placeholder = true;
+  int amount = 1;
 };
 
 struct WantToGetGoldEvent

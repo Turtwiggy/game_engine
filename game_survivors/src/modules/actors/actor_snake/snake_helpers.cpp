@@ -58,7 +58,12 @@ auto cleanup_on_death = [](entt::registry& r, entt::entity dead_e) {
   }
 
   // get it to drop some GOLD
-  create_empty<CreateItemRequest>(r, CreateItemRequest{ "item_gold", get_position(r, dead_e) });
+  create_empty<CreateItemRequest>(r,
+                                  CreateItemRequest{
+                                    .item = "item_gold",
+                                    .position = get_position(r, dead_e),
+                                    .extra_data = { { "amount", "5" } },
+                                  });
 };
 
 entt::entity

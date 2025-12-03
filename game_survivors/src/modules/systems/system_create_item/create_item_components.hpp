@@ -9,6 +9,7 @@ struct CreateItemRequest
 {
   std::string item;
   glm::vec2 position;
+  std::map<std::string, std::string> extra_data;
 };
 
 } // namespace game2d

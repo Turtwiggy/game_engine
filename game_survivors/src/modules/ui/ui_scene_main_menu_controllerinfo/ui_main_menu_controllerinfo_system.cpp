@@ -428,7 +428,7 @@ draw_player_ui_box(entt::registry& r,
     draw_mouth(steam_c, handle, draw_list, tl, wh, ui_scale, alpha_int);
 
     const auto button_str = get_str_for_da(steam_c, handle, DA::Game_West);
-    const auto text_str = std::format("Press {} to Join", button_str);
+    const auto text_str = std::format("Press {} to join", button_str);
     const auto font_size = (float)FontSizes::SIZE_16 * ui_scale;
     auto* font = get_inter_font(r);
     ImGui::PushFont(font, font_size);

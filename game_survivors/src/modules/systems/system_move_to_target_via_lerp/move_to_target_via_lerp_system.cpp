@@ -16,7 +16,7 @@ namespace game2d {
 // https://www.youtube.com/watch?v=LSNQuFEDOyQ
 const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
   //
-  return b + (a - b) * expf(-decay * dt);
+  return b + (a - b) * glm::exp(-decay * dt);
   //
 };
 

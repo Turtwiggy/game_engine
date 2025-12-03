@@ -24,20 +24,27 @@ update_create_item_system(entt::registry& r)
   for (const auto& [e, req_c] : view.each()) {
 
     auto item_e = spawn(r, req_c.item);
-    give_life(r, item_e, req_c.position, { 2.0 * default_map_unit_tilesize, 2.0 * default_map_unit_tilesize });
+    give_life(r, item_e, req_c.position, { default_map_unit_tilesize, default_map_unit_tilesize });
     r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
     r.remove<OnDeathCallbacks>(item_e);
 
     const auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_item");
-    if (req_c.item == "item_gold")
-      r.emplace<ItemGoldComponent>(fixture_e);
-    else if (req_c.item == "item_hp_pack")
+    if (req_c.item == "item_gold") {
+
+      if (req_c.extra_data.contains("amount")) {
+        const auto amount_str = req_c.extra_data.at("amount");
+        const auto amount = std::stoi(amount_str);
+        r.emplace<ItemGoldComponent>(fixture_e, ItemGoldComponent{ .amount = amount });
+      } else
+        r.emplace<ItemGoldComponent>(fixture_e, ItemGoldComponent{ .amount = 1 });
+
+    } else if (req_c.item == "item_hp_pack") {
       r.emplace<ItemHealingPackComponent>(fixture_e);
-    else if (req_c.item == "item_sea_mine")
+    } else if (req_c.item == "item_sea_mine") {
       r.emplace<ItemSeaMineComponent>(fixture_e);
-    else if (req_c.item == "item_vacuum_orb")
+    } else if (req_c.item == "item_vacuum_orb") {
       r.emplace<ItemVacuumOrbComponent>(fixture_e);
-    else
+    } else
       throw std::runtime_error("Unknown item type");
   }
   r.destroy(view.begin(), view.end());

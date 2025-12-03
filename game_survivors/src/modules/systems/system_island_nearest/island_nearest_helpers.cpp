@@ -61,6 +61,12 @@ land_player_on_island(entt::registry& r,
   r.emplace_or_replace<DroppedAnchorComponent>(boat_e);
   // r.remove<InputComponent>(e); // dont remove input component
 
+  // remove any momentum.
+  auto& pb_c = r.get<PhysicsBodyComponent>(boat_e);
+  b2Body_SetType(pb_c.bodyId, b2_staticBody);
+  // b2Body_SetLinearVelocity(pb_c.bodyId, { 0, 0 });
+  // b2Body_SetAngularVelocity(pb_c.bodyId, 0.0f);
+
   // set the tile as occupied.
   island_c.occupied_island_xy.push_back({ gp, island_player_e });
 };
