@@ -99,6 +99,7 @@ struct ParticleEmitterComponent
   bool spawn_all_particles_at_once = false;
   bool expires = false;
   int particles_to_spawn_before_emitter_expires = 0;
+  std::optional<engine::SRGBColour> colour = std::nullopt;
 };
 
 struct RequestToSpawnParticles

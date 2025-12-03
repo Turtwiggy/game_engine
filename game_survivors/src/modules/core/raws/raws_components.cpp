@@ -461,6 +461,7 @@ spawn_particle_emitter(entt::registry& r, const RequestToSpawnParticles& req)
   emitter.particle_type = key;
   emitter.expires = true;
   emitter.spawn_all_particles_at_once = true;
+  emitter.colour = req.colour;
 
   if (key == ParticleType::DEFAULT_TRAIL) {
     emitter.expires = false;

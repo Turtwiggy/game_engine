@@ -66,15 +66,17 @@ update_particle_system(entt::registry& r, const float dt)
       adj_pos.y = p.y;
     }
 
-    // adjust colour based on distance from non-adj pos
-
     engine::SRGBColour col = p_desc.start_colour;
+    if (emitter.colour.has_value())
+      col = emitter.colour.value();
+
+    // adjust colour based on distance from non-adj pos
     if (p_desc.make_darker_based_on_distance_from_center) {
       // const auto col = p_desc.start_colour;
       const auto min_distance = p_desc.random_radius_bound_lower;
       const auto max_distance = p_desc.random_radius_bound_upper;
       const auto percent = 1.0f - (glm::abs(distance) / (max_distance - min_distance));
-      col = lerp_colour({ 0.0f, 0.0f, 0.0f, 1.0f }, p_desc.start_colour, percent);
+      col = lerp_colour({ 0.0f, 0.0f, 0.0f, 1.0f }, col, percent);
     }
 
     // set velocity
