@@ -146,8 +146,8 @@ generate_noise__with_base_island(entt::registry& r)
     const auto island_center = (int)(0.5 * SINGLE_Islands::instance.wh);
     const auto min_x = island_center - 2;
     const auto max_x = island_center + 2;
-    const auto min_x_boundary = min_x - 4;
-    const auto max_x_boundary = max_x + 4;
+    const auto min_x_boundary = min_x - 6;
+    const auto max_x_boundary = max_x + 6;
 
     for (int y = min_x_boundary; y < max_x_boundary; y++) {
       for (int x = min_x_boundary; x < max_x_boundary; x++) {

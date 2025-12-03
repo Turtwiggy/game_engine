@@ -5,6 +5,7 @@
 
 #include "engine/maths/maths.hpp"
 #include "engine/physics/physics_components.hpp"
+#include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/actor_player_system.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -89,7 +90,8 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     }
   }
 
-  const auto view = r.view<const PhysicsBodyComponent, const RotateToVelocityComponent>();
+  const auto view =
+    r.view<const PhysicsBodyComponent, const RotateToVelocityComponent>(entt::exclude<DroppedAnchorComponent>);
   for (const auto& [e, body_c, rotate_c] : view.each()) {
     // Set Rotation
     const float angle_speed = 50.0f; // higher number = faster to rotate
@@ -99,6 +101,9 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     const float wrapped_cur_angle = engine::clamp_axis(cur_angle);
 
     const auto cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
+    const float vel_magnitude = glm::length(glm::vec2{ cur_vel.x, cur_vel.y });
+    if (vel_magnitude < 0.1f)
+      continue;
     const float new_angle = engine::dir_to_angle_radians({ cur_vel.x, cur_vel.y });
 
     // Calculate angle diff

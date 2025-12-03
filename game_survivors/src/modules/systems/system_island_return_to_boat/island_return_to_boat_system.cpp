@@ -85,15 +85,15 @@ update_island_return_to_boat_system(entt::registry& r)
     r.emplace_or_replace<IslandCollisionImmunity>(boat_e, IslandCollisionImmunity{ .island_e = island_e });
 
     // give the boat a small push in the dir away from the island.
-    const float impulse_amount = 1.0f;
-    const auto boat_pos = get_position(r, boat_e);
-    const auto islander_pos = pos;
-    const auto raw_dir = boat_pos - islander_pos;
-    const auto nrm_dir = engine::normalize_safe(raw_dir);
-    const auto boat_body_id = r.get<PhysicsBodyComponent>(boat_e).bodyId;
-    const auto boat_mass = b2Body_GetMass(boat_body_id);
-    const auto impuse = boat_mass * impulse_amount;
-    b2Body_ApplyLinearImpulseToCenter(boat_body_id, impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
+    // const float impulse_amount = 1.0f;
+    // const auto boat_pos = get_position(r, boat_e);
+    // const auto islander_pos = pos;
+    // const auto raw_dir = boat_pos - islander_pos;
+    // const auto nrm_dir = engine::normalize_safe(raw_dir);
+    // const auto boat_body_id = r.get<PhysicsBodyComponent>(boat_e).bodyId;
+    // const auto boat_mass = b2Body_GetMass(boat_body_id);
+    // const auto impuse = boat_mass * impulse_amount;
+    // b2Body_ApplyLinearImpulseToCenter(boat_body_id, impuse * b2Vec2{ nrm_dir.x, nrm_dir.y }, true);
 
     // send an event
     IslandToBoatEvent evt;
