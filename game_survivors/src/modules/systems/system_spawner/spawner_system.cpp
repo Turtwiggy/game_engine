@@ -18,6 +18,7 @@
 #include "modules/actors/actor_enemy_treasure/enemy_treasure_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_snake/snake_helpers.hpp"
+#include "modules/actors/actor_tome/tome_components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
 #include "modules/actors/actor_weapon/weapon_helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
@@ -82,6 +83,13 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
 
   auto enemy_size = glm::vec2{ 32, 32 };
 
+  // hack: just make 1 of the enemies a variant
+  bool is_variant = false;
+  if (key == "actor_enemy_melee_3") {
+    is_variant = true;
+    enemy_size = { 64, 64 };
+  }
+
   if (key == "actor_enemy_melee_1") // horseshoecrab (minisquid)
     enemy_size = { 32, 32 };
   if (key == "actor_enemy_exploder")
@@ -111,22 +119,6 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.emplace<HasParentComponent>(dropshadow_e, HasParentComponent{ e });
     r.get_or_emplace<HasChildrenComponent>(e).children.push_back(dropshadow_e);
   }
-
-  // Make it a variant.
-  // outline it
-  // 10x the HP, but it also drops a level up.
-  // static engine::RandomState variant_rng(0);
-  // // const float variant_chance_percent_0_100 = 0.25f; // 0.25%
-  // const float variant_chance_percent_0_100 = 0.25f; // 0.25%
-  // const float variant_hp_multiplier = 10.0f;
-  // const bool is_variant = engine::rand_det_s(variant_rng.rng, 0, 100) < variant_chance_percent_0_100;
-  // if (is_variant && key != "actor_destructable") {
-  //   r.emplace<SpriteOutline>(e);
-  //   hp *= variant_hp_multiplier;
-  //   // auto& death_c = r.get<OnDeathCallbacks>(e);
-  //   // auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
-  //   // death_c.callbacks.push_back(drop_xp_callback);
-  // }
 
   // check global hp multipler
   {
@@ -298,7 +290,9 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     //
   }
 
-  auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
+  // auto fixture_e = get_fixture_by_tag(r, e, "fixture_core");
+  auto& pb_c = r.get<PhysicsBodyComponent>(e);
+  auto fixture_e = pb_c.fixtures[0];    // assume 1st fixture is the core
   r.emplace<EnemyComponent>(fixture_e); // duplicate enemy component on fixture?
   r.emplace<HealthComponent>(fixture_e, hp, hp);
 
@@ -340,6 +334,40 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     auto& hp_c = r.get<HealthComponent>(fixture_e);
     hp_c.hp = 1;
     hp_c.max_hp = hp;
+  }
+
+  // Make it a variant.
+  // outline it
+  // 10x the HP, but it also drops a level up.
+  // static engine::RandomState variant_rng(0);
+  // const float variant_chance_percent_0_100 = 0.04f; // 0.04%
+  // const float variant_chance_percent_0_100 = 0.25f; // 0.25%
+  // const float variant_hp_multiplier = 10.0f;
+  // const bool is_variant = engine::rand_det_s(variant_rng.rng, 0, 100) < variant_chance_percent_0_100;
+  if (is_variant) {
+    //   hp *= variant_hp_multiplier;
+
+    const auto& pb_c = r.get<PhysicsBodyComponent>(e);
+    for (const auto fixture_e : pb_c.fixtures)
+      r.emplace<SpriteOutline>(fixture_e);
+
+    auto& death_c = r.get<OnDeathCallbacks>(e);
+
+    // auto drop_xp_callback = [](entt::registry& r, const entt::entity e) { drop_levelup_xp_on_death_callback(r, e); };
+    // death_c.callbacks.push_back(drop_xp_callback);
+
+    auto drop_tome_callback = [](entt::registry& r, const entt::entity e) {
+      auto pos = get_position(r, e);
+      const auto item_e = spawn(r, "item_tome");
+      give_life(r, item_e, pos, { default_map_unit_tilesize, default_map_unit_tilesize });
+      r.emplace<SpriteOutline>(item_e);
+      r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
+      auto& pb_c = r.get<PhysicsBodyComponent>(item_e);
+      auto fixture_e = pb_c.fixtures[0]; // assume item has only 1 fixture
+      r.emplace<TomeComponent>(fixture_e);
+      r.remove<OnDeathCallbacks>(item_e);
+    };
+    death_c.callbacks.push_back(drop_tome_callback);
   }
 
   // move at player, this gotta be changed for more interesting types

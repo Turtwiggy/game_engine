@@ -80,7 +80,7 @@
     {
       "key": "weapon_deck_cannon",
       "name": "Heavy Cannon", // heavy pistol
-      "desc": "[Heavy] rounds. Simple. Effective.",
+      "desc": "Heavy. Simple. Effective.",
       "audio": ["RIFLE_01", "RIFLE_02"],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "KINETIC",
@@ -165,7 +165,7 @@
     {
       "key": "weapon_sea_turret",
       "name": "Turret Deployer",
-      "desc": "Drop turrets that fire [Heavy]",
+      "desc": "Drop turrets that shoot [Heavy]",
       "audio": ["TURRET_01", "TURRET_02"],
       "weapon_type": "DEPLOY",
       "weapon_damage": "KINETIC",
@@ -194,7 +194,7 @@
     {
       "key": "weapon_flamethrower",
       "name": "Flamethrower",
-      "desc": "Fire [Fire] Fire! Fire? FIRE!!!!",
+      "desc": "Fire's Fire. Fire? FIRE!!!!",
       "audio": [ ],
       "weapon_type": "PROJECTILE",
       "weapon_damage": "FIRE",

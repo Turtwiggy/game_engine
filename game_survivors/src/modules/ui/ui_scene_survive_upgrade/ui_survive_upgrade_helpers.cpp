@@ -7,6 +7,7 @@
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/std/string/helpers.hpp"
+#include "engine/std/vector/helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_weapon/weapon_components.hpp"
@@ -68,43 +69,50 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     const auto weapons_e = get_weapons(r, player_e);
 
     // get weapons that arnt max level (i.e. level 12)
-    const int WEAPON_MAX_LEVEL = 12;
-    std::vector<entt::entity> non_max_level_weapons;
-    for (int i = 0; i < weapons_e.size(); i++) {
-      const auto& wep_lvl_c = r.get<WeaponLevelComponent>(weapons_e[i]);
-      const auto lv = wep_lvl_c.level;
-      if (lv >= WEAPON_MAX_LEVEL)
-        continue;
-      non_max_level_weapons.push_back(weapons_e[i]);
-    }
+    // const int WEAPON_MAX_LEVEL = 12;
+    // std::vector<entt::entity> non_max_level_weapons;
+    // for (int i = 0; i < weapons_e.size(); i++) {
+    //   const auto& wep_lvl_c = r.get<WeaponLevelComponent>(weapons_e[i]);
+    //   const auto lv = wep_lvl_c.level;
+    //   if (lv >= WEAPON_MAX_LEVEL)
+    //     continue;
+    //   non_max_level_weapons.push_back(weapons_e[i]);
+    // }
+
+    int first_stat_roll = 0;
 
     // For the 1st & 2nd upgrade, roll a BULLET_X or WEAPON_X stat
     while (results_c.results.size() != 2) {
 
       // Prioritize non-max level weapons
-      std::vector<entt::entity> weapons;
-      if ((int)!non_max_level_weapons.empty()) {
-        const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)non_max_level_weapons.size());
-        const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
-        weapons.push_back(wep_e);
-      } else if ((int)!weapons_e.empty()) {
-        const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
-        const auto wep_e = weapons_e[rnd_wep_upg_idx];
-        weapons.push_back(wep_e);
-      }
+      // std::vector<entt::entity> weapons;
+      // if ((int)!non_max_level_weapons.empty()) {
+      //   const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)non_max_level_weapons.size());
+      //   const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
+      //   weapons.push_back(wep_e);
+      // } else if ((int)!weapons_e.empty()) {
+      //   const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
+      //   const auto wep_e = weapons_e[rnd_wep_upg_idx];
+      //   weapons.push_back(wep_e);
+      // }
+      // if (weapons.empty()) {
+      //   throw std::runtime_error("player has no weapons!");
+      //   exit(1); // crash
+      // }
 
-      if (weapons.empty()) {
-        throw std::runtime_error("player has no weapons!");
-        exit(1); // crash
-      }
-      const auto weapon_type = r.get<Weapon_OnDiskData>(weapons[0]);
+      // assume player has the same type of weapons in all weapon slots
+      const auto weapon_type = r.get<Weapon_OnDiskData>(weapons_e[0]);
 
       // WEAPON_ stats, and add BULLET_ stats if applicable
       auto stats = upgradeable_weapon_stats;
       if (weapon_type.type_as_enum == WEAPON_TYPE::PROJECTILE || weapon_type.type_as_enum == WEAPON_TYPE::DEPLOY)
         stats.insert(stats.end(), upgradeable_bullet_stats.begin(), upgradeable_bullet_stats.end());
 
-      if (weapon_type.damage_as_enum == WEAPON_DAMAGE::FIRE)
+      // AREA_ stats if the bullet is elemental
+      auto& behaviours_c = r.get<WeaponBehaviourComponent>(weapons_e[0]);
+      bool is_fire = weapon_type.damage_as_enum == WEAPON_DAMAGE::FIRE;
+      is_fire |= has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
+      if (is_fire)
         stats.insert(stats.end(), upgradeable_area_stats.begin(), upgradeable_area_stats.end());
 
       const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)stats.size());
@@ -115,12 +123,18 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
       const auto [value, type] = get_stat_from_stat_table(r, rarity, upgrade_enum);
 
+      // dont roll the same stat twice, it feels bad.
+      if (results_c.results.empty())
+        first_stat_roll = roll_value;
+      if (!results_c.results.empty() && first_stat_roll == roll_value)
+        continue;
+
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,
         .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
         // WEAPON_x and BULLET_x do level weapon
         // .weapons = { weapon_e }, // note: only leveling first.
-        .weapons = weapons,
+        .weapons = weapons_e, // apply to all weapons
         .level_weapons = true,
       });
     }
@@ -172,9 +186,9 @@ update_player_upgrade_ui(entt::registry& r, entt::entity player_e, UIState& stat
 
       // upg_e is wep_e or par_e
       if (!res.weapons.empty())
-        evt.upg_e = res.weapons[0];
+        evt.upg_es = res.weapons;
       else
-        evt.upg_e = player_e;
+        evt.upg_es = { player_e };
 
       evt.roll_result = res;
       evts_c.dispatcher->trigger(evt);

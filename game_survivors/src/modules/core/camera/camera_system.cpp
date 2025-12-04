@@ -178,21 +178,20 @@ update_camera_zoom_system(entt::registry& r, const float dt)
   bool zoom_enabled = true;
   if (zoom_enabled) {
     // ImGui::Text("MouseWheel: %f", ImGui::GetIO().MouseWheel);
-    if (ImGui::GetIO().MouseWheel > 0.0f) {
-      zoom -= 0.1f;
-      camera.zoom_changed = true;
-    }
-    if (ImGui::GetIO().MouseWheel < 0.0f) {
-      zoom += 0.1f;
-      camera.zoom_changed = true;
-    }
-
+    // if (ImGui::GetIO().MouseWheel > 0.0f) {
+    //   zoom -= 0.1f;
+    //   camera.zoom_changed = true;
+    // }
+    // if (ImGui::GetIO().MouseWheel < 0.0f) {
+    //   zoom += 0.1f;
+    //   camera.zoom_changed = true;
+    // }
     // hack: reset zoom.
-    if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
-      zoom = 0.0f;
-      zoom_nonlinear = 1.0f;
-      camera.zoom_changed = true;
-    }
+    // if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+    //   zoom = 0.0f;
+    //   zoom_nonlinear = 1.0f;
+    //   camera.zoom_changed = true;
+    // }
   }
 #if defined(_DEBUG)
   ImGui::Begin("DebugZoom");

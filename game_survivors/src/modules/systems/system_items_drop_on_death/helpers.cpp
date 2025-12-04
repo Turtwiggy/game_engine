@@ -5,6 +5,7 @@
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/colour/colour.hpp"
 #include "engine/lifecycle/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/combat/combat_core/components.hpp"
@@ -27,8 +28,8 @@ drop_levelup_xp_on_death_callback(entt::registry& r, const entt::entity e)
   const auto item_e = spawn(r, "item_xp");
   give_life(r, item_e, get_position(r, e), { size, size });
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
-  r.emplace<AnimationRotate>(item_e);
-  set_colour(r, item_e, pink);
+  // r.emplace<AnimationRotate>(item_e);
+  // set_colour(r, item_e, pink);
 
   auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_item");
   r.emplace<XpComponent>(fixture_e, XpComponent{ .levelup = true });
@@ -54,7 +55,9 @@ drop_xp_on_death_callback(entt::registry& r, const entt::entity e)
   r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
   set_z_index(r, item_e, ZLayer::XP_FRONT);
 
-  auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_item");
+  // auto fixture_e = get_fixture_by_tag(r, item_e, "fixture_item");
+  auto& pb_c = r.get<PhysicsBodyComponent>(item_e);
+  auto fixture_e = pb_c.fixtures[0]; // assume item_xp has only 1 fixture
   r.emplace<XpComponent>(fixture_e);
 
   // xp doesnt do anything on it's death

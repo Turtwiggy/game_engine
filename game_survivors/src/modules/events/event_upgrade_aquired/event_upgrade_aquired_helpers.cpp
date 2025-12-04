@@ -28,11 +28,11 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
 
   // note: upg_e is either on the player, or on the weapon
   const auto par_e = evt.par_e;
-  const auto upg_e = evt.upg_e;
 
   // done
   remove_if_exists<UpgradeResultsComponent>(r, par_e);
-  remove_if_exists<UpgradeResultsComponent>(r, upg_e);
+  for (const auto upg_e : evt.upg_es)
+    remove_if_exists<UpgradeResultsComponent>(r, upg_e);
 
   const auto rarity = evt.roll_result.rarity;
   const auto& stats = evt.roll_result.stats;
@@ -53,18 +53,19 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   }
 
   // Upgrade stats
-  auto& stats_c = r.get<StatModifierComponent>(upg_e);
-  for (const auto& s : stats) {
-    const auto& stat = s.stat;
-    const auto& type = s.type;
-    const auto& value = s.value;
-
-    if (type == "stat_flat_increase")
-      stats_c.add(std::make_shared<StatFlatIncrease>(value, stat));
-    else if (type == "stat_percent_increase")
-      stats_c.add(std::make_shared<StatPercentIncrease>(value, stat));
-    else
-      throw std::runtime_error("Unknown stat type");
+  for (const auto upg_e : evt.upg_es) {
+    auto& stats_c = r.get<StatModifierComponent>(upg_e);
+    for (const auto& s : stats) {
+      const auto& stat = s.stat;
+      const auto& type = s.type;
+      const auto& value = s.value;
+      if (type == "stat_flat_increase")
+        stats_c.add(std::make_shared<StatFlatIncrease>(value, stat));
+      else if (type == "stat_percent_increase")
+        stats_c.add(std::make_shared<StatPercentIncrease>(value, stat));
+      else
+        throw std::runtime_error("Unknown stat type");
+    }
   }
 
   // Upgrade weapons sent in request.
@@ -79,30 +80,19 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
 
     auto& wep_level_c = r.get<WeaponLevelComponent>(weapon_e);
     wep_level_c.level++;
-
-    auto it = std::find(core_weapon_levels.begin(), core_weapon_levels.end(), wep_level_c.level);
-    if (it == core_weapon_levels.end())
-      continue; // not a core weapon level
-
-    SDL_Log("Core weapon level reached: %i", wep_level_c.level);
-    WeaponLevelReachedEvent lv_evt;
-    lv_evt.level = wep_level_c.level;
-    lv_evt.par_e = par_e;
-    lv_evt.wep_e = weapon_e;
-    evts_c.dispatcher->trigger(lv_evt);
-    evts_c.dispatcher->update();
   }
 
   // Update WeaponDef and BulletDef
-  if (r.all_of<WeaponComponent>(upg_e)) {
-    SDL_Log("Updating WeaponDef & BulletDef");
-    r.emplace_or_replace<WeaponDef>(upg_e, get_weapon_def(r, upg_e));
+  for (const auto upg_e : evt.upg_es) {
+    if (r.all_of<WeaponComponent>(upg_e)) {
+      SDL_Log("Updating WeaponDef & BulletDef");
+      r.emplace_or_replace<WeaponDef>(upg_e, get_weapon_def(r, upg_e));
 
-    if (r.all_of<BulletDef>(upg_e))
-      r.emplace_or_replace<BulletDef>(upg_e, get_bullet_def(r, upg_e));
-  } else
-    SDL_Log("The thing that was upgraded wasnt a weapon (maybe an actor e.g. boat)");
-
+      if (r.all_of<BulletDef>(upg_e))
+        r.emplace_or_replace<BulletDef>(upg_e, get_bullet_def(r, upg_e));
+    } else
+      SDL_Log("The thing that was upgraded wasnt a weapon (maybe an actor e.g. boat)");
+  }
   //
 }
 

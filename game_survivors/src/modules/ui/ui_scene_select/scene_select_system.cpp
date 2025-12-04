@@ -493,31 +493,6 @@ draw_card_inner(entt::registry& r,
     // draw_list->AddRect(box_tl, box_br, IM_COL32(255, 0, 0, 255));
     draw_stats(r, box_tl, box_wh, player_ui_c);
 
-    // Display the overclocks
-    {
-      const auto& active_cell = player_ui_c.state.active;
-      const auto& cs = player_ui_c.state.cells;
-      const auto cell_it = std::find(cs.begin(), cs.end(), active_cell);
-      const auto cell_idx = static_cast<int>(cell_it - cs.begin());
-      auto& cell = *(dynamic_cast<OptionsCell*>(cell_it->get()));
-      const bool is_hull = cell.name.find("Hull") != std::string::npos;
-      const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
-
-      if (is_weapon) {
-        const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
-        const auto& weapon = weapons_c.weapons[cell.value].key;
-        auto upgrades = get_upgrades_from_weapon_key(r, weapon);
-        const auto base_pos = ImGui::GetCursorPos();
-        const auto overclock_x = box_tl.x + 0.1f * box_wh.x;
-        ImGui::SetCursorPos({ overclock_x, base_pos.y });
-        ImGui::Text("Overclocks (Lv 4, 8, 12)");
-        for (int i = 0; i < upgrades.size(); i++) {
-          ImGui::SetCursorPos({ overclock_x, base_pos.y + (i + 1) * text_size_y });
-          ImGui::TextColored(im_inactive_col_vec, "- %s", upgrades[i].display.c_str());
-        }
-      }
-    }
-
     // draw confirm timer.
     {
       const auto ready_text = std::format("Hold {}", get_confirm_button_str(r, handle));

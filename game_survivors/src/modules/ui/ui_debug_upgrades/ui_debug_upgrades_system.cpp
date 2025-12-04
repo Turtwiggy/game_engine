@@ -136,7 +136,7 @@ update_ui_debug_upgrades_system(entt::registry& r)
 
       UpgradeEvent evt;
       evt.par_e = e;
-      evt.upg_e = e; // add to player
+      evt.upg_es = { e }; // add to player
       evt.roll_result = roll;
       evts_c.dispatcher->trigger(evt);
     }

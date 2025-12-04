@@ -172,6 +172,28 @@
 
   // choose any of the enemy keys
   "random_spawner": [
+
+    {
+      "time": { "start": 1.5, "stop": 2.5 }, "keys": [ 
+        "actor_enemy_melee_3"
+      ], "data": { "hp": 250, "max": 1, "num_per_spawn": 1 }
+    },
+    {
+     "time": { "start": 3.5, "stop": 4.5 }, "keys": [ 
+        "actor_enemy_melee_3"
+      ], "data": { "hp": 500, "max": 1, "num_per_spawn": 1 } 
+    },
+    {
+     "time": { "start": 6.5, "stop": 7.5 }, "keys": [ 
+        "actor_enemy_melee_3"
+      ], "data": { "hp": 750, "max": 1, "num_per_spawn": 1 } 
+    },
+    {
+      "time": { "start": 8.5, "stop": 9.5 }, "keys": [ 
+        "actor_enemy_melee_3"
+      ], "data": { "hp": 1000, "max": 1, "num_per_spawn": 1 }
+    },
+
     {
       "time": { "start": 1.5, "stop": 2.5 }, "keys": [ 
         "actor_enemy_6", "actor_enemy_7", "actor_enemy_8", 

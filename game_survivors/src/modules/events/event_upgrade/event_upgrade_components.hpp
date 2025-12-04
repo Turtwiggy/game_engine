@@ -9,7 +9,7 @@ namespace game2d {
 struct UpgradeEvent
 {
   entt::entity par_e = entt::null;
-  entt::entity upg_e = entt::null;
+  std::vector<entt::entity> upg_es;
 
   UpgradeRollResult roll_result; // rarity, stat, or trait
 };

@@ -19,7 +19,7 @@ update_ui_display_build_number_system(entt::registry& r)
   const auto viewport_tl = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_wh = ImVec2(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
 
-  auto str = "Version 0.40.1"; // todo: get from version control innit
+  auto str = "Version 0.40.2"; // todo: get from version control innit
   auto str1 = std::format("Suggestions, Issues, Wizards? {} ", discord_link);
   auto line_size_x = glm::max(ImGui::CalcTextSize(str).x, ImGui::CalcTextSize(str1.c_str()).x);
 

@@ -433,6 +433,15 @@
       "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
     },
     {
+      "name": "item_tome",
+      "speed": 0,
+      "display_name": "TOME",
+      "display_desc": "Even delicious-er experience.",
+      "renderable": { "sprite": "BOOK", "colour": "white" },
+      "phys_body": { "is_bullet": false, "is_static": true },
+      "phys_fixtures": [ { "tag": "fixture_item", "type": "circle", "is_sensor": true } ]
+    },
+    {
       "name": "item_gold",
       "display_name": "Gold",
       "display_desc": "Delicious gold. num num num num.",

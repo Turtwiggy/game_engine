@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "events_system.hpp"
 
 #include "engine/audio/audio_components.hpp"
@@ -15,6 +17,7 @@
 #include "modules/events/event_coll_player_hp/event_coll_player_hp_helpers.hpp"
 #include "modules/events/event_coll_player_island/event_coll_player_island.hpp"
 #include "modules/events/event_coll_player_sea_mine/event_coll_player_sea_mine_helpers.hpp"
+#include "modules/events/event_coll_player_tome/event_coll_player_tome_helpers.hpp"
 #include "modules/events/event_coll_player_vacuum_orb/event_coll_player_vacuum_orb_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_helpers.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
@@ -63,6 +66,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_hp>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_island>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_sea_mine>(r);
+  ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_tome>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_vacuum_orb>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enter_xp>(r);
   ed.dispatcher->sink<OnCollisionEnter>().connect<&handle_player_enemy_coll_enter>(r);
