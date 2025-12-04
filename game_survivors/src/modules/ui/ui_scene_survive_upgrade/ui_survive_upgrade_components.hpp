@@ -156,8 +156,8 @@ const std::vector<UpgradeableStat> upgradeable_bullet_stats{
   UpgradeableStat::BULLET_KNOCKBACK,
   UpgradeableStat::BULLET_LIFESTEAL, // %hp you recover when a bullet hits
   UpgradeableStat::BULLET_PIERCE,
-  // UpgradeableStat::BULLET_SIZE,
   UpgradeableStat::BULLET_SPEED,
+  // UpgradeableStat::BULLET_SIZE,
 
   // clang-format on
 };
@@ -188,8 +188,8 @@ const std::vector<UpgradeableStat> actor_x_stats{
 };
 
 constexpr std::array<std::pair<Rarity, int>, 5> rarity_chance_map = { {
-  { Rarity::COMMON, 40 },
-  { Rarity::UNCOMMON, 40 },
+  { Rarity::COMMON, 45 },
+  { Rarity::UNCOMMON, 35 },
   { Rarity::RARE, 10 },
   { Rarity::LEGENDARY, 7 },
   { Rarity::SUPER_LEGENDARY, 3 },

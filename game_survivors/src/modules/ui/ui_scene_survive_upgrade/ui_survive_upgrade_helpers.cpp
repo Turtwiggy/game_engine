@@ -309,7 +309,8 @@ make_stat_name_pretty_name(const std::string stat)
   result = str_remove_all_occurances(result, "ACTOR_");
   result = str_remove_all_occurances(result, "AREA_");
   result = str_remove_all_occurances(result, "WEAPON_");
-  result = str_remove_all_occurances(result, "BULLET_");
+  // if (stat != "BULLET_SPEED")
+  //   result = str_remove_all_occurances(result, "BULLET_");
 
   /**/
   // convert from bold uppercase to regular.

@@ -68,8 +68,9 @@ get_display_stats(entt::registry& r)
       continue;
     auto key = std::string(magic_enum::enum_name(UpgradeableStat(i)));
     auto clean_key = make_stat_name_pretty_name(key);
-    clean_key = str_remove_all_occurances(clean_key, "BULLET_");
     clean_key = str_remove_all_occurances(clean_key, "WEAPON_");
+    // if (clean_key.find("BULLET_SPEED") != std::string::npos)
+    //   clean_key = str_remove_all_occurances(clean_key, "BULLET_");
 
     display_stats.push_back({ .key = clean_key, .val = "0" });
   }
@@ -408,6 +409,7 @@ get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult&
   const auto& upg_weapons = result.weapons;
   auto rarity = result.rarity;
   auto rarity_str = std::string(magic_enum::enum_name(rarity));
+  rarity_str = str_remove_all_occurances(rarity_str, "_");
 
   std::string header_text = "Overclock Weapon!";
   std::string upgrade_str = "";
@@ -428,7 +430,7 @@ get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult&
   }
 
   // if only one stat, set the header
-  if (result.stats.size() == 1) {
+  if (result.stats.size() == 1 && result.traits.empty()) {
     const auto& s = result.stats[0];
     const std::string stat = s.stat;
     const std::string type = s.type;
@@ -626,8 +628,8 @@ draw_simple_upgrade_ui(entt::registry& r,
     const auto rarity_tl = ImVec2(header_bg_tl.x, header_bg_br.y);
     const auto rarity_br = ImVec2(header_bg_br.x, header_bg_br.y + body_font_size);
     const auto rarity_wh = calc_wh(rarity_tl, rarity_br);
-    const auto rarity_txt_center = center_text(body_font, 13, data.rarity_txt, calc_center(rarity_tl, rarity_wh));
-    draw_list->AddText(body_font, 13, rarity_txt_center, im_rcol, data.rarity_txt.c_str());
+    const auto rarity_txt_center = center_text(body_font, 10, data.rarity_txt, calc_center(rarity_tl, rarity_wh));
+    draw_list->AddText(body_font, 10, rarity_txt_center, im_rcol, data.rarity_txt.c_str());
 
     // draw the card info text.
     const auto desc_tl = ImVec2(card_ui_tl.x, header_bg_br.y);
@@ -752,8 +754,8 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     auto& menu_c = get_first_component<SINGLE_DebugMenuBar>(r);
     auto cheat_levelup_state = gesert_menubar_state(menu_c, "Cheat LevelUp");
 
-    if (cheat_levelup_state.enabled) {
-      // if (true) {
+    // if (cheat_levelup_state.enabled) {
+    if (true) {
 
       ImGui::SetNextWindowPos(ImVec2{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y },
                               ImGuiCond_Always,
