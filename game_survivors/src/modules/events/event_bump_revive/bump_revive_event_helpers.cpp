@@ -11,9 +11,11 @@
 #include "modules/actors/actor_island_cannon/island_cannon_components.hpp"
 #include "modules/actors/actor_islander/islander_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_weapon_core/combat_weapon_core_components.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/events/event_death/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_anchor/anchor_helpers.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
@@ -41,7 +43,17 @@ handle_bump_event__revive(entt::registry& r, const BumpEvent& evt)
     // do the revive.
     // which player needs reviving?
     SDL_Log("Revive player_idx %i", player_idx);
-    dead_c.dead.push_back(evt.to); // kill the islander.
+
+    // kill the islander
+    dead_c.dead.push_back(evt.to);
+
+    // Remove from island.
+    auto& movement_c = r.get<MovementIslandComponent>(islander_e);
+    auto island_e = movement_c.island_e;
+    auto& island_c = r.get<DebugContoursComponent>(island_e);
+    island_c.occupied_island_xy.erase(std::find_if(island_c.occupied_island_xy.begin(),
+                                                   island_c.occupied_island_xy.end(),
+                                                   [&islander_e](const auto& other) { return other.second == islander_e; }));
 
     const auto player_e = get_player_e_from_idx(r, player_idx);
 

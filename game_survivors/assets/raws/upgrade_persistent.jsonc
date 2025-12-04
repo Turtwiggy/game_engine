@@ -21,7 +21,7 @@
     },
     { "key": "ACTOR_HEALTH_REGEN",
       "levels": [
-        { "type": "stat_flat_increase", "value": 0.25 }
+        { "type": "stat_flat_increase", "value": 0.15 }
         // { "type": "stat_flat_increase", "value": 0.1 },
         // { "type": "stat_flat_increase", "value": 0.1 },
         // { "type": "stat_flat_increase", "value": 0.1 },

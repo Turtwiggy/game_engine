@@ -90,8 +90,7 @@ fixedupdate_movement_direct(entt::registry& r, const uint64_t ms_dt)
     }
   }
 
-  const auto view =
-    r.view<const PhysicsBodyComponent, const RotateToVelocityComponent>(entt::exclude<DroppedAnchorComponent>);
+  const auto view = r.view<const PhysicsBodyComponent, const RotateToVelocityComponent>();
   for (const auto& [e, body_c, rotate_c] : view.each()) {
     // Set Rotation
     const float angle_speed = 50.0f; // higher number = faster to rotate

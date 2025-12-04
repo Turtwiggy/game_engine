@@ -15,11 +15,11 @@
       {"rarity": "SUPER_LEGENDARY", "value": 10}
     ]},
     {"stat": "ACTOR_HEALTH_REGEN", "type": "stat_flat_increase", "values":[
-      {"rarity": "COMMON",          "value": 0.10},
-      {"rarity": "UNCOMMON",        "value": 0.15},
-      {"rarity": "RARE",            "value": 0.20},
-      {"rarity": "LEGENDARY",       "value": 0.25},
-      {"rarity": "SUPER_LEGENDARY", "value": 0.30}
+      {"rarity": "COMMON",          "value": 0.02},
+      {"rarity": "UNCOMMON",        "value": 0.04},
+      {"rarity": "RARE",            "value": 0.06},
+      {"rarity": "LEGENDARY",       "value": 0.08},
+      {"rarity": "SUPER_LEGENDARY", "value": 0.10}
     ]},
     {"stat": "ACTOR_SPEED", "type": "stat_percent_increase", "values":[
       {"rarity": "COMMON",          "value": 5},
@@ -35,14 +35,13 @@
     //   {"rarity": "LEGENDARY",       "value": 4},
     //   {"rarity": "SUPER_LEGENDARY", "value": 5}
     // ]},
-    {"stat": "ACTOR_XP_ZONE_SIZE", "type": "stat_percent_increase", "values":[
-      {"rarity": "COMMON",          "value": 5},
-      {"rarity": "UNCOMMON",        "value": 15},
-      {"rarity": "RARE",            "value": 25},
-      {"rarity": "LEGENDARY",       "value": 35},
-      {"rarity": "SUPER_LEGENDARY", "value": 45}
-    ]},
-
+    // {"stat": "ACTOR_XP_ZONE_SIZE", "type": "stat_percent_increase", "values":[
+    //   {"rarity": "COMMON",          "value": 5},
+    //   {"rarity": "UNCOMMON",        "value": 15},
+    //   {"rarity": "RARE",            "value": 25},
+    //   {"rarity": "LEGENDARY",       "value": 35},
+    //   {"rarity": "SUPER_LEGENDARY", "value": 45}
+    // ]},
     {"stat": "BULLET_CRIT_CHANCE", "type": "stat_flat_increase", "values":[
       {"rarity": "COMMON",          "value": 3},
       {"rarity": "UNCOMMON",        "value": 6},
@@ -85,13 +84,13 @@
       {"rarity": "LEGENDARY",       "value": 4},
       {"rarity": "SUPER_LEGENDARY", "value": 5}
     ]},
-    {"stat": "BULLET_SIZE", "type": "stat_percent_increase", "values":[
-      {"rarity": "COMMON",          "value": 10},
-      {"rarity": "UNCOMMON",        "value": 20},
-      {"rarity": "RARE",            "value": 30},
-      {"rarity": "LEGENDARY",       "value": 40},
-      {"rarity": "SUPER_LEGENDARY", "value": 50}
-    ]},
+    // {"stat": "BULLET_SIZE", "type": "stat_percent_increase", "values":[
+    //   {"rarity": "COMMON",          "value": 10},
+    //   {"rarity": "UNCOMMON",        "value": 20},
+    //   {"rarity": "RARE",            "value": 30},
+    //   {"rarity": "LEGENDARY",       "value": 40},
+    //   {"rarity": "SUPER_LEGENDARY", "value": 50}
+    // ]},
     {"stat": "BULLET_SPEED", "type": "stat_percent_increase", "values":[
       {"rarity": "COMMON",          "value": 10},
       {"rarity": "UNCOMMON",        "value": 20},
@@ -99,12 +98,12 @@
       {"rarity": "LEGENDARY",       "value": 40},
       {"rarity": "SUPER_LEGENDARY", "value": 50}
     ]},
-    {"stat": "WEAPON_CLIP_SIZE", "type": "stat_percent_increase", "values":[
-      {"rarity": "COMMON",          "value": 10},
-      {"rarity": "UNCOMMON",        "value": 20},
-      {"rarity": "RARE",            "value": 30},
-      {"rarity": "LEGENDARY",       "value": 40},
-      {"rarity": "SUPER_LEGENDARY", "value": 50}
+    {"stat": "WEAPON_CLIP_SIZE", "type": "stat_flat_increase", "values":[
+      {"rarity": "COMMON",          "value": 1},
+      {"rarity": "UNCOMMON",        "value": 2},
+      {"rarity": "RARE",            "value": 3},
+      {"rarity": "LEGENDARY",       "value": 4},
+      {"rarity": "SUPER_LEGENDARY", "value": 5}
     ]},
     {"stat": "WEAPON_FIRERATE", "type": "stat_percent_increase", "values":[
       {"rarity": "COMMON",          "value": 10},
@@ -113,13 +112,13 @@
       {"rarity": "LEGENDARY",       "value": 35},
       {"rarity": "SUPER_LEGENDARY", "value": 50}
     ]},
-    {"stat": "WEAPON_RANGE", "type": "stat_percent_increase", "values":[
-      {"rarity": "COMMON",          "value": 10},
-      {"rarity": "UNCOMMON",        "value": 20},
-      {"rarity": "RARE",            "value": 30},
-      {"rarity": "LEGENDARY",       "value": 40},
-      {"rarity": "SUPER_LEGENDARY", "value": 50}
-    ]},
+    // {"stat": "WEAPON_RANGE", "type": "stat_percent_increase", "values":[
+    //   {"rarity": "COMMON",          "value": 10},
+    //   {"rarity": "UNCOMMON",        "value": 20},
+    //   {"rarity": "RARE",            "value": 30},
+    //   {"rarity": "LEGENDARY",       "value": 40},
+    //   {"rarity": "SUPER_LEGENDARY", "value": 50}
+    // ]},
     {"stat": "WEAPON_RELOAD", "type": "stat_percent_increase", "values":[
       {"rarity": "COMMON",          "value": -10},
       {"rarity": "UNCOMMON",        "value": -20},

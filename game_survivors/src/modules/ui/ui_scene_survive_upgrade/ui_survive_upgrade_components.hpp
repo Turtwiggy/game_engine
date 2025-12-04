@@ -144,7 +144,7 @@ const std::vector<UpgradeableStat> upgradeable_weapon_stats{
   UpgradeableStat::WEAPON_CLIP_SIZE,
   UpgradeableStat::WEAPON_FIRERATE,
   UpgradeableStat::WEAPON_RELOAD,
-  UpgradeableStat::WEAPON_RANGE,
+  // UpgradeableStat::WEAPON_RANGE,
 };
 
 const std::vector<UpgradeableStat> upgradeable_bullet_stats{
@@ -157,7 +157,7 @@ const std::vector<UpgradeableStat> upgradeable_bullet_stats{
   UpgradeableStat::BULLET_LIFESTEAL, // %hp you recover when a bullet hits
   UpgradeableStat::BULLET_PIERCE,
   // UpgradeableStat::BULLET_SIZE,
-  // UpgradeableStat::BULLET_SPEED,
+  UpgradeableStat::BULLET_SPEED,
 
   // clang-format on
 };
@@ -182,7 +182,7 @@ const std::vector<UpgradeableStat> actor_x_stats{
   UpgradeableStat::ACTOR_HEALTH_REGEN,
   UpgradeableStat::ACTOR_SPEED,
   // UpgradeableStat::ACTOR_STAMINA,
-  UpgradeableStat::ACTOR_XP_ZONE_SIZE,
+  // UpgradeableStat::ACTOR_XP_ZONE_SIZE,
 
   // clang-format on
 };
