@@ -8,6 +8,8 @@ namespace game2d {
 
 enum class GAME_OPTIONS
 {
+  GAME_ZOOM_LEVEL,
+
   AUDIO_MASTER_VOLUME,
   AUDIO_MUSIC_VOLUME,
   AUDIO_SFX_VOLUME,
@@ -48,6 +50,19 @@ struct IOption
 
   // display the option value to the user
   virtual std::string display_val() { return ""; };
+};
+
+struct Option_GameZoomLevel : public IOption
+{
+  Game_ZoomLevelOnDisk data{ .value = 1.0f };
+
+  Option_GameZoomLevel()
+    : IOption(GAME_OPTIONS::GAME_ZOOM_LEVEL, "FOV", UIValueType::SCROLL) {};
+
+  void load(engine::SINGLE_Application& app, entt::registry& r) override;
+  void update(engine::SINGLE_Application& app, entt::registry& r, int& hindex) override;
+  int get_hindex(entt::registry& r) override;
+  std::string display_val() override;
 };
 
 struct Option_AudioMasterVolume : public IOption
@@ -146,6 +161,9 @@ struct SINGLE_GameOptions
   bool loaded = false;
 
   std::vector<std::shared_ptr<IOption>> options{
+    // game settings
+    std::make_shared<Option_GameZoomLevel>(),
+
     // audio settings
     std::make_shared<Option_AudioMasterVolume>(),
     std::make_shared<Option_AudioMusicVolume>(),

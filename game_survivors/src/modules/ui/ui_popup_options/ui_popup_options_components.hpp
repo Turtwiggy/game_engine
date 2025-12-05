@@ -28,6 +28,13 @@ struct SINGLE_OptionsMenuState : DefaultUI
 // on-disk data representations
 //
 
+struct Game_ZoomLevelOnDisk
+{
+  float value = 1.0f;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Game_ZoomLevelOnDisk, value);
+};
+
 struct Audio_OnDisk
 {
   float value = 1.0f;

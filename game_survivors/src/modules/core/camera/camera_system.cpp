@@ -30,8 +30,6 @@ update_zoom(OrthographicCamera& camera, float dt)
   auto& zoom_nonlinear = camera.zoom_nonlinear;
 
   const float speed = 15.0;
-  const float zoom_in = 0.25f;
-  const float zoom_out = 2.0f;
 
   // If zoom = 0, then 2^(zoom / 2) gives you a zoom factor of 1 (no zoom).
   // If zoom = 1, then 2^(1 / 2) gives a zoom factor of ~1.414 (approximately zooming in by 41%).
@@ -41,14 +39,14 @@ update_zoom(OrthographicCamera& camera, float dt)
   zoom_nonlinear = engine::lerp(zoom_nonlinear, new_zoom_nonlinear, dt * speed);
 
   // clamp zoomout
-  if (zoom_nonlinear > zoom_out) {
-    zoom_nonlinear = zoom_out;
+  if (zoom_nonlinear > ZOOM_OUT) {
+    zoom_nonlinear = ZOOM_OUT;
     zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
   };
 
   // clamp zoomin
-  if (zoom_nonlinear < zoom_in) {
-    zoom_nonlinear = zoom_in;
+  if (zoom_nonlinear < ZOOM_IN) {
+    zoom_nonlinear = ZOOM_IN;
     zoom = (2.0f * std::log(zoom_nonlinear)) / std::log(2.0f);
   }
 

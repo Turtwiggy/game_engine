@@ -145,6 +145,14 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
     // add seperators for categories.
     const auto enum_val = magic_enum::enum_cast<GAME_OPTIONS>(i).value();
 
+    // first game option
+    if (enum_val == GAME_OPTIONS::GAME_ZOOM_LEVEL) {
+      const auto h_txt = "- GAME -";
+      const auto h_pos = center_text(font, font_size, h_txt, { window_wh.x * 0.5f, 0 });
+      ImGui::SetCursorPosX(h_pos.x);
+      ImGui::TextColored(white_col, h_txt);
+    }
+
     // first audio option
     if (enum_val == GAME_OPTIONS::AUDIO_MASTER_VOLUME) {
       const auto h_txt = "- AUDIO -";
@@ -206,7 +214,7 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       option->update(app, r, h_value);
     }
 
-    const auto display_slider = [&r, &app, &cell, window_wh, padding_x](auto& o, auto label) {
+    const auto display_slider = [&r, &app, &cell, window_wh, padding_x](auto& o, auto label, float min = 0, float max = 1) {
       auto& data = o->data;
 
       ImGui::SameLine(window_wh.x * 0.5f);
@@ -215,8 +223,8 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
       float slider_x = 0.6f; // 0-1
       ImGui::SameLine(window_wh.x * slider_x);
       ImGui::SetNextItemWidth((window_wh.x * (1.0f - slider_x)) - padding_x);
-      if (ImGui::SliderFloat(label, &data.value, 0.0f, 1.0f, "", 0)) {
-        int tmp = engine::scale(data.value, 0.0f, 1.0f, 0, 10);
+      if (ImGui::SliderFloat(label, &data.value, min, max, "", 0)) {
+        int tmp = engine::scale(data.value, min, max, 0, 10);
         o->update(app, r, tmp);
         cell->value = tmp; // update the row col_index
       }
@@ -253,6 +261,9 @@ update_ui_popup_options_system(engine::SINGLE_Application& app, entt::registry& 
         cell->value = new_dm;
       }
     };
+
+    if (auto* o = dynamic_cast<Option_GameZoomLevel*>(option.get()))
+      display_slider(o, "##gamezoom", -1, 1);
 
     if (auto* o = dynamic_cast<Option_AudioMasterVolume*>(option.get()))
       display_slider(o, "##mastervol");

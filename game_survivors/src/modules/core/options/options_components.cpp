@@ -7,6 +7,8 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
+#include "modules/core/camera/components.hpp"
+#include "modules/core/camera/orthographic.hpp"
 #include "modules/core/io/io_helpers.hpp"
 
 namespace game2d {
@@ -33,6 +35,71 @@ center_window(engine::SINGLE_Application& app, int monitor_idx = 0)
   const auto center_y = monitor_bounds.y + 0.5f * (monitor_bounds.h - window_h);
 
   app.window.set_position(center_x, center_y);
+};
+
+void
+Option_GameZoomLevel::load(engine::SINGLE_Application& app, entt::registry& r)
+{
+  if (loaded)
+    return;
+  loaded = true;
+
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+  const auto on_disk_opt = savefile_get_key(r, enum_as_str);
+  auto& camera_c = get_first_component<OrthographicCamera>(r);
+
+  if (!on_disk_opt.has_value()) {
+    data.value = 1.0f;
+    return;
+  }
+  auto on_disk_val = on_disk_opt.value();
+
+  // Convert the on_disk_val to your representation.
+  Game_ZoomLevelOnDisk ondisk_data;
+  on_disk_val.get_to<Game_ZoomLevelOnDisk>(ondisk_data);
+  data = ondisk_data;
+
+  // update the system.
+  camera_c.zoom_linear = data.value;
+  camera_c.zoom_changed = true;
+};
+
+void
+Option_GameZoomLevel::update(engine::SINGLE_Application& app, entt::registry& r, int& hindex)
+{
+  hindex = glm::clamp(hindex, 0, 10);
+  data.value = (float)engine::scale(hindex, 0, 10, -1.0f, 1.0f);
+
+  const float zoom_min = ZOOM_OUT;
+  const float zoom_max = ZOOM_IN;
+  const auto enum_as_str = std::string(magic_enum::enum_name(option));
+
+  // convert value to on-disk representation
+  const nlohmann::json data_as_json = data;
+  savefile_put_key(r, enum_as_str, data_as_json);
+  savefile_save_disk(r);
+  SDL_Log("zoom_level updated to: %f", data.value);
+
+  // update the audio system
+  auto& camera_c = get_first_component<OrthographicCamera>(r);
+  camera_c.zoom_linear = data.value;
+  camera_c.zoom_changed = true;
+};
+
+int
+Option_GameZoomLevel::get_hindex(entt::registry& r)
+{
+  // For GameZoomLevel, convert the float to index's 0-1-
+  // i.e. -1, -0.8, -0.6, 0.4, 0.2, 0,  0.2, 0.4, 0.6, 0.8, 1.0
+  return (int)engine::scale(data.value, -1.0f, 1.0f, 0, 10);
+};
+
+std::string
+Option_GameZoomLevel::display_val()
+{
+  // convert [-1, 1] to [25% and 200%]
+  auto val = engine::scale(data.value, -1.0f, 1.0f, ZOOM_IN, ZOOM_OUT);
+  return std::format("{:.2f}x", val);
 };
 
 void
