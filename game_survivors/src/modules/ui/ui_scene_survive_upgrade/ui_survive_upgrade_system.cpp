@@ -23,11 +23,11 @@
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/core/ui/ui_common_helpers.hpp"
 #include "modules/events/event_coll_player_xp/event_coll_player_xp_components.hpp"
-#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
+#include "modules/systems/system_create_item/create_item_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
@@ -727,6 +727,13 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
         const auto player_e = get_player_e_from_idx(r, i);
         const auto upgrades = find<UpgradeResultsComponent>(r, player_e);
         ImGui::Text("upgrades_c: %zu", upgrades.size());
+      }
+
+      if (ImGui::Button("DropTome")) {
+        CreateItemRequest req;
+        req.item = "item_tome";
+        req.position = { 200, 0 };
+        create_empty<CreateItemRequest>(r, req);
       }
 
       ImGui::End();

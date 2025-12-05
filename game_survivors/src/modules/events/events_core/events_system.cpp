@@ -44,8 +44,6 @@
 #include "modules/events/event_trait_fanfire/trait_fanfire_helpers.hpp"
 #include "modules/events/event_trait_splinter/trait_splinter_helpers.hpp"
 #include "modules/events/event_upgrade_aquired/event_upgrade_aquired_helpers.hpp"
-#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_components.hpp"
-#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_helpers.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_system.hpp"
 #include "modules/systems/system_stats/stats_helpers.hpp"
 #include "modules/ui/ui_scene_survive_hp_bars_worldspace/ui_survive_hp_bars_worldspace_helpers.hpp"
@@ -95,7 +93,7 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__flamethrower>(r);
   ed.dispatcher->sink<ShootEvent>().connect<&handle_shoot_event__island_turret>(r);
 
-  ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__trait_splinter>(r);
+  // ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__trait_splinter>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__exploder_screenshake>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__treasure_enemy>(r);
   ed.dispatcher->sink<DeathEvent>().connect<&handle_death_event__update_stats>(r);
@@ -108,8 +106,6 @@ init_events_system(entt::registry& r)
   ed.dispatcher->sink<AudioCompleteEvent>().connect<&handle_audio_complete_event__new_game_track>(r);
 
   ed.dispatcher->sink<UpgradeEvent>().connect<&handle_upgrade_event>(r);
-
-  ed.dispatcher->sink<WeaponLevelReachedEvent>().connect<handle_weapon_level_reached_event>(r);
 
   ed.dispatcher->sink<IslandToBoatEvent>().connect<handle_island_to_boat_event__start_game>(r);
 

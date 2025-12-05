@@ -32,14 +32,6 @@ update_ui_debug_weapons_system(entt::registry& r)
   for (const auto& wep : weps_c.weapons) {
     ImGui::Text("Weapon: %s", wep.name.c_str());
 
-    ImGui::Text("Wep Upgrade Keys");
-    for (int i = 0; const std::string& wep_upg : wep.upgrades) {
-      if (i > 0)
-        ImGui::SameLine();
-      ImGui::Text("%s", wep_upg.c_str());
-      i++;
-    }
-
     ImGui::Text("Wep Audio");
     for (int i = 0; const auto& wep_audio : wep.audio) {
       // if (i > 0)
@@ -66,7 +58,7 @@ update_ui_debug_weapons_system(entt::registry& r)
   ImGui::NewLine();
   ImGui::SeparatorText("Weapon Upgrades");
   for (const auto& wep_upg : weps_c.weapon_upgrades) {
-    ImGui::Text("%s %s %s", wep_upg.u_key.c_str(), wep_upg.wb_key.c_str(), wep_upg.desc.c_str());
+    ImGui::Text("%s %s", wep_upg.wb_key.c_str(), wep_upg.desc.c_str());
     for (const auto& stat : wep_upg.stats)
       ImGui::Text("%s", stat.stat.c_str());
   }

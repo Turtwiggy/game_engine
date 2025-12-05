@@ -1,76 +1,56 @@
 {
   "weapon_upgrades": [
     
-    { "u_key": "HP_UPGRADE_A", "wb_key": "MEGABULLET",                        "display": "[+BIG BUOYS]", "desc": "Combine all projectiles" },
-    { "u_key": "HP_UPGRADE_B", "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION",  "display": "[+OPPOSITE SHOTS]", "desc": "Shoot in the opposite direction." },
-    { "u_key": "HP_UPGRADE_C", "wb_key": "HEAVY_PISTOL_CRIT_UPGRADE",         "display": "[+CRIT]", "desc": "", "stats": [
-      { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 20 },
-      { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
-    ] },
-    { "u_key": "HP_UPGRADE_D", "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET",      "display": "[+FANFIRE]", "desc": "Every X bullets, shoot a fan of bullets" },
-    { "u_key": "HP_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_FIRE",             "display": "[+FIRE SHOTS]", "desc": "", "stats": [
+    // projectile amount
+    { "wb_key": "MEGABULLET",                       "display": "[+BIG BUOYS]", "desc": "Combine all projectiles" },
+    { "wb_key": "DOUBLE_PROJECTILES",               "display": "[+2x SHOTS]",  "desc": "" },
+    { "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "display": "[+OPPOSITE SHOTS]", "desc": "Shoot in the opposite direction." },
+   
+    // shoot on X effects
+    { "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET",     "display": "[+FANFIRE]", "desc": "Every X bullets, shoot a fan of bullets" },
+    { "wb_key": "SHOOT_FIREBALL",                   "display": "[+FIREBALL]",  "desc": "Every 5th shot [+fireball]" },
+    
+    // elemntal bullets
+    { "wb_key": "CHANGE_DAMAGE_TO_FIRE",            "display": "[+FIRE SHOTS]", "desc": "", "stats": [
       { "stat": "BULLET_SIZE",      "type": "stat_flat_increase", "value": 26 } 
     ] },
+    { "wb_key": "CHANGE_DAMAGE_TO_ICE",            "display": "[+ICE BULLETS]", "desc": "" },
 
-    { "u_key": "GS_UPGRADE_A", "wb_key": "MEGABULLET",                        "display": "[+BIG BUOYS]",  "desc": "Combine all projectiles." },
-    { "u_key": "GS_UPGRADE_B", "wb_key": "DOUBLE_PROJECTILES",                "display": "[+2x SHOTS]",  "desc": "" },
-    { "u_key": "GS_UPGRADE_C", "wb_key": "SHOTGUN_CLIPSIZE_UPGRADE",          "display": "[+MAGAZINE +1]",  "desc": "", "stats": [
-      { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_percent_increase", "value": 30 }, // rare
-      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
-    ] },
-    { "u_key": "GS_UPGRADE_D", "wb_key": "SHOTGUN_DAMAGE_UPGRADE",            "display": "[+CANNONBALLS +1]",  "desc": "", "stats": [
-      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
-      { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 1.0 } // rare
-    ] },
-    { "u_key": "GS_UPGRADE_E", "wb_key": "SHOTGUN_FIRERATE_UPGRADE",          "display": "[+CREW +1]",  "desc": "", "stats": [
-      { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 25 }, // rare
-      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
-    ] },
+    //
+    // various stat changes
+    //
 
-    { "u_key": "SC_UPGRADE_A", "wb_key": "SMG_DAMAGE_UPGRADE",                "display": "[+CANNON +1]",  "desc": "", "stats": [
-      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 20 }, // rare
-      { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 20 }, // rare
-      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -20 } // rare
-    ]},
-    { "u_key": "SC_UPGRADE_B", "wb_key": "SMG_CRIT_UPGRADE",                  "display": "[+CRIT]",  "desc": "", "stats": [
-      { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 9 }, // rare
-      { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 20 } // uncommon
-    ] },
-    { "u_key": "SC_UPGRADE_C", "wb_key": "SMG_FIREBALL_UPGRADE",              "display": "[+FIREBALL]",  "desc": "Every 5th shot [+fireball]" },
-    { "u_key": "SC_UPGRADE_D", "wb_key": "SMG_KNOCKBACK_UPGRADE",             "display": "[+DAMAGE KNOCKBACK]", "desc": "", "stats": [
-      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 }, // rare
-      { "stat": "BULLET_KNOCKBACK",   "type": "stat_flat_increase", "value": 0.25 } 
-    ] },
-    { "u_key": "SC_UPGRADE_E", "wb_key": "SMG_CLIPSIZE_UPGRADE",              "display": "[+FAST UNLOAD MAG]", "desc": "", "stats": [
+    // double clip, double firerate, increase reload
+    { "wb_key": "CLIPSIZE_UPGRADE",              "display": "[+FAST UNLOAD MAG]", "desc": "", "stats": [
       { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_percent_increase", "value": 200 }, // rare
       { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 200 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_flat_increase", "value": 1 } // increase reload time 2 seconds
     ] },
+    // crit
+    { "wb_key": "CRIT_UPGRADE",         "display": "[++CRIT++]", "desc": "It's getting critical.", "stats": [
+      { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 20 },
+      { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
+    ] },
+    // damage + knockback
+    {   "wb_key": "DAMAGE_UPGRADE",            "display": "[++DAMAGE++]",  "desc": "", "stats": [
+      { "stat": "BULLET_DAMAGE",            "type": "stat_percent_increase", "value": 30 }, // rare
+      { "stat": "BULLET_KNOCKBACK",         "type": "stat_flat_increase", "value": 1.0 } // rare
+    ] },
+    // firerate + reload
+    { "wb_key": "FIRERATE_UPGRADE",          "display": "[++FIRERATE++]",  "desc": "", "stats": [
+      { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 25 }, // rare
+      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
+    ] },
 
-    { "u_key": "SEATURRET_UPGRADE_A", "wb_key": "TURRET_FOLLOW_PLAYER",       "display": "[+MOVEMENT]", "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_B", "wb_key": "TURRET_SLOW_ENEMIES",        "display": "[+AOE SLOW]",  "desc": "" },
-    { "u_key": "SEATURRET_UPGRADE_C", "wb_key": "TURRET_EXTRA_TURRETS_UPGRADE", "display": "[+DAMAGE]", "desc": "", "stats": [
-      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 30 } // rare
-      // { "stat": "WEAPON_PROJECTILES", "type": "stat_flat_increase", "value": 2 } // rare
-    ] },
-    { "u_key": "SEATURRET_UPGRADE_D", "wb_key": "TURRET_EXPLODE_ON_DEATH",    "display": "[+EXPLODE] [-LIFETIME]", "desc": "", "stats": [
-      { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 10 }, 
-      { "stat": "BULLET_LIFETIME",    "type": "stat_percent_increase", "value": -50 }
-    ]
-    },
-    { "u_key": "SEATURRET_UPGRADE_E", "wb_key": "CHANGE_DAMAGE_TO_ICE",       "display": "[+ICE BULLETS]", "desc": "" },
-
-    { "u_key": "FLAME_UPGRADE_A", "wb_key": "FLAMETHROWER_UPGRADE_A",         "display": "[+FLAME DAMAGE]", "desc": "", "stats": [
-      { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 50 }
-    ] },
-    { "u_key": "FLAME_UPGRADE_B", "wb_key": "FLAMETHROWER_UPGRADE_B",         "display": "[+FAST RELOAD]", "desc": "", "stats": [
-      { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 15 }, 
-      { "stat": "WEAPON_RELOAD",  "type": "stat_percent_increase", "value": -35 }
-    ] },
-    { "u_key": "FLAME_UPGRADE_C", "wb_key": "FLAMETHROWER_UPGRADE_C",         "display": "[+FLAME DURATION]", "desc": "", "stats": [
-      { "stat": "AREA_STACK_DAMAGE",  "type": "stat_percent_increase", "value": 100 }, 
-      { "stat": "AREA_STACK_DURATION",  "type": "stat_percent_increase", "value": -35 } // flames shorter (less damage = bad)
-    ] }
+    //
+    // only usable by sea turret.
+    //
+    { "wb_key": "TURRET_FOLLOW_PLAYER",       "display": "[+MOVEMENT]", "desc": "",            "limited_to": ["weapon_sea_turret"] },
+    { "wb_key": "TURRET_EXPLODE_ON_DEATH",    "display": "[+EXPLODE] [-LIFETIME]", "desc": "", "limited_to": ["weapon_sea_turret"], "stats": [
+        { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 10 }, 
+        { "stat": "BULLET_LIFETIME",    "type": "stat_percent_increase", "value": -50 }
+      ]
+    }
   ],
 
   "weapons": [
@@ -96,14 +76,7 @@
         "BULLET_PIERCE": 12     ,
         "BULLET_SIZE": 6        ,
         "WEAPON_SPREAD": 5       // degrees
-      },
-      "upgrades": [
-        "HP_UPGRADE_A",
-        "HP_UPGRADE_B",
-        "HP_UPGRADE_C",
-        "HP_UPGRADE_D",
-        "HP_UPGRADE_E"
-      ]
+      }
     },
 
     {
@@ -124,14 +97,7 @@
         "BULLET_KNOCKBACK": 0.6  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 4        
-      },
-      "upgrades": [
-        "GS_UPGRADE_A", 
-        "GS_UPGRADE_B",
-        "GS_UPGRADE_C",
-        "GS_UPGRADE_D",
-        "GS_UPGRADE_E"
-      ]
+      }
     },
 
     {
@@ -152,14 +118,7 @@
         "BULLET_KNOCKBACK": 0.1  , // force
         "BULLET_PIERCE": 3       ,
         "BULLET_SIZE": 2        
-      },
-      "upgrades": [
-        "SC_UPGRADE_A",
-        "SC_UPGRADE_B",
-        "SC_UPGRADE_C",
-        "SC_UPGRADE_D",
-        "SC_UPGRADE_E"
-      ]
+      }
     },
 
     {
@@ -181,14 +140,7 @@
         // "BULLET_PIERCE": 3       ,
         // "BULLET_SIZE": 2         
         // "LIFETIME": 10             // seconds
-      },
-      "upgrades": [
-        "SEATURRET_UPGRADE_A",
-        "SEATURRET_UPGRADE_B",
-        "SEATURRET_UPGRADE_C",
-        "SEATURRET_UPGRADE_D",
-        "SEATURRET_UPGRADE_E"
-      ]
+      }
     },
 
     {
@@ -212,14 +164,7 @@
         "AREA_STACK_DAMAGE": 1,
         "AREA_STACK_DURATION": 1.5,
         "AREA_STACKS_PER_SHOT":2 // how many fire stacks to apply per tick
-      },
-      "upgrades": [
-        "FLAME_UPGRADE_A",
-        "FLAME_UPGRADE_B",
-        "FLAME_UPGRADE_C"
-        // "FLAME_UPGRADE_D",
-        // "FLAME_UPGRADE_E"
-      ]
+      }
     },
 
     {
@@ -242,9 +187,7 @@
         "BULLET_PIERCE": 12     ,
         "BULLET_SIZE": 6        ,
         "WEAPON_SPREAD": 5       // degrees
-      },
-      "upgrades": [
-      ]
+      }
     }
 
     // {

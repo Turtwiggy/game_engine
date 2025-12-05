@@ -27,7 +27,7 @@ handle_shoot_event__shoot_fireball(entt::registry& r, const ShootEvent& evt)
   if (!trait_c)
     return;
 
-  const auto behaviour = WeaponBehaviour::SMG_FIREBALL_UPGRADE;
+  const auto behaviour = WeaponBehaviour::SHOOT_FIREBALL;
   if (!has(trait_c->behaviours, behaviour))
     return;
 

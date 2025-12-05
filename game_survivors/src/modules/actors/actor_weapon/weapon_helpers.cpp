@@ -176,6 +176,18 @@ load_weapons(entt::registry& r, std::string filepath)
       if (stat.stat != "")
         const auto us = magic_enum::enum_cast<UpgradeableStat>(stat.stat).value();
     }
+
+    // validate limited_to is a weapon.
+    for (const auto& limited_to : weapon_upgrade.limited_to) {
+      auto it = std::find_if(weapons_c.weapons.begin(), weapons_c.weapons.end(), [&limited_to](const auto& weapon) {
+        return weapon.key == limited_to;
+      });
+      if (it == weapons_c.weapons.end()) {
+        const auto err = std::format("missing weapon {}, key: {}", limited_to, weapon_upgrade.wb_key);
+        throw std::runtime_error(err);
+        exit(1); // crash
+      }
+    }
   }
 
   return weapons_c;

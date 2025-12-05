@@ -38,6 +38,7 @@
 #include "modules/systems/system_combo_unlock/combo_unlock_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
+#include "modules/systems/system_create_item/create_item_components.hpp"
 #include "modules/systems/system_death_throes/death_throes_components.hpp"
 #include "modules/systems/system_gameover/gameover_helpers.hpp"
 #include "modules/systems/system_items_drop_on_death/helpers.hpp"
@@ -357,15 +358,10 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     // death_c.callbacks.push_back(drop_xp_callback);
 
     auto drop_tome_callback = [](entt::registry& r, const entt::entity e) {
-      auto pos = get_position(r, e);
-      const auto item_e = spawn(r, "item_tome");
-      give_life(r, item_e, pos, { default_map_unit_tilesize, default_map_unit_tilesize });
-      r.emplace<SpriteOutline>(item_e);
-      r.emplace<TeamComponent>(item_e, AvailableTeams::neutral);
-      auto& pb_c = r.get<PhysicsBodyComponent>(item_e);
-      auto fixture_e = pb_c.fixtures[0]; // assume item has only 1 fixture
-      r.emplace<TomeComponent>(fixture_e);
-      r.remove<OnDeathCallbacks>(item_e);
+      CreateItemRequest req;
+      req.item = "item_tome";
+      req.position = get_position(r, e);
+      create_empty<CreateItemRequest>(r, req);
     };
     death_c.callbacks.push_back(drop_tome_callback);
   }

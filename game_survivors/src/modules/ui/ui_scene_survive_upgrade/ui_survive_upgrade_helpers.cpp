@@ -84,22 +84,6 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     // For the 1st & 2nd upgrade, roll a BULLET_X or WEAPON_X stat
     while (results_c.results.size() != 2) {
 
-      // Prioritize non-max level weapons
-      // std::vector<entt::entity> weapons;
-      // if ((int)!non_max_level_weapons.empty()) {
-      //   const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)non_max_level_weapons.size());
-      //   const auto wep_e = non_max_level_weapons[rnd_wep_upg_idx];
-      //   weapons.push_back(wep_e);
-      // } else if ((int)!weapons_e.empty()) {
-      //   const int rnd_wep_upg_idx = engine::rand_det_s(roll_rnd.rng, 0, (int)weapons_e.size());
-      //   const auto wep_e = weapons_e[rnd_wep_upg_idx];
-      //   weapons.push_back(wep_e);
-      // }
-      // if (weapons.empty()) {
-      //   throw std::runtime_error("player has no weapons!");
-      //   exit(1); // crash
-      // }
-
       // assume player has the same type of weapons in all weapon slots
       const auto weapon_type = r.get<Weapon_OnDiskData>(weapons_e[0]);
 

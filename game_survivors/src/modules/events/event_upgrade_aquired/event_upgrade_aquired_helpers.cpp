@@ -7,7 +7,6 @@
 #include "modules/combat/combat_gun_follow_player/gun_follow_player_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
-#include "modules/events/event_weapon_level_reached/event_weapon_level_reached_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_particles/components.hpp"
@@ -30,9 +29,11 @@ handle_upgrade_event(entt::registry& r, const UpgradeEvent& evt)
   const auto par_e = evt.par_e;
 
   // done
-  remove_if_exists<UpgradeResultsComponent>(r, par_e);
+  if (remove_if_exists<UpgradeResultsComponent>(r, par_e))
+    SDL_Log("Upgrade was on par_e");
   for (const auto upg_e : evt.upg_es)
-    remove_if_exists<UpgradeResultsComponent>(r, upg_e);
+    if (remove_if_exists<UpgradeResultsComponent>(r, upg_e))
+      SDL_Log("Upgrade was on upg_e");
 
   const auto rarity = evt.roll_result.rarity;
   const auto& stats = evt.roll_result.stats;

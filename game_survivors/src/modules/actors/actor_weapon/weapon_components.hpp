@@ -45,18 +45,8 @@ struct Weapon_OnDiskData
   WEAPON_USEABLE_BY useable_by_as_enum = WEAPON_USEABLE_BY::BOATS; // note: this should be std::vector. change when needed.
 
   std::map<std::string, float> data;
-  std::vector<std::string> upgrades; // assigned upgrades (keys; data stored in WeponUpgrade_OnDiskData)
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Weapon_OnDiskData,
-                                 key,
-                                 name,
-                                 desc,
-                                 audio,
-                                 weapon_type,
-                                 weapon_damage,
-                                 useable_by,
-                                 data,
-                                 upgrades);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Weapon_OnDiskData, key, name, desc, audio, weapon_type, weapon_damage, useable_by, data);
 };
 
 struct WeaponLevelComponent
@@ -83,13 +73,13 @@ struct Stat
 
 struct WeaponUpgrade_OnDiskData
 {
-  std::string u_key;  // key unique to the upgrade
   std::string wb_key; // WeaponBehaviour key
   std::string display;
   std::string desc;
+  std::vector<std::string> limited_to;
   std::vector<Stat> stats;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WeaponUpgrade_OnDiskData, u_key, wb_key, display, desc, stats);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WeaponUpgrade_OnDiskData, wb_key, display, desc, stats, limited_to);
 };
 
 struct SINGLE_Weapons

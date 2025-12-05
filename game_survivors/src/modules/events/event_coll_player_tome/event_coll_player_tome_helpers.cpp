@@ -2,10 +2,37 @@
 
 #include "event_coll_player_tome_helpers.hpp"
 
+#include "engine/entt/helpers.hpp"
+#include "engine/maths/maths.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
 #include "modules/actors/actor_player/components.hpp"
 #include "modules/actors/actor_tome/tome_components.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/actors/actor_weapon/weapon_helpers.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+#include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
 
 namespace game2d {
+
+std::vector<Stat>
+get_stats_from_weapon_behaviour(entt::registry& r, const WeaponBehaviour behaviour)
+{
+  const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+  const auto behaviour_str = std::string(magic_enum::enum_name(behaviour));
+
+  // search SINGLE_weapons for wep_behaviour stats
+  std::vector<Stat> stats;
+  for (const WeaponUpgrade_OnDiskData& upgrade : weapons_c.weapon_upgrades) {
+    auto upg_str = upgrade.wb_key;
+    auto upg_enum = magic_enum::enum_cast<WeaponBehaviour>(upg_str).value();
+    if (behaviour != upg_enum)
+      continue;
+    for (const auto& stat_data : upgrade.stats)
+      stats.push_back(Stat{ .stat = stat_data.stat, .type = stat_data.type, .value = stat_data.value });
+  };
+
+  return stats;
+};
 
 void
 handle_player_enter_tome(entt::registry& r, const OnCollisionEnter& evt)
@@ -16,12 +43,66 @@ handle_player_enter_tome(entt::registry& r, const OnCollisionEnter& evt)
 
   SDL_Log("You collided with a tome!");
 
-  // WeaponLevelReachedEvent lv_evt;
-  // lv_evt.level = wep_level_c.level;
-  // lv_evt.par_e = par_e;
-  // lv_evt.wep_e = weapon_e;
-  // evts_c.dispatcher->trigger(lv_evt);
-  // evts_c.dispatcher->update();
+  static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
+  const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+  const auto& upgrades = weapons_c.weapon_upgrades;
+
+  // generate some upgrades per player.
+  for (const auto& [e, player_c] : r.view<PlayerBoatComponent>().each()) {
+    auto weapons = get_weapons(r, e);
+    const auto weapon_e = weapons[0];
+    const auto& behaviours_c = r.get<WeaponBehaviourComponent>(weapon_e);
+    const auto& aquired_behaviours = behaviours_c.behaviours;
+
+    std::vector<WeaponBehaviour> unaquired_wb;
+    for (const auto& wb : upgrades) {
+      auto it = std::find_if(aquired_behaviours.begin(), aquired_behaviours.end(), [&](const auto& wb_aquired) {
+        const std::string key = wb.wb_key;
+        const WeaponBehaviour wb_aquired_key = magic_enum::enum_cast<WeaponBehaviour>(key).value();
+        return wb_aquired == wb_aquired_key;
+      });
+      if (it == aquired_behaviours.end()) {
+        const std::string key = wb.wb_key;
+        const WeaponBehaviour wb_aquired_key = magic_enum::enum_cast<WeaponBehaviour>(key).value();
+        unaquired_wb.push_back(wb_aquired_key);
+      }
+    }
+
+    // offer the player one of them.
+    const int upgrades = 2;
+
+    UpgradeResultsComponent results_c;
+
+    // let the player choose which upgrade to pick from upgrades you dont have.
+    for (int i = 0; i < upgrades; i++) {
+      const auto chosen_i = engine::rand_det_s(roll_rnd.rng, 0, (int)unaquired_wb.size());
+      const auto wb_key = unaquired_wb[chosen_i];
+
+      results_c.results.emplace(UpgradeRollResult{ .rarity = Rarity::COMMON,
+                                                   .stats = get_stats_from_weapon_behaviour(r, wb_key),
+                                                   .traits = { wb_key },
+                                                   .weapons = weapons, // apply behaviour to all weapons
+                                                   .level_weapons = false });
+
+      std::erase(unaquired_wb, wb_key);
+    }
+
+    // if you collide with TWO tomes thats CRAZY.
+    if (r.all_of<UpgradeResultsComponent>(e))
+      SDL_Log("oops! you collided with a tome twice! (or while leveling up)");
+    r.emplace_or_replace<UpgradeResultsComponent>(e, results_c);
+
+    // update the ui.
+    auto player_e = e;
+    auto& ui_c = get_first_component<SINGLE_LevelUpUI>(r);
+    auto player_idx = r.get<PlayerComponent>(player_e).idx;
+    auto& state_c = ui_c.ui_states[player_idx];
+    update_player_upgrade_ui(r, player_e, state_c);
+
+    // destroy the tome
+    auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
+    dead_c.dead.push_back(item_e);
+  }
 }
 
 } // namespace game2d

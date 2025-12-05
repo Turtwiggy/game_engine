@@ -90,13 +90,13 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
     b2Body_SetLinearDamping(r.get<const PhysicsBodyComponent>(turret_e).bodyId, 1.0f);
   }
 
-  if (has(behaviours, WeaponBehaviour::TURRET_SLOW_ENEMIES)) {
-    r.emplace<AoE_SlowComponent>(turret_e,
-                                 AoE_SlowComponent{
-                                   .time_between_slow_seconds = 0.5f,
-                                   .time_between_slow_seconds_max = 0.5f,
-                                 });
-  }
+  // if (has(behaviours, WeaponBehaviour::TURRET_SLOW_ENEMIES)) {
+  //   r.emplace<AoE_SlowComponent>(turret_e,
+  //                                AoE_SlowComponent{
+  //                                  .time_between_slow_seconds = 0.5f,
+  //                                  .time_between_slow_seconds_max = 0.5f,
+  //                                });
+  // }
 
   // note: this is basically the "EXPLODE" trait
   if (has(behaviours, WeaponBehaviour::TURRET_EXPLODE_ON_DEATH)) {

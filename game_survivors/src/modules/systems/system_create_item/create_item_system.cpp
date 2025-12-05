@@ -1,10 +1,14 @@
+#include "pch.hpp"
+
 #include "create_item_system.hpp"
 
 #include "create_item_components.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/physics/physics_helpers.hpp"
+#include "modules/actors/actor_tome/tome_components.hpp"
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/core/raws/raws_components.hpp"
+#include "modules/effects_outline/outline_components.hpp"
 #include "modules/events/event_coll_player_gold/event_coll_player_gold_components.hpp"
 #include "modules/events/event_coll_player_hp/event_coll_player_hp_components.hpp"
 #include "modules/events/event_coll_player_sea_mine/event_coll_player_sea_mine_components.hpp"
@@ -44,7 +48,15 @@ update_create_item_system(entt::registry& r)
       r.emplace<ItemSeaMineComponent>(fixture_e);
     } else if (req_c.item == "item_vacuum_orb") {
       r.emplace<ItemVacuumOrbComponent>(fixture_e);
-    } else
+    } else if (req_c.item == "item_tome") {
+
+      r.emplace<SpriteOutline>(item_e);
+      auto& pb_c = r.get<PhysicsBodyComponent>(item_e);
+      auto fixture_e = pb_c.fixtures[0]; // assume item has only 1 fixture
+      r.emplace<TomeComponent>(fixture_e);
+    }
+
+    else
       throw std::runtime_error("Unknown item type");
   }
   r.destroy(view.begin(), view.end());

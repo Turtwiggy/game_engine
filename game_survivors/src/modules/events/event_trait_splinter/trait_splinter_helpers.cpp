@@ -12,6 +12,7 @@ namespace game2d {
 
 static engine::RandomState rnd_dir(0);
 
+/*
 void
 handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
 {
@@ -72,5 +73,6 @@ handle_death_event__trait_splinter(entt::registry& r, const DeathEvent& evt)
   auto& death_c = r.get<OnDeathCallbacks>(to_e);
   death_c.callbacks.push_back(splinter_callback);
 }
+*/
 
 } // namespace game2d
