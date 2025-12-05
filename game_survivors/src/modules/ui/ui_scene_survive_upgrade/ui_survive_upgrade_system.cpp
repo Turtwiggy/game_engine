@@ -442,7 +442,7 @@ get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult&
   // }
 
   // this is an overclock!
-  if (cards == 2) {
+  if (!result.traits.empty()) {
     rarity = Rarity::SUPER_LEGENDARY;
     rarity_str = "";
   }

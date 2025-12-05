@@ -51,6 +51,7 @@ handle_player_enter_tome(entt::registry& r, const OnCollisionEnter& evt)
   for (const auto& [e, player_c] : r.view<PlayerBoatComponent>().each()) {
     auto weapons = get_weapons(r, e);
     const auto weapon_e = weapons[0];
+    const auto& weapon_c = r.get<Weapon_OnDiskData>(weapon_e);
     const auto& behaviours_c = r.get<WeaponBehaviourComponent>(weapon_e);
     const auto& aquired_behaviours = behaviours_c.behaviours;
 
@@ -61,20 +62,29 @@ handle_player_enter_tome(entt::registry& r, const OnCollisionEnter& evt)
         const WeaponBehaviour wb_aquired_key = magic_enum::enum_cast<WeaponBehaviour>(key).value();
         return wb_aquired == wb_aquired_key;
       });
-      if (it == aquired_behaviours.end()) {
-        const std::string key = wb.wb_key;
-        const WeaponBehaviour wb_aquired_key = magic_enum::enum_cast<WeaponBehaviour>(key).value();
-        unaquired_wb.push_back(wb_aquired_key);
-      }
+      if (it != aquired_behaviours.end())
+        continue;
+      const std::string key = wb.wb_key;
+      const WeaponBehaviour wb_aquired_key = magic_enum::enum_cast<WeaponBehaviour>(key).value();
+
+      // if it is limited to a specific weapon,
+      // make sure we're using that weapon
+      bool useable = true;
+      for (const auto& limited_to : wb.limited_to)
+        useable &= limited_to == weapon_c.key;
+      if (!useable)
+        continue;
+
+      unaquired_wb.push_back(wb_aquired_key);
     }
 
     // offer the player one of them.
-    const int upgrades = 2;
+    const int n_upgrades = 3;
 
     UpgradeResultsComponent results_c;
 
     // let the player choose which upgrade to pick from upgrades you dont have.
-    for (int i = 0; i < upgrades; i++) {
+    for (int i = 0; i < n_upgrades; i++) {
       const auto chosen_i = engine::rand_det_s(roll_rnd.rng, 0, (int)unaquired_wb.size());
       const auto wb_key = unaquired_wb[chosen_i];
 
