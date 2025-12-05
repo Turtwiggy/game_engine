@@ -49,7 +49,7 @@ Option_GameZoomLevel::load(engine::SINGLE_Application& app, entt::registry& r)
   auto& camera_c = get_first_component<OrthographicCamera>(r);
 
   if (!on_disk_opt.has_value()) {
-    data.value = 1.0f;
+    data.value = 0.0f;
     return;
   }
   auto on_disk_val = on_disk_opt.value();

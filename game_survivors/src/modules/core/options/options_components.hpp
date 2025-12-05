@@ -54,7 +54,7 @@ struct IOption
 
 struct Option_GameZoomLevel : public IOption
 {
-  Game_ZoomLevelOnDisk data{ .value = 1.0f };
+  Game_ZoomLevelOnDisk data{ .value = 0.0f };
 
   Option_GameZoomLevel()
     : IOption(GAME_OPTIONS::GAME_ZOOM_LEVEL, "FOV", UIValueType::SCROLL) {};
