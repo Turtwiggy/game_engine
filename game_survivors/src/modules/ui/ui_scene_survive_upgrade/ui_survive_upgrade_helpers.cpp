@@ -443,7 +443,13 @@ get_val_str_from_stat_enum(entt::registry& r,
   if (is_int)
     return std::format("{}", (int)value.value());
 
-  return std::format("{:.2f}", value.value());
+  auto stat_amount = std::format("{:.2f}", value.value());
+
+  // if the last digit is a 0, remove it
+  if (stat_amount.find(".") != std::string::npos && stat_amount.back() == '0')
+    stat_amount.pop_back();
+
+  return stat_amount;
 };
 
 } // namespace game2d

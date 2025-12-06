@@ -421,8 +421,12 @@ get_card_data(entt::registry& r, entt::entity player_e, const UpgradeRollResult&
     std::string stat_amount = "";
     if (is_int)
       stat_amount = std::format("{:0.0f}", value);
-    else
-      stat_amount = std::format("{:0.1f}", value);
+    else {
+      stat_amount = std::format("{:0.2f}", value);
+      // if the last digit is a 0, remove it
+      if (stat_amount.find(".") != std::string::npos && stat_amount.back() == '0')
+        stat_amount.pop_back();
+    }
     if (type == "stat_percent_increase")
       stat_amount += "%";
 
