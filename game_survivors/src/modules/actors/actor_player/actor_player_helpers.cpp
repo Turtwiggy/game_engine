@@ -72,7 +72,7 @@ generate_from_keyboard(entt::registry& r)
     if (get_key_up(sdl_input_c, key))
       acts.push_back(ActionStateEnum::RELEASE);
   };
-  generate_actions_from_keyboard(i.select, SDL_SCANCODE_E);
+  // generate_actions_from_keyboard(i.select, SDL_SCANCODE_E);
   generate_actions_from_keyboard(i.select, SDL_SCANCODE_BACKSPACE);
   generate_actions_from_keyboard(i.pause, SDL_SCANCODE_ESCAPE);
   generate_actions_from_keyboard(i.dpad_u, SDL_SCANCODE_UP);

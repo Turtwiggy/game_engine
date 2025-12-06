@@ -26,7 +26,6 @@ update_ui_back_button_system(entt::registry& r)
   ZoneScoped;
 #endif
   auto& ri_c = SINGLE_RendererInfo::instance;
-  ;
   const auto& scene_c = SINGLE_CurrentScene::instance;
   const auto& input_c = SINGLE_InputComponent::instance;
 
