@@ -7,6 +7,7 @@
 #include "modules/actors/actor_lighthouse/lighthouse_components.hpp"
 #include "modules/actors/actor_rock/rock_components.hpp"
 #include "modules/core/fonts/fonts_helpers.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_stats/stats_components.hpp"
@@ -21,13 +22,16 @@ update_ui_survive_objectives_system(entt::registry& r)
 #endif
 
   const auto ui_scaling = get_first_component<SINGLE_UIScaling>(r).scaling;
-  const auto font_size = (float)FontSizes::SIZE_16 * ui_scaling;
+  const auto font_size = (float)FontSizes::SIZE_16;
   auto* font = get_inter_font(r);
   ImGui::PushFont(font, font_size);
 
-  const auto set_window_pos = ImVec2{ 0, 0 }; // top-left
-  ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.0f, 0.0f });
+  const auto& ri_c = SINGLE_RendererInfo::instance;
 
+  const auto set_window_pos = ImVec2{ (float)ri_c.viewport_size_render_at.x, 20 }; // top-right
+  ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 1.0f, 0.0f });       // top right
+  // const auto set_window_pos = ImVec2{ 0, 0 };                                // top-left
+  // ImGui::SetNextWindowPos(set_window_pos, ImGuiCond_Always, { 0.0f, 0.0f }); // top-left
   imgui_begin("SurviveSceneObjectives", ImGuiWindowFlags_NoInputs);
 
   ImGui::SeparatorText("Plunder");

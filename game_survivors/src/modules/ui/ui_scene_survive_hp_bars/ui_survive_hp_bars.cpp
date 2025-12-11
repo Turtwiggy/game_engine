@@ -81,7 +81,6 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 
   const auto font_scale = get_first_component<SINGLE_UIScaling>(r).scaling;
   auto* font = get_inter_font(r);
-
   const float hp_bar_width = 200.0f * font_scale;
   const float distance_from_bottom_of_screen = 15.0f;
 
@@ -108,8 +107,8 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 
   static float hp_bar_height = 12;
   static float space_between_bars = 24.0f;
-  static glm::vec2 pos{ 0, (float)ri_c.viewport_size_render_at.y };
-  static glm::vec2 size{ 300, 300 };
+  static glm::vec2 pos{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
+  static glm::vec2 size{ hp_bar_width, 300 };
   // imgui_draw_vec2("set_window_pos", pos);
   // imgui_draw_vec2("set_window_size", size);
   // imgui_draw_float("space_between_bars", space_between_bars);
@@ -117,7 +116,7 @@ update_ui_survive_hp_bars_system(entt::registry& r)
   const auto set_window_pos = pos;
   const auto set_window_size = size;
 
-  ImGui::SetNextWindowPos({ 0, pos.y }, ImGuiCond_Always, { 0.0f, 1.0f });
+  ImGui::SetNextWindowPos({ pos.x, pos.y }, ImGuiCond_Always, { 1.0f, 1.0f });
   ImGui::SetNextWindowSize({ size.x, size.y }, ImGuiCond_Always);
   imgui_begin("HpBars", ImGuiWindowFlags_NoInputs);
 

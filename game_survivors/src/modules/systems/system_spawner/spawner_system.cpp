@@ -430,6 +430,10 @@ update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int
       if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get()))
         max *= o->multiplier;
 
+      // hack: always limit enemy_melee_3 (regardless of Option_EnemyCount)
+      if (enemy_key == "actor_enemy_melee_3")
+        max = 1;
+
       // spawn conditions
       bool allowed_to_spawn = (enemies + data.num_per_spawn) <= max;
 

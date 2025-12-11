@@ -39,7 +39,7 @@ bool
 imgui_draw_int(const std::string& label, int& v);
 
 bool
-imgui_draw_float(const std::string& label, float& v);
+imgui_draw_float(const std::string& label, float& v, float interval = 0.01);
 
 void
 imgui_draw_ivec2(const std::string& label, glm::ivec2& xy);

@@ -144,6 +144,7 @@
 #include "modules/ui/ui_scene_survive_land_on_islands_popups/ui_land_on_island_popup_system.hpp"
 #include "modules/ui/ui_scene_survive_objectives/ui_survive_objectives_system.hpp"
 #include "modules/ui/ui_scene_survive_onboarding/ui_survive_onboarding.hpp"
+#include "modules/ui/ui_scene_survive_show_upgrades/ui_scene_survive_show_upgrades_system.hpp"
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_system.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_helpers.hpp"
@@ -457,6 +458,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_ui_survive_hp_bars_worldspace_system(r, dt);
     update_ui_survive_xp_bar_system(r);
     update_ui_survive_upgrade_system(r, dt);
+    update_ui_survive_show_upgrades_system(r, dt);
     update_ui_gameover_system(r, dt);
     update_ui_land_on_island_popup_system(r);
     update_ui_ability_system(r, dt);

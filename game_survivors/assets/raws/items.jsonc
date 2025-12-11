@@ -238,8 +238,8 @@
       "traits": [ {"key": "ARC_ANGLE"} ],
       "phys_body": { "is_bullet": false, "is_static": false },
       "phys_fixtures": [ 
-        { "tag": "fixture_core", "type": "box", "is_sensor": false, "offset":[{"x":-8, "y":0}], "size": [{"x":16, "y": 32}]},
-        { "tag": "fixture_shield", "type": "box", "is_sensor": false, "offset":[{"x":8, "y":0}], "size": [{"x":16, "y": 32}]}
+        { "tag": "fixture_core", "type": "box", "is_sensor": false, "offset":[{"x":-16, "y":0}], "size": [{"x":32, "y": 64}]},
+        { "tag": "fixture_shield", "type": "box", "is_sensor": false, "offset":[{"x":16, "y":0}], "size": [{"x":32, "y": 64}]}
       ]
     },
     // test the flow-field mechanics.

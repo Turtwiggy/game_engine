@@ -6,6 +6,7 @@
 #include "engine/events/components.hpp"
 #include "modules/core/renderer/components.hpp"
 #include "modules/scene/scene_components.hpp"
+#include "modules/systems/system_gameover/gameover_helpers.hpp"
 #include "modules/ui/ui_popup_are_you_sure/ui_popup_are_you_sure_components.hpp"
 #include "modules/ui/ui_popup_options/ui_popup_options_components.hpp"
 #include "modules/ui/ui_popup_pause/ui_popup_pause_components.hpp"
@@ -24,7 +25,7 @@ update_ui_blur_system(entt::registry& r, const float dt)
   std::string window_key = "blur";
 
   auto& ri_c = SINGLE_RendererInfo::instance;
-  ;
+
   GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c);
   GET_FIRST_OR_RETURN(SINGLE_OptionsMenuState, r, options_e, options_c);
   GET_FIRST_OR_RETURN(SINGLE_PauseMenuState, r, pause_e, pause_c);
@@ -68,6 +69,10 @@ update_ui_blur_system(entt::registry& r, const float dt)
 
   // blur with are you sure popup...
   else if (SINGLE_UIAreYouSure::instance.open)
+    blur_amount += fade_in_speed * dt;
+
+  // blur if game is over...
+  else if (is_gameover(r))
     blur_amount += fade_in_speed * dt;
 
   else

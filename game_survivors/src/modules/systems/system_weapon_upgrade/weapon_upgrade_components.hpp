@@ -27,6 +27,7 @@ enum class WeaponBehaviour
   CRIT_UPGRADE,
   DAMAGE_UPGRADE,
   FIRERATE_UPGRADE,
+  RELOAD_UPGRADE,
 
   // turret
   TURRET_FOLLOW_PLAYER,

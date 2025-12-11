@@ -21,8 +21,8 @@ struct AbilityComponent
   bool ability_2_flash_when_off_cooldown = false;
 
   // ui display
-  bool ability_1_pressed = false;
-  bool ability_2_pressed = false;
+  bool ability_1_pressed = true; // if set to true, dont require them to press it once
+  bool ability_2_pressed = true; // if set to true, dont require them to press it once
   float ability_1_alpha = 1.0f;
   float ability_2_alpha = 1.0f;
 };

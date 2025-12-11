@@ -37,8 +37,11 @@ update_input_for_onboarding_ui(entt::registry& r, SINGLE_InfoUI& ui_c, const flo
     if (percent >= 1.0f)
       continue;
 
-    const auto& inp_c = r.get<InputComponent>(player_e);
-    const auto& b_s = inp_c.button_s;
+    const auto* inp_c = r.try_get<InputComponent>(player_e);
+    if (!inp_c)
+      continue;
+
+    const auto& b_s = inp_c->button_s;
     const bool do_act_held = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
     const bool do_act_release = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
 
@@ -123,10 +126,10 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   // clang-format off
   ImGui::PushFont(font, font_size_16);
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Left analogue; move your boat.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Right analogue; aim your guns (optional; guns auto-aim)");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Right analogue; aim your guns (optional: guns auto-aim)");
   ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" DPAD: move on land.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" LB: Dash");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" RB: Knockback");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" LB (or left click): Dash");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" RB (or right click): Knockback");
   ImGui::PopFont();
 
   ImGui::PushFont(font, font_size_20);
@@ -134,8 +137,8 @@ update_ui_survive_onboarding_system(entt::registry& r, const float dt)
   ImGui::PopFont();
 
   ImGui::PushFont(font, font_size_16);
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Enter island: collide with your boat.");
-  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Leave island: use button(east) or via DPAD movement.");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Enter island: use button(south).");
+  ImGui::SetCursorPosX(0.1f * window_wh.x); ImGui::Text(" Leave island: use button(east).");
   ImGui::SetCursorPosX(0.1f * window_wh.x);ImGui::Text(" Capture islands (by clearing enemies) to place lighthouse.");
   ImGui::PopFont();
 

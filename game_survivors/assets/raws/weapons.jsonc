@@ -8,7 +8,7 @@
    
     // shoot on X effects
     { "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET",     "display": "[+FANFIRE]", "desc": "Every X bullets, shoot a fan of bullets" },
-    { "wb_key": "SHOOT_FIREBALL",                   "display": "[+FIREBALL]",  "desc": "Every 5th shot [+fireball]" },
+    // { "wb_key": "SHOOT_FIREBALL",                   "display": "[+FIREBALL]",  "desc": "Every 5th shot [+fireball]" },
     
     // elemntal bullets
     { "wb_key": "CHANGE_DAMAGE_TO_FIRE",            "display": "[+FIRE SHOTS]", "desc": "", "stats": [
@@ -27,19 +27,23 @@
       { "stat": "WEAPON_RELOAD",      "type": "stat_flat_increase", "value": 1 } // increase reload time 2 seconds
     ] },
     // crit
-    { "wb_key": "CRIT_UPGRADE",         "display": "[++CRIT++]", "desc": "It's getting critical.", "stats": [
+    { "wb_key": "CRIT_UPGRADE",         "display": "[+CRIT]", "desc": "It's getting critical.", "stats": [
       { "stat": "BULLET_CRIT_CHANCE",  "type": "stat_flat_increase", "value": 20 },
       { "stat": "BULLET_CRIT_DAMAGE",  "type": "stat_flat_increase", "value": 50 }
     ] },
     // damage + knockback
-    {   "wb_key": "DAMAGE_UPGRADE",            "display": "[++DAMAGE++]",  "desc": "", "stats": [
+    {   "wb_key": "DAMAGE_UPGRADE",            "display": "[+DAMAGE]",  "desc": "", "stats": [
       { "stat": "BULLET_DAMAGE",            "type": "stat_percent_increase", "value": 30 }, // rare
       { "stat": "BULLET_KNOCKBACK",         "type": "stat_flat_increase", "value": 1.0 } // rare
     ] },
     // firerate + reload
-    { "wb_key": "FIRERATE_UPGRADE",          "display": "[++FIRERATE++]",  "desc": "", "stats": [
+    { "wb_key": "FIRERATE_UPGRADE",          "display": "[+FIRERATE]",  "desc": "", "stats": [
       { "stat": "WEAPON_FIRERATE",    "type": "stat_percent_increase", "value": 25 }, // rare
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
+    ] },
+    // reload
+    { "wb_key": "RELOAD_UPGRADE",          "display": "[+NO RELOAD]",  "desc": "", "stats": [
+      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -99 }
     ] },
 
     //
