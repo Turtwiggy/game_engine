@@ -39,6 +39,16 @@ static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
 static engine::RandomState roll_rnd(engine::get_system_time_for_seed());
 #endif
 
+const auto get_rarity_from_roll = [](float roll) -> Rarity {
+  int sum = 0;
+  for (const auto [type, value] : rarity_chance_map) {
+    sum += value;
+    if (roll <= sum)
+      return type;
+  }
+  return Rarity::COMMON; // default
+};
+
 void
 generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
 {
@@ -54,41 +64,23 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
     if (!r.all_of<HealthComponent>(fixture_e))
       continue; // ur dead!
 
+    const auto weapons_e = get_weapons(r, player_e);
+    auto& stat_c = r.get<StatModifierComponent>(player_e);
+    auto& wep_stat_c = r.get<StatModifierComponent>(weapons_e[0]);
+    // assume player has the same type of weapons in all weapon slots
+    const auto weapon_type = r.get<Weapon_OnDiskData>(weapons_e[0]);
+
     UpgradeResultsComponent results_c;
 
-    const auto get_rarity_from_roll = [](float roll) -> Rarity {
-      int sum = 0;
-      for (const auto [type, value] : rarity_chance_map) {
-        sum += value;
-        if (roll <= sum)
-          return type;
-      }
-      return Rarity::COMMON; // default
-    };
+    std::vector<UpgradeableStat> stats;
+    {
+      // WEAPON_ stats
+      stats.insert(stats.end(), upgradeable_weapon_stats.begin(), upgradeable_weapon_stats.end());
 
-    const auto weapons_e = get_weapons(r, player_e);
+      // ACTOR_ stats.
+      stats.insert(stats.end(), actor_x_stats.begin(), actor_x_stats.end());
 
-    // get weapons that arnt max level (i.e. level 12)
-    // const int WEAPON_MAX_LEVEL = 12;
-    // std::vector<entt::entity> non_max_level_weapons;
-    // for (int i = 0; i < weapons_e.size(); i++) {
-    //   const auto& wep_lvl_c = r.get<WeaponLevelComponent>(weapons_e[i]);
-    //   const auto lv = wep_lvl_c.level;
-    //   if (lv >= WEAPON_MAX_LEVEL)
-    //     continue;
-    //   non_max_level_weapons.push_back(weapons_e[i]);
-    // }
-
-    int first_stat_roll = 0;
-
-    // For the 1st & 2nd upgrade, roll a BULLET_X or WEAPON_X stat
-    while (results_c.results.size() != 2) {
-
-      // assume player has the same type of weapons in all weapon slots
-      const auto weapon_type = r.get<Weapon_OnDiskData>(weapons_e[0]);
-
-      // WEAPON_ stats, and add BULLET_ stats if applicable
-      auto stats = upgradeable_weapon_stats;
+      // BULLET_ stats (if applicable)
       if (weapon_type.type_as_enum == WEAPON_TYPE::PROJECTILE || weapon_type.type_as_enum == WEAPON_TYPE::DEPLOY)
         stats.insert(stats.end(), upgradeable_bullet_stats.begin(), upgradeable_bullet_stats.end());
 
@@ -98,46 +90,81 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       is_fire |= has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
       if (is_fire)
         stats.insert(stats.end(), upgradeable_area_stats.begin(), upgradeable_area_stats.end());
+    }
+
+    // Figure out the stats the player already has maxed out.
+    std::unordered_set<UpgradeableStat> maxed_out_stats;
+    for (const auto& stat : stats) {
+      const auto upgrade_enum = stat;
+      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
+
+      // Check how many of the stats we have
+      const auto cmp = [&](const auto& modifier) { return modifier->stat == upgrade_str; };
+      const int actor_occurances = std::count_if(stat_c.modifiers.begin(), stat_c.modifiers.end(), cmp);
+      const int weapon_occurances = std::count_if(wep_stat_c.modifiers.begin(), wep_stat_c.modifiers.end(), cmp);
+      const int n_stat = actor_occurances + weapon_occurances;
+      SDL_Log("You have: %i %s", n_stat, upgrade_str.c_str());
+
+      // only 5 levels per stat
+      if (n_stat >= 5) {
+        maxed_out_stats.insert(upgrade_enum);
+        continue;
+      }
+    }
+
+    // remove the stats that are already maxed out
+    for (const auto stat : maxed_out_stats)
+      stats.erase(std::remove(stats.begin(), stats.end(), stat), stats.end());
+
+    for (int u = 0; u < 3; u++) {
+
+      // oops! cant generate any more stats. what to offer player now?
+      if (stats.empty()) {
+        SDL_Log("You're out of upgrades!");
+
+        // for the moment, just add a blank upgrade to get out of the while loop
+        results_c.results.emplace(UpgradeRollResult{
+          .rarity = Rarity::COMMON,
+          .stats = { Stat{ .stat = "BULLET_DAMAGE", .type = "stat_flat_increase", .value = 0 } },
+          .weapons = {},
+        });
+
+        if (results_c.results.size() == 3)
+          break;
+
+        continue;
+      }
 
       const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)stats.size());
-      const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
-
-      const auto rarity = get_rarity_from_roll(roll_rarity);
       const auto upgrade_enum = stats[roll_value];
       const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
-      const auto [value, type] = get_stat_from_stat_table(r, rarity, upgrade_enum);
 
       // dont roll the same stat twice, it feels bad.
-      if (results_c.results.empty())
-        first_stat_roll = roll_value;
-      if (!results_c.results.empty() && first_stat_roll == roll_value)
-        continue;
+      stats.erase(std::remove(stats.begin(), stats.end(), upgrade_enum), stats.end());
+
+      // Check how many of the stats we have
+      const auto cmp = [&](const auto& modifier) { return modifier->stat == upgrade_str; };
+      const int actor_occurances = std::count_if(stat_c.modifiers.begin(), stat_c.modifiers.end(), cmp);
+      const int weapon_occurances = std::count_if(wep_stat_c.modifiers.begin(), wep_stat_c.modifiers.end(), cmp);
+      const int n_stat = actor_occurances + weapon_occurances;
+      SDL_Log("You have: %i %s", n_stat, upgrade_str.c_str());
+
+      const auto rarity = (Rarity)(n_stat + 1);
+      const auto [value, type] = get_stat_from_stat_table(r, rarity, upgrade_enum);
+
+      // actor_ stats dont apply to weapons
+      const bool is_actor_stat = upgrade_str.find("ACTOR_") != std::string::npos;
+      auto weapons_to_upg = std::vector<entt::entity>();
+      if (!is_actor_stat)
+        weapons_to_upg = weapons_e;
 
       results_c.results.emplace(UpgradeRollResult{
         .rarity = rarity,
         .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
         // WEAPON_x and BULLET_x do level weapon
         // .weapons = { weapon_e }, // note: only leveling first.
-        .weapons = weapons_e, // apply to all weapons
+        .weapons = weapons_to_upg,
         .level_weapons = true,
-      });
-    }
-
-    // For the 3rd upgrade, roll an ACTOR_X stat.
-    while (results_c.results.size() != 3) {
-      const int roll_value = engine::rand_det_s(roll_rnd.rng, 0, (int)actor_x_stats.size());
-      const int roll_rarity = engine::rand_det_s(roll_rnd.rng, 0, 100);
-
-      const auto rarity = get_rarity_from_roll(roll_rarity);
-      const auto upgrade_enum = actor_x_stats[roll_value];
-      const auto upgrade_str = std::string(magic_enum::enum_name(upgrade_enum));
-      const auto [value, type] = get_stat_from_stat_table(r, rarity, upgrade_enum);
-
-      results_c.results.emplace(UpgradeRollResult{
-        .rarity = rarity,
-        .stats = { Stat{ .stat = upgrade_str, .type = type, .value = value } },
-        .weapons = {}, // ACTOR_x do not level weapon
-        .level_weapons = false,
       });
     }
 
@@ -419,8 +446,12 @@ get_val_str_from_stat_enum(entt::registry& r,
     const auto wep_data = r.get<Weapon_OnDiskData>(wep_e);
     const auto wep_type = wep_data.type_as_enum;
     const auto wep_damage = wep_data.damage_as_enum;
+    const auto& wep_behaviours_c = r.get<WeaponBehaviourComponent>(wep_e);
 
-    if (wep_damage == WEAPON_DAMAGE::FIRE) {
+    bool is_fire = wep_damage == WEAPON_DAMAGE::FIRE;
+    is_fire |= has(wep_behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
+
+    if (is_fire) {
       const auto area_def = get_area_def(r, wep_e);
 
       // if (stat_enum == UpgradeableStat::AREA_BEAMS_PER_WEAPON)
