@@ -26,6 +26,7 @@
 #include "modules/combat/combat_core/components.hpp"
 #include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
+#include "modules/core/animations/wiggle/components.hpp"
 #include "modules/core/camera/components.hpp"
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
@@ -53,6 +54,7 @@
 #include "modules/systems/system_scene_splashscreen_move_to_next/components.hpp"
 #include "modules/systems/system_screenshake/components.hpp"
 #include "modules/systems/system_spawner/spawner_helpers.hpp"
+#include "modules/systems/system_spawner/spawner_system.hpp"
 #include "modules/systems/system_sprint/sprint_components.hpp"
 #include "modules/systems/system_spritestack/spritestack_helpers.hpp"
 #include "modules/systems/system_stats/stats_components.hpp"
@@ -640,11 +642,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // auto e0 = spawn(r, "empty");
     // give_life(r, e0, { 0, 0 }, { 768, 352 });
 
-    // // offset another by 0.5px
-    // auto e1 = spawn(r, "empty");
-    // give_life(r, e1, { 0.5f, 352 }, { 768, 352 });
+    // offset another by 0.5px
+    // auto e00 = spawn(r, "empty");
+    // give_life(r, e00, { 0.5f, 352 }, { 768, 352 });
 
-    /*
     auto e0 = spawn(r, "actor_islanddweller_player");
     give_life(r, e0, { 0, 0 }, { 16, 16 });
 
@@ -663,7 +664,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // 1.5x
     {
       auto e = spawn(r, "actor_islanddweller_player");
-      give_life(r, e, { -32, 0 }, { 16 * 1.5, 16 * 1.5 });
+      give_life(r, e, { 128, 0 }, { 16 * 1.5, 16 * 1.5 });
     }
 
     // 0.5x
@@ -678,7 +679,10 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     auto e6 = spawn(r, "actor_islanddweller_player");
     give_life(r, e6, { 96, 32 }, { 16, 16 });
     set_rotation(r, e6, glm::radians(45.0f));
-    */
+    r.emplace<WiggleUpAndDown>(e6, WiggleUpAndDown{ .base_position = { 96, 32 } });
+
+    // auto oyster_e = spawn_enemy(r, "actor_destructable", 100);
+    // set_position(r, oyster_e, { 256, 256 });
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

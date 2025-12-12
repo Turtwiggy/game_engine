@@ -107,8 +107,8 @@ update_ui_survive_hp_bars_system(entt::registry& r)
 
   static float hp_bar_height = 12;
   static float space_between_bars = 24.0f;
-  static glm::vec2 pos{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
-  static glm::vec2 size{ hp_bar_width, 300 };
+  const glm::vec2 pos{ (float)ri_c.viewport_size_render_at.x, (float)ri_c.viewport_size_render_at.y };
+  const glm::vec2 size{ hp_bar_width, 300 };
   // imgui_draw_vec2("set_window_pos", pos);
   // imgui_draw_vec2("set_window_size", size);
   // imgui_draw_float("space_between_bars", space_between_bars);

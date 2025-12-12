@@ -61,12 +61,22 @@ load_hulls(entt::registry& r, std::string directory)
 
   // Sort em
   auto sorted_hulls = hulls.hulls;
-  auto sort_by_hullsize = [](const ShipHullData& a, const ShipHullData& b) {
+  // auto sort_by_hullsize = [](const ShipHullData& a, const ShipHullData& b) {
+  //   const int size_a = a.height * a.width;
+  //   const int size_b = b.height * b.width;
+  //   return size_a < size_b;
+  // };
+  auto sort_by_hardpoints_then_size = [](const ShipHullData& a, const ShipHullData& b) {
+    const int hardpoints_a = (int)a.hardpoints.size();
+    const int hardpoints_b = (int)b.hardpoints.size();
+    if (hardpoints_a != hardpoints_b)
+      return hardpoints_a < hardpoints_b;
+
     const int size_a = a.height * a.width;
     const int size_b = b.height * b.width;
     return size_a < size_b;
   };
-  std::sort(sorted_hulls.begin(), sorted_hulls.end(), sort_by_hullsize);
+  std::sort(sorted_hulls.begin(), sorted_hulls.end(), sort_by_hardpoints_then_size);
 
   hulls.hulls = sorted_hulls;
   return hulls;

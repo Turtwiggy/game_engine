@@ -3,6 +3,8 @@
 #include "engine/audio/audio_components.hpp"
 #include "engine/deps/opengl.hpp"
 #include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -32,7 +34,7 @@
 #include "ui_scene_upgrades_components.hpp"
 #include "ui_scene_upgrades_helpers.hpp"
 #include "ui_scene_upgrades_system.hpp"
-
+#include <SDL_scancode.h>
 
 namespace game2d {
 using namespace std::literals;
@@ -177,9 +179,11 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
 
   const auto g_input_e = get_first<InputComponent, Persistent>(r);
   const auto& g_input_c = r.get<InputComponent>(g_input_e);
+  const auto& b_n = g_input_c.button_n;
   const auto& b_s = g_input_c.button_s;
   const auto& b_e = g_input_c.button_e;
   bool hel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::HELD) != b_s.end();
+  bool hel_reset = std::find(b_n.begin(), b_n.end(), ActionStateEnum::HELD) != b_n.end();
   const bool rel_sel = std::find(b_s.begin(), b_s.end(), ActionStateEnum::RELEASE) != b_s.end();
   const bool do_back = std::find(b_e.begin(), b_e.end(), ActionStateEnum::DOWN) != b_e.end();
   // const bool do_act = std::find(b_s.begin(), b_s.end(), ActionStateEnum::DOWN) != b_s.end();
@@ -187,18 +191,13 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
   // also held if mouse lmb clicked.
   hel_sel |= ImGui::IsMouseDown(ImGuiMouseButton_Left);
 
-  bool do_purchase = false;
+  // hack: additionally, hold "R" to reset
+  const auto& sdl_input_c = SINGLE_InputComponent::instance;
+  bool key_held = get_key_held(sdl_input_c, SDL_SCANCODE_R);
+  hel_reset |= key_held;
 
-  // hold to purchase upgrade
-  if (hel_sel)
-    ui_c.purchase_time += dt;
-  if (!hel_sel)
-    ui_c.purchase_time -= dt;
-  ui_c.purchase_time = glm::clamp(ui_c.purchase_time, 0.0f, ui_c.purchase_time_max);
-  if (hel_sel && ui_c.state.active != nullptr && ui_c.purchase_time >= ui_c.purchase_time_max) {
-    do_purchase = true;
-    ui_c.purchase_time = 0.0f;
-  }
+  const bool do_purchase = hold_button_limit_reached(hel_sel, ui_c.purchase_time, ui_c.purchase_time_max, dt);
+  const bool do_reset = hold_button_limit_reached(hel_reset, ui_c.reset_time, ui_c.reset_time_max, dt);
 
   // back pressed
   if (do_back) {
@@ -465,7 +464,8 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
         const auto purchasebar_br = ImVec2(info_br.x - button_offset, info_br.y - 6.0f);
         const auto my_player_col = default_player_colours[0];
         const float percent = ui_c.purchase_time / ui_c.purchase_time_max;
-        draw_purchasebar(r, purchasebar_tl, purchasebar_br, percent, "Purchase", my_player_col);
+        const auto pur_text = "Purchase";
+        draw_purchasebar(r, purchasebar_tl, purchasebar_br, percent, pur_text, my_player_col);
       } else {
         auto purchased_text = "Purchased."s;
         const auto purchasebar_tl = ImVec2(info_tl.x + button_offset, info_br.y - 6.0f - bar_y);
@@ -512,6 +512,9 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     auto key = get_gridcell_item_key(r, gc);
     auto cost = get_item_key_cost(r, key);
 
+    if (savefile_get_key(r, key))
+      return; // already unlocked
+
     if (cost > gold_c.amount)
       return; // not enough gold; thats fine.
 
@@ -525,6 +528,47 @@ update_ui_scene_upgrades_system(entt::registry& r, const float dt)
     static engine::RandomState audio_rnd(0);
     const int rnd_audio = engine::rand_det_s(audio_rnd.rng, 1, 7);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "POSITIVE_0" + std::to_string(rnd_audio) });
+  }
+
+  // Draw a "hold to reset shop compltely";
+  ImGui::SetNextWindowSize({ window_x, 32 });
+  ImGui::SetNextWindowPos({ viewport_wh_half.x, viewport_wh_half.y + window_y }, ImGuiCond_Always, { 0.5f, 1.0f });
+
+  imgui_begin("holdtoreset");
+  {
+    const ImVec2 ui_tl = ImGui::GetWindowPos();
+    const ImVec2 ui_wh = ImGui::GetWindowSize();
+    const ImVec2 ui_br = { ui_tl.x + ui_wh.x, ui_tl.y + ui_wh.y };
+    auto* draw_list = ImGui::GetWindowDrawList();
+
+    // draw some
+    // const auto red = ImVec4{ 1.0f, 0.0f, 0.0f, 1.0f };
+    // draw_list->AddRectFilled(ui_tl, ui_br, IM_COL32(255, 0, 0, 255));
+
+    const auto my_player_col = default_player_colours[1];
+    const float reset_percent = ui_c.reset_time / ui_c.reset_time_max;
+    if (ui_c.reset_time != 0.0)
+      int k = 1;
+    const auto reset_bar_tl = ImVec2(ui_tl.x + button_offset, ui_tl.y);
+    const auto reset_bar_br = ImVec2(ui_br.x - button_offset, reset_bar_tl.y + bar_y);
+    const auto text = "Button(North) or Keyboard(R) to reset shop progress";
+    draw_purchasebar(r, reset_bar_tl, reset_bar_br, reset_percent, text, my_player_col);
+
+    //
+  }
+  ImGui::End();
+
+  if (do_reset) {
+
+    // Add keys for anything the shop that is default unlocked.
+    for (const auto& item : shop_c.items) {
+      savefile_remove_key_if_exists(r, item.key);
+      if (item.default_unlocked)
+        savefile_put_key(r, item.key, 1);
+    }
+
+    SDL_Log("resetting upgrades.");
+    savefile_save_disk(r);
   }
 }
 

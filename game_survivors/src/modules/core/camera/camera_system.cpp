@@ -192,9 +192,10 @@ update_camera_zoom_system(entt::registry& r, const float dt)
     // }
   }
 #if defined(_DEBUG)
-  // ImGui::Begin("DebugZoom");
-  // ImGui::SliderFloat("Zoom", &zoom, -1.0f, 1.0f);
-  // ImGui::End();
+  ImGui::Begin("DebugZoom");
+  ImGui::DragFloat("Zoom", &zoom, 0.1f, -1.0f, 1.0f);
+  ImGui::Text("Zoom Nonlinear: %f", zoom_nonlinear);
+  ImGui::End();
 #endif
 }
 

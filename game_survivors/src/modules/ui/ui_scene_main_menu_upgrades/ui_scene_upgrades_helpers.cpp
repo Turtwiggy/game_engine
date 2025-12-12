@@ -172,4 +172,20 @@ get_item_key_cost(entt::registry& r, std::string key)
   return it->cost;
 };
 
+bool
+hold_button_limit_reached(bool input_held, float& cur, const float max, const float dt)
+{
+  if (input_held)
+    cur += dt;
+  if (!input_held)
+    cur -= dt;
+  cur = glm::clamp(cur, 0.0f, max);
+
+  bool done = cur >= max;
+  if (input_held && done)
+    cur = 0.0f;
+
+  return done;
+}
+
 } // namespace game2d

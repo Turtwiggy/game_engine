@@ -155,6 +155,7 @@ const std::vector<UpgradeableStat> upgradeable_bullet_stats{
   UpgradeableStat::BULLET_DAMAGE,
   UpgradeableStat::BULLET_KNOCKBACK,
   UpgradeableStat::BULLET_LIFESTEAL, // %hp you recover when a bullet hits
+  // UpgradeableStat::BULLET_LIFETIME,
   UpgradeableStat::BULLET_PIERCE,
   UpgradeableStat::BULLET_SPEED,
   // UpgradeableStat::BULLET_SIZE,

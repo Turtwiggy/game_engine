@@ -57,6 +57,22 @@
 
 namespace game2d {
 
+int
+adjust_max(std::string enemy_key, int adj_max, int on_disk_max)
+{
+  int max = adj_max;
+
+  // hack: dont increase the lightsource enemy
+  if (enemy_key == "actor_enemy_4")
+    max = on_disk_max;
+
+  // hack: always limit enemy_melee_3 (regardless of Option_EnemyCount)
+  if (enemy_key == "actor_enemy_melee_3")
+    max = 1;
+
+  return max;
+}
+
 entt::entity
 spawn_enemy(entt::registry& r, std::string key, float hp)
 {
@@ -430,9 +446,8 @@ update_wave_spawner(entt::registry& r, const std::unordered_map<std::string, int
       if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get()))
         max *= o->multiplier;
 
-      // hack: always limit enemy_melee_3 (regardless of Option_EnemyCount)
-      if (enemy_key == "actor_enemy_melee_3")
-        max = 1;
+      // clamp max based on some game logic
+      max = adjust_max(enemy_key, max, data.max);
 
       // spawn conditions
       bool allowed_to_spawn = (enemies + data.num_per_spawn) <= max;
@@ -519,6 +534,9 @@ update_enemy_spawner(entt::registry& r, const std::unordered_map<std::string, in
       }
     }
 
+    // clamp max based on some game logic
+    max = adjust_max(enemy_key, max, on_disk_wave.data.max);
+
     // spawn conditions
     bool allowed_to_spawn = (enemies + number_per_spawn) <= max;
 
@@ -592,6 +610,9 @@ update_random_spawner(entt::registry& r, const std::unordered_map<std::string, i
     auto option = get_modifier_option(r, MODIFIER_OPTIONS::ENEMY_COUNT);
     if (auto* o = dynamic_cast<Option_EnemyCount*>(option.get()))
       max *= o->multiplier;
+
+    // clamp max based on some game logic
+    max = adjust_max(enemy_key, max, data.max);
 
     // spawn conditions
     bool allowed_to_spawn = (enemies + data.num_per_spawn) <= max;

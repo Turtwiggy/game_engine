@@ -1,8 +1,8 @@
 {
   "items": [
     // ships
-    {"key": "dinghy",     "default_unlocked": true, "cost": 0},
-    {"key": "castaway",   "default_unlocked": false, "cost": 3},
+    {"key": "castaway",   "default_unlocked": true, "cost": 0},
+    {"key": "dinghy",     "default_unlocked": false, "cost": 5},
     {"key": "bond",       "default_unlocked": false, "cost": 7},
     {"key": "rhib",       "default_unlocked": false, "cost": 20},
     {"key": "pbr",        "default_unlocked": false, "cost": 25},

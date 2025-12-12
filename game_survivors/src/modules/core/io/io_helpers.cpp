@@ -72,4 +72,14 @@ savefile_put_key(entt::registry& r, const std::string& key, const nlohmann::json
   disk_c.data[key] = val;
 };
 
+void
+savefile_remove_key_if_exists(entt::registry& r, const std::string& key)
+{
+  auto& disk_c = get_first_component<SINGLE_OnDiskData>(r);
+
+  if (!disk_c.data.contains(key))
+    return;
+  disk_c.data.erase(key);
+};
+
 } // namespace game2d

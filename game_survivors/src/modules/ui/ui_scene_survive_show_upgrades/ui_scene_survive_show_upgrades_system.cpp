@@ -40,8 +40,8 @@ const std::vector<std::pair<UpgradeableStat, std::string>> stat_display_order = 
   { UpgradeableStat::BULLET_DAMAGE, "Damage" },        //
   { UpgradeableStat::BULLET_KNOCKBACK, "Knockback" },  //
   { UpgradeableStat::BULLET_LIFESTEAL, "Lifesteal" },  //
-  { UpgradeableStat::BULLET_LIFETIME, "Lifetime" },    //
-  { UpgradeableStat::BULLET_PIERCE, "Pierce" },        //
+  // { UpgradeableStat::BULLET_LIFETIME, "Lifetime" },    //
+  { UpgradeableStat::BULLET_PIERCE, "Pierce" }, //
   // { UpgradeableStat::BULLET_SIZE, "Size" },           //
   { UpgradeableStat::BULLET_SPEED, "Speed" }, //
 

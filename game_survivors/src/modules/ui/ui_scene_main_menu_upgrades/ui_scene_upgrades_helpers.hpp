@@ -33,4 +33,7 @@ get_gridcell_item_key(entt::registry& r, const GridCell* gc);
 int
 get_item_key_cost(entt::registry& r, std::string key);
 
+bool
+hold_button_limit_reached(bool input, float& cur, const float max, const float dt);
+
 } // namespace game2d

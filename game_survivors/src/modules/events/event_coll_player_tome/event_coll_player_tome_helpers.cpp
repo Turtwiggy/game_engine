@@ -2,6 +2,7 @@
 
 #include "event_coll_player_tome_helpers.hpp"
 
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
@@ -84,7 +85,7 @@ handle_player_enter_tome(entt::registry& r, const OnCollisionEnter& evt)
     UpgradeResultsComponent results_c;
 
     // let the player choose which upgrade to pick from upgrades you dont have.
-    for (int i = 0; i < n_upgrades; i++) {
+    for (int i = 0; i < std::min(n_upgrades, (int)unaquired_wb.size()); i++) {
       const auto chosen_i = engine::rand_det_s(roll_rnd.rng, 0, (int)unaquired_wb.size());
       const auto wb_key = unaquired_wb[chosen_i];
 
@@ -113,6 +114,11 @@ handle_player_enter_tome(entt::registry& r, const OnCollisionEnter& evt)
     auto& dead_c = get_first_component<SINGLE_EntityBinComponent>(r);
     dead_c.dead.push_back(item_e);
   }
+
+  // play some audio.
+  static engine::RandomState audio_rnd(0);
+  const int rnd_audio = engine::rand_det_s(audio_rnd.rng, 1, 7);
+  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "POSITIVE_0" + std::to_string(rnd_audio) });
 }
 
 } // namespace game2d

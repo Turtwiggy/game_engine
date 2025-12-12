@@ -44,6 +44,9 @@ struct SINGLE_PersistentUpgradesMenuUI : public DefaultUI
   float purchase_time = 0.0f;
   const float purchase_time_max = 0.70f;
 
+  float reset_time = 0.0f;
+  const float reset_time_max = 2.0f;
+
   std::shared_ptr<Cell> active_header;
   UiCursorComponent cursor_c;
 
