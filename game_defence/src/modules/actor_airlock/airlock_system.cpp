@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "airlock_system.hpp"
 
 #include "components.hpp"
@@ -36,7 +38,7 @@ update_airlock_system(entt::registry& r)
     //
     // What gridpos is the airlock?
     const auto wp = get_position(r, e);
-    const auto gp = worldspace_to_grid_space(wp, map_c.tilesize);
+    const auto gp = worldspace_to_gridspace(wp, map_c.tilesize);
     const auto idx = grid_position_to_index(gp, map_c.xmax);
 
     const auto mobs_airlock = contains_mobs(r, gp);

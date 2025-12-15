@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/raws/raws_components.hpp"
+#include "modules/core/raws/raws_components.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {

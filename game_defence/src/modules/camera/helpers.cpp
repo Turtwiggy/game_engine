@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "helpers.hpp"
 
 #include "engine/entt/helpers.hpp"
@@ -5,7 +7,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "orthographic.hpp"
 
 namespace game2d {

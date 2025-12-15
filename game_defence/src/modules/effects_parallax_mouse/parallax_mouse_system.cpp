@@ -4,7 +4,7 @@
 
 #include "engine/imgui/helpers.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 
 #include "imgui.h"
@@ -14,6 +14,7 @@ namespace game2d {
 void
 update_parallax_mouse_system(entt::registry& r, const float dt, const glm::ivec2 mouse_pos)
 {
+  /*
   const auto& view = r.view<const TransformComponent, ParallaxMouseComponent, const PhysicsBodyComponent>();
   for (const auto& [e, t_c, parallax_c, body_c] : view.each()) {
 
@@ -55,6 +56,7 @@ update_parallax_mouse_system(entt::registry& r, const float dt, const glm::ivec2
 
     //
   }
+  */
 }
 
 } // namespace game2d

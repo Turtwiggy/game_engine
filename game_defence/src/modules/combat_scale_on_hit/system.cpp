@@ -3,11 +3,10 @@
 #include "components.hpp"
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/lifecycle/components.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat_scale_on_hit/helpers.hpp"
-
 
 namespace game2d {
 

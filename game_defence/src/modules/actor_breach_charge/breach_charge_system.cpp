@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "breach_charge_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -8,12 +10,9 @@
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "modules/actor_breach_charge/breach_charge_helpers.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
-
-#include <SDL2/SDL_log.h>
-#include <format>
 
 namespace game2d {
 

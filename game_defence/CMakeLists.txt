@@ -3,6 +3,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(game_defence VERSION 0.1.0)
+message("game_defence: PROJECT_NAME ${PROJECT_NAME}")
 message("game_defence: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 message("game_defence: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 message("game_defence: C: ${CMAKE_C_COMPILER_ID}")
@@ -24,14 +25,14 @@ include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-clang.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-msvc.cmake)
-
 include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/box2d.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/build_misc.cmake)
+
 find_packages()
 
 # Add source files
-include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
-
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/**/*.cpp"
   ${IMGUI_SOURCE}
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include/glad/glad.c
@@ -50,17 +51,23 @@ else()
   add_executable(game_defence ${SRC_FILES})
 endif()
 
+# Precompile headers
+set(PCH_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch.hpp)
+target_precompile_headers(${PROJECT_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${PCH_FILE}>")
+set(PCH_INSTANTIATE_TEMPLATES ON)
+
 link_libs(game_defence)
 
 target_include_directories(game_defence PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
   ${Stb_INCLUDE_DIR}
-  ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/game_defence/src
+  ${CMAKE_SOURCE_DIR}/thirdparty/box2d/include
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/src
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/glad/include
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/game_defence/src
 )
 
 # rename executable
@@ -101,47 +108,8 @@ ENDIF()
 # actions for building release. Github actins will
 # copy over the /assets folder in the release mode,
 # and would fail if this symlink was created here.
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  message("creating symlink...")
-  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-
-  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/Debug/assets)
-  else()
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-  endif()
-
-  message("creating symlink src... ${src}")
-  message("creating symlink dst... ${dst}")
-
-  if(UNIX)
-    message("creating symlink... (unix)")
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst_sym}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  else()
-    message("creating symlink... (windows)")
-    file(TO_NATIVE_PATH "${src}" _srcDir)
-    file(TO_NATIVE_PATH "${dst}" _dstDir)
-
-    if(NOT EXISTS ${_dstDir})
-      # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink
-      # mklink [[/d] | [/h] | [/j]] <link> <target>
-      # <link>	Specifies the name of the symbolic link being created.
-      # <target>	Specifies the path (relative or absolute) that the new symbolic link refers to.
-      #
-      add_custom_command(
-        TARGET ${PROJECT_NAME} PRE_BUILD
-        COMMAND cmd.exe /c mklink /D "${_dstDir}" "${_srcDir}"
-        COMMENT "Creating symlink on Windows"
-      )
-    ELSE()
-      message("creating symlink... (already exists)")
-    ENDIF()
-  ENDIF()
+if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+  create_symlinks(game_defence)
 ENDIF()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

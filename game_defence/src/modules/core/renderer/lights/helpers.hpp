@@ -1,8 +1,7 @@
 #pragma once
 
 #include "engine/renderer/transform.hpp"
-#include "modules/renderer/lights/components.hpp"
-
+#include "modules/core/renderer/lights/components.hpp"
 
 #include <entt/entt.hpp>
 

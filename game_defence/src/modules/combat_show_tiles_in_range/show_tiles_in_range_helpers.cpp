@@ -3,7 +3,7 @@
 #include "engine/algorithm_astar_pathfinding/astar_helpers.hpp"
 #include "engine/map/components.hpp"
 #include "engine/maths/maths.hpp"
-#include "modules/raws/raws_components.hpp"
+#include "modules/core/raws/raws_components.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
 #include "modules/ui_inventory/ui_inventory_helpers.hpp"
 

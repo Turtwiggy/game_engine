@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/entt/entity_pool.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>

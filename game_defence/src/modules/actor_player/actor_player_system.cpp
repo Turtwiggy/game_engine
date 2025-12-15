@@ -1,3 +1,7 @@
+#include "box2d/box2d.h"
+#include "box2d/math_functions.h"
+#include "pch.hpp"
+
 #include "modules/actor_player/actor_player_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -9,19 +13,10 @@
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
-#include "imgui.h"
 #include "modules/actor_player/components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
-
-#include <SDL2/SDL_keyboard.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_mouse.h>
-#include <SDL_scancode.h>
-#include <box2d/b2_math.h>
-#include <box2d/box2d.h>
-#include <glm/glm.hpp>
 
 namespace game2d {
 
@@ -37,26 +32,26 @@ update_movement_jetpack(entt::registry& r)
 
   const auto& view = r.view<const InputComponent, const MovementJetpackComponent, PhysicsBodyComponent>();
   for (const auto& [e, input_c, movetype_c, body_c] : view.each()) {
-    body_c.body->SetLinearDamping(1.0f);
+    b2Body_SetLinearDamping(body_c.bodyId, 1.0f);
 
     // rotate
-    body_c.body->SetAngularVelocity(input_c.lx * rotation_speed);
+    b2Body_SetAngularVelocity(body_c.bodyId, input_c.lx * rotation_speed);
 
     const float epsilon = 0.0001f;
     if (glm::abs(input_c.ly) - epsilon <= 0.0f)
       continue; // no input, dont move
 
     // -engine::HALF_PI so that the angle is not from the left side, but from the feet
-    const float angle = body_c.body->GetAngle() - engine::HALF_PI;
+    const float angle = b2Rot_GetAngle(b2Body_GetRotation(body_c.bodyId)) - engine::HALF_PI;
     const auto dir = engine::angle_radians_to_direction(angle);
     const b2Vec2 tgt_vel = b2Vec2(dir.x * speed, dir.y * speed);
 
-    const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
+    const b2Vec2 cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
     const b2Vec2 vel_err = tgt_vel - cur_vel;
     b2Vec2 force = proportional_gain * vel_err;
 
     if (clamp_max_force) {
-      float force_magnitude_sq = force.LengthSquared();
+      float force_magnitude_sq = b2LengthSquared(force);
       float max_force_mag_sq = max_force * max_force;
       if (force_magnitude_sq > max_force_mag_sq) {
         float force_mag = glm::sqrt(force_magnitude_sq);
@@ -64,7 +59,7 @@ update_movement_jetpack(entt::registry& r)
       }
     }
 
-    body_c.body->ApplyForceToCenter(force, true);
+    b2Body_ApplyForceToCenter(body_c.bodyId, force, true);
   }
 }
 
@@ -76,8 +71,9 @@ update_movement_direct(entt::registry& r)
     const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
     const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
 
-    const glm::vec2 move_vel = (l_nrm_dir * body_c.base_speed);
-    body_c.body->SetLinearVelocity({ move_vel.x, move_vel.y });
+    float speed = 10.0f; // todo
+    const glm::vec2 move_vel = (l_nrm_dir);
+    b2Body_SetLinearVelocity(body_c.bodyId, { move_vel.x, move_vel.y });
   }
 };
 
@@ -107,7 +103,7 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
     // Applies an instantaneous change in rotational velocity.
     // Useful for sudden rotational effects, like impacts or quick spins.
     if (movetype_c.able_to_change_dir)
-      body_c.body->SetAngularVelocity(input_c.lx * rotation_speed);
+      b2Body_SetAngularVelocity(body_c.bodyId, input_c.lx * rotation_speed);
 
     if (movetype_c.able_to_change_thrust) {
       // if (input_c.ly > 0)
@@ -128,7 +124,7 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
     This is typically done using a form of proportional control,
     which is a fundamental concept in control systems.
     */
-    const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
+    const b2Vec2 cur_vel = b2Body_GetLinearVelocity(body_c.bodyId);
     const b2Vec2 vel_err = tgt_vel - cur_vel;
     b2Vec2 force = proportional_gain * vel_err;
 
@@ -139,7 +135,7 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
     // ship is more responsive beause large force values can be applied.
     // Kinda feels more like a car than a thruster-powered spaceship
     if (clamp_max_force) {
-      float force_magnitude_sq = force.LengthSquared();
+      float force_magnitude_sq = b2LengthSquared(force);
       float max_force_mag_sq = max_force * max_force;
       if (force_magnitude_sq > max_force_mag_sq) {
         float force_mag = glm::sqrt(force_magnitude_sq);
@@ -156,7 +152,7 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
       This can provide smoother and more stable control in some cases.
     */
 
-    body_c.body->ApplyForceToCenter(force, true);
+    b2Body_ApplyForceToCenter(body_c.bodyId, force, true);
   }
 };
 

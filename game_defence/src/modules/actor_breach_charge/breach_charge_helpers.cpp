@@ -1,3 +1,6 @@
+#include "box2d/box2d.h"
+#include "pch.hpp"
+
 #include "breach_charge_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -8,7 +11,7 @@
 #include "engine/map/components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/helpers.hpp"
@@ -79,12 +82,12 @@ add_bomb_callback(entt::registry& r, const entt::entity add_to_e)
     const auto& physics = get_first_component<SINGLE_Physics>(r);
     auto& map = get_first_component<MapComponent>(r);
     auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
-    const auto gp = engine::grid::worldspace_to_grid_space(pos, map.tilesize);
+    const auto gp = engine::grid::worldspace_to_gridspace(pos, map.tilesize);
     // SDL_Log("%s", std::format("go boom at {}, {}. gp: {}, {}", pos.x, pos.y, gp.x, gp.y).c_str());
 
     // Have to use gridpos not index, because gridpos {-1, 12} is valid for a bomb to be placed
     // but if that was convertd to an index it would wrap round the value and be too large.
-    const auto neighbours = engine::grid::get_neighbour_gridpos(gp, map.xmax, map.ymax);
+    const auto neighbours = engine::grid::get_neighbour_gridpos(gp);
     for (const auto& [dir, n_gp] : neighbours) {
       const auto edge_e = edge_between_gps(r, gp, n_gp);
       if (edge_e == entt::null)
@@ -93,12 +96,12 @@ add_bomb_callback(entt::registry& r, const entt::entity add_to_e)
       SDL_Log("%s", std::format("removing edge..").c_str());
 
       // destroy body immediately
-      auto& physics_b = r.get<PhysicsBodyComponent>(edge_e).body;
-      physics.world->DestroyBody(physics_b);
+      auto body_id = r.get<PhysicsBodyComponent>(edge_e).bodyId;
+      b2DestroyBody(body_id);
       r.remove<PhysicsBodyComponent>(edge_e);
 
       // destroy edge
-      dead.dead.emplace(edge_e);
+      dead.dead.push_back(edge_e);
     }
 
     // create a particle spawner...

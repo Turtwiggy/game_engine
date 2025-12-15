@@ -2,8 +2,8 @@
 
 #include "engine/renderer/transform.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
 
 namespace game2d {
 

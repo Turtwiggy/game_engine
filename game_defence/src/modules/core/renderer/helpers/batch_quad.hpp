@@ -17,7 +17,7 @@ struct RenderDescriptor
   glm::vec2 pos_tl = { 0, 0 };
   glm::vec2 size = { 1, 1 };
   glm::vec3 yaw_pitch_roll_radians = { 0, 0, 0 };
-  LinearColour colour;
+  SRGBColour colour;
 
   // xy: translational offset. wz: rotation
   glm::vec4 parallax{ 0, 0, 0, 0 };

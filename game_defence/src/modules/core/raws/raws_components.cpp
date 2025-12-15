@@ -1,4 +1,6 @@
-#include "modules/raws/raws_components.hpp"
+#include "pch.hpp"
+
+#include "modules/core/raws/raws_components.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/algorithm_astar_pathfinding/astar_components.hpp"
@@ -6,7 +8,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
+#include "engine/physics/physics_helpers.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
@@ -14,18 +17,13 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/colour/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
+#include "modules/core/renderer/helpers.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_move_player_on_map/move_player_on_map_components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_names/components.hpp"
 #include "modules/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui_inventory/ui_inventory_components.hpp"
-
-#include <box2d/b2_body.h>
-#include <fstream>
-#include <sstream>
 
 namespace game2d {
 
@@ -105,6 +103,55 @@ create_transform(entt::registry& r, const std::string& name)
   return e;
 };
 
+b2ShapeId
+create_fixture(b2BodyId bodyId, const PhysicsFixtureDef& fix, const b2Vec2 size_in_meters)
+{
+  const auto tag = fix.tag;
+  const auto type = fix.type;
+  const auto is_sensor = fix.is_sensor;
+  const auto density = fix.density;
+  const auto friction = fix.friction;
+
+  b2Vec2 offset{ 0, 0 };
+  if (!fix.offset.empty())
+    offset = pixels_to_meters({ fix.offset[0].x, fix.offset[0].y });
+
+  b2Vec2 size = size_in_meters;
+  if (!fix.size_in_pixels.empty())
+    size = pixels_to_meters({ fix.size_in_pixels[0].x, fix.size_in_pixels[0].y });
+
+  b2ShapeDef shape_def = b2DefaultShapeDef();
+  shape_def.density = density;
+  shape_def.isSensor = is_sensor;
+  shape_def.enableSensorEvents = true;
+  shape_def.enableContactEvents = true;
+
+  // note: looks like box2d 3.1+ makes use of materials
+  // shape_def.material
+  // shape_def.friction = friction;
+
+  if (type == "box") {
+    b2Polygon box = b2MakeBox(size.x * 0.5f, size.y * 0.5f);
+
+    for (int i = 0; i < box.count; i++)
+      box.vertices[i] += offset;
+    box.centroid += offset;
+
+    const b2ShapeId shapeId = b2CreatePolygonShape(bodyId, &shape_def, &box);
+    return shapeId;
+  }
+
+  else if (type == "circle") {
+    const b2Circle circle = { { offset }, size.x * 0.5f };
+    const b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shape_def, &circle);
+    return shapeId;
+  }
+
+  SDL_Log("(Error) unknown fixture type: %s", type.c_str());
+  exit(1);
+  return {};
+};
+
 void
 give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const glm::vec2& size)
 {
@@ -147,13 +194,10 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
 
   // create_physics()
   if (t.phys_body.has_value()) {
+    const auto& physics_c = get_first_component<SINGLE_Physics>(r);
     const auto& my_body_def = t.phys_body.value();
-    auto is_bullet = my_body_def.is_bullet;
-    auto is_static = my_body_def.is_static;
-
-    // Create a physics body.
-    //
-    auto& physics_c = get_first_component<SINGLE_Physics>(r);
+    const auto is_bullet = my_body_def.is_bullet;
+    const auto is_static = my_body_def.is_static;
 
     // Bodies are built using the following steps:
     // Define a body with position, damping, etc.
@@ -161,26 +205,25 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     // Define fixtures with a shape, friction, density, etc.
     // Create fixtures on the body.
 
-    b2BodyDef body_def;
-    body_def.position.Set(pos.x, pos.y);
-    body_def.angle = 0.0f;
-    body_def.fixedRotation = true;
-    body_def.bullet = is_bullet;
-    body_def.type = is_static ? b2_staticBody : b2_dynamicBody;
-    body_def.linearVelocity = b2Vec2_zero;
-    body_def.linearDamping = my_body_def.linear_damping;
-    body_def.angularDamping = my_body_def.angular_damping;
+    const b2Vec2 pos_in_meters = pixels_to_meters(pos);
+    const b2Vec2 size_in_meters = pixels_to_meters(size);
+
+    b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyDef.type = is_static ? b2_staticBody : b2_dynamicBody;
+    bodyDef.position = pos_in_meters;
+    bodyDef.rotation = b2Rot_identity;
+    bodyDef.fixedRotation = true;
+    bodyDef.isBullet = is_bullet;
+    bodyDef.linearVelocity = b2Vec2_zero;
+    bodyDef.linearDamping = my_body_def.linear_damping;
+    bodyDef.angularDamping = my_body_def.angular_damping;
+    bodyDef.userData = (void*)static_cast<uintptr_t>(entt::to_integral(e));
 
     // box2d: create body
-    b2Body* body = nullptr;
-    body = physics_c.world->CreateBody(&body_def);
-    // SDL_Log("creating physics body..");
-
-    // box2d: give link to entt
-    body->GetUserData().pointer = (uintptr_t)e;
+    b2BodyId bodyId = b2CreateBody(physics_c.worldId, &bodyDef);
 
     // entt: create body representation
-    auto& body_c = r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ body });
+    auto& body_c = r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ .bodyId = bodyId });
 
     if (!t.phys_fixtures.has_value()) {
       SDL_Log("(Error) phys_body defined, but not phys_fixtures");
@@ -190,59 +233,28 @@ give_life(entt::registry& r, const entt::entity e, const glm::vec2& pos, const g
     if (t.phys_fixtures.has_value()) {
       const auto& fixtures = t.phys_fixtures.value();
 
-      if (fixtures.size() == 0) {
+      if (fixtures.empty()) {
         SDL_Log("(Error) phys_fixtures size 0 when phys_body defined");
         exit(1);
       }
 
-      for (const auto& fix : fixtures) {
-        auto tag = fix.tag;
-        auto type = fix.type;
-        auto is_sensor = fix.is_sensor;
-        auto density = fix.density;
-        auto friction = fix.friction;
-        auto restitution = fix.restitution;
+      for (const PhysicsFixtureDef& data : fixtures) {
 
-        b2FixtureDef fixture_def;
-        fixture_def.friction = friction;
-        fixture_def.density = density;
-        fixture_def.restitution = restitution;
-        fixture_def.isSensor = is_sensor;
-
-        b2Fixture* fixture = nullptr;
-
-        if (type == "circle") {
-          b2CircleShape circle;
-          circle.m_radius = fix.radius;
-          fixture_def.shape = &circle;
-          fixture = body->CreateFixture(&fixture_def);
-          // SDL_Log("creating circle fixture..");
-        }
-
-        if (type == "box") {
-          b2PolygonShape box;
-          box.SetAsBox(size.x / 2.0f, size.y / 2.0f);
-          fixture_def.shape = &box;
-          fixture = body->CreateFixture(&fixture_def);
-          // SDL_Log("creating box fixture..");
-        }
-
-        if (fixture == nullptr) {
-          SDL_Log("(Error) unknown fixture type: %s", type.c_str());
-          exit(1);
-        }
+        const auto shapeId = create_fixture(bodyId, data, size_in_meters);
+        // SDL_Log("Created fixture... %s", fix.tag.c_str());
 
         // entt: create fixture representation
         PhysicsFixtureComponent fixture_c;
-        fixture_c.body = body;
-        fixture_c.fixture = fixture;
-        auto fixture_e = create_empty<PhysicsFixtureComponent>(r);
-        r.emplace_or_replace<TagComponent>(fixture_e, fix.tag);
+        fixture_c.bodyId = bodyId;
+        fixture_c.shapeId = shapeId;
+        const auto fixture_e = create_empty<PhysicsFixtureComponent>(r, fixture_c);
+        r.emplace_or_replace<TagComponent>(fixture_e, TagComponent{ data.tag });
+        r.emplace<ItemKey>(fixture_e, ItemKey{ key });
         r.emplace<HasParentComponent>(fixture_e, e); // link fixture => body
         body_c.fixtures.push_back(fixture_e);        // link body => fixture
 
         // box2d: give link to entt
-        fixture->GetUserData().pointer = (uint32)fixture_e;
+        b2Shape_SetUserData(shapeId, (void*)static_cast<uintptr_t>(entt::to_integral(fixture_e)));
       }
     }
 
@@ -268,8 +280,8 @@ remove_life(entt::registry& r, const entt::entity e)
     r.remove<OnDeathCallbacks>(e);
 
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
-    auto& physics_c = get_first_component<SINGLE_Physics>(r);
-    physics_c.world->DestroyBody(pb->body);
+    const auto& physics_c = get_first_component<SINGLE_Physics>(r);
+    b2DestroyBody(pb->bodyId);
     r.remove<PhysicsBodyComponent>(e);
   }
 };

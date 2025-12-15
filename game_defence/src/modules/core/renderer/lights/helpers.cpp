@@ -2,7 +2,7 @@
 
 #include "engine/entt/helpers.hpp"
 #include "engine/maths/grid.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 
 namespace game2d {
 

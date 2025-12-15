@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 // header
 #include "camera_system.hpp"
 
@@ -10,13 +12,9 @@
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "orthographic.hpp"
-
-
-#include <cmath>
-#include <glm/glm.hpp>
 
 namespace game2d {
 

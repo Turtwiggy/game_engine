@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -5,13 +7,10 @@
 #include "engine/map/components.hpp"
 #include "modules/actor_door/door_helpers.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/raws/raws_components.hpp"
+#include "modules/core/raws/raws_components.hpp"
 #include "modules/system_select_unit/select_unit_components.hpp"
 #include "show_tiles_in_range_components.hpp"
 #include "show_tiles_in_range_helpers.hpp"
-
-#include <glm/fwd.hpp>
-#include <imgui.h>
 
 namespace game2d {
 

@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "passes.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
@@ -8,12 +10,12 @@
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/helpers.hpp"
+#include "modules/core/renderer/helpers/batch_quad.hpp"
+#include "modules/core/renderer/lights/components.hpp"
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/effects_parallax_mouse/parallax_mouse_components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
-#include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/renderer/lights/components.hpp"
 
 #include "engine/deps/opengl.hpp"
 #include "engine/opengl/framebuffer.hpp"
@@ -61,7 +63,7 @@ setup_stars_update(entt::registry& r)
     const auto& camera = r.get<OrthographicCamera>(camera_e);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
 
-    engine::RenderCommand::set_clear_colour_linear({ 0.0f, 0.0f, 0.0f, 1.0f });
+    engine::RenderCommand::set_clear_colour({ 0.0f, 0.0f, 0.0f, 1.0f });
     engine::RenderCommand::clear();
 
     // Render stars shader
@@ -141,7 +143,7 @@ setup_floor_mask_update(entt::registry& r)
     ri.instanced.set_mat4("view", camera_c.view);
 
     // Render floor quads in to floor-mask texture.
-    engine::LinearColour mask_colour = engine::LinearColour(1.0f, 1.0f, 1.0f, 1.0f);
+    engine::SRGBColour mask_colour = engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f);
 
     {
       ri.renderer.reset_quad_vert_count();
@@ -373,15 +375,15 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     // emitters should be anything but black (i.e. scene lighting)
-    const engine::LinearColour emitter_col = engine::SRGBToLinear({ 255, 0, 0, 255 });
-    const engine::LinearColour occluder_col(0.0f, 0.0f, 0.0f, 1.0f);
+    const engine::SRGBColour emitter_col = { 255, 0, 0, 255 };
+    const engine::SRGBColour occluder_col(0.0f, 0.0f, 0.0f, 1.0f);
 
     ri.lighting_emitters_and_occluders.bind();
     ri.lighting_emitters_and_occluders.set_mat4("view", camera_c.view);
     ri.lighting_emitters_and_occluders.set_mat4("projection", camera_c.projection_zoomed);
 
     {
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0 });
+      engine::RenderCommand::set_clear_colour({ 0, 0, 0, 0 });
       engine::RenderCommand::clear();
 
       ri.renderer.reset_quad_vert_count();
@@ -488,7 +490,7 @@ setup_jump_flood_pass(entt::registry& r)
 
       engine::Framebuffer::bind_fbo(pass.fbos[this_tex_idx]);
       engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-      engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 255 });
+      engine::RenderCommand::set_clear_colour({ 0, 0, 0, 255 });
       engine::RenderCommand::clear();
 
       // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest

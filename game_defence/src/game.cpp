@@ -1,3 +1,5 @@
+#include "pch.hpp"
+
 #include "game.hpp"
 
 #include "engine/audio/audio_components.hpp"
@@ -5,8 +7,8 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/system.hpp"
-#include "engine/lifecycle/system.hpp"
-#include "engine/physics/system.hpp"
+#include "engine/lifecycle/lifecycle_system.hpp"
+#include "engine/physics/physics_system.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
@@ -24,11 +26,11 @@
 #include "modules/combat_gun_z_index/system.hpp"
 #include "modules/combat_scale_on_hit/system.hpp"
 #include "modules/combat_show_tiles_in_range/show_tiles_in_range_system.hpp"
+#include "modules/core/raws/raws_components.hpp"
+#include "modules/core/renderer/components.hpp"
+#include "modules/core/renderer/system.hpp"
 #include "modules/events/events_system.hpp"
 #include "modules/gameover/system.hpp"
-#include "modules/raws/raws_components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/system.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
@@ -72,8 +74,6 @@
 #include "modules/ui_units/ui_units_system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "resources/resources.hpp"
-
-#include <SDL2/SDL_log.h>
 
 namespace game2d {
 using namespace std::literals;

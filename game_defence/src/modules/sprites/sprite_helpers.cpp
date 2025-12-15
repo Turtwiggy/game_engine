@@ -1,12 +1,12 @@
+#include "pch.hpp"
+
 #include "sprite_helpers.hpp"
 
 #include "engine/actors/actor_helpers.hpp"
 #include "engine/entt/entity_pool.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "modules/renderer/helpers.hpp"
-
-#include <SDL_log.h>
+#include "modules/core/renderer/helpers.hpp"
 
 namespace game2d {
 

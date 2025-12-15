@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/entt/helpers.hpp"
-#include "modules/renderer/components.hpp"
+#include "modules/core/renderer/components.hpp"
 
 #include <entt/entt.hpp>
 

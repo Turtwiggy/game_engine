@@ -1,7 +1,10 @@
+#include "box2d/box2d.h"
+#include "pch.hpp"
+
 #include "door_system.hpp"
 
 #include "engine/entt/helpers.hpp"
-#include "engine/physics/components.hpp"
+#include "engine/physics/physics_components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "engine/sprites/components.hpp"
 #include "modules/actor_door/components.hpp"
@@ -41,7 +44,7 @@ update_door_system(entt::registry& r)
         r.remove<SpriteComponent>(e);
         auto& physics = get_first_component<SINGLE_Physics>(r);
         const auto& p_c = r.get<PhysicsBodyComponent>(e);
-        physics.world->DestroyBody(p_c.body);
+        b2DestroyBody(p_c.bodyId);
         r.remove<PhysicsBodyComponent>(e);
       }
     }
