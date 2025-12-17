@@ -375,8 +375,8 @@ update_occasionally__steam_achievements(entt::registry& r)
           unlock_achievement(achievement_c, ach);
         break;
       }
-      case SteamAchievementID::ACH_KILL_10900: {
-        if (achievement_c.stats["NumKills"] >= 10900)
+      case SteamAchievementID::ACH_KILL_10800: {
+        if (achievement_c.stats["NumKills"] >= 10800)
           unlock_achievement(achievement_c, ach);
         break;
       }
