@@ -16,6 +16,7 @@
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_helpers.hpp"
 
@@ -31,6 +32,9 @@ handle_shoot_event__autofire(entt::registry& r, const ShootEvent& evt)
 
   if (!r.all_of<AutofireComponent, BulletDef>(wep_e))
     return;
+
+  if (r.all_of<WeaponSeaTurret>(wep_e))
+    return; // the sea-turret itself should not shoot
 
   const auto& wep_t = r.get<const TransformComponent>(wep_e);
   const auto wep_pos = glm::vec2{ wep_t.position.x, wep_t.position.y };

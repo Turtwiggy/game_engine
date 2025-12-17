@@ -22,25 +22,24 @@
 #include "modules/systems/system_physics_apply_force/components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
+#include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 
 namespace game2d {
 
 void
 give_turret_weapon_def(entt::registry& r, entt::entity wep_e, entt::entity turret_e)
 {
-  const auto& behaviours = r.get<const WeaponBehaviourComponent>(wep_e).behaviours;
-
   // add the modifiers to the deployed turret
   const auto& deployer_stats_c = r.get<StatModifierComponent>(wep_e);
   r.emplace_or_replace<StatModifierComponent>(turret_e, deployer_stats_c);
 
+  // add the behaviours to the deployed turret
+  const auto& behaviours_c = r.get<WeaponBehaviourComponent>(wep_e);
+  const auto& debug_behaviours_c = r.get<WeaponBehaviourComponent>(turret_e);
+  r.emplace_or_replace<WeaponBehaviourComponent>(turret_e, behaviours_c.behaviours);
+
   auto wep_def = get_weapon_def(r, turret_e);
   auto bul_def = get_bullet_def(r, turret_e);
-
-  // note: if the parent turret-deployer has "CHANGE_DAMAGE_TO_ICE"
-  // change the damage type spawned by the child spawned turret.
-  if (has(behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_ICE))
-    bul_def.damage_type = WEAPON_DAMAGE::ICE;
 
   r.emplace<WeaponDef>(turret_e, wep_def);
   r.emplace<BulletDef>(turret_e, bul_def);

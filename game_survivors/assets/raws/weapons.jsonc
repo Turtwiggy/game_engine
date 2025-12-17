@@ -42,8 +42,12 @@
       { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -30 }    // rare
     ] },
     // reload
-    { "wb_key": "RELOAD_UPGRADE",          "display": "[+NO RELOAD]",  "desc": "", "stats": [
-      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -99 }
+    // note: this forces your clip size to increase by 1
+    // this prevents a clip size of 1 having no reload and effectively just firing every frame.
+    // the new limiting factor is firerate.
+    { "wb_key": "RELOAD_UPGRADE",          "display": "[+FAST RELOAD]",  "desc": "", "stats": [
+      { "stat": "WEAPON_RELOAD",      "type": "stat_percent_increase", "value": -99 },
+      { "stat": "WEAPON_CLIP_SIZE",   "type": "stat_flat_increase", "value": 1 }
     ] },
 
     //
