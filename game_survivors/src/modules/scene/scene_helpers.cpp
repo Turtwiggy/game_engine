@@ -161,8 +161,8 @@ spawn_player(entt::registry& r,
 
     weapons.push_back(wep_e);
 
-    if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
-      break; // only spawn 1 deployer
+    // if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY)
+    //   break; // only spawn 1 deployer
     // break; // spawn boats with only 1 gun
   }
 

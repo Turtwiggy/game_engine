@@ -60,9 +60,8 @@ spawn_sea_turret(entt::registry& r, entt::entity wep_e, entt::entity player_e)
   // this works because the upgrades are applied to the player,
   // and adjust e.g. firerate in get_weapon_def & get_bullet_def
 
-  // const auto sea_turret_wep_data = r.get<const Weapon_OnDiskData>(wep_e);
-  const auto heavy_pistol_data = weapons.weapons[0]; // todo: dont use idx
-  const auto turret_e = spawn_weapon(r, heavy_pistol_data, "weapon_sea_turret");
+  const auto weapon_data = get_weapon_data(r, "weapon_sea_turret_deployed");
+  const auto turret_e = spawn_weapon(r, weapon_data, "weapon_sea_turret");
   // connect_parent_and_weapon(r, player_e, turret_e); // added later
 
   // offset the turret spawning in a random unit vector.

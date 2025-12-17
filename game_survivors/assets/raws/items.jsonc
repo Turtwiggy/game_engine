@@ -78,9 +78,19 @@
     {
       "name": "weapon_island_cannon",
       "display_name": "Island Cannon",
-      "renderable": { "sprite": "EMPTY", "colour": "white" },
-      "phys_body": { "is_bullet": false, "is_static": true },
-      "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+      "renderable": { "sprite": "EMPTY", "colour": "white" }
+      // "phys_body": { "is_bullet": false, "is_static": true },
+      // "phys_fixtures": [ { "tag": "fixture_core", "type": "box", "is_sensor": true } ]
+    },
+    {
+      "name": "weapon_sea_turret_deployed",
+      "display_name": "[Deployed] Sea Turret",
+      "renderable": { "sprite": "EMPTY", "colour": "white" }
+    },
+    {
+      "name": "weapon_enemy_projectile_gun",
+      "display_name": "Enemy Projectile Weapon",
+      "renderable": { "sprite": "EMPTY", "colour": "white" }
     },
     {
       "name": "weapon_cryo_drone",

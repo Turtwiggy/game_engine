@@ -47,8 +47,8 @@
     "**/.vs": true,
     "**/.cache": true,
     // "game_3d/**": true,
-    // "game_defence/**": true,
-    // "game_defence_tests/**": true,
+    "game_defence/**": true,
+    "game_defence_tests/**": true,
     "game_networked/**": true,
     "game_roguelike/**": true,
     "gamejam_goblinbrawl/**": true

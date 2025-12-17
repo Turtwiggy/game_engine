@@ -258,10 +258,8 @@ spawn_enemy(entt::registry& r, std::string key, float hp)
     r.get<ApplyForceToDynamicTarget>(e).distance_to_reduce_thrust_meters = 6.0f;
 
     // give the projectile enemy a weapon.
-    // TODO: make it it's own weapon, not weapon_deck_cannon
-    auto weapon_data = get_weapon_data(r, "weapon_deck_cannon");
-    weapon_data.audio.clear(); // hack: remove player gun audio from fish
-    const auto wep_e = spawn_weapon(r, weapon_data, "weapon_deck_cannon");
+    auto weapon_data = get_weapon_data(r, "weapon_enemy_projectile_gun");
+    const auto wep_e = spawn_weapon(r, weapon_data, "weapon_enemy_projectile_gun");
     r.emplace<WeaponDef>(wep_e, get_weapon_def(r, wep_e));
     r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     connect_parent_and_weapon(r, e, wep_e);

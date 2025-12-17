@@ -26,7 +26,9 @@ enum class WEAPON_TYPE
 enum class WEAPON_USEABLE_BY
 {
   BOATS,
-  ISLAND
+  ISLAND,
+  ENEMY,
+  SEA_TURRET,
 };
 
 struct Weapon_OnDiskData

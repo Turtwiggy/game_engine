@@ -49,9 +49,9 @@
     //
     // only usable by sea turret.
     //
-    { "wb_key": "TURRET_FOLLOW_PLAYER",       "display": "[+MOVEMENT]", "desc": "",            "limited_to": ["weapon_sea_turret"] },
+    { "wb_key": "TURRET_FOLLOW_PLAYER",       "display": "[+TURRETS MOVE]", "desc": "",            "limited_to": ["weapon_sea_turret"] },
     { "wb_key": "TURRET_EXPLODE_ON_DEATH",    "display": "[+EXPLODE] [-LIFETIME]", "desc": "", "limited_to": ["weapon_sea_turret"], "stats": [
-        { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 10 }, 
+        { "stat": "BULLET_DAMAGE",      "type": "stat_percent_increase", "value": 50 }, 
         { "stat": "BULLET_LIFETIME",    "type": "stat_percent_increase", "value": -50 }
       ]
     }
@@ -128,7 +128,7 @@
     {
       "key": "weapon_sea_turret",
       "name": "Turret Deployer",
-      "desc": "Drop turrets that shoot [Heavy]",
+      "desc": "Drop turrets as you move",
       "audio": ["TURRET_01", "TURRET_02"],
       "weapon_type": "DEPLOY",
       "weapon_damage": "KINETIC",
@@ -137,7 +137,7 @@
         "WEAPON_CLIP_SIZE": 1    , // shots before reload
         "WEAPON_PROJECTILES": 1  ,
         "WEAPON_FIRERATE": 0.2   , // per second
-        "WEAPON_RELOAD": 3        // seconds
+        "WEAPON_RELOAD": 2.5        // seconds
         // "WEAPON_RANGE": 4.0        // meters
         // "BULLET_DAMAGE": 8       ,
         // "BULLET_KNOCKBACK": 0.3  , // force
@@ -193,6 +193,48 @@
         "BULLET_PIERCE": 5     ,
         "BULLET_SIZE": 6        ,
         "WEAPON_SPREAD": 5       // degrees
+      }
+    },
+
+    {
+      "key": "weapon_sea_turret_deployed",
+      "name": "[Deployed] Sea Turret", 
+      "desc": "",
+      "audio": [],
+      "weapon_type": "PROJECTILE",
+      "weapon_damage": "KINETIC",
+      "useable_by": ["SEA_TURRET"],
+      "data": {
+        "WEAPON_CLIP_SIZE": 50  , // shots before reload
+        "WEAPON_PROJECTILES": 1 ,
+        "WEAPON_FIRERATE": 1.25 , // per second
+        "WEAPON_RELOAD": 1      , // seconds
+        "WEAPON_RANGE": 4.0     , // meters
+        "BULLET_DAMAGE": 5     ,
+        "BULLET_KNOCKBACK": 0.1 , // force
+        "BULLET_PIERCE": 5      ,
+        "BULLET_SIZE": 6        
+      }
+    },
+
+    {
+      "key": "weapon_enemy_projectile_gun",
+      "name": "Fish Weapon", 
+      "desc": "",
+      "audio": [],
+      "weapon_type": "PROJECTILE",
+      "weapon_damage": "KINETIC",
+      "useable_by": ["ENEMY"],
+      "data": {
+        "WEAPON_CLIP_SIZE": 50  , // shots before repair
+        "WEAPON_PROJECTILES": 1 ,
+        "WEAPON_FIRERATE": 1.25 , // per second
+        "WEAPON_RELOAD": 1      , // seconds
+        "WEAPON_RANGE": 4.0     , // meters
+        "BULLET_DAMAGE": 12     ,
+        "BULLET_KNOCKBACK": 0.1 , // force
+        "BULLET_PIERCE": 5      ,
+        "BULLET_SIZE": 6        
       }
     }
 
