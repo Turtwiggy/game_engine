@@ -292,7 +292,10 @@ on_shop_purchase__check_achievements(entt::registry& r)
   const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
   const int available_stats = (int)on_disk_upg_c.upgrades.size();
   const int available_boats = (int)hulls_c.hulls.size();
-  const int available_weapons = (int)weapons_c.weapons.size();
+  int available_weapons = 0;
+  for (auto& weapon : weapons_c.weapons)
+    if (weapon.useable_by_as_enum == WEAPON_USEABLE_BY::BOATS)
+      available_weapons++;
   const int available_unlocks = available_boats + available_weapons + available_stats;
 
   int purchased_boats = 0;
@@ -327,6 +330,7 @@ on_shop_purchase__check_achievements(entt::registry& r)
   // note: minus 2 because 2 are unlocked by default so dont count them as purchased
   int total_purchased = (purchased_boats + purchased_weapons + purchased_upgrades) - 2;
   total_purchased = std::max(total_purchased, 0);
+  int max_unlocks = available_unlocks - 2;
 
   for (auto& ach : achievement_c.achievements) {
     if (ach.m_bAchieved)
@@ -338,7 +342,7 @@ on_shop_purchase__check_achievements(entt::registry& r)
           unlock_achievement(achievement_c, ach);
         break;
       case SteamAchievementID::ACH_PERMAUPGRADE_ALL:
-        if (total_purchased >= available_unlocks)
+        if (total_purchased >= max_unlocks)
           unlock_achievement(achievement_c, ach);
         break;
     }
@@ -388,7 +392,7 @@ update_occasionally__steam_achievements(entt::registry& r)
   }
 
   // note: this should probably be an event, not in the update() loop.
-  // However, if the steam api call fails if the api rejects the achivement,
+  // However, if the steam api call fails,
   // you would miss unlocking the achievement. for the moment, its just in the
   // update loop so it will try again and again, but it this could be improved.
   on_shop_purchase__check_achievements(r);
