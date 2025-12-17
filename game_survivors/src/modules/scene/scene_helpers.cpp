@@ -185,6 +185,7 @@ spawn_player(entt::registry& r,
   r.emplace<OutOfBoundsTimer>(e);
   r.emplace<AbilityComponent>(e);
   r.emplace<HullKeyComponent>(e, hull_key);
+  r.emplace<WeaponKeyComponent>(e, weapon_key);
   r.emplace<LightEmitterComponent>(e);
   r.emplace<LightTypeCircle>(e);
 

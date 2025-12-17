@@ -1,9 +1,18 @@
-#include "engine/entt/helpers.hpp"
-#include "modules/systems/system_stats/stats_components.hpp"
-#include "modules/ui/ui_gameover/ui_gameover_components.hpp"
 #include "pch.hpp"
 
 #include "steam_achievements.hpp"
+
+#include "engine/entt/helpers.hpp"
+#include "modules/actors/actor_boat/boat_components.hpp"
+#include "modules/actors/actor_hull/hull_components.hpp"
+#include "modules/actors/actor_player/components.hpp"
+#include "modules/actors/actor_weapon/weapon_components.hpp"
+#include "modules/core/io/io_helpers.hpp"
+#include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
+#include "modules/systems/system_stats/stats_components.hpp"
+#include "modules/systems/system_upgrade/upgrade_components.hpp"
+#include "modules/ui/ui_gameover/ui_gameover_components.hpp"
 
 namespace game2d {
 
@@ -115,7 +124,7 @@ init_steam_achievements(entt::registry& r)
 #if defined(_DEBUG)
 #define RESET_ACHIEVEMENTS 1
 #if defined(RESET_ACHIEVEMENTS)
-  steam_user_stats->ResetAllStats(true);
+  // steam_user_stats->ResetAllStats(true);
 #endif
 #endif
 
@@ -180,6 +189,163 @@ on_game_complete__store_stats(entt::registry& r)
 };
 
 void
+on_game_complete__check_achievements(entt::registry& r)
+{
+  SINGLE_SteamAchievementInfo& achievement_c = SINGLE_SteamAchievementInfo::instance;
+  if (!achievement_c.m_StatsInitialized)
+    return;
+
+  auto& gameover_ui_c = r.get<SINGLE_GameoverUI>(get_first<SINGLE_GameoverUI>(r));
+  if (!gameover_ui_c.request.has_value())
+    return;
+
+  // these achievements are on win
+  if (!gameover_ui_c.request->win_condition)
+    return;
+
+  const auto check_unlock_hull = [&](SteamAchievement& ach, std::string key) -> bool {
+    auto view = r.view<PlayerComponent, HullKeyComponent>();
+    for (const auto& [ent, player_c, hull_c] : view.each()) {
+      if (hull_c.key == key) {
+        unlock_achievement(achievement_c, ach);
+        return true;
+      }
+    }
+    return false;
+  };
+  const auto check_unlock_weapon = [&](SteamAchievement& ach, std::string key) -> bool {
+    auto view = r.view<PlayerComponent, WeaponKeyComponent>();
+    for (const auto& [ent, player_c, weapon_c] : view.each()) {
+      if (weapon_c.key == key) {
+        unlock_achievement(achievement_c, ach);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  for (auto& ach : achievement_c.achievements) {
+    if (ach.m_bAchieved)
+      continue;
+
+    switch (ach.id) {
+      case SteamAchievementID::ACH_WIN_WITH_BOAT_DINGHY:
+        if (check_unlock_hull(ach, "dinghy"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_BOAT_CASTAWAY:
+        if (check_unlock_hull(ach, "castaway"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_BOAT_BOND:
+        if (check_unlock_hull(ach, "bond"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_BOAT_PBR:
+        if (check_unlock_hull(ach, "pbr"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_BOAT_RHIB:
+        if (check_unlock_hull(ach, "rhib"))
+          continue;
+        break;
+
+      case SteamAchievementID::ACH_WIN_WITH_WEAPON_DECK_CANNON:
+        if (check_unlock_weapon(ach, "weapon_deck_cannon"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_WEAPON_GRAPESHOT_CANNON:
+        if (check_unlock_weapon(ach, "weapon_grapeshot_cannon"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_WEAPON_SWIVEL_CANNON:
+        if (check_unlock_weapon(ach, "weapon_swivel_cannon"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_WEAPON_SEA_TURRET:
+        if (check_unlock_weapon(ach, "weapon_sea_turret"))
+          continue;
+        break;
+      case SteamAchievementID::ACH_WIN_WITH_WEAPON_FLAMETHROWER:
+        if (check_unlock_weapon(ach, "weapon_flamethrower"))
+          continue;
+        break;
+
+      case SteamAchievementID::ACH_WIN_COOP:
+        auto view = r.view<const PlayerBoatComponent>();
+        if (view.size() > 1)
+          unlock_achievement(achievement_c, ach);
+        break;
+    }
+  }
+};
+
+void
+on_shop_purchase__check_achievements(entt::registry& r)
+{
+  SINGLE_SteamAchievementInfo& achievement_c = SINGLE_SteamAchievementInfo::instance;
+  if (!achievement_c.m_StatsInitialized)
+    return;
+
+  const auto& on_disk_upg_c = get_first_component<SINGLE_PersistentUpgrades>(r);
+  const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
+  const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
+  const int available_stats = (int)on_disk_upg_c.upgrades.size();
+  const int available_boats = (int)hulls_c.hulls.size();
+  const int available_weapons = (int)weapons_c.weapons.size();
+  const int available_unlocks = available_boats + available_weapons + available_stats;
+
+  int purchased_boats = 0;
+  for (auto& hull : hulls_c.hulls) {
+    const auto val_opt = savefile_get_key(r, hull.key);
+    if (!val_opt.has_value())
+      continue;
+    purchased_boats++;
+  }
+
+  int purchased_weapons = 0;
+  for (auto& weapon : weapons_c.weapons) {
+    const auto val_opt = savefile_get_key(r, weapon.key);
+    if (!val_opt.has_value())
+      continue;
+    purchased_weapons++;
+  }
+
+  int purchased_upgrades = 0;
+  for (int i = 0; i < (int)UpgradeableStat::count; i++) {
+    const auto stat_enum = magic_enum::enum_value<UpgradeableStat>(i);
+    const auto stat_str = std::string(magic_enum::enum_name<UpgradeableStat>(stat_enum));
+    const auto val_opt = savefile_get_key(r, stat_str);
+    if (!val_opt.has_value())
+      continue;
+    const auto val_json = val_opt.value();
+
+    // note ( ignore levels of the upgrade ), its either unlocked or not
+    purchased_upgrades++;
+  }
+
+  // note: minus 2 because 2 are unlocked by default so dont count them as purchased
+  int total_purchased = (purchased_boats + purchased_weapons + purchased_upgrades) - 2;
+  total_purchased = std::max(total_purchased, 0);
+
+  for (auto& ach : achievement_c.achievements) {
+    if (ach.m_bAchieved)
+      continue;
+
+    switch (ach.id) {
+      case SteamAchievementID::ACH_PERMAUPGRADE_ONE:
+        if (total_purchased > 0)
+          unlock_achievement(achievement_c, ach);
+        break;
+      case SteamAchievementID::ACH_PERMAUPGRADE_ALL:
+        if (total_purchased >= available_unlocks)
+          unlock_achievement(achievement_c, ach);
+        break;
+    }
+  }
+}
+
+void
 update_occasionally__steam_achievements(entt::registry& r)
 {
   SINGLE_SteamAchievementInfo& achievement_c = SINGLE_SteamAchievementInfo::instance;
@@ -198,10 +364,34 @@ update_occasionally__steam_achievements(entt::registry& r)
           unlock_achievement(achievement_c, ach);
         break;
       }
+
+      // kill X thing achievements
+      case SteamAchievementID::ACH_KILL_404: {
+        if (achievement_c.stats["NumKills"] >= 404)
+          unlock_achievement(achievement_c, ach);
+        break;
+      }
+      case SteamAchievementID::ACH_KILL_10900: {
+        if (achievement_c.stats["NumKills"] >= 10900)
+          unlock_achievement(achievement_c, ach);
+        break;
+      }
+      case SteamAchievementID::ACH_KILL_21600: {
+        if (achievement_c.stats["NumKills"] >= 21600)
+          unlock_achievement(achievement_c, ach);
+        break;
+      }
+
       default:
         break;
     }
   }
+
+  // note: this should probably be an event, not in the update() loop.
+  // However, if the steam api call fails if the api rejects the achivement,
+  // you would miss unlocking the achievement. for the moment, its just in the
+  // update loop so it will try again and again, but it this could be improved.
+  on_shop_purchase__check_achievements(r);
 
   // storestatsifnecessary...
   if (achievement_c.m_bStoreStats) {

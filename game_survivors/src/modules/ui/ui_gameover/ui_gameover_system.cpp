@@ -104,6 +104,7 @@ update_ui_gameover_system(entt::registry& r, const float dt)
     // should be an event or something
 #if defined(USE_STEAM)
     on_game_complete__store_stats(r);
+    on_game_complete__check_achievements(r);
 #endif
   }
 
@@ -186,7 +187,20 @@ update_ui_gameover_system(entt::registry& r, const float dt)
   }
 
   ImGui::PushFont(text_font, text_font_size);
-  ImGui::Text("  %s", std::format("{} defeated sea monsters", stats_c.enemies_killed).c_str());
+
+  std::optional<int> lifetime_total = std::nullopt;
+#if defined(USE_STEAM)
+  auto* steam_user_stats = SteamUserStats();
+  SINGLE_SteamAchievementInfo& info_c = SINGLE_SteamAchievementInfo::instance;
+  if (info_c.m_StatsInitialized)
+    lifetime_total = info_c.stats["NumKills"];
+#endif
+
+  if (lifetime_total.has_value())
+    ImGui::Text("  %s",
+                std::format("{} defeated sea monsters. {} total", stats_c.enemies_killed, lifetime_total.value()).c_str());
+  else
+    ImGui::Text("  %s", std::format("{} defeated sea monsters", stats_c.enemies_killed).c_str());
   ImGui::Text("  %s", std::format("{} plundered gold", stats_c.gold_earned).c_str());
   ImGui::PopFont();
 
