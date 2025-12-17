@@ -87,7 +87,7 @@ generate_upgrades_for_players(entt::registry& r, SINGLE_LevelUpUI& ui_c)
       // AREA_ stats if the bullet is elemental
       auto& behaviours_c = r.get<WeaponBehaviourComponent>(weapons_e[0]);
       bool is_fire = weapon_type.damage_as_enum == WEAPON_DAMAGE::FIRE;
-      is_fire |= has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
+      // is_fire |= has(behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
       if (is_fire)
         stats.insert(stats.end(), upgradeable_area_stats.begin(), upgradeable_area_stats.end());
     }
@@ -187,6 +187,11 @@ update_player_upgrade_ui(entt::registry& r, entt::entity player_e, UIState& stat
     return;
   const auto& [upg_e, upg_c] = upgrades[0];
 
+  if (upg_c->results.empty()) {
+    r.remove<UpgradeResultsComponent>(upg_e);
+    return;
+  }
+
   for (const UpgradeRollResult& res : upg_c->results) {
     Cell c;
     c.name = ""; // replaced with the upgrade name when upgrade is populated
@@ -213,7 +218,8 @@ update_player_upgrade_ui(entt::registry& r, entt::entity player_e, UIState& stat
   create_as_vertical_layout(state_c.cells); // simple uses vertical layout
 
   // reset the selection
-  state_c.active = state_c.cells[0];
+  if (!state_c.cells.empty())
+    state_c.active = state_c.cells[0];
 }
 
 void
@@ -449,7 +455,9 @@ get_val_str_from_stat_enum(entt::registry& r,
     const auto& wep_behaviours_c = r.get<WeaponBehaviourComponent>(wep_e);
 
     bool is_fire = wep_damage == WEAPON_DAMAGE::FIRE;
-    is_fire |= has(wep_behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
+
+    // note: weapons that get CHANGE_DAMAGE_TO_FIRE dont have an area_def
+    // is_fire |= has(wep_behaviours_c.behaviours, WeaponBehaviour::CHANGE_DAMAGE_TO_FIRE);
 
     if (is_fire) {
       const auto area_def = get_area_def(r, wep_e);

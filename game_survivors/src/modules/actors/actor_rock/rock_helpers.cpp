@@ -820,6 +820,9 @@ get_player_spawn_point_around_starting_island(entt::registry& r, int idx)
 {
   // const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
   const auto base_island_eid = get_center_island_eid(r);
+
+  // todo: work out why DebugContoursComponent didnt exist on island_eid
+
   const auto& base_island_c = r.get<const DebugContoursComponent>(base_island_eid);
   const auto& base_island_aabb = r.get<const BoundingBoxComponent>(base_island_eid);
 

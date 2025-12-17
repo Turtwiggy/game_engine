@@ -73,7 +73,7 @@ endif()
 
 # Precompile headers
 set(PCH_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch.hpp)
-target_precompile_headers(game_survivors PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${PCH_FILE}>")
+target_precompile_headers(${PROJECT_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${PCH_FILE}>")
 set(PCH_INSTANTIATE_TEMPLATES ON)
 
 link_libs(game_survivors)

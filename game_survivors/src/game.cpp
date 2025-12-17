@@ -49,6 +49,7 @@
 #include "modules/pathfinding_flowfield/pathfinding_flowfield_system.hpp"
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "modules/steam/steam_achievements.hpp"
 #include "modules/steam/steam_helpers.hpp"
 #include "modules/steam_debug_ui/steam_debug_ui_system.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
@@ -180,8 +181,10 @@ init(engine::SINGLE_Application& app, entt::registry& r)
 #if defined(USE_STEAM)
   init_steam(r);
   init_steam_input(r);
+  init_steam_achievements(r);
   create_persistent<SteamOverlayManager>(r);
   create_persistent<SteamRemotePlayManager>(r);
+  create_persistent<SteamAchievementManager>(r);
 #endif
 
   {
@@ -404,6 +407,17 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_upgrade_hp_regen_system(r, dt);
     update_upgrade_xp_zone_size_system(r);
   }
+
+#if defined(USE_STEAM)
+  // Do work that runs infrequently. we do this every second.
+  static time_t tLastCheck = 0;
+  time_t tNow = time(nullptr);
+  if (tNow != tLastCheck) {
+    tLastCheck = tNow;
+    // RunOccasionally();
+    update_occasionally__steam_achievements(r);
+  }
+#endif
 
   // update ui scaling
   {

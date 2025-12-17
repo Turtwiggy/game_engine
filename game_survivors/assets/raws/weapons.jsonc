@@ -2,12 +2,12 @@
   "weapon_upgrades": [
     
     // projectile amount
-    { "wb_key": "MEGABULLET",                       "display": "[+BIG BUOYS]", "desc": "Combine all projectiles" },
+    // { "wb_key": "MEGABULLET",                       "display": "[+BIG BUOYS]", "desc": "Combine all projectiles" },
     { "wb_key": "DOUBLE_PROJECTILES",               "display": "[+2x SHOTS]",  "desc": "" },
     { "wb_key": "SHOOT_BULLETS_OPPOSITE_DIRECTION", "display": "[+OPPOSITE SHOTS]", "desc": "Shoot in the opposite direction." },
    
     // shoot on X effects
-    { "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET",     "display": "[+FANFIRE]", "desc": "Every X bullets, shoot a fan of bullets" },
+    // { "wb_key": "SHOOT_FANFIRE_ON_LAST_BULLET",     "display": "[+FANFIRE]", "desc": "Every X bullets, shoot a fan of bullets" },
     // { "wb_key": "SHOOT_FIREBALL",                   "display": "[+FIREBALL]",  "desc": "Every 5th shot [+fireball]" },
     
     // elemntal bullets
@@ -165,6 +165,7 @@
         "BULLET_DAMAGE": 1       , // no damage (applied via elemental damage)
         "BULLET_KNOCKBACK": 0    , // force
         "BULLET_SIZE": 32        ,
+        "BULLET_PIERCE": 2       ,
         "AREA_STACK_DAMAGE": 1,
         "AREA_STACK_DURATION": 1.5,
         "AREA_STACKS_PER_SHOT":2 // how many fire stacks to apply per tick

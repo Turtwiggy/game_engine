@@ -5,7 +5,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
-#include "engine/imgui/helpers.hpp"
 #include "engine/imgui/ui_imgui_defaults.hpp"
 #include "engine/physics/physics_helpers.hpp"
 #include "modules/actors/actor_boat/boat_components.hpp"
@@ -17,6 +16,7 @@
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
+#include "modules/steam/steam_achievements.hpp"
 #include "modules/systems/system_gameover/gameover_components.hpp"
 #include "modules/systems/system_stats/stats_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
@@ -98,6 +98,13 @@ update_ui_gameover_system(entt::registry& r, const float dt)
     req.tag = request_opt->win_condition ? "VICTORY_0" : "DEFEAT_0";
     req.looping = true;
     create_empty<AudioRequestPlayEvent>(r, req);
+
+    // hack: update stats for achievements
+    // this really shouldnt be here, or this
+    // should be an event or something
+#if defined(USE_STEAM)
+    on_game_complete__store_stats(r);
+#endif
   }
 
   if (!ui_c.open || !ui_c.request.has_value())

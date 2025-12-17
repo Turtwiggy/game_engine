@@ -17,7 +17,6 @@ project(subprojects VERSION 0.1.0)
 
 # projects
 add_subdirectory(game_survivors)
-add_subdirectory(game_defence)
 
 # add_subdirectory(game_defence)
 if(EMSCRIPTEN)
