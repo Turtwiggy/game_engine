@@ -87,8 +87,8 @@ handle_death_event__islander_remove_from_island(entt::registry& r, const DeathEv
     auto rnd_unoccipied_idx = engine::rand_det_s(lighthouse_rnd.rng, 0, (int)unoccupied.size());
     spawn_lighthouse(r, island_c, unoccupied[rnd_unoccipied_idx]);
     spawn_cannon(r, lighthouse_rnd, island_e);
-    auto islander_tag = "actor_islanddweller_common_person";
-    spawn_islander_unoccupied(r, lighthouse_rnd, island_e, islander_tag, AvailableTeams::player, true);
+    // auto islander_tag = "actor_islanddweller_common_person";
+    // spawn_islander_unoccupied(r, lighthouse_rnd, island_e, islander_tag, AvailableTeams::player, true);
 
     // play some audio.
     //  static engine::RandomState audio_rnd(0);

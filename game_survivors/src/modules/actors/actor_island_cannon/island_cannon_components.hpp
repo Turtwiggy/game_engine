@@ -14,8 +14,8 @@ struct IslandCannonComponent
 {
   IslandCannonState state = IslandCannonState::BROKEN;
 
-  int hits_to_repair = 3;
-  int hits_to_repair_left = hits_to_repair;
+  const float time_to_repair = 5;
+  float time_to_repair_left = time_to_repair;
 };
 
 } // namespace game2d

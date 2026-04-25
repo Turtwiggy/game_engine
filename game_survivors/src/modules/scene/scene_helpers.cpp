@@ -682,8 +682,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     set_rotation(r, e6, glm::radians(45.0f));
     r.emplace<WiggleUpAndDown>(e6, WiggleUpAndDown{ .base_position = { 96, 32 } });
 
-    // auto oyster_e = spawn_enemy(r, "actor_destructable", 100);
-    // set_position(r, oyster_e, { 256, 256 });
+    auto oyster_e = spawn_enemy(r, "actor_destructable", 100);
+    set_position(r, oyster_e, { 256, 256 });
   }
 
   auto& scene = SINGLE_CurrentScene::instance;

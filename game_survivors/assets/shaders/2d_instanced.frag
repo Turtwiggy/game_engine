@@ -57,6 +57,21 @@ vec3 lin_to_srgb(vec3 color)
   return clr.rgb;
 }
 
+vec2 uv_aa_smoothstep( vec2 uv, vec2 res, float width )
+{
+  uv = uv * res;
+  vec2 uv_floor = floor(uv + 0.5);
+  vec2 uv_fract = fract(uv + 0.5);
+  vec2 uv_aa = fwidth(uv) * width * 0.5;
+  uv_fract = smoothstep(
+      vec2(0.5) - uv_aa,
+      vec2(0.5) + uv_aa,
+      uv_fract
+      );
+
+  return (uv_floor + uv_fract - 0.5) / res;
+}
+
 void
 main()
 {
@@ -87,22 +102,27 @@ main()
     vec2 sprite_max = v_sprite_max;
     vec2 sprite_pixels = tex_size / sprite_max; // e.g. (16, 16)
     vec2 sprite_size = fs_in.v_sprite_size;
+
     vec2 sprite_uv = (v_sprite_pos + v_sprite_wh * v_uv) / v_sprite_max;
-    // vec2 sprite_uv = ((sprite_wh * v_uv * tex_size) / sprite_max) + sprite_pixels * sprite_pos;
-
-    vec2 uv = sprite_uv * tex_size;
     vec2 offset = fs_in.v_sprite_global_pos_and_rot.xy;
-
+    
     // try keep the pixel art crisp
+    // Try to correct for sprite shimmering
+    // float width = 1.5;
+    // vec2 pixels = sprite_wh;
+    // vec2 raw_uv = uv_aa_smoothstep(sprite_uv, vec2(16, 16), width);
+    
+    vec2 uv = sprite_uv * tex_size;
 
     // this is nearest neighbour sampling
     // uv = floor(uv) + .5;
-
     uv = floor(uv) + min(fract(offset) / fwidth(offset), 1.0) - 0.5; 
 
     // vec2 seam = floor(uv + 0.5);
     // vec2 dudv = fwidth(offset);
     // uv = seam + clamp( (uv - seam) / dudv, -0.5, 0.5);
+
+    // uv = uv_aa_smoothstep(uv, sprite_size, 1.5);
 
     uv /= tex_size;
 

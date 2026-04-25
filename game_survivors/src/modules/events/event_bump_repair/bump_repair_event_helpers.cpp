@@ -29,6 +29,8 @@ handle_bump_event__repair(entt::registry& r, const BumpEvent& evt)
     return;
   auto& cannon_c = r.get<IslandCannonComponent>(cannon_e);
 
+  /*
+
   // repair the thing.
   cannon_c.hits_to_repair_left--;
   cannon_c.hits_to_repair_left = std::max(cannon_c.hits_to_repair_left, 0);
@@ -54,6 +56,8 @@ handle_bump_event__repair(entt::registry& r, const BumpEvent& evt)
   // ideas
   // show some sparks?
   // change the sprite?
+
+  */
 }
 
 } // namespace game2d

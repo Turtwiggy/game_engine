@@ -82,8 +82,8 @@
         "BULLET_DAMAGE": 20     ,
         "BULLET_KNOCKBACK": 0.5 , // force
         "BULLET_PIERCE": 5      ,
-        "BULLET_SIZE": 16       ,
-        "BULLET_SPEED": 1.0       // m/s 
+        "BULLET_SIZE": 8        
+        // "BULLET_SPEED": 1.0       // m/s 
       }
     },
 

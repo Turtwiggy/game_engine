@@ -143,9 +143,10 @@ update_ui_label_system(entt::registry& r)
     const auto ss_pos = worldspace_to_screenspace(r, ws_pos);
     const auto im_ss_pos = ImVec2(ss_pos.x, ss_pos.y);
 
-    const auto hits = cannon_c.hits_to_repair - cannon_c.hits_to_repair_left;
-    const bool repaired = cannon_c.hits_to_repair_left == 0;
-    auto text = std::format("{}/{}", hits, cannon_c.hits_to_repair);
+    const bool repaired = cannon_c.time_to_repair_left <= 0.0f;
+    // const int elipses_amount = ((int)cannon_c.time_to_repair_left) % 3;
+    // const std::string elipses(elipses_amount, '.');
+    std::string text = "Reloading (" + std::to_string((int)cannon_c.time_to_repair_left) + ")";
     if (repaired)
       text = std::format("{}/{}", clip_c.bullets_cur, clip_c.bullets_max);
 

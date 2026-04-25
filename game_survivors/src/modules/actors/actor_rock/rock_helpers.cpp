@@ -739,8 +739,8 @@ generate_island_life__base_island(entt::registry& r)
     "actor_islanddweller_animal_dog",    //
   };
 
-  const auto idx_0 = engine::rand_det_s(spawn_rnd.rng, (int)0, (int)animal_keys.size());
-  spawn_islander_unoccupied(r, spawn_rnd, center_island_eid, animal_keys[idx_0], AvailableTeams::player, true);
+  // const auto idx_0 = engine::rand_det_s(spawn_rnd.rng, (int)0, (int)animal_keys.size());
+  // spawn_islander_unoccupied(r, spawn_rnd, center_island_eid, animal_keys[idx_0], AvailableTeams::player, true);
   // const auto idx_1 = engine::rand_det_s(spawn_rnd.rng, (int)0, (int)animal_keys.size());
   // spawn_islander_unoccupied(r, spawn_rnd, center_island_eid, animal_keys[idx_1], AvailableTeams::player, true);
 

@@ -71,6 +71,7 @@
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_helpers.hpp"
 #include "modules/systems/system_island_ai/island_ai_system.hpp"
+#include "modules/systems/system_island_cannon_repair/island_cannon_repair_system.hpp"
 #include "modules/systems/system_island_movement/island_movement_system.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_system.hpp"
 #include "modules/systems/system_island_return_to_boat/island_return_to_boat_system.hpp"
@@ -389,6 +390,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_island_return_to_boat_system(r);
     update_island_return_to_boat_land_immunity_system(r, dt);
     update_island_stranded_islander_system(r);
+    update_island_cannon_repair_system(r, dt);
 
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);

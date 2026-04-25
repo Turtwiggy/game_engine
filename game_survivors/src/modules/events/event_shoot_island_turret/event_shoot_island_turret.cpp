@@ -24,7 +24,7 @@ handle_shoot_event__island_turret(entt::registry& r, const ShootEvent& evt)
   if (mag_c.bullets_cur <= 0) {
     SDL_Log("Cannon out of ammo... setting to broken.");
     cannon_c->state = IslandCannonState::BROKEN;
-    cannon_c->hits_to_repair_left = cannon_c->hits_to_repair;
+    cannon_c->time_to_repair_left = cannon_c->time_to_repair;
   }
 }
 
