@@ -11,8 +11,8 @@
 #include "modules/combat/combat_weapon_type_area/combat_weapon_type_area_components.hpp"
 #include "modules/events/event_damage/event_damage_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_particles/components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/ui/ui_debug_menubar/ui_debug_menubar_helpers.hpp"
 
 namespace game2d {

@@ -16,9 +16,10 @@
 #include "modules/core/camera/orthographic.hpp"
 #include "modules/core/colour/components.hpp"
 #include "modules/core/renderer/components.hpp"
-#include "modules/systems/system_autofire/autofire_components.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_components.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
+
 
 namespace game2d {
 

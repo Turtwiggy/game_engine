@@ -9,10 +9,11 @@
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/combat/combat_weapon_type_projectile/combat_weapon_type_projectile_components.hpp"
 #include "modules/core/animations/rotate_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
 #include "modules/systems/system_cooldown/helpers.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
+
 
 namespace game2d {
 

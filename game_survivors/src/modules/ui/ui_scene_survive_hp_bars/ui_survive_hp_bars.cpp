@@ -22,13 +22,14 @@
 #include "modules/scene/scene_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_island_revive/island_revive_components.hpp"
 #include "modules/systems/system_persistent_upgrades/persistent_upgrade_components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
 #include "steam/isteaminput.h"
+
 
 namespace game2d {
 

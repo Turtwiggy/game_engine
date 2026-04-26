@@ -11,7 +11,7 @@
 #include "modules/combat/combat_flamethrower/flamethrower_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core/colour/components.hpp"
-#include "modules/systems/system_autofire/autofire_components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "trait_shoot_fireball.hpp"
 #include "trait_shoot_fireball_components.hpp"

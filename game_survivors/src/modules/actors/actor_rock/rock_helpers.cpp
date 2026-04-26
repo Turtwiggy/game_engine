@@ -34,13 +34,14 @@
 #include "modules/core/renderer/helpers.hpp"
 #include "modules/core/renderer/lights/components.hpp"
 #include "modules/scene/scene_helpers.hpp"
-#include "modules/systems/system_autofire/autofire_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_island_ai/island_ai_components.hpp"
 #include "modules/systems/system_island_movement/island_movement_components.hpp"
 #include "modules/systems/system_island_nearest/island_nearest_helpers.hpp"
+#include "modules/systems/system_shoot_auto/autofire_components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/ui/ui_island_interact_system/ui_island_interact_components.hpp"
 #include "resources/data.hpp"
+
 
 namespace game2d {
 

@@ -6,7 +6,7 @@
 #include "engine/physics/physics_components.hpp"
 #include "engine/std/vector/helpers.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 
 namespace game2d {
 

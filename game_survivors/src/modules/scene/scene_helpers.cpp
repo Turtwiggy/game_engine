@@ -43,8 +43,6 @@
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_ability/ability_components.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_components.hpp"
-#include "modules/systems/system_autofire/autofire_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_hardpoint_arcs/hulls_components.hpp"
 #include "modules/systems/system_item_gold/gold_components.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
@@ -54,6 +52,8 @@
 #include "modules/systems/system_scene_pressanykey_move_to_next/components.hpp"
 #include "modules/systems/system_scene_splashscreen_move_to_next/components.hpp"
 #include "modules/systems/system_screenshake/components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/systems/system_spawner/spawner_helpers.hpp"
 #include "modules/systems/system_spawner/spawner_system.hpp"
 #include "modules/systems/system_sprint/sprint_components.hpp"
@@ -80,6 +80,7 @@
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
 #include "resources/data.hpp"
+
 
 namespace game2d {
 

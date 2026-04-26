@@ -22,15 +22,16 @@
 #include "modules/core/ui/ui_common_components.hpp"
 #include "modules/events/event_death/components.hpp"
 #include "modules/events/events_core/events_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_death_throes/death_throes_components.hpp"
 #include "modules/systems/system_island_revive/island_revive_components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/ui/ui_colours/ui_colours_helpers.hpp"
 #include "modules/ui/ui_worldspace_text/components.hpp"
 #include "modules/ui/ui_worldspace_text/helpers.hpp"
 #include "resources/data.hpp"
+
 
 namespace game2d {
 

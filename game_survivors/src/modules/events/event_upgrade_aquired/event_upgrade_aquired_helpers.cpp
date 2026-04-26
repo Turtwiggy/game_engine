@@ -8,11 +8,12 @@
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_particles/components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "modules/ui/ui_scene_survive_upgrade/ui_survive_upgrade_components.hpp"
+
 
 namespace game2d {
 

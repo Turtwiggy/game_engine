@@ -33,7 +33,6 @@
 #include "modules/effects_outline/outline_components.hpp"
 #include "modules/scene/scene_helpers.hpp"
 #include "modules/systems/system_alive_players/alive_players_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_components.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_helpers.hpp"
 #include "modules/systems/system_cooldown/components.hpp"
@@ -44,6 +43,7 @@
 #include "modules/systems/system_items_drop_on_death/helpers.hpp"
 #include "modules/systems/system_move_to_target_via_lerp/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"
@@ -54,6 +54,7 @@
 #include "modules/ui/ui_scene_survive_timer/ui_survive_timer_components.hpp"
 #include "spawner_components.hpp"
 #include "spawner_helpers.hpp"
+
 
 namespace game2d {
 

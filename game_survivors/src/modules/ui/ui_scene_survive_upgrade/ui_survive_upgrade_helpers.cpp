@@ -20,7 +20,7 @@
 #include "modules/events/event_upgrade/event_upgrade_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/steam_input/steam_input_helpers.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_upgrade_dodge/upgrade_dodge_components.hpp"
 #include "modules/systems/system_upgrade_hp_regen/upgrade_hp_regen_components.hpp"

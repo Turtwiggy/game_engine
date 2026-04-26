@@ -8,7 +8,7 @@
 #include "modules/combat/combat_projectiles/projectile_components.hpp"
 #include "modules/combat/combat_projectiles/projectile_helpers.hpp"
 #include "modules/core/colour/components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
 #include "resources/data.hpp"
 

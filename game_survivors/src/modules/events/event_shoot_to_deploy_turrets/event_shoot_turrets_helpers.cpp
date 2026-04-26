@@ -16,13 +16,14 @@
 #include "modules/core/colour/components.hpp"
 #include "modules/events/event_shoot/event_shoot_components.hpp"
 #include "modules/systems/system_aoe_slow/aoe_slow_components.hpp"
-#include "modules/systems/system_autofire/autofire_components.hpp"
-#include "modules/systems/system_autofire/autofire_helpers.hpp"
 #include "modules/systems/system_particles/components.hpp"
 #include "modules/systems/system_physics_apply_force/components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_components.hpp"
+#include "modules/systems/system_shoot_auto/autofire_helpers.hpp"
 #include "modules/systems/system_upgrade/upgrade_components.hpp"
 #include "modules/systems/system_weapon_sea_turret/weapon_sea_turret_components.hpp"
 #include "modules/systems/system_weapon_upgrade/weapon_upgrade_components.hpp"
+
 
 namespace game2d {
 

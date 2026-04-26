@@ -60,7 +60,6 @@
 #include "modules/systems/system_anchor/anchor_system.hpp"
 #include "modules/systems/system_aoe_slow/aoe_slow_system.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_system.hpp"
-#include "modules/systems/system_autofire/autofire_system.hpp"
 #include "modules/systems/system_combo_unlock/combo_unlock_system.hpp"
 #include "modules/systems/system_cooldown/cooldown_system.hpp"
 #include "modules/systems/system_create_item/create_item_system.hpp"
@@ -93,6 +92,8 @@
 #include "modules/systems/system_scene_pressanykey_move_to_next/scene_pressanykey_move_to_next_system.hpp"
 #include "modules/systems/system_scene_splashscreen_move_to_next/system.hpp"
 #include "modules/systems/system_screenshake/system.hpp"
+#include "modules/systems/system_shoot_auto/autofire_system.hpp"
+#include "modules/systems/system_shoot_manual/manualfire_system.hpp"
 #include "modules/systems/system_shop/shop_components.hpp"
 #include "modules/systems/system_shop/shop_helpers.hpp"
 #include "modules/systems/system_spawner/spawner_components.hpp"
@@ -392,6 +393,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
     update_island_stranded_islander_system(r);
     update_island_cannon_repair_system(r, dt);
 
+    update_manualfire_system(r, dt);
     update_autofire_system(r, dt); // prefer after hardpoints_system
     update_ability_system(r, dt);
     update_aoe_slow_system(r, dt);

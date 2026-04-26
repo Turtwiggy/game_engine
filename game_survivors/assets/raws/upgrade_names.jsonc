@@ -92,7 +92,7 @@
     { "stat": "WEAPON_CLIP_SIZE", "rarity":"LEGENDARY",         "name": "Autoloader System",          "desc": "Continuous fire." },
     { "stat": "WEAPON_CLIP_SIZE", "rarity":"SUPER_LEGENDARY",   "name": "Buckets-of-Bullets!",        "desc": "Throw the buckets, too!" },
 
-    { "stat": "WEAPON_FIRERATE", "rarity":"COMMON",             "name": "Quick Ignition",             "desc": "Faster manual firing" },
+    { "stat": "WEAPON_FIRERATE", "rarity":"COMMON",             "name": "Quick Ignition",             "desc": "Faster fire rate" },
     { "stat": "WEAPON_FIRERATE", "rarity":"UNCOMMON",           "name": "Muzzle Loader",              "desc": "Reliable rapid firing" },
     { "stat": "WEAPON_FIRERATE", "rarity":"RARE",               "name": "Gatling Mechanism",          "desc": "Rotating barrels" },
     { "stat": "WEAPON_FIRERATE", "rarity":"LEGENDARY",          "name": "Pneumatic Rammer",           "desc": "No manual reload." },
@@ -114,7 +114,7 @@
     { "stat": "AREA_STACK_DAMAGE", "rarity": "UNCOMMON",        "name": "Burn++",                     "desc": "" },
     { "stat": "AREA_STACK_DAMAGE", "rarity": "RARE",            "name": "Burn+++",                    "desc": "" },
     { "stat": "AREA_STACK_DAMAGE", "rarity": "LEGENDARY",       "name": "Burn++++",                   "desc": "" },
-    { "stat": "AREA_STACK_DAMAGE", "rarity": "SUPER_LEGENDARY", "name": "+++++Burn+++++",             "desc": "" },
+    { "stat": "AREA_STACK_DAMAGE", "rarity": "SUPER_LEGENDARY", "name": "Burn+++++",                  "desc": "" },
 
     { "stat": "AREA_STACK_DURATION", "rarity": "COMMON",        "name": "Napalm+",                    "desc": "" },
     { "stat": "AREA_STACK_DURATION", "rarity": "UNCOMMON",      "name": "Napalm++",                   "desc": "" },
