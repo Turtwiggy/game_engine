@@ -82,6 +82,7 @@ update_selections(entt::registry& r,
   const bool is_colour = cell.name.find("Colour") != std::string::npos;
   const bool is_hull = cell.name.find("Hull") != std::string::npos;
   const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
+  const bool is_autofire = cell.name.find("Autoaim") != std::string::npos;
 
   std::string name = "";
 
@@ -113,6 +114,12 @@ update_selections(entt::registry& r,
     const auto& weapon = unlocked_weapons[cell.value];
     name = weapon.name.c_str();
     player_state.player_gun_key = weapon.key;
+  }
+
+  if (is_autofire) {
+    cell.value = engine::wrap(cell.value, 2);
+    // name = cell.value == 1 ? "On" : "Off";
+    player_state.autofire = cell.value;
   }
 
   // convert index to ability choice.
@@ -370,6 +377,7 @@ draw_card_inner(entt::registry& r,
       const bool is_colour = cell.name.find("Colour") != std::string::npos;
       const bool is_hull = cell.name.find("Hull") != std::string::npos;
       const bool is_weapon = cell.name.find("Weapon") != std::string::npos;
+      const bool is_autofire = cell.name.find("Autoaim") != std::string::npos;
 
       const float icon_sprite = 32;
       const float icon_box_size = 32;
@@ -399,6 +407,7 @@ draw_card_inner(entt::registry& r,
         draw_list->AddText(text_font, name_size, text_pos - ImVec2{ arrow_pad, 0 }, border_col, "<");
         draw_list->AddText(text_font, name_size, text_pos + ImVec2{ name_len.x + 8, 0 }, border_col, ">");
       }
+
       if (is_colour) {
 
         const auto text_size = 16;
@@ -418,6 +427,7 @@ draw_card_inner(entt::registry& r,
         draw_list->AddText(text_font, text_size, text_pos - ImVec2{ arrow_pad, 0 }, border_col, "<");
         draw_list->AddText(text_font, text_size, text_pos + ImVec2{ name_len.x + 8, 0 }, border_col, ">");
       }
+
       if (is_hull) {
 
         auto first_x = grid_tl.x + padding_x;
@@ -444,6 +454,7 @@ draw_card_inner(entt::registry& r,
           first_x += icon_box_size + padding_x; // move horizontally
         }
       }
+
       if (is_weapon) {
         const auto& weapons_c = get_first_component<SINGLE_Weapons>(r);
 
@@ -474,6 +485,25 @@ draw_card_inner(entt::registry& r,
 
           first_x += icon_box_size + padding_x; // move horizontally
         }
+      }
+
+      if (is_autofire) {
+
+        const auto text_size = 16;
+        const auto text = std::format("{}", (cell.value));
+        const auto col = active ? im_text_col : im_text_col_inactive;
+        const auto border_col = active ? im_greenish : im_window_border_col;
+        const float arrow_pad = 16;
+
+        ImGui::PushFont(text_font, text_size);
+        const auto name_len = ImGui::CalcTextSize(text.c_str());
+        ImGui::PopFont();
+        const auto text_pos = calc_center(grid_tl, grid_wh) - ImVec2{ 0.5f * name_len.x, 0.5f * name_len.y };
+        draw_list->AddText(text_font, text_size, text_pos, col, text.c_str());
+
+        // add some < and > arrow.
+        draw_list->AddText(text_font, text_size, text_pos - ImVec2{ arrow_pad, 0 }, border_col, "<");
+        draw_list->AddText(text_font, text_size, text_pos + ImVec2{ name_len.x + 8, 0 }, border_col, ">");
       }
     }
 
@@ -722,7 +752,7 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
 #endif
   auto& ri_c = SINGLE_RendererInfo::instance;
   GET_FIRST_OR_RETURN(SINGLE_SelectSceneData, r, ui_e, ui_c)
-  GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c)
+  // GET_FIRST_OR_RETURN(SINGLE_InputComponent, r, input_e, input_c)
   GET_FIRST_OR_RETURN(SINGLE_Hulls, r, hulls_e, hulls_c)
   GET_FIRST_OR_RETURN(SINGLE_Weapons, r, weapons_e, weapons_c)
   GET_FIRST_OR_RETURN(SINGLE_SteamControllerGameState, r, steam_state_e, steam_state_c)
@@ -805,6 +835,12 @@ update_ui_scene_select_system(entt::registry& r, const float dt)
         c1.name = "Weapon";
         c1.action = []() {};
         ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c1));
+
+        OptionsCell c2;
+        c2.name = "Autoaim";
+        c2.value = 1; // autoaim on by default
+        c2.action = []() {};
+        ui_state_c.state.cells.push_back(std::make_shared<OptionsCell>(c2));
 
         // OptionsCell c2;
         // c2.name = "Ability";

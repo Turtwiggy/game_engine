@@ -30,6 +30,7 @@ struct HullChoice
   std::string player_gun_key = "unknown";
   std::string player_ability_key = "unknown";
   std::string player_name = "unknown";
+  bool autofire = true;
 };
 
 struct SelectUI : public DefaultUI

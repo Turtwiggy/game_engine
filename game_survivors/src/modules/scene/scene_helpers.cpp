@@ -39,6 +39,7 @@
 #include "modules/events/event_scene_changed_update_water_shader/scene_changed_event_components.hpp"
 #include "modules/events/events_core/events_components.hpp"
 #include "modules/pathfinding_flowfield/pathfinding_flowfield_components.hpp"
+#include "modules/scene/scene_helpers.hpp"
 #include "modules/steam_input/steam_input_components.hpp"
 #include "modules/systems/system_ability/ability_components.hpp"
 #include "modules/systems/system_audio_mix/audio_mix_components.hpp"
@@ -97,17 +98,19 @@ connect_parent_and_weapon(entt::registry& r, entt::entity e, entt::entity wep_e)
 };
 
 entt::entity
-spawn_player(entt::registry& r,
-             std::string key,
-             std::string name,
-             int num,
-             int colour_idx,
-             std::string hull_key,
-             std::string weapon_key,
-             const glm::vec2 pos)
+spawn_player(entt::registry& r, const PlayerSpawnConfig& config)
 {
   const auto& hulls_c = get_first_component<SINGLE_Hulls>(r);
   const auto& weps_c = get_first_component<SINGLE_Weapons>(r);
+
+  const auto& key = config.key;
+  const auto& name = config.name;
+  const auto& player_idx = config.player_idx;
+  const auto& colour_idx = config.colour_idx;
+  const auto& hull_key = config.hull_key;
+  const auto& weapon_key = config.weapon_key;
+  const auto& pos = config.pos;
+  const auto& autofire = config.autofire;
 
   auto get_key = []<typename T>(const std::vector<T>& data, const std::string& key) -> std::optional<T> {
     const auto it = std::find_if(data.begin(), data.end(), [&key](const T& item) { return item.key == key; });
@@ -132,11 +135,21 @@ spawn_player(entt::registry& r,
     set_z_index(r, wep_e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
 
     if (weapon_data.type_as_enum == WEAPON_TYPE::PROJECTILE) {
-      r.emplace<AutofireComponent>(wep_e);
+
+      if (autofire)
+        r.emplace<AutofireComponent>(wep_e);
+      // else
+      //   r.emplace<ManualFireComponent>(wep_e);
+
       r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     }
     if (weapon_data.type_as_enum == WEAPON_TYPE::DEPLOY) {
-      r.emplace<AutofireComponent>(wep_e);
+
+      if (autofire)
+        r.emplace<AutofireComponent>(wep_e);
+      // else
+      //   r.emplace<ManualFireComponent>(wep_e);
+
       r.emplace<WeaponSeaTurret>(wep_e);
       r.emplace<BulletDef>(wep_e, get_bullet_def(r, wep_e));
     }
@@ -176,7 +189,7 @@ spawn_player(entt::registry& r,
   // }
 
   give_life(r, e, pos, hull_size);
-  r.emplace<PlayerComponent>(e, PlayerComponent{ .idx = num, .colour_idx = colour_idx, .display_name = name });
+  r.emplace<PlayerComponent>(e, PlayerComponent{ .idx = player_idx, .colour_idx = colour_idx, .display_name = name });
   r.emplace<CameraFollow>(e);
   r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
   r.emplace<MovementDirectComponent>(e);
@@ -345,11 +358,22 @@ spawn_players(entt::registry& r)
       throw std::runtime_error("weapon_str not set");
     SDL_Log("player wants to spawn with (boat)%s (weapon)%s", boat_str.c_str(), weapon_str.c_str());
 
+    const auto autofire = hull_keys[i].autofire;
     const auto player_name = hull_keys[i].player_name;
     const auto col_idx = hull_keys[i].player_colour_idx;
 
     const auto pos = get_player_spawn_point_around_starting_island(r, i);
-    const auto p = spawn_player(r, "actor_player", player_name, i, col_idx, boat_str, weapon_str, pos);
+
+    PlayerSpawnConfig config;
+    config.key = "actor_player";
+    config.name = player_name;
+    config.player_idx = i;
+    config.colour_idx = col_idx;
+    config.hull_key = boat_str;
+    config.weapon_key = weapon_str;
+    config.pos = pos;
+    config.autofire = autofire;
+    const auto p = spawn_player(r, config);
 
     if (handle_joined)
       r.get<SteamControllerComponent>(p).handles.push_back(handle);
@@ -579,7 +603,16 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // create_empty<CameraFreeMove>(r);
 
     const auto pos = rnd_position_in_map_but_not_inside_players_or_islands(r);
-    const auto p = spawn_player(r, "actor_player", "player", 0, 0, "dinghy", "weapon_deck_cannon", pos);
+
+    PlayerSpawnConfig config;
+    config.key = "actor_player";
+    config.name = "player";
+    config.player_idx = 0;
+    config.colour_idx = 0;
+    config.hull_key = "dinghy";
+    config.weapon_key = "weapon_deck_cannon";
+    config.pos = pos;
+    const auto p = spawn_player(r, config);
 
     const auto& controller_ui = get_first_component<SINGLE_SteamControllerGameState>(r);
     for (int i = 0; i < (int)controller_ui.handles_that_want_to_play.size(); i++) {

@@ -685,8 +685,19 @@ update_ui_survive_upgrade_system(entt::registry& r, const float dt)
     static bool init = false;
     if (!init) {
       for (int i = 0; i < 4; i++) {
+
         // create a fake player
-        auto e = spawn_player(r, "actor_player", "steve", i, i, "dinghy", "weapon_deck_cannon", { 0, 0 });
+        const PlayerSpawnConfig config{
+          .key = "actor_player",
+          .name = "steve",
+          .player_idx = i,
+          .colour_idx = i,
+          .hull_key = "dinghy",
+          .weapon_key = "weapon_deck_cannon",
+          .pos = { 0, 0 },
+          .autofire = false,
+        };
+        auto e = spawn_player(r, config);
         if (i == 0)
           r.emplace<KeyboardComponent>(e);
       }
